@@ -244,6 +244,25 @@ export default class GlobalAttributes {
         return this.container.getByTestId('saveSetting');
     }
 
+    get saveError() {
+        return this.container.getByTestId('attributeSaveError');
+    }
+
+    optionChip(name: string) {
+        return this.container
+            .getByTestId('attributeOptionsValues__chip')
+            .filter({has: this.container.page().getByTestId('attributeOptionsValues__chipLabel').getByText(name, {exact: true})});
+    }
+
+    /**
+     * Clicks an option's remove button. A saved option of an attribute applied to
+     * channels is removed only once the server says no channel uses it, so assert
+     * the outcome rather than assuming the chip is gone.
+     */
+    async removeOption(name: string) {
+        await this.optionChip(name).getByRole('button', {name: 'Remove option'}).click();
+    }
+
     async gotoListing() {
         await this.container.page().goto(GLOBAL_ATTRIBUTES_PATH);
         await expect(this.container.page().getByTestId(LISTING_TEST_IDS.search)).toBeVisible();

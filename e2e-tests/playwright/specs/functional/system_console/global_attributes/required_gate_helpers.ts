@@ -63,11 +63,18 @@ export type ChannelAttributeFieldPair = {
  *
  * `displayName` is set on the template only, as an API or plugin caller may
  * leave it: the linked channel field carries none of its own.
+ *
+ * `permissionValues` sets who may write the linked channel field's values.
  */
 export async function createChannelAttributeField(
     adminClient: Client4,
     name: string,
-    opts: {options?: string[]; required?: boolean; displayName?: string} = {},
+    opts: {
+        options?: string[];
+        required?: boolean;
+        displayName?: string;
+        permissionValues?: 'none' | 'sysadmin' | 'admin' | 'member';
+    } = {},
 ): Promise<ChannelAttributeFieldPair> {
     const templateAttrs: Record<string, unknown> = {};
     if (opts.options?.length) {
@@ -94,7 +101,7 @@ export async function createChannelAttributeField(
         target_id: '',
         linked_field_id: templateField.id,
         permission_field: 'admin',
-        permission_values: 'admin',
+        permission_values: opts.permissionValues ?? 'admin',
     } as Parameters<Client4['createPropertyField']>[2]);
 
     if (!opts.required) {
