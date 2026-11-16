@@ -9,9 +9,10 @@ import (
 	"net/http"
 	"path/filepath"
 	"slices"
+	"time"
 
-	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
+	openpgp "github.com/ProtonMail/go-crypto/openpgp/v2"
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -123,8 +124,14 @@ func verifyBinarySignature(publicKey, signedFile, signature io.Reader) error {
 	if err != nil {
 		return errors.Wrap(err, "can't read public key")
 	}
-	if _, err = openpgp.CheckDetachedSignature(keyring, signedFile, signature, nil); err != nil {
+	sig, signer, err := openpgp.VerifyDetachedSignature(keyring, signedFile, signature, nil)
+	if err != nil {
 		return errors.Wrap(err, "error while checking the signature")
+	}
+	// v2 checks key validity at the signature's creation time, so a backdated
+	// signature from a retired key would pass. Re-check against the current time.
+	if _, ok := signer.SigningKeyById(time.Now(), *sig.IssuerKeyId, nil); !ok {
+		return errors.New("signing key is revoked, expired or invalid")
 	}
 	return nil
 }

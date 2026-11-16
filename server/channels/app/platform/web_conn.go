@@ -421,20 +421,23 @@ func (wc *WebConn) Pump() {
 	wg.Add(1)
 	go wc.pluginPostedConsumer(&wg)
 
-	wc.readPump()
-	close(wc.endWritePump)
-	close(wc.pluginPosted)
-	wg.Wait()
-	wc.Platform.HubUnregister(wc)
-	close(wc.pumpFinished)
+	defer func() {
+		close(wc.endWritePump)
+		close(wc.pluginPosted)
+		wg.Wait()
+		wc.Platform.HubUnregister(wc)
+		close(wc.pumpFinished)
 
-	userID := wc.UserId
-	wc.Platform.Go(func() {
-		wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
-			hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
-			return true
-		}, plugin.OnWebSocketDisconnectID)
-	})
+		userID := wc.UserId
+		wc.Platform.Go(func() {
+			wc.HookRunner.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
+				hooks.OnWebSocketDisconnect(wc.GetConnectionID(), userID)
+				return true
+			}, plugin.OnWebSocketDisconnectID)
+		})
+	}()
+
+	wc.readPump()
 }
 
 func (wc *WebConn) readPump() {
@@ -832,7 +835,7 @@ func (wc *WebConn) IsBasicAuthenticated() bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", mlog.Err(err))
 			}
 
 			wc.SetSessionToken("")
@@ -1197,7 +1200,7 @@ func (wc *WebConn) isMemberOfTeam(teamID string) bool {
 			if err.StatusCode >= http.StatusBadRequest && err.StatusCode < http.StatusInternalServerError {
 				wc.Platform.logger.Debug("Invalid session.", mlog.Err(err))
 			} else {
-				wc.Platform.logger.Error("Could not get session", mlog.String("session_token", wc.GetSessionToken()), mlog.Err(err))
+				wc.Platform.logger.Error("Could not get session", mlog.Err(err))
 			}
 			return false
 		}

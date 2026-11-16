@@ -44,6 +44,7 @@ function mapStateToProps(state: GlobalState) {
     const siteName = config.SiteName || 'Mattermost';
     const enableIncomingWebhooks = config.EnableIncomingWebhooks === 'true';
     const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
+    const enableOutgoingOAuthConnections = config.EnableOutgoingOAuthConnections === 'true';
     const enableOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
     const enablePluginMarketplace = isMarketplaceEnabled(state);
     const canManageTeamIntegrations = (
@@ -53,7 +54,8 @@ function mapStateToProps(state: GlobalState) {
         haveICurrentTeamPermission(state, Permissions.MANAGE_OWN_INCOMING_WEBHOOKS) ||
         haveICurrentTeamPermission(state, Permissions.MANAGE_OUTGOING_WEBHOOKS) ||
         haveICurrentTeamPermission(state, Permissions.MANAGE_OWN_OUTGOING_WEBHOOKS) ||
-        haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH})
+        haveISystemPermission(state, {permission: Permissions.MANAGE_OAUTH}) ||
+        (enableOutgoingOAuthConnections && haveISystemPermission(state, {permission: Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS}))
     );
     const canManageSystemBots = (haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}) || haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
     const canManageIntegrations = canManageTeamIntegrations || canManageSystemBots;
@@ -84,6 +86,7 @@ function mapStateToProps(state: GlobalState) {
         canManageIntegrations,
         enableIncomingWebhooks,
         enableOAuthServiceProvider,
+        enableOutgoingOAuthConnections,
         enableOutgoingWebhooks,
         canManageSystemBots,
         enablePluginMarketplace,
