@@ -129,8 +129,11 @@ reviews:
         - Store methods take `request.CTX`, not `context.Context` (see server/AGENTS.md).
         - Do not flag premature optimizations or allocation micro-tuning unless the code is
           on a hot path (post creation, websocket broadcast, permission checks).
-        - Dependency-bump PRs (go.mod/go.sum only): review only for breaking API changes
-          and known CVEs, not upstream library design.
+
+    - path: "server/{go.mod,go.sum}"
+      instructions: |
+        Dependency-bump PRs: review only for breaking API changes and known CVEs, not
+        upstream library design.
 
     - path: "server/**/*_test.go"
       instructions: |
