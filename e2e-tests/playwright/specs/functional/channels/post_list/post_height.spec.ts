@@ -501,11 +501,18 @@ test.describe('Post height', () => {
             name: 'image preview',
             makePost: (file: string) => seedPost({message: `${fileServerUrl}/${file}`}),
         },
+        {
+            // An image shorter than its line, where its vertical alignment affects the height of the line
+            name: 'Markdown image between words',
+            files: ['image-100x20.jpg'],
+            makePost: (file: string) =>
+                seedPost({message: `text before ![inline image](${fileServerUrl}/${file}) text after`}),
+        },
     ];
 
-    for (const file of ['image-2000x400.jpg', 'image-1200x300.jpg']) {
-        for (const messageDisplay of ['full', 'compact']) {
-            for (const surface of wideImageSurfaces) {
+    for (const surface of wideImageSurfaces) {
+        for (const file of surface.files ?? ['image-2000x400.jpg', 'image-1200x300.jpg']) {
+            for (const messageDisplay of ['full', 'compact']) {
                 test(
                     `image placeholder should match the size of the loaded image (${file} ${surface.name}, ${messageDisplay} display)`,
                     {tag: '@post_list'},
@@ -557,12 +564,8 @@ test.describe('Post height', () => {
                         await expect(image).toBeVisible();
                         await waitForImagesLoaded(postComponent.container);
 
-                        // * Verify that the image has the size of the placeholder and the post's height didn't change
-                        const imageBox = await image.boundingBox();
-                        expect({width: imageBox?.width, height: imageBox?.height}).toEqual({
-                            width: placeholderBox?.width,
-                            height: placeholderBox?.height,
-                        });
+                        // * Verify that the image has the placeholder's position and size and the post's height didn't change
+                        expect(await image.boundingBox()).toEqual(placeholderBox);
                         expect(await sizeWatcher.getObservations()).toHaveLength(1);
                     },
                 );
