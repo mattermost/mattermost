@@ -156,22 +156,30 @@ func systemSettingRoleChain(role string, isBot bool) []string {
 // to their serialized override values. Returns an empty map when ABAC or
 // SystemSettingPolicies is disabled, unlicensed, or no policy matches.
 func (a *App) EvaluateClientConfigOverrides(rctx request.CTX) (map[string]string, *model.AppError) {
+	overrides, _, appErr := a.evaluateClientConfigOverrides(rctx)
+	return overrides, appErr
+}
+
+// evaluateClientConfigOverrides is EvaluateClientConfigOverrides that also
+// reports whether any policy targets the session's role chain. When none does,
+// the overrides are empty regardless of the session's attributes.
+func (a *App) evaluateClientConfigOverrides(rctx request.CTX) (map[string]string, bool, *model.AppError) {
 	acs := a.Srv().Channels().AccessControl
 	if acs == nil || !systemSettingPoliciesEnabled(a.Config()) || !model.MinimumEnterpriseAdvancedLicense(a.License()) {
-		return map[string]string{}, nil
+		return map[string]string{}, false, nil
 	}
 
 	session := rctx.Session()
 	if session == nil || session.UserId == "" {
-		return map[string]string{}, nil
+		return map[string]string{}, false, nil
 	}
 
 	policies, err := a.Srv().Channels().systemSettingPoliciesCache.Get(rctx, a.Srv().Store().AccessControlPolicy())
 	if err != nil {
-		return nil, model.NewAppError("EvaluateClientConfigOverrides", "app.access_control.evaluate_system_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return nil, false, model.NewAppError("EvaluateClientConfigOverrides", "app.access_control.evaluate_system_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	if len(policies) == 0 {
-		return map[string]string{}, nil
+		return map[string]string{}, false, nil
 	}
 
 	systemRole := ResolveSystemRole(session.Roles)
@@ -184,12 +192,12 @@ func (a *App) EvaluateClientConfigOverrides(rctx request.CTX) (map[string]string
 		}
 	}
 	if !hasCandidate {
-		return map[string]string{}, nil
+		return map[string]string{}, false, nil
 	}
 
 	subject, appErr := a.BuildAccessControlSubjectForSession(rctx, "")
 	if appErr != nil {
-		return nil, appErr
+		return nil, true, appErr
 	}
 
 	roleChain := systemSettingRoleChain(systemRole, subject.IsBot)
@@ -217,7 +225,7 @@ func (a *App) EvaluateClientConfigOverrides(rctx request.CTX) (map[string]string
 				Action: rule.Key,
 			})
 			if evalErr != nil {
-				return nil, evalErr
+				return nil, true, evalErr
 			}
 			if decision.Decision {
 				overrides[rule.Key] = rule.Value
@@ -225,7 +233,7 @@ func (a *App) EvaluateClientConfigOverrides(rctx request.CTX) (map[string]string
 		}
 	}
 
-	return overrides, nil
+	return overrides, true, nil
 }
 
 // validateSystemSettingPolicyOnSave validates system_setting policy invariants

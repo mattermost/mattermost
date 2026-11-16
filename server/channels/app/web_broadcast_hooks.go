@@ -28,6 +28,7 @@ const (
 	broadcastAbacBookmarks      = "abac_bookmarks"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
 	broadcastSystemSetting      = "system_setting_policy"
+	broadcastSystemSettingByID  = "system_setting_overrides_by_session"
 )
 
 func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
@@ -43,6 +44,7 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 		broadcastSystemSetting:      &systemSettingPolicyBroadcastHook{},
+		broadcastSystemSettingByID:  &systemSettingOverridesBySessionBroadcastHook{},
 	}
 }
 
@@ -755,6 +757,44 @@ func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocket
 			mlog.String("user_id", webConn.UserId),
 			mlog.Err(appErr),
 		)
+		msg.Reject()
+		return nil
+	}
+	if overrides == nil {
+		overrides = map[string]string{}
+	}
+
+	msg.Add("overrides", overrides)
+	return nil
+}
+
+// systemSettingOverridesBySessionBroadcastHook delivers overrides that were
+// already evaluated on the publishing node, keyed by session ID. Connections
+// whose session has no entry have the event rejected so they keep their last
+// known overrides.
+type systemSettingOverridesBySessionBroadcastHook struct{}
+
+func useSystemSettingOverridesBySessionHook(message *model.WebSocketEvent, overridesBySession map[string]map[string]string) {
+	message.GetBroadcast().AddHook(broadcastSystemSettingByID, map[string]any{
+		"overrides_by_session": overridesBySession,
+	})
+}
+
+func (h *systemSettingOverridesBySessionBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	overridesBySession, err := getTypedArg[map[string]map[string]string](args, "overrides_by_session")
+	if err != nil {
+		msg.Reject()
+		return errors.Wrap(err, "Invalid overrides_by_session value passed to systemSettingOverridesBySessionBroadcastHook")
+	}
+
+	session := webConn.GetSession()
+	if session == nil || session.Id == "" {
+		msg.Reject()
+		return nil
+	}
+
+	overrides, ok := overridesBySession[session.Id]
+	if !ok {
 		msg.Reject()
 		return nil
 	}

@@ -202,11 +202,16 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 	}
 
 	if len(attrsToMerge) > 0 {
+		sessionID := rctx.Session().Id
+		prevEpoch, prevEpochErr := a.Srv().Store().SessionAttribute().GetEpoch(sessionID)
 		refreshAt := model.GetMillis()
-		if err := a.Srv().Store().SessionAttribute().Refresh(rctx.Session().Id, attrsToMerge, refreshAt); err != nil {
+		if err := a.Srv().Store().SessionAttribute().Refresh(sessionID, attrsToMerge, refreshAt); err != nil {
 			rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 		} else {
-			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt)
+			a.broadcastSessionAttributes(rctx, sessionID, attrsToMerge, refreshAt)
+			if epoch, err := a.Srv().Store().SessionAttribute().GetEpoch(sessionID); prevEpochErr == nil && err == nil && epoch != prevEpoch {
+				a.queueClientConfigOverridesPush(rctx, rctx.Session().UserId, sessionID, false)
+			}
 		}
 	}
 }

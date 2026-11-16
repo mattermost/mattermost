@@ -1576,3 +1576,76 @@ func TestSystemSettingPolicyBroadcastHook_Process(t *testing.T) {
 		suite3.AssertExpectations(t)
 	})
 }
+
+func TestSystemSettingOverridesBySessionBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &systemSettingOverridesBySessionBroadcastHook{}
+
+	userID := model.NewId()
+	matchedSessionID := model.NewId()
+	clearedSessionID := model.NewId()
+	baseEvent := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", userID, nil, "")
+	args := map[string]any{
+		"overrides_by_session": map[string]map[string]string{
+			matchedSessionID: {model.ClientConfigKeyMobileEnableBiometrics: "true"},
+			clearedSessionID: {},
+		},
+	}
+
+	makeConn := func(session *model.Session) *platform.WebConn {
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    &platform_mocks.SuiteIFace{},
+		}
+		if session != nil {
+			wc.SetSession(session)
+		}
+		return wc
+	}
+
+	t.Run("attaches the entry for the connection's session", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(&model.Session{Id: matchedSessionID, UserId: userID}), args))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "true"}, msg.Get("overrides"))
+		assert.Nil(t, baseEvent.GetData()["overrides"], "must not mutate the shared original event")
+	})
+
+	t.Run("attaches an empty map when the session's overrides were cleared", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(&model.Session{Id: clearedSessionID, UserId: userID}), args))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, map[string]string{}, msg.Get("overrides"))
+	})
+
+	t.Run("rejects connections whose session has no entry", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(&model.Session{Id: model.NewId(), UserId: userID}), args))
+		assert.True(t, msg.Event().IsRejected())
+		assert.False(t, baseEvent.IsRejected())
+	})
+
+	t.Run("rejects unauthenticated connections", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(nil), args))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("decodes args that went through a cluster round trip", func(t *testing.T) {
+		buf, err := json.Marshal(args)
+		require.NoError(t, err)
+		var decoded map[string]any
+		require.NoError(t, json.Unmarshal(buf, &decoded))
+
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(&model.Session{Id: matchedSessionID, UserId: userID}), decoded))
+		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "true"}, msg.Get("overrides"))
+	})
+
+	t.Run("rejects the event when args are invalid", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.Error(t, hook.Process(msg, makeConn(&model.Session{Id: matchedSessionID, UserId: userID}), map[string]any{}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+}
