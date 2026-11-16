@@ -24,9 +24,8 @@ const maxServerFilenameLength = 255
 
 var safeServerFilenameRegex = regexp.MustCompile(`^[A-Za-z0-9][A-Za-z0-9_-]*\.zip$`)
 
-// safeServerFilename returns name if it is safe to use as a local file name,
-// otherwise fallback. name comes from an untrusted server header, so it must
-// be a plain .zip base name of at most 255 characters with no path elements.
+// safeServerFilename returns name if it is a plain .zip base name of at most
+// 255 characters, otherwise fallback.
 func safeServerFilename(name, fallback string) string {
 	if len(name) > maxServerFilenameLength || !safeServerFilenameRegex.MatchString(name) {
 		return fallback
