@@ -390,6 +390,32 @@ describe('components/channel_view', () => {
                 expect(history.replace).not.toHaveBeenCalled();
             });
 
+            it('does not pass a stale permalink focusedPostId along with a sub-path', () => {
+                const reg = {...registration, handlesSubpaths: true};
+                const {rerender} = renderWithContext(
+                    <ChannelView
+                        {...baseProps}
+                        history={makeHistory()}
+                        match={permalinkMatch}
+                        channelViewPluginComponent={reg}
+                    />,
+                    state,
+                );
+                expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-focused-post-id', 'postid');
+
+                rerender(
+                    <ChannelView
+                        {...baseProps}
+                        history={makeHistory()}
+                        match={subpathMatch}
+                        channelViewPluginComponent={reg}
+                    />,
+                );
+
+                expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-subpath', 'pages/abc123');
+                expect(screen.getByTestId('plugin-channel-view')).not.toHaveAttribute('data-focused-post-id');
+            });
+
             it('passes the updated sub-path when it changes within the channel', () => {
                 const reg = {...registration, handlesSubpaths: true};
                 const {rerender} = renderWithContext(

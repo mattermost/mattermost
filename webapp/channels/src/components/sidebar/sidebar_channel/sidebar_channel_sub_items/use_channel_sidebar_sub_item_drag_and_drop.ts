@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useStore} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -74,7 +74,9 @@ export function useChannelSidebarSubItemDragAndDrop(
     const expandTimer = useRef<{key: string; id: number} | undefined>(undefined);
 
     const latest = useRef({channel, items, expansion});
-    latest.current = {channel, items, expansion};
+    useLayoutEffect(() => {
+        latest.current = {channel, items, expansion};
+    });
 
     const clearExpandTimer = useCallback(() => {
         if (expandTimer.current) {

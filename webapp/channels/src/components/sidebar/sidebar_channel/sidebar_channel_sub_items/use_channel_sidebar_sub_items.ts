@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useCallback, useEffect, useMemo, useRef} from 'react';
+import {useCallback, useEffect, useLayoutEffect, useMemo, useRef} from 'react';
 import {useDispatch, useSelector, useStore} from 'react-redux';
 import {useLocation} from 'react-router-dom';
 
@@ -95,10 +95,12 @@ export function useChannelSidebarSubItems(channel: Channel | undefined, teamName
     // Read through a ref so the effect below only reacts to activeKey transitions: collapsing while an
     // item stays active must not re-expand until the user navigates to a (different) sub-item.
     const storedExpandedRef = useRef(storedExpanded);
-    storedExpandedRef.current = storedExpanded;
-
     const itemsRef = useRef(items);
-    itemsRef.current = items;
+
+    useLayoutEffect(() => {
+        storedExpandedRef.current = storedExpanded;
+        itemsRef.current = items;
+    });
 
     useEffect(() => {
         if (activeKey && !storedExpandedRef.current) {

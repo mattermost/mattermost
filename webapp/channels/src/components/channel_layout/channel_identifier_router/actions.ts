@@ -131,7 +131,7 @@ export async function getPathFromIdentifier(state: GlobalState, path: string, id
 export function goToChannelByChannelId(match: Match, history: History): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const {team, identifier} = match.params;
+        const {team, identifier, subpath} = match.params;
         const channelId = identifier.toLowerCase();
 
         let channel = getChannel(state, channelId);
@@ -152,7 +152,7 @@ export function goToChannelByChannelId(match: Match, history: History): ActionFu
         } else if (channel.type === Constants.GM_CHANNEL) {
             history.replace(`/${team}/messages/${channel.name}`);
         } else {
-            history.replace(`/${team}/channels/${channel.name}`);
+            history.replace(`/${team}/channels/${channel.name}${subpath ? `/${subpath}` : ''}`);
         }
         return {data: undefined};
     };
