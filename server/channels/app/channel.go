@@ -3758,7 +3758,7 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 		}
 	}
 
-	_, err = a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
+	viewedAt, err := a.Srv().Store().Channel().UpdateLastViewedAt(channelsToView, userID)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
@@ -3768,6 +3768,8 @@ func (a *App) MarkChannelsAsViewed(rctx request.CTX, channelIDs []string, userID
 			return nil, model.NewAppError("MarkChannelsAsViewed", "app.channel.update_last_viewed_at.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
+
+	a.runChannelHasBeenViewedHooks(rctx, userID, viewedAt, collapsedThreadsSupported && isCRTEnabled)
 
 	if *a.Config().ServiceSettings.EnableChannelViewedMessages {
 		message := model.NewWebSocketEvent(model.WebsocketEventMultipleChannelsViewed, "", "", userID, nil, "")

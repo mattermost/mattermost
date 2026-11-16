@@ -76,6 +76,8 @@ const (
 	MessagesWillBeConsumedWithContextID       = 56
 	OnLicenseChangedID                        = 57
 	PropertyValuesHaveBeenUpdatedID           = 58
+	ChannelHasBeenViewedID                    = 59
+	ThreadHasBeenViewedID                     = 60
 	TotalHooksID                              = iota
 )
 
@@ -575,4 +577,35 @@ type Hooks interface {
 	//
 	// Minimum server version: 12.2
 	PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
+
+	// ChannelHasBeenViewed is invoked after a user views a channel and their read position in it
+	// moves forward. It is a notification only, and runs asynchronously.
+	//
+	// viewedAt is the user's new read position: the CreateAt of the newest post in the channel when
+	// they viewed it. Every post in the channel created at or before viewedAt was there to be seen.
+	// Read positions only move backward when a user marks a post as unread, which does not invoke
+	// this hook, so a plugin tracking the highest viewedAt per user never loses a view.
+	//
+	// When collapsedThreads is true, the user viewed the channel with Collapsed Reply Threads, which
+	// leaves replies out of the channel: viewedAt then covers only root posts, and
+	// ThreadHasBeenViewed reports the replies the user reads. When it is false, replies were shown in
+	// the channel and viewedAt covers them too.
+	//
+	// Viewing a channel without unread posts does not move the read position and does not invoke this
+	// hook.
+	//
+	// Minimum server version: 12.3
+	ChannelHasBeenViewed(c *Context, userID, channelID string, viewedAt int64, collapsedThreads bool)
+
+	// ThreadHasBeenViewed is invoked after a user views a thread they follow and their read position
+	// in it moves forward. It is a notification only, and runs asynchronously.
+	//
+	// threadID is the id of the thread's root post, and channelID the channel it was posted in.
+	// viewedAt is the user's new read position in the thread: every reply created at or before it
+	// was there to be seen. It is never later than the time the server handled the view.
+	//
+	// Marking a thread as unread moves its read position backward and does not invoke this hook.
+	//
+	// Minimum server version: 12.3
+	ThreadHasBeenViewed(c *Context, userID, channelID, threadID string, viewedAt int64)
 }
