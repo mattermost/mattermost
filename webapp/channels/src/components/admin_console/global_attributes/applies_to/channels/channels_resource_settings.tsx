@@ -177,8 +177,22 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         // same check the rest of this function already applies.
         const stillCurrent = () => mountedRef.current && channelFieldIdRef.current === notifyFieldId;
 
+        // Channel admins were notified recently, so the server would refuse
+        // this one: say so now rather than after the admin confirms.
+        const waitMillis = missingValues.summary.notifyAvailableAt - Date.now();
+        if (waitMillis > 0) {
+            setNotifyState({
+                fieldId: notifyFieldId,
+                status: 'notify_failed',
+                truncated: false,
+                failureMessage: formatMessage(messages.notifyCoolingDown, {count: Math.ceil(waitMillis / 60000)}),
+            });
+            return;
+        }
+
         const confirmed = await promptNotifyChannelAdmins({
             totalCount: missingValues.summary.totalCount,
+            sharedCount: missingValues.summary.sharedCount,
             uniqueAdminCount: missingValues.summary.uniqueAdminCount,
             noAdminCount: missingValues.summary.noAdminCount,
             messagePreview: missingValues.summary.messagePreview,
@@ -215,7 +229,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         if (stillCurrent()) {
             missingValues.reload();
         }
-    }, [channelFieldId, missingValues, promptNotifyChannelAdmins, attributeDisplayName]);
+    }, [channelFieldId, missingValues, promptNotifyChannelAdmins, attributeDisplayName, formatMessage]);
 
     const handleChangePolicySelect = useCallback((changePolicy: ChannelChangePolicy) => {
         onChange({...value, changePolicy});
@@ -398,6 +412,10 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
 };
 
 const messages = defineMessages({
+    notifyCoolingDown: {
+        id: 'admin.global_attributes.applies_to.channels.missing_values.notify_cooling_down',
+        defaultMessage: 'Channel admins were recently notified about this. You can send another notification in {count, plural, one {# minute} other {# minutes}}.',
+    },
     on: {id: 'admin.global_attributes.applies_to.channels.toggle.on', defaultMessage: 'On'},
     off: {id: 'admin.global_attributes.applies_to.channels.toggle.off', defaultMessage: 'Off'},
     requiredLabel: {id: 'admin.global_attributes.applies_to.channels.required.label', defaultMessage: 'Required'},

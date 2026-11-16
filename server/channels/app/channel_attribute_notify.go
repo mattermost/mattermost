@@ -141,18 +141,27 @@ func (a *App) claimChannelAttributeNotifyThrottle(fieldID string) (claimed bool,
 	return claimed, token, nil
 }
 
-// channelAttributeNotifyThrottledError names the wait until the next notify
-// is accepted. The claim's value is the millis it was written at; when it
-// can't be read or looks expired (a lagging replica, a release in between),
-// it names no wait rather than a wrong one.
-func (a *App) channelAttributeNotifyThrottledError(rctx request.CTX, fieldID string) *model.AppError {
-	var remainingMillis int64
-	if system, err := a.Srv().Store().System().GetByName(channelAttributeNotifyThrottleKey(fieldID)); err != nil {
+// channelAttributeNotifyCooldownRemaining is how long until the next notify
+// for fieldID is accepted. The claim's value is the millis it was written at;
+// when it can't be read or looks expired (no claim, a lagging replica, a
+// release in between), it answers 0 rather than a wrong wait.
+func (a *App) channelAttributeNotifyCooldownRemaining(rctx request.CTX, fieldID string) int64 {
+	system, err := a.Srv().Store().System().GetByName(channelAttributeNotifyThrottleKey(fieldID))
+	if err != nil {
 		rctx.Logger().Debug("Failed to read channel attribute notify cooldown", mlog.String("field_id", fieldID), mlog.Err(err))
-	} else if claimedAt, parseErr := strconv.ParseInt(system.Value, 10, 64); parseErr == nil {
-		remainingMillis = claimedAt + channelAttributeNotifyCoolOffMillis - model.GetMillis()
+		return 0
 	}
+	claimedAt, parseErr := strconv.ParseInt(system.Value, 10, 64)
+	if parseErr != nil {
+		return 0
+	}
+	return max(claimedAt+channelAttributeNotifyCoolOffMillis-model.GetMillis(), 0)
+}
 
+// channelAttributeNotifyThrottledError names the wait until the next notify
+// is accepted, or no wait when it can't be worked out.
+func (a *App) channelAttributeNotifyThrottledError(rctx request.CTX, fieldID string) *model.AppError {
+	remainingMillis := a.channelAttributeNotifyCooldownRemaining(rctx, fieldID)
 	if remainingMillis <= 0 {
 		return model.NewAppError("NotifyChannelAdminsOfMissingAttribute", "api.property_field.notify_missing_values.throttled_unknown_wait.app_error", nil, "", http.StatusTooManyRequests)
 	}
