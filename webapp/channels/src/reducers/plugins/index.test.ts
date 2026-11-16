@@ -26,6 +26,7 @@ function getBaseState(): PluginsState {
         siteStatsHandlers: {},
         userSettings: {},
         channelSettingsTabs: [],
+        loadStatus: {inFlight: 0},
     };
 }
 
@@ -177,7 +178,6 @@ describe('channel settings tabs', () => {
 
         expect(nextState.channelSettingsTabs).toEqual([]);
 
-        // eslint-disable-next-line no-console
         expect(console.warn).toHaveBeenCalled();
     });
 
@@ -393,5 +393,44 @@ describe('components — ChannelSidebarSubItems slot', () => {
 
         state = pluginReducers(state, {type: UserTypes.LOGOUT_SUCCESS} as any);
         expect(state.components.ChannelSidebarSubItems).toEqual([]);
+    });
+});
+
+describe('loadStatus', () => {
+    it('starts with nothing in flight and no synchronized session', () => {
+        expect(pluginReducers(undefined, {type: '@@INIT'} as any).loadStatus).toEqual({inFlight: 0});
+    });
+
+    it('counts loads in flight and never goes below zero', () => {
+        let state = pluginReducers(undefined, {type: ActionTypes.PLUGIN_LOADS_STARTED});
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_STARTED});
+        expect(state.loadStatus.inFlight).toBe(2);
+
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {}});
+        expect(state.loadStatus.inFlight).toBe(1);
+
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {}});
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {}});
+        expect(state.loadStatus.inFlight).toBe(0);
+    });
+
+    it('records the synchronized user, including the logged out empty id, and keeps it across other loads', () => {
+        let state = pluginReducers(undefined, {type: ActionTypes.PLUGIN_LOADS_STARTED});
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: ''}});
+        expect(state.loadStatus).toEqual({inFlight: 0, syncedUserId: ''});
+
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_STARTED});
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: undefined}});
+        expect(state.loadStatus).toEqual({inFlight: 0, syncedUserId: ''});
+
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_STARTED});
+        state = pluginReducers(state, {type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: 'user1'}});
+        expect(state.loadStatus.syncedUserId).toBe('user1');
+    });
+
+    it('keeps the status on logout', () => {
+        let state = pluginReducers(undefined, {type: ActionTypes.PLUGIN_LOADS_STARTED});
+        state = pluginReducers(state, {type: UserTypes.LOGOUT_SUCCESS} as any);
+        expect(state.loadStatus.inFlight).toBe(1);
     });
 });

@@ -394,6 +394,20 @@ describe('components/sidebar/sidebar_channel/sidebar_channel_sub_items', () => {
             expect(screen.getByRole('menuitem', {name: 'Rename'}).querySelector('i')).not.toBeInTheDocument();
         });
 
+        test('reads the actions once per open, not on interaction inside the open menu', async () => {
+            renderItems({}, menuState());
+
+            await userEvent.click(menuButton('Board view'));
+            expect(getItemActions).toHaveBeenCalledTimes(1);
+
+            await userEvent.keyboard('{ArrowDown}');
+            await userEvent.hover(screen.getByRole('menuitem', {name: 'Delete'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Delete'}));
+
+            await waitFor(() => expect(onDelete).toHaveBeenCalledTimes(1));
+            expect(getItemActions).toHaveBeenCalledTimes(1);
+        });
+
         test('shows a disabled entry when there are no actions', async () => {
             getItemActions.mockReturnValue(null);
             renderItems({}, menuState());

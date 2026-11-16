@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {act} from '@testing-library/react';
+import {createMemoryHistory} from 'history';
 import React from 'react';
+import {Route} from 'react-router-dom';
 
 import type {Channel} from '@mattermost/types/channels';
 
@@ -11,6 +14,7 @@ import {clearLoggedChannelViewErrors} from 'selectors/channel_view_plugin';
 
 import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {boardChannelsState} from 'utils/channel_kind_test_utils';
+import {ActionTypes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -100,6 +104,7 @@ describe('components/channel_view', () => {
         restrictDirectMessage: false,
         channelViewPluginComponent: null,
         channelKind: 'channel' as const,
+        pluginsLoaded: true,
     };
 
     it('should call an archived board a board', () => {
@@ -518,6 +523,30 @@ describe('components/channel_view', () => {
                 expect(screen.getByTestId('plugin-channel-view')).not.toHaveAttribute('data-subpath');
             });
 
+            it('does not redirect while plugins are still loading, then redirects once they have loaded', () => {
+                const history = makeHistory();
+                const {rerender} = renderWithContext(
+                    <ChannelView
+                        {...baseProps}
+                        history={history}
+                        match={subpathMatch}
+                        pluginsLoaded={false}
+                    />,
+                    state,
+                );
+                expect(history.replace).not.toHaveBeenCalled();
+
+                rerender(
+                    <ChannelView
+                        {...baseProps}
+                        history={history}
+                        match={subpathMatch}
+                        pluginsLoaded={true}
+                    />,
+                );
+                expect(history.replace).toHaveBeenCalledWith('/team/channels/channel');
+            });
+
             it('redirects to the channel root when there is no plugin view', () => {
                 const history = makeHistory();
                 renderWithContext(
@@ -711,5 +740,93 @@ describe('components/channel_view connected', () => {
         expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("ChannelView: matcher for plugin 'bad-plugin' threw"), expect.any(Error));
 
         consoleSpy.mockRestore();
+    });
+
+    describe('sub-path deep links', () => {
+        const team = TestHelper.getTeamMock({id: 'teamId', name: 'team'});
+        const namedChannel = {...channel, name: 'channel'};
+
+        function makeDeepLinkState(extra: Record<string, unknown> = {}) {
+            const base = makeState([]) as any;
+            return {
+                ...base,
+                entities: {
+                    ...base.entities,
+                    channels: {...base.entities.channels, channels: {[channel.id]: namedChannel}},
+                    teams: {currentTeamId: team.id, teams: {[team.id]: team}},
+                    users: {currentUserId: 'user1'},
+                },
+                ...extra,
+            } as unknown as Partial<GlobalState>;
+        }
+
+        function renderDeepLink(state: Partial<GlobalState>) {
+            const history = createMemoryHistory({initialEntries: ['/team/channels/channel/pages/abc123']});
+            const result = renderWithContext(
+                <Route path='/:team/channels/:identifier/:subpath(.+)'>
+                    <ConnectedChannelView/>
+                </Route>,
+                state,
+                {history},
+            );
+            return {...result, history};
+        }
+
+        const subpathRegistration = (): ChannelViewRegistration => makeRegistration({
+            handlesSubpaths: true,
+            component: ({subpath}) => <div data-testid='plugin-channel-view'>{`subpath:${subpath}`}</div>,
+        });
+
+        function registerPlugin(store: {dispatch: (action: unknown) => unknown}, registration: ChannelViewRegistration) {
+            act(() => {
+                store.dispatch({type: ActionTypes.RECEIVED_PLUGIN_COMPONENT, name: 'ChannelView', data: registration});
+            });
+        }
+
+        it('redirects to the channel root when plugins have loaded and nothing handles the sub-path', () => {
+            const {history} = renderDeepLink(makeDeepLinkState());
+
+            expect(history.location.pathname).toBe('/team/channels/channel');
+        });
+
+        it('keeps the sub-path while plugins are loading and honors it when a plugin registers late', () => {
+            const {store, history} = renderDeepLink(makeDeepLinkState({plugins: {...(makeState([]) as any).plugins, loadStatus: {inFlight: 1}}}));
+            expect(history.location.pathname).toBe('/team/channels/channel/pages/abc123');
+
+            registerPlugin(store, subpathRegistration());
+            act(() => {
+                store.dispatch({type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {}});
+            });
+
+            expect(history.location.pathname).toBe('/team/channels/channel/pages/abc123');
+            expect(screen.getByTestId('plugin-channel-view')).toHaveTextContent('subpath:pages/abc123');
+        });
+
+        it('redirects once loading finishes without a plugin handling the sub-path', () => {
+            const {store, history} = renderDeepLink(makeDeepLinkState({plugins: {...(makeState([]) as any).plugins, loadStatus: {inFlight: 1}}}));
+            expect(history.location.pathname).toBe('/team/channels/channel/pages/abc123');
+
+            act(() => {
+                store.dispatch({type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {}});
+            });
+
+            expect(history.location.pathname).toBe('/team/channels/channel');
+        });
+
+        it('keeps the sub-path until the plugins are synchronized for the logged in user', () => {
+            const {store, history} = renderDeepLink(makeDeepLinkState({plugins: {...(makeState([]) as any).plugins, loadStatus: {inFlight: 0, syncedUserId: ''}}}));
+            expect(history.location.pathname).toBe('/team/channels/channel/pages/abc123');
+
+            act(() => {
+                store.dispatch({type: ActionTypes.PLUGIN_LOADS_STARTED});
+            });
+            registerPlugin(store, subpathRegistration());
+            act(() => {
+                store.dispatch({type: ActionTypes.PLUGIN_LOADS_FINISHED, data: {syncedUserId: 'user1'}});
+            });
+
+            expect(history.location.pathname).toBe('/team/channels/channel/pages/abc123');
+            expect(screen.getByTestId('plugin-channel-view')).toHaveTextContent('subpath:pages/abc123');
+        });
     });
 });

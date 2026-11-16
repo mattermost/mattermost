@@ -8,6 +8,7 @@ import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appBarEnabled, getAppBarAppBindings} from 'mattermost-redux/selectors/entities/apps';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
 import type {GlobalState} from 'types/store';
@@ -265,3 +266,18 @@ export const getPluginDisplayName = (state: GlobalState, pluginId?: string): str
 
     return webappName || installedName || pluginId;
 };
+
+/**
+ * Whether plugin registrations are final for the current session: no plugin is loading, and any
+ * plugin synchronization recorded was made for the current user rather than a logged out session.
+ */
+export function arePluginsLoadedForSession(state: GlobalState): boolean {
+    const loadStatus = state.plugins.loadStatus;
+    if (!loadStatus) {
+        return true;
+    }
+    if (loadStatus.inFlight > 0) {
+        return false;
+    }
+    return loadStatus.syncedUserId === undefined || loadStatus.syncedUserId === getCurrentUserId(state);
+}
