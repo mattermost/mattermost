@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"net/url"
 	"sync"
 	"time"
@@ -34,6 +35,8 @@ const (
 	MaxUpsertRetries             = 25
 	ProfileImageSyncTimeout      = time.Second * 5
 	SyncRetryDelay               = time.Second * 15
+	HandoffTaskTimeout           = time.Minute
+	SyncLoopStopTimeout          = time.Second * 10
 	// Default value for MaxMembersPerBatch is defined in config.go as ConnectedWorkspacesSettingsDefaultMemberSyncBatchSize
 )
 
@@ -47,6 +50,7 @@ type ServerIface interface {
 	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 	GetMetrics() einterfaces.MetricsInterface
+	GetCluster() einterfaces.ClusterInterface
 }
 
 type PlatformIface interface {
@@ -107,7 +111,11 @@ type Service struct {
 
 	connectionStateListenerId string
 	done                      chan struct{}
+	loopStopped               chan struct{}
+	catchUpDone               chan struct{}
+	stopped                   bool
 	tasks                     map[string]syncTask
+	handoffTasks              map[string]syncTask
 	syncTopicListenerId       string
 	inviteTopicListenerId     string
 	uploadTopicListenerId     string
@@ -146,6 +154,15 @@ func (scs *Service) Start() error {
 	scs.uploadTopicListenerId = rcs.AddTopicListener(TopicUploadCreate, scs.onReceiveUploadCreate)
 	scs.globalSyncTopicListenerId = rcs.AddTopicListener(TopicGlobalUserSync, scs.onReceiveSyncMessage)
 	scs.connectionStateListenerId = rcs.AddConnectionStateListener(scs.onConnectionStateChange)
+	if scs.done == nil {
+		scs.stopped = false
+		scs.done = make(chan struct{})
+		scs.loopStopped = make(chan struct{})
+		go func(done, stopped chan struct{}) {
+			defer close(stopped)
+			scs.syncLoop(done)
+		}(scs.done, scs.loopStopped)
+	}
 	scs.mux.Unlock()
 
 	rcs.AddTopicListener(TopicChannelMembership, scs.onReceiveSyncMessage)
@@ -170,10 +187,23 @@ func (scs *Service) Shutdown() error {
 	scs.inviteTopicListenerId = ""
 	rcs.RemoveConnectionStateListener(scs.connectionStateListenerId)
 	scs.connectionStateListenerId = ""
+	done, stopped := scs.done, scs.loopStopped
+	scs.done = nil
+	scs.stopped = true
 	scs.mux.Unlock()
 
 	scs.server.RemoveClusterLeaderChangedListener(id)
 	scs.pause()
+
+	if done != nil {
+		close(done)
+		select {
+		case <-stopped:
+		case <-time.After(SyncLoopStopTimeout):
+			scs.server.Log().Warn("Shared channel sync loop did not stop in time; handing off its queue anyway")
+		}
+	}
+	scs.handOffTasks()
 	return nil
 }
 
@@ -196,11 +226,37 @@ func (scs *Service) sendEphemeralPost(channelId string, userId string, text stri
 
 // onClusterLeaderChange is called whenever the cluster leader may have changed.
 func (scs *Service) onClusterLeaderChange() {
+	handoffTasks := scs.takeHandoffTasks()
 	if scs.server.IsLeader() {
+		for _, task := range handoffTasks {
+			if time.Since(task.AddedAt) <= HandoffTaskTimeout {
+				scs.addTask(task)
+			}
+		}
 		scs.resume()
 	} else {
 		scs.pause()
 	}
+}
+
+func (scs *Service) takeHandoffTasks() map[string]syncTask {
+	scs.mux.Lock()
+	defer scs.mux.Unlock()
+	tasks := scs.handoffTasks
+	scs.handoffTasks = nil
+	return tasks
+}
+
+// holdHandoffTask keeps a handoff task until the next leader change. Must be called with mux held.
+func (scs *Service) holdHandoffTask(task syncTask) {
+	task.AddedAt = time.Now()
+	if scs.handoffTasks == nil {
+		scs.handoffTasks = make(map[string]syncTask)
+	}
+	maps.DeleteFunc(scs.handoffTasks, func(_ string, held syncTask) bool {
+		return time.Since(held.AddedAt) > HandoffTaskTimeout
+	})
+	scs.handoffTasks[task.id] = task
 }
 
 func (scs *Service) resume() {
@@ -211,11 +267,11 @@ func (scs *Service) resume() {
 	}
 
 	scs.active = true
-	scs.done = make(chan struct{})
-
-	go scs.syncLoop(scs.done)
-	go scs.catchUpRemotes(scs.done)
+	catchUpDone := make(chan struct{})
+	scs.catchUpDone = catchUpDone
 	scs.mux.Unlock()
+
+	go scs.catchUpRemotes(catchUpDone)
 
 	scs.server.Log().Debug("Shared Channel Service active")
 }
@@ -266,8 +322,10 @@ func (scs *Service) pause() {
 	}
 
 	scs.active = false
-	close(scs.done)
-	scs.done = nil
+	if scs.catchUpDone != nil {
+		close(scs.catchUpDone)
+		scs.catchUpDone = nil
+	}
 
 	scs.server.Log().Debug("Shared Channel Service inactive")
 }

@@ -1727,7 +1727,7 @@
     },
     {
       "from": "/install/config-ssl-http2-nginx",
-      "to": "/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http-2"
+      "to": "/deployment-guide/server/setup-nginx-proxy#configure-nginx-with-ssl-and-http2"
     },
     {
       "from": "/install/config-proxy-nginx",

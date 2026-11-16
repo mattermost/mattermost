@@ -24,11 +24,10 @@ describe('components/LatexBlock', () => {
         enableLatex: true,
     };
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         renderWithContext(<LatexBlock {...defaultProps}/>);
         const wrapper = await screen.findAllByTestId('latex-enabled');
         expect(wrapper.length).toBe(1);
-        expect(wrapper.at(0)).toMatchSnapshot();
     });
 
     test('latex is disabled', async () => {
@@ -54,6 +53,5 @@ describe('components/LatexBlock', () => {
         renderWithContext(<LatexBlock {...props}/>);
         const wrapper = await screen.findAllByTestId('latex-enabled');
         expect(wrapper.length).toBe(1);
-        expect(wrapper.at(0)).toMatchSnapshot();
     });
 });

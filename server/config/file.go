@@ -4,10 +4,12 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
+	"syscall"
 
 	"github.com/pkg/errors"
 
@@ -117,12 +119,80 @@ func (fs *FileStore) persist(cfg *model.Config) error {
 		return errors.Wrap(err, "failed to serialize")
 	}
 
-	err = os.WriteFile(fs.path, b, 0600)
+	// The config is written back on every startup, usually with nothing changed. Skipping
+	// those writes means we only touch the file when we actually have to.
+	if current, readErr := os.ReadFile(fs.path); readErr == nil && bytes.Equal(current, b) {
+		return nil
+	}
+
+	err = writeFileAtomically(fs.path, b)
 	if err != nil {
 		return errors.Wrap(err, "failed to write file")
 	}
 
 	return nil
+}
+
+// writeFileAtomically replaces path with data in a single step, so a failed write (a full disk,
+// say) leaves the old file as it was instead of truncating it.
+func writeFileAtomically(path string, data []byte) error {
+	// If path is a symlink, replace the file it points to and keep the link.
+	target, err := filepath.EvalSymlinks(path)
+	if err != nil {
+		if !errors.Is(err, os.ErrNotExist) {
+			return err
+		}
+		target = path
+	}
+
+	err = replaceFile(target, data)
+	// We either can't create files in the directory, or can't rename over a file that is itself
+	// a mount point (e.g. only config.json is mounted into a container). The config file itself
+	// may still be writable, so write it in place rather than failing outright.
+	if errors.Is(err, os.ErrPermission) || errors.Is(err, syscall.EBUSY) {
+		return writeFileInPlace(target, data, 0600)
+	}
+	return err
+}
+
+// writeFileInPlace overwrites path without truncating it first, for the cases where we can't
+// swap in a temp file. The part that grows the file is written first, because that's the only
+// part that needs new disk space. If it fails, we cut the file back to its old size and the old
+// config is still there. Only then do we overwrite the existing bytes and trim any leftovers.
+func writeFileInPlace(path string, data []byte, perm os.FileMode) error {
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE, perm)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	info, err := f.Stat()
+	if err != nil {
+		return err
+	}
+	oldSize := info.Size()
+
+	if int64(len(data)) > oldSize {
+		if _, err = f.WriteAt(data[oldSize:], oldSize); err != nil {
+			_ = f.Truncate(oldSize)
+			return err
+		}
+		if err = f.Sync(); err != nil {
+			_ = f.Truncate(oldSize)
+			return err
+		}
+	}
+
+	if _, err = f.WriteAt(data, 0); err != nil {
+		return err
+	}
+	if err = f.Truncate(int64(len(data))); err != nil {
+		return err
+	}
+	if err = f.Sync(); err != nil {
+		return err
+	}
+	return f.Close()
 }
 
 // Load updates the current configuration from the backing store.

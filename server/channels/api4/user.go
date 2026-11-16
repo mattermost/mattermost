@@ -2411,10 +2411,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// If a cloud preview, redirect to the correct use case URL
-	if c.App.License().IsCloudPreview() && useCase != "" {
+	// If a cloud preview, redirect to the correct use case URL, else to the configured landing path
+	if c.App.License().IsCloudPreview() {
 		if url, ok := useCaseToURL[useCase]; ok {
 			redirectURL += url
+		} else if landing := *c.App.Config().CloudSettings.PreviewLandingPath; strings.HasPrefix(landing, "/") {
+			redirectURL += landing
 		}
 	}
 
