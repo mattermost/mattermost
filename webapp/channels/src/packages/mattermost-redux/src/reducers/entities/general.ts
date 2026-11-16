@@ -25,6 +25,18 @@ function config(state: Partial<ClientConfig> = {}, action: MMReduxAction) {
     }
 }
 
+function clientConfigOverrides(state: Partial<ClientConfig> = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED:
+        return action.data ? {...action.data} : {};
+    case GeneralTypes.CLIENT_CONFIG_RESET:
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 function license(state: ClientLicense = {}, action: MMReduxAction) {
     switch (action.type) {
     case GeneralTypes.CLIENT_LICENSE_RECEIVED:
@@ -119,6 +131,7 @@ function cwsAvailability(state: CWSAvailabilityState = 'pending', action: MMRedu
 
 export default combineReducers({
     config,
+    clientConfigOverrides,
     license,
     customProfileAttributes,
     serverVersion,

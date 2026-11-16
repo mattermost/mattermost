@@ -94,6 +94,24 @@ export function searchPermissionPolicies(term: string, after: string, limit: num
     };
 }
 
+export function searchSystemSettingPolicies(term: string, after: string, limit: number, actions?: string[]): ActionFuncAsync<AccessControlPoliciesResult> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.searchSystemSettingPolicies(term, after, limit, actions);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            return {error};
+        }
+
+        dispatch(
+            {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH, data: data.policies},
+        );
+
+        return {data};
+    };
+}
+
 export function searchTeamAccessControlPolicies(teamId: string, term: string, type: string, after: string, limit: number): ActionFuncAsync<AccessControlPoliciesResult> {
     return async (dispatch, getState) => {
         if (!teamId) {

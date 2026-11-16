@@ -3128,6 +3128,13 @@ export default class Client4 {
         );
     };
 
+    getClientConfigOverrides = () => {
+        return this.doFetch<Partial<ClientConfig>>(
+            `${this.getBaseRoute()}/config/client/overrides`,
+            {method: 'get'},
+        );
+    };
+
     getClientLicenseOld = () => {
         return this.doFetch<ClientLicense>(
             `${this.getBaseRoute()}/license/client`,
@@ -5179,6 +5186,22 @@ export default class Client4 {
         return this.doFetch<AccessControlPoliciesResult>(
             `${this.getBaseRoute()}/access_control_policies/search`,
             {method: 'post', body: JSON.stringify({term, type: 'permission', cursor: {id: after}, limit})},
+        );
+    };
+
+    searchSystemSettingPolicies = (term: string, after: string, limit: number, actions?: string[]) => {
+        return this.doFetch<AccessControlPoliciesResult>(
+            `${this.getBaseRoute()}/access_control_policies/search`,
+            {
+                method: 'post',
+                body: JSON.stringify({
+                    term,
+                    type: 'system_setting',
+                    cursor: {id: after},
+                    limit,
+                    ...(actions && actions.length > 0 && {actions}),
+                }),
+            },
         );
     };
 

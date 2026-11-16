@@ -49,6 +49,7 @@ import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
     handlePermissionPolicyUpdatedEvent,
+    handleSystemSettingPolicyUpdatedEvent,
     handleTeamAccessControlUpdatedEvent,
     handleEvent,
     handleFileUploadRejected,
@@ -1771,6 +1772,51 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         const testStore = configureStore(stateWith('visible-channel', ['visible-channel'], false));
 
         testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+
+        expect(testStore.getActions()).toEqual([]);
+    });
+});
+
+describe('handleSystemSettingPolicyUpdatedEvent', () => {
+    test('replaces clientConfigOverrides from websocket payload when enabled', () => {
+        const testStore = configureStore({
+            entities: {
+                general: {
+                    config: {FeatureFlagSystemSettingPolicies: 'true'},
+                },
+            },
+        });
+
+        testStore.dispatch(handleSystemSettingPolicyUpdatedEvent({
+            event: WebSocketEvents.SystemSettingPolicyUpdated,
+            data: {overrides: {MobileEnableBiometrics: 'true'}},
+            broadcast: {omit_users: {}, user_id: '', channel_id: '', team_id: ''},
+            seq: 1,
+        }));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: 'CLIENT_CONFIG_OVERRIDES_RECEIVED',
+                data: {MobileEnableBiometrics: 'true'},
+            },
+        ]);
+    });
+
+    test('does nothing when system setting policies flag is disabled', () => {
+        const testStore = configureStore({
+            entities: {
+                general: {
+                    config: {FeatureFlagSystemSettingPolicies: 'false'},
+                },
+            },
+        });
+
+        testStore.dispatch(handleSystemSettingPolicyUpdatedEvent({
+            event: WebSocketEvents.SystemSettingPolicyUpdated,
+            data: {overrides: {MobileEnableBiometrics: 'true'}},
+            broadcast: {omit_users: {}, user_id: '', channel_id: '', team_id: ''},
+            seq: 1,
+        }));
 
         expect(testStore.getActions()).toEqual([]);
     });

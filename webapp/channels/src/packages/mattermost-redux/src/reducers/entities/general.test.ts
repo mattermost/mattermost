@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GeneralTypes} from 'mattermost-redux/action_types';
+import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/general';
 
 type ReducerState = ReturnType<typeof reducer>;
@@ -118,6 +118,42 @@ describe('reducers.entities.general', () => {
             const expectedState = {} as ReducerState['customProfileAttributes'];
             const actualState = reducer({customProfileAttributes: state} as ReducerState, action);
             expect(actualState.customProfileAttributes).toEqual(expectedState);
+        });
+    });
+
+    describe('clientConfigOverrides', () => {
+        it('replaces overrides on CLIENT_CONFIG_OVERRIDES_RECEIVED and preserves across CLIENT_CONFIG_RECEIVED', () => {
+            let actualState = reducer(undefined, {
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {MobileEnableBiometrics: 'false', SiteName: 'Mattermost'},
+            });
+            actualState = reducer(actualState, {
+                type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,
+                data: {MobileEnableBiometrics: 'true'},
+            });
+            expect(actualState.clientConfigOverrides).toEqual({MobileEnableBiometrics: 'true'});
+
+            actualState = reducer(actualState, {
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {MobileEnableBiometrics: 'false', SiteName: 'Updated'},
+            });
+            expect(actualState.config).toEqual({MobileEnableBiometrics: 'false', SiteName: 'Updated'});
+            expect(actualState.clientConfigOverrides).toEqual({MobileEnableBiometrics: 'true'});
+
+            actualState = reducer(actualState, {
+                type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,
+                data: {},
+            });
+            expect(actualState.clientConfigOverrides).toEqual({});
+        });
+
+        it('clears overrides on LOGOUT_SUCCESS and CLIENT_CONFIG_RESET', () => {
+            const populated = reducer(undefined, {
+                type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,
+                data: {MobileEnableBiometrics: 'true'},
+            });
+            expect(reducer(populated, {type: UserTypes.LOGOUT_SUCCESS}).clientConfigOverrides).toEqual({});
+            expect(reducer(populated, {type: GeneralTypes.CLIENT_CONFIG_RESET}).clientConfigOverrides).toEqual({});
         });
     });
 });

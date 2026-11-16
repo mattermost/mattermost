@@ -81,6 +81,11 @@ export type AccessControlPolicyRule = {
     expression: string;
 
     /**
+     * Serialized ClientConfig value applied when a system_setting policy rule matches.
+     */
+    value?: string;
+
+    /**
      * Only meaningful on the membership rule. See
      * {@link AccessControlPolicyRuleMetadata} for the tri-state semantics.
      */
@@ -102,6 +107,7 @@ export type AccessControlPolicyRule = {
 
 export const ACCESS_CONTROL_POLICY_VERSION_V0_3 = 'v0.3';
 export const ACCESS_CONTROL_POLICY_VERSION_V0_4 = 'v0.4';
+export const ACCESS_CONTROL_POLICY_TYPE_SYSTEM_SETTING = 'system_setting';
 
 export const ACCESS_CONTROL_ACTION_MEMBERSHIP = 'membership';
 export const ACCESS_CONTROL_ACTION_UPLOAD_FILE = 'upload_file_attachment';
