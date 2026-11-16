@@ -1045,7 +1045,10 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.service.siteURLDescription', defaultMessage: 'The URL that users will use to access Mattermost. Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required. For example: http://example.com:8065. This setting is required.\n \nMattermost may be hosted at a subpath. For example: http://example.com:8065/company/mattermost. A restart is required before the server will work correctly.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
                             help_text_markdown: true,
                             placeholder: defineMessage({id: 'admin.service.siteURLExample', defaultMessage: 'E.g.: "http://example.com:8065"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                            ),
                         },
                         {
                             type: 'button',
@@ -1767,7 +1770,10 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.environment.smtp.smtpServer.title', defaultMessage: 'SMTP Server:'}),
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpServer.placeholder', defaultMessage: 'Ex: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpServer.description', defaultMessage: 'Location of SMTP email server.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'text',
@@ -1775,14 +1781,20 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.environment.smtp.smtpPort.title', defaultMessage: 'SMTP Server Port:'}),
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpPort.placeholder', defaultMessage: 'Ex: "25", "465", "587"'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpPort.description', defaultMessage: 'Port of SMTP email server.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'bool',
                             key: 'EmailSettings.EnableSMTPAuth',
                             label: defineMessage({id: 'admin.environment.smtp.smtpAuth.title', defaultMessage: 'Enable SMTP Authentication:'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpAuth.description', defaultMessage: 'When true, SMTP Authentication is enabled.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'text',
@@ -1791,6 +1803,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpUsername.placeholder', defaultMessage: 'Ex: "admin@yourcompany.com", "AKIADTOVBGERKLCBV"'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpUsername.description', defaultMessage: 'Obtain this credential from the administrator setting up your email server.'}),
                             isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                                 it.stateIsFalse('EmailSettings.EnableSMTPAuth'),
                             ),
@@ -1802,6 +1815,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpPassword.placeholder', defaultMessage: 'Ex: "yourpassword", "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpPassword.description', defaultMessage: 'Obtain this credential from the administrator setting up your email server.'}),
                             isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                                 it.stateIsFalse('EmailSettings.EnableSMTPAuth'),
                             ),
@@ -1825,7 +1839,10 @@ const AdminDefinition: AdminDefinitionType = {
                                     display_name: defineMessage({id: 'admin.environment.smtp.connectionSecurity.option.starttls', defaultMessage: 'STARTTLS'}),
                                 },
                             ],
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'button',
@@ -1847,7 +1864,10 @@ const AdminDefinition: AdminDefinitionType = {
                                 title: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerificationProductionWarning.title', defaultMessage: 'Skipping certificate verification is not recommended for production environments'}),
                                 text: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerificationProductionWarning.text', defaultMessage: "Mattermost will not validate the SMTP server's TLS certificate, exposing email delivery to man-in-the-middle attacks. Enable only while troubleshooting."}),
                             },
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'bool',
