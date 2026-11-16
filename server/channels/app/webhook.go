@@ -612,16 +612,13 @@ func (a *App) CreateIncomingWebhookForChannel(creatorId string, channel *model.C
 
 	webhook, err := a.Srv().Store().Webhook().SaveIncoming(hook)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "app.webhooks.save_incoming.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "app.webhooks.save_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
+			return nil, model.NewAppError("CreateIncomingWebhookForChannel", "app.webhooks.save_incoming.existing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return nil, model.NewAppError("CreateIncomingWebhookForChannel", "app.webhooks.save_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return webhook, nil
@@ -680,13 +677,10 @@ func (a *App) GetIncomingWebhook(hookID string) (*model.IncomingWebhook, *model.
 
 	webhook, err := a.Srv().Store().Webhook().GetIncoming(hookID, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetIncomingWebhook", "app.webhooks.get_incoming.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetIncomingWebhook", "app.webhooks.get_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetIncomingWebhook", "app.webhooks.get_incoming.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return webhook, nil
@@ -748,13 +742,10 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 		channel, errCh := a.Srv().Store().Channel().Get(hook.ChannelId, true)
 		if errCh != nil {
 			errCtx := map[string]any{"channel_id": hook.ChannelId}
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(errCh, &nfErr):
+			if _, ok := errors.AsType[*store.ErrNotFound](errCh); ok {
 				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(errCh)
-			default:
-				return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(errCh)
 			}
+			return nil, model.NewAppError("CreateOutgoingWebhook", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(errCh)
 		}
 
 		if channel.Type != model.ChannelTypeOpen {
@@ -783,16 +774,13 @@ func (a *App) CreateOutgoingWebhook(hook *model.OutgoingWebhook) (*model.Outgoin
 
 	webhook, err := a.Srv().Store().Webhook().SaveOutgoing(hook)
 	if err != nil {
-		var appErr *model.AppError
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		case errors.As(err, &invErr):
-			return nil, model.NewAppError("CreateOutgoingWebhook", "app.webhooks.save_outgoing.override.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("CreateOutgoingWebhook", "app.webhooks.save_outgoing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
+			return nil, model.NewAppError("CreateOutgoingWebhook", "app.webhooks.save_outgoing.override.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+		return nil, model.NewAppError("CreateOutgoingWebhook", "app.webhooks.save_outgoing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return webhook, nil
@@ -855,13 +843,10 @@ func (a *App) GetOutgoingWebhook(hookID string) (*model.OutgoingWebhook, *model.
 
 	webhook, err := a.Srv().Store().Webhook().GetOutgoing(hookID)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetOutgoingWebhook", "app.webhooks.get_outgoing.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetOutgoingWebhook", "app.webhooks.get_outgoing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetOutgoingWebhook", "app.webhooks.get_outgoing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return webhook, nil
@@ -1070,26 +1055,20 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		channel, err = a.Srv().Store().Channel().Get(hook.ChannelId, true)
 		if err != nil {
 			errCtx := map[string]any{"channel_id": hook.ChannelId}
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(err, &nfErr):
+			if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.existing.app_error", errCtx, "", http.StatusNotFound).Wrap(err)
-			default:
-				return model.NewAppError("HandleIncomingWebhook", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 			}
+			return model.NewAppError("HandleIncomingWebhook", "app.channel.get.find.app_error", errCtx, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
 	if channel == nil {
 		result2 := <-cchan
 		if result2.NErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(result2.NErr, &nfErr):
+			if _, ok := errors.AsType[*store.ErrNotFound](result2.NErr); ok {
 				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "", http.StatusNotFound).Wrap(result2.NErr)
-			default:
-				return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(result2.NErr)
 			}
+			return model.NewAppError("HandleIncomingWebhook", "web.incoming_webhook.channel.app_error", nil, "", http.StatusInternalServerError).Wrap(result2.NErr)
 		}
 		channel = result2.Data
 	}
@@ -1123,13 +1102,10 @@ func (a *App) HandleIncomingWebhook(rctx request.CTX, hookID string, req *model.
 		}
 		rootPost, nErr := a.Srv().Store().Post().GetSingle(rctx, rootId, false)
 		if nErr != nil {
-			var nfErr *store.ErrNotFound
-			switch {
-			case errors.As(nErr, &nfErr):
+			if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 				return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-			default:
-				return model.NewAppError("HandleIncomingWebhook", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
+			return model.NewAppError("HandleIncomingWebhook", "app.post.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 		if rootPost == nil {
 			return model.NewAppError("HandleIncomingWebhook", "api.post.create_post.root_id.app_error", nil, "", http.StatusBadRequest)
@@ -1179,16 +1155,13 @@ func (a *App) CreateCommandWebhook(commandID string, args *model.CommandArgs) (*
 
 	savedHook, err := a.Srv().Store().CommandWebhook().Save(hook)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.existing", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("CreateCommandWebhook", "app.command_webhook.create_command_webhook.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return savedHook, nil
 }
@@ -1200,24 +1173,18 @@ func (a *App) HandleCommandWebhook(rctx request.CTX, hookID string, response *mo
 
 	hook, nErr := a.Srv().Store().CommandWebhook().Get(hookID)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.missing", nil, "", http.StatusNotFound).Wrap(nErr)
-		default:
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.get.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	cmd, cmdErr := a.Srv().Store().Command().Get(hook.CommandId)
 	if cmdErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(cmdErr, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](cmdErr); ok {
 			return appErr
-		default:
-			return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", map[string]any{"command_id": hook.CommandId}, "", http.StatusBadRequest).Wrap(cmdErr)
 		}
+		return model.NewAppError("HandleCommandWebhook", "web.command_webhook.command.app_error", map[string]any{"command_id": hook.CommandId}, "", http.StatusBadRequest).Wrap(cmdErr)
 	}
 
 	args := &model.CommandArgs{
@@ -1228,13 +1195,10 @@ func (a *App) HandleCommandWebhook(rctx request.CTX, hookID string, response *mo
 	}
 
 	if nErr := a.Srv().Store().CommandWebhook().TryUse(hook.Id, 5); nErr != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.invalid", nil, "", http.StatusBadRequest).Wrap(nErr)
-		default:
-			return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return model.NewAppError("HandleCommandWebhook", "app.command_webhook.try_use.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	_, err := a.HandleCommandResponse(rctx, cmd, args, response, false)

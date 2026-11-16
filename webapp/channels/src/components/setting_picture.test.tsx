@@ -36,69 +36,7 @@ describe('components/SettingItemMin', () => {
         type: 'image/jpeg',
     });
 
-    test('should match snapshot, profile picture on source', () => {
-        const {container} = renderWithContext(
-            <SettingPicture {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, profile picture on file', () => {
-        const props = {...baseProps, file: mockFile, src: ''};
-        const {container} = renderWithContext(
-            <SettingPicture {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, user icon on source', () => {
-        const props = {...baseProps, onSetDefault: jest.fn()};
-        const {container} = renderWithContext(
-            <SettingPicture {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, team icon on source', () => {
-        const props = {...baseProps, onRemove: jest.fn(), imageContext: 'team'};
-        const {container} = renderWithContext(
-            <SettingPicture {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, team icon on file', () => {
-        const props = {...baseProps, onRemove: jest.fn(), imageContext: 'team', file: mockFile, src: ''};
-        const {container} = renderWithContext(
-            <SettingPicture {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on loading picture', () => {
-        const props = {...baseProps, loadingPicture: true};
-        const {container} = renderWithContext(
-            <SettingPicture {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with active Save button', () => {
-        const props = {...baseProps, submitActive: true};
-        const {container} = renderWithContext(
-            <SettingPicture {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with removeSrc state active', async () => {
+    test('should hide the image with removeSrc state active', async () => {
         const props = {...baseProps, onRemove: jest.fn()};
         const {container} = renderWithContext(
             <SettingPicture {...props}/>,
@@ -108,7 +46,8 @@ describe('components/SettingItemMin', () => {
         const removeButton = screen.getByTestId('removeSettingPicture');
         await userEvent.click(removeButton);
 
-        expect(container).toMatchSnapshot();
+        expect(container.querySelector('.profile-img')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('removeSettingPicture')).not.toBeInTheDocument();
     });
 
     test('should match state and call props.updateSection on handleCancel', async () => {

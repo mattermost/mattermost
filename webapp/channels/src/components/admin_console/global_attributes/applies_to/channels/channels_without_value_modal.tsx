@@ -16,6 +16,7 @@ import ExternalLink from 'components/external_link';
 import LoadingScreen from 'components/loading_screen';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {getSiteURL} from 'utils/url';
 
 import {fetchChannelsMissingValue} from '../../utils';
 
@@ -290,7 +291,7 @@ function ChannelsWithoutValueModal({fieldId, attributeDisplayName, totalCount: s
                                     <div className='ChannelsWithoutValueModal__channel-cell'>
                                         {ch.channel_type === 'P' ? <LockOutlineIcon size={16}/> : <GlobeIcon size={16}/>}
                                         <ExternalLink
-                                            href={`/admin_console/user_management/channels/${ch.channel_id}`}
+                                            href={`${getSiteURL()}/admin_console/user_management/channels/${ch.channel_id}`}
                                             location='channels_without_value_modal'
                                             aria-label={formatMessage({
                                                 id: 'admin.global_attributes.applies_to.channels.without_value.open_channel_aria',

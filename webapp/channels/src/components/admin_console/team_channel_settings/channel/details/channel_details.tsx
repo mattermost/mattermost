@@ -1065,6 +1065,12 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             // Clear server errors when archiving channel
             newState.previousServerError = serverError;
             newState.serverError = undefined;
+
+            // The attributes section unmounts and drops its pending edits, so
+            // ours go too; otherwise Unarchive would show the saved values
+            // and still write the hidden edits.
+            newState.channelAttributeValues = {};
+            newState.missingRequiredChannelAttributes = [];
         } else {
             // Reinstate server errors when unarchiving
             newState.serverError = previousServerError;

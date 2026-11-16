@@ -102,6 +102,16 @@ const LogFilterDateLayout = "2006-01-02 15:04:05.999 -07:00"
 // LogFilterSearchMaxLength is the maximum length, in characters, of a LogFilter's Search term.
 const LogFilterSearchMaxLength = 256
 
+// LogFilterFieldsMaxKeys is the maximum number of fields a LogFilter's Fields can filter on.
+const LogFilterFieldsMaxKeys = 10
+
+// LogFilterFieldMaxValues is the maximum number of values a LogFilter's Fields can accept for one field.
+const LogFilterFieldMaxValues = 20
+
+// LogFilterFieldMaxLength is the maximum length, in characters, of a field name or value in a
+// LogFilter's Fields.
+const LogFilterFieldMaxLength = 256
+
 type LogFilter struct {
 	ServerNames []string `json:"server_names"`
 	LogLevels   []string `json:"log_levels"`
@@ -110,6 +120,18 @@ type LogFilter struct {
 	// Search keeps entries with a value other than level and timestamp that contains it,
 	// ignoring case.
 	Search string `json:"search"`
+	// Fields keeps entries whose top-level field, named by the key, equals one of its values.
+	// Every key must match, and values that aren't strings are compared as their JSON.
+	Fields map[string][]string `json:"fields,omitempty"`
+}
+
+// logFilterFieldDetail names a rejected field in an error's details, cut to LogFilterFieldMaxLength
+// characters so an oversized key doesn't end up in full in the server log.
+func logFilterFieldDetail(key string) string {
+	if utf8.RuneCountInString(key) > LogFilterFieldMaxLength {
+		key = string([]rune(key)[:LogFilterFieldMaxLength]) + "…"
+	}
+	return "field=" + key
 }
 
 // IsValid validates the log filter. Empty date bounds mean "unbounded", so only
@@ -133,6 +155,27 @@ func (f *LogFilter) IsValid() *AppError {
 
 	if utf8.RuneCountInString(f.Search) > LogFilterSearchMaxLength {
 		return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.search.app_error", map[string]any{"MaxLength": LogFilterSearchMaxLength}, "", http.StatusBadRequest)
+	}
+
+	if len(f.Fields) > LogFilterFieldsMaxKeys {
+		return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.fields.app_error", map[string]any{"MaxKeys": LogFilterFieldsMaxKeys}, "", http.StatusBadRequest)
+	}
+
+	for key, values := range f.Fields {
+		// Level and timestamp have filters of their own
+		if key == "" || key == "level" || key == "timestamp" || utf8.RuneCountInString(key) > LogFilterFieldMaxLength {
+			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_name.app_error", map[string]any{"MaxLength": LogFilterFieldMaxLength}, logFilterFieldDetail(key), http.StatusBadRequest)
+		}
+
+		if len(values) == 0 || len(values) > LogFilterFieldMaxValues {
+			return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_values.app_error", map[string]any{"MaxValues": LogFilterFieldMaxValues}, logFilterFieldDetail(key), http.StatusBadRequest)
+		}
+
+		for _, value := range values {
+			if utf8.RuneCountInString(value) > LogFilterFieldMaxLength {
+				return NewAppError("LogFilter.IsValid", "model.log_filter.is_valid.field_value.app_error", map[string]any{"MaxLength": LogFilterFieldMaxLength}, logFilterFieldDetail(key), http.StatusBadRequest)
+			}
+		}
 	}
 
 	return nil

@@ -37,11 +37,13 @@ export default function UnarchiveChannelModal({onExited, channel, channelKind = 
     const [serverError, setServerError] = useState<string | undefined>();
 
     // Advisory only -- see the hook's doc comment. Never blocks the restore;
-    // it only changes the copy and the confirm button label.
-    const {missing} = useMissingRequiredChannelAttributes(channel.id);
+    // it only changes the copy and the confirm button label. Confirm is ignored
+    // until the check finishes, or Enter on the autofocused button would skip the
+    // warning. The button stays enabled: a disabled button can't take autofocus.
+    const {missing, loading} = useMissingRequiredChannelAttributes(channel.id);
 
     const handleUnarchive = async () => {
-        if (channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
+        if (loading || channel.id.length !== Constants.CHANNEL_ID_LENGTH) {
             return;
         }
 

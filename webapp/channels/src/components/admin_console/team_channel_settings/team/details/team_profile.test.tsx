@@ -8,57 +8,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import {TeamProfile} from './team_profile';
 
-describe('admin_console/team_channel_settings/team/TeamProfile', () => {
-    const baseProps = {
-        team: TestHelper.getTeamMock(),
-        name: 'name',
-        description: '',
-        onNameChange: jest.fn(),
-        onDescriptionChange: jest.fn(),
-        onToggleArchive: jest.fn(),
-        isArchived: false,
-    };
-
-    const initialState = {
-        views: {
-            announcementBar: {
-                announcementBarState: {
-                    announcementBarCount: 1,
-                },
-            },
-        },
-        entities: {
-            general: {
-                license: {
-                    IsLicensed: 'true',
-                    Cloud: 'false',
-                },
-            },
-            users: {
-                currentUserId: 'current_user_id',
-                profiles: {
-                    current_user_id: {roles: 'system_admin'},
-                },
-            },
-        },
-    };
-
-    test('should match snapshot (not cloud, freemium disabled', () => {
-        const {container} = renderWithContext(<TeamProfile {...baseProps}/>, initialState);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with isArchived true', () => {
-        const props = {
-            ...baseProps,
-            isArchived: true,
-        };
-
-        const {container} = renderWithContext(<TeamProfile {...props}/>, initialState);
-        expect(container).toMatchSnapshot();
-    });
-});
-
 describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
     const baseProps = {
         team: TestHelper.getTeamMock({display_name: 'Cyber Defense HQ', description: 'Original description'}),

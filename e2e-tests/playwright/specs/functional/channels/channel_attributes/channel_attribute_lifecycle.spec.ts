@@ -64,8 +64,7 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             // refuses the same create independently.
             await expect(modal.createButton).toBeDisabled();
 
-            await page.getByTestId(`channelAttribute-${required.name}`).click();
-            await page.getByTestId('dropdownMenu').getByText('ALPHA', {exact: true}).click();
+            await modal.selectAttributeOption(required.name, 'ALPHA');
 
             await expect(modal.createButton).toBeEnabled();
             await modal.create();

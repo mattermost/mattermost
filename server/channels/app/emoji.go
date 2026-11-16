@@ -193,13 +193,10 @@ func (a *App) uploadEmojiImage(rctx request.CTX, id string, filename string, fil
 
 func (a *App) DeleteEmoji(rctx request.CTX, emoji *model.Emoji) *model.AppError {
 	if err := a.Srv().Store().Emoji().Delete(emoji, model.GetMillis()); err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return model.NewAppError("DeleteEmoji", "app.emoji.delete.no_results", nil, "id="+emoji.Id, http.StatusNotFound).Wrap(err)
-		default:
-			return model.NewAppError("DeleteEmoji", "app.emoji.delete.app_error", nil, "id="+emoji.Id, http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("DeleteEmoji", "app.emoji.delete.app_error", nil, "id="+emoji.Id, http.StatusInternalServerError).Wrap(err)
 	}
 
 	a.deleteEmojiImage(rctx, emoji.Id)
@@ -218,13 +215,10 @@ func (a *App) GetEmoji(rctx request.CTX, emojiId string) (*model.Emoji, *model.A
 
 	emoji, err := a.Srv().Store().Emoji().Get(rctx, emojiId, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return emoji, model.NewAppError("GetEmoji", "app.emoji.get.no_result", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return emoji, model.NewAppError("GetEmoji", "app.emoji.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return emoji, model.NewAppError("GetEmoji", "app.emoji.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return emoji, nil
@@ -241,13 +235,10 @@ func (a *App) GetEmojiByName(rctx request.CTX, emojiName string) (*model.Emoji, 
 
 	emoji, err := a.Srv().Store().Emoji().GetByName(rctx, emojiName, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return emoji, model.NewAppError("GetEmojiByName", "app.emoji.get_by_name.no_result", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return emoji, model.NewAppError("GetEmojiByName", "app.emoji.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return emoji, model.NewAppError("GetEmojiByName", "app.emoji.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return emoji, nil
@@ -283,13 +274,10 @@ func (a *App) GetMultipleEmojiByName(rctx request.CTX, names []string) ([]*model
 func (a *App) GetEmojiImage(rctx request.CTX, emojiId string) ([]byte, string, *model.AppError) {
 	_, storeErr := a.Srv().Store().Emoji().Get(rctx, emojiId, true)
 	if storeErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(storeErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](storeErr); ok {
 			return nil, "", model.NewAppError("GetEmojiImage", "app.emoji.get.no_result", nil, "", http.StatusNotFound).Wrap(storeErr)
-		default:
-			return nil, "", model.NewAppError("GetEmojiImage", "app.emoji.get.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 		}
+		return nil, "", model.NewAppError("GetEmojiImage", "app.emoji.get.app_error", nil, "", http.StatusInternalServerError).Wrap(storeErr)
 	}
 
 	img, appErr := a.ReadFile(getEmojiImagePath(emojiId))
@@ -331,13 +319,10 @@ func (a *App) GetEmojiStaticURL(rctx request.CTX, emojiName string) (string, *mo
 	if err == nil {
 		return path.Join(subPath, "/api/v4/emoji", emoji.Id, "image"), nil
 	}
-	var nfErr *store.ErrNotFound
-	switch {
-	case errors.As(err, &nfErr):
+	if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 		return "", model.NewAppError("GetEmojiStaticURL", "app.emoji.get_by_name.no_result", nil, "", http.StatusNotFound).Wrap(err)
-	default:
-		return "", model.NewAppError("GetEmojiStaticURL", "app.emoji.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
+	return "", model.NewAppError("GetEmojiStaticURL", "app.emoji.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 }
 
 func resizeEmojiGif(gifImg *gif.GIF) {

@@ -1109,8 +1109,10 @@
 
         ##### Permissions
 
-        Must have permission to edit the property field. Requires the
-        `ChannelAttributes` feature flag and an Enterprise Advanced license.
+        Must have `manage_system` permission and permission to edit the
+        property field. The field must apply to every team (`target_type`
+        `system`) and not be deleted. Requires the `ChannelAttributes` feature
+        flag and an Enterprise Advanced license.
       operationId: GetChannelsMissingAttributeValue
       parameters:
         - name: group_name
@@ -1172,8 +1174,10 @@
 
         ##### Permissions
 
-        Must have permission to edit the property field. Requires the
-        `ChannelAttributes` feature flag and an Enterprise Advanced license.
+        Must have `manage_system` permission and permission to edit the
+        property field. The field must apply to every team (`target_type`
+        `system`) and not be deleted. Requires the `ChannelAttributes` feature
+        flag and an Enterprise Advanced license.
       operationId: GetChannelAttributeComplianceSummary
       parameters:
         - name: group_name
@@ -1224,8 +1228,10 @@
 
         ##### Permissions
 
-        Must have permission to edit the property field. Requires the
-        `ChannelAttributes` feature flag and an Enterprise Advanced license.
+        Must have `manage_system` permission and permission to edit the
+        property field. The field must apply to every team (`target_type`
+        `system`) and not be deleted. Requires the `ChannelAttributes` feature
+        flag and an Enterprise Advanced license.
       operationId: NotifyChannelAdminsOfMissingAttributeValue
       parameters:
         - name: group_name

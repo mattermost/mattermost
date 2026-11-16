@@ -39,7 +39,12 @@ describe('ChannelsResourceRow', () => {
     };
 
     beforeEach(() => {
-        mockUseChannelMissingValues.mockReturnValue({loading: false, failed: false, summary: null, reload: jest.fn()});
+        mockUseChannelMissingValues.mockReturnValue({
+            loading: false,
+            failed: false,
+            summary: {totalCount: 0, sharedCount: 0, uniqueAdminCount: 0, noAdminCount: 0, messagePreview: '', required: false},
+            reload: jest.fn(),
+        });
     });
 
     const renderRow = (overrides: Partial<ChannelResourceConfig> = {}, props: {disabled?: boolean; ordered?: boolean} = {}) => {

@@ -48,6 +48,13 @@ export type LogObject = {
 
     // Set on the entry the server returns in place of a node it could not reach
     failed_node?: boolean;
+
+    // Set on the entry the server adds after a node's lines when its log scan stopped at its time
+    // or size limit, so older matching entries may be missing
+    scan_limited?: boolean;
+
+    // On a scan_limited entry, the timestamp of the oldest line the scan read
+    scanned_back_to?: string;
 };
 
 // The node an entry came from. A symbol, so it can't clash with a field the server logged
@@ -69,6 +76,9 @@ export type LogFilter = {
 
     // Matched case-insensitively against every field except level and timestamp
     search?: string;
+
+    // Keeps entries whose top-level field equals one of its values, such as {plugin_id: ['github']}
+    fields?: LogFieldFilters;
 };
 
 export type LogFilterQuery = {
@@ -77,7 +87,10 @@ export type LogFilterQuery = {
     date_from: LogDateFrom;
     date_to: LogDateTo;
     search?: string;
+    fields?: LogFieldFilters;
 };
+
+export type LogFieldFilters = Record<string, string[]>;
 
 export type AdminState = {
     logs: LogsByNode;

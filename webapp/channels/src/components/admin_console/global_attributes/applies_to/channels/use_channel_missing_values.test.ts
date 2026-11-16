@@ -87,6 +87,21 @@ describe('useChannelMissingValues', () => {
         expect(mockedFetch).toHaveBeenCalledTimes(2);
     });
 
+    it("does not show the previous field's counts while another field's load", async () => {
+        mockedFetch.mockResolvedValueOnce(summary({missing_channel_count: 0}));
+
+        const {result, rerender} = renderHook(
+            ({fieldId}: {fieldId: string}) => useChannelMissingValues({fieldId, enabled: true}),
+            {initialProps: {fieldId: 'field1'}},
+        );
+        await waitFor(() => expect(result.current.summary?.totalCount).toBe(0));
+
+        mockedFetch.mockReturnValueOnce(new Promise(() => {}));
+        rerender({fieldId: 'field2'});
+
+        expect(result.current.summary).toBeNull();
+    });
+
     it('reports failed on rejection, leaving summary null', async () => {
         mockedFetch.mockRejectedValue(new Error('boom'));
 

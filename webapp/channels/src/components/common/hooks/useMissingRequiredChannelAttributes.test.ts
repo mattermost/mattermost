@@ -105,6 +105,21 @@ describe('useMissingRequiredChannelAttributes', () => {
         expect(result.current.missing).toEqual([requiredField]);
     });
 
+    test('refetches when one required field is swapped for another', async () => {
+        const otherField = {...requiredField, id: 'field2', name: 'region', attrs: {required: true, display_name: 'Region'}};
+        mockGetPropertyValues.mockResolvedValue([propertyValue('field1', 'set')]);
+
+        const {result, rerender} = renderHookWithContext(() => useMissingRequiredChannelAttributes('channel1'), requiredEnforcedState);
+        await waitFor(() => expect(result.current.loading).toBe(false));
+        expect(result.current.missing).toEqual([]);
+
+        mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [otherField]});
+        rerender();
+
+        await waitFor(() => expect(result.current.missing).toEqual([otherField]));
+        expect(mockGetPropertyValues).toHaveBeenCalledTimes(2);
+    });
+
     test('does not report the field as missing once a real value is set', async () => {
         mockGetPropertyValues.mockResolvedValue([propertyValue('field1', 'set')]);
 

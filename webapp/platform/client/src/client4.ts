@@ -2354,9 +2354,13 @@ export default class Client4 {
         );
     };
 
+    // One target holds at most one value per field, and the access_control
+    // group caps its fields at 200 (AccessControlGroupFieldLimit), the
+    // server's per_page maximum -- so one page always holds every value. The
+    // default page of 60 would silently drop the rest.
     getPropertyValues = <T>(groupName: string, objectType: string, targetId: string) => {
         return this.doFetch<Array<PropertyValue<T>>>(
-            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}`,
+            `${this.getBaseRoute()}/properties/groups/${groupName}/${objectType}/values/${targetId}${buildQueryString({per_page: 200})}`,
             {method: 'get'},
         );
     };
@@ -3839,10 +3843,10 @@ export default class Client4 {
 
     // Admin Routes
 
-    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT) => {
+    getLogs = (logFilter: LogFilterQuery, page = 0, perPage = LOGS_PER_PAGE_DEFAULT, signal?: AbortSignal) => {
         return this.doFetch<LogsByNode>(
             `${this.getBaseRoute()}/logs/query${buildQueryString({page, logs_per_page: perPage})}`,
-            {method: 'post', body: JSON.stringify(logFilter)},
+            {method: 'post', body: JSON.stringify(logFilter), signal},
         );
     };
 
@@ -4912,6 +4916,27 @@ export default class Client4 {
         );
     };
 
+    getSupportPacket = async (
+        {basicServerLogs, pluginPackets = []}: {basicServerLogs: boolean; pluginPackets?: string[]},
+        signal?: AbortSignal,
+    ): Promise<{blob: Blob; filename: string}> => {
+        const params = new URLSearchParams({basic_server_logs: String(basicServerLogs)});
+        pluginPackets.forEach((pluginId) => params.append('plugin_packets', pluginId));
+
+        const {data, headers} = await this.doFetchWithResponse<Blob>(
+            `${this.getSystemRoute()}/support_packet?${params}`,
+            {method: 'get', signal},
+        );
+
+        return {
+            blob: data,
+            filename: extractFilenameFromContentDisposition(
+                headers.get('Content-Disposition'),
+                `mm_support_packet_${new Date().toISOString().slice(0, 16).replace(':', '-')}.zip`,
+            ),
+        };
+    };
+
     getCallsChannelState = (channelId: string) => {
         return this.doFetch<{enabled: boolean; id: string}>(
             `${this.url}/plugins/${'com.mattermost.calls'}/${channelId}`,
@@ -4954,13 +4979,16 @@ export default class Client4 {
         let data;
         try {
             const contentType = headers.get('Content-Type');
+
+            // The media type without parameters such as "; charset=binary", which proxies may add.
+            const mediaType = contentType?.split(';')[0].trim().toLowerCase();
             if (contentType === 'application/json') {
                 data = await response.json();
             } else if (contentType === 'application/x-ndjson') {
                 const text = await response.text();
                 const objects = text.trim().split('\n');
                 data = objects.map((obj) => JSON.parse(obj));
-            } else if (contentType === 'application/zip' || contentType?.startsWith('text/csv')) {
+            } else if (mediaType === 'application/zip' || mediaType === 'application/octet-stream' || contentType?.startsWith('text/csv')) {
                 data = await response.blob();
             } else {
                 data = await response.text();

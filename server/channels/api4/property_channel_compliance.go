@@ -41,16 +41,28 @@ func resolveChannelAttributeComplianceGroup(c *Context, callerName string) *mode
 }
 
 // resolveChannelAttributeComplianceField additionally loads and validates the
-// field for the field-scoped routes, then checks edit permission on it. This
-// payload -- every channel on the server plus its admins -- is strictly more
-// sensitive than the field definition itself, so it uses the same permission
-// bar as editing the field, not the weaker options-only check.
+// field for the field-scoped routes. The payload -- every channel on the
+// server plus its admins, and a DM to each of them -- is server-wide, so it
+// needs manage_system like the create-mode summary: a write grant on one
+// field must not widen it. Editing the field is still required on top.
 func resolveChannelAttributeComplianceField(c *Context, callerName string, group *model.PropertyGroup) *model.PropertyField {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return nil
+	}
+
 	rctx := app.RequestContextWithCallerID(c.AppContext, sessionCallerID(c))
 
 	field, appErr := c.App.GetPropertyField(rctx, group.ID, c.Params.FieldId)
 	if appErr != nil {
 		c.Err = appErr
+		return nil
+	}
+
+	// The store hands back soft-deleted fields too; one left open in a tab
+	// must not list every channel as missing it or DM their admins.
+	if field.DeleteAt != 0 {
+		c.Err = model.NewAppError(callerName, "api.property_field.missing_values.deleted_field.app_error", nil, "", http.StatusNotFound)
 		return nil
 	}
 
@@ -61,6 +73,13 @@ func resolveChannelAttributeComplianceField(c *Context, callerName string, group
 
 	if field.ObjectType != c.Params.ObjectType {
 		c.Err = model.NewAppError(callerName, "api.property_field.object_type_mismatch.app_error", nil, "", http.StatusNotFound)
+		return nil
+	}
+
+	// Required is enforced only on system-scoped channel fields, so a
+	// team-scoped one has nothing to report here.
+	if field.TargetType != string(model.PropertyFieldTargetLevelSystem) {
+		c.Err = model.NewAppError(callerName, "api.property_field.missing_values.not_system_scoped.app_error", nil, "", http.StatusBadRequest)
 		return nil
 	}
 

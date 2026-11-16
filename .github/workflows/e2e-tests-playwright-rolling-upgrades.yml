@@ -242,6 +242,7 @@ jobs:
       statuses: write
       id-token: write
       pull-requests: write
+      actions: read
     uses: ./.github/workflows/e2e-tests-playwright-rolling-upgrades-template.yml
     with:
       # The two images that define this upgrade: from `dockerTag` (this matrix entry) to

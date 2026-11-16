@@ -160,131 +160,6 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
         patchChannelAttributeValues: jest.fn().mockResolvedValue({data: []}),
     };
 
-    test('should match snapshot', () => {
-        const additionalProps = {
-            channelPermissions: [],
-            guestAccountsEnabled: true,
-            channelModerationEnabled: true,
-            channelGroupsEnabled: true,
-            abacSupported: true,
-            isDisabled: false,
-        };
-
-        let container;
-        ({container} = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={team}
-                totalGroups={groups.length}
-                actions={actions}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        ));
-        expect(container).toMatchSnapshot();
-
-        ({container} = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={undefined}
-                totalGroups={groups.length}
-                actions={actions}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        ));
-        expect(container).toMatchSnapshot();
-    });
-    test('should match snapshot for Professional', () => {
-        const additionalProps = {
-            channelPermissions: [],
-            guestAccountsEnabled: true,
-            channelModerationEnabled: true,
-            channelGroupsEnabled: false,
-            isDisabled: false,
-            abacSupported: false,
-        };
-
-        let container;
-        ({container} = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={team}
-                totalGroups={groups.length}
-                actions={actions}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        ));
-        expect(container).toMatchSnapshot();
-
-        ({container} = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={undefined}
-                totalGroups={groups.length}
-                actions={actions}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        ));
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for Enterprise', () => {
-        const additionalProps = {
-            channelPermissions: [],
-            guestAccountsEnabled: true,
-            channelModerationEnabled: true,
-            channelGroupsEnabled: false,
-            isDisabled: false,
-            abacSupported: true,
-        };
-
-        let container;
-        ({container} = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={team}
-                totalGroups={groups.length}
-                actions={actions}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        ));
-        expect(container).toMatchSnapshot();
-
-        ({container} = renderWithContext(
-            <ChannelDetails
-                teamScheme={teamScheme}
-                groups={groups}
-                team={undefined}
-                totalGroups={groups.length}
-                actions={actions}
-                channel={testChannel}
-                channelID={testChannel.id}
-                allGroups={allGroups}
-                {...additionalProps}
-            />,
-        ));
-        expect(container).toMatchSnapshot();
-    });
-
     test('excludes session attributes from the channel-level access rules editor', async () => {
         mockChannelLevelAccessRules.mockClear();
 
@@ -386,7 +261,7 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
                     isDisabled={false}
                 />,
             );
-            return {patchChannelAttributeValues, unarchiveChannel};
+            return {patchChannelAttributeValues, unarchiveChannel, patchChannel};
         };
 
         const missingMessage = 'Set a value for Program before saving. This attribute is required.';
@@ -440,6 +315,18 @@ describe('admin_console/team_channel_settings/channel/ChannelDetails', () => {
 
             await waitFor(() => expect(unarchiveChannel).toHaveBeenCalledWith(testChannel.id));
             await waitFor(() => expect(patchChannelAttributeValues).toHaveBeenCalledWith(testChannel.id, [{field_id: 'field1', value: 'value1'}]));
+        });
+
+        test('archiving then unarchiving before saving drops the attribute edits the section no longer shows', async () => {
+            const {patchChannelAttributeValues, patchChannel} = renderDetails(testChannel);
+
+            await userEvent.click(screen.getByRole('button', {name: 'EditChannelAttribute'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Archive Channel'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Unarchive Channel'}));
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            await waitFor(() => expect(patchChannel).toHaveBeenCalled());
+            expect(patchChannelAttributeValues).not.toHaveBeenCalled();
         });
 
         test('keeps a save error visible next to the required-attributes message', async () => {

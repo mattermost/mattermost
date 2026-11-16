@@ -260,6 +260,37 @@ describe('ChannelsResourceSettings', () => {
     });
 
     it('flips normally when nothing is missing', async () => {
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({summary: {
+            totalCount: 0,
+            sharedCount: 0,
+            uniqueAdminCount: 0,
+            noAdminCount: 0,
+            messagePreview: '',
+            required: false,
+        }}));
+        const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
+
+        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
+
+        expect(onChange).toHaveBeenCalledWith(expect.objectContaining({required: true}));
+    });
+
+    it('cannot be turned on until the missing-value counts have loaded', () => {
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({loading: true}));
+        renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
+
+        expect(screen.getByTestId('channelsResourceRequired-button')).toBeDisabled();
+    });
+
+    it('can still be turned off while the counts load', () => {
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({loading: true}));
+        renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: true}});
+
+        expect(screen.getByTestId('channelsResourceRequired-button')).toBeEnabled();
+    });
+
+    it('leaves the decision to the server when the counts fail to load', async () => {
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({failed: true}));
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
 
         await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));

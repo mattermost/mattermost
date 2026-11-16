@@ -9428,6 +9428,42 @@ func TestPatchPropertyFieldRequiredChannelsMissingValuesGate(t *testing.T) {
 		assert.Equal(t, http.StatusConflict, appErr.StatusCode)
 	})
 
+	t.Run("a caller claiming another object type for an existing channel field is still checked", func(t *testing.T) {
+		field := newField(t, model.PropertyFieldObjectTypeChannel, false)
+		field.ObjectType = model.PropertyFieldObjectTypeUser
+		field.Attrs["required"] = true
+
+		_, _, appErr := th.App.UpdatePropertyField(th.Context, group.ID, field, false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", appErr.Id)
+	})
+
+	t.Run("a team-scoped channel field is not checked, since Required is enforced only server-wide", func(t *testing.T) {
+		field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+			Name:       "a" + model.NewId(),
+			Type:       model.PropertyFieldTypeText,
+			GroupID:    group.ID,
+			ObjectType: model.PropertyFieldObjectTypeChannel,
+			TargetType: string(model.PropertyFieldTargetLevelTeam),
+			TargetID:   th.BasicTeam.Id,
+			Attrs:      model.StringInterface{},
+		}, false, "")
+		require.Nil(t, appErr)
+		field.Attrs["required"] = true
+
+		updated, _, appErr := th.App.UpdatePropertyField(th.Context, group.ID, field, false, "")
+		require.Nil(t, appErr)
+		assert.True(t, model.IsPropertyFieldRequired(updated))
+
+		// Required was never enforced while team-scoped, so widening the
+		// field to every team is checked like turning Required on.
+		updated.TargetType = string(model.PropertyFieldTargetLevelSystem)
+		updated.TargetID = ""
+		_, _, appErr = th.App.UpdatePropertyField(th.Context, group.ID, updated, false, "")
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", appErr.Id)
+	})
+
 	t.Run("with required enforcement disabled the disabled error wins over the missing-values gate", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ChannelAttributesRequired = true })

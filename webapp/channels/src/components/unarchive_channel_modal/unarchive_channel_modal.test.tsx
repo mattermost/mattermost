@@ -97,6 +97,39 @@ describe('components/unarchive_channel_modal', () => {
         expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
     });
 
+    test('Enter does nothing until the required attribute check has finished', async () => {
+        mockUseMissingRequiredChannelAttributes.mockReturnValue({loading: true, missing: []});
+        const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+        renderWithContext(
+            <UnarchiveChannelModal
+                {...baseProps}
+                actions={{unarchiveChannel}}
+            />,
+        );
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus());
+        await userEvent.keyboard('{Enter}');
+
+        expect(unarchiveChannel).not.toHaveBeenCalled();
+    });
+
+    test('keeps focus on the confirm button once the check finishes, so Enter restores the channel', async () => {
+        mockUseMissingRequiredChannelAttributes.mockReturnValue({loading: true, missing: []});
+        const unarchiveChannel = jest.fn().mockResolvedValue({data: true});
+        const props = {...baseProps, actions: {unarchiveChannel}};
+        const {rerender} = renderWithContext(<UnarchiveChannelModal {...props}/>);
+
+        await waitFor(() => expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus());
+
+        mockUseMissingRequiredChannelAttributes.mockReturnValue({loading: false, missing: []});
+        rerender(<UnarchiveChannelModal {...props}/>);
+
+        expect(screen.getByRole('button', {name: 'Unarchive'})).toHaveFocus();
+        await userEvent.keyboard('{Enter}');
+
+        expect(unarchiveChannel).toHaveBeenCalledWith(channel.id);
+    });
+
     test('names a missing attribute by its label, capitalizing classification', () => {
         mockUseMissingRequiredChannelAttributes.mockReturnValue({
             loading: false,
