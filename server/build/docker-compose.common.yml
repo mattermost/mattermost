@@ -165,3 +165,15 @@ services:
     command: ["--config=/etc/otelcol-contrib/config.yaml"]
     networks:
       - mm-test
+  ingress-sharedsecret:
+    image: "nginx:1.27-alpine"
+    logging: *default-logging
+    environment:
+      - "INGRESS_PREAUTH_SECRET=${MM_INGRESS_PREAUTH_SECRET:-123456}"
+      - "NGINX_ENVSUBST_FILTER=INGRESS_"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - "./docker/ingress-sharedsecret/default.conf.template:/etc/nginx/templates/default.conf.template:ro,Z"
+    networks:
+      - mm-test
