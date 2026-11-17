@@ -38,10 +38,47 @@ const algoliaThemeConfig =
       }
     : {};
 
+// OneTrust cookie consent banner, shared with mattermost.com. Only the hosted
+// production build sets ONETRUST_DOMAIN_SCRIPT (see docs-cd.yml); local, CI,
+// preview and air-gapped builds omit it, so they make no third-party request
+// and check-egress stays green. The production script is tied to the
+// mattermost.com domain, so it works on docs.mattermost.com and consent given
+// on either site is shared via the .mattermost.com OptanonConsent cookie.
+const oneTrustDomainScript = process.env.ONETRUST_DOMAIN_SCRIPT;
+const oneTrustHeadTags = oneTrustDomainScript
+  ? [
+      {
+        tagName: 'script',
+        attributes: {
+          src: 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js',
+          type: 'text/javascript',
+          charset: 'UTF-8',
+          'data-domain-script': oneTrustDomainScript,
+        },
+      },
+      {
+        tagName: 'script',
+        attributes: {type: 'text/javascript'},
+        innerHTML: 'function OptanonWrapper() { }',
+      },
+    ]
+  : [];
+// Lets visitors reopen the preference center to change or withdraw consent.
+// Rendered only with the banner, since without it the button does nothing.
+const oneTrustFooterItems = oneTrustDomainScript
+  ? [
+      {
+        html: '<button type="button" id="ot-sdk-btn" class="ot-sdk-show-settings">Cookie settings</button>',
+      },
+    ]
+  : [];
+
 const config: Config = {
   title: 'Mattermost Documentation',
   tagline: 'Mission in Motion',
   favicon: 'img/brand/icon-denim.svg',
+
+  headTags: [...oneTrustHeadTags],
 
   future: {
     v4: true,
@@ -225,6 +262,7 @@ const config: Config = {
           items: [
             {label: 'GitHub', href: 'https://github.com/mattermost/mattermost'},
             {label: 'Forum', href: 'https://forum.mattermost.com/'},
+            ...oneTrustFooterItems,
           ],
         },
       ],
