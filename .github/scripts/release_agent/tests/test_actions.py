@@ -131,8 +131,9 @@ class WorkingMinutesTest(unittest.TestCase):
     def test_should_put_the_run_on_the_hour_after_the_window(self):
         self.assertEqual(engine.add_working_minutes(at(11, 3, 9, 30), 60, frozenset()), at(11, 3, 11))
 
-    def test_should_round_down_when_the_notice_went_out_a_few_minutes_late(self):
-        self.assertEqual(engine.add_working_minutes(at(11, 3, 9, 4), 60, frozenset()), at(11, 3, 10))
+    def test_should_round_up_so_the_window_is_never_shorter(self):
+        self.assertEqual(engine.add_working_minutes(at(11, 3, 9, 4), 60, frozenset()), at(11, 3, 11))
+        self.assertEqual(engine.add_working_minutes(at(11, 3, 9), 60, frozenset()), at(11, 3, 10))
 
     def test_should_carry_the_window_over_a_weekend_and_a_holiday(self):
         holiday = frozenset({at(11, 9).date()})
@@ -207,7 +208,7 @@ class BranchCutTest(unittest.TestCase):
         self.world = World()
 
     def notice(self):
-        return self.world.run(at(11, 2, 8, 5), "branch_cut")
+        return self.world.run(at(11, 2, 8, 0), "branch_cut")
 
     def test_should_not_be_due_before_the_branch_cut_day(self):
         result = self.world.run(at(10, 30), "branch_cut")
@@ -216,7 +217,7 @@ class BranchCutTest(unittest.TestCase):
 
     def test_should_not_be_needed_when_the_branches_exist(self):
         self.world.add_branch(12, 3)
-        result = self.world.run(at(11, 2, 8, 5), "branch_cut")
+        result = self.world.run(at(11, 2, 8, 0), "branch_cut")
         self.assertEqual(result["state"], engine.DONE)
         self.assertEqual(self.world.hub.created, [])
         self.assertEqual(self.world.dispatcher.dispatched, [])
@@ -243,6 +244,13 @@ class BranchCutTest(unittest.TestCase):
         self.assertEqual(len(self.world.audit), 2)
         self.assertTrue(self.world.audit[0].startswith("Started: create-release-branches-universal.yaml"))
         self.assertIn("triggered by schedule", self.world.audit[0])
+
+    def test_should_wait_a_full_window_after_a_late_notice(self):
+        self.world.run(at(11, 2, 8, 4), "branch_cut")
+        self.assertIn("on Monday, November 2 at 10:00 UTC", self.world.posts("c123")[0]["message"])
+        self.assertEqual(self.world.run(at(11, 2, 9, 3), "branch_cut")["state"], engine.WAITING)
+        self.assertEqual(self.world.dispatcher.dispatched, [])
+        self.assertEqual(self.world.run(at(11, 2, 10, 3), "branch_cut")["state"], engine.STARTED)
 
     def test_should_stop_on_a_reply_from_anyone_until_the_next_day(self):
         self.notice()
@@ -328,13 +336,13 @@ class BranchCutTest(unittest.TestCase):
 
     def test_should_post_in_the_log_with_a_mention_when_there_is_no_release_channel(self):
         world = World(release_channel=False)
-        world.run(at(11, 2, 8, 5), "branch_cut")
+        world.run(at(11, 2, 8, 0), "branch_cut")
         self.assertEqual(world.posts("c123"), [])
         self.assertTrue(world.posts("log")[0]["message"].endswith("to stop. @amy.blais"))
 
     def test_should_keep_the_log_notice_when_the_release_channel_appears(self):
         world = World(release_channel=False)
-        world.run(at(11, 2, 8, 5), "branch_cut")
+        world.run(at(11, 2, 8, 0), "branch_cut")
         world.hub.channels = [{"id": "c123", "display_name": "Release: v12.3"}]
         world.run(at(11, 2, 9, 2), "branch_cut")
         self.assertEqual(world.posts("c123"), [])
@@ -342,7 +350,7 @@ class BranchCutTest(unittest.TestCase):
 
     def test_should_only_show_what_it_would_do_in_a_dry_run(self):
         world = World(mode="dry_run")
-        world.run(at(11, 2, 8, 5), "branch_cut")
+        world.run(at(11, 2, 8, 0), "branch_cut")
         result = world.run(at(11, 2, 9, 2), "branch_cut")
         self.assertEqual(result["state"], engine.DRY)
         self.assertEqual(world.posts("c123"), [])
@@ -352,7 +360,7 @@ class BranchCutTest(unittest.TestCase):
         self.assertEqual(world.dispatcher.dispatched, [])
 
     def test_should_dry_run_a_live_action_started_from_the_actions_tab(self):
-        self.world.run(at(11, 2, 8, 5), "branch_cut", trigger="workflow_dispatch")
+        self.world.run(at(11, 2, 8, 0), "branch_cut", trigger="workflow_dispatch")
         self.world.run(at(11, 2, 9, 2), "branch_cut", trigger="workflow_dispatch")
         self.assertEqual(self.world.dispatcher.dispatched, [])
         self.assertEqual(self.world.posts("c123"), [])
@@ -362,7 +370,7 @@ class BranchCutTest(unittest.TestCase):
 # ── Release candidates ──────────────────────────────────────────────────────────────
 
 class RcTest(unittest.TestCase):
-    T15 = at(11, 23, 8, 5)  # T-15 for a December 14 Release Day, with November 11 not a holiday in the rules
+    T15 = at(11, 23, 8, 0)  # T-15 for a December 14 Release Day, with November 11 not a holiday in the rules
 
     def setUp(self):
         self.world = World()
@@ -377,7 +385,7 @@ class RcTest(unittest.TestCase):
 
     def cut_rc1(self):
         day = self.due
-        self.world.run(at(day.month, day.day, 8, 5), "rc")
+        self.world.run(at(day.month, day.day, 8, 0), "rc")
         self.world.run(at(day.month, day.day, 9, 2), "rc")
         self.world.dispatcher.finish("success")
         self.world.add_tag("v12.3.0-rc1")
@@ -389,7 +397,7 @@ class RcTest(unittest.TestCase):
 
     def test_should_cut_rc1_after_its_window_with_the_workflow_inputs(self):
         day = self.due
-        self.world.run(at(day.month, day.day, 8, 5), "rc")
+        self.world.run(at(day.month, day.day, 8, 0), "rc")
         self.assertTrue(self.world.posts("c123")[0]["message"].startswith("Cutting v12.3.0-rc1 on "))
         self.world.run(at(day.month, day.day, 9, 2), "rc")
         self.assertEqual(self.world.dispatcher.dispatched, [(DP, "release-mattermost-platform.yml", "master", {
@@ -901,7 +909,7 @@ class PrivacyTest(unittest.TestCase):
         world.jira.issues[r"issuetype in \(Epic, Story\) AND status = Resolved"] = [issue("MM-100", "Secret feature")]
         world.sheets = FakeSheets([{"title": "v12.2", "sheetId": 5, "rows": [HEADERS]}])
         world.run(QaSheetTest.setUp.__globals__["at"](11, 23, 9, 2), "qa_sheet")
-        world.run(at(11, 2, 8, 5), "branch_cut")
+        world.run(at(11, 2, 8, 0), "branch_cut")
         world.run(at(11, 2, 9, 2), "branch_cut")
         public = json.dumps(world.body) + runner.step_summary(world.body)
         for secret in ("MM-100", "Secret feature", "delivery-platform/actions", "docs.google.com", "https://"):

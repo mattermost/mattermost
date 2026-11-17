@@ -21,7 +21,6 @@ ACTION_PROP = "release_action"
 STATE_PROP = "release_action_state"
 MAX_PAGES = 25
 WORK_START, WORK_END = 8, 18  # UTC hours the hourly workflow runs in
-ROUND_DOWN_MINUTES = 10
 
 DRY_RUN, LIVE = "dry_run", "live"
 ACTION_NAMES = ("qa_sheet", "tickets", "metrics", "versions", "rc", "branch_cut")
@@ -176,8 +175,8 @@ def is_working(moment: datetime, holidays: frozenset) -> bool:
 
 
 def add_working_minutes(start: datetime, minutes: int, holidays: frozenset) -> datetime:
-    """``minutes`` working minutes (08:00-18:00 UTC on working days) after ``start``, put on the
-    hour, when the hourly workflow can act on it."""
+    """``minutes`` working minutes (08:00-18:00 UTC on working days) after ``start``, rounded up to
+    the hour, when the hourly workflow can act on it."""
     moment, left = start, minutes
     while left > 0:
         if not is_working(moment, holidays):
@@ -190,11 +189,10 @@ def add_working_minutes(start: datetime, minutes: int, holidays: frozenset) -> d
         step = min(left, math.ceil((end_of_day - moment).total_seconds() / 60))
         moment += timedelta(minutes=step)
         left -= step
-    # On the hour, when the hourly run starts. A few minutes late (the run that sent the notice
-    # started late) rounds down, so the cut isn't put off by a whole hour.
+    # Rounded up to the hour, when the hourly run acts on it, so the window is never shorter
+    # than ``minutes``.
     if moment.minute or moment.second or moment.microsecond:
-        hour = moment.replace(minute=0, second=0, microsecond=0)
-        moment = hour if moment.minute < ROUND_DOWN_MINUTES else hour + timedelta(hours=1)
+        moment = moment.replace(minute=0, second=0, microsecond=0) + timedelta(hours=1)
     return moment
 
 
