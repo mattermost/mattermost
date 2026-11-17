@@ -1636,14 +1636,19 @@ func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 	})
 
 	t.Run("no LDAP certificates when LDAP is disabled", func(t *testing.T) {
+		// The probe runs on its own goroutine, where a strict mock's failure would hang the collection.
+		ldapMock := &emocks.LdapDiagnosticInterface{}
+		ldapMock.On("RunSupportPacketTest", mock.Anything).Return(expiredCert, nil, nil).Maybe()
+		ldapMock.On("GetVendorNameAndVendorVersion", mock.Anything).Return("", "", nil).Maybe()
 		originalLDAP := th.Service.ldapDiagnostic
-		th.Service.ldapDiagnostic = emocks.NewLdapDiagnosticInterface(t)
+		th.Service.ldapDiagnostic = ldapMock
 		t.Cleanup(func() { th.Service.ldapDiagnostic = originalLDAP })
 
 		d := getDiagnostics(t).Diagnostics
 		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
 		assert.Nil(t, d.LDAP.ServerCertificate)
 		assert.Nil(t, d.LDAP.ClientCertificate)
+		ldapMock.AssertNotCalled(t, "RunSupportPacketTest", mock.Anything)
 	})
 
 	t.Run("SAML certificates are reported when the test fails", func(t *testing.T) {
