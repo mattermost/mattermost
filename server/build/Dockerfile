@@ -18,7 +18,7 @@ ARG MM_PACKAGE="https://latest.mattermost.com/mattermost-enterprise-linux"
 RUN apk add --no-cache curl
 
 # static has no glibc, so it is installed here.
-# Document extraction for file search (see DOCKER_IMAGE_PLAN.md):
+# Document extraction for file search:
 #   poppler-utils: pdfinfo + pdftotext (docconv needs both)
 #   unrtf + glibc-iconv: RTF
 #   tidy-html5: HTML
