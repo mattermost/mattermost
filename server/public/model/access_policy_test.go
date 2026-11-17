@@ -2081,11 +2081,11 @@ func TestSystemSettingPolicyValidation(t *testing.T) {
 
 	t.Run("rejects rule value on non-system_setting policies", func(t *testing.T) {
 		perm := &AccessControlPolicy{
-			ID:       NewId(),
-			Name:     "Perm",
-			Type:     AccessControlPolicyTypePermission,
-			Version:  AccessControlPolicyVersionV0_3,
-			Roles:    []string{SystemUserRoleId},
+			ID:      NewId(),
+			Name:    "Perm",
+			Type:    AccessControlPolicyTypePermission,
+			Version: AccessControlPolicyVersionV0_3,
+			Roles:   []string{SystemUserRoleId},
 			Rules: []AccessControlPolicyRule{{
 				Actions:    []string{AccessControlPolicyActionUploadFileAttachment},
 				Expression: "true",
