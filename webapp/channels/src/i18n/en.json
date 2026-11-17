@@ -14255,6 +14255,26 @@
     "defaultMessage": "Scoped Configuration",
     "description": ""
   },
+  "admin.scoped_configuration.priority": {
+    "defaultMessage": "Priority",
+    "description": ""
+  },
+  "admin.scoped_configuration.priority.drag_handle": {
+    "defaultMessage": "Drag to change priority",
+    "description": ""
+  },
+  "admin.scoped_configuration.priority.explanation": {
+    "defaultMessage": "When a user matches more than one policy for a setting, the policy highest in this list applies. Drag policies to change their priority.",
+    "description": ""
+  },
+  "admin.scoped_configuration.priority.filtering": {
+    "defaultMessage": "Clear the search to change the priority of policies.",
+    "description": ""
+  },
+  "admin.scoped_configuration.priority.save_error": {
+    "defaultMessage": "Unable to save the new priority order. Try again.",
+    "description": ""
+  },
   "admin.scoped_configuration.role": {
     "defaultMessage": "Role",
     "description": ""
@@ -14263,16 +14283,20 @@
     "defaultMessage": "Something went wrong. Try again",
     "description": ""
   },
+  "admin.scoped_configuration.setting_control.add_policy": {
+    "defaultMessage": "Add policy",
+    "description": ""
+  },
+  "admin.scoped_configuration.setting_control.change_priority": {
+    "defaultMessage": "Change priority",
+    "description": ""
+  },
   "admin.scoped_configuration.setting_control.configure": {
     "defaultMessage": "Configure with a policy",
     "description": ""
   },
-  "admin.scoped_configuration.setting_control.policy_name": {
-    "defaultMessage": "Policy: {name}",
-    "description": ""
-  },
-  "admin.scoped_configuration.setting_control.view_existing": {
-    "defaultMessage": "View existing policy",
+  "admin.scoped_configuration.setting_control.policies_heading": {
+    "defaultMessage": "Policies affecting this setting, in priority order:",
     "description": ""
   },
   "admin.scoped_configuration.setting.allow_banner_dismissal.description": {

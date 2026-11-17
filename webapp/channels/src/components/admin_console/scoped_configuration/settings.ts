@@ -27,6 +27,12 @@ export function getScopedConfigurationPrefillRoute(settingKey: string): string {
     return `${SCOPED_CONFIGURATION_EDIT_ROUTE}/setting/${encodeURIComponent(settingKey)}`;
 }
 
+export function sortPoliciesByOrder<T extends {id: string}>(policies: T[], order: string[]): T[] {
+    const rank = new Map(order.map((id, index) => [id, index]));
+    const rankOf = (policy: T) => rank.get(policy.id) ?? Number.MAX_SAFE_INTEGER;
+    return [...policies].sort((a, b) => rankOf(a) - rankOf(b));
+}
+
 const settingMessages = defineMessages({
     mobileEnableBiometricsLabel: {
         id: 'admin.scoped_configuration.setting.mobile_enable_biometrics.label',

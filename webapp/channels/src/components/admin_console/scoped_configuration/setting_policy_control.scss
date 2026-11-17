@@ -5,8 +5,27 @@
     margin-top: var(--spacing-s);
     gap: var(--spacing-s);
 
-    &__policy-name {
+    &--list {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--spacing-xs);
+    }
+
+    &__heading {
         color: rgba(var(--center-channel-color-rgb), 0.72);
         font-size: var(--font-size-75);
+    }
+
+    &__policies {
+        padding-left: 20px;
+        margin: 0;
+        font-size: var(--font-size-75);
+        line-height: 20px;
+    }
+
+    &__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--spacing-s);
     }
 }

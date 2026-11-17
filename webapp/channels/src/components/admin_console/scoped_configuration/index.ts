@@ -5,15 +5,29 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import {searchSystemSettingPolicies, deleteAccessControlPolicy} from 'mattermost-redux/actions/access_control';
+import {
+    searchSystemSettingPolicies,
+    deleteAccessControlPolicy,
+    getSystemSettingPolicyOrder,
+    updateSystemSettingPolicyOrder,
+} from 'mattermost-redux/actions/access_control';
+import {getSystemSettingPolicyOrder as selectSystemSettingPolicyOrder} from 'mattermost-redux/selectors/entities/access_control';
+
+import type {GlobalState} from 'types/store';
 
 import ScopedConfigurationList from './scoped_configuration';
+
+const mapStateToProps = (state: GlobalState) => ({
+    order: selectSystemSettingPolicyOrder(state),
+});
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
         searchPolicies: (term: string, after: string, limit: number) => searchSystemSettingPolicies(term, after, limit),
         deletePolicy: deleteAccessControlPolicy,
+        getPolicyOrder: getSystemSettingPolicyOrder,
+        updatePolicyOrder: updateSystemSettingPolicyOrder,
     }, dispatch),
 });
 
-export default connect(null, mapDispatchToProps)(ScopedConfigurationList);
+export default connect(mapStateToProps, mapDispatchToProps)(ScopedConfigurationList);

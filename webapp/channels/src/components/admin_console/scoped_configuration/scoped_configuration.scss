@@ -1,0 +1,65 @@
+.PolicyTable .ScopedConfigurationPriority {
+    &__hint {
+        padding: 0 0 12px;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 14px;
+        line-height: 20px;
+    }
+
+    &__error {
+        padding: 0 0 12px;
+        color: var(--error-text);
+        font-size: 14px;
+    }
+
+    .DataGrid_cell.ScopedConfigurationPriority__handle-cell {
+        display: flex;
+        flex: 0 0 32px;
+        align-items: center;
+    }
+
+    .DataGrid_cell.ScopedConfigurationPriority__priority {
+        display: flex;
+        flex: 0 0 80px;
+        align-items: center;
+    }
+
+    &__handle {
+        display: inline-flex;
+        align-items: center;
+        border-radius: 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+        cursor: grab;
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 0.88);
+        }
+
+        &--disabled {
+            cursor: not-allowed;
+            opacity: 0.4;
+        }
+    }
+
+    &__rank {
+        display: inline-flex;
+        min-width: 24px;
+        height: 24px;
+        align-items: center;
+        justify-content: center;
+        padding: 0 6px;
+        border-radius: 12px;
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: var(--button-bg);
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .DataGrid_row.ScopedConfigurationPriority__row--dragging {
+        border-left: 2px solid var(--button-bg);
+        background: var(--center-channel-bg);
+        box-shadow: var(--elevation-4);
+    }
+}
