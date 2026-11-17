@@ -2035,6 +2035,37 @@ func TestSystemSettingPolicyValidation(t *testing.T) {
 		require.Equal(t, "model.access_policy.is_valid.system_setting_key.app_error", err.Id)
 	})
 
+	t.Run("validates announcement banner settings", func(t *testing.T) {
+		withRules := func(rules ...AccessControlPolicyRule) *AccessControlPolicy {
+			p := validPolicy()
+			p.Rules = rules
+			return p
+		}
+		rule := func(key, value string) AccessControlPolicyRule {
+			return AccessControlPolicyRule{
+				Actions:    []string{key},
+				Expression: `user.attributes.Department == "Finance"`,
+				Value:      value,
+			}
+		}
+
+		require.Nil(t, withRules(
+			rule(ClientConfigKeyEnableBanner, "true"),
+			rule(ClientConfigKeyBannerText, "Finance close is on **Friday**"),
+			rule(ClientConfigKeyAllowBannerDismissal, "false"),
+		).IsValid())
+
+		require.Nil(t, withRules(rule(ClientConfigKeyBannerText, "")).IsValid())
+
+		for _, key := range []string{ClientConfigKeyEnableBanner, ClientConfigKeyAllowBannerDismissal} {
+			for _, badVal := range []string{"", "yes", "1", "TRUE"} {
+				err := withRules(rule(key, badVal)).IsValid()
+				require.NotNil(t, err, "expected error for %s value %q", key, badVal)
+				require.Equal(t, "model.access_policy.is_valid.system_setting_value.app_error", err.Id)
+			}
+		}
+	})
+
 	t.Run("rejects multiple actions in one rule", func(t *testing.T) {
 		p := validPolicy()
 		p.Rules[0].Actions = []string{ClientConfigKeyMobileEnableBiometrics, "OtherKey"}

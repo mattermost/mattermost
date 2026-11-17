@@ -5,6 +5,7 @@ package app
 
 import (
 	"net/http"
+	"slices"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -168,6 +169,59 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 
 		guest := th.CreateGuest(t)
 		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(guest))
+		require.Nil(t, appErr)
+		assert.Empty(t, overrides)
+
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("evaluates every announcement banner rule in a policy", func(t *testing.T) {
+		mockACS := enableSystemSettingABAC(t)
+		bannerRule := func(key, value string) model.AccessControlPolicyRule {
+			return model.AccessControlPolicyRule{
+				Actions:    []string{key},
+				Expression: `user.attributes.dept == "finance"`,
+				Value:      value,
+			}
+		}
+		policy := saveStoredPolicy(t, &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "Finance Banner",
+			Type:    model.AccessControlPolicyTypeSystemSetting,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{
+				bannerRule(model.ClientConfigKeyEnableBanner, "true"),
+				bannerRule(model.ClientConfigKeyBannerText, "Finance close is on Friday"),
+				bannerRule(model.ClientConfigKeyAllowBannerDismissal, "false"),
+			},
+		})
+
+		bannerKeys := []string{
+			model.ClientConfigKeyEnableBanner,
+			model.ClientConfigKeyBannerText,
+			model.ClientConfigKeyAllowBannerDismissal,
+		}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.ID == policy.ID &&
+				req.Resource.Type == model.AccessControlPolicyTypeSystemSetting &&
+				slices.Contains(bannerKeys, req.Action) &&
+				req.Subject.ID == th.BasicUser.Id
+		})).Return(model.AccessDecision{Decision: true}, nil).Times(len(bannerKeys))
+
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Subject.ID == th.BasicUser2.Id
+		})).Return(model.AccessDecision{Decision: false}, nil).Times(len(bannerKeys))
+
+		overrides, appErr := th.App.EvaluateClientConfigOverrides(sessionCtx(th.BasicUser))
+		require.Nil(t, appErr)
+		assert.Equal(t, map[string]string{
+			model.ClientConfigKeyEnableBanner:         "true",
+			model.ClientConfigKeyBannerText:           "Finance close is on Friday",
+			model.ClientConfigKeyAllowBannerDismissal: "false",
+		}, overrides)
+
+		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(th.BasicUser2))
 		require.Nil(t, appErr)
 		assert.Empty(t, overrides)
 
