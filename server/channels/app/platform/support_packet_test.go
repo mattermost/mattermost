@@ -1603,7 +1603,7 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 	th := Setup(t)
 
-	serverCert := &model.SupportPacketCertificate{CommonName: "dc01.corp.example.com", Issuer: "Example Corp Issuing CA 2", NotAfter: time.Date(2026, 11, 10, 23, 59, 59, 0, time.UTC)}
+	expiredCert := &model.SupportPacketCertificate{CommonName: "dc01.corp.example.com", Issuer: "Example Corp Issuing CA 2", NotAfter: time.Date(2026, 11, 10, 23, 59, 59, 0, time.UTC)}
 	unreadableCert := &model.SupportPacketCertificate{Error: `failed to parse certificate "public.crt": x509: malformed certificate`}
 
 	getDiagnostics := func(t *testing.T) *model.NodeDiagnostics {
@@ -1616,7 +1616,7 @@ func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 	t.Run("LDAP certificates are reported when the probe fails, without failing its section", func(t *testing.T) {
 		ldapMock := emocks.NewLdapDiagnosticInterface(t)
 		ldapMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context")).
-			Return(serverCert, unreadableCert, model.NewAppError("", "certificate has expired", nil, "", 0))
+			Return(expiredCert, unreadableCert, model.NewAppError("", "certificate has expired", nil, "", 0))
 		originalLDAP := th.Service.ldapDiagnostic
 		th.Service.ldapDiagnostic = ldapMock
 		th.Service.UpdateConfig(func(cfg *model.Config) { cfg.LdapSettings.EnableSync = new(true) })
@@ -1630,12 +1630,16 @@ func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 		d := nodeDiagnostics.Diagnostics
 		assert.Equal(t, model.StatusFail, d.LDAP.Status)
 		assert.Equal(t, "certificate has expired", d.LDAP.Error)
-		assert.Equal(t, serverCert, d.LDAP.ServerCertificate)
+		assert.Equal(t, expiredCert, d.LDAP.ServerCertificate)
 		assert.Equal(t, unreadableCert, d.LDAP.ClientCertificate)
 		assert.NoError(t, nodeDiagnostics.Errors[model.SectionLDAPProbe])
 	})
 
 	t.Run("no LDAP certificates when LDAP is disabled", func(t *testing.T) {
+		originalLDAP := th.Service.ldapDiagnostic
+		th.Service.ldapDiagnostic = emocks.NewLdapDiagnosticInterface(t)
+		t.Cleanup(func() { th.Service.ldapDiagnostic = originalLDAP })
+
 		d := getDiagnostics(t).Diagnostics
 		assert.Equal(t, model.StatusDisabled, d.LDAP.Status)
 		assert.Nil(t, d.LDAP.ServerCertificate)
@@ -1645,7 +1649,7 @@ func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 	t.Run("SAML certificates are reported when the test fails", func(t *testing.T) {
 		samlMock := emocks.NewSamlDiagnosticInterface(t)
 		samlMock.On("RunSupportPacketTest", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("model.SamlSettings")).
-			Return(serverCert, unreadableCert, errors.New("SAML IdP certificate expired on 2026-11-10T23:59:59Z"))
+			Return(expiredCert, unreadableCert, errors.New("SAML IdP certificate expired on 2026-11-10T23:59:59Z"))
 		originalSAML := th.Service.samlDiagnostic
 		th.Service.samlDiagnostic = samlMock
 		th.Service.UpdateConfig(func(cfg *model.Config) {
@@ -1667,11 +1671,15 @@ func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 
 		d := getDiagnostics(t).Diagnostics
 		assert.Equal(t, model.StatusFail, d.SAML.Status)
-		assert.Equal(t, serverCert, d.SAML.IdpCertificate)
+		assert.Equal(t, expiredCert, d.SAML.IdpCertificate)
 		assert.Equal(t, unreadableCert, d.SAML.SPCertificate)
 	})
 
 	t.Run("no SAML certificates when SAML is disabled", func(t *testing.T) {
+		originalSAML := th.Service.samlDiagnostic
+		th.Service.samlDiagnostic = emocks.NewSamlDiagnosticInterface(t)
+		t.Cleanup(func() { th.Service.samlDiagnostic = originalSAML })
+
 		d := getDiagnostics(t).Diagnostics
 		assert.Equal(t, model.StatusDisabled, d.SAML.Status)
 		assert.Nil(t, d.SAML.IdpCertificate)
@@ -1711,6 +1719,7 @@ func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 			Issuer:     "R11",
 			NotAfter:   time.Date(2026, 11, 28, 9, 14, 2, 0, time.UTC),
 		}, nodeDiagnostics.Diagnostics.TLS.Certificate)
+		require.Contains(t, nodeDiagnostics.Errors, model.SectionTLS)
 		assert.NoError(t, nodeDiagnostics.Errors[model.SectionTLS])
 	})
 

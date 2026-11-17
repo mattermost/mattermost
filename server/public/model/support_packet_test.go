@@ -156,7 +156,7 @@ func TestNewSupportPacketCertificate(t *testing.T) {
 
 	notAfter := time.Date(2026, 11, 28, 9, 14, 2, 0, time.FixedZone("CET", 3600))
 
-	t.Run("names the certificate by common names and reports its expiry in UTC", func(t *testing.T) {
+	t.Run("names the certificate by common names", func(t *testing.T) {
 		cert := newTestX509Certificate(t, pkix.Name{CommonName: "chat.example.com", Organization: []string{"Example"}}, pkix.Name{CommonName: "R11", Organization: []string{"Let's Encrypt"}}, notAfter)
 
 		assert.Equal(t, &SupportPacketCertificate{
@@ -164,6 +164,13 @@ func TestNewSupportPacketCertificate(t *testing.T) {
 			Issuer:     "R11",
 			NotAfter:   time.Date(2026, 11, 28, 8, 14, 2, 0, time.UTC),
 		}, NewSupportPacketCertificate(cert, nil))
+	})
+
+	t.Run("reports the expiry in UTC", func(t *testing.T) {
+		got := NewSupportPacketCertificate(&x509.Certificate{NotAfter: notAfter}, nil)
+
+		assert.Equal(t, time.UTC, got.NotAfter.Location())
+		assert.True(t, got.NotAfter.Equal(notAfter))
 	})
 
 	t.Run("falls back to the distinguished name without a common name", func(t *testing.T) {
