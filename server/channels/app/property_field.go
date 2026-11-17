@@ -562,8 +562,8 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			)
 		}
 
-		if err := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); err != nil {
-			return nil, nil, model.AsAppError(err)
+		if transitionErr := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); transitionErr != nil {
+			return nil, nil, model.AsAppError(transitionErr)
 		}
 	}
 
