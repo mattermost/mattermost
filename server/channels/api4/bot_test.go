@@ -9,6 +9,7 @@ import (
 	"io"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -245,12 +246,16 @@ func TestBotIsAgentWebsocketEvent(t *testing.T) {
 	_, appErr = th.App.PatchBot(th.Context, bot.UserId, &model.BotPatch{IsAgent: model.NewPointer(true)})
 	require.Nil(t, appErr)
 
-	assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
-		eventUser, ok := event.GetData()["user"].(*model.User)
-		require.True(t, ok, "expected user")
-		assert.Equal(t, bot.UserId, eventUser.Id)
-		assert.True(t, eventUser.IsAgent)
-	})
+	// The user is first announced with the previous flag, and again once the Bots table has the new one.
+	require.Eventually(t, func() bool {
+		select {
+		case event := <-webSocketClient.EventChannel:
+			eventUser, ok := event.GetData()["user"].(*model.User)
+			return event.EventType() == model.WebsocketEventUserUpdated && ok && eventUser.Id == bot.UserId && eventUser.IsAgent
+		default:
+			return false
+		}
+	}, 5*time.Second, 10*time.Millisecond)
 
 	user, appErr := th.App.GetUser(th.Context, bot.UserId)
 	require.Nil(t, appErr)

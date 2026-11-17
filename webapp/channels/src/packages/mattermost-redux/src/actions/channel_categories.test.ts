@@ -8,7 +8,7 @@ import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {ChannelCategoryTypes} from 'mattermost-redux/action_types';
+import {ChannelCategoryTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getAllCategoriesByIds, getCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -630,6 +630,44 @@ describe('addChannelToInitialCategory', () => {
             await store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
 
             expect(getAllCategoriesByIds(store.getState()).agentsCategory2.channel_ids).toEqual(['agentDm', 'movedAgentDm', 'existingAgentDm']);
+        });
+
+        test('should use the teammate profile as it is after the categories load', async () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                            dmCategory2: {id: 'dmCategory2', team_id: 'team2', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                            agentsCategory2: {id: 'agentsCategory2', team_id: 'team2', type: CategoryTypes.AGENTS, channel_ids: []},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {agent1: {id: 'agent1', is_bot: true, is_agent: true}},
+                    },
+                },
+            });
+
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories').
+                reply(() => {
+                    store.dispatch({
+                        type: UserTypes.RECEIVED_PROFILE,
+                        data: {id: 'agent1', is_bot: true, is_agent: false},
+                    });
+                    return [500, {message: 'server error'}];
+                });
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories/managed').
+                reply(500, {message: 'server error'});
+
+            await store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            const categoriesById = getAllCategoriesByIds(store.getState());
+            expect(categoriesById.agentsCategory2.channel_ids).toEqual([]);
+            expect(categoriesById.dmCategory1.channel_ids).toEqual(['agentDm']);
+            expect(categoriesById.dmCategory2.channel_ids).toEqual(['agentDm']);
         });
 
         test('should load the teammate profile to tell whether the DM is with an agent', async () => {

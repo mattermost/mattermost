@@ -240,12 +240,15 @@ function addDirectChannelToInitialCategories(channel: Channel): ActionFuncAsync 
             await Promise.all(teamIdsToLoad.map((teamId) => dispatch(fetchMyCategories(teamId))));
         }
 
-        const categories = Object.values(getAllCategoriesByIds(getState()));
+        // Everything from here on reads the state as it is after the waits above
+        const state = getState();
+        const isAgentNow = isAgentDirectChannel(channel, currentUserId, state.entities.users.profiles);
+        const categories = Object.values(getAllCategoriesByIds(state));
         const updatedCategories = categories.
             filter((category) => category.type === CategoryTypes.DIRECT_MESSAGES).
             filter((dmCategory) => !categories.some((category) => category.team_id === dmCategory.team_id && category.channel_ids.includes(channel.id))).
             map((dmCategory) => {
-                const agentsCategory = isAgentDM ? getCategoryInTeamByType(getState(), dmCategory.team_id, CategoryTypes.AGENTS) : undefined;
+                const agentsCategory = isAgentNow ? getCategoryInTeamByType(state, dmCategory.team_id, CategoryTypes.AGENTS) : undefined;
                 const targetCategory = agentsCategory ?? dmCategory;
 
                 return {
