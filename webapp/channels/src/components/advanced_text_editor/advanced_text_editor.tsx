@@ -724,10 +724,13 @@ const AdvancedTextEditor = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedPostFocussedAt]);
 
-    // Remove show preview when we switch channels or posts
+    // Drop preview, errors, and a shortcut-opened link popover when the composer
+    // moves to another channel or thread. The popover holds a URL that must not
+    // be saved into the new draft.
     useEffect(() => {
         setShowPreview(false);
         setServerError(null);
+        setAgentLinkPopoverOpen(false);
     }, [channelId, rootId]);
 
     // Register listener to store the draft when the page unloads

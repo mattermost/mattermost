@@ -1585,7 +1585,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
             Range.prototype.getBoundingClientRect = rect;
 
-            renderWithContext(
+            const {rerender} = renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
                     agentMode={true}
@@ -1613,6 +1613,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(screen.getByPlaceholderText('Type or paste a link')).toBeInTheDocument();
             expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expect(screen.queryByPlaceholderText('Type or paste a link')).not.toBeInTheDocument();
 
             Range.prototype.getClientRects = originalRects;
             Range.prototype.getBoundingClientRect = originalRect;
