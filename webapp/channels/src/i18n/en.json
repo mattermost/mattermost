@@ -7409,15 +7409,11 @@
   },
   "admin.health_dashboard.detail.first_seen": {
     "defaultMessage": "First detected",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
+    "description": "Label in an expanded firing finding on the System Console Site health page, shown only when the finding was first seen in an earlier state; followed by the date it was first seen, such as \"November 4, 2026\"."
   },
   "admin.health_dashboard.detail.go_to_setting": {
     "defaultMessage": "Go to setting",
     "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
-  },
-  "admin.health_dashboard.detail.last_seen": {
-    "defaultMessage": "Last checked",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
   },
   "admin.health_dashboard.detail.node": {
     "defaultMessage": "Node",
@@ -7438,10 +7434,6 @@
   "admin.health_dashboard.detail.resolve": {
     "defaultMessage": "Resolve here",
     "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
-  },
-  "admin.health_dashboard.detail.state": {
-    "defaultMessage": "State",
-    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
   },
   "admin.health_dashboard.duration.days": {
     "defaultMessage": "{days}d",
