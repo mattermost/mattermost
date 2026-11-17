@@ -26,6 +26,29 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	id := params["id"]
 	errCtx := map[string]any{"hook_id": id}
+	contentType := r.Header.Get("Content-Type")
+	var incomingWebhookPayload *model.IncomingWebhookRequest
+
+	defer func() {
+		if *c.App.Config().LogSettings.EnableWebhookDebugging && c.Err != nil {
+			fields := []mlog.Field{
+				mlog.String("webhook_id", id),
+				mlog.String("content_type", contentType),
+				mlog.Int("payload_size", r.ContentLength),
+				mlog.Err(c.Err),
+			}
+			if incomingWebhookPayload != nil {
+				payload, err := json.Marshal(incomingWebhookPayload)
+				if err != nil {
+					fields = append(fields, mlog.NamedErr("encoding_err", err))
+				} else {
+					fields = append(fields, mlog.String("payload", payload))
+				}
+			}
+
+			c.Logger.Debug("Incoming webhook received", fields...)
+		}
+	}()
 
 	err := r.ParseForm()
 	if err != nil {
@@ -35,8 +58,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var appErr *model.AppError
 	var mediaType string
-	incomingWebhookPayload := &model.IncomingWebhookRequest{}
-	contentType := r.Header.Get("Content-Type")
 	// Content-Type header is optional so could be empty
 	if contentType != "" {
 		var mimeErr error
@@ -46,22 +67,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-
-	defer func() {
-		if *c.App.Config().LogSettings.EnableWebhookDebugging {
-			if c.Err != nil {
-				fields := []mlog.Field{mlog.String("webhook_id", id), mlog.String("request_id", c.AppContext.RequestId())}
-				payload, err := json.Marshal(incomingWebhookPayload)
-				if err != nil {
-					fields = append(fields, mlog.NamedErr("encoding_err", err))
-				} else {
-					fields = append(fields, mlog.String("payload", payload))
-				}
-
-				mlog.Debug("Incoming webhook received", fields...)
-			}
-		}
-	}()
 
 	errCtx["media_type"] = mediaType
 	if mediaType == "application/x-www-form-urlencoded" {
@@ -78,6 +83,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		incomingWebhookPayload = &model.IncomingWebhookRequest{}
 		decoder := schema.NewDecoder()
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
 
