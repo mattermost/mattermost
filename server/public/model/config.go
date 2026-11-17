@@ -391,7 +391,7 @@ var ServerTLSSupportedCiphers = map[string]uint16{
 }
 
 type ServiceSettings struct {
-	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable"`
+	SiteURL             *string `access:"environment_web_server,authentication_saml,write_restrictable,manage_system_write"`
 	WebsocketURL        *string `access:"write_restrictable,cloud_restrictable"`
 	LicenseFileLocation *string `access:"write_restrictable,cloud_restrictable"`                        // telemetry: none
 	ListenAddress       *string `access:"environment_web_server,write_restrictable,cloud_restrictable"` // telemetry: none
@@ -2188,13 +2188,13 @@ type EmailSettings struct {
 	FeedbackEmail                     *string `access:"site_notifications,cloud_restrictable"`
 	ReplyToAddress                    *string `access:"site_notifications,cloud_restrictable"`
 	FeedbackOrganization              *string `access:"site_notifications"`
-	EnableSMTPAuth                    *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
-	SMTPUsername                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPPassword                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPServer                        *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
-	SMTPPort                          *string `access:"environment_smtp,write_restrictable,cloud_restrictable"` // telemetry: none
+	EnableSMTPAuth                    *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
+	SMTPUsername                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPPassword                      *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPServer                        *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
+	SMTPPort                          *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"` // telemetry: none
 	SMTPServerTimeout                 *int    `access:"cloud_restrictable"`
-	ConnectionSecurity                *string `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	ConnectionSecurity                *string `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
 	SendPushNotifications             *bool   `access:"environment_push_notification_server"`
 	PushNotificationServer            *string `access:"environment_push_notification_server"` // telemetry: none
 	PushNotificationContents          *string `access:"site_notifications"`
@@ -2203,7 +2203,7 @@ type EmailSettings struct {
 	EmailBatchingBufferSize           *int    `access:"site_notifications"`
 	EmailBatchingInterval             *int    `access:"site_notifications"`
 	EnablePreviewModeBanner           *bool   `access:"site_notifications"`
-	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable"`
+	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
 	EmailNotificationContentsType     *string `access:"site_notifications"`
 }
 
@@ -4201,6 +4201,7 @@ const (
 	ConfigAccessTagType              = "access"
 	ConfigAccessTagWriteRestrictable = "write_restrictable"
 	ConfigAccessTagCloudRestrictable = "cloud_restrictable"
+	ConfigAccessTagManageSystemWrite = "manage_system_write"
 )
 
 // Allows read access if any PermissionSysconsoleRead* is allowed
@@ -4221,6 +4222,9 @@ const ConfigAccessTagAnySysConsoleRead = "*_read"
 // By default config values can be written with PermissionManageSystem, but if ExperimentalSettings.RestrictSystemAdmin is true
 // and the access tag contains the value 'write_restrictable', then even PermissionManageSystem, does not grant write access
 // unless the request is made using local mode.
+//
+// Config values with the access tag 'manage_system_write' can only be written with PermissionManageSystem or using
+// local mode, regardless of any PermissionSysconsoleWrite* granted by the other access tag values. Read access is unaffected.
 //
 // PermissionManageSystem always grants read access.
 //
