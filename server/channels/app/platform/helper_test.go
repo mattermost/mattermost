@@ -56,6 +56,10 @@ func (ms *mockSuite) UserCanSeeOtherUser(rctx request.CTX, userID string, otherU
 	return true, nil
 }
 
+func (ms *mockSuite) GetViewUsersRestrictions(rctx request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError) {
+	return nil, nil
+}
+
 func (ms *mockSuite) HasPermissionToReadChannel(rctx request.CTX, userID string, channel *model.Channel) (bool, bool) {
 	return true, true
 }

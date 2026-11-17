@@ -1091,7 +1091,7 @@ func TestConvertUserToBot(t *testing.T) {
 		// make sure session is no longer valid
 		_, err = th.App.GetSession(session.Token)
 		require.NotNil(t, err)
-		require.Equal(t, "api.context.invalid_token.error", err.Id)
+		require.Equal(t, "api.context.invalid_session.error", err.Id)
 	})
 
 	t.Run("user with oauth credentials", func(t *testing.T) {
