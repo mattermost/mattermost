@@ -347,7 +347,7 @@ func (a *App) missingRequiredAttributesChannelList(rctx request.CTX, userID, gro
 
 		b.WriteString(T("app.channel_attributes.new_admin_missing_value.dm_channel_line", model.StringInterface{
 			"ChannelDisplayName": escapeChannelAttributeMarkdownLinkText(entry.channel.DisplayName),
-			"ChannelLink":        "/" + team.Name + "/channels/" + entry.channel.Name,
+			"ChannelLink":        a.GetSiteURL() + "/" + team.Name + "/channels/" + entry.channel.Name,
 			"TeamDisplayName":    escapeChannelAttributeMarkdownPlainText(team.DisplayName),
 			"AttributeNames":     strings.Join(names, ", "),
 		}))
