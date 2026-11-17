@@ -506,6 +506,10 @@ The toolkit `e2e-status` action claims pending before preparation and guards all
 raw results, skips and triage verdicts by run ID and publishing attempt. The
 TSIO actions collect diagnostics with their status side effects disabled.
 Cancelled runs retain diagnostic summaries/artifacts and cannot publish.
+A job its own time limit cancels (a hung worker) does not cancel the run: the
+lane result still publishes, red while reports are missing, and triage can ask
+`e2e-tests-rerun.yml` for a re-run, which re-runs only after a time limit, never
+after a person or a newer run cancelled the run.
 Missing current reports remain red, and a later pending/raw result refreshes
 the aggregate instead of leaving an old all-green snapshot.
 

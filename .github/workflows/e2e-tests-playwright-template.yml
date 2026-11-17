@@ -309,8 +309,8 @@ jobs:
   workers:
     name: dispatch-run-playwright-${{ inputs.server_edition }}-${{ inputs.playwright_project }}-${{ matrix.worker_index }}
     runs-on: ubuntu-24.04
-    # The step below times out first: a slow worker then fails rather than being cancelled, so lane-result
-    # still runs and triage reports the missing results instead of leaving its check waiting.
+    # The step below times out first, so a slow worker fails at its step and uploads what it ran. A worker
+    # this limit cancels (a runner that stopped answering) is still reported: see lane-result.
     timeout-minutes: 35
     needs: [prepare-run, dispatch-begin]
     permissions:
@@ -481,7 +481,10 @@ jobs:
   # Status, triage, webhook and the pass/fail gate: see e2e-tests-lane-result.yml.
   lane-result:
     needs: [prepare-run, dispatch-begin, workers, report]
-    if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+    # cancelled() is true only when the run is cancelled (by a person, or by a newer run through concurrency),
+    # and then the lane leaves its pending status alone. A job its own time limit cancels does not cancel the
+    # run: the lane still publishes and triages what arrived, and triage can ask for a re-run.
+    if: ${{ !cancelled() }}
     permissions:
       actions: read
       contents: read

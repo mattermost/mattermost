@@ -148,10 +148,6 @@ class StatusPublicationContract(unittest.TestCase):
             report = jobs['report']
             self.assertEqual(report['if'], 'always()')
             self.assertEqual(step(report, 'ci/run-summary')['if'], 'always()')
-            caller = jobs['lane-result']['if']
-            self.assertIn('!cancelled()', caller)
-            self.assertIn("needs.workers.result != 'cancelled'", caller)
-            self.assertIn("needs.dispatch-begin.result != 'cancelled'", caller)
             uploads = [s for s in jobs['workers']['steps'] if 'actions/upload-artifact@' in s.get('uses', '')]
             self.assertTrue(uploads)
             self.assertTrue(all(s['if'] == 'always()' for s in uploads))
@@ -160,6 +156,17 @@ class StatusPublicationContract(unittest.TestCase):
             with self.subTest(step=name):
                 self.assertIn('!cancelled()', condition)
                 self.assertNotIn('always()', condition)
+
+    def test_a_worker_its_time_limit_cancels_still_gets_a_lane_result(self):
+        """A worker or dispatch its time limit cancels still gets a lane result; a cancelled run does not."""
+        # A job past its timeout ends "cancelled" without cancelling the run. Skipping lane-result on that left the
+        # lane and e2e-test/triage pending, with no marker for e2e-tests-rerun.yml (runs 42240760729, 44122660650).
+        for suite in ('cypress', 'playwright', 'playwright-rolling-upgrades'):
+            with self.subTest(suite=suite):
+                condition = workflow(f'{suite}-template')['jobs']['lane-result']['if']
+                self.assertEqual(condition, '${{ !cancelled() }}')
+                self.assertNotIn('needs.workers.result', condition)
+                self.assertNotIn('needs.dispatch-begin.result', condition)
 
     def test_lane_result_is_called_last_with_explicit_inputs_and_least_privilege(self):
         """The lane result is called last, with explicit inputs and least privilege."""
@@ -325,8 +332,7 @@ class StatusPublicationContract(unittest.TestCase):
         self.assertEqual(caller['uses'], f'./.github/workflows/{LANE_RESULT}.yml')
         self.assertEqual(caller['needs'], ['prepare-run', 'dispatch-begin', 'workers', 'report'])
         self.assertEqual(caller['permissions'], PERMISSIONS)
-        self.assertIn('!cancelled()', caller['if'])
-        self.assertIn("needs.workers.result != 'cancelled'", caller['if'])
+        self.assertEqual(caller['if'], '${{ !cancelled() }}')
         # No model key: upgrade lanes are triaged by rules only, as before.
         self.assertEqual(set(caller['secrets']), {'REPORT_WEBHOOK_URL'})
         self.assertEqual(caller['with']['execution_success'], "${{ needs.prepare-run.result == 'success' && needs.dispatch-begin.result == 'success' && needs.workers.result == 'success' }}")
@@ -340,7 +346,7 @@ class StatusPublicationContract(unittest.TestCase):
 
     def test_a_slow_worker_fails_before_its_job_is_cancelled(self):
         """A slow worker fails before its job is cancelled."""
-        # A cancelled worker skips lane-result, so triage never runs and its check stays waiting.
+        # A step timeout fails the worker with its log and debug artifacts; a job timeout cancels it with neither.
         for name in ('cypress-template', 'playwright-template'):
             with self.subTest(workflow=name):
                 workers = workflow(name)['jobs']['workers']

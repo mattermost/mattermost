@@ -473,7 +473,10 @@ jobs:
   # triage keeps its own per-lane check, as master contexts do.
   lane-result:
     needs: [prepare-run, dispatch-begin, workers, report]
-    if: ${{ !cancelled() && needs.workers.result != 'cancelled' && needs.dispatch-begin.result != 'cancelled' }}
+    # cancelled() is true only when the run is cancelled (by a person, or by a newer run through concurrency),
+    # and then the lane leaves its pending status alone. A job its own time limit cancels does not cancel the
+    # run: the lane still publishes and triages what arrived, and triage can ask for a re-run.
+    if: ${{ !cancelled() }}
     permissions:
       actions: read
       contents: read
