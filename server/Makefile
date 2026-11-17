@@ -167,7 +167,6 @@ PLUGIN_PACKAGES += mattermost-plugin-playbooks-v2.12.1
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-agents-v2.9.0
 PLUGIN_PACKAGES += mattermost-plugin-boards-v10.1.0
-PLUGIN_PACKAGES += mattermost-plugin-user-survey-v1.1.1
 PLUGIN_PACKAGES += mattermost-plugin-mscalendar-v2.0.0
 PLUGIN_PACKAGES += mattermost-plugin-msteams-meetings-v3.0.0
 PLUGIN_PACKAGES += mattermost-plugin-metrics-v0.7.0
@@ -376,7 +375,7 @@ i18n-check: ## Exit on empty translation strings and translation source strings
 
 .PHONY: install-mockery
 install-mockery:
-	$(GO) install github.com/vektra/mockery/v2/...@v2.53.4
+	$(GO) install github.com/vektra/mockery/v2/...@v2.53.8
 
 .PHONY: store-mocks
 store-mocks: setup-go-work install-mockery ## Creates mock files.
@@ -495,9 +494,11 @@ ifneq ($(SKIP_SETUP_GO_WORK),true)
 	fi
 endif
 
+# embedlit, errorsastype and stringscut are new in Go 1.27; they are adopted separately, not as part of the toolchain bump.
+# TODO(MM-71330): we plan to fix the findings and enable them in the near future.
 .PHONY: check-go-fix
 check-go-fix: setup-go-work ## Check if go fix would modify any files.
-	$(GO) fix -diff ./...
+	$(GO) fix -diff -embedlit=false -errorsastype=false -stringscut=false ./...
 
 .PHONY: check-style
 check-style: plugin-checker vet golangci-lint check-go-fix ## Runs style/lint checks
@@ -913,7 +914,7 @@ config-openid: ## Configures OpenID.
 config-reset: setup-go-work ## Resets the config/config.json file to the default production values.
 	@echo Resetting configuration to production default
 	rm -f config/config.json
-	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) run $(GOFLAGS) -tags production ./scripts/config_generator
+	OUTPUT_CONFIG=$(PWD)/config/config.json $(GO) run $(GOFLAGS) -tags '$(if $(filter true,$(FIPS_ENABLED)),requirefips )production' ./scripts/config_generator
 
 .PHONY: diff-config
 diff-config: ## Compares default configuration between two mattermost versions

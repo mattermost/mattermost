@@ -100,7 +100,7 @@ import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import HealthDashboard from './health_dashboard';
 import IPFiltering from './ip_filtering';
-import LDAPWizard from './ldap_wizard';
+import LDAPWizard, {searchableStrings as ldapWizardSearchableStrings} from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
 import LicensedSectionContainer from './licensed_section_container';
@@ -4644,6 +4644,22 @@ const AdminDefinition: AdminDefinitionType = {
                             banner_type: 'info',
                         },
                         {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.mfa.fipsBannerDesc', defaultMessage: 'TOTP code generation for multi-factor authentication uses HMAC-SHA1 and is not strictly FIPS compliant. <link>Learn more</link>'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            label_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DocLinks.FIPS_MFA_TOTP}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            banner_type: 'warning',
+                            isHidden: it.clientConfigIsFalse('IsFipsEnabled'),
+                        },
+                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableMultifactorAuthentication',
                             label: defineMessage({id: 'admin.service.mfaTitle', defaultMessage: 'Enable Multi-factor Authentication:'}),
@@ -4678,6 +4694,7 @@ const AdminDefinition: AdminDefinitionType = {
             ldap: {
                 url: 'authentication/ldap',
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
+                searchableStrings: ldapWizardSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAP')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),

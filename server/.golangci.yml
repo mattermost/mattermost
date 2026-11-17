@@ -91,6 +91,11 @@ linters:
       disable:
         - fieldalignment
       enable-all: true
+    modernize:
+      disable:
+        # Analyzer added with Go 1.27 tooling; it is adopted separately, not as part of the toolchain bump.
+        # TODO(MM-71330): we plan to fix the findings and enable it in the near future.
+        - embedlit
     unqueryvet:
       check-sql-builders: true
   exclusions:

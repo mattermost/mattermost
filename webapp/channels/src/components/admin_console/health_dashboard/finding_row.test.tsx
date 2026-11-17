@@ -41,7 +41,7 @@ function header() {
     return within(screen.getByRole('button', {name: /Push notification server is not HTTPS/}));
 }
 
-function renderRow(finding: HealthFinding, {expanded = false, hideArea = false, onToggle = jest.fn(), state = {}} = {}) {
+function renderRow(finding: HealthFinding, {expanded = false, hideArea = false, hideSeverity = false, onToggle = jest.fn(), state = {}} = {}) {
     const onMute = jest.fn();
     const onUnmute = jest.fn();
     const history = createMemoryHistory();
@@ -56,6 +56,7 @@ function renderRow(finding: HealthFinding, {expanded = false, hideArea = false, 
                 onMute={onMute}
                 onUnmute={onUnmute}
                 hideArea={hideArea}
+                hideSeverity={hideSeverity}
             />
         </ul>,
         state,
@@ -70,7 +71,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
 
         expect(screen.getByText('Push notification server is not HTTPS')).toBeInTheDocument();
         expect(screen.getByText('The push server uses http://.')).toBeInTheDocument();
-        expect(screen.getByText('Critical')).toBeInTheDocument();
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Critical$/);
         expect(screen.getByTestId('healthFindingArea')).toHaveTextContent('Notifications');
         expect(header().getByText('Firing for 1m')).toBeInTheDocument();
     });
@@ -81,11 +82,24 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(screen.queryByTestId('healthFindingArea')).not.toBeInTheDocument();
     });
 
+    test.each([
+        ['firing' as const],
+        ['unknown' as const],
+        ['resolved' as const],
+    ])('hideSeverity omits the badge of a %s finding but keeps the severity in the detail', (state) => {
+        renderRow(makeFinding({state, severity: 'warning'}), {hideSeverity: true, expanded: true});
+
+        expect(screen.queryByTestId('healthFindingBadge')).not.toBeInTheDocument();
+        expect(header().queryByText('Warning')).not.toBeInTheDocument();
+        const detail = screen.getByRole('button', {name: /Push notification server is not HTTPS/}).getAttribute('aria-controls')!;
+        expect(within(document.getElementById(detail)!).getByText('Warning')).toBeVisible();
+    });
+
     test('an unknown finding shows its message as the cause and how long it has been unevaluated', () => {
         renderRow(makeFinding({state: 'unknown', message: 'Config section unavailable.', state_since: now - (125 * 60000)}));
 
         expect(screen.getByText('Config section unavailable.')).toBeInTheDocument();
-        expect(screen.getByText('Unknown (Critical if firing)')).toBeInTheDocument();
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Unknown$/);
         expect(header().getByText('Unevaluated for 2h 5m')).toBeInTheDocument();
     });
 
@@ -99,7 +113,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
     test('a resolved finding says when it resolved', () => {
         renderRow(makeFinding({state: 'resolved', state_since: now - (2 * 60 * 60000)}));
 
-        expect(screen.getByText('Resolved (Critical when firing)')).toBeInTheDocument();
+        expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Resolved$/);
         expect(screen.getByRole('button', {name: /Resolved 2 hours ago/})).toBeInTheDocument();
     });
 
@@ -137,14 +151,15 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         return Array.from(detail.querySelectorAll('dt')).map((term) => term.textContent);
     }
 
-    test('the expanded detail shows the remediation, node and details without repeating the state or times', () => {
+    test('the expanded detail shows the remediation, severity, node and details without repeating the state or times', () => {
         renderRow(makeFinding({scope: 'node-3'}), {expanded: true});
 
         const detail = expandedDetail();
         expect(within(detail).getByRole('heading', {name: 'How to fix it'})).toBeInTheDocument();
         expect(within(detail).getByText('Set Push Notification Server to an https:// URL.')).toBeInTheDocument();
         expect(within(detail).getByRole('heading', {name: 'Details'})).toBeInTheDocument();
-        expect(detailTerms(detail)).toEqual(['Node', 'url']);
+        expect(detailTerms(detail)).toEqual(['Severity', 'Node', 'url']);
+        expect(within(detail).getByText('Critical')).toBeInTheDocument();
         expect(within(detail).getByText('node-3')).toBeInTheDocument();
         expect(within(detail).getByText('http://push.example.com')).toBeInTheDocument();
         expect(within(detail).queryByText('Firing for 1m')).not.toBeInTheDocument();
@@ -156,7 +171,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
 
         const detail = expandedDetail();
         expect(within(detail).getByRole('heading', {name: 'Details'})).toBeInTheDocument();
-        expect(detailTerms(detail)).toEqual(['Recurring since']);
+        expect(detailTerms(detail)).toEqual(['Severity', 'Recurring since']);
         expect(within(detail).getByText('Recurring since').nextElementSibling).toHaveTextContent('November 4, 2026');
     });
 
@@ -164,7 +179,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         renderRow(makeFinding({details: {}, scope: 'node-3'}), {expanded: true});
 
         const detail = expandedDetail();
-        expect(detailTerms(detail)).toEqual(['Node']);
+        expect(detailTerms(detail)).toEqual(['Severity', 'Node']);
         expect(within(detail).getByText('Node').nextElementSibling).toHaveTextContent('node-3');
     });
 
@@ -174,16 +189,15 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
     ])('a %s finding first seen before its current state is not called recurring', (state) => {
         renderRow(makeFinding({state, first_seen_at: now - (3 * 24 * 60 * 60000), state_since: now - 60000}), {expanded: true});
 
-        expect(detailTerms(expandedDetail())).toEqual(['url']);
+        expect(detailTerms(expandedDetail())).toEqual(['Severity', 'url']);
     });
 
-    test('the details section is hidden when the finding is not recurring, has no node and no details', () => {
+    test('the details section only lists the severity when the finding is not recurring, has no node and no details', () => {
         renderRow(makeFinding({details: {}}), {expanded: true});
 
         const detail = expandedDetail();
         expect(within(detail).getByRole('heading', {name: 'How to fix it'})).toBeInTheDocument();
-        expect(within(detail).queryByRole('heading', {name: 'Details'})).not.toBeInTheDocument();
-        expect(detail.querySelector('dl')).not.toBeInTheDocument();
+        expect(detailTerms(detail)).toEqual(['Severity']);
     });
 
     describe('resolve here', () => {
