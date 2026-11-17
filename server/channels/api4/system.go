@@ -823,11 +823,6 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func setServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	// number of seconds to keep server marked busy
 	secs := r.URL.Query().Get("seconds")
 	if secs == "" {
