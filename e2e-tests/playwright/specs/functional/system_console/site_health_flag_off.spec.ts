@@ -9,8 +9,8 @@ async function skipUnlessEnterprise(pw: PlaywrightExtended) {
     const license = await adminClient.getClientLicenseOld();
 
     test.skip(
-        !['enterprise', 'advanced'].includes(license.SkuShortName),
-        'Skipping test - server has no enterprise or enterprise advanced license',
+        !['enterprise', 'advanced'].includes(license.SkuShortName) || license.Cloud === 'true',
+        'Skipping test - server has no enterprise or enterprise advanced license, or uses a Cloud license',
     );
 }
 
