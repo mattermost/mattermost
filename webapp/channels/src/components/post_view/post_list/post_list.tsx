@@ -23,6 +23,9 @@ export const MAX_EXTRA_PAGES_LOADED = 30;
 const USER_SCROLL_POSTS_PER_PAGE = Constants.POST_CHUNK_SIZE / 2; // 30 posts for user scroll
 const AUTO_LOAD_POSTS_PER_PAGE = 200; // Maximum server limit for auto-loading
 
+// How long to keep posts hidden while waiting for the total user count before showing them anyway
+const TOTAL_USERS_STATS_TIMEOUT = 2000;
+
 // Measures the time between channel or team switch started and the post list component rendering posts.
 // Set "fresh" to true when the posts have not been loaded before.
 function markAndMeasureChannelSwitchEnd(fresh = false) {
@@ -160,13 +163,13 @@ interface State {
     autoRetryEnable: boolean;
     channelId: string;
     postListShown: boolean;
-    totalUsersStatsFailed: boolean;
+    stoppedWaitingForTotalUsersStats: boolean;
 }
 
 // The channel intro changes height once the total user count loads, so hold the loading screen until then
 // to avoid shifting the post list. This only applies before the list is first shown for a channel.
 function isWaitingForTotalUsersStats(needsTotalUsersStats: boolean | undefined, state: State) {
-    return Boolean(needsTotalUsersStats) && !state.postListShown && !state.totalUsersStatsFailed;
+    return Boolean(needsTotalUsersStats) && !state.postListShown && !state.stoppedWaitingForTotalUsersStats;
 }
 
 export default class PostList extends React.PureComponent<Props, State> {
@@ -181,6 +184,7 @@ export default class PostList extends React.PureComponent<Props, State> {
     };
     private mounted: boolean | undefined;
     private loadingTotalUsersStats = false;
+    private totalUsersStatsTimeout: NodeJS.Timeout | undefined;
 
     // public for testing purposes only
     public extraPagesLoaded: number;
@@ -193,7 +197,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             autoRetryEnable: true,
             channelId: props.channelId,
             postListShown: false,
-            totalUsersStatsFailed: false,
+            stoppedWaitingForTotalUsersStats: false,
         };
 
         this.extraPagesLoaded = 0;
@@ -241,6 +245,7 @@ export default class PostList extends React.PureComponent<Props, State> {
 
     componentWillUnmount() {
         this.mounted = false;
+        clearTimeout(this.totalUsersStatsTimeout);
     }
 
     loadTotalUsersStatsIfNeeded = async () => {
@@ -249,11 +254,21 @@ export default class PostList extends React.PureComponent<Props, State> {
         }
 
         this.loadingTotalUsersStats = true;
+        this.totalUsersStatsTimeout = setTimeout(this.stopWaitingForTotalUsersStats, TOTAL_USERS_STATS_TIMEOUT);
+
         const {error} = await this.props.actions.getTotalUsersStats();
+
+        clearTimeout(this.totalUsersStatsTimeout);
         this.loadingTotalUsersStats = false;
 
-        if (error && this.mounted) {
-            this.setState({totalUsersStatsFailed: true});
+        if (error) {
+            this.stopWaitingForTotalUsersStats();
+        }
+    };
+
+    stopWaitingForTotalUsersStats = () => {
+        if (this.mounted) {
+            this.setState({stoppedWaitingForTotalUsersStats: true});
         }
     };
 

@@ -592,6 +592,28 @@ describe('components/post_view/post_list', () => {
             expect(actionsProp.getTotalUsersStats).toHaveBeenCalledTimes(1);
         });
 
+        test('should show the posts if fetching the count takes too long', async () => {
+            jest.useFakeTimers();
+            actionsProp.getTotalUsersStats.mockReturnValueOnce(new Promise(() => {}));
+
+            renderWithContext(
+                <PostList
+                    {...{...baseProps, postListIds: postIds, atOldestPost: true, needsTotalUsersStats: true}}
+                />,
+            );
+
+            expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+
+            await act(async () => {
+                jest.advanceTimersByTime(2000);
+            });
+
+            expect(screen.getByTestId('virt-post-list')).toBeInTheDocument();
+            expect(actionsProp.getTotalUsersStats).toHaveBeenCalledTimes(1);
+
+            jest.useRealTimers();
+        });
+
         test('should not fetch the count when the channel intro does not need it', () => {
             renderWithContext(
                 <PostList
