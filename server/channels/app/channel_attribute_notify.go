@@ -282,6 +282,13 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 	fieldID := field.ID
 	required := model.IsPropertyFieldRequired(field)
 
+	// Nobody to notify, so the cooldown is released before answering: the
+	// summary the page reloads next must not still report a wait.
+	if len(batches) == 0 {
+		a.releaseChannelAttributeNotifyThrottle(rctx, field.ID, token)
+		return result, nil
+	}
+
 	a.Srv().Go(func() {
 		a.sendChannelAttributeNotifyDMs(rctx, batches, displayName, required, fieldID, token)
 	})
@@ -290,17 +297,6 @@ func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID st
 }
 
 func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string]*channelAttributeAdminBatch, attributeDisplayName string, required bool, fieldID, throttleToken string) {
-	if len(batches) == 0 {
-		// Every channel missing the value has no channel admin at all -- the
-		// D5 "report only" outcome, not a failure. Still nobody was
-		// notified, so this releases the cooldown the same as the
-		// GetSystemBot/fully-failed-delivery cases below: an admin who fixes
-		// this by adding themselves as a channel admin should not have to
-		// wait out the hour to retry.
-		a.releaseChannelAttributeNotifyThrottle(rctx, fieldID, throttleToken)
-		return
-	}
-
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
 		rctx.Logger().Error("Failed to get system bot to notify channel admins of a missing required channel attribute",

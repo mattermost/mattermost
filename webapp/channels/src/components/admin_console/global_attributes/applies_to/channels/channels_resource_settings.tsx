@@ -178,7 +178,9 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
         const stillCurrent = () => mountedRef.current && channelFieldIdRef.current === notifyFieldId;
 
         // Channel admins were notified recently, so the server would refuse
-        // this one: say so now rather than after the admin confirms.
+        // this one: say so now rather than after the admin confirms. The
+        // server releases the cooldown when a run reaches nobody, possibly
+        // after this summary was read, so it is refetched for the next click.
         const waitMillis = missingValues.summary.notifyAvailableAt - Date.now();
         if (waitMillis > 0) {
             setNotifyState({
@@ -187,6 +189,7 @@ const ChannelsResourceSettings = ({value, onChange, ordered, disabled, channelFi
                 truncated: false,
                 failureMessage: formatMessage(messages.notifyCoolingDown, {count: Math.ceil(waitMillis / 60000)}),
             });
+            missingValues.reload();
             return;
         }
 

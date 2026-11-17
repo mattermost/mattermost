@@ -421,9 +421,11 @@ describe('ChannelsResourceSettings', () => {
         expect(screen.queryByText('The notifications couldn\'t be sent. Please try again.')).not.toBeInTheDocument();
     });
 
-    it('skips the confirmation and shows the wait when channel admins were notified recently', async () => {
+    it('skips the confirmation, shows the wait and refetches the summary when channel admins were notified recently', async () => {
+        const reload = jest.fn();
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
             summary: {totalCount: 3, sharedCount: 0, uniqueAdminCount: 1, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: Date.now() + (41.5 * 60 * 1000), required: false},
+            reload,
         }));
 
         renderComponent({channelFieldId: 'field1'});
@@ -433,6 +435,7 @@ describe('ChannelsResourceSettings', () => {
         expect(screen.getByText('Channel admins were recently notified about this. You can send another notification in 42 minutes.')).toBeInTheDocument();
         expect(promptNotify).not.toHaveBeenCalled();
         expect(mockNotify).not.toHaveBeenCalled();
+        expect(reload).toHaveBeenCalled();
     });
 
     it('keeps the generic failure copy for errors other than throttling', async () => {

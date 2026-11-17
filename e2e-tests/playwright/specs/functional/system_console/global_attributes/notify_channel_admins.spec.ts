@@ -198,7 +198,7 @@ test.describe('System Console - notify all channel admins', {tag: ['@system_cons
             const modal = await attributeAppliesToChannels.openNotifyChannelAdminsModal();
 
             // * The no-admin channel is called out, not silently dropped
-            await expect(modal.container).toContainText("no channel admin and aren't notified");
+            await expect(modal.container).toContainText(/no channel admin and (isn't|aren't) notified/);
 
             await modal.confirm();
         } finally {
