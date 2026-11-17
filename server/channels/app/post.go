@@ -432,6 +432,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 		post = newPost
 		willBePostedPluginIDs = deliveredIDs
+
+		// A plugin's replacement keeps the submitted values (restorePriorityAndValues) but can
+		// change the type, so the burn-on-read check above has to hold for it too.
+		if post.Type == model.PostTypeBurnOnRead && len(post.Metadata.GetPropertyValues()) > 0 {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_burn_on_read.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.

@@ -1055,12 +1055,14 @@ func TestCreatePostPropertyValuesFeatureFlagOff(t *testing.T) {
 const (
 	replaceWithoutValuesMessage = "replacement without values"
 	replaceWithValuesMessage    = "replacement with values"
+	replaceAsBurnOnReadMessage  = "replacement as burn-on-read"
 )
 
 // replacementPostPlugin builds a MessageWillBePosted plugin that hands back a replacement post
 // carrying its own metadata, picked by the post's message: replaceWithoutValuesMessage gets
 // metadata with a priority and no values, replaceWithValuesMessage gets metadata with a value
-// for fieldID. Any other message is let through unchanged.
+// for fieldID, and replaceAsBurnOnReadMessage turns the post into a burn-on-read one with an
+// expiry, keeping its metadata. Any other message is let through unchanged.
 func replacementPostPlugin(groupID, fieldID string) string {
 	return `
 		package main
@@ -1091,6 +1093,10 @@ func replacementPostPlugin(groupID, fieldID string) string {
 						Value:   json.RawMessage("\"injected\""),
 					}},
 				}
+				return post, ""
+			case "` + replaceAsBurnOnReadMessage + `":
+				post.Type = model.PostTypeBurnOnRead
+				post.AddProp(model.PostPropsExpireAt, model.GetMillis()+10*60*1000)
 				return post, ""
 			}
 			return nil, ""
@@ -1165,6 +1171,27 @@ func TestCreatePostPropertyValuesReplacementPost(t *testing.T) {
 
 				assert.Empty(t, created.Metadata.PropertyValues)
 				assert.Empty(t, th.storedValueFieldIDs(t, created.Id))
+			})
+
+			// The burn-on-read refusal runs before the hooks, so a replacement that changes the
+			// type has to be checked again before the save.
+			t.Run("a replacement turned into a burn-on-read post with values is refused", func(t *testing.T) {
+				posts := th.watchPostStore(t, nil)
+
+				created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+					ChannelId: th.BasicChannel.Id,
+					UserId:    th.BasicUser.Id,
+					Message:   replaceAsBurnOnReadMessage,
+					Metadata: &model.PostMetadata{
+						PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
+					},
+				}, th.BasicChannel, model.CreatePostFlags{})
+				require.NotNil(t, appErr)
+				assert.Equal(t, "api.post.create_post.attributes_burn_on_read.app_error", appErr.Id)
+				assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+				assert.Nil(t, created)
+				assert.Empty(t, posts.savedIDs)
+				assert.Empty(t, posts.deletedIDs)
 			})
 		})
 	}
