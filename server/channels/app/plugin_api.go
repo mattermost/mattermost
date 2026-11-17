@@ -2178,7 +2178,8 @@ func (api *PluginAPI) EvaluateAccessControl(userID, resourceType, resourceID, ac
 func (api *PluginAPI) EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
 	// Same attribution as EvaluateAccessControl: the subject build reads
 	// properties on the plugin's behalf.
-	return api.app.EvaluatePluginAccessRequestBatch(api.psaPluginContext(), api.id, userID, resourceType, action, resourceIDs)
+	decisions, err := api.app.EvaluatePluginAccessRequestBatch(api.psaPluginContext(), api.id, userID, resourceType, action, resourceIDs)
+	return decisions, model.AsAppError(err)
 }
 
 func (api *PluginAPI) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
@@ -2203,7 +2204,8 @@ func (api *PluginAPI) CheckAccessControlExpression(actingUserID, resourceType, e
 }
 
 func (api *PluginAPI) CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
-	return api.app.CheckPluginAccessControlExpressionForSearch(api.ctx, api.id, actingUserID, resourceType, expression)
+	errs, err := api.app.CheckPluginAccessControlExpressionForSearch(api.ctx, api.id, actingUserID, resourceType, expression)
+	return errs, model.AsAppError(err)
 }
 
 func (api *PluginAPI) QueryUsersForAccessControlExpression(actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {

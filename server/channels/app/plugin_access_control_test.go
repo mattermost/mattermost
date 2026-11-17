@@ -408,7 +408,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		}
 		for _, tc := range tests {
 			t.Run(tc.name, func(t *testing.T) {
-				decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, tc.pluginID, tc.userID, tc.resourceType, tc.action, tc.ids)
+				decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, tc.pluginID, tc.userID, tc.resourceType, tc.action, tc.ids)
+				appErr := model.AsAppError(err)
 				require.NotNil(t, appErr)
 				assert.Equal(t, tc.expectedStatus, appErr.StatusCode)
 				assert.Equal(t, tc.expectedID, appErr.Id)
@@ -427,7 +428,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		for range pluginAccessControlBatchMax + 1 {
 			ids = append(ids, model.NewId())
 		}
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, ids)
+		decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, ids)
+		appErr := model.AsAppError(err)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.access_control.plugin.batch_too_large.app_error", appErr.Id)
 		assert.Nil(t, decisions)
@@ -439,7 +441,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 			dupes = append(dupes, one)
 		}
 		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Return(model.AccessDecision{Decision: true}, nil).Once()
-		decisions, appErr = th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, dupes)
+		decisions, err = th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, dupes)
+		appErr = model.AsAppError(err)
 		require.Nil(t, appErr)
 		require.Len(t, decisions, 1)
 		mockACS.AssertExpectations(t)
@@ -450,7 +453,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, nil)
+		decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, nil)
+		appErr := model.AsAppError(err)
 		require.Nil(t, appErr)
 		require.NotNil(t, decisions)
 		require.Empty(t, decisions)
@@ -476,7 +480,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		mockACS.On("AccessEvaluation", mock.Anything, matchID(noPolicyID)).Return(model.NewNoPolicyAccessDecision(), nil).Once()
 
 		// allowID is passed twice; the duplicate must not cost a second call.
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{allowID, denyID, allowID, noPolicyID})
+		decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{allowID, denyID, allowID, noPolicyID})
+		appErr := model.AsAppError(err)
 		require.Nil(t, appErr)
 		require.Len(t, decisions, 3)
 		require.True(t, decisions[allowID].Decision)
@@ -499,7 +504,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{Decision: true}, nil).Times(pluginAccessControlBatchMax)
 
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, ids)
+		decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, ids)
+		appErr := model.AsAppError(err)
 		require.Nil(t, appErr)
 		require.Len(t, decisions, pluginAccessControlBatchMax)
 		mockACS.AssertNumberOfCalls(t, "AccessEvaluation", pluginAccessControlBatchMax)
@@ -528,7 +534,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 				Return(model.AccessDecision{}, evalErr).Once()
 		}
 
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{okID, gated.ID, foreign.ID, absentID})
+		decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{okID, gated.ID, foreign.ID, absentID})
+		appErr := model.AsAppError(err)
 		require.Nil(t, appErr)
 		require.Len(t, decisions, 3)
 		require.False(t, decisions[okID].Decision)
@@ -552,7 +559,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool { return req.Resource.ID == failedID })).
 			Return(model.AccessDecision{}, model.NewAppError("AccessEvaluation", "app.pdp.access_evaluation.app_error", nil, "boom", http.StatusInternalServerError)).Once()
 
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{okID, failedID})
+		decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{okID, failedID})
+		appErr := model.AsAppError(err)
 		require.Nil(t, appErr)
 		require.Len(t, decisions, 1)
 		require.True(t, decisions[okID].Decision)
@@ -575,7 +583,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 		savePluginPolicyRow(t, th, foreign)
 		absentID := model.NewId()
 
-		decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{gated.ID, foreign.ID, absentID})
+		decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, userID, resourceType, action, []string{gated.ID, foreign.ID, absentID})
+		appErr := model.AsAppError(err)
 		require.Nil(t, appErr)
 		assert.Equal(t, 1, spy.getTypesCalled)
 		assert.Zero(t, spy.searchCalls, "the replica-backed search could miss a just-saved policy and fail open")
@@ -609,7 +618,8 @@ func TestEvaluatePluginAccessRequestBatch(t *testing.T) {
 			savePluginPolicyRow(t, th, gated)
 			absentID := model.NewId()
 
-			decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, evalUserID, resourceType, action, []string{gated.ID, absentID})
+			decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, evalUserID, resourceType, action, []string{gated.ID, absentID})
+			appErr := model.AsAppError(err)
 			require.Nil(t, appErr)
 			require.Len(t, decisions, 1)
 			require.True(t, decisions[absentID].IsNoPolicy())
@@ -632,7 +642,8 @@ func TestEvaluatePluginAccessRequestBatchStoreError(t *testing.T) {
 
 	require.Nil(t, th.App.Srv().ch.AccessControl)
 
-	decisions, appErr := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, model.NewId(), testAgentResourceType, testAgentAction, []string{model.NewId()})
+	decisions, err := th.App.EvaluatePluginAccessRequestBatch(th.Context, testAgentsPluginID, model.NewId(), testAgentResourceType, testAgentAction, []string{model.NewId()})
+	appErr := model.AsAppError(err)
 	require.Nil(t, decisions)
 	require.NotNil(t, appErr)
 	assert.Equal(t, "app.access_control.plugin.evaluation_unavailable.app_error", appErr.Id)
@@ -1291,11 +1302,13 @@ func TestPluginAccessControlCELProxies(t *testing.T) {
 		mockACS := &mocks.AccessControlServiceInterface{}
 		th.App.Srv().ch.AccessControl = mockACS
 
-		_, appErr := th.App.CheckPluginAccessControlExpressionForSearch(th.Context, "other-plugin", actingUserID, resourceType, expression)
+		_, err := th.App.CheckPluginAccessControlExpressionForSearch(th.Context, "other-plugin", actingUserID, resourceType, expression)
+		appErr := model.AsAppError(err)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.access_control.plugin.resource_type_forbidden.app_error", appErr.Id)
 
-		_, appErr = th.App.CheckPluginAccessControlExpressionForSearch(th.Context, testAgentsPluginID, model.NewId(), resourceType, expression)
+		_, err = th.App.CheckPluginAccessControlExpressionForSearch(th.Context, testAgentsPluginID, model.NewId(), resourceType, expression)
+		appErr = model.AsAppError(err)
 		require.NotNil(t, appErr)
 		assert.Equal(t, "app.access_control.plugin.invalid_acting_user.app_error", appErr.Id)
 
@@ -1305,8 +1318,8 @@ func TestPluginAccessControlCELProxies(t *testing.T) {
 			return c.Session() != nil && c.Session().UserId == actingUserID
 		}), sessionExpr).Return(want, nil).Once()
 
-		errs, appErr := th.App.CheckPluginAccessControlExpressionForSearch(th.Context, testAgentsPluginID, actingUserID, resourceType, sessionExpr)
-		require.Nil(t, appErr)
+		errs, err := th.App.CheckPluginAccessControlExpressionForSearch(th.Context, testAgentsPluginID, actingUserID, resourceType, sessionExpr)
+		require.NoError(t, err)
 		require.Equal(t, want, errs)
 		mockACS.AssertExpectations(t)
 		mockACS.AssertNotCalled(t, "CheckExpression", mock.Anything, mock.Anything)
@@ -1314,7 +1327,8 @@ func TestPluginAccessControlCELProxies(t *testing.T) {
 
 	t.Run("check expression for search gates on missing service", func(t *testing.T) {
 		th.App.Srv().ch.AccessControl = nil
-		_, appErr := th.App.CheckPluginAccessControlExpressionForSearch(th.Context, testAgentsPluginID, actingUserID, resourceType, expression)
+		_, err := th.App.CheckPluginAccessControlExpressionForSearch(th.Context, testAgentsPluginID, actingUserID, resourceType, expression)
+		appErr := model.AsAppError(err)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
 	})

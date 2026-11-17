@@ -176,11 +176,11 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 // resolved with one primary-backed store read filtered to the caller's type.
 // IDs without a row of that type are no_policy; IDs with one are omitted (fail
 // closed), matching resolvePluginPolicyExistence.
-func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, error) {
 	const where = "EvaluatePluginAccessRequestBatch"
 
 	if err := a.pluginAccessControlScopeCheck(where, pluginID, resourceType); err != nil {
-		return nil, model.AsAppError(err)
+		return nil, err
 	}
 	if !model.IsValidPolicyAction(action) {
 		return nil, model.NewAppError(where, "app.access_control.plugin.invalid_action.app_error", nil, "action="+action, http.StatusBadRequest)
@@ -294,7 +294,7 @@ func (a *App) pluginGatedResourceIDs(rctx request.CTX, resourceType string, ids 
 // Gated IDs are omitted from the result (the caller fails closed); every other
 // ID is the vacuous no-policy allow. A failing read makes existence unknown for
 // the whole batch, so it is an error rather than a partial map.
-func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginID, resourceType string, ids []string, reason string) (map[string]*model.AccessDecision, *model.AppError) {
+func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginID, resourceType string, ids []string, reason string) (map[string]*model.AccessDecision, error) {
 	gated, err := a.pluginGatedResourceIDs(rctx, resourceType, ids)
 	if err != nil {
 		rctx.Logger().Warn("Plugin access batch evaluation: existence fallback store read failed",
@@ -430,7 +430,7 @@ func (a *App) readStoredPolicyType(rctx request.CTX, where, id string) (string, 
 // GetPluginAccessControlPolicy: no enterprise normalization, so CPA field
 // references come back as stored. Absent, foreign-type and unreadable collapse
 // into the same uniform 404 as the normal path.
-func (a *App) readStoredPolicy(rctx request.CTX, where, pluginID, id string) (*model.AccessControlPolicy, *model.AppError) {
+func (a *App) readStoredPolicy(rctx request.CTX, where, pluginID, id string) (*model.AccessControlPolicy, error) {
 	policy, err := a.Srv().Store().AccessControlPolicy().Get(rctx, id)
 	if err != nil {
 		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
@@ -460,7 +460,8 @@ func (a *App) GetPluginAccessControlPolicy(rctx request.CTX, pluginID, id string
 
 	acs := a.Srv().ch.AccessControl
 	if acs == nil || !a.pluginAccessControlAvailable() {
-		return a.readStoredPolicy(rctx, where, pluginID, id)
+		policy, err := a.readStoredPolicy(rctx, where, pluginID, id)
+		return policy, model.AsAppError(err)
 	}
 
 	storedType, appErr := a.readStoredPolicyType(rctx, where, id)
@@ -576,15 +577,19 @@ func (a *App) CheckPluginAccessControlExpression(rctx request.CTX, pluginID, act
 // plus the search-lane constraints: the expression must also be translatable
 // to a user search (no session attributes, no functions without a SQL form).
 // Plugins whose policies drive "which users match" questions gate saves on it.
-func (a *App) CheckPluginAccessControlExpressionForSearch(rctx request.CTX, pluginID, actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+func (a *App) CheckPluginAccessControlExpressionForSearch(rctx request.CTX, pluginID, actingUserID, resourceType, expression string) ([]model.CELExpressionError, error) {
 	if err := a.pluginAccessControlScopeCheck("CheckPluginAccessControlExpressionForSearch", pluginID, resourceType); err != nil {
-		return nil, model.AsAppError(err)
+		return nil, err
 	}
 	if err := a.validatePluginActingUser(rctx, "CheckPluginAccessControlExpressionForSearch", actingUserID); err != nil {
-		return nil, model.AsAppError(err)
+		return nil, err
 	}
 
-	return a.CheckMembershipExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)
+	errs, appErr := a.CheckMembershipExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)
+	if appErr != nil {
+		return nil, appErr
+	}
+	return errs, nil
 }
 
 // QueryUsersForPluginAccessControlExpression returns the users matching the
