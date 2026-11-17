@@ -2527,7 +2527,7 @@ With self-hosted deployments, you can configure SMTP email server settings by go
 </colgroup>
 <tbody>
 <tr>
-<td><p>Specify connection security for emails sent using SMTP.</p><ul><li><strong>Not specified</strong>: <strong>(Default)</strong> Send email over an unsecure connection.</li><li><strong>TLS</strong>: Communication between Mattermost and your email server is encrypted.</li><li><strong>STARTTLS</strong>: Attempts to upgrade an existing insecure connection to a secure connection using TLS.</li></ul></td>
+<td><p>Specify connection security for emails sent using SMTP.</p><ul><li><strong>Not specified</strong>: <strong>(Default)</strong> Send email over an unsecure connection.</li><li><strong>TLS</strong>: Communication between Mattermost and your email server is encrypted.</li><li><strong>STARTTLS</strong>: Upgrades an existing insecure connection to TLS. The connection fails if the SMTP server doesn't support STARTTLS.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; SMTP</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>ConnectionSecurity</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_CONNECTIONSECURITY</code></li></ul></td>
 </tr>
 </tbody>
@@ -2949,15 +2949,15 @@ Typically set to **true** in a production environment.
 </colgroup>
 <tbody>
 <tr>
-<td><p>Configure Mattermost to capture the contents of general incoming webhooks to console and/or file logs for debugging.</p><ul><li><strong>true</strong>: <strong>(Default)</strong> The contents of incoming webhooks are printed to log files for debugging.</li><li><strong>false</strong>: The contents of incoming webhooks aren’t printed to log files.</li></ul></td>
-<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>true</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
+<td><p>Log failed incoming webhook requests with their payload, for debugging.</p><ul><li><strong>true</strong>: Failed incoming webhook requests are logged with their payload, if it could be parsed.</li><li><strong>false</strong>: <strong>(Default)</strong> Payloads aren’t logged.</li></ul></td>
+<td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
 </tr>
 </tbody>
 </table>
 
 <Note>
 
-Enable debug logs by changing the [file log level](#file-log-level) to `DEBUG` to include the request body of incoming webhooks in logs.
+Entries are logged at the `DEBUG` level. Payloads can contain message text, so only enable this setting while troubleshooting.
 
 </Note>
 

@@ -3864,7 +3864,7 @@
     "description": "Row label in the Connection Security help table (SMTP/LDAP admin settings); STARTTLS is a protocol name and should not be translated."
   },
   "admin.connectionSecurityStartDescription": {
-    "defaultMessage": "Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.",
+    "defaultMessage": "Upgrades an existing insecure connection to TLS. The connection fails if the server doesn't support STARTTLS.",
     "description": "Description of the 'STARTTLS' option in the Connection Security dropdown used by System Console settings such as SMTP and LDAP."
   },
   "admin.connectionSecurityTitle": {
@@ -5647,9 +5647,9 @@
     "defaultMessage": "Filter by",
     "description": "Heading of the admin console filter popover, above the filter option groups."
   },
-  "admin.general.localization.availableLocalesDescription": {
-    "defaultMessage": "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
-    "description": "Help text for the Available Languages setting in System Console > Localization; <strong> highlights UI paths and setting names, and <link> wraps the Mattermost Translation Server link text."
+  "admin.general.localization.availableLocalesHelpText": {
+    "defaultMessage": "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.",
+    "description": "Help text for the Available Languages setting in System Console > Localization; <strong> highlights UI paths and setting names."
   },
   "admin.general.localization.availableLocalesNoResults": {
     "defaultMessage": "No results found",
@@ -7409,15 +7409,11 @@
   },
   "admin.health_dashboard.detail.first_seen": {
     "defaultMessage": "First detected",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
+    "description": "Label in an expanded firing finding on the System Console Site health page, shown only when the finding was first seen in an earlier state; followed by the date it was first seen, such as \"November 4, 2026\"."
   },
   "admin.health_dashboard.detail.go_to_setting": {
     "defaultMessage": "Go to setting",
     "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
-  },
-  "admin.health_dashboard.detail.last_seen": {
-    "defaultMessage": "Last checked",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
   },
   "admin.health_dashboard.detail.node": {
     "defaultMessage": "Node",
@@ -7439,9 +7435,9 @@
     "defaultMessage": "Resolve here",
     "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
   },
-  "admin.health_dashboard.detail.state": {
-    "defaultMessage": "State",
-    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
+  "admin.health_dashboard.detail.severity": {
+    "defaultMessage": "Severity",
+    "description": "Label in the details list of an expanded unknown or resolved finding on the System Console Site health page; the value is the severity the check has when firing (Critical, Warning or Info)."
   },
   "admin.health_dashboard.duration.days": {
     "defaultMessage": "{days}d",
@@ -7519,17 +7515,17 @@
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
   },
-  "admin.health_dashboard.finding.resolved_badge": {
-    "defaultMessage": "Resolved ({severity} when firing)",
-    "description": "Badge on a recently resolved finding row on the System Console Site health page; {severity} is the severity label (Critical, Warning or Info) the finding had while firing."
+  "admin.health_dashboard.finding.resolved": {
+    "defaultMessage": "Resolved",
+    "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
   },
   "admin.health_dashboard.finding.title_on_node": {
     "defaultMessage": "{title} on {node}",
     "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
   },
-  "admin.health_dashboard.finding.unknown_badge": {
-    "defaultMessage": "Unknown ({severity} if firing)",
-    "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
+  "admin.health_dashboard.finding.unknown": {
+    "defaultMessage": "Unknown",
+    "description": "Badge on a finding row of the System Console Site health page, when findings are grouped by category, for a check that could not be evaluated."
   },
   "admin.health_dashboard.finding.unknown_fallback": {
     "defaultMessage": "This check could not run, so its result is unknown.",
@@ -9559,9 +9555,9 @@
     "defaultMessage": "Enable Webhook Debugging:",
     "description": "Setting label (toggle) on the Logging admin page; sends webhook request debug output to server logs. Ends with a colon."
   },
-  "admin.log.enableWebhookDebuggingDescription": {
-    "defaultMessage": "When true, sends webhook debug messages to the server logs. To also output the request body of incoming webhooks, set {boldedLogLevel} to \"DEBUG\".",
-    "description": "Help text for the Enable Webhook Debugging setting; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
+  "admin.log.enableWebhookDebuggingPayloadDescription": {
+    "defaultMessage": "When true, failed incoming webhook requests are logged with their payload at the \"DEBUG\" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting.",
+    "description": "Help text for the Enable Webhook Debugging setting, warning that it logs webhook payloads; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
   },
   "admin.log.fileDescription": {
     "defaultMessage": "Typically set to true in production. When true, logged events are written to the mattermost.log file in the directory specified in the File Log Directory field. The logs are rotated at 100 MB and archived to a file in the same directory, and given a name with a datestamp and serial number. For example, mattermost.2017-03-31.001. Changing this setting requires a server restart before taking effect.",
@@ -10238,6 +10234,10 @@
   "admin.mfa.bannerDesc": {
     "defaultMessage": "<link>Multi-factor authentication</link> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured with the authentication provider.",
     "description": "Info banner at the top of the Authentication > MFA admin page; <link> wraps the words Multi-factor authentication and points to documentation."
+  },
+  "admin.mfa.fipsBannerDesc": {
+    "defaultMessage": "TOTP code generation for multi-factor authentication uses HMAC-SHA1 and is not strictly FIPS compliant. <link>Learn more</link>",
+    "description": "Warning banner on the Authentication > MFA admin page, shown only when the server runs in FIPS mode; notes that TOTP code generation is not strictly FIPS compliant. <link> wraps the words Learn more and points to the FIPS documentation."
   },
   "admin.mobile_security_feature_discovery.copy": {
     "defaultMessage": "Enable advanced security features like biometric authentication, screen capture prevention, and jailbreak/root detection for your mobile users.",
@@ -17555,10 +17555,6 @@
     "defaultMessage": "Something went wrong. Try again",
     "description": "Error text shown in place of the Membership Policies table rows when fetching or searching policies fails."
   },
-  "admin.user.selectOptions": {
-    "defaultMessage": "Select options",
-    "description": "Placeholder text in the multi-select input for a custom profile attribute on the admin user configuration page."
-  },
   "admin.userDetail.saveChangesModal.authDataChange": {
     "defaultMessage": "Auth Data: {oldAuthData} → {newAuthData}",
     "description": "List item in the save-confirmation modal on the admin user configuration page showing an Auth Data change; {oldAuthData} and {newAuthData} are the before/after values, → is an arrow between them."
@@ -17742,10 +17738,6 @@
   "admin.userManagement.userDetail.saml": {
     "defaultMessage": "SAML: {propertyName}",
     "description": "Chip label showing a custom profile attribute is synced from SAML; {propertyName} is the linked SAML attribute name. Shown on the admin user configuration page."
-  },
-  "admin.userManagement.userDetail.selectOption": {
-    "defaultMessage": "Select an option",
-    "description": "Placeholder for the empty choice in a single-select custom profile attribute dropdown on the admin user configuration page."
   },
   "admin.userManagement.userDetail.separator": {
     "defaultMessage": ", ",
@@ -19566,10 +19558,6 @@
   "channel_attributes.labels.view_all": {
     "defaultMessage": "View all attributes",
     "description": "Link at the bottom of the overflow popover of channel attribute chips. Opens the channel info panel, which lists every attribute."
-  },
-  "channel_attributes.select_value": {
-    "defaultMessage": "Select a value",
-    "description": "Placeholder in a channel attribute dropdown before a value is chosen."
   },
   "channel_attributes.title": {
     "defaultMessage": "Channel attributes",
@@ -29235,6 +29223,14 @@
     "defaultMessage": "Loading…",
     "description": "Shown in an attribute dropdown while options load."
   },
+  "property_fields.attribute_combobox.rank": {
+    "defaultMessage": "Rank {rank}",
+    "description": "Accessible description of a rank attribute field, giving the selected option's rank number."
+  },
+  "property_fields.attribute_combobox.ranked_option": {
+    "defaultMessage": "{name}, Rank {rank}",
+    "description": "Accessible name of a rank attribute option. {name} is the option name and {rank} its rank number."
+  },
   "property_fields.attribute_combobox.selections": {
     "defaultMessage": "{label} selections",
     "description": "Accessible name of the group of selected-value chips in a multi-value attribute. {label} is the attribute name."
@@ -29294,6 +29290,14 @@
   "property_fields.hierarchical_value_menu.withheld": {
     "defaultMessage": "The values for this attribute are not available to you here.",
     "description": "Status line inside the hierarchical value picker when the server does not send this attribute's values to the current user, for example because the user lacks permission."
+  },
+  "property_fields.select_option": {
+    "defaultMessage": "Select an option",
+    "description": "Placeholder for an empty single-value attribute input (select or rank), shown wherever user or channel attributes are edited, such as the admin user page, Profile settings and the New Channel modal."
+  },
+  "property_fields.select_options": {
+    "defaultMessage": "Select options",
+    "description": "Placeholder for an empty multi-value attribute input, shown wherever user or channel attributes are edited, such as the admin user page, Profile settings and the New Channel modal."
   },
   "property_fields.user_attribute_fields.remove": {
     "defaultMessage": "Remove {name}",
@@ -34274,10 +34278,6 @@
   "user.settings.languages.promote1": {
     "defaultMessage": "Select which language Mattermost displays in the user interface.",
     "description": "Help text under the language dropdown explaining what the setting does."
-  },
-  "user.settings.languages.promote2": {
-    "defaultMessage": "Would you like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
-    "description": "Note under the language setting inviting users to contribute translations; <link> wraps a link to the Mattermost translation server."
   },
   "user.settings.mfa.add": {
     "defaultMessage": "Add MFA to Account",

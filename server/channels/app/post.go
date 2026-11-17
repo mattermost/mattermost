@@ -2414,7 +2414,17 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(rctx request.CTX, channel
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetOrCreateDirectChannel(rctx, userID, user.Id)
+		channel, err := a.getDirectChannel(rctx, userID, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if channel != nil {
+			return channel, nil
+		}
+		if !a.HasPermissionTo(rctx, userID, model.PermissionCreateDirectChannel) {
+			return nil, model.NewAppError("parseAndFetchChannelIdByNameFromInFilter", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+		channel, err = a.GetOrCreateDirectChannel(rctx, userID, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -3339,6 +3349,11 @@ func (a *App) CheckPostReminders(rctx request.CTX) {
 	rctx = rctx.WithLogFields(mlog.String("component", "post_reminders"))
 	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
+		// A fresh server has no system admin yet, so there is no one to own the system bot.
+		if appErr.Id == "app.bot.get_system_bot.empty_admin_list.app_error" {
+			rctx.Logger().Debug("Skipping post reminders because there is no system admin to own the system bot")
+			return
+		}
 		rctx.Logger().Error("Failed to get system bot", mlog.Err(appErr))
 		return
 	}
