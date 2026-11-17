@@ -5,7 +5,6 @@ package web
 
 import (
 	"encoding/json"
-	"errors"
 	"io"
 	"mime"
 	"net/http"
@@ -36,8 +35,7 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 				mlog.String("webhook_id", id),
 				mlog.String("content_type", contentType),
 				mlog.Int("payload_size", r.ContentLength),
-				mlog.String("error_id", innermostErrorID(c.Err)),
-				mlog.Int("status_code", c.Err.StatusCode),
+				mlog.Err(c.Err),
 			}
 			if incomingWebhookPayload != nil {
 				payload, err := json.Marshal(incomingWebhookPayload)
@@ -112,15 +110,6 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 		return
 	}
-}
-
-func innermostErrorID(appErr *model.AppError) string {
-	id := appErr.Id
-	var inner *model.AppError
-	for err := appErr.Unwrap(); errors.As(err, &inner); err = inner.Unwrap() {
-		id = inner.Id
-	}
-	return id
 }
 
 func commandWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
