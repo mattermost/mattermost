@@ -19,9 +19,6 @@ const (
 
 const (
 	ClientConfigKeyMobileEnableBiometrics = "MobileEnableBiometrics"
-	ClientConfigKeyEnableBanner           = "EnableBanner"
-	ClientConfigKeyBannerText             = "BannerText"
-	ClientConfigKeyAllowBannerDismissal   = "AllowBannerDismissal"
 )
 
 // SystemSettingDefinition describes a ClientConfig key that may be overridden
@@ -53,18 +50,6 @@ func (d SystemSettingDefinition) ValidateValue(val string) bool {
 var systemSettingDefinitions = map[string]SystemSettingDefinition{
 	ClientConfigKeyMobileEnableBiometrics: {
 		Key:       ClientConfigKeyMobileEnableBiometrics,
-		ValueType: SystemSettingValueTypeBool,
-	},
-	ClientConfigKeyEnableBanner: {
-		Key:       ClientConfigKeyEnableBanner,
-		ValueType: SystemSettingValueTypeBool,
-	},
-	ClientConfigKeyBannerText: {
-		Key:       ClientConfigKeyBannerText,
-		ValueType: SystemSettingValueTypeString,
-	},
-	ClientConfigKeyAllowBannerDismissal: {
-		Key:       ClientConfigKeyAllowBannerDismissal,
 		ValueType: SystemSettingValueTypeBool,
 	},
 }
