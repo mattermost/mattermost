@@ -197,20 +197,22 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	}
 
 	// If we get this far, we've recorded the client-provided pending post id to the cache.
-	// Remove it if we fail below, allowing a proper retry by the client.
+	// Remove it if we fail below, allowing a proper retry by the client. The id is read now:
+	// post may be replaced by a plugin's post below, which need not carry it.
+	pendingPostID := post.PendingPostId
 	defer func() {
-		if post.PendingPostId == "" {
+		if pendingPostID == "" {
 			return
 		}
 
 		if err != nil {
-			if appErr := a.Srv().seenPendingPostIdsCache.Remove(post.PendingPostId); appErr != nil {
+			if appErr := a.Srv().seenPendingPostIdsCache.Remove(pendingPostID); appErr != nil {
 				err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 			}
 			return
 		}
 
-		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, pendingPostIDsCacheTTL); appErr != nil {
+		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(pendingPostID, savedPost.Id, pendingPostIDsCacheTTL); appErr != nil {
 			err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}()
@@ -486,7 +488,7 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, pendingPostIDsCacheTTL); appErr != nil {
+	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(pendingPostID, rpost.Id, pendingPostIDsCacheTTL); appErr != nil {
 		return nil, false, model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 

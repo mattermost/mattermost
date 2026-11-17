@@ -1062,7 +1062,8 @@ const (
 // carrying its own metadata, picked by the post's message: replaceWithoutValuesMessage gets
 // metadata with a priority and no values, replaceWithValuesMessage gets metadata with a value
 // for fieldID, and replaceAsBurnOnReadMessage turns the post into a burn-on-read one with an
-// expiry, keeping its metadata. Any other message is let through unchanged.
+// expiry, keeping its metadata and dropping its pending post id. Any other message is let
+// through unchanged.
 func replacementPostPlugin(groupID, fieldID string) string {
 	return `
 		package main
@@ -1097,6 +1098,7 @@ func replacementPostPlugin(groupID, fieldID string) string {
 			case "` + replaceAsBurnOnReadMessage + `":
 				post.Type = model.PostTypeBurnOnRead
 				post.AddProp(model.PostPropsExpireAt, model.GetMillis()+10*60*1000)
+				post.PendingPostId = ""
 				return post, ""
 			}
 			return nil, ""
@@ -1174,14 +1176,17 @@ func TestCreatePostPropertyValuesReplacementPost(t *testing.T) {
 			})
 
 			// The burn-on-read refusal runs before the hooks, so a replacement that changes the
-			// type has to be checked again before the save.
+			// type has to be checked again before the save. The replacement also drops the
+			// pending post id, which must still be released for the client's retry.
 			t.Run("a replacement turned into a burn-on-read post with values is refused", func(t *testing.T) {
 				posts := th.watchPostStore(t, nil)
 
+				pendingPostID := model.NewId()
 				created, _, appErr := th.App.CreatePost(th.Context, &model.Post{
-					ChannelId: th.BasicChannel.Id,
-					UserId:    th.BasicUser.Id,
-					Message:   replaceAsBurnOnReadMessage,
+					ChannelId:     th.BasicChannel.Id,
+					UserId:        th.BasicUser.Id,
+					Message:       replaceAsBurnOnReadMessage,
+					PendingPostId: pendingPostID,
 					Metadata: &model.PostMetadata{
 						PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
 					},
@@ -1192,6 +1197,7 @@ func TestCreatePostPropertyValuesReplacementPost(t *testing.T) {
 				assert.Nil(t, created)
 				assert.Empty(t, posts.savedIDs)
 				assert.Empty(t, posts.deletedIDs)
+				th.assertPendingPostIDReleased(t, pendingPostID)
 			})
 		})
 	}
