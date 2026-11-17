@@ -3560,6 +3560,7 @@ func TestConfigAccessTagsMapToValidPermissions(t *testing.T) {
 	specialTags := map[string]bool{
 		ConfigAccessTagWriteRestrictable: true,
 		ConfigAccessTagCloudRestrictable: true,
+		ConfigAccessTagManageSystemWrite: true,
 		ConfigAccessTagAnySysConsoleRead: true,
 	}
 
