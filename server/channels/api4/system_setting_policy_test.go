@@ -261,4 +261,136 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		CheckOKStatus(t, resp)
 		assert.Empty(t, overridesAfterDelete)
 	})
+
+	t.Run("policy order endpoint orders several policies for one setting", func(t *testing.T) {
+		mockACS := setupMocks(t)
+		t.Cleanup(func() {
+			_, _ = th.App.Srv().Store().System().PermanentDeleteByName(model.SystemSystemSettingPolicyOrderKey)
+		})
+
+		var financeID string
+		mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+			return req.Resource.Type == model.AccessControlPolicyTypeSystemSetting
+		})).Return(func(_ request.CTX, req model.AccessRequest) model.AccessDecision {
+			if req.Resource.ID == financeID {
+				return model.AccessDecision{Decision: req.Subject.ID == th.BasicUser.Id}
+			}
+			return model.AccessDecision{Decision: true}
+		}, nil)
+
+		_, resp, err := th.CreateClient().GetSystemSettingPolicyOrder(context.Background())
+		require.Error(t, err)
+		CheckUnauthorizedStatus(t, resp)
+
+		_, resp, err = th.Client.GetSystemSettingPolicyOrder(context.Background())
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		_, resp, err = th.Client.UpdateSystemSettingPolicyOrder(context.Background(), &model.SystemSettingPolicyOrder{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		bannerPolicy := func(name, expression, text string) *model.AccessControlPolicy {
+			created, createResp, createErr := th.SystemAdminClient.CreateAccessControlPolicy(context.Background(), &model.AccessControlPolicy{
+				Name:  name,
+				Type:  model.AccessControlPolicyTypeSystemSetting,
+				Roles: []string{model.SystemUserRoleId},
+				Rules: []model.AccessControlPolicyRule{
+					{Actions: []string{model.ClientConfigKeyEnableBanner}, Expression: expression, Value: "true"},
+					{Actions: []string{model.ClientConfigKeyBannerText}, Expression: expression, Value: text},
+				},
+			})
+			require.NoError(t, createErr)
+			CheckOKStatus(t, createResp)
+			t.Cleanup(func() {
+				_, _ = th.SystemAdminClient.DeleteAccessControlPolicy(context.Background(), created.ID)
+			})
+			return created
+		}
+		finance := bannerPolicy("Finance banner", `user.attributes.dept == "finance"`, "Finance: quarter close Monday")
+		financeID = finance.ID
+		everyone := bannerPolicy("Everyone banner", "true", "Company all-hands Thursday")
+
+		order, resp, err := th.SystemAdminClient.GetSystemSettingPolicyOrder(context.Background())
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Equal(t, []string{finance.ID, everyone.ID}, order.PolicyIDs)
+
+		overrides, _, err := th.Client.GetClientConfigOverrides(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, "Finance: quarter close Monday", overrides[model.ClientConfigKeyBannerText])
+
+		ws, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer ws.Close()
+		ws.Listen()
+
+		order, resp, err = th.SystemAdminClient.UpdateSystemSettingPolicyOrder(context.Background(), &model.SystemSettingPolicyOrder{PolicyIDs: []string{everyone.ID, finance.ID}})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Equal(t, []string{everyone.ID, finance.ID}, order.PolicyIDs)
+
+		deadline := time.After(5 * time.Second)
+	waitForPush:
+		for {
+			select {
+			case ev := <-ws.EventChannel:
+				if ev.EventType() != model.WebsocketEventSystemSettingPolicyUpdated {
+					continue
+				}
+				pushed, ok := ev.GetData()["overrides"].(map[string]any)
+				require.True(t, ok)
+				assert.Equal(t, "Company all-hands Thursday", pushed[model.ClientConfigKeyBannerText])
+				break waitForPush
+			case <-deadline:
+				t.Fatal("timed out waiting for system_setting_policy_updated after reordering")
+			}
+		}
+
+		overrides, _, err = th.Client.GetClientConfigOverrides(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, "Company all-hands Thursday", overrides[model.ClientConfigKeyBannerText])
+
+		_, resp, err = th.SystemAdminClient.UpdateSystemSettingPolicyOrder(context.Background(), &model.SystemSettingPolicyOrder{PolicyIDs: []string{everyone.ID, model.NewId()}})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "app.system_setting_policy_order.unknown_policy.app_error")
+
+		_, resp, err = th.SystemAdminClient.UpdateSystemSettingPolicyOrder(context.Background(), &model.SystemSettingPolicyOrder{PolicyIDs: []string{everyone.ID, everyone.ID}})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
+		})
+		_, resp, err = th.SystemAdminClient.UpdateSystemSettingPolicyOrder(context.Background(), &model.SystemSettingPolicyOrder{PolicyIDs: []string{finance.ID}})
+		require.Error(t, err)
+		checkHTTPStatus(t, resp, http.StatusNotAcceptable)
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		_, resp, err = th.SystemAdminClient.GetSystemSettingPolicyOrder(context.Background())
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.FeatureFlags.SystemSettingPolicies = false
+		})
+		_, resp, err = th.SystemAdminClient.GetSystemSettingPolicyOrder(context.Background())
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		_, resp, err = th.SystemAdminClient.UpdateSystemSettingPolicyOrder(context.Background(), &model.SystemSettingPolicyOrder{PolicyIDs: []string{finance.ID}})
+		require.Error(t, err)
+		CheckNotImplementedStatus(t, resp)
+		updateTestFeatureFlags(t, th, func(cfg *model.Config) {
+			cfg.FeatureFlags.SystemSettingPolicies = true
+		})
+
+		order, _, err = th.SystemAdminClient.GetSystemSettingPolicyOrder(context.Background())
+		require.NoError(t, err)
+		assert.Equal(t, []string{everyone.ID, finance.ID}, order.PolicyIDs, "rejected updates leave the order unchanged")
+	})
 }

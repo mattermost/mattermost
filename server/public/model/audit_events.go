@@ -13,6 +13,8 @@ const (
 	AuditEventUpdateActiveStatus        = "updateActiveStatus"        // update active/inactive status of access control policy
 	AuditEventSetActiveStatus           = "setActiveStatus"           // set active/inactive status of multiple access control policies
 
+	AuditEventUpdateSystemSettingPolicyOrder = "updateSystemSettingPolicyOrder" // set the priority order of system_setting access control policies
+
 	AuditEventSavePluginAccessControlPolicy   = "savePluginAccessControlPolicy"   // create/update plugin-owned access control policy (activation implicit)
 	AuditEventDeletePluginAccessControlPolicy = "deletePluginAccessControlPolicy" // delete plugin-owned access control policy
 

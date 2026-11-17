@@ -48,6 +48,8 @@ func (api *API) InitAccessControlPolicy() {
 	api.BaseRoutes.AccessControlPolicies.Handle("", api.APISessionRequired(createAccessControlPolicy)).Methods(http.MethodPut)
 	api.BaseRoutes.AccessControlPolicies.Handle("/search", api.APISessionRequired(searchAccessControlPolicies)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/activate", api.APISessionRequired(setActiveStatus)).Methods(http.MethodPut)
+	api.BaseRoutes.AccessControlPolicies.Handle("/system_setting/order", api.APISessionRequired(getSystemSettingPolicyOrder)).Methods(http.MethodGet)
+	api.BaseRoutes.AccessControlPolicies.Handle("/system_setting/order", api.APISessionRequired(updateSystemSettingPolicyOrder)).Methods(http.MethodPut)
 
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/check", api.APISessionRequired(checkExpression)).Methods(http.MethodPost)
 	api.BaseRoutes.AccessControlPolicies.Handle("/cel/test", api.APISessionRequired(testExpression)).Methods(http.MethodPost)
@@ -898,6 +900,70 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	if _, err := w.Write(js); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func requireSystemSettingPolicyOrderAccess(c *Context, where string) bool {
+	if !c.App.Config().FeatureFlags.SystemSettingPolicies {
+		c.Err = model.NewAppError(where, "api.access_control_policy.system_setting_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return false
+	}
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return false
+	}
+	return true
+}
+
+func writeSystemSettingPolicyOrder(c *Context, w http.ResponseWriter, where string, order *model.SystemSettingPolicyOrder) {
+	js, err := json.Marshal(order)
+	if err != nil {
+		c.Err = model.NewAppError(where, "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if _, err := w.Write(js); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getSystemSettingPolicyOrder(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !requireSystemSettingPolicyOrderAccess(c, "getSystemSettingPolicyOrder") {
+		return
+	}
+
+	order, appErr := c.App.GetSystemSettingPolicyOrder(c.AppContext)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	writeSystemSettingPolicyOrder(c, w, "getSystemSettingPolicyOrder", order)
+}
+
+func updateSystemSettingPolicyOrder(c *Context, w http.ResponseWriter, r *http.Request) {
+	var order model.SystemSettingPolicyOrder
+	if jsonErr := json.NewDecoder(r.Body).Decode(&order); jsonErr != nil {
+		c.SetInvalidParamWithErr("order", jsonErr)
+		return
+	}
+
+	if !requireSystemSettingPolicyOrderAccess(c, "updateSystemSettingPolicyOrder") {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateSystemSettingPolicyOrder, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "policy_ids", order.PolicyIDs)
+
+	updated, appErr := c.App.UpdateSystemSettingPolicyOrder(c.AppContext, &order)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+	auditRec.AddEventObjectType("system_setting_policy_order")
+
+	writeSystemSettingPolicyOrder(c, w, "updateSystemSettingPolicyOrder", updated)
 }
 
 // updateActiveStatus toggles auto-adding members for a single access control

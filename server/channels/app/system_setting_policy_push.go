@@ -19,7 +19,7 @@ func (a *App) systemSettingPolicyPushActive(rctx request.CTX) bool {
 		return false
 	}
 
-	policies, err := a.Srv().Channels().systemSettingPoliciesCache.Get(rctx, a.Srv().Store().AccessControlPolicy())
+	policies, err := a.Srv().Channels().systemSettingPoliciesCache.Get(rctx, a.Srv().Store())
 	if err != nil {
 		rctx.Logger().Warn("Failed to load system setting policies for override push", mlog.Err(err))
 		return false

@@ -4,6 +4,7 @@
 package model
 
 import (
+	"net/http"
 	"slices"
 	"strconv"
 )
@@ -23,6 +24,39 @@ const (
 	ClientConfigKeyBannerText             = "BannerText"
 	ClientConfigKeyAllowBannerDismissal   = "AllowBannerDismissal"
 )
+
+// SystemSystemSettingPolicyOrderKey is the Systems row holding the
+// comma-separated system_setting policy IDs in priority order.
+const SystemSystemSettingPolicyOrderKey = "SystemSettingPolicyOrder"
+
+// MaxSystemSettingPolicyOrderLength bounds the stored order so its
+// comma-separated IDs fit the 1024-character Systems.Value column.
+const MaxSystemSettingPolicyOrderLength = 37
+
+// SystemSettingPolicyOrder lists system_setting policy IDs from highest to
+// lowest priority. For each ClientConfig key, the first policy in the list
+// whose role and rule match the session supplies the value. Policies missing
+// from the list rank after listed ones, oldest first.
+type SystemSettingPolicyOrder struct {
+	PolicyIDs []string `json:"policy_ids"`
+}
+
+func (o *SystemSettingPolicyOrder) IsValid() *AppError {
+	if len(o.PolicyIDs) > MaxSystemSettingPolicyOrderLength {
+		return NewAppError("SystemSettingPolicyOrder.IsValid", "model.system_setting_policy_order.is_valid.too_many.app_error", map[string]any{"Max": MaxSystemSettingPolicyOrderLength}, "", http.StatusBadRequest)
+	}
+	seen := make(map[string]struct{}, len(o.PolicyIDs))
+	for _, id := range o.PolicyIDs {
+		if !IsValidId(id) {
+			return NewAppError("SystemSettingPolicyOrder.IsValid", "model.system_setting_policy_order.is_valid.id.app_error", nil, "id="+id, http.StatusBadRequest)
+		}
+		if _, dup := seen[id]; dup {
+			return NewAppError("SystemSettingPolicyOrder.IsValid", "model.system_setting_policy_order.is_valid.duplicate.app_error", nil, "id="+id, http.StatusBadRequest)
+		}
+		seen[id] = struct{}{}
+	}
+	return nil
+}
 
 // SystemSettingDefinition describes a ClientConfig key that may be overridden
 // per session by a system_setting access control policy.

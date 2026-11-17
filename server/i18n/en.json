@@ -10426,11 +10426,6 @@
     "description": "API error when saving an access control policy would lock the saving admin out because they do not satisfy the policy's conditions."
   },
   {
-    "id": "app.pap.save_policy.system_setting_key_exists.app_error",
-    "translation": "A policy ({{.PolicyName}}) already configures {{.Key}}.",
-    "description": "API validation error shown to system admins saving a system setting policy when another policy ({{.PolicyName}}) already configures the same ClientConfig setting key ({{.Key}})."
-  },
-  {
     "id": "app.pap.save_policy.system_setting_resource_attributes",
     "translation": "System setting policies cannot reference channel attributes (resource.attributes).",
     "description": "API validation error (400) shown to system admins saving a system setting policy whose rule expression references resource.attributes."
@@ -12345,6 +12340,21 @@
     "id": "app.system_install_date.parse_int.app_error",
     "translation": "Failed to parse installation date.",
     "description": "Internal error when the stored server installation date cannot be parsed as a number; technical."
+  },
+  {
+    "id": "app.system_setting_policy_order.get.app_error",
+    "translation": "Unable to load the system setting policy order.",
+    "description": "Internal error (500) when the server cannot load system setting policies to build their priority order; technical."
+  },
+  {
+    "id": "app.system_setting_policy_order.save.app_error",
+    "translation": "Unable to save the system setting policy order.",
+    "description": "Internal error (500) when the server cannot store the priority order of system setting policies; technical."
+  },
+  {
+    "id": "app.system_setting_policy_order.unknown_policy.app_error",
+    "translation": "Policy {{.PolicyID}} is not a system setting policy.",
+    "description": "API validation error (400) shown to system admins reordering system setting policies when an ID ({{.PolicyID}}) does not belong to an existing system setting policy."
   },
   {
     "id": "app.team.access_policies.channel_not_found.app_error",
@@ -19215,6 +19225,21 @@
     "id": "model.session.is_valid.user_id.app_error",
     "translation": "Invalid UserId field for session.",
     "description": "API error when a login session record's UserId field is malformed; 'UserId' is the field name and can stay untranslated."
+  },
+  {
+    "id": "model.system_setting_policy_order.is_valid.duplicate.app_error",
+    "translation": "Each policy can only appear once in the policy order.",
+    "description": "API validation error (400) when the list of system setting policy IDs being ordered contains the same policy more than once."
+  },
+  {
+    "id": "model.system_setting_policy_order.is_valid.id.app_error",
+    "translation": "Invalid policy ID in the policy order.",
+    "description": "API validation error (400) when the list of system setting policy IDs being ordered contains a malformed ID."
+  },
+  {
+    "id": "model.system_setting_policy_order.is_valid.too_many.app_error",
+    "translation": "At most {{.Max}} system setting policies can be ordered.",
+    "description": "API validation error (400) when more than {{.Max}} system setting policy IDs are sent in the priority order."
   },
   {
     "id": "model.team.is_valid.characters.app_error",

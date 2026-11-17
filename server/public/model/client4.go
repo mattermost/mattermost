@@ -8561,6 +8561,28 @@ func (c *Client4) SearchAccessControlPolicies(ctx context.Context, options Acces
 	return DecodeJSONFromResponse[*AccessControlPoliciesWithCount](r)
 }
 
+// GetSystemSettingPolicyOrder returns every system_setting policy ID from
+// highest to lowest priority.
+func (c *Client4) GetSystemSettingPolicyOrder(ctx context.Context) (*SystemSettingPolicyOrder, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.accessControlPoliciesRoute().Join(AccessControlPolicyTypeSystemSetting, "order"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*SystemSettingPolicyOrder](r)
+}
+
+// UpdateSystemSettingPolicyOrder sets the system_setting policy priority order
+// and returns the resulting order of every system_setting policy.
+func (c *Client4) UpdateSystemSettingPolicyOrder(ctx context.Context, order *SystemSettingPolicyOrder) (*SystemSettingPolicyOrder, *Response, error) {
+	r, err := c.doAPIPutJSON(ctx, c.accessControlPoliciesRoute().Join(AccessControlPolicyTypeSystemSetting, "order"), order)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*SystemSettingPolicyOrder](r)
+}
+
 // SearchAccessControlDecisionActions returns non-authoritative, render-time ABAC
 // decisions for the current session user on a resource. Results are for UI
 // rendering only; enforcement always re-evaluates the PDP server-side.

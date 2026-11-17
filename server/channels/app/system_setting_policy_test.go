@@ -6,7 +6,9 @@ package app
 import (
 	"net/http"
 	"slices"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -59,9 +61,45 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 		th.App.Srv().Channels().AccessControl = mockACS
 		t.Cleanup(func() {
 			th.App.Srv().Channels().AccessControl = nil
+			_, _ = th.App.Srv().Store().System().PermanentDeleteByName(model.SystemSystemSettingPolicyOrderKey)
 			th.App.invalidateSystemSettingPolicyCache()
 		})
 		return mockACS
+	}
+
+	cleanupPolicy := func(t *testing.T, id string) {
+		t.Helper()
+		t.Cleanup(func() {
+			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, id)
+			th.App.invalidateSystemSettingPolicyCache()
+		})
+	}
+
+	mockSavePolicy := func(t *testing.T, mockACS *mocks.AccessControlServiceInterface, rctx request.CTX) {
+		t.Helper()
+		mockACS.On("SavePolicy", mock.Anything, mock.AnythingOfType("*model.AccessControlPolicy")).
+			Run(func(args mock.Arguments) {
+				p := args.Get(1).(*model.AccessControlPolicy)
+				_, err := th.App.Srv().Store().AccessControlPolicy().Save(rctx, p)
+				require.NoError(t, err)
+			}).
+			Return(func(_ request.CTX, p *model.AccessControlPolicy) *model.AccessControlPolicy { return p }, nil)
+	}
+
+	// recordEvaluations answers every AccessEvaluation with decide and returns
+	// a function that drains the "policyID/key" calls made for a subject.
+	recordEvaluations := func(mockACS *mocks.AccessControlServiceInterface, decide func(model.AccessRequest) bool) func(subjectID string) []string {
+		calls := map[string][]string{}
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+			Return(func(_ request.CTX, req model.AccessRequest) model.AccessDecision {
+				calls[req.Subject.ID] = append(calls[req.Subject.ID], req.Resource.ID+"/"+req.Action)
+				return model.AccessDecision{Decision: decide(req)}
+			}, nil)
+		return func(subjectID string) []string {
+			drained := calls[subjectID]
+			delete(calls, subjectID)
+			return drained
+		}
 	}
 
 	saveStoredPolicy := func(t *testing.T, policy *model.AccessControlPolicy) *model.AccessControlPolicy {
@@ -228,9 +266,10 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 
-	t.Run("enforces global uniqueness per ClientConfig key and rejects resource selectors", func(t *testing.T) {
+	t.Run("allows several policies per ClientConfig key and rejects resource selectors", func(t *testing.T) {
 		mockACS := enableSystemSettingABAC(t)
 		adminCtx := sessionCtx(th.SystemAdminUser)
+		mockSavePolicy(t, mockACS, adminCtx)
 
 		first := &model.AccessControlPolicy{
 			Name:  "First Biometrics Policy",
@@ -242,28 +281,16 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 				Value:      "true",
 			}},
 		}
-
-		mockACS.On("SavePolicy", mock.Anything, mock.AnythingOfType("*model.AccessControlPolicy")).
-			Run(func(args mock.Arguments) {
-				p := args.Get(1).(*model.AccessControlPolicy)
-				_, err := th.App.Srv().Store().AccessControlPolicy().Save(adminCtx, p)
-				require.NoError(t, err)
-			}).
-			Return(func(_ request.CTX, p *model.AccessControlPolicy) *model.AccessControlPolicy { return p }, nil)
-
 		savedFirst, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, first)
 		require.Nil(t, appErr)
-		t.Cleanup(func() {
-			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, savedFirst.ID)
-			th.App.invalidateSystemSettingPolicyCache()
-		})
+		cleanupPolicy(t, savedFirst.ID)
 
 		savedFirst.Rules[0].Value = "false"
 		updatedFirst, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, savedFirst)
 		require.Nil(t, appErr)
 		assert.Equal(t, "false", updatedFirst.Rules[0].Value)
 
-		duplicate := &model.AccessControlPolicy{
+		second := &model.AccessControlPolicy{
 			Name:  "Admin Biometrics Policy",
 			Type:  model.AccessControlPolicyTypeSystemSetting,
 			Roles: []string{model.SystemAdminRoleId},
@@ -273,10 +300,23 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 				Value:      "true",
 			}},
 		}
-		_, appErr = th.App.CreateOrUpdateAccessControlPolicy(adminCtx, duplicate)
+		savedSecond, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, second)
+		require.Nil(t, appErr)
+		cleanupPolicy(t, savedSecond.ID)
+
+		duplicateRules := &model.AccessControlPolicy{
+			Name:  "Duplicate Rules Policy",
+			Type:  model.AccessControlPolicyTypeSystemSetting,
+			Roles: []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.ClientConfigKeyBannerText}, Expression: "true", Value: "a"},
+				{Actions: []string{model.ClientConfigKeyBannerText}, Expression: "false", Value: "b"},
+			},
+		}
+		_, appErr = th.App.CreateOrUpdateAccessControlPolicy(adminCtx, duplicateRules)
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
-		assert.Equal(t, "app.pap.save_policy.system_setting_key_exists.app_error", appErr.Id)
+		assert.Equal(t, "model.access_policy.is_valid.system_setting_duplicate_key.app_error", appErr.Id)
 
 		withResource := &model.AccessControlPolicy{
 			ID:    savedFirst.ID,
@@ -294,4 +334,276 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Equal(t, "app.pap.save_policy.system_setting_resource_attributes", appErr.Id)
 	})
+
+	t.Run("first matching policy in priority order supplies each key", func(t *testing.T) {
+		mockACS := enableSystemSettingABAC(t)
+		finance := saveStoredPolicy(t, &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "Finance Banner",
+			Type:    model.AccessControlPolicyTypeSystemSetting,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.ClientConfigKeyEnableBanner}, Expression: `user.attributes.dept == "finance"`, Value: "true"},
+				{Actions: []string{model.ClientConfigKeyBannerText}, Expression: `user.attributes.dept == "finance"`, Value: "Finance: quarter close Monday"},
+			},
+		})
+		generic := saveStoredPolicy(t, &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "Everyone Banner",
+			Type:    model.AccessControlPolicyTypeSystemSetting,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemUserRoleId},
+			Rules: []model.AccessControlPolicyRule{
+				{Actions: []string{model.ClientConfigKeyEnableBanner}, Expression: "true", Value: "true"},
+				{Actions: []string{model.ClientConfigKeyBannerText}, Expression: "true", Value: "Company all-hands Thursday"},
+				{Actions: []string{model.ClientConfigKeyAllowBannerDismissal}, Expression: "true", Value: "false"},
+			},
+		})
+
+		evaluated := recordEvaluations(mockACS, func(req model.AccessRequest) bool {
+			if req.Resource.ID == finance.ID {
+				return req.Subject.ID == th.BasicUser.Id
+			}
+			return req.Resource.ID == generic.ID
+		})
+
+		_, appErr := th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{finance.ID, generic.ID}})
+		require.Nil(t, appErr)
+
+		overrides, appErr := th.App.EvaluateClientConfigOverrides(sessionCtx(th.BasicUser))
+		require.Nil(t, appErr)
+		assert.Equal(t, map[string]string{
+			model.ClientConfigKeyEnableBanner:         "true",
+			model.ClientConfigKeyBannerText:           "Finance: quarter close Monday",
+			model.ClientConfigKeyAllowBannerDismissal: "false",
+		}, overrides)
+		assert.ElementsMatch(t, []string{
+			finance.ID + "/" + model.ClientConfigKeyEnableBanner,
+			finance.ID + "/" + model.ClientConfigKeyBannerText,
+			generic.ID + "/" + model.ClientConfigKeyAllowBannerDismissal,
+		}, evaluated(th.BasicUser.Id), "keys already supplied by a higher policy must not be evaluated again")
+
+		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(th.BasicUser2))
+		require.Nil(t, appErr)
+		assert.Equal(t, "Company all-hands Thursday", overrides[model.ClientConfigKeyBannerText])
+
+		_, appErr = th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{generic.ID, finance.ID}})
+		require.Nil(t, appErr)
+
+		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(th.BasicUser))
+		require.Nil(t, appErr)
+		assert.Equal(t, map[string]string{
+			model.ClientConfigKeyEnableBanner:         "true",
+			model.ClientConfigKeyBannerText:           "Company all-hands Thursday",
+			model.ClientConfigKeyAllowBannerDismissal: "false",
+		}, overrides)
+		for _, call := range evaluated(th.BasicUser.Id) {
+			assert.NotContains(t, call, finance.ID, "a lower policy is never evaluated once every key it sets is supplied")
+		}
+	})
+
+	t.Run("role chain filtering still applies to ordered policies", func(t *testing.T) {
+		mockACS := enableSystemSettingABAC(t)
+		admins := saveStoredPolicy(t, &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "Admin Banner",
+			Type:    model.AccessControlPolicyTypeSystemSetting,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemAdminRoleId},
+			Rules:   []model.AccessControlPolicyRule{{Actions: []string{model.ClientConfigKeyBannerText}, Expression: "true", Value: "admins"}},
+		})
+		members := saveStoredPolicy(t, &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "Member Banner",
+			Type:    model.AccessControlPolicyTypeSystemSetting,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemUserRoleId},
+			Rules:   []model.AccessControlPolicyRule{{Actions: []string{model.ClientConfigKeyBannerText}, Expression: "true", Value: "members"}},
+		})
+		evaluated := recordEvaluations(mockACS, func(model.AccessRequest) bool { return true })
+
+		_, appErr := th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{admins.ID, members.ID}})
+		require.Nil(t, appErr)
+
+		overrides, appErr := th.App.EvaluateClientConfigOverrides(sessionCtx(th.BasicUser))
+		require.Nil(t, appErr)
+		assert.Equal(t, map[string]string{model.ClientConfigKeyBannerText: "members"}, overrides)
+		assert.Equal(t, []string{members.ID + "/" + model.ClientConfigKeyBannerText}, evaluated(th.BasicUser.Id))
+
+		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(th.SystemAdminUser))
+		require.Nil(t, appErr)
+		assert.Equal(t, map[string]string{model.ClientConfigKeyBannerText: "admins"}, overrides)
+
+		_, appErr = th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{members.ID, admins.ID}})
+		require.Nil(t, appErr)
+
+		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(th.SystemAdminUser))
+		require.Nil(t, appErr)
+		assert.Equal(t, map[string]string{model.ClientConfigKeyBannerText: "members"}, overrides, "system_admin falls back to system_user policies in priority order")
+
+		guest := th.CreateGuest(t)
+		overrides, appErr = th.App.EvaluateClientConfigOverrides(sessionCtx(guest))
+		require.Nil(t, appErr)
+		assert.Empty(t, overrides)
+		assert.Empty(t, evaluated(guest.Id))
+	})
+
+	t.Run("unlisted policies rank after listed ones, oldest first", func(t *testing.T) {
+		_ = enableSystemSettingABAC(t)
+		newPolicy := func(name string) *model.AccessControlPolicy {
+			p := saveStoredPolicy(t, &model.AccessControlPolicy{
+				ID:      model.NewId(),
+				Name:    name,
+				Type:    model.AccessControlPolicyTypeSystemSetting,
+				Version: model.AccessControlPolicyVersionV0_3,
+				Roles:   []string{model.SystemUserRoleId},
+				Rules:   []model.AccessControlPolicyRule{{Actions: []string{model.ClientConfigKeyBannerText}, Expression: "true", Value: name}},
+			})
+			time.Sleep(2 * time.Millisecond)
+			return p
+		}
+		oldest := newPolicy("Oldest")
+		middle := newPolicy("Middle")
+		newest := newPolicy("Newest")
+
+		order, appErr := th.App.GetSystemSettingPolicyOrder(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{oldest.ID, middle.ID, newest.ID}, order.PolicyIDs)
+
+		require.NoError(t, th.App.Srv().Store().System().SaveOrUpdate(&model.System{
+			Name:  model.SystemSystemSettingPolicyOrderKey,
+			Value: strings.Join([]string{newest.ID, model.NewId()}, ","),
+		}))
+		th.App.invalidateSystemSettingPolicyCache()
+
+		order, appErr = th.App.GetSystemSettingPolicyOrder(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{newest.ID, oldest.ID, middle.ID}, order.PolicyIDs, "stale IDs are ignored and unlisted policies follow by CreateAt")
+	})
+
+	t.Run("saving adds new policies to the bottom and deleting removes them", func(t *testing.T) {
+		mockACS := enableSystemSettingABAC(t)
+		adminCtx := sessionCtx(th.SystemAdminUser)
+		mockSavePolicy(t, mockACS, adminCtx)
+		mockACS.On("GetPolicy", mock.Anything, mock.AnythingOfType("string")).
+			Return(func(rctx request.CTX, id string) *model.AccessControlPolicy {
+				p, _ := th.App.Srv().Store().AccessControlPolicy().Get(rctx, id)
+				return p
+			}, nil)
+		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
+			Return(func(rctx request.CTX, id string) *model.AppError {
+				require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(rctx, id))
+				return nil
+			})
+
+		create := func(name string) *model.AccessControlPolicy {
+			saved, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, &model.AccessControlPolicy{
+				Name:  name,
+				Type:  model.AccessControlPolicyTypeSystemSetting,
+				Roles: []string{model.SystemUserRoleId},
+				Rules: []model.AccessControlPolicyRule{{Actions: []string{model.ClientConfigKeyBannerText}, Expression: "true", Value: name}},
+			})
+			require.Nil(t, appErr)
+			cleanupPolicy(t, saved.ID)
+			return saved
+		}
+		storedOrder := func() []string {
+			order, err := loadSystemSettingPolicyOrder(th.App.Srv().Store().System())
+			require.NoError(t, err)
+			return order
+		}
+
+		a := create("Banner A")
+		b := create("Banner B")
+		assert.Equal(t, []string{a.ID, b.ID}, storedOrder())
+
+		_, appErr := th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{b.ID, a.ID}})
+		require.Nil(t, appErr)
+
+		a.Rules[0].Value = "Banner A edited"
+		_, appErr = th.App.CreateOrUpdateAccessControlPolicy(adminCtx, a)
+		require.Nil(t, appErr)
+		c := create("Banner C")
+		assert.Equal(t, []string{b.ID, a.ID, c.ID}, storedOrder(), "edits keep their position and new policies go last")
+
+		require.Nil(t, th.App.DeleteAccessControlPolicy(adminCtx, a.ID))
+		assert.Equal(t, []string{b.ID, c.ID}, storedOrder())
+
+		order, appErr := th.App.GetSystemSettingPolicyOrder(th.Context)
+		require.Nil(t, appErr)
+		assert.Equal(t, []string{b.ID, c.ID}, order.PolicyIDs)
+	})
+
+	t.Run("UpdateSystemSettingPolicyOrder validates IDs and readiness", func(t *testing.T) {
+		_ = enableSystemSettingABAC(t)
+		settingPolicy := saveStoredPolicy(t, &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "Order Validation Banner",
+			Type:    model.AccessControlPolicyTypeSystemSetting,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemUserRoleId},
+			Rules:   []model.AccessControlPolicyRule{{Actions: []string{model.ClientConfigKeyBannerText}, Expression: "true", Value: "x"}},
+		})
+		permissionPolicy := saveStoredPolicy(t, &model.AccessControlPolicy{
+			ID:      model.NewId(),
+			Name:    "Order Validation Permission",
+			Type:    model.AccessControlPolicyTypePermission,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemUserRoleId},
+			Rules:   []model.AccessControlPolicyRule{{Actions: []string{model.AccessControlPolicyActionMembership}, Expression: "true"}},
+		})
+
+		_, appErr := th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{settingPolicy.ID, model.NewId()}})
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Equal(t, "app.system_setting_policy_order.unknown_policy.app_error", appErr.Id)
+
+		_, appErr = th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{permissionPolicy.ID}})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.system_setting_policy_order.unknown_policy.app_error", appErr.Id)
+
+		_, appErr = th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{settingPolicy.ID, settingPolicy.ID}})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "model.system_setting_policy_order.is_valid.duplicate.app_error", appErr.Id)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
+		})
+		_, appErr = th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{settingPolicy.ID}})
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotAcceptable, appErr.StatusCode)
+		assert.Equal(t, "app.pap.is_ready.app_error", appErr.Id)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
+		})
+
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+		_, appErr = th.App.GetSystemSettingPolicyOrder(th.Context)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		assert.Equal(t, "app.pap.init.app_error", appErr.Id)
+
+		th.App.Srv().Channels().AccessControl = nil
+		_, appErr = th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{})
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+	})
+}
+
+func TestSortSystemSettingPolicies(t *testing.T) {
+	policies := []cachedSystemSettingPolicy{
+		{ID: "unlisted_new", CreateAt: 300},
+		{ID: "listed_second", CreateAt: 100},
+		{ID: "unlisted_tie_b", CreateAt: 200},
+		{ID: "listed_first", CreateAt: 500},
+		{ID: "unlisted_tie_a", CreateAt: 200},
+	}
+	sortSystemSettingPolicies(policies, []string{"listed_first", "missing", "listed_second"})
+
+	ids := make([]string, 0, len(policies))
+	for _, p := range policies {
+		ids = append(ids, p.ID)
+	}
+	assert.Equal(t, []string{"listed_first", "listed_second", "unlisted_tie_a", "unlisted_tie_b", "unlisted_new"}, ids)
 }

@@ -159,7 +159,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	}
 
 	if policy.Type == model.AccessControlPolicyTypeSystemSetting {
-		if appErr := a.validateSystemSettingPolicyOnSave(rctx, policy); appErr != nil {
+		if appErr := a.validateSystemSettingPolicyOnSave(policy); appErr != nil {
 			return nil, appErr
 		}
 	}
@@ -196,6 +196,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	case model.AccessControlPolicyTypePermission:
 		a.publishPermissionPolicyUpdate(rctx)
 	case model.AccessControlPolicyTypeSystemSetting:
+		a.ensureSystemSettingPolicyInOrder(rctx, policy.ID)
 		a.invalidateSystemSettingPolicyCache()
 		a.publishSystemSettingPolicyUpdate(rctx)
 	}
@@ -752,6 +753,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 	case policy.Type == model.AccessControlPolicyTypePermission:
 		a.publishPermissionPolicyUpdate(rctx)
 	case policy.Type == model.AccessControlPolicyTypeSystemSetting:
+		a.removeFromSystemSettingPolicyOrder(rctx, id)
 		a.invalidateSystemSettingPolicyCache()
 		a.publishSystemSettingPolicyUpdate(rctx)
 	}
