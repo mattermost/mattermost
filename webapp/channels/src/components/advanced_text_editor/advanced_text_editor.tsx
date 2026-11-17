@@ -79,6 +79,7 @@ import Footer from './footer';
 import FormattingBar from './formatting_bar';
 import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import type {FormattingBarHandle} from './formatting_bar/formatting_bar';
+import LinkPopover from './formatting_bar/link_popover';
 import MessageWithMentionsFooter from './message_with_mentions_footer';
 import OutOfOfficeWarning from './out_of_office_warning';
 import SendButton from './send_button';
@@ -274,6 +275,7 @@ const AdvancedTextEditor = ({
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
     const [agentFormattingBarOpen, setAgentFormattingBarOpen] = useState(false);
+    const [agentLinkPopoverOpen, setAgentLinkPopoverOpen] = useState(false);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
@@ -384,7 +386,14 @@ const AdvancedTextEditor = ({
                 return;
             }
             if (mode === 'link') {
-                formattingBarRef.current?.openLinkPopover();
+                if (formattingBarRef.current) {
+                    formattingBarRef.current.openLinkPopover();
+                } else if (agentMode) {
+                    // The bar is unmounted while closed, so the shortcut cannot
+                    // reach its popover. Open the same popover here and leave
+                    // the bar closed.
+                    setAgentLinkPopoverOpen(true);
+                }
                 return;
             }
             applyWysiwygFormatting(editor, mode);
@@ -413,7 +422,7 @@ const AdvancedTextEditor = ({
                 Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
             }
         });
-    }, [showPreview, wysiwygEnabled, handleDraftChange]);
+    }, [agentMode, showPreview, wysiwygEnabled, handleDraftChange]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
         if (agentMode) {
@@ -829,6 +838,7 @@ const AdvancedTextEditor = ({
     });
 
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
+    const agentLinkEditor = agentLinkPopoverOpen ? wysiwygRef.current?.getEditor() ?? null : null;
 
     const additionalControls = useMemo(() => {
         if (agentMode) {
@@ -1095,6 +1105,12 @@ const AdvancedTextEditor = ({
                 aria-live='assertive'
                 className='sr-only'
             />
+            {agentLinkEditor && !agentLinkEditor.isDestroyed && (
+                <LinkPopover
+                    editor={agentLinkEditor}
+                    onClose={() => setAgentLinkPopoverOpen(false)}
+                />
+            )}
         </form>
     );
 };

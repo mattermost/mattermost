@@ -11,6 +11,7 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 import {closeModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
+import type {FirstMenuItemProps} from 'components/menu';
 import {MenuContext} from 'components/menu/menu_context';
 
 const AGENT_COMPOSER_MENU_ID = 'agent-composer-menu';
@@ -62,7 +63,7 @@ const attributesLabel = (
     />
 );
 
-type AttachFilesItemProps = {
+type AttachFilesItemProps = FirstMenuItemProps & {
     disabled: boolean;
     onAttach: () => void;
 };
@@ -73,7 +74,7 @@ type AttachFilesItemProps = {
  * the original gesture. The menu still closes: here on desktop, and by
  * dismissing the modal on mobile, where the item stops the click from bubbling.
  */
-const AttachFilesItem = ({disabled, onAttach}: AttachFilesItemProps) => {
+const AttachFilesItem = ({disabled, onAttach, ...otherProps}: AttachFilesItemProps) => {
     const menu = useContext(MenuContext);
     const dispatch = useDispatch();
 
@@ -88,6 +89,7 @@ const AttachFilesItem = ({disabled, onAttach}: AttachFilesItemProps) => {
 
     return (
         <Menu.Item
+            {...otherProps}
             labels={attachLabel}
             leadingElement={<PaperclipIcon size={18}/>}
             onClick={handleClick}

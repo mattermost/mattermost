@@ -1445,6 +1445,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await openMenu();
 
+            expect(screen.getByRole('menuitem', {name: 'Attach files'})).toHaveFocus();
             expect(screen.getByRole('menuitem', {name: 'Attach files'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Emoji'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
@@ -1572,6 +1573,46 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(document.querySelector('.ProseMirror')).toBeInTheDocument();
             expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+
+            Range.prototype.getClientRects = originalRects;
+            Range.prototype.getBoundingClientRect = originalRect;
+        });
+
+        it('opens the link popover from the keyboard while the formatting bar stays closed', () => {
+            const rect = () => ({top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0, x: 0, y: 0, toJSON: () => {}}) as DOMRect;
+            const originalRects = Range.prototype.getClientRects;
+            const originalRect = Range.prototype.getBoundingClientRect;
+            Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+            Range.prototype.getBoundingClientRect = rect;
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                mergeObjects(chromeState, {
+                    entities: {
+                        general: {config: {FeatureFlagWysiwygEditor: 'true'}},
+                        preferences: {
+                            myPreferences: {
+                                [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.WYSIWYG_EDITOR}`]: {
+                                    category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                                    name: Preferences.WYSIWYG_EDITOR,
+                                    user_id: currentUserId,
+                                    value: 'true',
+                                },
+                            },
+                        },
+                    },
+                }),
+            );
+
+            const editor = document.querySelector('.ProseMirror');
+            expect(editor).toBeInTheDocument();
+            fireEvent.keyDown(editor!, {key: 'k', keyCode: 75, ctrlKey: true, altKey: true});
+
+            expect(screen.getByPlaceholderText('Type or paste a link')).toBeInTheDocument();
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
 
             Range.prototype.getClientRects = originalRects;
             Range.prototype.getBoundingClientRect = originalRect;
