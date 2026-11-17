@@ -93,6 +93,7 @@ func TestBuiltinRegistry(t *testing.T) {
 		"PUSH_PROXY_UNREACHABLE",
 
 		// platform
+		"DEVELOPER_MODE_ON",
 		"FILESTORE_LOCAL_IN_CLUSTER",
 		"FILESTORE_S3_NO_BUCKET",
 		"FILESTORE_S3_SSL_OFF",

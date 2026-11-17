@@ -14847,6 +14847,26 @@
     "description": "Health dashboard finding title when SQL statement tracing is enabled. 'SqlSettings.Trace' is a setting name and should not be translated."
   },
   {
+    "id": "health.rule.developer_mode_on.message.enable_developer",
+    "translation": "ServiceSettings.EnableDeveloper is true, so raw JavaScript errors are shown to every user. This setting is intended for development only.",
+    "description": "Health dashboard finding detail when developer mode is on; 'ServiceSettings.EnableDeveloper' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.developer_mode_on.message.enable_testing",
+    "translation": "ServiceSettings.EnableTesting is true, so the test slash commands are available to users. This setting is intended for development only.",
+    "description": "Health dashboard finding detail when testing mode is on; 'ServiceSettings.EnableTesting' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.developer_mode_on.remediation",
+    "translation": "Set the setting named in this finding to false.",
+    "description": "Health dashboard fix-it step when developer or testing mode is on; the finding detail names the setting, ServiceSettings.EnableDeveloper or ServiceSettings.EnableTesting, and 'false' is a setting value that should not be translated."
+  },
+  {
+    "id": "health.rule.developer_mode_on.title",
+    "translation": "Developer or testing mode is on",
+    "description": "Health dashboard finding title when ServiceSettings.EnableDeveloper or ServiceSettings.EnableTesting is turned on in production."
+  },
+  {
     "id": "health.rule.env_unsupported_os.message",
     "translation": "The server runs on {{.os}}. Mattermost supports Linux for production; other operating systems are suitable for development only.",
     "description": "Health dashboard finding detail when the server does not run on Linux; {{.os}} is the operating system name reported by Go, such as windows or darwin."
