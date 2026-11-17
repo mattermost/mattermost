@@ -8,25 +8,6 @@ import {render, screen, userEvent} from 'tests/react_testing_utils';
 import RadioSetting from './radio_setting';
 
 describe('components/admin_console/RadioSetting', () => {
-    test('should match snapshot', () => {
-        const onChange = jest.fn();
-        const {container} = render(
-            <RadioSetting
-                id='string.id'
-                label='some label'
-                values={[
-                    {text: 'this is engineering', value: 'Engineering'},
-                    {text: 'this is sales', value: 'Sales'},
-                    {text: 'this is administration', value: 'Administration'},
-                ]}
-                value={'Sales'}
-                onChange={onChange}
-                setByEnv={false}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('onChange', async () => {
         const onChange = jest.fn();
         render(

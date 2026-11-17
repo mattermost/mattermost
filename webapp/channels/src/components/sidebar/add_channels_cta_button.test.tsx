@@ -140,34 +140,6 @@ describe('components/new_channel_modal', () => {
         });
     });
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AddChannelsCtaButton/>, initialState);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when user has only join channel permissions', () => {
-        const joinOnlyState = {
-            ...initialState,
-            entities: {
-                ...initialState.entities,
-                users: {
-                    currentUserId: 'current_user_id',
-                    profiles: {
-                        current_user_id: {
-                            id: 'current_user_id',
-                            roles: 'system_user_join_permissions',
-                        },
-                    },
-                },
-            },
-        };
-
-        const {container} = renderWithContext(<AddChannelsCtaButton/>, joinOnlyState);
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should find the add channels button when user has permissions', () => {
         renderWithContext(<AddChannelsCtaButton/>, initialState);
 

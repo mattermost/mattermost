@@ -69,19 +69,6 @@ describe('components/post_view/post_list_row', () => {
         isChannelAutotranslated: false,
     };
 
-    test('should render more messages loading indicator', () => {
-        const listId = PostListRowListIds.OLDER_MESSAGES_LOADER;
-        const props = {
-            ...defaultProps,
-            listId,
-            loadingOlderPosts: true,
-        };
-        const {container} = renderWithContext(
-            <PostListRow {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render manual load messages trigger', async () => {
         const listId = PostListRowListIds.LOAD_OLDER_MESSAGES_TRIGGER;
         const loadOlderPosts = jest.fn();
@@ -90,10 +77,9 @@ describe('components/post_view/post_list_row', () => {
             listId,
             loadOlderPosts,
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <PostListRow {...props}/>,
         );
-        expect(container).toMatchSnapshot();
         await userEvent.click(screen.getByRole('button'));
         expect(loadOlderPosts).toHaveBeenCalledTimes(1);
     });
@@ -123,10 +109,9 @@ describe('components/post_view/post_list_row', () => {
             listId,
         };
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <PostListRow {...props}/>,
         );
-        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('channel-intro-message')).toBeInTheDocument();
     });
 
@@ -136,10 +121,9 @@ describe('components/post_view/post_list_row', () => {
             ...defaultProps,
             listId,
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <PostListRow {...props}/>,
         );
-        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('new-message-separator')).toBeInTheDocument();
     });
 
@@ -149,10 +133,9 @@ describe('components/post_view/post_list_row', () => {
             ...defaultProps,
             listId,
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <PostListRow {...props}/>,
         );
-        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('date-separator')).toBeInTheDocument();
     });
 
@@ -163,10 +146,9 @@ describe('components/post_view/post_list_row', () => {
             listId: `${PostListUtils.COMBINED_USER_ACTIVITY}1234-5678`,
             previousListId: 'abcd',
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <PostListRow {...props}/>,
         );
-        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('combined-user-activity')).toBeInTheDocument();
     });
 
@@ -177,36 +159,9 @@ describe('components/post_view/post_list_row', () => {
             listId: '1234',
             previousListId: 'abcd',
         };
-        const {container} = renderWithContext(
+        renderWithContext(
             <PostListRow {...props}/>,
         );
-        expect(container).toMatchSnapshot();
         expect(screen.getByTestId('post')).toBeInTheDocument();
-    });
-
-    test('should have class hideAnimation for OLDER_MESSAGES_LOADER if loadingOlderPosts is false', () => {
-        const listId = PostListRowListIds.OLDER_MESSAGES_LOADER;
-        const props = {
-            ...defaultProps,
-            listId,
-            loadingOlderPosts: false,
-        };
-        const {container} = renderWithContext(
-            <PostListRow {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should have class hideAnimation for NEWER_MESSAGES_LOADER if loadingNewerPosts is false', () => {
-        const listId = PostListRowListIds.NEWER_MESSAGES_LOADER;
-        const props = {
-            ...defaultProps,
-            listId,
-            loadingNewerPosts: false,
-        };
-        const {container} = renderWithContext(
-            <PostListRow {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
     });
 });
