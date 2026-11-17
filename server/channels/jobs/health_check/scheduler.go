@@ -42,7 +42,7 @@ func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License)
 	}
 }
 
-// ScheduleJob skips without an Enterprise license, as the run would only fail. The license is
+// ScheduleJob skips without a Professional license, as the run would only fail. The license is
 // checked here rather than in Enabled, which the framework only re-reads on config changes, so
 // a license added later still gets the next hourly run.
 //
@@ -50,7 +50,7 @@ func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License)
 // PeriodicScheduler ignores it and creates a job every period. A job pending or in progress
 // skips the run; CreateJobOnce checks again atomically as it saves.
 func (s *Scheduler) ScheduleJob(rctx request.CTX, _ *model.Config, pendingJobs bool, _ *model.Job) (*model.Job, *model.AppError) {
-	if !model.MinimumEnterpriseLicense(s.licenseFunc()) || pendingJobs {
+	if !model.MinimumProfessionalLicense(s.licenseFunc()) || pendingJobs {
 		return nil, nil
 	}
 
