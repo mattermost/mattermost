@@ -791,6 +791,22 @@ describe('components/admin_console/health_dashboard', () => {
             expect(runButton()).toBeEnabled();
         });
 
+        test('clears the error of a failed run when a run started elsewhere succeeds', async () => {
+            const user = setupUser();
+            const {store} = await renderRunDashboard(stale);
+            jest.spyOn(Client4, 'getHealthFindings').mockResolvedValue(fresh);
+
+            await startRun(user);
+            await jobUpdated(store, makeRun('error'));
+            expect(await screen.findByText('The health check did not finish.')).toBeVisible();
+
+            // e.g. the next scheduled run.
+            await jobUpdated(store, makeRun('pending', {id: 'scheduled'}));
+            await jobUpdated(store, makeRun('success', {id: 'scheduled'}));
+            expect(await screen.findByText('Fresh finding')).toBeInTheDocument();
+            expect(screen.queryByText('The health check did not finish.')).not.toBeInTheDocument();
+        });
+
         test('does not follow a finished run again when an outdated copy says it is still in progress', async () => {
             const user = setupUser();
             const {store} = await renderRunDashboard(stale);

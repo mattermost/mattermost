@@ -165,6 +165,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
             return;
         }
         setFailed(false);
+        setRunError(null);
         setNow(Date.now());
     }, [actions]);
 
