@@ -1490,13 +1490,15 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 chromeState,
             );
 
+            const input = document.querySelector('input.file-attachment-menu-item-input');
+            expect(input).toBeInTheDocument();
+            expect(input?.closest('[hidden]')).toBeNull();
+
             const clicksBefore = clickSpy.mock.calls.length;
             await openMenu();
             await userEvent.click(screen.getByRole('menuitem', {name: 'Attach files'}));
 
-            await waitFor(() => {
-                expect(clickSpy.mock.calls.length).toBeGreaterThan(clicksBefore);
-            });
+            expect(clickSpy.mock.calls.length).toBeGreaterThan(clicksBefore);
 
             clickSpy.mockRestore();
         });

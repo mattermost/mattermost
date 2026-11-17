@@ -1023,11 +1023,8 @@ const AdvancedTextEditor = ({
                                 {formattingBar}
                             </FormattingBarSpacer>
                         ) : formattingBar}
-                        {agentMode && (
-                            <div hidden={true}>
-                                {fileUploadJSX}
-                            </div>
-                        )}
+                        {/* Keep the input in the layout. `hidden` is display:none, and Safari will not open a file dialog from that. */}
+                        {agentMode && fileUploadJSX}
                         {!isDisabled && (
                             <TexteditorActions
                                 ref={editorActionsRef}

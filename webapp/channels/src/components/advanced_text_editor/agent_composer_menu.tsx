@@ -1,13 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, type Ref} from 'react';
+import React, {memo, useContext, type Ref} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
 
 import {EmoticonHappyOutlineIcon, FormatLetterCaseIcon, PaperclipIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 
+import {closeModal} from 'actions/views/modals';
+
 import * as Menu from 'components/menu';
+import {MenuContext} from 'components/menu/menu_context';
+
+const AGENT_COMPOSER_MENU_ID = 'agent-composer-menu';
 
 const AgentComposerMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
@@ -56,6 +62,41 @@ const attributesLabel = (
     />
 );
 
+type AttachFilesItemProps = {
+    disabled: boolean;
+    onAttach: () => void;
+};
+
+/**
+ * Opens the file dialog in this click. Other menu items run onClick after the
+ * close animation, and Safari rejects a file dialog that is no longer part of
+ * the original gesture. The menu still closes: here on desktop, and by
+ * dismissing the modal on mobile, where the item stops the click from bubbling.
+ */
+const AttachFilesItem = ({disabled, onAttach}: AttachFilesItemProps) => {
+    const menu = useContext(MenuContext);
+    const dispatch = useDispatch();
+
+    const handleClick = () => {
+        onAttach();
+        if (menu.close) {
+            menu.close();
+        } else {
+            dispatch(closeModal(AGENT_COMPOSER_MENU_ID));
+        }
+    };
+
+    return (
+        <Menu.Item
+            labels={attachLabel}
+            leadingElement={<PaperclipIcon size={18}/>}
+            onClick={handleClick}
+            disabled={disabled}
+            disableCloseOnSelect={true}
+        />
+    );
+};
+
 /**
  * The one + control on an agent composer. Attach, emoji, and formatting open
  * the controls the channel composer shows as their own buttons. Add attributes
@@ -92,18 +133,16 @@ const AgentComposerMenu = ({
                 }}
                 menuButtonTooltip={{text: label}}
                 menu={{
-                    id: 'agent-composer-menu',
+                    id: AGENT_COMPOSER_MENU_ID,
                     'aria-label': label,
                 }}
                 anchorOrigin={{vertical: 'top', horizontal: 'left'}}
                 transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
             >
                 {canAttach && (
-                    <Menu.Item
-                        labels={attachLabel}
-                        leadingElement={<PaperclipIcon size={18}/>}
-                        onClick={onAttach}
+                    <AttachFilesItem
                         disabled={attachDisabled}
+                        onAttach={onAttach}
                     />
                 )}
                 {enableEmojiPicker && (
