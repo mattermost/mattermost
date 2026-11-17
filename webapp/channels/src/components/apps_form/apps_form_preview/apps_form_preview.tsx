@@ -67,7 +67,8 @@ const AppsFormPreview: React.FC<Props> = ({fileId, maxHeight, mode = 'inline', l
     const fileType = fileInfo ? getFileType(fileInfo.extension) : null;
     const tooLargeToRender = fileInfo !== null && fileInfo.size > MAX_INLINE_FILE_SIZE &&
         (fileType === FileTypes.PDF || (fileType === FileTypes.IMAGE && !fileInfo.has_preview_image));
-    const asFile = mode === 'file' || tooLargeToRender;
+    const unsupportedType = fileInfo !== null && fileType !== FileTypes.IMAGE && fileType !== FileTypes.PDF;
+    const asFile = mode === 'file' || tooLargeToRender || unsupportedType;
     const [status, setStatus] = useState<Status>('loading');
     const viewerRef = useRef<HTMLDivElement>(null);
     const [firstPageAspectRatio, setFirstPageAspectRatio] = useState<number | undefined>();
@@ -158,14 +159,6 @@ const AppsFormPreview: React.FC<Props> = ({fileId, maxHeight, mode = 'inline', l
         return () => observer.disconnect();
     }, [sizeViewerToFirstPage, firstPageAspectRatio]);
 
-    useEffect(() => {
-        // Images report success from the <img> onLoad handler, and PDFPreview handles
-        // its own loading and errors; anything else can't be shown inline.
-        if (fileInfo && !asFile && fileType !== FileTypes.IMAGE && fileType !== FileTypes.PDF) {
-            setStatus('fail');
-        }
-    }, [fileInfo, fileType, asFile]);
-
     const openFullPreview = useCallback(() => {
         if (!fileInfo) {
             return;
@@ -220,15 +213,15 @@ const AppsFormPreview: React.FC<Props> = ({fileId, maxHeight, mode = 'inline', l
 
     // PDF: the same viewer the file preview modal uses, one page tall unless maxHeight is set.
     if (fileInfo && fileType === FileTypes.PDF && status !== 'fail') {
+        // A scrolling viewer is capped at the window height: pages count as in view anywhere
+        // inside it, so a viewer taller than the window would draw pages nobody can see.
         let viewerStyle;
         if (firstPageOnly) {
             viewerStyle = {maxHeight};
         } else if (maxHeight) {
-            // Capped at the window height: pages count as in view anywhere inside the
-            // viewer, so a viewer taller than the window would draw pages nobody can see.
             viewerStyle = {height: maxHeight, maxHeight: '100vh'};
         } else {
-            viewerStyle = {height: firstPageHeight || PDF_VIEWER_DEFAULT_HEIGHT};
+            viewerStyle = {height: firstPageHeight || PDF_VIEWER_DEFAULT_HEIGHT, maxHeight: '100vh'};
         }
 
         // A div with button semantics, since a <button> can't scroll. Enter and Space open the

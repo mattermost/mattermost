@@ -1374,9 +1374,10 @@ const previewDemoFileIds = {};
 
 async function uploadPreviewDemoFiles(channelId) {
     if (!previewDemoFileIds[channelId]) {
+        const token = await loginAsAdmin();
         const [pdfId, imageId] = await Promise.all([
-            uploadFileAsAdmin(channelId, buildPreviewTestPdf(PREVIEW_TEST_PDF_PAGES), 'application/pdf', 'preview-demo.pdf'),
-            uploadFileAsAdmin(channelId, buildPreviewTestPng(240, 160), 'image/png', 'preview-demo.png'),
+            uploadFile(token, channelId, buildPreviewTestPdf(PREVIEW_TEST_PDF_PAGES), 'application/pdf', 'preview-demo.pdf'),
+            uploadFile(token, channelId, buildPreviewTestPng(240, 160), 'image/png', 'preview-demo.png'),
         ]);
         previewDemoFileIds[channelId] = {pdfId, imageId};
     }
@@ -1446,22 +1447,26 @@ async function onPreviewDialogRequest(req, res) {
     return res.json({text: 'Preview dialog opened!'});
 }
 
-// Uploads a file to the channel as the /setup admin, without posting it, and returns its file ID.
-async function uploadFileAsAdmin(channelId, data, type, name) {
+// Logs in as the /setup admin and returns the session token.
+async function loginAsAdmin() {
     const login = await axios({
         url: `${baseUrl}/api/v4/users/login`,
         method: 'post',
         headers: {'X-Requested-With': 'XMLHttpRequest'},
         data: {login_id: adminUsername, password: adminPassword},
     });
+    return login.headers.token;
+}
 
+// Uploads a file to the channel, without posting it, and returns its file ID.
+async function uploadFile(token, channelId, data, type, name) {
     const form = new FormData();
     form.append('channel_id', channelId);
     form.append('files', new Blob([data], {type}), name);
     const upload = await axios({
         url: `${baseUrl}/api/v4/files`,
         method: 'post',
-        headers: {Authorization: `Bearer ${login.headers.token}`},
+        headers: {Authorization: `Bearer ${token}`},
         data: form,
     });
     return upload.data.file_infos[0].id;

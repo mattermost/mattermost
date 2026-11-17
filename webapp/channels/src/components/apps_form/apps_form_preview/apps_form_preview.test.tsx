@@ -144,7 +144,7 @@ describe('AppsFormPreview', () => {
         });
     });
 
-    it('sizes the PDF viewer to one page once the first page renders, when maxHeight is unset', async () => {
+    it('sizes the PDF viewer to one page once the first page renders, capped at the window height, when maxHeight is unset', async () => {
         const info = TestHelper.getFileInfoMock({id: fileId, name: 'doc.pdf', extension: 'pdf'});
         jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);
         mockGetDocument.mockReturnValue({
@@ -158,7 +158,7 @@ describe('AppsFormPreview', () => {
         renderWithContext(<AppsFormPreview fileId={fileId}/>);
 
         await waitFor(() => {
-            expect(screen.getByTestId('apps-form-preview')).toHaveStyle({height: '500px'});
+            expect(screen.getByTestId('apps-form-preview')).toHaveStyle({height: '500px', maxHeight: '100vh'});
         });
     });
 
@@ -335,18 +335,8 @@ describe('AppsFormPreview', () => {
         expect(Client4.getFileInfo).not.toHaveBeenCalled();
     });
 
-    it('shows the file name and disables the button for unsupported file types', async () => {
-        const info = TestHelper.getFileInfoMock({id: fileId, name: 'report.docx', extension: 'docx'});
-        jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);
-
-        renderWithContext(<AppsFormPreview fileId={fileId}/>);
-
-        expect(await screen.findByText('report.docx')).toBeVisible();
-        expect(screen.getByTestId('apps-form-preview')).toBeDisabled();
-    });
-
-    it('ignores maxHeight for unsupported file types, so the file name is not cropped', async () => {
-        const info = TestHelper.getFileInfoMock({id: fileId, name: 'report.docx', extension: 'docx'});
+    it('shows a file that is neither an image nor a PDF as a file card, which opens the file when clicked', async () => {
+        const info = TestHelper.getFileInfoMock({id: fileId, name: 'report.docx', extension: 'docx', post_id: ''});
         jest.spyOn(Client4, 'getFileInfo').mockResolvedValue(info);
 
         renderWithContext(
@@ -356,8 +346,13 @@ describe('AppsFormPreview', () => {
             />,
         );
 
-        expect(await screen.findByText('report.docx')).toBeVisible();
-        expect(screen.getByTestId('apps-form-preview').style.maxHeight).toBe('');
+        await userEvent.click(await screen.findByRole('link', {name: 'file thumbnail report.docx'}));
+
+        expect(screen.queryByTestId('apps-form-preview')).not.toBeInTheDocument();
+        expect(mockOpenModal).toHaveBeenCalledWith(expect.objectContaining({
+            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+            dialogProps: expect.objectContaining({fileInfos: [info]}),
+        }));
     });
 
     it('crops an image to maxHeight', async () => {
