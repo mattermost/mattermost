@@ -260,6 +260,37 @@ describe('DynamicVirtualizedList: centered item', () => {
         expect(scrollBy).toHaveBeenCalledWith(0, 400);
     });
 
+    test('ignores a relative correction that was queued before the item became held', () => {
+        const {listRef, getOuter, getScrollTop, scrollTopWrites} = setup();
+        const outer = getOuter();
+        const scrollBy = jest.fn();
+        outer.scrollBy = scrollBy;
+
+        // Let the initial center hold expire so a relative correction can be queued.
+        act(() => {
+            jest.advanceTimersByTime(31000);
+        });
+        scrollTopWrites.length = 0;
+
+        // Queue a relative correction for the next animation frame without flushing it yet.
+        act(() => {
+            listRef.current!.scrollTo(900, 400, true);
+        });
+
+        // Arm a new center hold before the queued frame runs.
+        act(() => {
+            listRef.current!.scrollToItem(targetIndex, 'center');
+        });
+        scrollTopWrites.length = 0;
+
+        act(() => {
+            jest.advanceTimersByTime(200);
+        });
+
+        expect(scrollBy).not.toHaveBeenCalled();
+        expect(getScrollTop()).toBe(centeredOffset(rowHeight * (itemCount - 1 - targetIndex)));
+    });
+
     test('keeps the requested offset when re-centering', () => {
         const {getScrollTop, growRowAboveTarget} = setup({centerOffset: 40});
 

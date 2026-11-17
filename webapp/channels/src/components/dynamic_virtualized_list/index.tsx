@@ -147,7 +147,12 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     private scrollBy = (scrollOffset: number, scrollBy: number | undefined) => () => {
         const element = this._outerRef;
         if (element) {
-            if (typeof element.scrollBy === 'function' && scrollBy) {
+            // A relative correction may have been queued (requestAnimationFrame) before a later
+            // scrollToItem(..., 'center') armed the hold. Re-check here so the deferred delta does
+            // not move the list away from the centered item.
+            if (typeof scrollBy === 'number' && scrollBy !== 0 && this._isCenteredItemHeld()) {
+                this._recenterHeldItem();
+            } else if (typeof element.scrollBy === 'function' && scrollBy) {
                 element.scrollBy(0, scrollBy);
             } else if (scrollOffset) {
                 element.scrollTop = scrollOffset;
