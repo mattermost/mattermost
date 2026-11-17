@@ -17,6 +17,7 @@ import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
 import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
+import {getBoardPluginIds} from 'selectors/views/product_rail';
 
 import BrowseChannels from 'components/browse_channels';
 import * as Menu from 'components/menu';
@@ -38,6 +39,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const currentTeamId = useSelector(getCurrentTeamId);
     const intl = useIntl();
     const productRailKind = useProductRailKind();
+    const boardPluginIds = useSelector(getBoardPluginIds);
     const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents) as SidebarBrowseOrAddChannelMenuAction[] | undefined;
     const touchedAddChannelsCtaButton = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_CHANNELS_CTA));
 
@@ -47,10 +49,12 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const canJoinPublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.JOIN_PUBLIC_CHANNELS));
     const currentUserId = useSelector(getCurrentUserId);
 
-    // On the Boards item, the menu creates boards through the plugin's own "Create new board" item.
-    // Without one (or without permission to create), there's no way to make a board from here, so it
-    // keeps the channel wording rather than promise one.
-    const boardMenuItems = (pluginMenuItems ?? []).filter((item) => item.placement === 'afterCreateChannel');
+    // On the Boards item, the menu creates boards through the board plugin's own "Create new board"
+    // item. Its placement only says where it sits, so the item is a board action when the plugin that
+    // registered it is the one that registered the board kind. Without one (or without permission to
+    // create), there's no way to make a board from here, so it keeps the channel wording rather than
+    // promise one.
+    const boardMenuItems = (pluginMenuItems ?? []).filter((item) => item.placement === 'afterCreateChannel' && boardPluginIds.includes(item.pluginId));
     const showBoardMenu = productRailKind === 'board' && canCreateChannel && boardMenuItems.length > 0;
     const railKind = showBoardMenu ? 'board' : 'channel';
 

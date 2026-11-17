@@ -61,6 +61,13 @@ export function hasBoardChannelKind(state: GlobalState): boolean {
     return getChannelKindRegistrations(state).some((registration) => registration.kind === 'board');
 }
 
+/** The ids of the plugins that registered a matcher for board channels. */
+export const getBoardPluginIds: (state: GlobalState) => string[] = createSelector(
+    'getBoardPluginIds',
+    getChannelKindRegistrations,
+    (registrations) => registrations.filter((registration) => registration.kind === 'board').map((registration) => registration.pluginId),
+);
+
 /**
  * The ids of every loaded channel a plugin's matcher calls a board.
  *

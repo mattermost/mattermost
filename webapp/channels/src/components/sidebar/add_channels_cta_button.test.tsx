@@ -103,6 +103,7 @@ describe('components/new_channel_modal', () => {
             ...initialState,
             plugins: {
                 components: {
+                    ChannelKind: [{id: 'board_kind', pluginId: 'boards', kind: 'board' as const, matcher: () => false}],
                     SidebarBrowseOrAddChannelMenu: [{
                         id: 'create_board',
                         pluginId: 'boards',
@@ -130,6 +131,24 @@ describe('components/new_channel_modal', () => {
 
             // Menu items run their action once the menu has closed.
             await waitFor(() => expect(createBoardAction).toHaveBeenCalledWith('current_team_id'));
+        });
+
+        test('should keep the channel wording when only another plugin adds an item after Create new channel', () => {
+            renderWithContext(<AddChannelsCtaButton/>, {
+                ...withBoardMenuItem,
+                plugins: {
+                    components: {
+                        ...withBoardMenuItem.plugins.components,
+                        SidebarBrowseOrAddChannelMenu: [{
+                            ...withBoardMenuItem.plugins.components.SidebarBrowseOrAddChannelMenu[0],
+                            pluginId: 'tasks',
+                            text: 'Create task',
+                        }],
+                    },
+                },
+            });
+
+            expect(screen.getByRole('button', {name: /add channels/i})).toBeInTheDocument();
         });
 
         test('should keep the channel wording when no plugin offers board creation', () => {
