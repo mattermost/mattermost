@@ -4,6 +4,7 @@
 package app
 
 import (
+	"bytes"
 	"cmp"
 	"net/http"
 	"slices"
@@ -163,8 +164,8 @@ func markPropertyValuesUnavailable(posts []*model.Post) {
 // PreparePostPropertyValuesForCreate checks values submitted for a post about to be created in
 // channel and returns fresh PropertyValues carrying only the group, the field and the value,
 // together with the field each one is for, in the same order. It runs before the post is saved,
-// so bad input is refused before there is a post to roll back, including a value whose shape
-// doesn't fit its field's type.
+// so bad input is refused before there is a post to roll back, including a missing value and a
+// value whose shape doesn't fit its field's type.
 //
 // It does not check whether the caller may set the values: an API caller asks
 // CanSetPostPropertyValueOnCreate for each returned field, and every caller's write is judged
@@ -224,6 +225,11 @@ func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*
 		field, ok := fieldByID[item.FieldID]
 		if !ok {
 			return nil, nil, invalid("unknown field")
+		}
+		// An entry without a value would reach the store as NULL, which the value column refuses
+		// only once the post exists. A JSON null is a value and goes through.
+		if len(bytes.TrimSpace(item.Value)) == 0 {
+			return nil, nil, invalid("missing value")
 		}
 		// The property hook runs the same check when the values are stored, but by then the
 		// post exists and a failure removes it again, attachments included.

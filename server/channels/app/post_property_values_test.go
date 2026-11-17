@@ -1289,6 +1289,14 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 		})
 	})
 
+	t.Run("an entry without a value is refused", func(t *testing.T) {
+		requireInvalid(t, &model.PropertyValue{FieldID: channelField.ID})
+	})
+
+	t.Run("an entry with a blank value is refused", func(t *testing.T) {
+		requireInvalid(t, submitted(channelField.ID, "  "))
+	})
+
 	// One subtest per server-owned field rather than a loop, so a regression in handling any one
 	// of them names itself in the failure output.
 	t.Run("server-owned fields set by the caller are refused", func(t *testing.T) {
