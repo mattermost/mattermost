@@ -30,6 +30,7 @@ export default class ChannelsCenterView {
     readonly notificationSeparator;
     readonly postViews;
     readonly channelIntro;
+    readonly postListLoading;
 
     constructor(container: Locator, page: Page) {
         this.container = container;
@@ -50,6 +51,7 @@ export default class ChannelsCenterView {
         this.notificationSeparator = container.locator('.NotificationSeparator');
         this.postViews = container.getByTestId('postView');
         this.channelIntro = container.locator('#channelIntro');
+        this.postListLoading = container.locator('#post-list').getByTestId('loading-screen');
     }
 
     async toBeVisible() {
