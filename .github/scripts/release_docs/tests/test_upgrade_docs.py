@@ -355,6 +355,31 @@ class UpgradeDocsTest(unittest.TestCase):
                                                          '<a href="https://docs.mattermost.com/x">the guide</a>.', "x"),
                                            "<tbody>\n", "", placeholder, True).count(placeholder), 1)
 
+    def test_a_rerun_on_the_pr_branch_replaces_the_release_rows_and_section(self):
+        def build_on(files, docs):
+            return release_docs_pr.build(Version.parse("v12.2.0"), files, "v10.11,v11.7,v12.4", date(2026, 12, 16), 15,
+                                         [], None, docs)
+
+        base = {**real_docs(), release_docs_pr.POSTGRES_REQUIREMENT: "\tMinimumPostgresMajorVersion = 15\n"}
+        both = upgrade_docs.plan([f"{SERVER}#201", f"{ENT}#7"], [f"{SERVER}#201", f"{ENT}#7"],
+                                 [f"{SERVER}#201", f"{ENT}#7"], BULLETS, {})
+        first = build_on(base, both).files
+        branch = {**base, **first}
+        self.assertEqual(build_on(branch, both).files, {})
+
+        later = upgrade_docs.plan([f"{SERVER}#202"], [f"{SERVER}#201", f"{SERVER}#202", f"{ENT}#7"],
+                                  [f"{SERVER}#201", f"{SERVER}#202", f"{ENT}#7"], BULLETS, {})
+        again = build_on(branch, later).files
+        notes, removed = again[release_docs_pr.UPGRADE_NOTES], again[release_docs_pr.DEPRECATED_FEATURES]
+        self.assertEqual(notes, build_on(base, later).files[release_docs_pr.UPGRADE_NOTES])
+        self.assertEqual(removed, build_on(base, later).files[release_docs_pr.DEPRECATED_FEATURES])
+        self.assertEqual(notes.count("<td>v12.2</td>"), 1)
+        self.assertNotIn("Plugin signatures using SHA-1", notes)
+        self.assertEqual(removed.count("### Mattermost Server v12.2 "), 1)
+        self.assertNotIn("ServiceSettings.EnableLegacy", removed)
+        self.assertIn('<td rowspan="27">v12.0</td>', notes)
+        self.assertIn("### Mattermost Server v12.0 (October 2026)", removed)
+
     def test_the_check_ignores_the_ui_accessibility_placeholder(self):
         page = "<tbody>\n{/* release-agent placeholder: v12.2 UI & Accessibility changelog rows, filled in a later PR. */}\n"
         self.assertEqual(cli.release_docs_problems({release_docs_pr.UPGRADE_NOTES: page}), [])

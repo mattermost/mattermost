@@ -140,9 +140,32 @@ def removed_section(short: str, release_day: date | None, entries: list[Entry]) 
     return f"### Mattermost Server {short}{when}\n\n" + "".join(f"- {entry.text}\n" for entry in entries) + "\n"
 
 
+def without_rows(content: str, short: str) -> str:
+    """``content`` without the release's rows in the upgrade notes table: its version cell and the
+    rows it spans."""
+    start = re.search(rf'<tr>\s*<td(?:\s+rowspan="(\d+)")?>\s*{re.escape(short)}\s*</td>', content)
+    if not start:
+        return content
+    end = start.start()
+    for _ in range(int(start.group(1) or 1)):
+        close = content.find("</tr>", end)
+        if close < 0:
+            return content
+        end = close + len("</tr>")
+    if content.startswith("\n", end):
+        end += 1
+    return content[:start.start()] + content[end:]
+
+
+def without_section(content: str, short: str) -> str:
+    """``content`` without the release's section in Removed features, up to the next heading."""
+    return re.sub(rf"^### Mattermost Server {re.escape(short)}(?![\d.])[^\n]*\n(?:(?!#)[^\n]*\n)*", "", content,
+                  count=1, flags=re.MULTILINE)
+
+
 def fill(content: str, after: str, block: str, placeholder: str, keep_placeholder: bool) -> str:
     """``content`` with ``block`` right after ``after``, and the placeholder there only when it's kept.
-    Built from the base branch's page each run, so a rerun gives the same text."""
+    The page may be the PR branch's, so the caller removes the release's earlier block first."""
     content = content.replace(placeholder, "")
     at = content.find(after)
     if at < 0:

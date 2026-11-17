@@ -531,10 +531,12 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
         keep = not upgrade.complete
         rows = upgrade_docs.note_rows(version.short, upgrade.notes) if upgrade.notes else ""
         removed = upgrade_docs.removed_section(version.short, release_day, upgrade.removed) if upgrade.removed else ""
-        apply(UPGRADE_NOTES, lambda c: upgrade_docs.fill(c, "<tbody>\n", rows, placeholder(version, "Important Upgrade Notes"),
-                                                         keep))
-        apply(DEPRECATED_FEATURES, lambda c: upgrade_docs.fill(c, "## Removed features by Mattermost version\n\n", removed,
-                                                               placeholder(version, "Deprecated Features"), keep))
+        apply(UPGRADE_NOTES, lambda c: upgrade_docs.fill(
+            upgrade_docs.without_rows(c, version.short), "<tbody>\n", rows,
+            placeholder(version, "Important Upgrade Notes"), keep))
+        apply(DEPRECATED_FEATURES, lambda c: upgrade_docs.fill(
+            upgrade_docs.without_section(c, version.short), "## Removed features by Mattermost version\n\n", removed,
+            placeholder(version, "Deprecated Features"), keep))
         for todo in upgrade.todos:
             result.todo(todo)
 
