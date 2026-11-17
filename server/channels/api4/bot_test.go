@@ -228,6 +228,35 @@ func TestBotIsAgentFlag(t *testing.T) {
 	})
 }
 
+func TestBotIsAgentWebsocketEvent(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	bot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+		Username: GenerateTestUsername(),
+		OwnerId:  th.BasicUser2.Id,
+	})
+	require.Nil(t, appErr)
+
+	webSocketClient := th.CreateConnectedWebSocketClient(t)
+	resp := <-webSocketClient.ResponseChannel
+	require.Equal(t, model.StatusOk, resp.Status)
+
+	_, appErr = th.App.PatchBot(th.Context, bot.UserId, &model.BotPatch{IsAgent: model.NewPointer(true)})
+	require.Nil(t, appErr)
+
+	assertExpectedWebsocketEvent(t, webSocketClient, model.WebsocketEventUserUpdated, func(event *model.WebSocketEvent) {
+		eventUser, ok := event.GetData()["user"].(*model.User)
+		require.True(t, ok, "expected user")
+		assert.Equal(t, bot.UserId, eventUser.Id)
+		assert.True(t, eventUser.IsAgent)
+	})
+
+	user, appErr := th.App.GetUser(th.Context, bot.UserId)
+	require.Nil(t, appErr)
+	assert.True(t, user.IsAgent)
+}
+
 func TestPatchBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("patch non-existent bot", func(t *testing.T) {

@@ -112,6 +112,9 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.Err = model.NewAppError("patchBot", "api.bot.is_agent.forbidden.app_error", nil, "", http.StatusForbidden)
 			return
 		}
+
+		// The value is unchanged, so don't write it back over a change a plugin made since the check.
+		botPatch.IsAgent = nil
 	}
 
 	updatedBot, appErr := c.App.PatchBot(c.AppContext, botUserId, botPatch)

@@ -65,6 +65,11 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 			if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(user.Id)); appErr != nil {
 				return "", fmt.Errorf("failed to set plugin key: %w", appErr)
 			}
+
+			if _, appErr := a.PatchBot(rctx, user.Id, &model.BotPatch{IsAgent: &bot.IsAgent}); appErr != nil {
+				return "", fmt.Errorf("failed to patch bot: %w", appErr)
+			}
+
 			return user.Id, nil
 		}
 
@@ -303,7 +308,6 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 	a.InvalidateCacheForUser(user.Id)
 
 	ruser := userUpdate.New
-	a.sendUpdatedUserEvent(ruser)
 
 	bot, nErr = a.Srv().Store().Bot().Update(bot)
 	if nErr != nil {
@@ -315,6 +319,12 @@ func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPa
 		// last fallback in case it doesn't map to an existing app error.
 		return nil, model.NewAppError("PatchBot", "app.bot.patchbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+
+	// IsAgent comes from the Bots table, which was just updated, so refresh the cache and publish the new value.
+	a.InvalidateCacheForUser(user.Id)
+	ruser.IsAgent = bot.IsAgent
+	a.sendUpdatedUserEvent(ruser)
+
 	return bot, nil
 }
 

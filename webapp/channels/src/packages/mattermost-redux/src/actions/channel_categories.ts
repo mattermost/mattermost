@@ -172,53 +172,12 @@ function fetchNonManagedCategories(teamId: string, isWebSocket?: boolean): Thunk
 // categories on the server too.
 export function addChannelToInitialCategory(channel: Channel, setOnServer = false): ActionFuncAsync {
     return async (dispatch, getState) => {
-        if (channel.type === General.DM_CHANNEL) {
-            const teammateId = getUserIdFromChannelName(getCurrentUserId(getState()), channel.name);
-            if (!getState().entities.users.profiles[teammateId]) {
-                // Whether this is an agent DM depends on the teammate's profile
-                await dispatch(getProfilesByIds([teammateId]));
-            }
+        if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+            return dispatch(addDirectChannelToInitialCategories(channel));
         }
 
         const state = getState();
         const categories = Object.values(getAllCategoriesByIds(state));
-
-        if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
-            const isAgentDM = isAgentDirectChannel(channel, getCurrentUserId(state), state.entities.users.profiles);
-            const allDmCategories = categories.filter((category) => category.type === CategoryTypes.DIRECT_MESSAGES);
-
-            // Get all the categories in which channel exists
-            const channelInCategories = categories.filter((category) => {
-                return category.channel_ids.findIndex((channelId) => channelId === channel.id) !== -1;
-            });
-
-            const targetCategoryType = isAgentDM ? CategoryTypes.AGENTS : CategoryTypes.DIRECT_MESSAGES;
-            const allTargetCategories = categories.filter((category) => category.type === targetCategoryType);
-
-            if (isAgentDM) {
-                // The server only creates the Agents category once the user has a DM with an agent, so load it for
-                // the teams that don't have it yet.
-                const teamsWithoutAgentsCategory = allDmCategories.
-                    map((category) => category.team_id).
-                    filter((teamId) => !allTargetCategories.some((category) => category.team_id === teamId));
-                if (teamsWithoutAgentsCategory.length > 0) {
-                    await Promise.all(teamsWithoutAgentsCategory.map((teamId) => dispatch(fetchMyCategories(teamId))));
-                }
-            }
-
-            // Skip categories where channel already exists in a different category
-            const targetCategories = allTargetCategories.filter((targetCategory) => {
-                return channelInCategories.findIndex((category) => targetCategory.team_id === category.team_id) === -1;
-            });
-
-            return dispatch({
-                type: ChannelCategoryTypes.RECEIVED_CATEGORIES,
-                data: targetCategories.map((category) => ({
-                    ...category,
-                    channel_ids: insertWithoutDuplicates(category.channel_ids, channel.id, 0),
-                })),
-            });
-        }
 
         if (areManagedCategoriesEnabled(state)) {
             dispatch(fetchChannelManagedCategoryMapping(channel));
@@ -251,6 +210,53 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
                 ...channelsCategory,
                 channel_ids: insertWithoutDuplicates(channelsCategory.channel_ids, channel.id, 0),
             },
+        });
+    };
+}
+
+// addDirectChannelToInitialCategories adds a DM or GM to the Direct Messages category on each team, or to the Agents
+// category for a DM with an agent. Whether a DM is with an agent depends on the teammate's profile, and the server only
+// creates the Agents category once the user has such a DM, so the categories of the teams involved are loaded from the
+// server when the answer isn't known locally. If the server doesn't end up placing the channel, it's added to the
+// Direct Messages category so it stays visible.
+function addDirectChannelToInitialCategories(channel: Channel): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const currentUserId = getCurrentUserId(getState());
+
+        const teammateId = channel.type === General.DM_CHANNEL ? getUserIdFromChannelName(currentUserId, channel.name) : '';
+        if (teammateId && !getState().entities.users.profiles[teammateId]) {
+            await dispatch(getProfilesByIds([teammateId]));
+        }
+
+        const profiles = getState().entities.users.profiles;
+        const isTeammateKnown = !teammateId || Boolean(profiles[teammateId]);
+        const isAgentDM = isAgentDirectChannel(channel, currentUserId, profiles);
+
+        const teamIdsToLoad = Object.values(getAllCategoriesByIds(getState())).
+            filter((category) => category.type === CategoryTypes.DIRECT_MESSAGES).
+            map((category) => category.team_id).
+            filter((teamId) => !isTeammateKnown || (isAgentDM && !getCategoryInTeamByType(getState(), teamId, CategoryTypes.AGENTS)));
+        if (teamIdsToLoad.length > 0) {
+            await Promise.all(teamIdsToLoad.map((teamId) => dispatch(fetchMyCategories(teamId))));
+        }
+
+        const categories = Object.values(getAllCategoriesByIds(getState()));
+        const updatedCategories = categories.
+            filter((category) => category.type === CategoryTypes.DIRECT_MESSAGES).
+            filter((dmCategory) => !categories.some((category) => category.team_id === dmCategory.team_id && category.channel_ids.includes(channel.id))).
+            map((dmCategory) => {
+                const agentsCategory = isAgentDM ? getCategoryInTeamByType(getState(), dmCategory.team_id, CategoryTypes.AGENTS) : undefined;
+                const targetCategory = agentsCategory ?? dmCategory;
+
+                return {
+                    ...targetCategory,
+                    channel_ids: insertWithoutDuplicates(targetCategory.channel_ids, channel.id, 0),
+                };
+            });
+
+        return dispatch({
+            type: ChannelCategoryTypes.RECEIVED_CATEGORIES,
+            data: updatedCategories,
         });
     };
 }

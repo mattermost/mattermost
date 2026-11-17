@@ -1407,14 +1407,12 @@ export function unfavoriteChannel(channelId: string): ActionFuncAsync {
             return {data: false};
         }
 
-        let categoryType = CategoryTypes.CHANNELS;
-        if (isAgentDirectChannel(channel, getCurrentUserId(state), state.entities.users.profiles)) {
-            categoryType = CategoryTypes.AGENTS;
-        } else if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
-            categoryType = CategoryTypes.DIRECT_MESSAGES;
-        }
+        const teamId = channel.team_id || getCurrentTeamId(state);
+        const isDmOrGm = channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL;
 
-        const category = getCategoryInTeamByType(state, channel.team_id || getCurrentTeamId(state), categoryType);
+        // An agent DM goes back to Agents, except while that category doesn't exist yet
+        const category = (isAgentDirectChannel(channel, getCurrentUserId(state), state.entities.users.profiles) && getCategoryInTeamByType(state, teamId, CategoryTypes.AGENTS)) ||
+            getCategoryInTeamByType(state, teamId, isDmOrGm ? CategoryTypes.DIRECT_MESSAGES : CategoryTypes.CHANNELS);
 
         if (!category) {
             return {data: false};
