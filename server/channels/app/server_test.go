@@ -643,6 +643,7 @@ func TestLetsEncryptManagerHostPolicy(t *testing.T) {
 				assert.Truef(t, issuanceAttempted(host), "certificate for %q should be requested from the CA", host)
 				// A cache miss (404) means the request passed the host policy.
 				assert.Equalf(t, http.StatusNotFound, challengeStatus(host), "challenge for %q", host)
+				assert.Equalf(t, http.StatusNotFound, challengeStatus(strings.ToUpper(host)), "challenge for uppercase %q", host)
 			}
 
 			for _, host := range append(tc.deniedHosts, previousHost) {

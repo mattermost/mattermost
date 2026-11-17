@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
@@ -1066,7 +1067,13 @@ func (s *Server) letsEncryptHostPolicy(ctx context.Context, host string) error {
 	if siteURL.Hostname() == "" {
 		return errors.New("the Site URL must include a hostname to obtain a Let's Encrypt certificate")
 	}
-	return autocert.HostWhitelist(siteURL.Hostname())(ctx, host)
+	// HostWhitelist normalizes its entries but not the requested host, which the
+	// HTTP-01 handler passes through exactly as the client sent it.
+	normalizedHost, err := idna.Lookup.ToASCII(host)
+	if err != nil {
+		return errors.Wrapf(err, "invalid hostname %q", host)
+	}
+	return autocert.HostWhitelist(siteURL.Hostname())(ctx, normalizedHost)
 }
 
 func (s *Server) Start() error {
