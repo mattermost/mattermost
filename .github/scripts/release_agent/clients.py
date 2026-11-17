@@ -407,9 +407,11 @@ class Mattermost:
         while True:
             result = self.http.get(f"/api/v4/posts/{post_id}/thread", **params) or {}
             page = result.get("posts") or {}
-            posts.update(page)
             replies = [p for p in page.values() if p.get("root_id") == post_id]
-            if not result.get("has_next") or not replies:
+            new = [p for p in replies if p.get("id") not in posts]
+            posts.update(page)
+            # A page with no reply it hasn't seen ends the loop, even if Hub still says has_next.
+            if not result.get("has_next") or not new:
                 break
             last = max(replies, key=lambda p: (p.get("create_at", 0), p.get("id", "")))
             params.update(fromPost=last["id"], fromCreateAt=last["create_at"])

@@ -219,6 +219,14 @@ class MattermostTest(unittest.TestCase):
             {"perPage": 200, "direction": "down"},
             {"perPage": 200, "direction": "down", "fromPost": "r2", "fromCreateAt": 12}])
 
+    def test_thread_stops_when_a_page_repeats_itself(self):
+        root = {"id": "root", "root_id": "", "create_at": 1}
+        page = {"root": root, "r0": {"id": "r0", "root_id": "root", "create_at": 10}}
+        http = RecordingHttp([({}, {"posts": page, "has_next": True}), ({}, {"posts": page, "has_next": True})])
+        thread = Mattermost("https://hub", "t", http).thread("root")
+        self.assertEqual([p["id"] for p in thread], ["root", "r0"])
+        self.assertEqual(len(http.calls), 2)
+
     def test_playbooks_close_item(self):
         http = RecordingHttp([({}, None)])
         Playbooks(Mattermost("https://hub", "t", http)).close_item("run1", 2, 5)
