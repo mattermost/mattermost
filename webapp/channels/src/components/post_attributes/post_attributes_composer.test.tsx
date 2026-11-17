@@ -7,7 +7,7 @@ import React, {useEffect} from 'react';
 import type {FieldType, PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -246,11 +246,13 @@ describe('PostAttributesComposer', () => {
         expect(trigger).toHaveAttribute('aria-expanded', 'true');
     });
 
-    test('a staged value renders through the same PropertyValueRenderer chip a sent post would show', () => {
+    test('a staged value renders through the same PostAttributeChip a sent post would show', () => {
         renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
 
         const trigger = screen.getByTestId('post-attribute-trigger-classification');
-        expect(trigger.querySelector('.SelectProperty')).toHaveTextContent('SECRET');
+        const chip = within(trigger).getByTestId('select-property');
+        expect(chip).toHaveTextContent('SECRET');
+        expect(chip).toHaveClass('PostAttributeChip');
     });
 
     test("picking a value writes the composer's state, keyed by field id", async () => {

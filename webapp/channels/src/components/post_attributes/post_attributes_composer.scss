@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// The chip row carries `.PostAttributesChips` too, so the values inside it are
-// styled by post_attributes_chips.scss exactly as a sent post's chips are.
-// Only the row's own layout differs: it spans the composer and sits above the
+// The values are `PostAttributeChip`s, the same Compass chips a sent post
+// shows. The row carries `.PostAttributesChips` too, for its flex layout; only
+// its spacing differs: it spans the composer and sits above the
 // message box rather than under a post. Both classes in the selector so these
 // win regardless of which sheet loads first.
 .PostAttributesChips.PostAttributesComposer {
@@ -25,19 +25,22 @@
         white-space: nowrap;
     }
 
-    // An option chip that has no value yet: its field's name, drawn like a
-    // neutral value chip (.TextProperty in post_attributes_chips.scss) so the
-    // trigger has a size to click. The Compass chip replaces this.
+    // An option chip that has no value yet: its field's name, measured like a
+    // small Compass `Chip` (see `PostAttributeChip`) so it sits in the row at
+    // the same size as a value, and has a size to click. Muted, so it doesn't
+    // read as a value.
     &__pending {
         display: inline-flex;
         align-items: center;
-        padding: 2px 6px;
+        padding: var(--spacing-xxxs) var(--spacing-xs);
+        border: 1px solid transparent;
         border-radius: var(--radius-s);
-        background: rgba(var(--center-channel-color-rgb), 0.12);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.72);
-        font-size: 11px;
-        font-weight: 600;
-        line-height: 16px;
+        font-size: var(--font-size-25);
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: 0.2px;
+        line-height: 12px;
         white-space: nowrap;
     }
 

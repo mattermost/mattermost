@@ -28591,6 +28591,14 @@
     "defaultMessage": "Attributes",
     "description": "Heading of the hover card that appears over the attribute chips of a post, above the list of attribute names and values. Plural noun."
   },
+  "post_attributes.chip.post": {
+    "defaultMessage": "Message",
+    "description": "Text of an attribute chip under a post whose value is a link to another message, when that message is not loaded. Noun."
+  },
+  "post_attributes.chip.post_in_channel": {
+    "defaultMessage": "Message in ~{channel}",
+    "description": "Text of an attribute chip under a post whose value is a link to another message. {channel} is the name of the channel that message is in."
+  },
   "post_attributes.chips.overflow": {
     "defaultMessage": "+{count, number}",
     "description": "Visible text of the overflow badge after the attribute chips under a post, for chips that do not fit. {count} is the number of hidden attributes."

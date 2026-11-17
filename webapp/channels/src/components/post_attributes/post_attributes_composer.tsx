@@ -9,10 +9,9 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
-import PropertyValueRenderer from 'components/properties_card_view/propertyValueRenderer/propertyValueRenderer';
-
 import {resolveOptionChips} from 'utils/property_options';
 
+import PostAttributeChip from './post_attribute_chip';
 import PostAttributeValueControl from './post_attribute_value_control';
 import PostAttributesFieldPicker from './post_attributes_field_picker';
 import type {PostAttribute} from './utils';
@@ -96,8 +95,8 @@ type ChipProps = {
 };
 
 /**
- * One staged attribute. The value renders through `PropertyValueRenderer`, as
- * on a sent post, so a staged chip looks like the chip it will become; editing
+ * One staged attribute. The value renders through `PostAttributeChip`, as on
+ * a sent post, so a staged chip looks like the chip it will become; editing
  * goes through `PostAttributeValueControl`, shared with the modal. The field
  * name is an `aria-hidden` caption, announced through the control's own name.
  */
@@ -177,7 +176,7 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
 
 function renderChipValue(field: PropertyField, value: PropertyValue<unknown>) {
     return (
-        <PropertyValueRenderer
+        <PostAttributeChip
             field={field}
             value={value}
         />
