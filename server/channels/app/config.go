@@ -7,6 +7,7 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/json"
+	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -17,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
 )
 
@@ -290,15 +292,22 @@ func (a *App) GetSanitizedConfig() *model.Config {
 
 // SanitizedConfig sanitizes a given configuration for a system admin without any secrets.
 func (a *App) SanitizedConfig(cfg *model.Config) {
+	a.ConfigSanitizer()(cfg)
+}
+
+// ConfigSanitizer returns a function that sanitizes a configuration as SanitizedConfig does.
+// It reads the plugin manifests only once, for sanitizing many configurations.
+func (a *App) ConfigSanitizer() func(*model.Config) {
 	manifests, err := a.getPluginManifests()
 	if err != nil {
 		// GetPluginManifests might error, e.g. when plugins are disabled.
 		// Sanitize all plugin settings in this case.
-		cfg.Sanitize(nil, nil)
-		return
+		manifests = nil
 	}
 
-	cfg.Sanitize(manifests, nil)
+	return func(cfg *model.Config) {
+		cfg.Sanitize(manifests, nil)
+	}
 }
 
 // GetEnvironmentConfig returns a map of configuration keys whose values have been overridden by an environment variable.
@@ -310,6 +319,37 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
+}
+
+// GetConfigHistory returns the saved configurations, newest first, skipping the first offset,
+// each with the configuration it saved, loaded as GetHistoricalConfig loads it.
+func (a *App) GetConfigHistory(offset, limit int) ([]*config.HistoryEntry, *model.AppError) {
+	history, err := a.Srv().platform.GetConfigHistory(offset, limit)
+	if err != nil {
+		return nil, configHistoryAppError("GetConfigHistory", err)
+	}
+	return history, nil
+}
+
+// GetHistoricalConfig returns the saved configuration with the given id, unsanitized, with the
+// environment overrides the server would apply if it were active.
+func (a *App) GetHistoricalConfig(id string) (*model.Config, *model.AppError) {
+	cfg, err := a.Srv().platform.GetHistoricalConfig(id)
+	if err != nil {
+		return nil, configHistoryAppError("GetHistoricalConfig", err)
+	}
+	return cfg, nil
+}
+
+func configHistoryAppError(where string, err error) *model.AppError {
+	switch {
+	case errors.Is(err, config.ErrHistoryNotSupported):
+		return model.NewAppError(where, "app.config.history.not_supported.app_error", nil, "", http.StatusNotImplemented)
+	case errors.Is(err, config.ErrHistoricalConfigNotFound):
+		return model.NewAppError(where, "app.config.history.not_found.app_error", nil, "", http.StatusNotFound)
+	default:
+		return model.NewAppError(where, "app.config.history.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 }
 
 func (a *App) HandleMessageExportConfig(cfg *model.Config, appCfg *model.Config) {
