@@ -141,11 +141,11 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 	if channel.Name == model.DefaultChannelName {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(rctx, user, channel); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		} else {
 			if err := a.postAddToTeamMessage(rctx, requestor, user, channel, ""); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		}
 	} else {
@@ -983,15 +983,15 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 		}
 		actorID := requiredChannelAttributeActorID(rctx, userID)
 
-		resolution, appErr := a.resolveRequiredChannelAttributes(rctx, actorID, oldChannel, false, opts.PropertyValues)
-		if appErr != nil {
-			return nil, appErr
+		resolution, err := a.resolveRequiredChannelAttributes(rctx, actorID, oldChannel, false, opts.PropertyValues)
+		if err != nil {
+			return nil, model.AsAppError(err)
 		}
 		if len(resolution.Missing) > 0 {
 			return nil, model.NewAppError("UpdateChannelPrivacy", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
 		}
-		if appErr = a.writeChannelAttributeValues(rctx, oldChannel, userID, resolution.ValuesToWrite); appErr != nil {
-			return nil, appErr
+		if err := a.writeChannelAttributeValues(rctx, oldChannel, userID, resolution.ValuesToWrite); err != nil {
+			return nil, model.AsAppError(err)
 		}
 		skipped = resolution.Skipped
 	}
@@ -1025,7 +1025,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 		if _, err = a.UpdateChannel(rctx, channel); err != nil {
 			a.Log().Error("Failed to revert channel privacy after posting an update message failed", mlog.Err(err))
 		}
-		return channel, postErr
+		return channel, model.AsAppError(postErr)
 	}
 
 	// Now that the conversion is fully committed, cancel pending join
@@ -1055,7 +1055,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 	return channel, nil
 }
 
-func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	var authorId string
 	var authorUsername string
 	if user != nil {
@@ -1117,15 +1117,15 @@ func (a *App) RestoreChannel(rctx request.CTX, channel *model.Channel, userID st
 	if opts.ByPerson && !channel.IsSpace() {
 		actorID := requiredChannelAttributeActorID(rctx, userID)
 
-		resolution, appErr := a.resolveRequiredChannelAttributes(rctx, actorID, channel, false, opts.PropertyValues)
-		if appErr != nil {
-			return nil, appErr
+		resolution, err := a.resolveRequiredChannelAttributes(rctx, actorID, channel, false, opts.PropertyValues)
+		if err != nil {
+			return nil, model.AsAppError(err)
 		}
 		if len(resolution.Missing) > 0 {
 			return nil, model.NewAppError("RestoreChannel", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
 		}
-		if appErr = a.writeChannelAttributeValues(rctx, channel, userID, resolution.ValuesToWrite); appErr != nil {
-			return nil, appErr
+		if err := a.writeChannelAttributeValues(rctx, channel, userID, resolution.ValuesToWrite); err != nil {
+			return nil, model.AsAppError(err)
 		}
 		skipped = resolution.Skipped
 	}
@@ -1563,7 +1563,7 @@ func (a *App) UpdateChannelMemberRoles(rctx request.CTX, channelID string, userI
 // person changing roles through the REST API: a member it makes channel admin is
 // told which required channel attribute values the channel still lacks. Plugins,
 // bulk import and membership sync call UpdateChannelMemberRoles and stay quiet.
-func (a *App) UpdateChannelMemberRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, error) {
 	updated, promoted, err := a.updateChannelMemberRolesInternal(rctx, channelID, userID, newRoles, false)
 	if err != nil {
 		return nil, err
@@ -1665,13 +1665,13 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 // UpdateChannelMemberSchemeRoles sets a channel member's scheme roles.
 func (a *App) UpdateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
 	updated, _, err := a.updateChannelMemberSchemeRoles(rctx, channelID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin)
-	return updated, err
+	return updated, model.AsAppError(err)
 }
 
 // UpdateChannelMemberSchemeRolesAndNotifyNewAdmin is UpdateChannelMemberSchemeRoles
 // for a person changing roles through the REST API; see
 // UpdateChannelMemberRolesAndNotifyNewAdmin.
-func (a *App) UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, error) {
 	updated, promoted, err := a.updateChannelMemberSchemeRoles(rctx, channelID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 	if err != nil {
 		return nil, err
@@ -1682,7 +1682,7 @@ func (a *App) UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(rctx request.CTX, 
 	return updated, nil
 }
 
-func (a *App) updateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, bool, *model.AppError) {
+func (a *App) updateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, bool, error) {
 	member, err := a.GetChannelMember(rctx, channelID, userID)
 	if err != nil {
 		return nil, false, err
@@ -2422,9 +2422,9 @@ func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID strin
 }
 
 func (a *App) GetChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
-	channel, appErr := a.Srv().getChannel(rctx, channelID)
-	if appErr != nil {
-		return nil, appErr
+	channel, err := a.Srv().getChannel(rctx, channelID)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	// Hydrate policy action set so consumers can distinguish a membership
 	// policy from a permission-only policy without a second round-trip.
@@ -2470,7 +2470,7 @@ func (a *App) GetChannelOfType(rctx request.CTX, channelID string, channelType m
 	return channel, nil
 }
 
-func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, error) {
 	channel, err := s.Store().Channel().Get(channelID, true)
 	if err != nil {
 		errCtx := map[string]any{"channel_id": channelID}
@@ -2590,7 +2590,7 @@ func (a *App) GetChannelByNameForTeamName(rctx request.CTX, channelName, teamNam
 	return result, nil
 }
 
-func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error) {
 	list, err := s.Store().Channel().GetChannels(teamID, userID, opts)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2606,9 +2606,9 @@ func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, user
 }
 
 func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	channels, appErr := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
-	if appErr != nil {
-		return nil, appErr
+	channels, err := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	// Hydrate the policy action set so the frontend can distinguish a
 	// membership policy from a permission-only one (e.g. file upload) without
@@ -2998,7 +2998,7 @@ func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel
 	return nil
 }
 
-func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.join_team.post_and_forget"), user.Username),
@@ -3128,7 +3128,7 @@ func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedU
 	return nil
 }
 
-func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
@@ -3185,7 +3185,7 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 // removeChannelMembership strips a user's channel membership and the associated
 // thread memberships. Keeping these together ensures channel access cannot be
 // revoked without also dropping the thread state that depends on it.
-func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) *model.AppError {
+func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) error {
 	if err := a.Srv().Store().Channel().RemoveMember(rctx, channelID, userID); err != nil {
 		return model.NewAppError(caller, "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3229,8 +3229,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		return err
 	}
 
-	if appErr := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); appErr != nil {
-		return appErr
+	if err := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); err != nil {
+		return model.AsAppError(err)
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(rctx, userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4514,9 +4514,9 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 
 	// The converter becomes the channel's admin, so the values are checked as for
 	// a channel about to be created in the chosen team.
-	resolution, appErr := a.resolveRequiredChannelAttributes(rctx, convertedByUserId, toUpdate, true, gmConversionRequest.PropertyValues)
-	if appErr != nil {
-		return nil, appErr
+	resolution, err := a.resolveRequiredChannelAttributes(rctx, convertedByUserId, toUpdate, true, gmConversionRequest.PropertyValues)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	if len(resolution.Missing) > 0 {
 		return nil, model.NewAppError("ConvertGroupMessageToChannel", "api.channel.create_channel.missing_required_attributes.app_error", nil, "", http.StatusBadRequest)
@@ -4541,12 +4541,13 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 	a.Srv().Platform().InvalidateCacheForChannel(originalChannel)
 
 	// the user conversion the GM becomes the channel admin.
-	_, promoted, appErr := a.updateChannelMemberSchemeRoles(rctx, gmConversionRequest.ChannelID, convertedByUserId, false, true, true)
+	_, promoted, err := a.updateChannelMemberSchemeRoles(rctx, gmConversionRequest.ChannelID, convertedByUserId, false, true, true)
+	appErr = model.AsAppError(err)
 	if appErr != nil {
 		if !a.requiredChannelAttributesEnabled() {
 			// As before required attributes existed: the channel stays converted.
 			if finishErr := a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest); finishErr != nil {
-				return nil, finishErr
+				return nil, model.AsAppError(finishErr)
 			}
 			return nil, appErr
 		}
@@ -4555,7 +4556,7 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 	}
 
 	// The value write is refused on a group message, so it follows the type change.
-	appErr = a.writeChannelAttributeValues(rctx, updatedChannel, convertedByUserId, resolution.ValuesToWrite)
+	appErr = model.AsAppError(a.writeChannelAttributeValues(rctx, updatedChannel, convertedByUserId, resolution.ValuesToWrite))
 	if appErr != nil {
 		a.revertConvertedGroupMessage(rctx, originalChannel, updatedChannel, &channelRoleRestore{userID: convertedByUserId, wasAdmin: converterWasAdmin}, appErr)
 		return nil, appErr
@@ -4566,8 +4567,8 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 		a.queueNewChannelAdminMissingAttributesNoticeByID(rctx, convertedByUserId, gmConversionRequest.ChannelID)
 	}
 
-	if appErr := a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest); appErr != nil {
-		return nil, appErr
+	if err := a.finishGroupMessageConversion(rctx, convertedByUserId, gmConversionRequest); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return updatedChannel, nil
@@ -4575,7 +4576,7 @@ func (a *App) ConvertGroupMessageToChannel(rctx request.CTX, convertedByUserId s
 
 // finishGroupMessageConversion puts the converted channel in its members'
 // sidebars and posts the conversion message.
-func (a *App) finishGroupMessageConversion(rctx request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) *model.AppError {
+func (a *App) finishGroupMessageConversion(rctx request.CTX, convertedByUserId string, gmConversionRequest *model.GroupMessageConversionRequestBody) error {
 	users, appErr := a.GetUsersInChannelPage(&model.UserGetOptions{
 		InChannelId: gmConversionRequest.ChannelID,
 		Page:        0,
@@ -4613,7 +4614,8 @@ func (a *App) revertConvertedGroupMessage(rctx request.CTX, original, converted 
 	if _, revertErr = a.UpdateChannel(rctx, toRestore); revertErr == nil {
 		a.Srv().Platform().InvalidateCacheForChannel(original)
 		if roles != nil {
-			_, _, revertErr = a.updateChannelMemberSchemeRoles(rctx, original.Id, roles.userID, false, true, roles.wasAdmin)
+			_, _, err := a.updateChannelMemberSchemeRoles(rctx, original.Id, roles.userID, false, true, roles.wasAdmin)
+			revertErr = model.AsAppError(err)
 		}
 	}
 

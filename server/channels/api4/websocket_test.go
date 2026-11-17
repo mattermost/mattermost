@@ -12,7 +12,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgryski/dgoogauth"
 	"github.com/gorilla/websocket"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -20,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 )
 
 func TestWebSocketTrailingSlash(t *testing.T) {
@@ -829,7 +829,7 @@ func TestWebSocketMFAEnforcement(t *testing.T) {
 		secretString := setupUserWithMFA(t, th, ruser)
 
 		// Generate TOTP token from the user's MFA secret
-		code := dgoogauth.ComputeCode(secretString, time.Now().UTC().Unix()/30)
+		code := mfa.ComputeCode(secretString, time.Now().UTC().Unix()/30)
 		token := fmt.Sprintf("%06d", code)
 
 		client := th.CreateClient()

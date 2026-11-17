@@ -28,9 +28,10 @@ func fieldIDsOf(fields []*model.PropertyField) []string {
 	return ids
 }
 
-func requireResolveError(t *testing.T, appErr *model.AppError, id string, status int) {
+func requireResolveError(t *testing.T, err error, id string, status int) {
 	t.Helper()
-	require.NotNil(t, appErr)
+	var appErr *model.AppError
+	require.ErrorAs(t, err, &appErr)
 	assert.Equal(t, id, appErr.Id)
 	assert.Equal(t, status, appErr.StatusCode)
 }
@@ -66,7 +67,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			field := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Missing))
 			assert.Empty(t, res.Skipped)
 			assert.Empty(t, res.ValuesToWrite)
@@ -78,7 +79,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			setChannelPropertyValue(t, th, field.GroupID, field.ID, channel.Id, `"ALPHA"`)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Empty(t, res.Skipped)
 		})
@@ -89,7 +90,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			setChannelPropertyValue(t, th, field.GroupID, field.ID, channel.Id, `"   "`)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Missing))
 		})
 
@@ -98,7 +99,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			createMissingAttributesField(t, th, "Optional", false, model.PermissionLevelAdmin)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Empty(t, res.Skipped)
 		})
@@ -108,12 +109,12 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			field := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, member, model.SystemUserRoleId), member.Id, channel, false, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Skipped))
 
 			res, appErr = th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Missing))
 		})
 
@@ -124,7 +125,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			}
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Len(t, res.Skipped, 3)
 		})
@@ -137,7 +138,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, []model.PropertyValuePatchItem{
 				{FieldID: field.ID, Value: json.RawMessage(`"  ALPHA  "`)},
 			})
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Equal(t, []string{other.ID}, fieldIDsOf(res.Missing))
 			require.Len(t, res.ValuesToWrite, 1)
 			assert.Equal(t, field.GroupID, res.ValuesToWrite[0].GroupID)
@@ -153,7 +154,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 				res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, []model.PropertyValuePatchItem{
 					{FieldID: field.ID, Value: json.RawMessage(value)},
 				})
-				require.Nil(t, appErr, value)
+				require.NoError(t, appErr, value)
 				assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Missing), value)
 			}
 		})
@@ -165,8 +166,8 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			require.Nil(t, appErr)
 			field := createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
 
-			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, archived, false, nil)
-			require.Nil(t, appErr)
+			res, err := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, archived, false, nil)
+			require.NoError(t, err)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Missing))
 		})
 
@@ -177,7 +178,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			ctx := requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(ctx, admin.Id, direct, false, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Empty(t, res.Skipped)
 
@@ -203,7 +204,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			member := createMissingAttributesField(t, th, "Member", true, model.PermissionLevelMember)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, user, model.SystemUserRoleId), user.Id, channel, true, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Equal(t, []string{member.ID}, fieldIDsOf(res.Missing))
 			assert.Equal(t, []string{protected.ID}, fieldIDsOf(res.Skipped))
 		})
@@ -214,7 +215,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			admin := createMissingAttributesField(t, th, "Admin", true, model.PermissionLevelAdmin)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, user, model.SystemUserRoleId), user.Id, channel, true, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.ElementsMatch(t, []string{member.ID, admin.ID}, fieldIDsOf(res.Missing))
 			assert.Empty(t, res.Skipped)
 		})
@@ -224,12 +225,12 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			field := createMissingAttributesField(t, th, "Sysadmin only", true, model.PermissionLevelSysadmin)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, user, model.SystemUserRoleId), user.Id, channel, true, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Skipped))
 
 			res, appErr = th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, user, model.SystemAdminRoleId), user.Id, channel, true, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Missing))
 			assert.Empty(t, res.Skipped)
 		})
@@ -239,7 +240,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			field := createMissingAttributesField(t, th, "Nobody", true, model.PermissionLevelNone)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, user, model.SystemUserRoleId), user.Id, channel, true, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Skipped))
 		})
@@ -249,7 +250,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			field := createMissingAttributesFieldOfType(t, th, model.PropertyFieldTypeDate, "Date", true, model.PermissionLevelMember)
 
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, user, model.SystemUserRoleId), user.Id, channel, true, nil)
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Skipped))
 		})
@@ -261,7 +262,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, user, model.SystemUserRoleId), user.Id, channel, true, []model.PropertyValuePatchItem{
 				{FieldID: field.ID, Value: json.RawMessage(`"ALPHA"`)},
 			})
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Empty(t, res.Missing)
 			assert.Empty(t, res.Skipped)
 			require.Len(t, res.ValuesToWrite, 1)
@@ -286,7 +287,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 			res, appErr := th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, user, model.SystemUserRoleId), user.Id, channel, true, []model.PropertyValuePatchItem{
 				{FieldID: field.ID, Value: json.RawMessage(`"   "`)},
 			})
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			assert.Equal(t, []string{field.ID}, fieldIDsOf(res.Missing))
 		})
 	})
@@ -305,7 +306,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 				ctx := requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId)
 				field := createMissingAttributesField(t, th, "Program", false, model.PermissionLevelAdmin)
 				noOne := createMissingAttributesField(t, th, "Nobody", false, model.PermissionLevelNone)
-				resolve := func(items ...model.PropertyValuePatchItem) *model.AppError {
+				resolve := func(items ...model.PropertyValuePatchItem) error {
 					_, appErr := th.App.resolveRequiredChannelAttributes(ctx, admin.Id, channel, pending, items)
 					return appErr
 				}
@@ -321,7 +322,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 				), "api.channel.create_channel.invalid_attribute.app_error", http.StatusBadRequest)
 				requireResolveError(t, resolve(model.PropertyValuePatchItem{FieldID: noOne.ID, Value: value}),
 					"api.channel.create_channel.attribute_no_permission.app_error", http.StatusForbidden)
-				assert.Nil(t, resolve(model.PropertyValuePatchItem{FieldID: field.ID, Value: value}))
+				assert.NoError(t, resolve(model.PropertyValuePatchItem{FieldID: field.ID, Value: value}))
 			})
 		}
 	})
@@ -356,10 +357,10 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 		require.NoError(t, err)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.FeatureFlags.ClassificationMarkings = false })
-		_, appErr = th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, []model.PropertyValuePatchItem{
+		_, err = th.App.resolveRequiredChannelAttributes(requiredAttributesSessionCtx(th, admin, model.SystemUserRoleId), admin.Id, channel, false, []model.PropertyValuePatchItem{
 			{FieldID: classification.ID, Value: json.RawMessage(`"x"`)},
 		})
-		requireResolveError(t, appErr, "api.channel.create_channel.attributes_feature_disabled.app_error", http.StatusBadRequest)
+		requireResolveError(t, err, "api.channel.create_channel.attributes_feature_disabled.app_error", http.StatusBadRequest)
 	})
 
 	t.Run("with required attributes off", func(t *testing.T) {
@@ -389,7 +390,7 @@ func TestResolveRequiredChannelAttributes(t *testing.T) {
 				th := setup(t)
 				for _, pending := range []bool{false, true} {
 					res, appErr := th.App.resolveRequiredChannelAttributes(th.Context, model.NewId(), channel, pending, nil)
-					require.Nil(t, appErr)
+					require.NoError(t, appErr)
 					require.NotNil(t, res)
 					assert.Empty(t, res.ValuesToWrite)
 					assert.Empty(t, res.Missing)
@@ -422,11 +423,11 @@ func TestWriteChannelAttributeValues(t *testing.T) {
 		res, appErr := th.App.resolveRequiredChannelAttributes(ctx, admin.Id, channel, false, []model.PropertyValuePatchItem{
 			{FieldID: field.ID, Value: json.RawMessage(`"ALPHA"`)},
 		})
-		require.Nil(t, appErr)
-		require.Nil(t, th.App.writeChannelAttributeValues(ctx, channel, admin.Id, res.ValuesToWrite))
+		require.NoError(t, appErr)
+		require.NoError(t, th.App.writeChannelAttributeValues(ctx, channel, admin.Id, res.ValuesToWrite))
 
-		missing, appErr := th.App.missingRequiredChannelAttributes(th.Context, channel)
-		require.Nil(t, appErr)
+		missing, missingErr := th.App.missingRequiredChannelAttributes(th.Context, channel)
+		require.NoError(t, missingErr)
 		assert.Empty(t, missing)
 
 		stored, err := th.App.Srv().Store().PropertyValue().SearchPropertyValues(th.Context, model.PropertyValueSearchOpts{
@@ -443,7 +444,7 @@ func TestWriteChannelAttributeValues(t *testing.T) {
 
 	t.Run("nothing to write is not an error", func(t *testing.T) {
 		th := setupMissingAttributes(t)
-		require.Nil(t, th.App.writeChannelAttributeValues(th.Context, th.BasicChannel, th.BasicUser.Id, nil))
+		require.NoError(t, th.App.writeChannelAttributeValues(th.Context, th.BasicChannel, th.BasicUser.Id, nil))
 	})
 
 	t.Run("a value the hooks refuse is returned", func(t *testing.T) {
@@ -456,8 +457,8 @@ func TestWriteChannelAttributeValues(t *testing.T) {
 		res, appErr := th.App.resolveRequiredChannelAttributes(ctx, admin.Id, channel, false, []model.PropertyValuePatchItem{
 			{FieldID: field.ID, Value: json.RawMessage(`"` + model.NewId() + `"`)},
 		})
-		require.Nil(t, appErr)
-		require.NotNil(t, th.App.writeChannelAttributeValues(ctx, channel, admin.Id, res.ValuesToWrite))
+		require.NoError(t, appErr)
+		require.Error(t, th.App.writeChannelAttributeValues(ctx, channel, admin.Id, res.ValuesToWrite))
 	})
 }
 

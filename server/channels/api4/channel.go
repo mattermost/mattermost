@@ -265,11 +265,11 @@ func channelAttributeValuesForCreate(c *Context, channel *model.Channel, license
 		return nil, appErr
 	}
 
-	values, appErr := c.App.ChannelAttributeValuesFromItems(group.ID, fields, items, func(field *model.PropertyField) bool {
+	values, err := c.App.ChannelAttributeValuesFromItems(group.ID, fields, items, func(field *model.PropertyField) bool {
 		return c.App.CanSetChannelAttributeOnPendingChannel(c.AppContext, field)
 	})
-	if appErr != nil {
-		return nil, appErr
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	supplied := make(map[string]json.RawMessage, len(values))
 	for _, value := range values {
@@ -2302,7 +2302,7 @@ func updateChannelMemberRoles(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	if _, err := c.App.UpdateChannelMemberRolesAndNotifyNewAdmin(c.AppContext, c.Params.ChannelId, c.Params.UserId, newRoles); err != nil {
-		c.Err = err
+		c.SetError(err)
 		return
 	}
 
@@ -2342,7 +2342,7 @@ func updateChannelMemberSchemeRoles(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	if _, err := c.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(c.AppContext, c.Params.ChannelId, c.Params.UserId, schemeRoles.SchemeGuest, schemeRoles.SchemeUser, schemeRoles.SchemeAdmin); err != nil {
-		c.Err = err
+		c.SetError(err)
 		return
 	}
 

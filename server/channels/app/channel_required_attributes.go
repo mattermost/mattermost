@@ -59,7 +59,7 @@ func (a *App) CanSetChannelAttributeOnPendingChannel(rctx request.CTX, field *mo
 // validity is left to the value write hooks. Errors never name an attribute:
 // which markings a server defines is itself sensitive, and the caller may not be
 // allowed to see them.
-func (a *App) ChannelAttributeValuesFromItems(groupID string, fields []*model.PropertyField, items []model.PropertyValuePatchItem, canSet func(field *model.PropertyField) bool) ([]*model.PropertyValue, *model.AppError) {
+func (a *App) ChannelAttributeValuesFromItems(groupID string, fields []*model.PropertyField, items []model.PropertyValuePatchItem, canSet func(field *model.PropertyField) bool) ([]*model.PropertyValue, error) {
 	channelAttributesAvailable, classificationAvailable := a.channelAttributeAvailability()
 
 	fieldByID := make(map[string]*model.PropertyField, len(fields))
@@ -108,7 +108,7 @@ func (a *App) ChannelAttributeValuesFromItems(groupID string, fields []*model.Pr
 //
 // With required attributes off it returns an empty result without a query, or
 // refuses values the way channel creation does when the feature is off.
-func (a *App) resolveRequiredChannelAttributes(rctx request.CTX, userID string, channel *model.Channel, pending bool, items []model.PropertyValuePatchItem) (*requiredChannelAttributeResolution, *model.AppError) {
+func (a *App) resolveRequiredChannelAttributes(rctx request.CTX, userID string, channel *model.Channel, pending bool, items []model.PropertyValuePatchItem) (*requiredChannelAttributeResolution, error) {
 	if !a.requiredChannelAttributesEnabled() {
 		if len(items) > 0 {
 			return nil, model.NewAppError("resolveRequiredChannelAttributes", "api.channel.create_channel.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
@@ -124,9 +124,9 @@ func (a *App) resolveRequiredChannelAttributes(rctx request.CTX, userID string, 
 		return &requiredChannelAttributeResolution{}, nil
 	}
 
-	groupID, fields, appErr := a.channelAttributeFields(rctxWithSessionCallerID(rctx))
-	if appErr != nil {
-		return nil, appErr
+	groupID, fields, err := a.channelAttributeFields(rctxWithSessionCallerID(rctx))
+	if err != nil {
+		return nil, err
 	}
 
 	// The write decision is asked for the sent items and again for each required
@@ -161,9 +161,9 @@ func (a *App) resolveRequiredChannelAttributes(rctx request.CTX, userID string, 
 	required := a.requiredAvailableChannelAttributeFields(fields)
 	withoutValue := required
 	if !pending {
-		withoutValue, appErr = a.missingRequiredFieldsOf(rctx, groupID, required, channel)
-		if appErr != nil {
-			return nil, appErr
+		withoutValue, err = a.missingRequiredFieldsOf(rctx, groupID, required, channel)
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -245,7 +245,7 @@ func (a *App) notifyChannelAdminsOfMissingRequiredAttributes(rctx request.CTX, c
 // writeChannelAttributeValues writes validated values onto channel on behalf of
 // userID, through the property service so field permissions and the value
 // hooks run.
-func (a *App) writeChannelAttributeValues(rctx request.CTX, channel *model.Channel, userID string, values []*model.PropertyValue) *model.AppError {
+func (a *App) writeChannelAttributeValues(rctx request.CTX, channel *model.Channel, userID string, values []*model.PropertyValue) error {
 	if len(values) == 0 {
 		return nil
 	}
@@ -257,6 +257,8 @@ func (a *App) writeChannelAttributeValues(rctx request.CTX, channel *model.Chann
 		value.UpdatedBy = userID
 	}
 
-	_, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
-	return appErr
+	if _, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, ""); appErr != nil {
+		return appErr
+	}
+	return nil
 }

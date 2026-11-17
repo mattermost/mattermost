@@ -33,7 +33,7 @@ func channelCanMissRequiredAttributes(channel *model.Channel) bool {
 
 // channelAttributeFields loads every channel field of the access_control group
 // in one call.
-func (a *App) channelAttributeFields(rctx request.CTX) (string, []*model.PropertyField, *model.AppError) {
+func (a *App) channelAttributeFields(rctx request.CTX) (string, []*model.PropertyField, error) {
 	group, appErr := a.GetPropertyGroup(rctx, model.AccessControlPropertyGroupName)
 	if appErr != nil {
 		return "", nil, appErr
@@ -54,7 +54,7 @@ func (a *App) channelAttributeFields(rctx request.CTX) (string, []*model.Propert
 
 // requiredChannelAttributeFields loads the access_control group's channel
 // fields once and keeps the required ones that are available on this server.
-func (a *App) requiredChannelAttributeFields(rctx request.CTX) (string, []*model.PropertyField, *model.AppError) {
+func (a *App) requiredChannelAttributeFields(rctx request.CTX) (string, []*model.PropertyField, error) {
 	groupID, fields, appErr := a.channelAttributeFields(rctx)
 	if appErr != nil {
 		return "", nil, appErr
@@ -80,7 +80,7 @@ func (a *App) requiredAvailableChannelAttributeFields(fields []*model.PropertyFi
 // value for. It reads the channel's values in one call, from the master and
 // straight from the store: the answer is about the channel, not about what any
 // one viewer may read, and a value written a moment ago must count.
-func (a *App) missingRequiredFieldsOf(rctx request.CTX, groupID string, required []*model.PropertyField, channel *model.Channel) ([]*model.PropertyField, *model.AppError) {
+func (a *App) missingRequiredFieldsOf(rctx request.CTX, groupID string, required []*model.PropertyField, channel *model.Channel) ([]*model.PropertyField, error) {
 	if len(required) == 0 {
 		return nil, nil
 	}
@@ -116,7 +116,7 @@ func (a *App) missingRequiredFieldsOf(rctx request.CTX, groupID string, required
 // attributes that channel has no value for. It returns nil without a query when
 // required attributes are off or the channel is not an active public or private
 // channel.
-func (a *App) missingRequiredChannelAttributes(rctx request.CTX, channel *model.Channel) ([]*model.PropertyField, *model.AppError) {
+func (a *App) missingRequiredChannelAttributes(rctx request.CTX, channel *model.Channel) ([]*model.PropertyField, error) {
 	if !a.requiredChannelAttributesEnabled() || !channelCanMissRequiredAttributes(channel) {
 		return nil, nil
 	}
@@ -220,10 +220,10 @@ func (a *App) NotifyNewChannelAdminOfMissingRequiredAttributes(rctx request.CTX,
 	// Property reads are on behalf of the recipient, so a request context with
 	// no caller (a background run) is tagged with one.
 	propertyCtx := RequestContextWithCallerID(rctx, userID)
-	groupID, required, appErr := a.requiredChannelAttributeFields(propertyCtx)
-	if appErr != nil {
+	groupID, required, err := a.requiredChannelAttributeFields(propertyCtx)
+	if err != nil {
 		rctx.Logger().Warn("Failed to load the required channel attributes to notify a new channel admin",
-			mlog.String("user_id", userID), mlog.Err(appErr))
+			mlog.String("user_id", userID), mlog.Err(err))
 		return
 	}
 	if len(required) == 0 {
@@ -232,10 +232,10 @@ func (a *App) NotifyNewChannelAdminOfMissingRequiredAttributes(rctx request.CTX,
 
 	var entries []missingChannelAttributesForAdmin
 	for _, channel := range applicable {
-		missing, appErr := a.missingRequiredFieldsOf(rctx, groupID, required, channel)
-		if appErr != nil {
+		missing, err := a.missingRequiredFieldsOf(rctx, groupID, required, channel)
+		if err != nil {
 			rctx.Logger().Warn("Failed to check a channel for missing required channel attributes",
-				mlog.String("user_id", userID), mlog.String("channel_id", channel.Id), mlog.Err(appErr))
+				mlog.String("user_id", userID), mlog.String("channel_id", channel.Id), mlog.Err(err))
 			continue
 		}
 
