@@ -514,3 +514,45 @@ func TestGetUsersNotInChannelWithOptions_NilOptions(t *testing.T) {
 		_, _, _ = client.GetUsersNotInChannelWithOptions(context.Background(), "somechannelid", nil)
 	})
 }
+
+func TestClient4DeleteDraft(t *testing.T) {
+	userID := model.NewId()
+	channelID := model.NewId()
+	rootID := model.NewId()
+
+	t.Run("deletes channel draft when rootId is empty", func(t *testing.T) {
+		var gotMethod, gotPath string
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotMethod = r.Method
+			gotPath = r.URL.Path
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprint(w, `{}`)
+		}))
+		defer server.Close()
+
+		client := model.NewAPIv4Client(server.URL)
+		_, resp, err := client.DeleteDraft(context.Background(), userID, channelID, "")
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.MethodDelete, gotMethod)
+		assert.Equal(t, fmt.Sprintf("/api/v4/users/%s/channels/%s/drafts", userID, channelID), gotPath)
+	})
+
+	t.Run("deletes thread draft when rootId is provided", func(t *testing.T) {
+		var gotMethod, gotPath string
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			gotMethod = r.Method
+			gotPath = r.URL.Path
+			w.Header().Set("Content-Type", "application/json")
+			fmt.Fprint(w, `{}`)
+		}))
+		defer server.Close()
+
+		client := model.NewAPIv4Client(server.URL)
+		_, resp, err := client.DeleteDraft(context.Background(), userID, channelID, rootID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, http.MethodDelete, gotMethod)
+		assert.Equal(t, fmt.Sprintf("/api/v4/users/%s/channels/%s/drafts/%s", userID, channelID, rootID), gotPath)
+	})
+}

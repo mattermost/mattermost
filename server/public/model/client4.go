@@ -6039,7 +6039,11 @@ func (c *Client4) GetDrafts(ctx context.Context, userId, teamId string) ([]*Draf
 }
 
 func (c *Client4) DeleteDraft(ctx context.Context, userId, channelId, rootId string) (*Draft, *Response, error) {
-	r, err := c.doAPIDelete(ctx, c.userRoute(userId).Join(c.channelRoute(channelId), "drafts"))
+	route := c.userRoute(userId).Join(c.channelRoute(channelId), "drafts")
+	if rootId != "" {
+		route = route.Join(rootId)
+	}
+	r, err := c.doAPIDelete(ctx, route)
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
