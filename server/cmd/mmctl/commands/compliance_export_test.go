@@ -370,6 +370,62 @@ func (s *MmctlUnitTestSuite) TestComplianceExportDownloadCmdF() {
 		}
 	})
 
+	s.Run("uses job file name when server filename is not a safe zip name", func() {
+		const jobID = "exportjob1"
+		const body = "compliance export bytes"
+		const localName = jobID + ".zip"
+		for _, tc := range rejectedServerFilenameCases() {
+			s.Run(tc.name, func() {
+				printer.Clean()
+
+				workDir := s.T().TempDir()
+				s.T().Chdir(workDir)
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(s.T(), "/api/v4/jobs/"+jobID+"/download", r.URL.Path)
+					w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, tc.filename))
+					_, _ = w.Write([]byte(body))
+				}))
+				s.T().Cleanup(server.Close)
+
+				cmd := makeCmd()
+				cmd.Flags().Int("num-retries", 0, "")
+				err := complianceExportDownloadCmdF(model.NewAPIv4Client(server.URL), cmd, []string{jobID})
+				s.Require().NoFileExists(filepath.Join(workDir, tc.filename))
+				s.Require().NoError(err)
+				assertOnlyFileInDir(s.T(), workDir, localName, []byte(body))
+				s.Require().Equal([]any{fmt.Sprintf("Compliance export file downloaded to %q", localName)}, printer.GetLines())
+			})
+		}
+	})
+
+	s.Run("renames to safe server filename", func() {
+		const jobID = "exportjob1"
+		const body = "compliance export bytes"
+		for _, tc := range acceptedServerFilenameCases() {
+			s.Run(tc.name, func() {
+				printer.Clean()
+
+				workDir := s.T().TempDir()
+				s.T().Chdir(workDir)
+
+				server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+					assert.Equal(s.T(), "/api/v4/jobs/"+jobID+"/download", r.URL.Path)
+					w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, tc.filename))
+					_, _ = w.Write([]byte(body))
+				}))
+				s.T().Cleanup(server.Close)
+
+				cmd := makeCmd()
+				cmd.Flags().Int("num-retries", 0, "")
+				err := complianceExportDownloadCmdF(model.NewAPIv4Client(server.URL), cmd, []string{jobID})
+				s.Require().NoError(err)
+				assertOnlyFileInDir(s.T(), workDir, tc.filename, []byte(body))
+				s.Require().Equal([]any{fmt.Sprintf("Compliance export file downloaded to %q", tc.filename)}, printer.GetLines())
+			})
+		}
+	})
+
 	s.Run("uses job file name when the response has no filename header", func() {
 		const jobID = "exportjob1"
 		const body = "compliance export bytes"
