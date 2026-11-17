@@ -1,8 +1,25 @@
-# Lessons from master failures: sources and process
+# Lessons from master failures
 
-The rules themselves are in `AGENTS.md`, "Lessons from master failures". This
-page is for people maintaining them: where each lesson came from, how
-`npm run lint:lessons` works, and how a lesson is added, updated or retired.
+This file is the single source of truth for every L- lesson: its text, source
+and enforcement. `AGENTS.md`, "Lessons from master failures", carries only the
+ones lint can't check, and the E2E Autofix automation reads this file instead of
+keeping its own copy. It also covers how `npm run lint:lessons` works and how a
+lesson is added, updated or retired.
+
+## Lessons
+
+| Lesson | Rule                                                                                                                                                                                                                                | Enforced by                                               |
+| ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| L-001  | Specs never build locators (`page.locator`, `getByRole`, `getByTestId`, ...): add or reuse a member of a page or component object in `lib`.                                                                                         | lint, report-only                                         |
+| L-002  | No XPath. In page objects prefer `getByRole` with an accessible name, then label or text, then `getByTestId`; CSS class chains only when nothing else works.                                                                        | lint blocking (XPath); review (locator priority)          |
+| L-003  | Fix or report a product bug; never work around it in the test, for example with `force: true`. Find what intercepts the click.                                                                                                      | lint blocking (`force: true`); review                     |
+| L-004  | Fix a defect that several specs share once, in a shared helper in `lib`, and use it in every spec that has it.                                                                                                                      | review                                                    |
+| L-005  | A product fix that needs new goroutines, timeouts, locks or APIs is not small: report it to the owning PR instead of bundling it with a test change.                                                                                | review                                                    |
+| L-006  | Each test restores only `getOnPremServerConfigPatch()`: a config setting a spec changes that isn't in it leaks into later specs, so add it there. `MM_*` env is reset per spec file; data has no reset.                             | review                                                    |
+| L-007  | No `waitForTimeout`. `isVisible()` doesn't wait: don't `.catch()` it and don't branch on it; use web-first assertions (`toBeVisible()`, `toBeHidden()`); for an optional element, wait for the state that decides whether it shows. | lint blocking, except a result stored in a variable first |
+| L-008  | A fix shows a failing run before and a passing run after. A server-log signal alone earns a report, not a fix, unless it is a small product fix whose new unit test fails before and passes after.                                  | review                                                    |
+| L-009  | A server that silently degrades (a fallback, a swallowed error) is a product bug to report, not something for the test to wait out.                                                                                                 | review                                                    |
+| L-010  | Tests and page objects take one path and fail fast: never branch on what the page shows; make the state known (set it up or wait for it).                                                                                           | lint, report-only                                         |
 
 ## Sources
 
@@ -16,7 +33,7 @@ page is for people maintaining them: where each lesson came from, how
 | L-007        | #39372                                                                                                                                                                                                                 |
 | L-008        | #39376                                                                                                                                                                                                                 |
 | L-009        | Counter-example: #39445 made the search specs wait for an engine answer, because on an engine error search falls back to the database (the cause is logged at warn) and the response only differs by `matches: null`   |
-| L-010        | #39982, review by praid3n: branching on page state hides failures, so tests and page objects should fail fast. Lint only (report-only for now); no entry in `AGENTS.md`, the lint message states the rule              |
+| L-010        | #39982, review by praid3n: branching on page state hides failures, so tests and page objects should fail fast. Lint (report-only for now); `AGENTS.md` shows a bad and a good example                                  |
 
 ## Product lessons
 
@@ -33,18 +50,18 @@ Lessons about product code live next to it: P-001 to P-003 in
 
 ## Lint ratchet
 
-The _(lint)_ rules live in `eslint-rules/lessons.mjs`. Many existing files
-break them, so they are not part of `npm run lint`. Instead,
-`npm run lint:lessons` (`script/lint-lessons-ratchet.mjs`, also run by
-`npm run check` and in CI) lints every `.ts` file a change touches twice, as it
-is now and as it was on the base, and fails if any lesson rule fires more often
-now. Files nobody touches are never checked.
+The lint-checked rules (see "Enforced by" above) live in
+`eslint-rules/lessons.mjs`. Many existing files break them, so they are not part
+of `npm run lint`. Instead, `npm run lint:lessons` (`script/lint-lessons-ratchet.mjs`, also run
+by `npm run check` and in CI) lints every `.ts` file a change touches twice, as
+it is now and as it was on the base, and fails if any lesson rule fires more
+often now. Files nobody touches are never checked.
 
 - When it fails, it lists every hit of that rule in the file, old and new.
   Remove the one you added; you don't have to fix the old ones.
 - Rules in `REPORT_ONLY_RULES` (`eslint-rules/lessons.mjs`) are listed the
   same way but don't fail yet. L-001 and L-010 start there; each becomes
-  blocking once the code base and open PRs are ready and the team is told.
+  blocking as described in "Promoting a report-only rule" below.
 - Renaming or moving a file compares it with its old path, so a pure move
   passes.
 - The base is the merge base of `HEAD` and `origin/master`. Set `LESSONS_BASE`
@@ -54,6 +71,14 @@ now. Files nobody touches are never checked.
   `locator(SELECTOR)` where `SELECTOR` is a constant), so those forms are left
   to review.
 
+## Promoting a report-only rule
+
+A rule leaves `REPORT_ONLY_RULES` when no open PR and no file a change touches
+would fail on it, and the team has been told. Whoever adds a rule to
+`REPORT_ONLY_RULES` also opens a ticket and names an owner in the PR, so it
+doesn't stay report-only forever. L-010 blocks once the open PRs that still
+branch on page state (#39913, #34607) are cleaned up.
+
 ## Adding a lesson
 
 A lesson about product code gets a `P-` id and goes in `webapp/AGENTS.md` or
@@ -62,10 +87,10 @@ on every task there.
 
 Add a lesson when a human review rejects the same mistake in two or more PRs,
 or when it caused a master failure. Give it the next id and one rule in a
-sentence or two in `AGENTS.md`, and add its source to the table above. If a
-lint rule can catch it, add it to `lessonsConfig` in
-`eslint-rules/lessons.mjs` (a new rule in that file, or a `playwright/` rule)
-in the same PR. A rule that many open PRs would break can start in
+sentence or two in the Lessons table, and add its source to the Sources table.
+It goes in `AGENTS.md` too only when lint can't catch it. If a lint rule can
+catch it, add it to `lessonsConfig` in `eslint-rules/lessons.mjs` (a new rule in
+that file, or a `playwright/` rule) in the same PR. A rule that many open PRs would break can start in
 `REPORT_ONLY_RULES`. When a lesson's rule has no violations left anywhere, move
 it into `eslint.config.mjs` as a plain error. The E2E Autofix weekly
 retrospective opens such PRs from reviewer feedback; a human merging the PR is

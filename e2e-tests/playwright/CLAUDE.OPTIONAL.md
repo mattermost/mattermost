@@ -172,7 +172,7 @@ Before running tests, a Mattermost server must be available. Two options:
     5. `getByAltText()` - Locates elements (usually images) by alt text.
     6. `getByTitle()` - Locates by the `title` attribute.
     7. `getByTestId()` - Last resort. Locates by `data-testid` attribute.
-    - Never use XPath (L-002 in `AGENTS.md`). **Avoid** CSS selectors (`.class`, `#id`) and raw `locator()` calls unless none of the above locators can identify the element.
+    - Never use XPath (L-002 in `docs/lessons.md`). **Avoid** CSS selectors (`.class`, `#id`) and raw `locator()` calls unless none of the above locators can identify the element.
     - Use `{exact: true}` when the accessible name might partially match other elements (e.g., `getByRole('button', {name: 'Invite', exact: true})`).
 
 3. **Visual Testing**: For visual tests:
