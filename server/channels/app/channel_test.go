@@ -3563,6 +3563,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 				},
 			},
 		}, nil)
+	mockChannelStore.On("CreateAgentsSidebarCategoryIfNeeded", mock.Anything, "team_id_1").Return(false, nil)
 	mockChannelStore.On("UpdateSidebarCategories", "user_id_1", "team_id_1", mock.Anything).Return(
 		[]*model.SidebarCategoryWithChannels{
 			{
