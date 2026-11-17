@@ -28,11 +28,11 @@ import (
 // The server evaluates hourly, so results older than two intervals mean evaluation stopped.
 const healthEvaluationStaleAfter = 2 * time.Hour
 
-// healthRunPollInterval is how often --run checks on the run it started. A variable so tests
+// healthRunPollInterval is how often health run checks on the run it started. A variable so tests
 // don't wait.
 var healthRunPollInterval = 2 * time.Second
 
-// healthRunWaitTimeout is how long --run waits for the run to finish. The server caps a run at a
+// healthRunWaitTimeout is how long health run waits for the run to finish. The server caps a run at a
 // few minutes, so a run still going after this belongs to a node that died or was never picked up.
 const healthRunWaitTimeout = 5 * time.Minute
 
@@ -47,31 +47,37 @@ var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Report current health findings",
 	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
-		"With --run, run the health check now, wait for it to finish, then report its findings. If a run is already pending or in progress, wait for that one instead of starting another.\n\n" +
 		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.",
-	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --run\n  health check --packet mm_support_packet.zip",
+	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip",
 	Args:    cobra.NoArgs,
 	RunE:    healthCheckRunE,
+}
+
+var HealthRunCmd = &cobra.Command{
+	Use:   "run",
+	Short: "Run the health check now and report its findings",
+	Long: "Run the health check now, wait for it to finish, then report its findings as health check does. " +
+		"If a run is already pending or in progress, wait for that one instead of starting another.",
+	Example: "  health run\n  health run --include-resolved --include-muted",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(healthRunCmdF),
 }
 
 func init() {
 	HealthCheckCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthCheckCmd.Flags().Bool("include-muted", false, "Include muted findings")
 	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate offline, without a server")
-	HealthCheckCmd.Flags().Bool("run", false, "Run the health check now and wait for it to finish before reporting")
+	HealthRunCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
+	HealthRunCmd.Flags().Bool("include-muted", false, "Include muted findings")
 
-	HealthCmd.AddCommand(HealthCheckCmd)
+	HealthCmd.AddCommand(HealthCheckCmd, HealthRunCmd)
 	RootCmd.AddCommand(HealthCmd)
 }
 
 // healthCheckRunE dispatches before any client is built: withClient connects eagerly, and
 // --packet must work with no server.
 func healthCheckRunE(cmd *cobra.Command, args []string) error {
-	run, _ := cmd.Flags().GetBool("run")
 	if packetPath, _ := cmd.Flags().GetString("packet"); packetPath != "" {
-		if run {
-			return errors.New("--run cannot be used with --packet: a Support Packet is evaluated offline")
-		}
 		return healthCheckPacketCmdF(cmd, args)
 	}
 	return withClient(healthCheckCmdF)(cmd, args)
@@ -80,12 +86,6 @@ func healthCheckRunE(cmd *cobra.Command, args []string) error {
 func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	includeResolved, _ := cmd.Flags().GetBool("include-resolved")
 	includeMuted, _ := cmd.Flags().GetBool("include-muted")
-
-	if run, _ := cmd.Flags().GetBool("run"); run {
-		if err := runHealthCheckAndWait(c, healthRunWaitTimeout); err != nil {
-			return err
-		}
-	}
 
 	filter := model.HealthFindingFilter{}
 	if includeMuted {
@@ -99,6 +99,13 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 
 	printHealthFindings(list, includeResolved, time.Now())
 	return nil
+}
+
+func healthRunCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	if err := runHealthCheckAndWait(c, healthRunWaitTimeout); err != nil {
+		return err
+	}
+	return healthCheckCmdF(c, cmd, args)
 }
 
 // runHealthCheckAndWait starts a health check run, or joins the one already pending or in

@@ -11,8 +11,6 @@ Synopsis
 
 Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.
 
-With --run, run the health check now, wait for it to finish, then report its findings. If a run is already pending or in progress, wait for that one instead of starting another.
-
 With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.
 
 ::
@@ -26,7 +24,6 @@ Examples
 
     health check
     health check --include-resolved --include-muted
-    health check --run
     health check --packet mm_support_packet.zip
 
 Options
@@ -38,7 +35,6 @@ Options
       --include-muted      Include muted findings
       --include-resolved   Include resolved findings
       --packet string      Path to a Support Packet zip to evaluate offline, without a server
-      --run                Run the health check now and wait for it to finish before reporting
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

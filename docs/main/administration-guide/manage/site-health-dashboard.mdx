@@ -139,9 +139,14 @@ By default, only firing and unknown findings are shown. Use the following flags 
 | --- | --- |
 | `--include-resolved` | Include resolved findings. |
 | `--include-muted` | Include muted findings. |
-| `--run` | Run the checks now, wait for the run to finish, and then list its findings. If a run is already in progress, wait for that run instead of starting another. Gives up after 5 minutes. |
-| `--packet <file>` | Evaluate a [Support Packet](/administration-guide/manage/admin/generating-support-packet) zip file on your own machine instead of querying a server. No server connection is needed, and findings intended for support engineers are also included. Can't be combined with `--include-muted`, because findings from a Support Packet are never muted, or with `--run`. |
+| `--packet <file>` | Evaluate a [Support Packet](/administration-guide/manage/admin/generating-support-packet) zip file on your own machine instead of querying a server. No server connection is needed, and findings intended for support engineers are also included. Can't be combined with `--include-muted`, because findings from a Support Packet are never muted. |
 
 Add `--json` for machine-readable output.
 
 Findings from `--packet` describe the server at the time the Support Packet was generated, not its current state.
+
+To run the checks now instead of waiting for the next scheduled run, use `mmctl health run`. It waits for the run to finish, then lists its findings like `health check`, and accepts `--include-resolved` and `--include-muted`. If a run is already in progress, it waits for that run instead of starting another. It gives up after 5 minutes.
+
+```sh
+mmctl health run
+```

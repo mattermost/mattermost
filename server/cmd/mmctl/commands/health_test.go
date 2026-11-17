@@ -205,24 +205,18 @@ func (s *MmctlUnitTestSuite) TestHealthCheckCmd() {
 	})
 }
 
-func (s *MmctlUnitTestSuite) healthRunTestCommand() *cobra.Command {
-	cmd := newTestCmd(s.T(), HealthCheckCmd)
-	s.Require().NoError(cmd.Flags().Set("run", "true"))
-	return cmd
-}
-
 func healthTestJob(status string, createAt int64) *model.Job {
 	return &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: status, CreateAt: createAt}
 }
 
-func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
+func (s *MmctlUnitTestSuite) TestHealthRun() {
 	saved := healthRunPollInterval
 	healthRunPollInterval = time.Millisecond
 	s.T().Cleanup(func() { healthRunPollInterval = saved })
 
 	lastSeen := time.Now()
 
-	s.Run("--run waits for the run to succeed, then prints the findings", func() {
+	s.Run("waits for the run to succeed, then prints the findings", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
@@ -239,7 +233,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
 		)
 
-		err := healthCheckCmdF(s.client, s.healthRunTestCommand(), []string{})
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
@@ -247,7 +241,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 		s.Contains(output, "Push notification server is not HTTPS")
 	})
 
-	s.Run("--run keeps waiting while a lagging replica hasn't seen the new run", func() {
+	s.Run("keeps waiting while a lagging replica hasn't seen the new run", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
@@ -262,11 +256,11 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
 		)
 
-		err := healthCheckCmdF(s.client, s.healthRunTestCommand(), []string{})
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
 		s.Require().NoError(err)
 	})
 
-	s.Run("--run fails when the run's status can't be read", func() {
+	s.Run("fails when the run's status can't be read", func() {
 		printer.Clean()
 
 		started := healthTestJob(model.JobStatusPending, 100)
@@ -275,7 +269,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, errors.New("mock error")).Times(1),
 		)
 
-		err := healthCheckCmdF(s.client, s.healthRunTestCommand(), []string{})
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
 		s.Require().EqualError(err, "failed to get the health check run status: mock error")
 	})
 
@@ -288,7 +282,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
 		)
 
-		err := healthCheckCmdF(s.client, s.healthRunTestCommand(), []string{})
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
 		s.Require().NoError(err)
 	})
 
@@ -305,7 +299,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&failed, &model.Response{}, nil).Times(1),
 		)
 
-		err := healthCheckCmdF(s.client, s.healthRunTestCommand(), []string{})
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
 		s.Require().EqualError(err, "health check run "+started.Id+" failed: collect failed")
 		s.Empty(printer.GetLines())
 	})
@@ -325,7 +319,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&canceled, &model.Response{}, nil).Times(1),
 		)
 
-		err := healthCheckCmdF(s.client, s.healthRunTestCommand(), []string{})
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
 		s.Require().EqualError(err, "health check run "+started.Id+" was canceled")
 		s.Empty(printer.GetLines())
 	})
@@ -346,16 +340,8 @@ func (s *MmctlUnitTestSuite) TestHealthCheckRun() {
 
 		s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(nil, &model.Response{}, errors.New("mock error")).Times(1)
 
-		err := healthCheckCmdF(s.client, s.healthRunTestCommand(), []string{})
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
 		s.Require().EqualError(err, "failed to start a health check run: mock error")
-	})
-
-	s.Run("--run with --packet", func() {
-		cmd := s.healthRunTestCommand()
-		s.Require().NoError(cmd.Flags().Set("packet", "packet.zip"))
-
-		err := healthCheckRunE(cmd, []string{})
-		s.Require().EqualError(err, "--run cannot be used with --packet: a Support Packet is evaluated offline")
 	})
 }
 
