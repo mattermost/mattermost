@@ -465,6 +465,30 @@ class InfrastructureRetries(unittest.TestCase):
                 self.assertEqual(unknown.returncode, 0, unknown.stdout)
                 self.assertIn('::warning title=Server image not verified::', unknown.stdout)
 
+    def run_image_wait_sequence(self, *codes):
+        """Runs wait.sh for one probe per code (a one-minute deadline the fake clock passes on the last); returns its exit code."""
+        with tempfile.TemporaryDirectory() as tmp:
+            state = pathlib.Path(tmp)
+            (state / 'codes').write_text('\n'.join(codes) + '\n')
+            clock = ' '.join(['0'] + ['30'] * (len(codes) - 1) + ['90'])
+            (state / 'clock').write_text(clock.replace(' ', '\n') + '\n')
+            pop = lambda name: f'v=$(head -n1 {state / name}); sed -i 1d {state / name}; '
+            curl = ('case "$*" in *token\\?*) echo \'{"token":"t"}\';; '
+                    f'*) {pop("codes")}[ "$v" = 000 ] && {{ printf 000; exit 7; }}; printf "$v";; esac')
+            result = subprocess.run(['bash', str(self.WAIT_SCRIPT)], capture_output=True, text=True, env={
+                'PATH': fake_bin(tmp, curl=curl, sleep=':', date=f'{pop("clock")}echo "$v"'),
+                'IMAGE': 'mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678',
+                'TIMEOUT_MINUTES': '1', 'INTERVAL_SECONDS': '1'})
+        return result.returncode
+
+    def test_image_wait_judges_the_last_answer(self):
+        """The registry's last answer decides: an earlier "not found" does not fail a wait that then could not check."""
+        self.assertEqual(self.run_image_wait_sequence('404', '500'), 0)
+        self.assertEqual(self.run_image_wait_sequence('404', '000'), 0)
+        self.assertEqual(self.run_image_wait_sequence('500', '404'), 1)
+        self.assertEqual(self.run_image_wait_sequence('404', '404'), 1)
+        self.assertEqual(self.run_image_wait_sequence('404', '200'), 0)
+
     def test_image_wait_rejects_a_malformed_reference(self):
         """A reference that is not <namespace>/<name>:<tag> fails before any request."""
         result = subprocess.run(['bash', str(self.WAIT_SCRIPT)], capture_output=True, text=True,

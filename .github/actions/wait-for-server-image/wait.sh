@@ -46,6 +46,7 @@ while :; do
       echo "${IMAGE} is not published yet."
       ;;
     *)
+      last_answer=""
       echo "Docker Hub answered ${code} for ${IMAGE}."
       ;;
   esac
