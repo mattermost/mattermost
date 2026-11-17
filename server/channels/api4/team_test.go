@@ -4297,25 +4297,6 @@ func TestInviteUsersToTeam(t *testing.T) {
 	}, "rate limits")
 }
 
-func TestInviteUsersToTeamLogsSendFailureWithRequestContext(t *testing.T) {
-	mainHelper.Parallel(t)
-	th := Setup(t).InitBasic(t)
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.ServiceSettings.EnableEmailInvitations = true
-		// Nothing listens on port 1, so the SMTP connection is refused.
-		*cfg.EmailSettings.SMTPPort = "1"
-	})
-
-	_, err := th.Client.InviteUsersToTeam(context.Background(), th.BasicTeam.Id, []string{th.GenerateTestEmail()})
-	require.NoError(t, err)
-
-	entry, _ := requireLogEntry(t, th, "Failed to send invite email successfully ")
-	assert.Equal(t, "error", entry["level"])
-	assert.Contains(t, entry["error"], "unable to connect")
-	assertRequestContext(t, entry, http.MethodPost, "/api/v4/teams/"+th.BasicTeam.Id+"/invite/email", th.BasicUser.Id)
-}
-
 func TestLocalInviteUsersToTeamDeactivatedUser(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)

@@ -1830,3 +1830,26 @@ func TestCheckHasNilFields(t *testing.T) {
 		require.True(t, res)
 	})
 }
+
+// requireLogEntry returns the first JSON entry in th.LogBuffer with the given message, parsed and raw.
+func requireLogEntry(t *testing.T, th *TestHelper, msg string) (map[string]any, string) {
+	t.Helper()
+	require.NoError(t, th.TestLogger.Flush())
+	for line := range strings.SplitSeq(th.LogBuffer.String(), "\n") {
+		var entry map[string]any
+		if json.Unmarshal([]byte(line), &entry) == nil && entry["msg"] == msg {
+			return entry, line
+		}
+	}
+	require.FailNowf(t, "log entry not found", "msg: %q", msg)
+	return nil, ""
+}
+
+func assertRequestContext(t *testing.T, entry map[string]any, method, path, userID string) {
+	t.Helper()
+	assert.NotEmpty(t, entry["request_id"])
+	assert.NotEmpty(t, entry["ip_addr"])
+	assert.Equal(t, method, entry["method"])
+	assert.Equal(t, path, entry["path"])
+	assert.Equal(t, userID, entry["user_id"])
+}
