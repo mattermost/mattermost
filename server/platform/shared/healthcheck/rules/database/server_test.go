@@ -39,7 +39,7 @@ func failSection(s *healthcheck.Snapshot, section model.NodeSection) *healthchec
 func TestDBPostgresUnsupported(t *testing.T) {
 	t.Parallel()
 
-	firing := firingWant("health.rule.db_postgres_unsupported.message_v2")
+	firing := firingWant("health.rule.db_postgres_unsupported.message")
 
 	testCases := []struct {
 		name     string

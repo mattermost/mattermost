@@ -14732,7 +14732,7 @@
     "description": "Health dashboard finding title when most connections in the primary database connection pool are in use."
   },
   {
-    "id": "health.rule.db_postgres_unsupported.message_v2",
+    "id": "health.rule.db_postgres_unsupported.message",
     "translation": "PostgreSQL {{.version}} is below the minimum supported version, {{.minimum}}. Mattermost still starts on it, but unsupported versions may lead to unexpected behavior. Upgrade to PostgreSQL {{.minimum}} or later.",
     "description": "Health dashboard finding detail when the database runs an unsupported PostgreSQL version. Mattermost keeps running on it, so the text explains the risk rather than saying the version is required; {{.version}} is the reported server version and {{.minimum}} is the minimum major version. 'PostgreSQL' is a product name and should not be translated."
   },
