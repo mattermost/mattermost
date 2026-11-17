@@ -56,7 +56,7 @@ export const HEALTH_CHECK_BACKSTOP_INTERVAL = 60 * 1000;
 
 // A run in progress with no activity for this long belongs to a node that died mid-run; the server
 // closes it as failed on the next run (health_check.StaleInProgressAfter).
-const STALE_RUN_AFTER = 60 * 60 * 1000;
+const STALE_RUN_AFTER = 15 * 60 * 1000;
 
 function isRunActive(job: Job): boolean {
     if (job.status === 'in_progress' && Date.now() - job.last_activity_at > STALE_RUN_AFTER) {
