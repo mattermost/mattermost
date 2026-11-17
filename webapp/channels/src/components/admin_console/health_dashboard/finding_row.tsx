@@ -160,7 +160,6 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
             <FindingDetail
                 id={detailId}
                 finding={finding}
-                now={now}
                 hidden={!expanded}
             />
         </li>
