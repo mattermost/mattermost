@@ -598,7 +598,12 @@ func TestLetsEncryptManagerHostPolicy(t *testing.T) {
 		{
 			name:        "every hostname is denied without a Site URL",
 			siteURL:     "",
-			deniedHosts: []string{"chat.example.com", "localhost"},
+			deniedHosts: []string{"chat.example.com", "mm.internal.example"},
+		},
+		{
+			name:        "every hostname is denied when the Site URL has no host",
+			siteURL:     "/mattermost",
+			deniedHosts: []string{"chat.example.com"},
 		},
 	}
 
@@ -628,6 +633,7 @@ func TestLetsEncryptManagerHostPolicy(t *testing.T) {
 
 			challengeStatus := func(host string) int {
 				req := httptest.NewRequest(http.MethodGet, "http://"+host+"/.well-known/acme-challenge/token", nil)
+				req.Host = host
 				rec := httptest.NewRecorder()
 				challengeHandler.ServeHTTP(rec, req)
 				return rec.Code
@@ -642,6 +648,10 @@ func TestLetsEncryptManagerHostPolicy(t *testing.T) {
 			for _, host := range append(tc.deniedHosts, previousHost) {
 				assert.Falsef(t, issuanceAttempted(host), "certificate for %q should not be requested from the CA", host)
 				assert.Equalf(t, http.StatusForbidden, challengeStatus(host), "challenge for %q", host)
+			}
+
+			if len(tc.allowedHosts) == 0 {
+				assert.Equal(t, http.StatusForbidden, challengeStatus(""), "challenge without a Host header")
 			}
 		})
 	}
