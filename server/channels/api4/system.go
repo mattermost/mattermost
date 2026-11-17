@@ -868,11 +868,6 @@ func clearServerBusy(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getServerBusyExpires(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
-		return
-	}
-
 	// We call to ToJSON because it actually returns a different struct
 	// along with doing some computations.
 	sbsJSON, jsonErr := c.App.Srv().Platform().Busy.ToJSON()
