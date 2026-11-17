@@ -200,6 +200,8 @@ func TestReservedPluginReattach(t *testing.T) {
 	require.ErrorContains(t, env.Reattach(manifest, nil), "reserved for the core server")
 	actual, _ := env.registeredPlugins.Load(manifest.Id)
 	require.Equal(t, rp, actual, "reattach must not replace an existing registration")
+}
+
 // Deactivate reports whether it stopped an active plugin; callers use that to
 // tell the webapp to unload the plugin, including webapp-only plugins.
 func TestDeactivateWebappOnlyPlugin(t *testing.T) {
