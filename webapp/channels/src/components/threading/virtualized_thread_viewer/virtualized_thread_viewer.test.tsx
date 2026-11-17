@@ -29,7 +29,12 @@ jest.mock('components/dynamic_virtualized_list', () => {
     };
 });
 
-jest.mock('./create_comment', () => () => <div data-testid='create-comment'/>);
+const mockCreateComment = jest.fn(() => <div data-testid='create-comment'/>) as jest.Mock;
+
+jest.mock('./create_comment', () => ({
+    __esModule: true,
+    default: (props: unknown) => mockCreateComment(props),
+}));
 jest.mock('./thread_viewer_row', () => () => <div data-testid='thread-viewer-row'/>);
 jest.mock('components/new_replies_banner', () => () => null);
 jest.mock('components/post_view/floating_timestamp', () => () => null);
@@ -96,6 +101,26 @@ describe('components/threading/VirtualizedThreadViewer', () => {
 
     beforeEach(() => {
         mockScrollToItem.mockClear();
+    });
+
+    test('forwards agent mode to the reply composer', () => {
+        const renderSendButton = () => null;
+        mockCreateComment.mockClear();
+
+        renderWithContext(
+            <VirtualizedThreadViewer
+                {...baseProps}
+                agentMode={true}
+                renderSendButton={renderSendButton}
+            />,
+            baseState,
+        );
+
+        expect(mockCreateComment).toHaveBeenCalledWith(expect.objectContaining({
+            agentMode: true,
+            renderSendButton,
+            threadId: baseProps.selected.id,
+        }));
     });
 
     test('should scroll to the bottom when the current user makes a new post in the thread', () => {

@@ -25,6 +25,8 @@ type Props = {
     threadId: string;
     isThreadView?: boolean;
     placeholder?: string;
+    agentMode?: boolean;
+    renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
@@ -32,6 +34,8 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     threadId,
     isThreadView,
     placeholder,
+    agentMode,
+    renderSendButton,
 }: Props, ref) => {
     const getChannel = useMemo(makeGetChannel, []);
     const rootPost = useSelector((state: GlobalState) => getPost(state, threadId));
@@ -111,6 +115,8 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
                 channelId={channel.id}
                 rootId={threadId}
                 isThreadView={isThreadView}
+                agentMode={agentMode}
+                renderSendButton={renderSendButton}
             />
         </div>
     );

@@ -7,6 +7,7 @@ import React from 'react';
 import type {PostType} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
+import * as PreferenceActions from 'mattermost-redux/actions/preferences';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {onSubmit} from 'actions/views/create_comment';
@@ -16,7 +17,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, Preferences, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -1354,6 +1355,250 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             });
 
             expect(textbox).toHaveValue(valueBefore);
+        });
+    });
+
+    describe('agent mode', () => {
+        const chromeState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableEmojiPicker: 'true',
+                        EnableFileAttachments: 'true',
+                        PostPriority: 'true',
+                        ScheduledPosts: 'true',
+                        EnableBurnOnRead: 'true',
+                        FeatureFlagPostAttributes: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        SkuShortName: 'advanced',
+                    },
+                },
+            },
+            plugins: {
+                components: {
+                    AIActionMenuItem: [{
+                        id: 'ai-item',
+                        pluginId: 'agents',
+                        icon: null,
+                        text: 'Rewrite',
+                        sortOrder: 0,
+                    }],
+                },
+            },
+        });
+
+        const openMenu = async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+        };
+
+        it('leaves the channel composer unchanged when the mode is off', () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                chromeState,
+            );
+
+            expect(screen.getByRole('button', {name: 'formatting'})).toBeInTheDocument();
+            expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Message priority'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Schedule message'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'AI Actions'})).toBeInTheDocument();
+            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'attachment'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'select an emoji'})).toBeInTheDocument();
+            expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Message options'})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeInTheDocument();
+        });
+
+        it('hides channel chrome and keeps send', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            expect(screen.queryByRole('button', {name: 'formatting'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Schedule message'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'attachment'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'select an emoji'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
+            expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+        });
+
+        it('puts attach, emoji, attributes, and formatting in the + menu', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            await openMenu();
+
+            expect(screen.getByRole('menuitem', {name: 'Attach files'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Emoji'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
+
+            const attributes = screen.getByRole('menuitem', {name: 'Add attributes'});
+            expect(attributes).toHaveAttribute('aria-disabled', 'true');
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        });
+
+        it('opens the formatting bar for this composer without saving the shared preference', async () => {
+            const savePreferences = jest.spyOn(PreferenceActions, 'savePreferences');
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            await openMenu();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Formatting'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
+            });
+            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
+            expect(savePreferences).not.toHaveBeenCalled();
+
+            savePreferences.mockRestore();
+        });
+
+        it('opens the file picker from the + menu', async () => {
+            const clickSpy = jest.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            const clicksBefore = clickSpy.mock.calls.length;
+            await openMenu();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Attach files'}));
+
+            await waitFor(() => {
+                expect(clickSpy.mock.calls.length).toBeGreaterThan(clicksBefore);
+            });
+
+            clickSpy.mockRestore();
+        });
+
+        it('inserts an emoji chosen from the + menu', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            await openMenu();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(screen.getByTestId('post_textbox')).toHaveValue('\uD83D\uDE0A ');
+        });
+
+        it('keeps markdown shortcuts working while the formatting bar is closed', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            const textbox = screen.getByTestId('post_textbox') as HTMLTextAreaElement;
+            await userEvent.type(textbox, 'hello');
+            textbox.setSelectionRange(0, 5);
+            fireEvent.keyDown(textbox, {key: 'b', keyCode: 66, ctrlKey: true});
+
+            expect(textbox).toHaveValue('**hello**');
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+        });
+
+        it('keeps the rich text editor and starts with its formatting bar closed', () => {
+            const rect = () => ({top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0, x: 0, y: 0, toJSON: () => {}}) as DOMRect;
+            const originalRects = Range.prototype.getClientRects;
+            const originalRect = Range.prototype.getBoundingClientRect;
+            Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+            Range.prototype.getBoundingClientRect = rect;
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                mergeObjects(chromeState, {
+                    entities: {
+                        general: {config: {FeatureFlagWysiwygEditor: 'true'}},
+                        preferences: {
+                            myPreferences: {
+                                [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.WYSIWYG_EDITOR}`]: {
+                                    category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                                    name: Preferences.WYSIWYG_EDITOR,
+                                    user_id: currentUserId,
+                                    value: 'true',
+                                },
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(document.querySelector('.ProseMirror')).toBeInTheDocument();
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+
+            Range.prototype.getClientRects = originalRects;
+            Range.prototype.getBoundingClientRect = originalRect;
+        });
+
+        it('lets a plugin replace send, and ignores that slot when the mode is off', () => {
+            const renderSendButton = () => <button type='button'>{'Stop generating'}</button>;
+
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                    renderSendButton={renderSendButton}
+                />,
+                chromeState,
+            );
+
+            expect(screen.getByRole('button', {name: 'Stop generating'})).toBeInTheDocument();
+            expect(screen.queryByTestId('SendMessageButton')).not.toBeInTheDocument();
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    renderSendButton={renderSendButton}
+                />,
+            );
+
+            expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Stop generating'})).not.toBeInTheDocument();
         });
     });
 });

@@ -26,6 +26,12 @@ export type Props = {
      * Used by plugins to act after the post is made
      */
     afterSubmit?: (response: SubmitPostReturnType) => void;
+
+    /** Agent chat only. See AdvancedTextEditor. */
+    agentMode?: boolean;
+
+    /** In agent mode, replaces send so a plugin can show stop. Ignored otherwise. */
+    renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
 };
 
 const AdvancedCreateComment = ({
@@ -34,6 +40,8 @@ const AdvancedCreateComment = ({
     isThreadView,
     placeholder,
     afterSubmit,
+    agentMode,
+    renderSendButton,
 }: Props) => {
     return (
         <AdvancedTextEditor
@@ -43,6 +51,8 @@ const AdvancedCreateComment = ({
             isThreadView={isThreadView}
             placeholder={placeholder}
             afterSubmit={afterSubmit}
+            agentMode={agentMode}
+            renderSendButton={renderSendButton}
         />
     );
 };

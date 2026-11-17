@@ -71,6 +71,7 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
+import AgentComposerMenu from './agent_composer_menu';
 import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
@@ -122,6 +123,20 @@ export type Props = {
      * Used by plugins to act after the post is made
      */
     afterSubmit?: (response: SubmitPostReturnType) => void;
+
+    /**
+     * Agent chat only. Hides channel controls, starts with the formatting bar
+     * closed, and does not write the shared formatting-bar preference.
+     */
+    agentMode?: boolean;
+
+    /**
+     * In agent mode, replaces the send control. The plugin receives the host
+     * send button and can return it, or a stop control while a thread is
+     * generating. Ignored when agent mode is off, so channel composers stay
+     * as they are.
+     */
+    renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
 };
 
 const AdvancedTextEditor = ({
@@ -134,6 +149,8 @@ const AdvancedTextEditor = ({
     isInEditMode = false,
     afterSubmit,
     storageKey,
+    agentMode = false,
+    renderSendButton,
 }: Props) => {
     // rootId is typed as required, but plugins reach this component through the untyped
     // window.Components bridge and may omit it. Every draft carries '' rather than undefined
@@ -256,10 +273,14 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const [agentFormattingBarOpen, setAgentFormattingBarOpen] = useState(false);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
-    const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
+
+    // Agent chat starts closed and toggles for this composer only. The channel
+    // composer still follows the shared preference.
+    const showFormattingBar = (agentMode ? agentFormattingBarOpen : !isFormattingBarHidden) && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const postAttributesEnabled = useSelector(isPostAttributesEnabled);
     const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
@@ -395,6 +416,11 @@ const AdvancedTextEditor = ({
     }, [showPreview, wysiwygEnabled, handleDraftChange]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
+        if (agentMode) {
+            setAgentFormattingBarOpen((open) => !open);
+            return;
+        }
+
         dispatch(savePreferences(currentUserId, [{
             category: Preferences.ADVANCED_TEXT_EDITOR,
             user_id: currentUserId,
@@ -403,7 +429,7 @@ const AdvancedTextEditor = ({
             name: getFormattingBarPreferenceName(),
             value: String(!isFormattingBarHidden),
         }]));
-    }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
+    }, [agentMode, dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost, wysiwygRef);
@@ -416,7 +442,7 @@ const AdvancedTextEditor = ({
 
     usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
-    const [attachmentPreview, fileUploadJSX] = useUploadFiles(
+    const [attachmentPreview, fileUploadJSX, openFileDialog, uploadDisabledByPolicy] = useUploadFiles(
         draft,
         rootId,
         channelId,
@@ -428,6 +454,7 @@ const AdvancedTextEditor = ({
         focusTextbox,
         setServerError,
         isInEditMode,
+        agentMode,
     );
 
     const insertWysiwygText = useCallback((text: string) => {
@@ -436,8 +463,10 @@ const AdvancedTextEditor = ({
 
     const {
         emojiPicker,
+        emojiPickerPortal,
         enableEmojiPicker,
         toggleEmojiPicker,
+        setEmojiReference,
     } = useEditorEmojiPicker(
         textboxId,
         isDisabled,
@@ -729,8 +758,10 @@ const AdvancedTextEditor = ({
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
             repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
+            hideSchedule={agentMode}
         />
     );
+    const sendControl = agentMode && renderSendButton && sendButton ? renderSendButton(sendButton) : sendButton;
 
     const showFormatJSX = (disableSendButton || wysiwygEnabled) ? null : (
         <ShowFormat
@@ -799,14 +830,20 @@ const AdvancedTextEditor = ({
 
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
 
-    const additionalControls = useMemo(() => [
-        !isInEditMode && priorityAdditionalControl,
-        !isInEditMode && burnOnReadAdditionalControl,
-        ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
+    const additionalControls = useMemo(() => {
+        if (agentMode) {
+            return (pluginItems || []).filter(Boolean);
+        }
+
+        return [
+            !isInEditMode && priorityAdditionalControl,
+            !isInEditMode && burnOnReadAdditionalControl,
+            ...(pluginItems || []),
+        ].filter(Boolean);
+    }, [agentMode, pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
 
     const aiActionsMenu = useMemo(() => {
-        if (!hasAIActionsMenu) {
+        if (agentMode || !hasAIActionsMenu) {
             return null;
         }
 
@@ -821,7 +858,7 @@ const AdvancedTextEditor = ({
                 aiRewriteEnabled={aiRewriteEnabled}
             />
         );
-    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu]);
+    }, [agentMode, draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -883,6 +920,7 @@ const AdvancedTextEditor = ({
                     location={location}
                     postId={rootId}
                     hideRemoteUserHour={showOooWarning}
+                    hideScheduledPosts={agentMode}
                 />
             )}
             <div
@@ -917,7 +955,7 @@ const AdvancedTextEditor = ({
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
-                        {!isInEditMode && (priorityLabels || burnOnReadLabels) && (
+                        {!agentMode && !isInEditMode && (priorityLabels || burnOnReadLabels) && (
                             <div className='AdvancedTextEditor__labels'>
                                 <UnifiedLabelsWrapper
                                     priorityLabels={priorityLabels}
@@ -985,21 +1023,46 @@ const AdvancedTextEditor = ({
                                 {formattingBar}
                             </FormattingBarSpacer>
                         ) : formattingBar}
+                        {agentMode && (
+                            <div hidden={true}>
+                                {fileUploadJSX}
+                            </div>
+                        )}
                         {!isDisabled && (
                             <TexteditorActions
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
-                                {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
-                                <ToggleFormattingBar
-                                    onClick={toggleAdvanceTextEditor}
-                                    active={showFormattingBar}
-                                    disabled={showPreview}
-                                />
-                                <Separator/>
-                                {fileUploadJSX}
-                                {emojiPicker}
-                                {sendButton}
+                                {agentMode ? (
+                                    <>
+                                        <AgentComposerMenu
+                                            canAttach={canUploadFiles}
+                                            attachDisabled={uploadDisabledByPolicy}
+                                            onAttach={openFileDialog}
+                                            enableEmojiPicker={enableEmojiPicker}
+                                            emojiDisabled={showPreview}
+                                            onEmoji={toggleEmojiPicker}
+                                            showAttributes={postAttributesEnabled && !isInEditMode}
+                                            formattingDisabled={showPreview}
+                                            onToggleFormatting={toggleAdvanceTextEditor}
+                                            emojiAnchorRef={setEmojiReference}
+                                        />
+                                        {emojiPickerPortal}
+                                    </>
+                                ) : (
+                                    <>
+                                        {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
+                                        <ToggleFormattingBar
+                                            onClick={toggleAdvanceTextEditor}
+                                            active={showFormattingBar}
+                                            disabled={showPreview}
+                                        />
+                                        <Separator/>
+                                        {fileUploadJSX}
+                                        {emojiPicker}
+                                    </>
+                                )}
+                                {sendControl}
                             </TexteditorActions>
                         )}
                     </div>

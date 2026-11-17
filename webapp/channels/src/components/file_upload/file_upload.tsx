@@ -149,6 +149,12 @@ export type Props = {
     disabledByPolicy?: boolean;
 
     /**
+     * Keep drag, drop, paste, and the keyboard shortcut, but do not render the
+     * paperclip. The agent composer opens the file dialog from its own menu.
+     */
+    hideButton?: boolean;
+
+    /**
      * Plugin file upload methods to be added
      */
     pluginFileUploadMethods: FileUploadMethodAction[];
@@ -628,8 +634,45 @@ export class FileUpload extends PureComponent<Props, State> {
         this.fileInput.current?.click();
     };
 
+    openFileDialog = () => {
+        if (!this.props.canUploadFiles || this.props.disabledByPolicy) {
+            return;
+        }
+
+        const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.fileCount;
+        if (uploadsRemaining <= 0) {
+            this.props.onUploadError(this.props.intl.formatMessage(holders.limited, {count: Constants.MAX_UPLOAD_FILES}));
+            return;
+        }
+
+        this.fileInput.current?.click();
+    };
+
     render() {
         const {formatMessage} = this.props.intl;
+
+        if (this.props.hideButton) {
+            if (!this.props.canUploadFiles) {
+                return null;
+            }
+
+            return (
+                <div className='style--none'>
+                    <input
+                        id='fileUploadInput'
+                        className='file-attachment-menu-item-input'
+                        tabIndex={-1}
+                        aria-hidden={true}
+                        aria-label={formatMessage(holders.uploadFile)}
+                        ref={this.fileInput}
+                        type='file'
+                        onChange={this.handleChange}
+                        onClick={this.handleLocalFileUploaded}
+                        multiple={true}
+                    />
+                </div>
+            );
+        }
 
         const uploadsRemaining = Constants.MAX_UPLOAD_FILES - this.props.fileCount;
 

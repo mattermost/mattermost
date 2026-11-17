@@ -40,7 +40,8 @@ const useUploadFiles = (
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     isPostBeingEdited?: boolean,
-): [React.ReactNode, React.ReactNode] => {
+    hideAttachmentButton = false,
+): [React.ReactNode, React.ReactNode, () => void, boolean] => {
     const intl = useIntl();
     const locale = useSelector(getCurrentLocale);
     const canEditAttachments = useSelector((state: GlobalState) => {
@@ -197,10 +198,15 @@ const useUploadFiles = (
             channelId={channelId}
             postType={postType}
             disabledByPolicy={!uploadAllowedByPolicy}
+            hideButton={hideAttachmentButton}
         />
     );
 
-    return [attachmentPreview, fileUploadJSX];
+    const openFileDialog = useCallback(() => {
+        fileUploadRef.current?.openFileDialog();
+    }, []);
+
+    return [attachmentPreview, fileUploadJSX, openFileDialog, !uploadAllowedByPolicy];
 };
 
 export default useUploadFiles;

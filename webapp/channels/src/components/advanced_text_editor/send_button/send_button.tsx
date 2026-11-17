@@ -27,11 +27,14 @@ type SendButtonProps = {
     disabled: boolean;
     channelId: string;
     repeatDisabledReason?: RepeatDisabledReason;
+
+    /** Agent chat has no scheduled or repeating send. The split stays off. */
+    hideSchedule?: boolean;
 };
 
-const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, hideSchedule = false}: SendButtonProps) => {
     const {formatMessage} = useIntl();
-    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled);
+    const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled) && !hideSchedule;
 
     const sendMessage = useCallback((e: React.FormEvent, schedulingInfo?: SchedulingInfo) => {
         e?.stopPropagation();

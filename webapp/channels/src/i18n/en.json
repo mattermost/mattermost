@@ -32715,6 +32715,22 @@
     "defaultMessage": "I Disagree",
     "description": "Button on the custom Terms of Service acceptance screen to decline the terms (logs the user out)."
   },
+  "textbox.agent_menu": {
+    "defaultMessage": "Message options",
+    "description": "Accessible name of the + button on the agent composer. Opens a menu of attach, emoji, attributes, and formatting."
+  },
+  "textbox.agent_menu.attach": {
+    "defaultMessage": "Attach files",
+    "description": "Menu item in the agent composer that opens the file picker. Noun phrase."
+  },
+  "textbox.agent_menu.emoji": {
+    "defaultMessage": "Emoji",
+    "description": "Menu item in the agent composer that opens the emoji picker."
+  },
+  "textbox.agent_menu.formatting": {
+    "defaultMessage": "Formatting",
+    "description": "Menu item in the agent composer that shows the formatting bar for this message box only."
+  },
   "textbox.bold": {
     "defaultMessage": "**bold**",
     "description": "Markdown formatting hint shown under the message box; keep the literal ** characters around the translated word."

@@ -44,6 +44,8 @@ type Props = {
     isThreadView: boolean;
     newMessagesSeparatorActions: NewMessagesSeparatorActionComponent[];
     inputPlaceholder?: string;
+    agentMode?: boolean;
+    renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
     measureRhsOpened: () => void;
     isChannelAutotranslated: boolean;
 };
@@ -469,6 +471,8 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     isThreadView={this.props.isThreadView}
                     teammate={this.props.directTeammate}
                     threadId={this.props.selected.id}
+                    agentMode={this.props.agentMode}
+                    renderSendButton={this.props.renderSendButton}
                 />
             </div>
         );
