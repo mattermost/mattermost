@@ -117,6 +117,24 @@ def advance(ctx: ActionContext, gate: Gate) -> Status:
     return notice(ctx, gate)
 
 
+def settle(ctx: ActionContext, gate: Gate) -> Status:
+    """The result is already there (a branch, a tag), so nothing is dispatched again. A started post
+    is followed; a failed one is finished once its runs turn out to have succeeded, or on an
+    approved ``go``."""
+    post = latest_post(ctx, gate)
+    state = engine.state_of(post)
+    kind = state.get("state")
+    if not ctx.execute or kind not in ("started", "failed"):
+        return describe(ctx, gate, post)
+    if kind == "started":
+        return follow(ctx, gate, post, state)
+    result, _ = engine.runs_state(ctx, state.get("runs") or [])
+    since = engine.ms(datetime.fromisoformat(state["failed_at"]))
+    if result == "success" or engine.first_go(ctx, post, state, since, gate.what):
+        return gate.on_success(ctx, post, state)
+    return describe(ctx, gate, post)
+
+
 def notice(ctx: ActionContext, gate: Gate) -> Status:
     if not gate.channel:
         return Status(engine.ATTENTION, f"{engine.ATTENTION}: there's no channel to post the notice for {gate.what} in.",

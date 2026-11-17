@@ -334,6 +334,30 @@ class BranchCutTest(unittest.TestCase):
         self.assertEqual(len(self.world.dispatcher.dispatched), 2)
         self.assertEqual(len(self.world.posts("c123")), 1)
 
+    def test_should_not_tick_a_failed_cut_until_the_release_managers_go(self):
+        self.notice()
+        self.world.run(at(11, 2, 9, 2), "branch_cut")
+        self.world.dispatcher.finish("failure")
+        self.world.add_branch(12, 3)
+        self.assertEqual(self.world.run(at(11, 2, 10, 2), "branch_cut")["state"], engine.FAILED)
+        self.assertEqual(self.world.run(at(11, 2, 11, 2), "branch_cut")["state"], engine.FAILED)
+        self.assertFalse(self.world.status(at(11, 2, 11, 30), "branch_cut").done)
+        notice = self.world.posts("c123")[0]
+        self.world.hub.reply(notice["id"], "go", "u-rm", ms(at(11, 2, 11, 30)))
+        self.assertEqual(self.world.run(at(11, 2, 12, 2), "branch_cut")["state"], engine.DONE)
+        self.assertIn("Done: release-12.3 branches cut in mattermost and enterprise.", self.world.replies(notice))
+        self.assertEqual(len(self.world.dispatcher.dispatched), 2, "the branches exist, so nothing is cut again")
+        self.assertTrue(self.world.status(at(11, 3), "branch_cut").done)
+
+    def test_should_finish_a_cut_when_the_branches_show_up_after_the_runs_succeeded(self):
+        self.notice()
+        self.world.run(at(11, 2, 9, 2), "branch_cut")
+        self.world.dispatcher.finish("success")
+        self.assertEqual(self.world.run(at(11, 2, 10, 2), "branch_cut")["state"], engine.FAILED)
+        self.world.add_branch(12, 3)
+        self.assertEqual(self.world.run(at(11, 2, 11, 2), "branch_cut")["state"], engine.DONE)
+        self.assertTrue(self.world.status(at(11, 3), "branch_cut").done)
+
     def test_should_post_in_the_log_with_a_mention_when_there_is_no_release_channel(self):
         world = World(release_channel=False)
         world.run(at(11, 2, 8, 0), "branch_cut")

@@ -64,9 +64,9 @@ def run(ctx: ActionContext) -> Status:
         also_in=[ctx.settings.log_channel] if live else [])
 
     if not missing:
-        post = gated.latest_post(ctx, gate)
-        if ctx.execute and engine.state_of(post).get("state") == "started":
-            gated.advance(ctx, gate)
+        settled = gated.settle(ctx, gate)
+        if settled.word in (engine.STARTED, engine.FAILED):
+            return settled
         attention = version_go_attention(ctx)
         summary = f"{release.branch} branches cut"
         status = Status(engine.DONE, f"{engine.DONE}: {summary}.", "done", done=not attention,
