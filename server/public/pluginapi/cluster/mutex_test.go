@@ -119,9 +119,21 @@ func TestMutexRefresh(t *testing.T) {
 		require.NoError(t, err)
 		require.True(t, locked)
 
-		mockPluginAPI.setFailing(true)
+		m.lock.Lock()
+		refreshDone := m.refreshDone
+		m.lock.Unlock()
+
 		refreshes := mockPluginAPI.refreshCount()
-		require.Eventually(t, func() bool { return mockPluginAPI.refreshCount() > refreshes }, 2*time.Second, refreshInterval)
+		mockPluginAPI.setFailing(true)
+
+		// Wait for the refresh goroutine itself, since racing its counter would miss a
+		// failed refresh that happens before the count is read.
+		select {
+		case <-refreshDone:
+		case <-time.After(2 * time.Second):
+			require.Fail(t, "failed to stop refreshing within 2 seconds")
+		}
+		require.Greater(t, mockPluginAPI.refreshCount(), refreshes, "expected at least one refresh attempt")
 
 		refreshes = mockPluginAPI.refreshCount()
 		assert.Never(t, func() bool { return mockPluginAPI.refreshCount() > refreshes }, 10*refreshInterval, refreshInterval)
