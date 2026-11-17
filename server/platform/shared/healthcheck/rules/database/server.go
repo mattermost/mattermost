@@ -77,7 +77,7 @@ func evalDBPostgresUnsupported(s *healthcheck.Snapshot) healthcheck.Result {
 	case !ok:
 		return unknownDiagnostics()
 	case major < model.MinimumPostgresMajorVersion:
-		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_postgres_unsupported.message")).
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_postgres_unsupported.message_v2")).
 			WithDetail("version", version).
 			WithDetail("minimum", strconv.Itoa(model.MinimumPostgresMajorVersion))
 	default:
