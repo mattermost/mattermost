@@ -3599,6 +3599,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'AnnouncementSettings.EnableBanner',
+                            policy_setting_key: 'EnableBanner',
                             label: defineMessage({id: 'admin.customization.announcement.enableBannerTitle', defaultMessage: 'Enable System-wide Notifications:'}),
                             help_text: defineMessage({id: 'admin.customization.announcement.enableBannerDesc', defaultMessage: 'Enable an announcement banner across all teams.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.ANNOUNCEMENT_BANNER)),
@@ -3606,6 +3607,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'text',
                             key: 'AnnouncementSettings.BannerText',
+                            policy_setting_key: 'BannerText',
                             label: defineMessage({id: 'admin.customization.announcement.bannerTextTitle', defaultMessage: 'Banner Text:'}),
                             help_text: defineMessage({id: 'admin.customization.announcement.bannerTextDesc', defaultMessage: 'Text that will appear in the announcement banner.'}),
                             isDisabled: it.any(
@@ -3634,6 +3636,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             type: 'bool',
                             key: 'AnnouncementSettings.AllowBannerDismissal',
+                            policy_setting_key: 'AllowBannerDismissal',
                             label: defineMessage({id: 'admin.customization.announcement.allowBannerDismissalTitle', defaultMessage: 'Allow Banner Dismissal:'}),
                             help_text: defineMessage({id: 'admin.customization.announcement.allowBannerDismissalDesc', defaultMessage: 'When true, users can dismiss the banner until its next update. When false, the banner is permanently visible until it is turned off by the System Admin.'}),
                             isDisabled: it.any(

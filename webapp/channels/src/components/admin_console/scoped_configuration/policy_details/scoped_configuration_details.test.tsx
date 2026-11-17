@@ -112,6 +112,12 @@ describe('components/admin_console/scoped_configuration/policy_details/ScopedCon
         );
     }
 
+    async function addConfiguration(settingKey: string) {
+        await userEvent.click(document.querySelector('#scoped-add-configuration-btn')!);
+        await userEvent.click(document.querySelector(`#scoped-add-configuration-${settingKey}`)!);
+        await waitFor(() => expect(document.querySelector('#scoped-add-configuration-menu')).not.toBeInTheDocument());
+    }
+
     test('prefills MobileEnableBiometrics as True from settingKey route param, hides simulate button, and saves system_setting policy', async () => {
         mockCreatePolicy.mockResolvedValue({
             data: {
@@ -163,6 +169,51 @@ describe('components/admin_console/scoped_configuration/policy_details/ScopedCon
             });
         });
         expect(mockPush).toHaveBeenCalledWith('/admin_console/system_attributes/scoped_configuration');
+    });
+
+    test('prefills EnableBanner and saves announcement banner settings with typed values', async () => {
+        mockCreatePolicy.mockResolvedValue({data: {id: 'saved-id'}});
+
+        renderEditor(
+            '/admin_console/system_attributes/scoped_configuration/edit_policy/setting/EnableBanner',
+            undefined,
+            'EnableBanner',
+        );
+
+        await screen.findByTestId('table-editor');
+        expect(screen.getByTestId('scoped-setting-value-EnableBanner-true')).toBeChecked();
+        expect(screen.getByTestId('scoped-setting-value-EnableBanner-false')).not.toBeChecked();
+
+        await addConfiguration('BannerText');
+        const bannerTextInput = await screen.findByTestId('scoped-setting-value-BannerText');
+        expect(bannerTextInput).toHaveAttribute('type', 'text');
+        expect(bannerTextInput).toHaveValue('');
+        await userEvent.type(bannerTextInput, 'Finance close is on Friday');
+
+        await addConfiguration('AllowBannerDismissal');
+        expect(await screen.findByTestId('scoped-setting-value-AllowBannerDismissal-true')).toBeChecked();
+        await userEvent.click(screen.getByTestId('scoped-setting-value-AllowBannerDismissal-false'));
+
+        await userEvent.type(screen.getByTestId('admin.scoped_configuration.edit.policyNameinput'), 'Finance Banner');
+        await act(async () => {
+            await userEvent.click(screen.getByTestId('set-expression-btn'));
+        });
+
+        await userEvent.click(screen.getByTestId('saveSetting'));
+
+        await waitFor(() => {
+            expect(mockCreatePolicy).toHaveBeenCalledWith({
+                id: '',
+                name: 'Finance Banner',
+                type: 'system_setting',
+                roles: ['system_user'],
+                rules: [
+                    {actions: ['EnableBanner'], expression: 'user.attributes.dept == "finance"', value: 'true'},
+                    {actions: ['BannerText'], expression: 'user.attributes.dept == "finance"', value: 'Finance close is on Friday'},
+                    {actions: ['AllowBannerDismissal'], expression: 'user.attributes.dept == "finance"', value: 'false'},
+                ],
+            });
+        });
     });
 
     test('loads existing system_setting policy and populates fields', async () => {
