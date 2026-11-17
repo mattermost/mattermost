@@ -1017,7 +1017,7 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 			installedCalls = bundleInfo.Manifest
 		}
 
-		wanted := ch.ensureCallsVersion(installedCalls)
+		wanted := ch.ensureCallsVersion(installedCalls, callsManifests)
 		chosenCalls = selectCallsBundle(wanted, callsManifests, logger)
 
 		if installedCalls != nil && chosenCalls != nil {

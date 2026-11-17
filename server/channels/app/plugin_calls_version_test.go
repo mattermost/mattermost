@@ -34,9 +34,16 @@ func TestCallsVersionFromPluginVersion(t *testing.T) {
 }
 
 func TestResolveCallsVersion(t *testing.T) {
-	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(nil), "nothing installed is a fresh install")
-	assert.Equal(t, model.PluginCallsVersionV1, resolveCallsVersion(callsManifest("1.8.0")))
-	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(callsManifest("2.0.1")))
+	v1, v2 := callsManifest("1.9.0"), callsManifest("2.0.0")
+	both := []*model.Manifest{v1, v2}
+
+	assert.Equal(t, model.PluginCallsVersionV1, resolveCallsVersion(nil, both), "nothing installed defaults to v1 while v1 is prepackaged")
+	assert.Equal(t, model.PluginCallsVersionV1, resolveCallsVersion(nil, []*model.Manifest{v1}))
+	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(nil, []*model.Manifest{v2}), "v1 is no longer prepackaged")
+	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(nil, nil))
+	assert.Equal(t, model.PluginCallsVersionV1, resolveCallsVersion(callsManifest("1.8.0"), both))
+	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(callsManifest("2.0.1"), both), "an installed v2 stays on v2")
+	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(callsManifest("2.0.1"), []*model.Manifest{v1}), "an installed v2 stays on v2 even if only v1 is prepackaged")
 }
 
 func TestSelectCallsBundle(t *testing.T) {
@@ -237,24 +244,47 @@ func TestProcessPrepackagedCallsVersions(t *testing.T) {
 		assert.Equal(t, "2.0.0", installedVersion(t, th))
 	})
 
-	t.Run("an empty setting resolves to v2 on a fresh install and is persisted", func(t *testing.T) {
+	t.Run("an empty setting defaults to v1 while v1 is prepackaged and is persisted", func(t *testing.T) {
 		th := setup(t, "", "1.9.0", "2.0.0")
+		process(t, th)
+		assert.Equal(t, "1.9.0", installedVersion(t, th))
+		assert.Equal(t, "v1", *th.App.Config().PluginSettings.CallsVersion)
+	})
+
+	t.Run("an empty setting defaults to v2 once v1 is no longer prepackaged", func(t *testing.T) {
+		th := setup(t, "", "2.0.0")
 		process(t, th)
 		assert.Equal(t, "2.0.0", installedVersion(t, th))
 		assert.Equal(t, "v2", *th.App.Config().PluginSettings.CallsVersion)
 	})
 
-	t.Run("an empty setting keeps an installed v1", func(t *testing.T) {
+	t.Run("an empty setting keeps an installed v1 through the startup sync", func(t *testing.T) {
 		th := setup(t, "v1", "1.9.0")
 		process(t, th)
 		require.Equal(t, "1.9.0", installedVersion(t, th))
 
-		// Simulate upgrading the server: v2 now ships too, and the setting is unset.
+		// Simulate upgrading the server: v2 now ships too, and the setting is unset. Follow the
+		// startup order in initPlugins: syncPlugins removes every local install, including the
+		// prepackaged v1, before the prepackaged plugins are processed.
 		writeSignedCallsBundle(t, filepath.Join(th.tempWorkspace, prepackagedPluginsDir), "2.0.0")
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PluginSettings.CallsVersion = new("") })
+		require.Nil(t, th.App.ch.syncPlugins())
+		require.Equal(t, "", installedVersion(t, th), "syncPlugins should have removed the prepackaged v1")
 		process(t, th)
 		assert.Equal(t, "1.9.0", installedVersion(t, th))
 		assert.Equal(t, "v1", *th.App.Config().PluginSettings.CallsVersion)
+	})
+
+	t.Run("an empty setting keeps an installed v2", func(t *testing.T) {
+		th := setup(t, "v2", "1.9.0", "2.0.0")
+		process(t, th)
+		require.Equal(t, "2.0.0", installedVersion(t, th))
+
+		// A server already running v2 (an upload restored by syncPlugins) must not be moved to v1.
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PluginSettings.CallsVersion = new("") })
+		process(t, th)
+		assert.Equal(t, "2.0.0", installedVersion(t, th))
+		assert.Equal(t, "v2", *th.App.Config().PluginSettings.CallsVersion)
 	})
 
 	t.Run("does not install anything when Calls is disabled", func(t *testing.T) {

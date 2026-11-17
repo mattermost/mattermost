@@ -25,14 +25,25 @@ func callsVersionFromPluginVersion(version string) string {
 }
 
 // resolveCallsVersion returns the value to use for an empty CallsVersion setting. installed is
-// the Calls manifest currently unpacked locally, or nil if Calls is not installed. A server
-// already running a Calls version stays on it; with nothing installed this is most likely a
-// fresh install, which starts on v2.
-func resolveCallsVersion(installed *model.Manifest) string {
-	if installed == nil {
-		return model.PluginCallsVersionV2
+// the Calls manifest unpacked locally after syncPlugins, or nil if Calls is not installed, and
+// candidates are the prepackaged Calls manifests.
+//
+// A server already running Calls v2 (it can only have been uploaded, which syncPlugins restores)
+// stays on v2. Everything else defaults to v1 while a v1 bundle is prepackaged: v1 works without
+// any extra infrastructure, whereas v2 does not work until LiveKit is set up, so a wrong guess
+// toward v2 breaks calling while a wrong guess toward v1 costs an admin one setting change. This
+// deliberately does not try to tell a fresh install from an upgrade. Once v1 is no longer
+// prepackaged the default is v2.
+func resolveCallsVersion(installed *model.Manifest, candidates []*model.Manifest) string {
+	if installed != nil {
+		return callsVersionFromPluginVersion(installed.Version)
 	}
-	return callsVersionFromPluginVersion(installed.Version)
+	for _, m := range candidates {
+		if callsVersionFromPluginVersion(m.Version) == model.PluginCallsVersionV1 {
+			return model.PluginCallsVersionV1
+		}
+	}
+	return model.PluginCallsVersionV2
 }
 
 // selectCallsBundle picks which of the prepackaged Calls manifests to install for the wanted
@@ -92,13 +103,14 @@ func callsInstallStrategy(chosen, installed *model.Manifest, installedIsManual b
 }
 
 // ensureCallsVersion returns the effective CallsVersion, resolving and persisting it first if
-// the setting is empty. installed is the Calls manifest unpacked locally, or nil.
-func (ch *Channels) ensureCallsVersion(installed *model.Manifest) string {
+// the setting is empty. installed is the Calls manifest unpacked locally, or nil, and candidates
+// are the prepackaged Calls manifests.
+func (ch *Channels) ensureCallsVersion(installed *model.Manifest, candidates []*model.Manifest) string {
 	if v := *ch.cfgSvc.Config().PluginSettings.CallsVersion; v != "" {
 		return v
 	}
 
-	resolved := resolveCallsVersion(installed)
+	resolved := resolveCallsVersion(installed, candidates)
 	ch.srv.Log().Info("Resolved empty Calls version setting", mlog.String("calls_version", resolved))
 	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
 		if *cfg.PluginSettings.CallsVersion == "" {
