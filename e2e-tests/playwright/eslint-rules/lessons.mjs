@@ -42,10 +42,16 @@ function firstArgText(node) {
     return null;
 }
 
-// True when `node` is evaluated as a condition: an if, ternary, loop or logical operand,
-// optionally compared for equality first.
+// True when `node` is evaluated as a condition: an if, ternary or loop test (never a for loop's
+// init or update), or a logical operand of one, optionally compared for equality first.
 const PASS_THROUGH = new Set(['LogicalExpression', 'UnaryExpression', 'AwaitExpression', 'TSNonNullExpression']);
-const CONDITIONAL = new Set(['IfStatement', 'ConditionalExpression', 'WhileStatement', 'DoWhileStatement']);
+const CONDITIONAL = new Set([
+    'IfStatement',
+    'ConditionalExpression',
+    'WhileStatement',
+    'DoWhileStatement',
+    'ForStatement',
+]);
 const EQUALITY = new Set(['===', '!==', '==', '!=']);
 
 function passesThrough(parent) {

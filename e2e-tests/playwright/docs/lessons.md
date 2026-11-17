@@ -90,7 +90,8 @@ or when it caused a master failure. Give it the next id and one rule in a
 sentence or two in the Lessons table, and add its source to the Sources table.
 It goes in `AGENTS.md` too only when lint can't catch it. If a lint rule can
 catch it, add it to `lessonsConfig` in `eslint-rules/lessons.mjs` (a new rule in
-that file, or a `playwright/` rule) in the same PR. A rule that many open PRs would break can start in
+that file, or a `playwright/` rule) in the same PR, with cases in
+`eslint-rules/lessons.test.mjs` (`npm run test:lint-rules`). A rule that many open PRs would break can start in
 `REPORT_ONLY_RULES`. When a lesson's rule has no violations left anywhere, move
 it into `eslint.config.mjs` as a plain error. The E2E Autofix weekly
 retrospective opens such PRs from reviewer feedback; a human merging the PR is
