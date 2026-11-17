@@ -41,7 +41,7 @@ func (a *App) CreatePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 		return nil, model.NewAppError("CreatePropertyFieldOptions", "app.property_field.options.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID, false)
 	return created, nil
 }
 
@@ -56,7 +56,7 @@ func (a *App) UpdatePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 		return nil, nil, model.NewAppError("UpdatePropertyFieldOptions", "app.property_field.options.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID, false)
 	return updated, prior, nil
 }
 
@@ -72,7 +72,7 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 		return nil, model.NewAppError("DeletePropertyFieldOptions", "app.property_field.options.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID)
+	a.propertyFieldOptionsChanged(rctx, groupID, fieldID, connectionID, true)
 	return deleted, nil
 }
 
@@ -100,8 +100,15 @@ func (a *App) DeletePropertyFieldOptions(rctx request.CTX, groupID, fieldID stri
 // The invalidation runs before the broadcast, so that a client acting on the event
 // cannot read back a cache entry the event was announcing the end of. This is the
 // ordering the field write path uses, for the same reason.
-func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, connectionID string) {
+//
+// removed says the change soft-deleted options. The attribute views are then
+// refreshed first of all, so that a removed option stops granting with this
+// change rather than with the next periodic refresh.
+func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, connectionID string, removed bool) {
 	current, dependents, err := a.Srv().propertyService.FieldWithDependents(rctx, groupID, fieldID)
+	if removed && (err != nil || anyAttributeViewObjectType(append([]*model.PropertyField{current}, dependents...))) {
+		a.refreshAttributeViewsAfterOptionRemoval(rctx)
+	}
 	if err != nil {
 		// Which fields' policies went stale is unknown -- that is exactly what
 		// this read failed to produce -- so every compiled policy is dropped

@@ -500,6 +500,21 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 		return nil, nil, model.NewAppError("UpdatePropertyFields", "app.property_field.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// Before any cache is dropped, so that none can refill from the projection
+	// the refresh replaces.
+	if anyAttributeViewObjectType(updated) || anyAttributeViewObjectType(propagated) {
+		updatedByID := make(map[string]*model.PropertyField, len(updated))
+		for _, field := range updated {
+			updatedByID[field.ID] = field
+		}
+		for _, f := range fields {
+			if dropsOptions(f, existingByID[f.ID], updatedByID[f.ID]) {
+				a.refreshAttributeViewsAfterOptionRemoval(rctx)
+				break
+			}
+		}
+	}
+
 	// This runs before the websocket broadcast so a client reacting to the
 	// event never re-reads stale cached metadata (mirrors the ordering in
 	// DeletePropertyField).
@@ -550,6 +565,73 @@ func anyUserObjectType(fields []*model.PropertyField) bool {
 	return false
 }
 
+// anyAttributeViewObjectType reports whether any field is one of the attribute views reads: a
+// user field, which subjects match on, or a channel field, which resources do.
+func anyAttributeViewObjectType(fields []*model.PropertyField) bool {
+	for _, f := range fields {
+		if f != nil && (f.ObjectType == model.PropertyFieldObjectTypeUser || f.ObjectType == model.PropertyFieldObjectTypeChannel) {
+			return true
+		}
+	}
+	return false
+}
+
+// dropsOptions reports whether a field write soft-deleted options: the write carried an option
+// list, which replaces the owned one, and an option the field served before is not in what it
+// serves after. A list that is withheld or cannot be read cannot be compared, so it counts as
+// dropping options whenever the write carried a list.
+func dropsOptions(incoming, before, after *model.PropertyField) bool {
+	if incoming == nil || !incoming.Type.SupportsOptions() || model.PropertyFieldOptionsOmitted(incoming.Attrs) {
+		return false
+	}
+	if before == nil || after == nil {
+		return true
+	}
+	beforeIDs, beforeOK := optionIDs(before)
+	afterIDs, afterOK := optionIDs(after)
+	if !beforeOK || !afterOK {
+		return true
+	}
+	kept := make(map[string]bool, len(afterIDs))
+	for _, id := range afterIDs {
+		kept[id] = true
+	}
+	for _, id := range beforeIDs {
+		if !kept[id] {
+			return true
+		}
+	}
+	return false
+}
+
+// optionIDs returns the identifiers in a field's inline option list, and false when the list is
+// withheld or unreadable. The list reaches the app layer as []any of map[string]any, or as typed
+// options from a Go caller, so it is read through JSON.
+func optionIDs(field *model.PropertyField) ([]string, bool) {
+	if model.PropertyFieldOptionsOmitted(field.Attrs) {
+		return nil, false
+	}
+	raw, ok := field.Attrs[model.PropertyFieldAttributeOptions]
+	if !ok || raw == nil {
+		return nil, true
+	}
+	encoded, err := json.Marshal(raw)
+	if err != nil {
+		return nil, false
+	}
+	var options []struct {
+		ID string `json:"id"`
+	}
+	if err := json.Unmarshal(encoded, &options); err != nil {
+		return nil, false
+	}
+	ids := make([]string, 0, len(options))
+	for _, option := range options {
+		ids = append(ids, option.ID)
+	}
+	return ids, true
+}
+
 // isAccessControlGroup reports whether groupID is the access_control group.
 // There the AccessControlHook decides a protected field's writes from its
 // Permissions, so the app layer's blanket protected guard must not run first.
@@ -593,6 +675,11 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 			return appErr
 		}
 		return model.NewAppError("DeletePropertyField", "app.property_field.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// Deleting the field soft-deletes the options it owns.
+	if existing.Type.SupportsOptions() && anyAttributeViewObjectType([]*model.PropertyField{existing}) {
+		a.refreshAttributeViewsAfterOptionRemoval(rctx)
 	}
 
 	// The matview filters out soft-deleted fields, so this attribute disappears from every subject

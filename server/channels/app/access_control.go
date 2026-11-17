@@ -3069,6 +3069,26 @@ func (a *App) invalidateAttributeViewCache() {
 	}
 }
 
+// refreshAttributeViewsAfterOptionRemoval refreshes the attribute views before returning, for a
+// write that soft-deleted options of a field the views read, or the field itself.
+//
+// Until they are refreshed the views still project a removed option by name, so it keeps granting
+// under positive rules for as long as the read-side throttles leave them alone. Refreshing here
+// bounds that window by the write instead. The views are shared by every node, so one refresh is
+// seen cluster-wide, which the node-local marker invalidateAttributeViewCache sets is not.
+//
+// Callers run this before dropping the attribute caches, so that a cache refilled in between
+// cannot capture the projection from before the refresh.
+//
+// A failed refresh does not fail the write, which has already committed. The views are marked
+// stale instead, and the next read on this node refreshes them.
+func (a *App) refreshAttributeViewsAfterOptionRemoval(rctx request.CTX) {
+	if err := a.Srv().Store().Attributes().RefreshAttributes(); err != nil {
+		rctx.Logger().Error("Failed to refresh the attribute views after options were removed; holders of a removed option keep what it granted until the next refresh", mlog.Err(err))
+		a.invalidateAttributeViewCache()
+	}
+}
+
 // refreshAttributeViewIfStale refreshes the attribute materialized views if the
 // last refresh was more than attributeViewRefreshInterval ago. The refresh is
 // non-blocking: if another goroutine is already refreshing, this call returns

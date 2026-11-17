@@ -34,6 +34,7 @@ func TestAttributesStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	t.Run("RefreshAndGet", func(t *testing.T) { testAttributesStoreRefresh(t, rctx, ss) })
 	t.Run("GetChannelSubject", func(t *testing.T) { testAttributesStoreGetChannelSubject(t, rctx, ss) })
 	t.Run("EmptyMultiselect", func(t *testing.T) { testAttributesStoreEmptyMultiselect(t, rctx, ss) })
+	t.Run("DeletedOptions", func(t *testing.T) { testAttributesStoreDeletedOptions(t, rctx, ss) })
 	t.Run("SearchUsers", func(t *testing.T) { testAttributesStoreSearchUsers(t, rctx, ss, s) })
 	t.Run("SearchUsersBySubjectID", func(t *testing.T) { testAttributesStoreSearchUsersBySubjectID(t, rctx, ss, s) })
 	t.Run("GetChannelMembersToRemove", func(t *testing.T) { testAttributesStoreGetChannelMembersToRemove(t, rctx, ss, s) })
@@ -357,6 +358,176 @@ func testAttributesStoreEmptyMultiselect(t *testing.T, rctx request.CTX, ss stor
 		subject, err := ss.Attributes().GetSubject(rctx, fullChannelID, groupID, model.PropertyFieldObjectTypeChannel)
 		require.NoError(t, err)
 		require.ElementsMatch(t, []any{"blue", "green"}, subject.Attributes["tags"])
+	})
+}
+
+// testAttributesStoreDeletedOptions pins migration 000243 (MM-71837): an attribute whose value names
+// an option that is not live is left out of the views, so a deleted option can never be the reason
+// a rule passes, under a negation either. Leaving it out rather than projecting what is left of the
+// value costs the options a multiselect or graph still holds; a value naming no option at all
+// projects as before.
+func testAttributesStoreDeletedOptions(t *testing.T, rctx request.CTX, ss store.Store) {
+	group, err := ss.PropertyGroup().Register(&model.PropertyGroup{Name: model.NewId(), Version: model.PropertyGroupVersionV1})
+	require.NoError(t, err)
+	groupID := group.ID
+
+	newField := func(t *testing.T, fieldType model.PropertyFieldType, objectType string, linkedTo *model.PropertyField, options ...map[string]any) *model.PropertyField {
+		t.Helper()
+		field := &model.PropertyField{
+			GroupID:    groupID,
+			Name:       "f_" + model.NewId(),
+			Type:       fieldType,
+			ObjectType: objectType,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+		}
+		if len(options) > 0 {
+			list := make([]any, len(options))
+			for i, o := range options {
+				list[i] = o
+			}
+			field.Attrs = map[string]any{"options": list}
+		}
+		if linkedTo != nil {
+			field.LinkedFieldID = &linkedTo.ID
+		}
+		created, cErr := ss.PropertyField().Create(field)
+		require.NoError(t, cErr)
+		t.Cleanup(func() { require.NoError(t, ss.PropertyField().Delete(groupID, created.ID)) })
+		return created
+	}
+	opt := func(name string, extra ...any) map[string]any {
+		o := map[string]any{"id": model.NewId(), "name": name}
+		for i := 0; i+1 < len(extra); i += 2 {
+			o[extra[i].(string)] = extra[i+1]
+		}
+		return o
+	}
+	id := func(o map[string]any) string { return o["id"].(string) }
+	set := func(t *testing.T, field *model.PropertyField, targetID string, value any) {
+		t.Helper()
+		raw, mErr := json.Marshal(value)
+		require.NoError(t, mErr)
+		pv, cErr := ss.PropertyValue().Create(&model.PropertyValue{
+			TargetID:   targetID,
+			TargetType: field.ObjectType,
+			GroupID:    groupID,
+			FieldID:    field.ID,
+			Value:      raw,
+		})
+		require.NoError(t, cErr)
+		t.Cleanup(func() { require.NoError(t, ss.PropertyValue().Delete(groupID, pv.ID)) })
+	}
+	deleteOptions := func(t *testing.T, field *model.PropertyField, options ...map[string]any) {
+		t.Helper()
+		current, gErr := ss.PropertyField().Get(rctx, groupID, field.ID)
+		require.NoError(t, gErr)
+		ids := make([]string, len(options))
+		for i, o := range options {
+			ids[i] = id(o)
+		}
+		require.NoError(t, ss.PropertyField().DeleteOptions(groupID, field.ID, current.UpdateAt, ids))
+	}
+	attributes := func(t *testing.T, targetID, objectType string) (map[string]any, bool) {
+		t.Helper()
+		subject, gErr := ss.Attributes().GetSubject(rctx, targetID, groupID, objectType)
+		if gErr != nil {
+			require.IsType(t, &store.ErrNotFound{}, gErr)
+			return nil, false
+		}
+		return subject.Attributes, true
+	}
+
+	gone, kept := opt("gone"), opt("kept")
+	selectField := newField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeUser, nil, gone, kept)
+	low, high := opt("Low", "rank", 1), opt("High", "rank", 2)
+	rankField := newField(t, model.PropertyFieldTypeRank, model.PropertyFieldObjectTypeUser, nil, low, high)
+	blue, green := opt("blue"), opt("green")
+	multiField := newField(t, model.PropertyFieldTypeMultiselect, model.PropertyFieldObjectTypeUser, nil, blue, green)
+	g1, g2, g3 := opt("g1"), opt("g2"), opt("g3")
+	graphField := newField(t, model.PropertyFieldTypeGraph, model.PropertyFieldObjectTypeUser, nil, g1, g2, g3)
+	textField := newField(t, model.PropertyFieldTypeText, model.PropertyFieldObjectTypeUser, nil)
+	t1 := opt("t1")
+	template := newField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeTemplate, nil, t1)
+	linkedField := newField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeUser, template)
+	channelGone, channelKept := opt("c_gone"), opt("c_kept")
+	channelField := newField(t, model.PropertyFieldTypeSelect, model.PropertyFieldObjectTypeChannel, nil, channelGone, channelKept)
+
+	heldSelect, heldRank, heldMulti, heldGraph := model.NewId(), model.NewId(), model.NewId(), model.NewId()
+	heldNothing, heldLive, onlyDeleted, channelID := model.NewId(), model.NewId(), model.NewId(), model.NewId()
+
+	set(t, selectField, heldSelect, id(gone))
+	set(t, textField, heldSelect, "still here")
+	set(t, rankField, heldRank, id(high))
+	set(t, multiField, heldMulti, []string{id(blue), id(green)})
+	set(t, graphField, heldGraph, []string{id(g1), id(g2)})
+	set(t, multiField, heldNothing, []string{})
+	set(t, graphField, heldNothing, []string{})
+	set(t, selectField, heldLive, id(kept))
+	set(t, multiField, heldLive, []string{id(blue)})
+	set(t, graphField, heldLive, []string{id(g3)})
+	set(t, linkedField, heldLive, id(t1))
+	set(t, selectField, onlyDeleted, id(gone))
+	set(t, channelField, channelID, id(channelGone))
+
+	require.NoError(t, ss.Attributes().RefreshAttributes())
+	before, ok := attributes(t, heldMulti, model.PropertyFieldObjectTypeUser)
+	require.True(t, ok)
+	require.ElementsMatch(t, []any{"blue", "green"}, before[multiField.Name])
+
+	deleteOptions(t, selectField, gone)
+	deleteOptions(t, rankField, high)
+	deleteOptions(t, multiField, green)
+	deleteOptions(t, graphField, g1, g2)
+	deleteOptions(t, channelField, channelGone)
+	require.NoError(t, ss.Attributes().RefreshAttributes())
+
+	t.Run("a deleted select is left out, and the subject keeps its other attributes", func(t *testing.T) {
+		attrs, ok := attributes(t, heldSelect, model.PropertyFieldObjectTypeUser)
+		require.True(t, ok)
+		require.NotContains(t, attrs, selectField.Name)
+		require.Equal(t, "still here", attrs[textField.Name])
+	})
+
+	t.Run("a deleted rank is left out", func(t *testing.T) {
+		_, ok := attributes(t, heldRank, model.PropertyFieldObjectTypeUser)
+		require.False(t, ok, "the subject held nothing else, so it should have no row")
+	})
+
+	t.Run("a multiselect that lost one of its two options is left out whole", func(t *testing.T) {
+		_, ok := attributes(t, heldMulti, model.PropertyFieldObjectTypeUser)
+		require.False(t, ok)
+	})
+
+	t.Run("a graph value whose options are all deleted is left out", func(t *testing.T) {
+		_, ok := attributes(t, heldGraph, model.PropertyFieldObjectTypeUser)
+		require.False(t, ok)
+	})
+
+	t.Run("a subject holding only a deleted option has no row", func(t *testing.T) {
+		_, ok := attributes(t, onlyDeleted, model.PropertyFieldObjectTypeUser)
+		require.False(t, ok)
+	})
+
+	t.Run("an empty multiselect and graph project as before", func(t *testing.T) {
+		attrs, ok := attributes(t, heldNothing, model.PropertyFieldObjectTypeUser)
+		require.True(t, ok)
+		require.Contains(t, attrs, multiField.Name)
+		require.Nil(t, attrs[multiField.Name])
+		require.Equal(t, []any{}, attrs[graphField.Name])
+	})
+
+	t.Run("live options project as before, a linked field's included", func(t *testing.T) {
+		attrs, ok := attributes(t, heldLive, model.PropertyFieldObjectTypeUser)
+		require.True(t, ok)
+		require.Equal(t, "kept", attrs[selectField.Name])
+		require.Equal(t, []any{"blue"}, attrs[multiField.Name])
+		require.Equal(t, []any{id(g3)}, attrs[graphField.Name])
+		require.Equal(t, "t1", attrs[linkedField.Name])
+	})
+
+	t.Run("a channel holding a deleted option is left out of the channel view", func(t *testing.T) {
+		_, ok := attributes(t, channelID, model.PropertyFieldObjectTypeChannel)
+		require.False(t, ok)
 	})
 }
 
