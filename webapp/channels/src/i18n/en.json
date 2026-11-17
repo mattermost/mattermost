@@ -3864,7 +3864,7 @@
     "description": "Row label in the Connection Security help table (SMTP/LDAP admin settings); STARTTLS is a protocol name and should not be translated."
   },
   "admin.connectionSecurityStartDescription": {
-    "defaultMessage": "Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.",
+    "defaultMessage": "Upgrades an existing insecure connection to TLS. The connection fails if the server doesn't support STARTTLS.",
     "description": "Description of the 'STARTTLS' option in the Connection Security dropdown used by System Console settings such as SMTP and LDAP."
   },
   "admin.connectionSecurityTitle": {
