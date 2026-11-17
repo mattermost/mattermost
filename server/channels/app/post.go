@@ -221,6 +221,11 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		if !a.Config().FeatureFlags.PostAttributes {
 			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
 		}
+		// Readers get a post's values from property_values_updated and the property value API,
+		// and neither knows whether a reader has revealed a burn-on-read post.
+		if post.Type == model.PostTypeBurnOnRead {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_burn_on_read.app_error", nil, "", http.StatusBadRequest)
+		}
 		// Callers other than the API and the plugin API reach this without
 		// PreparePostPropertyValuesForCreate, and a nil value would only be caught after the
 		// post is saved, by a dereference.

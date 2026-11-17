@@ -970,11 +970,9 @@ func TestCreatePostPropertyValues(t *testing.T) {
 		assert.JSONEq(t, model.PropertyValueWithheldJSON, byField[restrictedField.ID])
 	})
 
-	// CreatePost hands the author's post back carrying the values. PreparePostForClient
-	// replaces Metadata wholesale for an unrevealed burn-on-read post, so preparing that post
-	// for anyone else cannot leak them to a non-author. Pinned here because the two are far
-	// apart and nothing else couples them.
-	t.Run("an unrevealed burn-on-read post carries no values for a non-author", func(t *testing.T) {
+	// property_values_updated and the property value API would hand the values to channel
+	// members who haven't revealed the post, so the post is refused before it is saved.
+	t.Run("a burn-on-read post with values is refused before it is saved", func(t *testing.T) {
 		th := setupPropertyValuesCreateTest(t, true)
 		th.asUser(t, th.BasicUser.Id)
 
@@ -984,19 +982,15 @@ func TestCreatePostPropertyValues(t *testing.T) {
 		})
 
 		field := th.createField(t, string(model.PropertyFieldTargetLevelChannel), th.BasicChannel.Id, "sensitivity")
+		posts := th.watchPostStore(t, nil)
 
-		// The viewer joins before the post exists. With a recipient who has not read it, the
-		// post stays unrevealed and Metadata.ExpireAt stays zero, which is the condition the
-		// blanking branch keys on.
-		viewer := th.CreateUser(t)
-		th.LinkUserToTeam(t, viewer, th.BasicTeam)
-		th.AddUserToChannel(t, viewer, th.BasicChannel)
-
+		pendingPostID := model.NewId()
 		borPost := &model.Post{
-			ChannelId: th.BasicChannel.Id,
-			UserId:    th.BasicUser.Id,
-			Message:   "burn after reading",
-			Type:      model.PostTypeBurnOnRead,
+			ChannelId:     th.BasicChannel.Id,
+			UserId:        th.BasicUser.Id,
+			Message:       "burn after reading",
+			Type:          model.PostTypeBurnOnRead,
+			PendingPostId: pendingPostID,
 			Metadata: &model.PostMetadata{
 				PropertyValues: []*model.PropertyValue{th.staged(field, `"confidential"`)},
 			},
@@ -1004,16 +998,25 @@ func TestCreatePostPropertyValues(t *testing.T) {
 		borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*60*1000))
 
 		created, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
-		// The author's own response still carries them, so this is withholding and not a
-		// failure to write.
-		require.Len(t, created.Metadata.PropertyValues, 1)
-		assert.Equal(t, []string{field.ID}, th.storedValueFieldIDs(t, created.Id))
+		require.NotNil(t, appErr)
+		assert.Equal(t, "api.post.create_post.attributes_burn_on_read.app_error", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		assert.Nil(t, created)
+		assert.Empty(t, posts.savedIDs)
+		assert.Empty(t, posts.deletedIDs)
+		th.assertPendingPostIDReleased(t, pendingPostID)
 
-		th.asUser(t, viewer.Id)
-		prepared := th.App.PreparePostForClient(th.Context, created, &model.PreparePostForClientOpts{})
-		require.NotNil(t, prepared.Metadata)
-		assert.Empty(t, prepared.Metadata.PropertyValues)
+		t.Run("without values it is created as before", func(t *testing.T) {
+			borPost := &model.Post{
+				ChannelId: th.BasicChannel.Id,
+				UserId:    th.BasicUser.Id,
+				Message:   "burn after reading",
+				Type:      model.PostTypeBurnOnRead,
+			}
+			borPost.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(10*60*1000))
+			_, _, appErr := th.App.CreatePost(th.Context, borPost, th.BasicChannel, model.CreatePostFlags{})
+			require.Nil(t, appErr)
+		})
 	})
 }
 

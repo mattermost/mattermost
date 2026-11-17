@@ -3834,6 +3834,11 @@
     "description": "API error when a post is created with a value for a post attribute the author is not allowed to set; the attribute is deliberately not named. 'Post attributes' are custom fields admins define for posts."
   },
   {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Burn-on-read posts can't have post attributes.",
+    "description": "API error when a burn-on-read post is created with post attribute values. 'Burn-on-read' is the self-destructing message feature name; 'post attributes' are custom fields admins define for posts."
+  },
+  {
     "id": "api.post.create_post.attributes_feature_disabled.app_error",
     "translation": "Post attributes are not enabled on this server.",
     "description": "API error when a post is created with post attribute values while the post attributes feature is turned off on the server. 'Post attributes' are custom fields admins define for posts."

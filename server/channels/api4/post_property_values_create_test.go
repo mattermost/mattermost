@@ -482,6 +482,43 @@ func TestCreatePostWithPropertyValues(t *testing.T) {
 	})
 }
 
+func TestCreatePostWithPropertyValuesBurnOnRead(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := setupPostPropertyCreateTest(t, true)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableBurnOnRead = new(true)
+	})
+	field := th.createField(t, model.PropertyFieldTargetLevelChannel, th.BasicChannel.Id, model.PermissionLevelMember)
+
+	t.Run("a burn-on-read post with values is refused and nothing is stored", func(t *testing.T) {
+		post := postWithPropertyValues(th.BasicChannel.Id, submittedPropertyValue(field.ID, `"x"`))
+		post.Type = model.PostTypeBurnOnRead
+
+		_, resp, err := th.Client.CreatePost(context.Background(), post)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.post.create_post.attributes_burn_on_read.app_error")
+
+		posts, _, err := th.Client.GetPostsForChannel(context.Background(), th.BasicChannel.Id, 0, 60, "", false, false)
+		require.NoError(t, err)
+		for _, p := range posts.Posts {
+			assert.NotEqual(t, post.Message, p.Message, "the refused post was saved")
+		}
+	})
+
+	t.Run("a burn-on-read post without values is created", func(t *testing.T) {
+		_, resp, err := th.Client.CreatePost(context.Background(), &model.Post{
+			ChannelId: th.BasicChannel.Id,
+			Message:   "burn after reading " + model.NewId(),
+			Type:      model.PostTypeBurnOnRead,
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+	})
+}
+
 func TestCreatePostWithPropertyValuesFeatureFlagOff(t *testing.T) {
 	mainHelper.Parallel(t)
 
