@@ -421,7 +421,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 
 		// Rank-type gate: block converting a field to rank while the feature
 		// flag is off (shares the create-path check).
-		if err := a.rankPropertyFieldGate("UpdatePropertyFields", f); err != nil {
+		if err = a.rankPropertyFieldGate("UpdatePropertyFields", f); err != nil {
 			return nil, nil, model.AsAppError(err)
 		}
 
