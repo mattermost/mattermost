@@ -62,7 +62,7 @@ function isRunActive(job: Job): boolean {
     if (job.status === 'in_progress' && Date.now() - job.last_activity_at > STALE_RUN_AFTER) {
         return false;
     }
-    return job.status === 'pending' || job.status === 'in_progress' || job.status === 'cancel_requested';
+    return job.status === 'pending' || job.status === 'in_progress';
 }
 
 const runStartErrorMessage = defineMessage({

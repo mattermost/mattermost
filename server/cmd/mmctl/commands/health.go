@@ -123,15 +123,14 @@ func runHealthCheckAndWait(ctx context.Context, c client.Client, timeout time.Du
 	defer ticker.Stop()
 	for {
 		switch job.Status {
+		case model.JobStatusPending, model.JobStatusInProgress:
 		case model.JobStatusSuccess, model.JobStatusWarning:
 			return nil
-		case model.JobStatusError:
+		default:
 			if msg := job.Data["error"]; msg != "" {
 				return fmt.Errorf("health check run %s failed: %s", job.Id, msg)
 			}
 			return fmt.Errorf("health check run %s failed", job.Id)
-		case model.JobStatusCanceled:
-			return fmt.Errorf("health check run %s was canceled", job.Id)
 		}
 
 		select {

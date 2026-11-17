@@ -304,26 +304,6 @@ func (s *MmctlUnitTestSuite) TestHealthRun() {
 		s.Empty(printer.GetLines())
 	})
 
-	s.Run("a run being canceled is followed until it is canceled", func() {
-		printer.Clean()
-
-		started := healthTestJob(model.JobStatusInProgress, 100)
-		cancelRequested := *started
-		cancelRequested.Status = model.JobStatusCancelRequested
-		canceled := *started
-		canceled.Status = model.JobStatusCanceled
-
-		gomock.InOrder(
-			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&cancelRequested, &model.Response{}, nil).Times(1),
-			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&canceled, &model.Response{}, nil).Times(1),
-		)
-
-		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
-		s.Require().EqualError(err, "health check run "+started.Id+" was canceled")
-		s.Empty(printer.GetLines())
-	})
-
 	s.Run("timeout", func() {
 		printer.Clean()
 
