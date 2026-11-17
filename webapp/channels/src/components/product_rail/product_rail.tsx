@@ -79,10 +79,13 @@ const threadsRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/threads`;
 
 const productTab = (product: ProductComponent): ProductRailTab => `product:${product.id}`;
 
-// The products that sit with Threads, Channels and Boards at the top of the rail, in this order, by
-// plugin id. Any other product a plugin registers goes to the bottom.
+// The products that follow Threads, Channels and Boards in the rail, in this order, by plugin id.
+// Any other product a plugin registers comes right after them, in the order it registered.
 const DEFAULT_PRODUCT_PLUGIN_IDS = ['mattermost-ai', 'playbooks'];
-const defaultProductRank = (product: ProductComponent) => DEFAULT_PRODUCT_PLUGIN_IDS.indexOf(product.pluginId || product.id);
+const defaultProductRank = (product: ProductComponent) => {
+    const rank = DEFAULT_PRODUCT_PLUGIN_IDS.indexOf(product.pluginId || product.id);
+    return rank === -1 ? DEFAULT_PRODUCT_PLUGIN_IDS.length : rank;
+};
 
 // Where each rail item last was, saved per user so it outlasts a reload. Reading and writing are
 // best-effort: without storage, the rail just starts from each item's default again.
@@ -291,9 +294,8 @@ export default function ProductRail() {
         );
     };
 
-    const defaultProducts = products.filter((product) => defaultProductRank(product) !== -1).
-        sort((a, b) => defaultProductRank(a) - defaultProductRank(b));
-    const otherProducts = products.filter((product) => defaultProductRank(product) === -1);
+    // A stable sort, so products with no rank keep their registration order after the ranked ones.
+    const sortedProducts = [...products].sort((a, b) => defaultProductRank(a) - defaultProductRank(b));
 
     const threadsItem = threadsEnabled && (
         <ProductRailItem
@@ -394,12 +396,7 @@ export default function ProductRail() {
             {channelsItem}
             {boardsItem}
             {pluginSectionItems}
-            {defaultProducts.map(renderProduct)}
-            {otherProducts.length > 0 && (
-                <div className='ProductRail__bottom'>
-                    {otherProducts.map(renderProduct)}
-                </div>
-            )}
+            {sortedProducts.map(renderProduct)}
         </nav>
     );
 }
