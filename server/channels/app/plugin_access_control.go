@@ -26,7 +26,7 @@ const (
 
 // pluginAccessControlScopeCheck validates resourceType's format and that its
 // plugin-ID prefix matches pluginID.
-func (a *App) pluginAccessControlScopeCheck(where, pluginID, resourceType string) *model.AppError {
+func (a *App) pluginAccessControlScopeCheck(where, pluginID, resourceType string) error {
 	if !model.IsPluginAccessControlPolicyType(resourceType) {
 		return model.NewAppError(where, "app.access_control.plugin.invalid_resource_type.app_error", nil, resourceType, http.StatusBadRequest)
 	}
@@ -47,7 +47,7 @@ func (a *App) pluginAccessControlAvailable() bool {
 
 // validatePluginActingUser validates actingUserID is a well-formed ID of an
 // existing user. Permission checks are the calling plugin's responsibility.
-func (a *App) validatePluginActingUser(rctx request.CTX, where, actingUserID string) *model.AppError {
+func (a *App) validatePluginActingUser(rctx request.CTX, where, actingUserID string) error {
 	if !model.IsValidId(actingUserID) {
 		return model.NewAppError(where, "app.access_control.plugin.invalid_acting_user.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -104,8 +104,8 @@ func (a *App) resolvePluginPolicyExistence(rctx request.CTX, where, pluginID, re
 // policy existing under the resource ID whose rules could not be evaluated — is
 // an AppError the caller must treat as a deny.
 func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, resourceType, resourceID, action string) (*model.AccessDecision, *model.AppError) {
-	if appErr := a.pluginAccessControlScopeCheck("EvaluatePluginAccessRequest", pluginID, resourceType); appErr != nil {
-		return nil, appErr
+	if err := a.pluginAccessControlScopeCheck("EvaluatePluginAccessRequest", pluginID, resourceType); err != nil {
+		return nil, model.AsAppError(err)
 	}
 	if !model.IsValidPolicyAction(action) {
 		return nil, model.NewAppError("EvaluatePluginAccessRequest", "app.access_control.plugin.invalid_action.app_error", nil, "action="+action, http.StatusBadRequest)
@@ -188,11 +188,11 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 		return nil, model.NewAppError("SavePluginAccessControlPolicy", "app.access_control.plugin.invalid_id.app_error", nil, "policy ID is required", http.StatusBadRequest)
 	}
 
-	if appErr := a.pluginAccessControlScopeCheck("SavePluginAccessControlPolicy", pluginID, policy.Type); appErr != nil {
-		return nil, appErr
+	if err := a.pluginAccessControlScopeCheck("SavePluginAccessControlPolicy", pluginID, policy.Type); err != nil {
+		return nil, model.AsAppError(err)
 	}
-	if appErr := a.validatePluginActingUser(rctx, "SavePluginAccessControlPolicy", actingUserID); appErr != nil {
-		return nil, appErr
+	if err := a.validatePluginActingUser(rctx, "SavePluginAccessControlPolicy", actingUserID); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	policy.Version = model.AccessControlPolicyVersionV0_5
@@ -337,11 +337,11 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 		return model.NewAppError(where, "app.pap.delete_policy.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
 
-	if appErr := a.pluginAccessControlScopeCheck(where, pluginID, resourceType); appErr != nil {
-		return appErr
+	if err := a.pluginAccessControlScopeCheck(where, pluginID, resourceType); err != nil {
+		return model.AsAppError(err)
 	}
-	if appErr := a.validatePluginActingUser(rctx, where, actingUserID); appErr != nil {
-		return appErr
+	if err := a.validatePluginActingUser(rctx, where, actingUserID); err != nil {
+		return model.AsAppError(err)
 	}
 	if !model.IsValidId(id) {
 		return model.NewAppError(where, "app.access_control.plugin.invalid_id.app_error", nil, "", http.StatusBadRequest)
@@ -372,11 +372,11 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 // CheckPluginAccessControlExpression compiles and lints a CEL expression for
 // a plugin-owned resource type; an empty slice means the expression is valid.
 func (a *App) CheckPluginAccessControlExpression(rctx request.CTX, pluginID, actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
-	if appErr := a.pluginAccessControlScopeCheck("CheckPluginAccessControlExpression", pluginID, resourceType); appErr != nil {
-		return nil, appErr
+	if err := a.pluginAccessControlScopeCheck("CheckPluginAccessControlExpression", pluginID, resourceType); err != nil {
+		return nil, model.AsAppError(err)
 	}
-	if appErr := a.validatePluginActingUser(rctx, "CheckPluginAccessControlExpression", actingUserID); appErr != nil {
-		return nil, appErr
+	if err := a.validatePluginActingUser(rctx, "CheckPluginAccessControlExpression", actingUserID); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return a.CheckExpression(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)
@@ -386,11 +386,11 @@ func (a *App) CheckPluginAccessControlExpression(rctx request.CTX, pluginID, act
 // expression (test-modal support for plugin policy editors). limit is clamped
 // to (0, pluginAccessControlQueryLimitMax].
 func (a *App) QueryUsersForPluginAccessControlExpression(rctx request.CTX, pluginID, actingUserID, resourceType, expression, term, cursorID string, limit int) (*model.AccessControlPolicyTestResponse, *model.AppError) {
-	if appErr := a.pluginAccessControlScopeCheck("QueryUsersForPluginAccessControlExpression", pluginID, resourceType); appErr != nil {
-		return nil, appErr
+	if err := a.pluginAccessControlScopeCheck("QueryUsersForPluginAccessControlExpression", pluginID, resourceType); err != nil {
+		return nil, model.AsAppError(err)
 	}
-	if appErr := a.validatePluginActingUser(rctx, "QueryUsersForPluginAccessControlExpression", actingUserID); appErr != nil {
-		return nil, appErr
+	if err := a.validatePluginActingUser(rctx, "QueryUsersForPluginAccessControlExpression", actingUserID); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	if limit <= 0 {
@@ -424,8 +424,8 @@ func (a *App) GetPluginAccessControlFieldsAutocomplete(rctx request.CTX, pluginI
 	if a.Srv().ch.AccessControl == nil {
 		return nil, model.NewAppError("GetPluginAccessControlFieldsAutocomplete", "app.pap.get_access_control_auto_complete.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)
 	}
-	if appErr := a.validatePluginActingUser(rctx, "GetPluginAccessControlFieldsAutocomplete", actingUserID); appErr != nil {
-		return nil, appErr
+	if err := a.validatePluginActingUser(rctx, "GetPluginAccessControlFieldsAutocomplete", actingUserID); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	if limit <= 0 {
@@ -448,11 +448,11 @@ func (a *App) GetPluginAccessControlFieldsAutocomplete(rctx request.CTX, pluginI
 // GetPluginAccessControlVisualAST converts a CEL expression to the visual
 // (table) AST for plugin policy editors.
 func (a *App) GetPluginAccessControlVisualAST(rctx request.CTX, pluginID, actingUserID, resourceType, expression string) (*model.VisualExpression, *model.AppError) {
-	if appErr := a.pluginAccessControlScopeCheck("GetPluginAccessControlVisualAST", pluginID, resourceType); appErr != nil {
-		return nil, appErr
+	if err := a.pluginAccessControlScopeCheck("GetPluginAccessControlVisualAST", pluginID, resourceType); err != nil {
+		return nil, model.AsAppError(err)
 	}
-	if appErr := a.validatePluginActingUser(rctx, "GetPluginAccessControlVisualAST", actingUserID); appErr != nil {
-		return nil, appErr
+	if err := a.validatePluginActingUser(rctx, "GetPluginAccessControlVisualAST", actingUserID); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return a.ExpressionToVisualAST(rctx.WithSession(&model.Session{UserId: actingUserID}), expression)

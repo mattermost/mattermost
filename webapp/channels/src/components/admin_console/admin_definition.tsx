@@ -295,7 +295,7 @@ const adminDefinitionMessages = defineMessages({
 
 const siteHealthHidden = it.any(
     it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
-    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+    it.not(it.minLicenseTier(LicenseSkus.Professional)),
     it.not(it.any(
         it.isSystemAdmin,
         it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS),
