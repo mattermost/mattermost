@@ -23,7 +23,9 @@ const (
 	WriteFillMissing WriteKind = "fill_missing"
 )
 
-// WriteMarker is the kind of a value write and the object it is about.
+// WriteMarker is the kind of a value write and the object it is about. A hook
+// applies it only to values whose TargetID equals ObjectID; every other value
+// in the same write stays a standard write.
 type WriteMarker struct {
 	Kind     WriteKind
 	ObjectID string
@@ -42,9 +44,6 @@ func WithWriteMarker(rctx request.CTX, m WriteMarker) request.CTX {
 // WriteMarkerFromContext returns the marker on rctx, or the zero WriteMarker
 // (WriteStandard) when there is none.
 func WriteMarkerFromContext(rctx request.CTX) WriteMarker {
-	if rctx == nil {
-		return WriteMarker{}
-	}
 	m, _ := rctx.Context().Value(writeMarkerContextKey{}).(WriteMarker)
 	return m
 }

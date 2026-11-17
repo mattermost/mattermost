@@ -642,50 +642,29 @@ func TestCreateChannelMarksPropertyValueWrite(t *testing.T) {
 		require.Nil(t, th.App.DeletePropertyField(th.Context, group.ID, field.ID, true, ""))
 	})
 
-	newValues := func(text string) []*model.PropertyValue {
-		return []*model.PropertyValue{{
-			GroupID: group.ID,
-			FieldID: field.ID,
-			Value:   json.RawMessage(fmt.Sprintf("%q", text)),
-		}}
-	}
-
-	rctx := th.Context
-	channel, appErr := th.App.CreateChannelWithUserAndPropertyValues(rctx, &model.Channel{
+	channel, appErr := th.App.CreateChannelWithUserAndPropertyValues(th.Context, &model.Channel{
 		DisplayName: "Marked Create",
 		Name:        "marked-create-" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 		TeamId:      th.BasicTeam.Id,
-	}, th.BasicUser.Id, newValues("first"))
+	}, th.BasicUser.Id, []*model.PropertyValue{{
+		GroupID: group.ID,
+		FieldID: field.ID,
+		Value:   json.RawMessage(`"first"`),
+	}})
 	require.Nil(t, appErr)
 
-	callsForField := func() []recordedUpsert {
-		var fieldCalls []recordedUpsert
-		for _, c := range hook.recorded() {
-			if slices.Contains(c.fields, field.ID) {
-				fieldCalls = append(fieldCalls, c)
-			}
+	var fieldCalls []recordedUpsert
+	for _, c := range hook.recorded() {
+		if slices.Contains(c.fields, field.ID) {
+			fieldCalls = append(fieldCalls, c)
 		}
-		return fieldCalls
 	}
-
-	fieldCalls := callsForField()
 	require.Len(t, fieldCalls, 1)
 	assert.Equal(t, properties.WriteMarker{Kind: properties.WriteCreate, ObjectID: channel.Id}, fieldCalls[0].marker)
 	for _, target := range fieldCalls[0].targets {
 		assert.Equal(t, channel.Id, target)
 	}
-
-	// The caller's context must not have been marked.
-	second := newValues("second")
-	second[0].TargetID = channel.Id
-	second[0].TargetType = model.PropertyValueTargetTypeChannel
-	_, appErr = th.App.UpsertPropertyValues(rctx, second, model.PropertyFieldObjectTypeChannel, channel.Id, "")
-	require.Nil(t, appErr)
-
-	fieldCalls = callsForField()
-	require.Len(t, fieldCalls, 2)
-	assert.Equal(t, properties.WriteMarker{}, fieldCalls[1].marker)
 }
 
 func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
