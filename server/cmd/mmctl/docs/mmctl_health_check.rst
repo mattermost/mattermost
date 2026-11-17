@@ -27,7 +27,6 @@ Examples
     health check
     health check --include-resolved --include-muted
     health check --run
-    health check --run --timeout 10m
     health check --packet mm_support_packet.zip
 
 Options
@@ -40,7 +39,6 @@ Options
       --include-resolved   Include resolved findings
       --packet string      Path to a Support Packet zip to evaluate offline, without a server
       --run                Run the health check now and wait for it to finish before reporting
-      --timeout duration   How long --run waits for the run to finish (default 5m0s)
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

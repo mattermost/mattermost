@@ -3609,7 +3609,6 @@ mmctl health check [flags]
 mmctl health check
 mmctl health check --include-resolved --include-muted
 mmctl health check --run
-mmctl health check --run --timeout 10m
 mmctl health check --packet mm_support_packet.zip
 ```
 
@@ -3621,7 +3620,6 @@ mmctl health check --packet mm_support_packet.zip
 --include-resolved       Include resolved findings
 --packet string          Path to a Support Packet zip to evaluate offline, without a server
 --run                    Run the health check now and wait for it to finish before reporting
---timeout duration       How long --run waits for the run to finish (default 5m0s)
 ```
 
 **Options inherited from parent commands**
