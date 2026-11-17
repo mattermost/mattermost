@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useState} from 'react';
 import {defineMessage, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
@@ -23,6 +23,8 @@ import AlertBanner from 'components/alert_banner';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import {useWebSocketClient} from 'utils/use_websocket/hooks';
+
 import {EmptyState, TabEmptyState} from './empty_state';
 import FindingGroups from './finding_groups';
 import FindingTabs, {tabId} from './finding_tabs';
@@ -38,21 +40,16 @@ export type Props = {
     mutedFindings: HealthFinding[];
     lastEvaluatedAt: number;
 
-    // Jobs in the store by ID. job_updated WebSocket events keep the run the page follows up to date.
+    // Jobs in the store by ID. job_updated WebSocket events keep them up to date.
     jobs: Record<string, Job>;
     actions: {
         getHealthFindings: (filter?: HealthFindingFilter) => Promise<ActionResult<HealthFindingList>>;
         muteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
         unmuteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
         createJob: (job: JobTypeBase) => Promise<ActionResult<Job>>;
-        getJob: (id: string) => Promise<ActionResult<Job>>;
         getJobsByType: (type: JobType, page?: number, perPage?: number) => Promise<ActionResult<Job[]>>;
     };
 };
-
-// The run's job_updated WebSocket events report its progress. This slow re-read is a backstop for
-// an event missed while the WebSocket was reconnecting.
-export const HEALTH_CHECK_BACKSTOP_INTERVAL = 60 * 1000;
 
 // A run in progress with no activity for this long belongs to a node that died mid-run; the server
 // closes it as failed on the next run (health_check.StaleInProgressAfter).
@@ -63,6 +60,20 @@ function isRunActive(job: Job): boolean {
         return false;
     }
     return job.status === 'pending' || job.status === 'in_progress';
+}
+
+function isRunSuccess(job: Job): boolean {
+    return job.status === 'success' || job.status === 'warning';
+}
+
+function newestRun(jobs: Record<string, Job>): Job | undefined {
+    let newest: Job | undefined;
+    for (const job of Object.values(jobs)) {
+        if (job.type === 'health_check' && (!newest || job.create_at > newest.create_at)) {
+            newest = job;
+        }
+    }
+    return newest;
 }
 
 const runStartErrorMessage = defineMessage({
@@ -111,13 +122,10 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
     const [showMuted, setShowMuted] = useState(false);
     const [muteError, setMuteError] = useState<MessageDescriptor | null>(null);
     const [starting, setStarting] = useState(false);
-    const [runId, setRunId] = useState<string | null>(null);
-    const run = runId ? jobs[runId] : undefined;
-    const [runError, setRunError] = useState<RunError | null>(null);
-
-    // Runs this page has already reported. A job list fetched after a run finishes can still show
-    // it in progress (it may come from a lagging replica), and that run must not be followed again.
-    const finishedRunIds = useRef(new Set<string>());
+    const [runError, setRunError] = useState<MessageDescriptor | null>(null);
+    const [dismissedRunId, setDismissedRunId] = useState<string | null>(null);
+    const [, setStaleCheck] = useState(0);
+    const wsClient = useWebSocketClient();
     const idPrefix = useId();
     const panelId = `${idPrefix}-panel`;
 
@@ -127,78 +135,59 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
             setNow(Date.now());
             setLoading(false);
         });
-
-        // Loads the latest run into the store, where the effect below picks it up if it is still going.
-        actions.getJobsByType('health_check', 0, 1);
     }, [actions]);
 
-    // Follows a run that is going while the page isn't following one, whoever started it: the run
-    // found on page load, or one started later by another admin, mmctl or the scheduler, whose
-    // job_updated events put it in the store. This also catches a run the page-load lookup missed
-    // because it read a lagging replica.
+    // Loads the newest run into the store, where job_updated events keep it current. It is loaded
+    // again after a reconnect, because events missed while the WebSocket was down aren't always
+    // replayed.
     useEffect(() => {
-        if (runId) {
+        const loadNewestRun = () => actions.getJobsByType('health_check', 0, 1);
+        loadNewestRun();
+        wsClient.addReconnectListener(loadNewestRun);
+        return () => wsClient.removeReconnectListener(loadNewestRun);
+    }, [wsClient, actions]);
+
+    // The newest run counts only while the findings on screen don't reflect it yet. Once a run
+    // succeeds and the findings are reloaded, lastEvaluatedAt is when it finished, which is after
+    // it was created, so neither it nor an outdated copy of it counts any more.
+    const latest = useMemo(() => newestRun(jobs), [jobs]);
+    const run = !loading && !failed && latest && latest.create_at > lastEvaluatedAt ? latest : undefined;
+    const running = starting || (run !== undefined && isRunActive(run));
+    const failedRun = run && !isRunActive(run) && !isRunSuccess(run) ? run : undefined;
+
+    // Reloads the findings once the run succeeds. A failed reload keeps the findings on screen
+    // rather than replacing the page with the load error.
+    const succeededRunId = run && isRunSuccess(run) ? run.id : undefined;
+    useEffect(() => {
+        if (!succeededRunId) {
             return;
         }
-        let newest: Job | undefined;
-        for (const job of Object.values(jobs)) {
-            if (job.type === 'health_check' && !finishedRunIds.current.has(job.id) && isRunActive(job) && (!newest || job.create_at > newest.create_at)) {
-                newest = job;
+        actions.getHealthFindings().then(({error}) => {
+            setRunError(error ? runReloadErrorMessage : null);
+            if (!error) {
+                setNow(Date.now());
             }
-        }
-        if (newest) {
-            setRunId(newest.id);
-        }
-    }, [runId, jobs]);
+        });
+    }, [succeededRunId, actions]);
 
-    // Reports a finished run: fresh findings on success, the job's error otherwise. A failed reload
-    // keeps the findings on screen rather than replacing the page with the load error.
-    const finishRun = useCallback(async (job: Job) => {
-        if (job.status !== 'success' && job.status !== 'warning') {
-            const error = job.data?.error;
-            setRunError(typeof error === 'string' && error ? {message: runFailedMessage, values: {error}} : {message: runFailedNoReasonMessage});
-            return;
-        }
-        const {error} = await actions.getHealthFindings();
-        if (error) {
-            setRunError({message: runReloadErrorMessage});
-            return;
-        }
-        setFailed(false);
-        setRunError(null);
-        setNow(Date.now());
-    }, [actions]);
-
-    // Reports the run being followed once it has finished. The store copy is updated by its
-    // job_updated events, by startRun and by the backstop below.
+    // A run whose node died sends no more events, so re-render when it turns stale: it then stops
+    // showing as running and shows as not finished.
+    const staleAt = run?.status === 'in_progress' ? run.last_activity_at + STALE_RUN_AFTER : 0;
     useEffect(() => {
-        if (run && !isRunActive(run)) {
-            finishedRunIds.current.add(run.id);
-            setRunId(null);
-            finishRun(run);
-        }
-    }, [run, finishRun]);
-
-    // Re-reads the run now and then while it is followed, in case an event was missed. A failed
-    // read waits for the next event or the next re-read.
-    useEffect(() => {
-        if (!runId) {
+        if (!staleAt) {
             return undefined;
         }
-        const timer = setInterval(() => actions.getJob(runId), HEALTH_CHECK_BACKSTOP_INTERVAL);
-        return () => clearInterval(timer);
-    }, [runId, actions]);
+        const timer = setTimeout(() => setStaleCheck(staleAt), Math.max(staleAt - Date.now(), 0) + 1);
+        return () => clearTimeout(timer);
+    }, [staleAt]);
 
     const startRun = useCallback(async () => {
         setStarting(true);
         setRunError(null);
-        const {data, error} = await actions.createJob({type: 'health_check'});
+        const {error} = await actions.createJob({type: 'health_check'});
         setStarting(false);
-
-        if (error || !data) {
-            setRunError({message: runStartErrorMessage});
-        } else {
-            setRunId(data.id);
+        if (error) {
+            setRunError(runStartErrorMessage);
         }
     }, [actions]);
 
@@ -234,7 +223,6 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
 
     const rowState = {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute};
 
-    const running = starting || runId !== null;
     const runButton = (
         <Button
             emphasis='secondary'
@@ -258,15 +246,25 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
             )}
         </Button>
     );
-    const runErrorBanner = runError && (
+    let banner: RunError | undefined;
+    if (runError) {
+        banner = {message: runError};
+    } else if (failedRun && failedRun.id !== dismissedRunId) {
+        const error = failedRun.data?.error;
+        banner = typeof error === 'string' && error ? {message: runFailedMessage, values: {error}} : {message: runFailedNoReasonMessage};
+    }
+    const runErrorBanner = banner && (
         <AlertBanner
             mode='danger'
             className='HealthDashboard__runError'
-            onDismiss={() => setRunError(null)}
+            onDismiss={() => {
+                setRunError(null);
+                setDismissedRunId(failedRun?.id ?? null);
+            }}
             message={
                 <FormattedMessage
-                    {...runError.message}
-                    values={runError.values}
+                    {...banner.message}
+                    values={banner.values}
                 />
             }
         />
