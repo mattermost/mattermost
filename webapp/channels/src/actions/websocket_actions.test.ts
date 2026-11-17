@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import cloneDeep from 'lodash/cloneDeep';
+import nock from 'nock';
 import type {IntlShape} from 'react-intl';
 import type {AnyAction} from 'redux';
 
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import type {ChannelType} from '@mattermost/types/channels';
+import type {Job, JobStatus} from '@mattermost/types/jobs';
 import type {Post} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -16,7 +18,6 @@ import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {fetchAllMyTeamsChannels, getChannelMember} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
-import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {
     getPostThreads,
     getPostsAround,
@@ -25,6 +26,7 @@ import {
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -152,10 +154,6 @@ jest.mock('mattermost-redux/actions/shared_channels', () => ({
         channelId,
         forceRefresh,
     })),
-}));
-
-jest.mock('mattermost-redux/actions/jobs', () => ({
-    getJobsByType: jest.fn((jobType) => ({type: 'MOCK_GET_JOBS_BY_TYPE', jobType})),
 }));
 
 let mockState = {
@@ -2295,8 +2293,57 @@ describe('handleFileUploadRejected', () => {
 });
 
 describe('handleJobUpdated', () => {
-    beforeEach(() => {
-        jest.mocked(getJobsByType).mockClear();
+    const runningJob: Job = {
+        id: 'job1',
+        type: 'ldap_sync',
+        status: 'in_progress',
+        priority: 0,
+        progress: 0,
+        create_at: 1000,
+        start_at: 2000,
+        last_activity_at: 2000,
+        data: {},
+    };
+
+    const makeStore = () => realConfigureStore({
+        entities: {
+            jobs: {
+                jobs: {[runningJob.id]: runningJob},
+                jobsByTypeList: {ldap_sync: [runningJob]},
+            },
+        },
+    });
+
+    beforeAll(() => {
+        Client4.setUrl('http://localhost:8065');
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    test.each<[JobStatus, Job['data']]>([
+        ['success', {}],
+        ['warning', {}],
+        ['canceled', {}],
+        ['error', {error: 'Unable to connect to AD/LDAP server.'}],
+    ])('applies a finished "%s" job from the event alone, without re-fetching it', async (status, data) => {
+        const staleJobsRequest = nock(Client4.getBaseRoute()).
+            get(/\/jobs(\/|$)/).
+            query(true).
+            reply(200, [runningJob]);
+
+        const finishedJob = {...runningJob, status, last_activity_at: 5000, data};
+        const msg = wsMessage<WebSocketMessages.JobUpdated>({data: {job: JSON.stringify(finishedJob)}});
+
+        const testStore = makeStore();
+        testStore.dispatch(handleJobUpdated(msg));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const {jobs, jobsByTypeList} = testStore.getState().entities.jobs;
+        expect(jobs.job1).toEqual(finishedJob);
+        expect(jobsByTypeList.ldap_sync).toEqual([finishedJob]);
+        expect(staleJobsRequest.isDone()).toBe(false);
     });
 
     test('dispatches RECEIVED_JOB with the parsed job on valid JSON', () => {
@@ -2319,35 +2366,5 @@ describe('handleJobUpdated', () => {
         testStore.dispatch(handleJobUpdated(msg));
 
         expect(testStore.getActions()).toHaveLength(0);
-    });
-
-    test.each([
-        ['success', 'ldap_sync'],
-        ['error', 'message_export'],
-        ['warning', 'data_retention'],
-        ['canceled', 'elasticsearch_post_indexing'],
-    ])('re-fetches job list on terminal status "%s"', (status, type) => {
-        const job = {id: 'job1', type, status};
-        const msg = wsMessage<WebSocketMessages.JobUpdated>({data: {job: JSON.stringify(job)}});
-
-        const testStore = configureStore(mockState);
-        testStore.dispatch(handleJobUpdated(msg));
-
-        expect(testStore.getActions()).toContainEqual({
-            type: 'MOCK_GET_JOBS_BY_TYPE',
-            jobType: type,
-        });
-    });
-
-    test('does not re-fetch on non-terminal status', () => {
-        const job = {id: 'job1', type: 'ldap_sync', status: 'in_progress'};
-        const msg = wsMessage<WebSocketMessages.JobUpdated>({data: {job: JSON.stringify(job)}});
-
-        const testStore = configureStore(mockState);
-        testStore.dispatch(handleJobUpdated(msg));
-
-        expect(testStore.getActions()).not.toContainEqual(
-            expect.objectContaining({type: 'MOCK_GET_JOBS_BY_TYPE'}),
-        );
     });
 });

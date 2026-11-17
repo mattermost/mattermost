@@ -3011,8 +3011,8 @@ func TestExportVersionScopeMetadata(t *testing.T) {
 	scopeOf := func(t *testing.T, teamNames, channelNames []string) *imports.VersionInfoImportData {
 		t.Helper()
 		var buf bytes.Buffer
-		appErr := th.App.exportVersion(&buf, teamNames, channelNames)
-		require.Nil(t, appErr)
+		err := th.App.exportVersion(&buf, teamNames, channelNames)
+		require.NoError(t, err)
 
 		var line imports.LineImportData
 		require.NoError(t, json.Unmarshal(buf.Bytes(), &line))
