@@ -16,24 +16,23 @@ import type {GlobalState} from 'types/store';
 
 import {canEditPostAttributeValue, isChannelPropertyAdmin} from './permissions';
 import type {ComposerPropertyValue} from './use_staged_post_attributes';
-import {useAddableAttributes} from './utils';
+import {hasValueControl, splitComposerAttributes} from './utils';
+import type {PostAttribute} from './utils';
 
 export type ComposerAttributes = {
 
-    // Every field the channel declares.
-    fields: PropertyField[];
+    // The attributes taken into the post, one chip each, with their staged
+    // values.
+    chips: PostAttribute[];
 
-    // Whether the current user may write a field when composing a post here.
-    canEdit: (field: PropertyField) => boolean;
-
-    // The fields the add controls may offer right now: not already shown, and
-    // ones this user could fill in.
+    // The fields the add controls may offer right now: not already taken into
+    // the post, and ones this user could fill in.
     addable: PropertyField[];
 };
 
 // The edit modal's hooks take store-shaped values, so each staged pair is
 // padded out with placeholders. Nothing downstream reads the placeholder fields.
-export function toPropertyValue(value: ComposerPropertyValue): PropertyValue<unknown> {
+function toPropertyValue(value: ComposerPropertyValue): PropertyValue<unknown> {
     return {
         id: '',
         target_id: '',
@@ -78,8 +77,17 @@ export function useComposerAttributes(
         [authorStub, currentUserId, isSystemAdmin, isChannelAdmin],
     );
 
-    const propertyValues = useMemo(() => values.map(toPropertyValue), [values]);
-    const addable = useAddableAttributes(fields, propertyValues, added, canEdit);
+    // Only a field this user may write and the composer has a control for gets
+    // a chip or a place in the picker.
+    const settable = useMemo(
+        () => fields.filter((field) => canEdit(field) && hasValueControl(field)),
+        [fields, canEdit],
+    );
 
-    return useMemo(() => ({fields, canEdit, addable}), [fields, canEdit, addable]);
+    const propertyValues = useMemo(() => values.map(toPropertyValue), [values]);
+
+    return useMemo(
+        () => splitComposerAttributes(settable, propertyValues, added),
+        [settable, propertyValues, added],
+    );
 }

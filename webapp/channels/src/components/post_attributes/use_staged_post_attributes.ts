@@ -13,9 +13,9 @@ type StagedPostAttributes = {
     // holds an empty value: an attribute the user emptied is simply not sent.
     values: ComposerPropertyValue[];
 
-    // Field ids picked from the picker this composing session, so a `when_set`
+    // Field ids picked from the picker this composing session, so a picked
     // field keeps its chip before it has a value, and after its value is
-    // emptied again.
+    // emptied again. Nothing is in here until the user picks it.
     added: ReadonlySet<string>;
 
     // The field the picker just added, so its chip opens its control. Cleared
@@ -65,10 +65,8 @@ export function useStagedPostAttributes(): StagedPostAttributes {
         });
     }, []);
 
-    // Takes the field out of the picked set as well as the values, so a picked
-    // field's chip goes away. A `visibility: always` field keeps its chip
-    // regardless, which leaves it showing empty — the same as before anything
-    // was staged for it.
+    // Takes the field out of the picked set as well as the values, so the
+    // field's chip goes away and the picker offers it again.
     const remove = useCallback((fieldId: string) => {
         setJustAdded(null);
         setValues((current) => withoutField(current, fieldId));

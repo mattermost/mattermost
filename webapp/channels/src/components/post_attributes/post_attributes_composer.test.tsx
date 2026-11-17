@@ -4,7 +4,7 @@
 import userEvent from '@testing-library/user-event';
 import React, {useEffect} from 'react';
 
-import type {PropertyField} from '@mattermost/types/properties';
+import type {FieldType, PropertyField} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
@@ -130,7 +130,7 @@ function spareField(): PropertyField {
  */
 function Host({initialValues = []}: {initialValues?: ComposerPropertyValue[]}) {
     const staged = useStagedPostAttributes();
-    const {fields, canEdit, addable} = useComposerAttributes(CHANNEL_ID, staged.values, staged.added);
+    const {chips, addable} = useComposerAttributes(CHANNEL_ID, staged.values, staged.added);
 
     // Seeds the hook through its own `change`, the only way a value gets in.
     useEffect(() => {
@@ -142,10 +142,7 @@ function Host({initialValues = []}: {initialValues?: ComposerPropertyValue[]}) {
     return (
         <>
             <PostAttributesComposer
-                values={staged.values}
-                added={staged.added}
-                fields={fields}
-                canEdit={canEdit}
+                chips={chips}
                 addable={addable}
                 justAdded={staged.justAdded}
                 onAdd={staged.add}
@@ -184,13 +181,28 @@ describe('PostAttributesComposer', () => {
         expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
     });
 
-    test('an `always` field renders a chip with no value staged, with no interaction required', () => {
-        const field = makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'always'}});
+    test('an `always` field is treated like any other: no chip until the user picks it, and nothing staged', async () => {
+        const always = makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'always'}});
 
-        renderComposer([field]);
+        renderComposer([always, spareField()], [{field_id: 'f_spare', value: 'opt_secret'}]);
+
+        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+
+        await userEvent.click(screen.getByTestId('post-attributes-add'));
+        expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
+        await userEvent.keyboard('{Escape}');
+
+        await addAttribute('classification');
 
         expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toBeInTheDocument();
+        expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
+    });
+
+    test('an `always` field alone renders nothing in the chip row', () => {
+        renderComposer([makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'always'}})]);
+
+        expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
     });
 
     test('a `when_set` field is absent until picked, then appears as a chip', async () => {
@@ -294,6 +306,19 @@ describe('PostAttributesComposer', () => {
         expect(screen.getByTestId('post-attribute-add-spare')).toBeInTheDocument();
     });
 
+    test('a field the composer has no control for is neither shown nor offered by the picker', async () => {
+        const due = makeField({id: 'f_due', name: 'due', type: 'date' as FieldType, attrs: {display_name: 'Due'}});
+
+        renderComposer([due, makeField(), spareField()], [{field_id: 'f_due', value: 1700000000000}, {field_id: 'field_1', value: 'opt_secret'}]);
+
+        expect(screen.queryByTestId('post-attribute-chip-due')).not.toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+
+        await userEvent.click(screen.getByTestId('post-attributes-add'));
+        expect(screen.queryByTestId('post-attribute-add-due')).not.toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-add-spare')).toBeInTheDocument();
+    });
+
     test('with only locked fields, nothing is rendered', () => {
         renderComposer(
             [makeField({permission_values: 'none', attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'always'}})],
@@ -337,28 +362,22 @@ describe('PostAttributesComposer', () => {
         expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
     });
 
-    test('removing an `always` chip clears its value but keeps the chip', async () => {
+    test('removing an `always` field\'s chip drops it, as for any other field, and offers it again', async () => {
         const field = makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'always'}});
 
-        renderComposer([field], [{field_id: 'field_1', value: 'opt_secret'}]);
+        renderComposer([field, spareField()], [{field_id: 'f_spare', value: 'opt_secret'}]);
 
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+        await addAttribute('classification');
+        await userEvent.click(screen.getByRole('menuitemradio', {name: /^SECRET/}));
+        await waitFor(() => expect(stagedValues()).toContainEqual({field_id: 'field_1', value: 'opt_secret'}));
 
         await userEvent.click(screen.getByRole('button', {name: 'Remove Classification'}));
 
-        expect(stagedValues()).toEqual([]);
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-trigger-classification')).not.toHaveTextContent('SECRET');
+        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
 
-        // Nothing left to remove, so the button goes.
-        expect(screen.queryByRole('button', {name: 'Remove Classification'})).not.toBeInTheDocument();
-    });
-
-    test('an empty `always` chip offers no remove button', () => {
-        renderComposer([makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'always'}})]);
-
-        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-remove-classification')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('post-attributes-add'));
+        expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
     });
 
     test('an emptied value is dropped from the staged values, and the picked chip stays', async () => {
@@ -377,16 +396,21 @@ describe('PostAttributesComposer', () => {
         expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
     });
 
-    test('an emptied text value is dropped from the staged values', async () => {
-        const field = makeField({type: 'text', attrs: {display_name: 'Note', visibility: 'always'}});
+    test('an emptied text value is dropped from the staged values, and the picked chip stays', async () => {
+        const field = makeField({type: 'text', attrs: {display_name: 'Note'}});
 
-        renderComposer([field], [{field_id: 'field_1', value: 'hello'}]);
+        renderComposer([field, spareField()], [{field_id: 'f_spare', value: 'opt_secret'}]);
 
-        const input = screen.getByTestId('post-attribute-input-classification');
-        await userEvent.clear(input);
+        await addAttribute('classification');
+
+        await userEvent.type(screen.getByTestId('post-attribute-input-classification'), 'hello');
+        await userEvent.tab();
+        await waitFor(() => expect(stagedValues()).toContainEqual({field_id: 'field_1', value: 'hello'}));
+
+        await userEvent.clear(screen.getByTestId('post-attribute-input-classification'));
         await userEvent.tab();
 
-        expect(stagedValues()).toEqual([]);
+        await waitFor(() => expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]));
         expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
     });
 
@@ -411,15 +435,15 @@ describe('PostAttributesComposer', () => {
     });
 
     test('a staged text field that was not just picked does not take focus', () => {
-        renderComposer([makeField({type: 'text', attrs: {display_name: 'Note', visibility: 'always'}})]);
+        renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
 
         expect(screen.getByTestId('post-attribute-input-classification')).not.toHaveFocus();
     });
 
     test('`permission_values: creator` is writable for any user — there is no post yet, so the author is the composer', () => {
-        const field = makeField({permission_values: 'creator', attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'always'}});
+        const field = makeField({permission_values: 'creator', attrs: {options: OPTIONS, display_name: 'Classification'}});
 
-        renderComposer([field]);
+        renderComposer([field], [{field_id: 'field_1', value: 'opt_secret'}]);
 
         expect(screen.getByTestId('post-attribute-trigger-classification')).toBeInTheDocument();
     });

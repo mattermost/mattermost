@@ -1346,8 +1346,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             };
         }
 
-        // `priority` only gets a chip once it is picked; `classification` has
-        // one from the start, so both composers draw it as soon as they mount.
+        // Neither field has a chip until the user picks it. `classification`
+        // is declared `always`, which makes no difference in the composer: it
+        // is offered by the picker like `priority`.
         const priorityField = makeAttributeField({id: 'f_priority', name: 'priority', attrs: {options: attributeOptions, display_name: 'Priority', visibility: 'when_set'}});
         const classificationField = makeAttributeField({id: 'f_classification', name: 'classification', attrs: {options: attributeOptions, display_name: 'Classification', visibility: 'always'}});
 
@@ -1384,6 +1385,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         // One field the user can still add, which is what puts the `+` on screen.
         const flagOn = withFields([priorityField]);
+
+        // Picks a field from the `+` in a composer's action row. Both composers
+        // can be mounted at once, hence the index. Closes the value menu the
+        // picked chip opens for itself, so the next step starts from a clean page.
+        async function pickFromActionRow(fieldName: string, composerIndex = 0) {
+            await userEvent.click(screen.getAllByTestId('post-attributes-composer-add')[composerIndex]);
+            await userEvent.click(screen.getByTestId(`post-attribute-add-${fieldName}`));
+            await waitFor(() => expect(screen.getAllByTestId(`post-attribute-chip-${fieldName}`)).toHaveLength(composerIndex + 1));
+            await userEvent.keyboard('{Escape}');
+        }
 
         it('is absent with the feature flag off', () => {
             renderWithContext(
@@ -1502,6 +1513,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, spareField, classificationField]),
             );
 
+            // The inline control only exists once something is staged.
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            await pickFromActionRow('priority');
+
             await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
             const fromButton = screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
             await userEvent.keyboard('{Escape}');
@@ -1510,7 +1525,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByTestId('post-attributes-add'));
             const fromInline = screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
 
-            expect(fromButton).toEqual(['post-attribute-add-priority', 'post-attribute-add-spare']);
+            // `classification` is declared `always` and is offered like the rest.
+            expect(fromButton).toEqual(['post-attribute-add-classification', 'post-attribute-add-spare']);
             expect(fromInline).toEqual(fromButton);
         });
 
@@ -1525,6 +1541,27 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
         });
 
+        it('draws no chip for an `always` field until the user picks it, and stages nothing for it', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([classificationField]),
+            );
+
+            expect(screen.queryByTestId('post-attributes-composer')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+            await userEvent.click(screen.getByTestId('post-attribute-add-classification'));
+            await waitFor(() => expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument());
+            await userEvent.keyboard('{Escape}');
+
+            // Picked, but empty: it can be taken away again, and nothing is staged for it.
+            expect(screen.getByTestId('post-attribute-trigger-classification')).not.toHaveTextContent('SECRET');
+            expect(screen.getByTestId('post-attribute-remove-classification')).toBeInTheDocument();
+        });
+
         it('stops rendering both add controls once the last field is picked', async () => {
             renderWithContext(
                 <AdvancedTextEditor
@@ -1533,25 +1570,28 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, classificationField]),
             );
 
-            // `classification` already has a chip, so the inline control is there.
-            expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
+            // Nothing is staged, so there is no chip row and no inline control.
+            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
             expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
-            await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
-            await waitFor(() => expect(screen.getByTestId('post-attribute-chip-priority')).toBeInTheDocument());
+            await pickFromActionRow('priority');
+            expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
+
+            await pickFromActionRow('classification');
 
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
         });
 
-        it('gives the two add controls their own ids and test ids', () => {
+        it('gives the two add controls their own ids and test ids', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
                 />,
                 withFields([priorityField, classificationField]),
             );
+
+            await pickFromActionRow('priority');
 
             const inline = screen.getByTestId('post-attributes-add');
             const button = screen.getByTestId('post-attributes-composer-add');
@@ -1562,7 +1602,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(inline.getAttribute('aria-controls')).not.toBe(button.getAttribute('aria-controls'));
         });
 
-        it('keeps DOM ids unique with the centre channel and the thread composers side by side', () => {
+        it('keeps DOM ids unique with the centre channel and the thread composers side by side', async () => {
             renderWithContext(
                 <>
                     <AdvancedTextEditor
@@ -1577,8 +1617,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, classificationField]),
             );
 
-            // Both composers show the `always` chip and both have their add controls.
+            // Both composers have their add controls, and the same field is picked in each.
             expect(screen.getAllByTestId('post-attributes-composer-add')).toHaveLength(2);
+
+            await pickFromActionRow('classification', 0);
+            await pickFromActionRow('classification', 1);
+
             expect(screen.getAllByTestId('post-attribute-trigger-classification')).toHaveLength(2);
 
             const ids = Array.from(document.querySelectorAll('[id^="postAttribute"]')).map((element) => element.id);
@@ -1587,7 +1631,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(new Set(ids).size).toBe(ids.length);
         });
 
-        it('keeps a text field\'s input ids unique with the centre channel and the thread composers side by side', () => {
+        it('keeps a text field\'s input ids unique with the centre channel and the thread composers side by side', async () => {
             renderWithContext(
                 <>
                     <AdvancedTextEditor
@@ -1602,7 +1646,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, referenceField]),
             );
 
-            // Both composers draw the `always` text field as an input.
+            // The same text field is picked in both composers, and each draws an input.
+            await pickFromActionRow('reference', 0);
+            await pickFromActionRow('reference', 1);
+
             const inputs = screen.getAllByTestId('post-attribute-input-reference');
             expect(inputs).toHaveLength(2);
 
@@ -1758,14 +1805,17 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }) as unknown as typeof onSubmit);
         });
 
+        // `classification` is declared `always`, and is still only staged by
+        // picking it from the `+` in the action row, like any other field.
         async function stageClassification() {
-            await userEvent.click(screen.getByTestId('post-attribute-trigger-classification'));
-            await userEvent.click(screen.getByRole('menuitemradio', {name: /^SECRET/}));
+            await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+            await userEvent.click(screen.getByTestId('post-attribute-add-classification'));
+            await userEvent.click(await screen.findByRole('menuitemradio', {name: /^SECRET/}));
             await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET'));
         }
 
-        // Stages a value on the `always` chip and picks the `when_set` field
-        // from the composer's own picker, giving it a value too.
+        // Stages a value on the `always` field, then picks the `when_set` field
+        // from the chip row's own picker, giving it a value too.
         async function stageAttributes() {
             await stageClassification();
 
@@ -1776,8 +1826,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         }
 
         function expectNothingStaged() {
-            expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
-            expect(screen.getByTestId('post-attribute-trigger-classification')).not.toHaveTextContent('SECRET');
+            expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
             expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument();
         }
 

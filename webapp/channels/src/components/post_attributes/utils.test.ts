@@ -13,6 +13,7 @@ import {
     hasValueControl,
     isChipVisible,
     isFieldValueVisible,
+    splitComposerAttributes,
     useAddableAttributes,
     useModalAttributes,
 } from './utils';
@@ -677,6 +678,47 @@ describe('useAddableAttributes', () => {
         rerender();
 
         expect(result.current).toBe(first);
+    });
+});
+
+// The composer is a post being written, so `visibility` plays no part in it:
+// only what the user has taken into the post earns a chip, and everything else
+// the user could fill in is offered.
+describe('composer attributes', () => {
+    const always = makeField({id: 'always', name: 'always', attrs: {visibility: 'always'}});
+    const whenSet = makeField({id: 'when_set', name: 'when_set', attrs: {visibility: 'when_set'}});
+    const hidden = makeField({id: 'hidden', name: 'hidden', attrs: {visibility: 'hidden'}});
+    const fields = [always, whenSet, hidden];
+
+    const chipIds = (values: Array<PropertyValue<unknown>>, added: ReadonlySet<string>) =>
+        splitComposerAttributes(fields, values, added).chips.map(({field}) => field.id);
+    const addableIds = (values: Array<PropertyValue<unknown>>, added: ReadonlySet<string>) =>
+        splitComposerAttributes(fields, values, added).addable.map((field) => field.id);
+
+    it('draws no chip for any field before the user has picked one, `always` included', () => {
+        expect(chipIds(NO_VALUES, ADDED_NONE)).toEqual([]);
+    });
+
+    it('draws a chip for a picked field, with no value, whatever its visibility', () => {
+        expect(chipIds(NO_VALUES, new Set(['always', 'hidden']))).toEqual(['always', 'hidden']);
+    });
+
+    it('draws a chip for a field with a staged value', () => {
+        expect(chipIds([makeValue('SECRET', 'when_set')], ADDED_NONE)).toEqual(['when_set']);
+    });
+
+    it('offers every field before anything is picked, `always` included', () => {
+        expect(addableIds(NO_VALUES, ADDED_NONE)).toEqual(['always', 'when_set', 'hidden']);
+    });
+
+    it('stops offering a field once it is picked or has a value', () => {
+        expect(addableIds([makeValue('SECRET', 'when_set')], new Set(['always']))).toEqual(['hidden']);
+    });
+
+    it('carries the staged value on the chip', () => {
+        const value = makeValue('SECRET', 'when_set');
+
+        expect(splitComposerAttributes(fields, [value], ADDED_NONE).chips).toEqual([{field: whenSet, value}]);
     });
 });
 

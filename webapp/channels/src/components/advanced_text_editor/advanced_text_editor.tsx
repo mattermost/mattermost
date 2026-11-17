@@ -977,10 +977,7 @@ const AdvancedTextEditor = ({
                         )}
                         {postAttributesEnabled && !isInEditMode && (
                             <PostAttributesComposer
-                                values={stagedAttributes.values}
-                                added={stagedAttributes.added}
-                                fields={composerAttributes.fields}
-                                canEdit={composerAttributes.canEdit}
+                                chips={composerAttributes.chips}
                                 addable={composerAttributes.addable}
                                 justAdded={stagedAttributes.justAdded}
                                 onAdd={stagedAttributes.add}

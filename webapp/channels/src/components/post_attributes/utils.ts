@@ -245,6 +245,26 @@ export function useAddableAttributes(
 }
 
 /**
+ * Splits the fields the user can fill in while writing a post into the ones
+ * taken into the post — picked from the picker, or given a value — which get a
+ * chip each, and the rest, which the picker offers. Both in field order.
+ *
+ * `visibility` plays no part. It says where a sent post advertises an
+ * attribute, and a post being written has nothing to advertise yet, so a field
+ * the channel declares `always` is offered and drawn exactly like any other.
+ */
+export function splitComposerAttributes(
+    settable: PropertyField[],
+    values: Array<PropertyValue<unknown>>,
+    added: ReadonlySet<string>,
+): {chips: PostAttribute[]; addable: PropertyField[]} {
+    const chips = zipAttributes(settable, values, (field, value) => added.has(field.id) || chipCount(field, value) > 0);
+    const chipIds = new Set(chips.map(({field}) => field.id));
+
+    return {chips, addable: settable.filter((field) => !chipIds.has(field.id))};
+}
+
+/**
  * Whether the edit modal has anything for this user when it opens: a row to
  * show, or a field the picker could offer.
  *

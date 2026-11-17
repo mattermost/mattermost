@@ -1,23 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useId, useMemo} from 'react';
+import React, {useCallback, useId} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
-import {getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import PropertyValueRenderer from 'components/properties_card_view/propertyValueRenderer/propertyValueRenderer';
 
 import {resolveOptionChips} from 'utils/property_options';
 
-import PostAttributeValueControl, {hasValueControl} from './post_attribute_value_control';
+import PostAttributeValueControl from './post_attribute_value_control';
 import PostAttributesFieldPicker from './post_attributes_field_picker';
-import {toPropertyValue} from './use_composer_attributes';
-import type {ComposerPropertyValue} from './use_staged_post_attributes';
-import {useModalAttributes} from './utils';
+import type {PostAttribute} from './utils';
 
 // The composer's chips are the sent post's chips, sized and coloured by the
 // same rules; the composer's own sheet only adds its layout on top.
@@ -25,14 +23,11 @@ import './post_attributes_chips.scss';
 import './post_attributes_composer.scss';
 
 type Props = {
-    values: ComposerPropertyValue[];
-    added: ReadonlySet<string>;
 
-    // The channel's fields, whether the user may write each one, and what the
-    // `+ Add attribute` control offers. All three come from the editor's one
-    // `useComposerAttributes` call, shared with the `+` in the action row.
-    fields: PropertyField[];
-    canEdit: (field: PropertyField) => boolean;
+    // The chips to draw and what the `+ Add attribute` control offers. Both
+    // come from the editor's one `useComposerAttributes` call, shared with the
+    // `+` in the action row.
+    chips: PostAttribute[];
     addable: PropertyField[];
     justAdded: string | null;
     onAdd: (fieldId: string) => void;
@@ -43,30 +38,19 @@ type Props = {
 /**
  * The attributes staged in the composer: a chip per attribute above the message
  * box, plus a trailing `+ Add attribute` once anything is shown. Reuses the edit
- * modal's hooks and controls so both agree on what a field may hold.
+ * modal's controls so both agree on what a field may hold.
  *
  * Fully controlled by `useStagedPostAttributes`, which the editor owns so it can
  * clear the staged state after a send and on a channel or thread switch.
  */
-export default function PostAttributesComposer({values, added, fields, canEdit, addable, justAdded, onAdd, onChange, onRemove}: Props) {
+export default function PostAttributesComposer({chips, addable, justAdded, onAdd, onChange, onRemove}: Props) {
     const {formatMessage} = useIntl();
-
-    const propertyValues = useMemo(() => values.map(toPropertyValue), [values]);
 
     // Each composer mounted at once (centre channel, thread sidebar) needs its
     // own DOM id for the add control.
     const addId = useId();
 
-    // The same two conditions `useAddableAttributes` applies to what the
-    // picker offers, applied to the chips as well.
-    const settable = useMemo(
-        () => fields.filter((field) => canEdit(field) && hasValueControl(field)),
-        [fields, canEdit],
-    );
-
-    const attributes = useModalAttributes(settable, propertyValues, added);
-
-    if (attributes.length === 0) {
+    if (chips.length === 0) {
         return null;
     }
 
@@ -77,12 +61,11 @@ export default function PostAttributesComposer({values, added, fields, canEdit, 
             aria-label={formatMessage({id: 'post_attributes.composer.group', defaultMessage: 'Attached post attributes', description: 'Accessible label of the row of attribute chips above the message box in the composer.'})}
             data-testid='post-attributes-composer'
         >
-            {attributes.map(({field, value}) => (
+            {chips.map(({field, value}) => (
                 <PostAttributesComposerChip
                     key={field.id}
                     field={field}
                     value={value}
-                    removable={isPropertyValueSet(value?.value) || added.has(field.id)}
                     autoOpen={field.id === justAdded}
                     onChange={onChange}
                     onRemove={onRemove}
@@ -107,7 +90,6 @@ export default function PostAttributesComposer({values, added, fields, canEdit, 
 type ChipProps = {
     field: PropertyField;
     value?: PropertyValue<unknown>;
-    removable: boolean;
     autoOpen: boolean;
     onChange: (fieldId: string, next: unknown) => void;
     onRemove: (fieldId: string) => void;
@@ -119,7 +101,7 @@ type ChipProps = {
  * goes through `PostAttributeValueControl`, shared with the modal. The field
  * name is an `aria-hidden` caption, announced through the control's own name.
  */
-function PostAttributesComposerChip({field, value, removable, autoOpen, onChange, onRemove}: ChipProps) {
+function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}: ChipProps) {
     const {formatMessage, formatList} = useIntl();
 
     const label = getPropertyFieldLabel(field);
@@ -158,28 +140,21 @@ function PostAttributesComposerChip({field, value, removable, autoOpen, onChange
                 autoOpen={autoOpen}
             />
 
-            {/*
-              * Omitted rather than disabled when there is nothing to take
-              * away — an empty `always` chip — the same rule the modal row
-              * follows for its clear button.
-              */}
-            {removable && (
-                <button
-                    type='button'
-                    className='PostAttributesComposerChip__remove'
-                    data-testid={`post-attribute-remove-${field.name}`}
+            <button
+                type='button'
+                className='PostAttributesComposerChip__remove'
+                data-testid={`post-attribute-remove-${field.name}`}
 
-                    // Named after the attribute, so a row of chips does not
-                    // hand a screen reader several buttons called "Remove".
-                    aria-label={formatMessage(
-                        {id: 'post_attributes.composer.remove', defaultMessage: 'Remove {attribute}', description: 'Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute\'s name. Verb.'},
-                        {attribute: label},
-                    )}
-                    onClick={handleRemove}
-                >
-                    <CloseIcon size={12}/>
-                </button>
-            )}
+                // Named after the attribute, so a row of chips does not
+                // hand a screen reader several buttons called "Remove".
+                aria-label={formatMessage(
+                    {id: 'post_attributes.composer.remove', defaultMessage: 'Remove {attribute}', description: 'Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute\'s name. Verb.'},
+                    {attribute: label},
+                )}
+                onClick={handleRemove}
+            >
+                <CloseIcon size={12}/>
+            </button>
         </div>
     );
 }
