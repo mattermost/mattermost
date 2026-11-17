@@ -22,6 +22,7 @@ function summary(overrides: Partial<Awaited<ReturnType<typeof fetchChannelsMissi
         unique_admin_count: 2,
         channels_without_admin_count: 0,
         message_preview: 'preview text',
+        notify_cooldown_ms: 0,
         ...overrides,
     };
 }
@@ -65,6 +66,7 @@ describe('useChannelMissingValues', () => {
             uniqueAdminCount: 4,
             noAdminCount: 1,
             messagePreview: 'preview text',
+            notifyAvailableAt: 0,
             required: true,
         });
         expect(result.current.loading).toBe(false);

@@ -306,7 +306,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 
 		post := requireOneMissingAttributesPost(t, th, bot.UserId, creator.Id)
 		assert.Equal(t, bot.UserId, post.UserId)
-		assert.Contains(t, post.Message, "[Sustainment Window](/"+team.Name+"/channels/"+channel.Name+")")
+		assert.Contains(t, post.Message, "[Sustainment Window]("+th.App.GetSiteURL()+"/"+team.Name+"/channels/"+channel.Name+")")
 		assert.Contains(t, post.Message, "("+escapeChannelAttributeMarkdownPlainText(team.DisplayName)+")")
 		assert.Contains(t, post.Message, "**Program**")
 		assert.Contains(t, post.Message, "Add values")
@@ -818,7 +818,7 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 
 		posts := missingAttributesPosts(t, th, bot.UserId, admin.Id)
 		require.Len(t, posts, 1)
-		assert.Contains(t, posts[0].Message, `[Safe\](https://evil.example)\[x](/`+team.Name+"/channels/"+channel.Name+")")
+		assert.Contains(t, posts[0].Message, `[Safe\](https://evil.example)\[x](`+th.App.GetSiteURL()+"/"+team.Name+"/channels/"+channel.Name+")")
 	})
 
 	t.Run("a locale without translations falls back to English", func(t *testing.T) {

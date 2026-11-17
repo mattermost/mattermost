@@ -442,4 +442,37 @@ func TestNotifyPropertyFieldMissingValuesEndpoint(t *testing.T) {
 		require.Error(t, err)
 		require.Equal(t, http.StatusTooManyRequests, resp.StatusCode)
 	})
+
+	t.Run("the summary reports the cooldown left after a notify", func(t *testing.T) {
+		th, group := setupChannelComplianceTest(t)
+		field := newComplianceChannelField(t, th, group, model.PropertyFieldObjectTypeChannel)
+
+		admin := th.CreateUser(t)
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			TeamId:      th.BasicTeam.Id,
+			Type:        model.ChannelTypeOpen,
+			Name:        model.NewId(),
+			DisplayName: "Notify Cooldown " + model.NewId(),
+			CreatorId:   th.SystemAdminUser.Id,
+		}, false)
+		require.Nil(t, appErr)
+		th.LinkUserToTeam(t, admin, th.BasicTeam)
+		th.AddUserToChannel(t, admin, channel)
+		th.MakeUserChannelAdmin(t, admin, channel)
+
+		before, resp, err := th.SystemAdminClient.GetChannelAttributeComplianceSummary(context.Background(), group.Name, field.ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Zero(t, before.NotifyCooldownMillis)
+
+		_, resp, err = th.SystemAdminClient.NotifyChannelAdminsOfMissingAttributeValue(context.Background(), group.Name, field.ID)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusAccepted, resp.StatusCode)
+
+		after, resp, err := th.SystemAdminClient.GetChannelAttributeComplianceSummary(context.Background(), group.Name, field.ID)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.Greater(t, after.NotifyCooldownMillis, int64(0))
+		assert.LessOrEqual(t, after.NotifyCooldownMillis, int64(60*60*1000))
+	})
 }

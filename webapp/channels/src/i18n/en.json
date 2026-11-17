@@ -5847,6 +5847,10 @@
     "defaultMessage": "Notify all channel admins",
     "description": "Button in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner that sends a direct-message reminder to every admin of a channel missing a value."
   },
+  "admin.global_attributes.applies_to.channels.missing_values.notify_cooling_down": {
+    "defaultMessage": "Channel admins were recently notified about this. You can send another notification in {count, plural, one {# minute} other {# minutes}}.",
+    "description": "Banner text in the System Console attribute page, shown instead of the confirmation when an admin clicks Notify all channel admins while a recent notification for the same attribute is still cooling down; {count} is the minutes left."
+  },
   "admin.global_attributes.applies_to.channels.missing_values.notify_failed": {
     "defaultMessage": "The notifications couldn't be sent. Please try again.",
     "description": "Error message in the System Console > Attribute Management > attribute details, Channels \"Applies to\" row, Required-toggle banner when sending the reminders to channel admins failed."
@@ -6871,13 +6875,17 @@
     "defaultMessage": "Delete {name} attribute",
     "description": "Title of the delete confirmation dialog in System Console > System Attributes > Attribute Management. {name} is the attribute's display name. \"Delete\" is a verb (imperative)."
   },
+  "admin.global_attributes.confirm.notify_channel_admins.bullet.admins": {
+    "defaultMessage": "A notification will be sent to {count, plural, one {# channel administrator} other {# channel administrators}} requesting them to set a value.",
+    "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of channel admins who will get a message."
+  },
   "admin.global_attributes.confirm.notify_channel_admins.bullet.no_admin": {
-    "defaultMessage": "{count, plural, one {# channel has} other {# channels have}} no channel admin and won't be notified.",
+    "defaultMessage": "{count, plural, one {# channel has no channel admin and isn't notified.} other {# channels have no channel admin and aren't notified.}}",
     "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of affected channels that have no channel admin, so nobody will be reminded about them."
   },
-  "admin.global_attributes.confirm.notify_channel_admins.bullet.unique_admins": {
-    "defaultMessage": "Notifications go to each unique channel admin — not one message per channel — so {adminCount, plural, one {# admin} other {# admins}} will be contacted for {channelCount, plural, one {# channel} other {# channels}}.",
-    "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value explaining that each channel admin gets one message covering all their channels; {adminCount} is the number of admins and {channelCount} the number of channels."
+  "admin.global_attributes.confirm.notify_channel_admins.bullet.shared": {
+    "defaultMessage": "{count, plural, one {# channel is} other {# channels are}} shared from a connected workspace.",
+    "description": "Bullet in the System Console confirmation modal shown before notifying all channel admins about a missing channel attribute value; {count} is the number of channels shared from another connected server, whose admins are not notified."
   },
   "admin.global_attributes.confirm.notify_channel_admins.confirm": {
     "defaultMessage": "Send notification",

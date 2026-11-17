@@ -761,6 +761,7 @@ describe('global_attributes/utils', () => {
                 unique_admin_count: 0,
                 channels_without_admin_count: 0,
                 message_preview: '',
+                notify_cooldown_ms: 0,
             });
 
             await fetchChannelsMissingValueSummary('field1');
@@ -776,6 +777,7 @@ describe('global_attributes/utils', () => {
                 unique_admin_count: 0,
                 channels_without_admin_count: 0,
                 message_preview: '',
+                notify_cooldown_ms: 0,
             });
 
             await fetchChannelsMissingValueSummary(undefined);
