@@ -347,6 +347,75 @@ class StatusPublicationContract(unittest.TestCase):
                 self.assertLess(step(workers, 'ci/dispatch-run')['timeout-minutes'], workers['timeout-minutes'] - 5)
 
 
+def fake_bin(tmp, **scripts):
+    """A PATH directory holding the given fake commands, for running a step's script offline."""
+    bin_dir = pathlib.Path(tmp) / 'bin'
+    bin_dir.mkdir()
+    for name, body in scripts.items():
+        path = bin_dir / name
+        path.write_text('#!/usr/bin/env bash\n' + body)
+        path.chmod(0o755)
+    return f"{bin_dir}{os.pathsep}{os.environ['PATH']}"
+
+
+class InfrastructureRetries(unittest.TestCase):
+    """Waits and retries around infrastructure steps only: they never re-run tests or change what a lane's result is."""
+    TEMPLATES = ('cypress-template', 'playwright-template', 'playwright-rolling-upgrades-template')
+    WAIT_SCRIPT = GITHUB / 'actions' / 'wait-for-server-image' / 'wait.sh'
+
+    def test_fips_lanes_wait_for_their_image_before_the_run_begins(self):
+        """FIPS lanes wait for their server image, loaded from this workflow's own ref, before the run begins."""
+        for name in self.TEMPLATES:
+            with self.subTest(template=name):
+                job = workflow(name)['jobs']['dispatch-begin']
+                names = [s.get('name') for s in job['steps']]
+                checkout, wait = step(job, 'ci/checkout-trusted-actions'), step(job, 'ci/wait-for-server-image')
+                self.assertEqual(names.index('ci/checkout-trusted-actions') + 1, names.index('ci/wait-for-server-image'))
+                self.assertLess(names.index('ci/checkout-repo'), names.index('ci/checkout-trusted-actions'))
+                self.assertLess(names.index('ci/wait-for-server-image'), names.index('ci/dispatch-begin'))
+                self.assertEqual(checkout['with'], {
+                    'persist-credentials': False, 'ref': '${{ github.sha }}',
+                    'sparse-checkout': '.github', 'path': '.e2e-trusted', 'fetch-depth': 1,
+                })
+                self.assertEqual(wait['uses'], './.e2e-trusted/.github/actions/wait-for-server-image')
+                self.assertEqual(wait['with'], {'image': '${{ env.SERVER_IMAGE }}'})
+                for s in (checkout, wait):
+                    self.assertEqual(s['if'], "inputs.server_edition == 'fips'")
+                self.assertNotIn('continue-on-error', wait)
+
+    def run_image_wait(self, code, timeout_minutes='0'):
+        """Runs wait.sh with a fake registry that answers code for the manifest; returns the completed process."""
+        curl = ('case "$*" in *token\\?*) echo \'{"token":"t"}\';; '
+                f'*) [ "{code}" = 000 ] && {{ printf 000; exit 7; }}; printf "{code}";; esac')
+        with tempfile.TemporaryDirectory() as tmp:
+            summary = pathlib.Path(tmp) / 'summary'
+            result = subprocess.run(['bash', str(self.WAIT_SCRIPT)], capture_output=True, text=True, env={
+                'PATH': fake_bin(tmp, curl=curl, sleep=':'), 'IMAGE': 'mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678',
+                'TIMEOUT_MINUTES': timeout_minutes, 'INTERVAL_SECONDS': '1', 'GITHUB_STEP_SUMMARY': str(summary)})
+            result.summary = summary.read_text() if summary.exists() else ''
+        return result
+
+    def test_image_wait_fails_only_on_a_missing_image(self):
+        """Only a registry that keeps answering "not found" fails the wait; an unreachable one passes with a warning."""
+        published = self.run_image_wait('200')
+        self.assertEqual(published.returncode, 0, published.stdout)
+        missing = self.run_image_wait('404')
+        self.assertEqual(missing.returncode, 1)
+        self.assertIn('::error title=Server image not published::', missing.stdout)
+        self.assertIn('abc1234_def5678', missing.summary)
+        for code in ('000', '500', '429', '401'):
+            with self.subTest(code=code):
+                unknown = self.run_image_wait(code)
+                self.assertEqual(unknown.returncode, 0, unknown.stdout)
+                self.assertIn('::warning title=Server image not verified::', unknown.stdout)
+
+    def test_image_wait_rejects_a_malformed_reference(self):
+        """A reference that is not <namespace>/<name>:<tag> fails before any request."""
+        result = subprocess.run(['bash', str(self.WAIT_SCRIPT)], capture_output=True, text=True,
+                                env={'PATH': os.environ['PATH'], 'IMAGE': 'not an image'})
+        self.assertEqual(result.returncode, 1)
+
+
 def build_context(suite, edition, deploy, report_type):
     """Runs the lane's own build step, so the context is the one the workflow would publish."""
     run = next(s['run'] for s in workflow(suite)['jobs']['generate-build-variables']['steps'] if s.get('id') == 'build-vars')
