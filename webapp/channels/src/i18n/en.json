@@ -7439,6 +7439,10 @@
     "defaultMessage": "Resolve here",
     "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
   },
+  "admin.health_dashboard.detail.severity": {
+    "defaultMessage": "Severity",
+    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value is the severity of the check (Critical, Warning or Info)."
+  },
   "admin.health_dashboard.detail.state": {
     "defaultMessage": "State",
     "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
@@ -7519,17 +7523,17 @@
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
   },
-  "admin.health_dashboard.finding.resolved_badge": {
-    "defaultMessage": "Resolved ({severity} when firing)",
-    "description": "Badge on a recently resolved finding row on the System Console Site health page; {severity} is the severity label (Critical, Warning or Info) the finding had while firing."
+  "admin.health_dashboard.finding.resolved": {
+    "defaultMessage": "Resolved",
+    "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
   },
   "admin.health_dashboard.finding.title_on_node": {
     "defaultMessage": "{title} on {node}",
     "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
   },
-  "admin.health_dashboard.finding.unknown_badge": {
-    "defaultMessage": "Unknown ({severity} if firing)",
-    "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
+  "admin.health_dashboard.finding.unknown": {
+    "defaultMessage": "Unknown",
+    "description": "Badge on a finding row of the System Console Site health page, when findings are grouped by category, for a check that could not be evaluated."
   },
   "admin.health_dashboard.finding.unknown_fallback": {
     "defaultMessage": "This check could not run, so its result is unknown.",

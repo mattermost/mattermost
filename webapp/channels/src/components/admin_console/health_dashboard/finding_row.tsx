@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useId} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {BellOffOutlineIcon, ChevronRightIcon, ChevronUpIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {HealthFinding} from '@mattermost/types/health';
@@ -25,16 +25,32 @@ type Props = {
     onMute: (fingerprint: string) => void;
     onUnmute: (fingerprint: string) => void;
     hideArea?: boolean;
+    hideSeverity?: boolean;
 };
 
-const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideArea = false}: Props) => {
+const stateBadges = defineMessages({
+    unknown: {id: 'admin.health_dashboard.finding.unknown', defaultMessage: 'Unknown'},
+    resolved: {id: 'admin.health_dashboard.finding.resolved', defaultMessage: 'Resolved'},
+});
+
+function getBadgeMessage(finding: HealthFinding) {
+    switch (finding.state) {
+    case 'unknown':
+        return stateBadges.unknown;
+    case 'resolved':
+        return stateBadges.resolved;
+    default:
+        return severityMessages[finding.severity];
+    }
+}
+
+const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideArea = false, hideSeverity = false}: Props) => {
     const {formatMessage} = useIntl();
     const detailId = useId();
 
     const tone = getHealthFindingSection(finding);
     const title = finding.title || finding.code;
     const muted = isHealthFindingMuted(finding);
-    const severity = formatMessage(severityMessages[finding.severity]);
 
     let message = finding.message;
     if (!message && finding.state === 'unknown') {
@@ -42,25 +58,6 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
             id: 'admin.health_dashboard.finding.unknown_fallback',
             defaultMessage: 'This check could not run, so its result is unknown.',
         });
-    }
-
-    let badge: React.ReactNode = severity;
-    if (finding.state === 'unknown') {
-        badge = (
-            <FormattedMessage
-                id='admin.health_dashboard.finding.unknown_badge'
-                defaultMessage='Unknown ({severity} if firing)'
-                values={{severity}}
-            />
-        );
-    } else if (finding.state === 'resolved') {
-        badge = (
-            <FormattedMessage
-                id='admin.health_dashboard.finding.resolved_badge'
-                defaultMessage='Resolved ({severity} when firing)'
-                values={{severity}}
-            />
-        );
     }
 
     const Chevron = expanded ? ChevronUpIcon : ChevronRightIcon;
@@ -99,7 +96,14 @@ const FindingRow = ({finding, now, expanded, onToggle, onMute, onUnmute, hideAre
                         </span>
                         {message && <span className='HealthFinding__message'>{message}</span>}
                         <span className='HealthFinding__meta'>
-                            <span className='HealthFinding__badge'>{badge}</span>
+                            {!hideSeverity && (
+                                <span
+                                    className='HealthFinding__badge'
+                                    data-testid='healthFindingBadge'
+                                >
+                                    <FormattedMessage {...getBadgeMessage(finding)}/>
+                                </span>
+                            )}
                             {!hideArea && (
                                 <span
                                     className='HealthFinding__tag'
