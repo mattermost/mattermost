@@ -152,6 +152,18 @@ func (h *AccessControlAttributeValidationHook) requiredEnforced() bool {
 	return h.requiredAttributeEnforcement == nil || h.requiredAttributeEnforcement()
 }
 
+// validatePostField refuses a post field that is not system-scoped. Any other
+// field passes. The error never names the field.
+func validatePostField(field *model.PropertyField) error {
+	if field.ObjectType != model.PropertyFieldObjectTypePost {
+		return nil
+	}
+	if field.TargetType != string(model.PropertyFieldTargetLevelSystem) {
+		return fmt.Errorf("post fields must be system-scoped: %w", ErrInvalidFieldAttrs)
+	}
+	return nil
+}
+
 // openIDAttributeSyncEnabled reports whether attributes may be linked to
 // OpenID Connect claims. A nil provider defaults to enabled.
 func (h *AccessControlAttributeValidationHook) openIDAttributeSyncEnabled() bool {
@@ -721,6 +733,10 @@ func (h *AccessControlAttributeValidationHook) PreCreatePropertyField(rctx reque
 		return nil, appErr
 	}
 
+	if err := validatePostField(field); err != nil {
+		return nil, err
+	}
+
 	// Create: no prior type, actions, or required state, so a rank field here is
 	// authored directly and its ranks are validated strictly rather than
 	// repaired, actions get the strict check with nothing to grandfather, and a
@@ -751,6 +767,9 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyField(rctx reque
 		}
 	}
 
+	if err := validatePostField(field); err != nil {
+		return nil, err
+	}
 	if err := h.sanitizeAndValidateFieldAttrs(field, existing); err != nil {
 		return nil, err
 	}
@@ -787,6 +806,10 @@ func (h *AccessControlAttributeValidationHook) PreUpdatePropertyFields(rctx requ
 			if appErr := model.ValidateCPAFieldName(field.Name); appErr != nil {
 				return nil, fmt.Errorf("field %s: %w", field.ID, appErr)
 			}
+		}
+
+		if err := validatePostField(field); err != nil {
+			return nil, fmt.Errorf("field %s: %w", field.ID, err)
 		}
 
 		// existing is nil when the field isn't found (the store surfaces the
