@@ -38,10 +38,43 @@ const algoliaThemeConfig =
       }
     : {};
 
+// OneTrust cookie banner, shared with mattermost.com (consent carries over).
+// Set only in production (docs-cd.yml); other builds skip it for check-egress.
+const oneTrustDomainScript = process.env.ONETRUST_DOMAIN_SCRIPT;
+const oneTrustHeadTags = oneTrustDomainScript
+  ? [
+      {
+        tagName: 'script',
+        attributes: {
+          src: 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js',
+          type: 'text/javascript',
+          charset: 'UTF-8',
+          'data-domain-script': oneTrustDomainScript,
+        },
+      },
+      {
+        tagName: 'script',
+        attributes: {type: 'text/javascript'},
+        innerHTML: 'function OptanonWrapper() { }',
+      },
+    ]
+  : [];
+// Lets visitors reopen the preference center to change or withdraw consent.
+// Rendered only with the banner, since without it the button does nothing.
+const oneTrustFooterItems = oneTrustDomainScript
+  ? [
+      {
+        html: '<button type="button" id="ot-sdk-btn" class="ot-sdk-show-settings">Cookie settings</button>',
+      },
+    ]
+  : [];
+
 const config: Config = {
   title: 'Mattermost Documentation',
   tagline: 'Mission in Motion',
   favicon: 'img/brand/icon-denim.svg',
+
+  headTags: [...oneTrustHeadTags],
 
   future: {
     v4: true,
@@ -54,17 +87,16 @@ const config: Config = {
   organizationName: 'mattermost',
   projectName: 'mattermost',
 
-  // Broken-link / broken-image policy. During the Phase 4 (developer docs)
-  // and Phase 5 (main docs) migrations, content references images and
-  // anchors that haven't been migrated yet — `warn` keeps the build green
-  // while the unconverted set shows up as warnings we can grep for.
-  // Tighten to `throw` after each migration phase completes.
-  onBrokenLinks: 'warn',
+  // Only site-relative links are validated; absolute https://docs.mattermost.com
+  // links are checked separately by scripts/check-absolute-docs-links.mjs.
+  onBrokenLinks: 'throw',
+  // Tighten to `throw` once the remaining migrated-content anchors are fixed.
+  onBrokenAnchors: 'warn',
 
   markdown: {
     mermaid: true,
     hooks: {
-      onBrokenMarkdownLinks: 'warn',
+      onBrokenMarkdownLinks: 'throw',
       onBrokenMarkdownImages: 'warn',
     },
   },
@@ -226,6 +258,7 @@ const config: Config = {
           items: [
             {label: 'GitHub', href: 'https://github.com/mattermost/mattermost'},
             {label: 'Forum', href: 'https://forum.mattermost.com/'},
+            ...oneTrustFooterItems,
           ],
         },
       ],

@@ -99,6 +99,7 @@ var jobPermissions = map[string]jobTypePermissions{
 	model.JobTypeRecap:                         internalJobPermissions,
 	model.JobTypeScheduledRecap:                internalJobPermissions,
 	model.JobTypeAutoTranslationRecovery:       internalJobPermissions,
+	model.JobTypeHealthCheck:                   internalJobPermissions,
 }
 
 // SessionHasPermissionToCreateJob returns whether the session may create the job and the permission

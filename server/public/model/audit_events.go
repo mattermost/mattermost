@@ -176,6 +176,8 @@ const (
 	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
 	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
 	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+
+	AuditEventSearchGlobalAttributeListing = "searchGlobalAttributeListing" // search the Global Attributes listing
 )
 
 // Property Field Options

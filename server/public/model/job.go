@@ -50,6 +50,7 @@ const (
 	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 	JobTypeCleanupExpiredAccessTokens    = "cleanup_expired_access_tokens"
 	JobTypeNotifyExpiringAccessTokens    = "notify_expiring_access_tokens"
+	JobTypeHealthCheck                   = "health_check"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -108,6 +109,7 @@ var AllJobTypes = [...]string{
 	JobTypeAutoTranslationRecovery,
 	JobTypeCleanupExpiredAccessTokens,
 	JobTypeNotifyExpiringAccessTokens,
+	JobTypeHealthCheck,
 }
 
 // CreatableJobTypes contains the job types that can be created through the jobs API. Jobs of

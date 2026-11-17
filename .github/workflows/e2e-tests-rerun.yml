@@ -10,13 +10,16 @@ on:
       - "E2E Tests (pull request)"
       - "E2E Tests (master/release - merge)"
       - "E2E Tests (release cut)"
+      - "E2E Tests - Playwright Rolling Upgrades"
     types: [completed]
 
 permissions: {}
 
 jobs:
   rerun:
-    if: github.event.workflow_run.conclusion == 'failure'
+    # A job past its timeout ends the run "cancelled", not "failure". The action re-runs only on triage's marker, so a
+    # run cancelled for a newer push (triage never ran) is left alone.
+    if: contains(fromJSON('["failure", "cancelled"]'), github.event.workflow_run.conclusion)
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:

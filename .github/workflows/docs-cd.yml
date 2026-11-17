@@ -62,6 +62,9 @@ jobs:
         env:
           ALGOLIA_APP_ID: ${{ vars.ALGOLIA_APP_ID }}
           ALGOLIA_SEARCH_API_KEY: ${{ vars.ALGOLIA_SEARCH_API_KEY }}
+          # OneTrust production domain script for mattermost.com (public ID,
+          # also embedded on mattermost.com). Hosted site only.
+          ONETRUST_DOMAIN_SCRIPT: 720431b2-455a-47db-be59-4312edc7f3b4
         run: npm run build
 
       - name: cd/configure-aws-credentials
