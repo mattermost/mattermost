@@ -1478,7 +1478,7 @@ func (a *App) UpdateChannelMemberRoles(rctx request.CTX, channelID string, userI
 // person changing roles through the REST API: a member it makes channel admin is
 // told which required channel attribute values the channel still lacks. Plugins,
 // bulk import and membership sync call UpdateChannelMemberRoles and stay quiet.
-func (a *App) UpdateChannelMemberRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, error) {
 	updated, promoted, err := a.updateChannelMemberRolesInternal(rctx, channelID, userID, newRoles, false)
 	if err != nil {
 		return nil, err
@@ -1580,13 +1580,13 @@ func (a *App) updateChannelMemberRolesInternal(rctx request.CTX, channelID strin
 // UpdateChannelMemberSchemeRoles sets a channel member's scheme roles.
 func (a *App) UpdateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
 	updated, _, err := a.updateChannelMemberSchemeRoles(rctx, channelID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin)
-	return updated, err
+	return updated, model.AsAppError(err)
 }
 
 // UpdateChannelMemberSchemeRolesAndNotifyNewAdmin is UpdateChannelMemberSchemeRoles
 // for a person changing roles through the REST API; see
 // UpdateChannelMemberRolesAndNotifyNewAdmin.
-func (a *App) UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, *model.AppError) {
+func (a *App) UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, error) {
 	updated, promoted, err := a.updateChannelMemberSchemeRoles(rctx, channelID, userID, isSchemeGuest, isSchemeUser, isSchemeAdmin)
 	if err != nil {
 		return nil, err
@@ -1597,7 +1597,7 @@ func (a *App) UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(rctx request.CTX, 
 	return updated, nil
 }
 
-func (a *App) updateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, bool, *model.AppError) {
+func (a *App) updateChannelMemberSchemeRoles(rctx request.CTX, channelID string, userID string, isSchemeGuest bool, isSchemeUser bool, isSchemeAdmin bool) (*model.ChannelMember, bool, error) {
 	member, err := a.GetChannelMember(rctx, channelID, userID)
 	if err != nil {
 		return nil, false, err
