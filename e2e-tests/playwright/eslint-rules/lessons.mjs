@@ -42,8 +42,6 @@ function firstArgText(node) {
     return null;
 }
 
-// True when `node` is evaluated as a condition: an if, ternary or loop test (never a for loop's
-// init or update), or a logical operand of one, optionally compared for equality first.
 const PASS_THROUGH = new Set(['LogicalExpression', 'UnaryExpression', 'AwaitExpression', 'TSNonNullExpression']);
 const CONDITIONAL = new Set([
     'IfStatement',
@@ -52,20 +50,39 @@ const CONDITIONAL = new Set([
     'DoWhileStatement',
     'ForStatement',
 ]);
+const SHORT_CIRCUIT = new Set(['&&', '||']);
 const EQUALITY = new Set(['===', '!==', '==', '!=']);
 
-function passesThrough(parent) {
-    return PASS_THROUGH.has(parent.type) || (parent.type === 'BinaryExpression' && EQUALITY.has(parent.operator));
-}
-
-function isInCondition(node) {
+// True when `node` decides which code runs: it is the test of an if, ternary or loop (never a for
+// loop's init or update), or the left side of a short-circuit && or || used as a statement, as in
+// `(await x.isVisible()) && (await x.click());`. The walk passes through await, !, logical operators
+// and the given binary operators.
+function decidesFlow(node, binaryOperators) {
     let child = node;
     let parent = node.parent;
-    while (parent && passesThrough(parent)) {
+    let shortCircuits = false;
+    while (
+        parent &&
+        (PASS_THROUGH.has(parent.type) || (parent.type === 'BinaryExpression' && binaryOperators.has(parent.operator)))
+    ) {
+        if (parent.type === 'LogicalExpression' && SHORT_CIRCUIT.has(parent.operator) && parent.left === child) {
+            shortCircuits = true;
+        }
         child = parent;
         parent = parent.parent;
     }
-    return Boolean(parent && CONDITIONAL.has(parent.type) && parent.test === child);
+    if (!parent) {
+        return false;
+    }
+    if (CONDITIONAL.has(parent.type)) {
+        return parent.test === child;
+    }
+    return shortCircuits && parent.type === 'ExpressionStatement';
+}
+
+// isVisible() as a condition, optionally compared for equality first.
+function isInCondition(node) {
+    return decidesFlow(node, EQUALITY);
 }
 
 const noSpecLocators = {
@@ -161,18 +178,9 @@ const PAGE_STATE_READS = new Set([
 ]);
 const COMPARISON = new Set(['===', '!==', '==', '!=', '<', '<=', '>', '>=']);
 
-// True when `node` decides a branch: an if, ternary or loop condition, through await, !, &&, || and comparisons.
+// A page read that decides a branch, optionally compared first.
 function decidesBranch(node) {
-    let child = node;
-    let parent = node.parent;
-    while (
-        parent &&
-        (PASS_THROUGH.has(parent.type) || (parent.type === 'BinaryExpression' && COMPARISON.has(parent.operator)))
-    ) {
-        child = parent;
-        parent = parent.parent;
-    }
-    return Boolean(parent && CONDITIONAL.has(parent.type) && parent.test === child);
+    return decidesFlow(node, COMPARISON);
 }
 
 const noPageStateBranch = {

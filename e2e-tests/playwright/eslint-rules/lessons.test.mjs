@@ -23,6 +23,9 @@ ruleTester.run('no-unwaited-is-visible', lessons.rules['no-unwaited-is-visible']
         'for (let i = 0; i < 3; await loc.isVisible()) { i++; }',
         'while (true) { await loc.isVisible(); break; }',
         'if (ready) { await loc.isVisible(); }',
+        'ready && (await loc.isVisible());',
+        'const visible = (await loc.isVisible()) && ready;',
+        'for (; ; (await loc.isVisible()) && (await loc.click())) { break; }',
     ].map(inAsync),
     invalid: [
         'await loc.isVisible().catch(() => false);',
@@ -34,6 +37,10 @@ ruleTester.run('no-unwaited-is-visible', lessons.rules['no-unwaited-is-visible']
         'do {} while (await loc.isVisible());',
         'for (; await loc.isVisible(); ) {}',
         'for (let i = 0; ready && (await loc.isVisible()); i++) {}',
+        '(await loc.isVisible()) && (await loc.click());',
+        '!(await loc.isVisible()) || (await loc.click());',
+        '(ready || (await loc.isVisible())) && (await loc.click());',
+        'for (let i = 0; i < 3; i++) { (await loc.isVisible()) && (await loc.click()); }',
     ].map((body) => ({code: inAsync(body), errors: 1})),
 });
 
@@ -49,6 +56,9 @@ ruleTester.run('no-page-state-branch', lessons.rules['no-page-state-branch'], {
         'for (const key in await loc.getAttribute("data")) {}',
         'while (ready) { await loc.count(); }',
         'if (ready) { await loc.count(); }',
+        'ready && (await loc.count());',
+        'const empty = (await loc.count()) === 0 && ready;',
+        'await loc.textContent() ?? recover();',
     ].map(inAsync),
     invalid: [
         {code: inAsync('if ((await loc.count()) === 0) {}'), method: 'count'},
@@ -58,5 +68,7 @@ ruleTester.run('no-page-state-branch', lessons.rules['no-page-state-branch'], {
         {code: inAsync('do {} while (await loc.isEnabled());'), method: 'isEnabled'},
         {code: inAsync('for (let i = 0; i < (await loc.count()); i++) {}'), method: 'count'},
         {code: inAsync('for (; !(await loc.isHidden()); ) {}'), method: 'isHidden'},
+        {code: inAsync('(await loc.count()) === 0 && (await recover());'), method: 'count'},
+        {code: inAsync('(await loc.isChecked()) || (await loc.check());'), method: 'isChecked'},
     ].map(({code, method}) => ({code, errors: [{messageId: 'branch', data: {method}}]})),
 });
