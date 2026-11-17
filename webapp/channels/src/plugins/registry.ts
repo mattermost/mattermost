@@ -1501,7 +1501,8 @@ export default class PluginRegistry {
      * `component` receives {channel, currentTeamName, isCurrentChannel}. A component that throws
      * is hidden, and only the first error per plugin is logged. The item is also the drag handle
      * for moving the channel between categories, and drags that start on interactive elements
-     * such as buttons and links don't move it. Children of a channel in a collapsed category are
+     * such as buttons and inputs don't move it. A drag that starts on a link, or on other text,
+     * does, so keep links to clicks. Children of a channel in a collapsed category are
      * hidden with it unless the channel is the current or an unread channel.
      *
      * Registrations are cleaned up automatically when the plugin is removed.
