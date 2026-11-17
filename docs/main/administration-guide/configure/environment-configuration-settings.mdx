@@ -2527,7 +2527,7 @@ With self-hosted deployments, you can configure SMTP email server settings by go
 </colgroup>
 <tbody>
 <tr>
-<td><p>Specify connection security for emails sent using SMTP.</p><ul><li><strong>Not specified</strong>: <strong>(Default)</strong> Send email over an unsecure connection.</li><li><strong>TLS</strong>: Communication between Mattermost and your email server is encrypted.</li><li><strong>STARTTLS</strong>: Attempts to upgrade an existing insecure connection to a secure connection using TLS.</li></ul></td>
+<td><p>Specify connection security for emails sent using SMTP.</p><ul><li><strong>Not specified</strong>: <strong>(Default)</strong> Send email over an unsecure connection.</li><li><strong>TLS</strong>: Communication between Mattermost and your email server is encrypted.</li><li><strong>STARTTLS</strong>: Upgrades an existing insecure connection to TLS. The connection fails if the SMTP server doesn't support STARTTLS.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; SMTP</strong></li><li><code>config.json</code> setting: <code>EmailSettings</code> &gt; <code>ConnectionSecurity</code></li><li>Environment variable: <code>MM_EMAILSETTINGS_CONNECTIONSECURITY</code></li></ul></td>
 </tr>
 </tbody>
