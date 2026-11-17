@@ -111,10 +111,18 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
     // is the rendered chip, while a text input or user picker reads out its own
     // value.
     const optionLabels = isOptionType && value ? resolveOptionChips(field, value.value).map((chip) => chip.label) : [];
-    const ariaLabel = optionLabels.length > 0 ? formatMessage(
-        {id: 'post_attributes.composer.chip', defaultMessage: '{field}: {value}', description: 'Accessible name of an attribute chip in the message composer, read by screen readers. {field} is the attribute\'s name; {value} is the selected option or options.'},
-        {field: label, value: formatList(optionLabels)},
-    ) : undefined;
+    let ariaLabel: string | undefined;
+    if (optionLabels.length > 0) {
+        ariaLabel = formatMessage(
+            {id: 'post_attributes.composer.chip', defaultMessage: '{field}: {value}', description: 'Accessible name of an attribute chip in the message composer, read by screen readers. {field} is the attribute\'s name; {value} is the selected option or options.'},
+            {field: label, value: formatList(optionLabels)},
+        );
+    } else if (isOptionType) {
+        ariaLabel = formatMessage(
+            {id: 'post_attributes.composer.chip.pending', defaultMessage: 'Select value for {field}', description: 'Accessible name of an attribute chip in the message composer that has no value yet; activating it opens the list of values. {field} is the attribute\'s name.'},
+            {field: label},
+        );
+    }
 
     const handleRemove = useCallback(() => onRemove(field.id), [field.id, onRemove]);
 
@@ -138,6 +146,14 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
                 ariaLabel={ariaLabel}
                 renderValue={renderChipValue}
                 autoOpen={autoOpen}
+
+                // An option chip with no value shows the field's name, so its
+                // trigger has a size, and is un-staged when its menu closes
+                // without a value: an empty chip would be a leftover with
+                // nothing to click. Text and user chips are inputs with a size
+                // of their own, and stay until their ×.
+                pendingLabel={isOptionType ? <span className='PostAttributesComposerChip__pending'>{label}</span> : undefined}
+                onCloseEmpty={isOptionType ? handleRemove : undefined}
             />
 
             <button

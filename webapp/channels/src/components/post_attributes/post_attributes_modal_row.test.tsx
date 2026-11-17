@@ -7,7 +7,7 @@ import React from 'react';
 import type {FieldType, PropertyField, PropertyValue} from '@mattermost/types/properties';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -119,6 +119,20 @@ describe('PostAttributesModalRow', () => {
 
         expect(screen.getByTestId('post-attribute-trigger-classification')).toBeInTheDocument();
         expect(screen.queryByTestId('post-attribute-clear-classification')).not.toBeInTheDocument();
+    });
+
+    test('an unset row keeps its empty trigger after its menu is opened and closed without a pick', async () => {
+        const onChange = renderRow({value: undefined});
+
+        const trigger = screen.getByTestId('post-attribute-trigger-classification');
+        await userEvent.click(trigger);
+        expect(screen.getByRole('menu')).toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('');
+        expect(onChange).not.toHaveBeenCalled();
     });
 
     test('a locked row renders the padlock, no trigger and no trash button', () => {

@@ -1387,13 +1387,20 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         const flagOn = withFields([priorityField]);
 
         // Picks a field from the `+` in a composer's action row. Both composers
-        // can be mounted at once, hence the index. Closes the value menu the
-        // picked chip opens for itself, so the next step starts from a clean page.
+        // can be mounted at once, hence the index. An option field's chip opens
+        // its value menu; the first option is picked there, because closing it
+        // empty would un-stage the field, and the next step starts from a clean
+        // page.
         async function pickFromActionRow(fieldName: string, composerIndex = 0) {
             await userEvent.click(screen.getAllByTestId('post-attributes-composer-add')[composerIndex]);
             await userEvent.click(screen.getByTestId(`post-attribute-add-${fieldName}`));
             await waitFor(() => expect(screen.getAllByTestId(`post-attribute-chip-${fieldName}`)).toHaveLength(composerIndex + 1));
-            await userEvent.keyboard('{Escape}');
+
+            const firstOption = screen.queryAllByRole('menuitemradio')[0];
+            if (firstOption) {
+                await userEvent.click(firstOption);
+                await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+            }
         }
 
         it('is absent with the feature flag off', () => {
@@ -1555,11 +1562,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
             await userEvent.click(screen.getByTestId('post-attribute-add-classification'));
             await waitFor(() => expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument());
-            await userEvent.keyboard('{Escape}');
 
-            // Picked, but empty: it can be taken away again, and nothing is staged for it.
+            // Picked, but empty: the chip shows the field's name while its menu
+            // is open, and nothing is staged for it.
+            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('Classification');
             expect(screen.getByTestId('post-attribute-trigger-classification')).not.toHaveTextContent('SECRET');
-            expect(screen.getByTestId('post-attribute-remove-classification')).toBeInTheDocument();
+
+            // Closed without a value, it goes again, as any picked option field does.
+            await userEvent.keyboard('{Escape}');
+            await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument());
+            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
         });
 
         it('stops rendering both add controls once the last field is picked', async () => {

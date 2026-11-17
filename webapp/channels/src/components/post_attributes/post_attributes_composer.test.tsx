@@ -348,7 +348,34 @@ describe('PostAttributesComposer', () => {
         expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
     });
 
-    test('removing a picked chip with no value yet drops the chip', async () => {
+    test('removing a picked text chip with no value yet drops the chip', async () => {
+        const field = makeField({type: 'text', attrs: {display_name: 'Note'}});
+
+        renderComposer([field, spareField()], [{field_id: 'f_spare', value: 'opt_secret'}]);
+
+        await addAttribute('classification');
+
+        // An option chip with no value can't be reached this way: its open
+        // menu covers the ×, and closing the menu un-stages it on its own.
+        await userEvent.click(screen.getByRole('button', {name: 'Remove Note'}));
+
+        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+    });
+
+    test('a picked option chip with no value shows the field name and has its own accessible name', async () => {
+        renderComposer(
+            [makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'when_set'}}), spareField()],
+            [{field_id: 'f_spare', value: 'opt_secret'}],
+        );
+
+        await addAttribute('classification');
+
+        const trigger = screen.getByTestId('post-attribute-trigger-classification');
+        expect(trigger).toHaveTextContent('Classification');
+        expect(trigger).toHaveAccessibleName('Select value for Classification');
+    });
+
+    test('closing a just-picked option chip without a value un-stages it', async () => {
         renderComposer(
             [makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'when_set'}}), spareField()],
             [{field_id: 'f_spare', value: 'opt_secret'}],
@@ -357,9 +384,37 @@ describe('PostAttributesComposer', () => {
         await addAttribute('classification');
         await userEvent.keyboard('{Escape}');
 
-        await userEvent.click(screen.getByRole('button', {name: 'Remove Classification'}));
+        await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument());
+        expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
 
-        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('post-attributes-add'));
+        expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
+    });
+
+    test('picking a single-choice value closes the menu and keeps the chip', async () => {
+        renderComposer(
+            [makeField({attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'when_set'}}), spareField()],
+            [{field_id: 'f_spare', value: 'opt_secret'}],
+        );
+
+        await addAttribute('classification');
+        await userEvent.click(screen.getByRole('menuitemradio', {name: /^SECRET/}));
+
+        await waitFor(() => expect(stagedValues()).toContainEqual({field_id: 'field_1', value: 'opt_secret'}));
+        await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+    });
+
+    test('reopening a chip that has a value and closing it changes nothing', async () => {
+        renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
+
+        await userEvent.click(screen.getByTestId('post-attribute-trigger-classification'));
+        await userEvent.keyboard('{Escape}');
+        await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+
+        expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+        expect(stagedValues()).toEqual([{field_id: 'field_1', value: 'opt_secret'}]);
     });
 
     test('removing an `always` field\'s chip drops it, as for any other field, and offers it again', async () => {
@@ -380,7 +435,7 @@ describe('PostAttributesComposer', () => {
         expect(screen.getByTestId('post-attribute-add-classification')).toBeInTheDocument();
     });
 
-    test('an emptied value is dropped from the staged values, and the picked chip stays', async () => {
+    test('an emptied multiselect is dropped from the staged values, keeps its chip while open, and loses it on close', async () => {
         const field = makeField({type: 'multiselect', attrs: {options: OPTIONS, display_name: 'Classification', visibility: 'when_set'}});
 
         renderComposer([field, spareField()], [{field_id: 'f_spare', value: 'opt_secret'}]);
@@ -394,6 +449,11 @@ describe('PostAttributesComposer', () => {
         await waitFor(() => expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]));
 
         expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument());
+        expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]);
     });
 
     test('an emptied text value is dropped from the staged values, and the picked chip stays', async () => {

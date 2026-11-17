@@ -7,7 +7,7 @@ import {useIntl} from 'react-intl';
 import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
 
-import {getPropertyFieldLabel, getPropertyFieldOptions} from 'mattermost-redux/utils/property_utils';
+import {getPropertyFieldLabel, getPropertyFieldOptions, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 
 import {UserSelector} from 'components/admin_console/content_flagging/user_multiselector/user_multiselector';
 import * as Menu from 'components/menu';
@@ -44,6 +44,16 @@ type Props = {
     // Opens the menu, or focuses the input, on mount, so a field just picked in
     // the composer can be given a value without hunting for its control.
     autoOpen?: boolean;
+
+    // Shown by `OptionMenu` in place of the value while the field has none, so
+    // its trigger has something to draw and a size to click. The composer
+    // passes the field's name; the modal passes nothing and keeps its empty
+    // trigger.
+    pendingLabel?: React.ReactNode;
+
+    // Called by `OptionMenu` when its menu closes and the field still has no
+    // value. The composer un-stages the field; the modal never passes it.
+    onCloseEmpty?: () => void;
 };
 
 /**
@@ -55,7 +65,7 @@ type Props = {
  * websocket — the row reads the store, always. The text control keeps a draft of
  * what is being typed, which is not the same thing — see `TextInput`.
  */
-export default function PostAttributeValueControl({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen}: Props) {
+export default function PostAttributeValueControl({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty}: Props) {
     switch (field.type) {
     case 'select':
     case 'rank':
@@ -69,6 +79,8 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
                 ariaLabel={ariaLabel}
                 renderValue={renderValue}
                 autoOpen={autoOpen}
+                pendingLabel={pendingLabel}
+                onCloseEmpty={onCloseEmpty}
             />
         );
 
@@ -114,7 +126,7 @@ function sameEntries(left: string[], right: string[]): boolean {
 /**
  * A menu of the field's options with a check on each chosen one.
  */
-function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen}: Props) {
+function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty}: Props) {
     const label = ariaLabel ?? getPropertyFieldLabel(field);
     const isMulti = field.type === 'multiselect';
     const options = getPropertyFieldOptions(field);
@@ -130,7 +142,34 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
     // close, so without `autoOpen` this behaves as the uncontrolled menu did.
     const [isOpen, setIsOpen] = useState(Boolean(autoOpen));
 
-    let displayValue: React.ReactNode = null;
+    // Whether the field holds a value after the last pick. A single-choice pick
+    // runs in the same click that closes the menu, and the close is reported
+    // after that click's re-render but before the editor's new value reaches
+    // this component, so `value` alone would still read empty and un-stage the
+    // field the user just picked.
+    const hasValue = useRef(Boolean(value));
+    useEffect(() => {
+        hasValue.current = Boolean(value);
+    }, [value]);
+
+    // `Menu` also reports `false` on mount, when nothing was ever open; only a
+    // menu that was open can be closed empty.
+    const wasOpen = useRef(false);
+    const handleToggle = useCallback((open: boolean) => {
+        setIsOpen(open);
+
+        if (open) {
+            wasOpen.current = true;
+            return;
+        }
+
+        if (wasOpen.current && !hasValue.current) {
+            onCloseEmpty?.();
+        }
+        wasOpen.current = false;
+    }, [onCloseEmpty]);
+
+    let displayValue: React.ReactNode = pendingLabel ?? null;
     if (value) {
         displayValue = renderValue ? renderValue(field, value) : (
             <PostAttributeText
@@ -147,6 +186,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
 
     const handlePick = (option: PropertyFieldOption) => {
         if (!isMulti) {
+            hasValue.current = true;
             onChange(field.id, option.id);
             return;
         }
@@ -164,6 +204,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
             normalised.filter((entry) => entry !== option.id) :
             [...normalised, option.id];
 
+        hasValue.current = isPropertyValueSet(next);
         onChange(field.id, next);
     };
 
@@ -189,7 +230,7 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
                 id: `postAttributeValueMenu-${field.id}-${instanceId}`,
                 'aria-label': label,
                 isMenuOpen: isOpen,
-                onToggle: setIsOpen,
+                onToggle: handleToggle,
             }}
         >
             {options.map((option) => {

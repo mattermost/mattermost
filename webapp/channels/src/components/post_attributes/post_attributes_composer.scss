@@ -25,6 +25,22 @@
         white-space: nowrap;
     }
 
+    // An option chip that has no value yet: its field's name, drawn like a
+    // neutral value chip (.TextProperty in post_attributes_chips.scss) so the
+    // trigger has a size to click. The Compass chip replaces this.
+    &__pending {
+        display: inline-flex;
+        align-items: center;
+        padding: 2px 6px;
+        border-radius: var(--radius-s);
+        background: rgba(var(--center-channel-color-rgb), 0.12);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        font-size: 11px;
+        font-weight: 600;
+        line-height: 16px;
+        white-space: nowrap;
+    }
+
     &__remove {
         display: inline-flex;
         width: 16px;
