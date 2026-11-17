@@ -38,17 +38,16 @@ for (const {name, totalUsersCount, expectedButton} of testCases) {
             const {channelsPage, page} = await pw.testBrowser.login(user);
             const sizeWatcher = await watchElementSize(page, 'channelIntro');
 
-            // # Hold back the total user count until the channel has rendered
-            const releaseUsersStats = await holdBackUsersStats(page, totalUsersCount);
+            // # Hold back the total user count
+            const usersStats = await holdBackUsersStats(page, totalUsersCount);
 
-            // # Open the channel
+            // # Open the channel and wait for the total user count to be requested, which only happens once the
+            // # channel posts have loaded
             await channelsPage.goto(team.name, channel.name);
-            await expect(
-                channelsPage.centerView.channelIntro.or(channelsPage.centerView.postListLoading),
-            ).toBeVisible();
+            await usersStats.requested;
 
             // # Let the total user count load
-            releaseUsersStats();
+            usersStats.release();
 
             // * Verify that the intro shows the action buttons for the user count
             await expect(
@@ -62,20 +61,29 @@ for (const {name, totalUsersCount, expectedButton} of testCases) {
     );
 }
 
-/** Delay the total user count response until the returned function is called, then respond with the given count */
+/**
+ * Delay the total user count response until release is called, then respond with the given count. The requested
+ * promise resolves once the web app has asked for the count.
+ */
 async function holdBackUsersStats(page: Page, totalUsersCount: number) {
-    let releaseUsersStats = () => {};
-    const usersStatsReleased = new Promise<void>((resolve) => {
-        releaseUsersStats = resolve;
+    let markRequested = () => {};
+    const requested = new Promise<void>((resolve) => {
+        markRequested = resolve;
+    });
+
+    let release = () => {};
+    const released = new Promise<void>((resolve) => {
+        release = resolve;
     });
 
     await page.route(
         (url) => url.pathname.endsWith('/api/v4/users/stats'),
         async (route) => {
-            await usersStatsReleased;
+            markRequested();
+            await released;
             await route.fulfill({json: {total_users_count: totalUsersCount}});
         },
     );
 
-    return releaseUsersStats;
+    return {requested, release};
 }
