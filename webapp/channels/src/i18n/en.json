@@ -14275,30 +14275,6 @@
     "defaultMessage": "View existing policy",
     "description": ""
   },
-  "admin.scoped_configuration.setting.allow_banner_dismissal.description": {
-    "defaultMessage": "Users can dismiss the banner until its next update",
-    "description": ""
-  },
-  "admin.scoped_configuration.setting.allow_banner_dismissal.label": {
-    "defaultMessage": "Allow Banner Dismissal",
-    "description": ""
-  },
-  "admin.scoped_configuration.setting.banner_text.description": {
-    "defaultMessage": "Text that will appear in the announcement banner",
-    "description": ""
-  },
-  "admin.scoped_configuration.setting.banner_text.label": {
-    "defaultMessage": "Banner Text",
-    "description": ""
-  },
-  "admin.scoped_configuration.setting.enable_banner.description": {
-    "defaultMessage": "Enable an announcement banner across all teams",
-    "description": ""
-  },
-  "admin.scoped_configuration.setting.enable_banner.label": {
-    "defaultMessage": "Enable System-wide Notifications",
-    "description": ""
-  },
   "admin.scoped_configuration.setting.mobile_enable_biometrics.description": {
     "defaultMessage": "Enforce biometric authentication before accessing the mobile app",
     "description": ""

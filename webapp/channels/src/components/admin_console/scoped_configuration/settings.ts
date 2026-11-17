@@ -36,30 +36,6 @@ const settingMessages = defineMessages({
         id: 'admin.scoped_configuration.setting.mobile_enable_biometrics.description',
         defaultMessage: 'Enforce biometric authentication before accessing the mobile app',
     },
-    enableBannerLabel: {
-        id: 'admin.scoped_configuration.setting.enable_banner.label',
-        defaultMessage: 'Enable System-wide Notifications',
-    },
-    enableBannerDescription: {
-        id: 'admin.scoped_configuration.setting.enable_banner.description',
-        defaultMessage: 'Enable an announcement banner across all teams',
-    },
-    bannerTextLabel: {
-        id: 'admin.scoped_configuration.setting.banner_text.label',
-        defaultMessage: 'Banner Text',
-    },
-    bannerTextDescription: {
-        id: 'admin.scoped_configuration.setting.banner_text.description',
-        defaultMessage: 'Text that will appear in the announcement banner',
-    },
-    allowBannerDismissalLabel: {
-        id: 'admin.scoped_configuration.setting.allow_banner_dismissal.label',
-        defaultMessage: 'Allow Banner Dismissal',
-    },
-    allowBannerDismissalDescription: {
-        id: 'admin.scoped_configuration.setting.allow_banner_dismissal.description',
-        defaultMessage: 'Users can dismiss the banner until its next update',
-    },
     boolTrue: {
         id: 'admin.true',
         defaultMessage: 'True',
@@ -75,27 +51,6 @@ export const AVAILABLE_SYSTEM_SETTINGS: SystemSettingConfigDefinition[] = [
         key: 'MobileEnableBiometrics',
         label: settingMessages.mobileEnableBiometricsLabel,
         description: settingMessages.mobileEnableBiometricsDescription,
-        valueType: 'bool',
-        defaultValue: 'true',
-    },
-    {
-        key: 'EnableBanner',
-        label: settingMessages.enableBannerLabel,
-        description: settingMessages.enableBannerDescription,
-        valueType: 'bool',
-        defaultValue: 'true',
-    },
-    {
-        key: 'BannerText',
-        label: settingMessages.bannerTextLabel,
-        description: settingMessages.bannerTextDescription,
-        valueType: 'string',
-        defaultValue: '',
-    },
-    {
-        key: 'AllowBannerDismissal',
-        label: settingMessages.allowBannerDismissalLabel,
-        description: settingMessages.allowBannerDismissalDescription,
         valueType: 'bool',
         defaultValue: 'true',
     },
