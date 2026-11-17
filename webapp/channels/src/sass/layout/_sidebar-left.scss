@@ -936,7 +936,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             width: 100%;
 
             /* @hello-pangea/dnd only treats HTML elements as interactive, so an icon inside a button must not be the target of a drag */
-            svg {
+            button svg {
                 pointer-events: none;
             }
         }
