@@ -41,7 +41,7 @@ func propertyFieldOptionsEqual(a, b any) bool {
 // unarchived channel can re-enter the population without a value -- see
 // MM-70717), so a level-triggered check would trap admins on unrelated edits
 // to an already-required field.
-func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, groupID string, prev, next *model.PropertyField) *model.AppError {
+func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, groupID string, prev, next *model.PropertyField) error {
 	if !a.Config().FeatureFlags.IsChannelAttributesRequiredEnabled() || !model.MinimumEnterpriseAdvancedLicense(a.License()) {
 		return nil
 	}
@@ -291,8 +291,8 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	// already marked required. Since a new field has no ID yet, no existing
 	// channel can hold a value for it; installations with active local channels
 	// must therefore create it optional, backfill values, then mark it required.
-	if appErr := a.checkRequiredAttributeTransition(rctx, "CreatePropertyField", field.GroupID, nil, field); appErr != nil {
-		return nil, appErr
+	if err := a.checkRequiredAttributeTransition(rctx, "CreatePropertyField", field.GroupID, nil, field); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	if !bypassProtectedCheck && field.Protected {
@@ -562,8 +562,8 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			)
 		}
 
-		if appErr := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); appErr != nil {
-			return nil, nil, appErr
+		if err := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); err != nil {
+			return nil, nil, model.AsAppError(err)
 		}
 	}
 
