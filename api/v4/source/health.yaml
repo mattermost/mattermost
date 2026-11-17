@@ -18,7 +18,7 @@
 
         Must have `manage_system` permission. Also available over local mode.
 
-        Requires the `HealthDashboard` feature flag and an Enterprise license.
+        Requires the `HealthDashboard` feature flag and a Professional license or higher.
       operationId: GetHealthFindings
       parameters:
         - name: muted
@@ -48,7 +48,7 @@
         "500":
           $ref: "#/components/responses/InternalServerError"
         "501":
-          description: The `HealthDashboard` feature flag is off, or the server does not have an Enterprise license.
+          description: The `HealthDashboard` feature flag is off, or the server does not have a Professional license or higher.
           content:
             application/json:
               schema:
@@ -68,7 +68,7 @@
 
         Must have `manage_system` permission. Not available over local mode.
 
-        Requires the `HealthDashboard` feature flag and an Enterprise license.
+        Requires the `HealthDashboard` feature flag and a Professional license or higher.
       operationId: MuteHealthFinding
       parameters:
         - name: fingerprint
@@ -93,7 +93,7 @@
         "500":
           $ref: "#/components/responses/InternalServerError"
         "501":
-          description: The `HealthDashboard` feature flag is off, or the server does not have an Enterprise license.
+          description: The `HealthDashboard` feature flag is off, or the server does not have a Professional license or higher.
           content:
             application/json:
               schema:
@@ -112,7 +112,7 @@
 
         Must have `manage_system` permission. Not available over local mode.
 
-        Requires the `HealthDashboard` feature flag and an Enterprise license.
+        Requires the `HealthDashboard` feature flag and a Professional license or higher.
       operationId: UnmuteHealthFinding
       parameters:
         - name: fingerprint
@@ -137,7 +137,7 @@
         "500":
           $ref: "#/components/responses/InternalServerError"
         "501":
-          description: The `HealthDashboard` feature flag is off, or the server does not have an Enterprise license.
+          description: The `HealthDashboard` feature flag is off, or the server does not have a Professional license or higher.
           content:
             application/json:
               schema:

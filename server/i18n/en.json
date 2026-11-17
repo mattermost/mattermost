@@ -3300,8 +3300,8 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "The health dashboard requires an Enterprise license.",
-    "description": "API error when a health dashboard endpoint is called on a server without an Enterprise license."
+    "translation": "The health dashboard requires a Professional license or higher.",
+    "description": "API error when a health dashboard endpoint is called on a server without at least a Professional license."
   },
   {
     "id": "api.image.get.app_error",
