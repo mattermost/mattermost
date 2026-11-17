@@ -1064,7 +1064,7 @@ func (s *Server) letsEncryptHostPolicy(ctx context.Context, host string) error {
 		return errors.Wrap(err, "failed to parse Site URL")
 	}
 	if siteURL.Hostname() == "" {
-		return errors.New("a Site URL must be set to obtain a Let's Encrypt certificate")
+		return errors.New("the Site URL must include a hostname to obtain a Let's Encrypt certificate")
 	}
 	return autocert.HostWhitelist(siteURL.Hostname())(ctx, host)
 }
