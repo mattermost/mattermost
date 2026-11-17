@@ -7407,6 +7407,10 @@
     "defaultMessage": "Details",
     "description": "Heading of the key/value details list in an expanded finding on the System Console Site health page."
   },
+  "admin.health_dashboard.detail.first_seen": {
+    "defaultMessage": "First detected",
+    "description": "Label in an expanded firing finding on the System Console Site health page, shown only when the finding was first seen in an earlier state; followed by the date it was first seen, such as \"November 4, 2026\"."
+  },
   "admin.health_dashboard.detail.go_to_setting": {
     "defaultMessage": "Go to setting",
     "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
@@ -7422,10 +7426,6 @@
   "admin.health_dashboard.detail.read_docs": {
     "defaultMessage": "Read the documentation",
     "description": "Link card in an expanded finding on the System Console Site health page that opens the related documentation in a new tab."
-  },
-  "admin.health_dashboard.detail.recurring_since": {
-    "defaultMessage": "Recurring since",
-    "description": "Label in an expanded finding on the System Console Site health page, shown only when a finding fired, resolved and fired again; followed by the date the finding was first detected, such as \"November 4, 2026\"."
   },
   "admin.health_dashboard.detail.remediation": {
     "defaultMessage": "How to fix it",

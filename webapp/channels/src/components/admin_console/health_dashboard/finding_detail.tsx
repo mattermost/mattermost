@@ -34,12 +34,12 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
     const actionable = finding.state === 'firing' || finding.state === 'unknown';
     const hasLinks = Boolean(consolePath || finding.docs_url);
 
-    // state_since resets on every state change, so a firing finding first seen earlier fired before.
-    const recurring = finding.state === 'firing' && finding.first_seen_at !== finding.state_since;
+    // state_since resets on every state change, so a firing finding first seen earlier was in another state before.
+    const seenEarlier = finding.state === 'firing' && finding.first_seen_at !== finding.state_since;
 
     // A firing finding's severity is already on its badge or section header.
     const showSeverity = finding.state !== 'firing';
-    const hasDetails = showSeverity || recurring || Boolean(finding.scope) || details.length > 0;
+    const hasDetails = showSeverity || seenEarlier || Boolean(finding.scope) || details.length > 0;
 
     return (
         <div
@@ -123,12 +123,12 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
                                 <dd><FormattedMessage {...severityMessages[finding.severity]}/></dd>
                             </>
                         )}
-                        {recurring && (
+                        {seenEarlier && (
                             <>
                                 <dt>
                                     <FormattedMessage
-                                        id='admin.health_dashboard.detail.recurring_since'
-                                        defaultMessage='Recurring since'
+                                        id='admin.health_dashboard.detail.first_seen'
+                                        defaultMessage='First detected'
                                     />
                                 </dt>
                                 <dd>

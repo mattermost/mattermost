@@ -171,14 +171,14 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(within(detail).queryByText('Firing for 1m')).not.toBeInTheDocument();
     });
 
-    test('a recurring finding shows the date it was first detected, even without other details', () => {
+    test('a firing finding first seen in an earlier state shows the date it was first detected, even without other details', () => {
         const firstSeenAt = new Date(2026, 10, 4, 12).getTime();
         renderRow(makeFinding({details: {}, first_seen_at: firstSeenAt, state_since: now - 60000}), {expanded: true});
 
         const detail = expandedDetail();
         expect(within(detail).getByRole('heading', {name: 'Details'})).toBeInTheDocument();
-        expect(detailTerms(detail)).toEqual(['Recurring since']);
-        expect(within(detail).getByText('Recurring since').nextElementSibling).toHaveTextContent('November 4, 2026');
+        expect(detailTerms(detail)).toEqual(['First detected']);
+        expect(within(detail).getByText('First detected').nextElementSibling).toHaveTextContent('November 4, 2026');
     });
 
     test('a node-scoped finding shows its node, even without other details', () => {
@@ -192,7 +192,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
     test.each([
         ['resolved' as const],
         ['unknown' as const],
-    ])('a %s finding shows its severity and, if first seen before its current state, is not called recurring', (state) => {
+    ])('a %s finding shows its severity but not when it was first detected', (state) => {
         renderRow(makeFinding({state, first_seen_at: now - (3 * 24 * 60 * 60000), state_since: now - 60000}), {expanded: true});
 
         const detail = expandedDetail();
@@ -200,7 +200,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(within(detail).getByText('Severity').nextElementSibling).toHaveTextContent('Critical');
     });
 
-    test('the details section is hidden when a firing finding is not recurring, has no node and no details', () => {
+    test('the details section is hidden when a firing finding was first seen in its current state, has no node and no details', () => {
         renderRow(makeFinding({details: {}}), {expanded: true});
 
         const detail = expandedDetail();
