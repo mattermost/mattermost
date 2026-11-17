@@ -1861,8 +1861,8 @@ func (s *Server) initJobs() {
 		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
 	)
 
-	// No framework worker: app servers run health_check in their own worker set, see
-	// Channels.startHealthCheckWorkers.
+	// No framework worker: app servers run health_check in their own worker set because
+	// job servers don't join the cluster, see Channels.startHealthCheckWorkers.
 	s.Jobs.RegisterJobType(model.JobTypeHealthCheck, nil, health_check.MakeScheduler(s.Jobs, s.License))
 
 	s.Jobs.RegisterJobType(
