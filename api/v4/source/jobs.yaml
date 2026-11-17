@@ -83,7 +83,6 @@
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` on the channel given in job `data`, or `manage_team_access_rules` on the team in job `data` (see server logic for scoped sync jobs)
         - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
-        - `manage_system` — `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`
 
         Other job types can't be created through the API.
       operationId: CreateJob
@@ -205,7 +204,6 @@
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` / `manage_team_access_rules` for scoped jobs as when creating
         - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
-        - `manage_system` — `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`
 
         Jobs of other types are run by the server itself and can't be cancelled.
       operationId: CancelJob
@@ -271,6 +269,12 @@
             Optional team GUID. When set, the server returns jobs of the given `job_type` whose job data includes this `team_id` (see server filtering). For `access_control_sync`, team admins with `manage_team_access_rules` on this team may use this parameter to read team-scoped jobs without `manage_system`.
           schema:
             type: string
+        - name: policy_id
+          in: query
+          description: |
+            Optional policy GUID, used only for `access_control_sync` and `access_control_team_sync` when `team_id` is not set. Returns jobs whose job data includes this `policy_id`. Requires `manage_system`, except for `access_control_team_sync`: team-type policies use the team ID as the policy ID, so team admins with `manage_team_access_rules` on that team may filter by it.
+          schema:
+            type: string
         - name: page
           in: query
           description: The page to select.
@@ -321,7 +325,7 @@
         - `manage_ldap_sync_job` — `ldap_sync`
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
-        - `manage_system` — `access_control_sync`, `cleanup_expired_access_tokens`, `notify_expiring_access_tokens`
+        - `manage_system` — `access_control_sync`
 
         The status of jobs that can't be created through the API can't be updated.
       operationId: UpdateJobStatus

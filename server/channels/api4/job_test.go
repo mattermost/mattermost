@@ -54,29 +54,17 @@ func TestCreateJob(t *testing.T) {
 	})
 }
 
-func TestCreateNotifyExpiringAccessTokensJob(t *testing.T) {
+func TestCreateAccessTokenJobs(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	th.LoginSystemManager(t)
-
-	job := &model.Job{Type: model.JobTypeNotifyExpiringAccessTokens}
-
-	t.Run("forbidden without manage_system permission", func(t *testing.T) {
-		_, resp, err := th.SystemManagerClient.CreateJob(context.Background(), job)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
-	t.Run("allowed as system admin", func(t *testing.T) {
-		received, _, err := th.SystemAdminClient.CreateJob(context.Background(), job)
-		require.NoError(t, err)
-		defer func() {
-			result, appErr := th.App.Srv().Store().Job().Delete(received.Id)
-			require.NoErrorf(t, appErr, "Failed to delete job (result: %v): %v", result, appErr)
-		}()
-		require.Equal(t, model.JobTypeNotifyExpiringAccessTokens, received.Type)
-	})
+	for _, jobType := range []string{model.JobTypeCleanupExpiredAccessTokens, model.JobTypeNotifyExpiringAccessTokens} {
+		t.Run(jobType, func(t *testing.T) {
+			_, resp, err := th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: jobType})
+			require.Error(t, err)
+			CheckBadRequestStatus(t, resp)
+		})
+	}
 }
 
 func TestGetJob(t *testing.T) {

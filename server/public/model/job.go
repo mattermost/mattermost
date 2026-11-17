@@ -133,8 +133,6 @@ var CreatableJobTypes = [...]string{
 	JobTypeExportDelete,
 	JobTypeCloud,
 	JobTypeExtractContent,
-	JobTypeCleanupExpiredAccessTokens,
-	JobTypeNotifyExpiringAccessTokens,
 }
 
 type Job struct {

@@ -63,9 +63,6 @@ var jobPermissions = map[string]jobTypePermissions{
 	model.JobTypeAccessControlSync:     systemJobPermissions,
 	model.JobTypeAccessControlTeamSync: systemJobPermissions,
 
-	model.JobTypeCleanupExpiredAccessTokens: systemJobPermissions,
-	model.JobTypeNotifyExpiringAccessTokens: systemJobPermissions,
-
 	model.JobTypeMigrations:     generalJobPermissions,
 	model.JobTypePlugins:        generalJobPermissions,
 	model.JobTypeProductNotices: generalJobPermissions,
@@ -100,6 +97,8 @@ var jobPermissions = map[string]jobTypePermissions{
 	model.JobTypeScheduledRecap:                internalJobPermissions,
 	model.JobTypeAutoTranslationRecovery:       internalJobPermissions,
 	model.JobTypeHealthCheck:                   internalJobPermissions,
+	model.JobTypeCleanupExpiredAccessTokens:    internalJobPermissions,
+	model.JobTypeNotifyExpiringAccessTokens:    internalJobPermissions,
 }
 
 // SessionHasPermissionToCreateJob returns whether the session may create the job and the permission
