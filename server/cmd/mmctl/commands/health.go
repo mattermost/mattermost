@@ -102,19 +102,19 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 }
 
 func healthRunCmdF(c client.Client, cmd *cobra.Command, args []string) error {
-	if err := runHealthCheckAndWait(c, healthRunWaitTimeout); err != nil {
+	if err := runHealthCheckAndWait(cmd.Context(), c, healthRunWaitTimeout); err != nil {
 		return err
 	}
 	return healthCheckCmdF(c, cmd, args)
 }
 
 // runHealthCheckAndWait starts a health check run, or joins the one already pending or in
-// progress, and polls its job until it finishes or timeout passes.
-func runHealthCheckAndWait(c client.Client, timeout time.Duration) error {
-	ctx, cancel := context.WithTimeout(context.Background(), timeout)
+// progress, and polls its job until it finishes, timeout passes, or ctx is canceled (by Ctrl+C).
+func runHealthCheckAndWait(ctx context.Context, c client.Client, timeout time.Duration) error {
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
 	defer cancel()
 
-	job, _, err := c.CreateJob(ctx, &model.Job{Type: model.JobTypeHealthCheck})
+	job, _, err := c.CreateJob(waitCtx, &model.Job{Type: model.JobTypeHealthCheck})
 	if err != nil {
 		return fmt.Errorf("failed to start a health check run: %w", err)
 	}
@@ -135,16 +135,19 @@ func runHealthCheckAndWait(c client.Client, timeout time.Duration) error {
 		}
 
 		select {
-		case <-ctx.Done():
+		case <-waitCtx.Done():
+			if err := ctx.Err(); err != nil {
+				return err
+			}
 			return fmt.Errorf("timed out after %s waiting for health check run %s, which is still %s; run `mmctl health check` later to see its findings", timeout, job.Id, job.Status)
 		case <-ticker.C:
 		}
 
-		latest, resp, err := c.GetJob(ctx, job.Id)
+		latest, resp, err := c.GetJob(waitCtx, job.Id)
 		if err != nil {
-			// Report the timeout, not the request it cut short. A 404 means a lagging read replica
-			// hasn't seen the new job yet.
-			if ctx.Err() != nil || (resp != nil && resp.StatusCode == http.StatusNotFound) {
+			// Report the timeout or cancellation, not the request it cut short. A 404 means a lagging
+			// read replica hasn't seen the new job yet.
+			if waitCtx.Err() != nil || (resp != nil && resp.StatusCode == http.StatusNotFound) {
 				continue
 			}
 			return fmt.Errorf("failed to get the health check run status: %w", err)

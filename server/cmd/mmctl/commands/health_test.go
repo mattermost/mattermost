@@ -331,8 +331,23 @@ func (s *MmctlUnitTestSuite) TestHealthRun() {
 		s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(started, &model.Response{}, nil).AnyTimes()
 
-		err := runHealthCheckAndWait(s.client, 50*time.Millisecond)
+		err := runHealthCheckAndWait(s.T().Context(), s.client, 50*time.Millisecond)
 		s.Require().EqualError(err, "timed out after 50ms waiting for health check run "+started.Id+", which is still pending; run `mmctl health check` later to see its findings")
+	})
+
+	s.Run("Ctrl+C stops the wait without reporting a timeout", func() {
+		printer.Clean()
+
+		ctx, cancel := context.WithCancel(s.T().Context())
+		started := healthTestJob(model.JobStatusPending, 100)
+		s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetJob(gomock.Any(), started.Id).DoAndReturn(func(context.Context, string) (*model.Job, *model.Response, error) {
+			cancel()
+			return started, &model.Response{}, nil
+		}).AnyTimes()
+
+		err := runHealthCheckAndWait(ctx, s.client, time.Minute)
+		s.Require().ErrorIs(err, context.Canceled)
 	})
 
 	s.Run("the run cannot be started", func() {
