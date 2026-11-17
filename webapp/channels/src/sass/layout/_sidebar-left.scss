@@ -923,6 +923,16 @@ $sidebarOpacityAnimationDuration: 0.15s;
             transition: all cubic-bezier(0.2, 1, 0.1, 1) 0.33s;
         }
 
+        &.hasChildren {
+            height: auto;
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .SidebarChannel__children {
+            width: 100%;
+        }
+
         &.noFloat {
             transform: none !important;
         }

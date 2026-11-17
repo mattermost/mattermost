@@ -376,3 +376,22 @@ describe('components — ChannelView slot', () => {
         expect(state.components.ChannelView).toEqual([]);
     });
 });
+
+describe('components — SidebarChannelChildren slot', () => {
+    it('initial state has an empty SidebarChannelChildren array', () => {
+        const state = pluginReducers(undefined, {type: '@@INIT'} as any);
+        expect(state.components.SidebarChannelChildren).toEqual([]);
+    });
+
+    it('LOGOUT_SUCCESS resets the slot to []', () => {
+        let state = pluginReducers(undefined, {
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'SidebarChannelChildren',
+            data: {id: 'id-1', pluginId: 'plugin-a', matcher: () => true, component: () => null},
+        });
+        expect(state.components.SidebarChannelChildren).toHaveLength(1);
+
+        state = pluginReducers(state, {type: UserTypes.LOGOUT_SUCCESS} as any);
+        expect(state.components.SidebarChannelChildren).toEqual([]);
+    });
+});
