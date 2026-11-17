@@ -6,7 +6,7 @@ import React from 'react';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 
 import AddChannelsCtaButton from './add_channels_cta_button';
@@ -16,6 +16,11 @@ jest.mock('mattermost-redux/actions/preferences', () => ({
 }));
 
 const mockDispatch = jest.fn();
+let mockRailKind: 'channel' | 'board' = 'channel';
+
+jest.mock('hooks/useProductRailKind', () => ({
+    useProductRailKind: () => mockRailKind,
+}));
 
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux'),
@@ -89,6 +94,50 @@ describe('components/new_channel_modal', () => {
     beforeEach(() => {
         mockDispatch.mockClear();
         (savePreferences as jest.Mock).mockClear();
+        mockRailKind = 'channel';
+    });
+
+    describe('on the Boards item of the product rail', () => {
+        const createBoardAction = jest.fn();
+        const withBoardMenuItem = {
+            ...initialState,
+            plugins: {
+                components: {
+                    SidebarBrowseOrAddChannelMenu: [{
+                        id: 'create_board',
+                        pluginId: 'boards',
+                        text: 'Create new board',
+                        action: createBoardAction,
+                        icon: <i className='icon-product-boards'/>,
+                        placement: 'afterCreateChannel',
+                    }],
+                },
+            },
+        };
+
+        beforeEach(() => {
+            mockRailKind = 'board';
+            createBoardAction.mockClear();
+        });
+
+        test('should offer board creation from the plugin instead of channel creation', async () => {
+            renderWithContext(<AddChannelsCtaButton/>, withBoardMenuItem);
+
+            await userEvent.click(screen.getByRole('button', {name: /add boards/i}));
+
+            expect(screen.queryByText('Create new channel')).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: /create new board/i}));
+
+            // Menu items run their action once the menu has closed.
+            await waitFor(() => expect(createBoardAction).toHaveBeenCalledWith('current_team_id'));
+        });
+
+        test('should keep the channel wording when no plugin offers board creation', () => {
+            renderWithContext(<AddChannelsCtaButton/>, initialState);
+
+            expect(screen.getByRole('button', {name: /add channels/i})).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /add boards/i})).not.toBeInTheDocument();
+        });
     });
 
     test('should find the add channels button when user has permissions', () => {

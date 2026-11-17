@@ -16,6 +16,7 @@ import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {openModal} from 'actions/views/modals';
+import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
 
 import BrowseChannels from 'components/browse_channels';
 import * as Menu from 'components/menu';
@@ -26,6 +27,7 @@ import {channelKindMessages} from 'utils/channel_kind_messages';
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
 
 // Left-align the menu with the icon in the LHS
 const anchorOrigin = {vertical: 'bottom', horizontal: 'left'} as const;
@@ -35,7 +37,8 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
     const intl = useIntl();
-    const railKind = useProductRailKind();
+    const productRailKind = useProductRailKind();
+    const pluginMenuItems = useSelector(getSidebarBrowseOrAddChannelMenuPluginComponents) as SidebarBrowseOrAddChannelMenuAction[] | undefined;
     const touchedAddChannelsCtaButton = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_CHANNELS_CTA));
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL));
@@ -43,6 +46,13 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
     const canCreateChannel = canCreatePrivateChannel || canCreatePublicChannel;
     const canJoinPublicChannel = useSelector((state: GlobalState) => haveICurrentChannelPermission(state, Permissions.JOIN_PUBLIC_CHANNELS));
     const currentUserId = useSelector(getCurrentUserId);
+
+    // On the Boards item, the menu creates boards through the plugin's own "Create new board" item.
+    // Without one (or without permission to create), there's no way to make a board from here, so it
+    // keeps the channel wording rather than promise one.
+    const boardMenuItems = (pluginMenuItems ?? []).filter((item) => item.placement === 'afterCreateChannel');
+    const showBoardMenu = productRailKind === 'board' && canCreateChannel && boardMenuItems.length > 0;
+    const railKind = showBoardMenu ? 'board' : 'channel';
 
     let buttonClass = 'SidebarChannelNavigator__addChannelsCtaLhsButton';
 
@@ -83,7 +93,19 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
             );
         }
 
-        if (canCreateChannel) {
+        if (showBoardMenu) {
+            for (const item of boardMenuItems) {
+                items.push(
+                    <Menu.Item
+                        key={item.id + '_pluginmenuitem'}
+                        id={item.id + '_pluginmenuitem'}
+                        onClick={() => item.action(currentTeamId)}
+                        leadingElement={item.icon}
+                        labels={<span>{item.text}</span>}
+                    />,
+                );
+            }
+        } else if (canCreateChannel) {
             items.push(
                 <Menu.Item
                     key='showNewChannel'
