@@ -543,14 +543,23 @@ def release_version(event: str, tag: str, dispatched: str) -> str | None:
     return f"v{match.group(1)}.{match.group(2)}.0" if match else None
 
 
-def run_merge(api, version: str, report: dict | None, auto_merge: bool, repo: str = REPO) -> dict:
-    """Merge the changelog PR when nothing is missing and auto-merge is on. Returns the outcome."""
+def run_merge(api, version: str, report: dict | None, auto_merge: bool, repo: str = REPO, blog=None,
+              now: datetime | None = None) -> dict:
+    """Merge the changelog PR when nothing is missing and auto-merge is on. Returns the outcome.
+
+    With ``blog`` (``blog_finder()``), the entry's blog link is set first (``blog_step``): a link
+    changed in this run is a commit on the PR branch, so the PR merges on a later run, once its
+    checks pass on that commit."""
     pr = find_changelog_pr(api, version, repo)
     if pr is None:
         return {"merged": False, "pr": None, "problems": [f"no open changelog PR for {version}"], "auto": auto_merge}
     content = file_text(api, repo, changelog_release.changelog_path(version), pr["head"]["sha"])
-    problems = merge_problems(api, version, pr, content, report, repo)
-    outcome = {"merged": False, "pr": pr["number"], "problems": problems, "auto": auto_merge}
+    blog_problems, blog_link = [], None
+    if blog is not None:
+        blog_problems, blog_link = blog_step(api, version, pr, content, blog, auto_merge,
+                                             now or datetime.now(timezone.utc), repo)
+    problems = blog_problems + merge_problems(api, version, pr, content, report, repo)
+    outcome = {"merged": False, "pr": pr["number"], "problems": problems, "auto": auto_merge, "blog_link": blog_link}
     if problems or not auto_merge:
         return outcome
     try:
@@ -562,11 +571,172 @@ def run_merge(api, version: str, report: dict | None, auto_merge: bool, repo: st
     return outcome
 
 
+# ── 3b. The blog post link ──────────────────────────────────────────────────────────
+
+CATEGORY_URL = "https://mattermost.com/blog/category/releases/"
+BLOG_DEADLINE = 23  # UTC hour on Release Day after which the changelog merges with the category link
+FIXUP_WORKING_DAYS = 10
+BLOG_LINK_RE = re.compile(r"\[this blog post\]\((https?://[^)\s]+)\)")
+
+
+def guessed_blog_url(version: str) -> str:
+    major, minor, _ = changelog_release.parse_version(version)
+    return f"https://mattermost.com/blog/mattermost-v{major}-{minor}-is-now-available/"
+
+
+def same_page(a: str | None, b: str | None) -> bool:
+    def key(url):
+        return (url or "").split("#")[0].split("?")[0].rstrip("/").lower()
+    return bool(a) and bool(b) and key(a) == key(b)
+
+
+def entry_blog_link(content: str | None, version: str) -> str | None:
+    """The blog post link of the version's entry ("See [this blog post](URL) ..."), or None."""
+    match = BLOG_LINK_RE.search("\n".join(line for _, line in entry_lines(content, version)))
+    return match.group(1) if match else None
+
+
+def with_blog_link(content: str, version: str, url: str) -> str:
+    """``content`` with the version's blog post link set to ``url``; the rest of the file unchanged."""
+    lines = content.split("\n")
+    for number, line in entry_lines(content, version):
+        if BLOG_LINK_RE.search(line):
+            lines[number - 1] = BLOG_LINK_RE.sub(f"[this blog post]({url})", line, count=1)
+            break
+    return "\n".join(lines)
+
+
+def blog_finder(fetch=None):
+    """``(version) -> (blog post URL or None, a problem or None)``, using the release agent's
+    ``find_blog_post`` on mattermost.com (no token). A page that can't be read is "not found yet"."""
+    sys.path.insert(0, str(Path(__file__).resolve().parent))
+    from release_agent.checks import find_blog_post
+    from release_agent.clients import ServiceError, fetch_url
+    fetch = fetch or (lambda url: fetch_url(url, "mattermost.com"))
+
+    def find(version: str):
+        major, minor, _ = changelog_release.parse_version(version)
+        try:
+            return find_blog_post(fetch, major, minor, guessed_blog_url(version), CATEGORY_URL)[0], None
+        except ServiceError as err:
+            return None, f"mattermost.com couldn't be read ({err})"
+    return find
+
+
+def release_day_of(api, version: str, repo: str = REPO) -> date | None:
+    """Release Day: the date the version's GitHub release was published (UTC)."""
+    try:
+        release = api.get(f"/repos/{repo}/releases/tags/{urllib.parse.quote(version, safe='')}")
+    except ApiError as err:
+        if err.status == 404:
+            return None
+        raise
+    published = (release or {}).get("published_at")
+    return datetime.fromisoformat(published.replace("Z", "+00:00")).date() if published else None
+
+
+def put_file(api, repo: str, path: str, branch: str, text: str, message: str) -> None:
+    """Commit ``text`` as ``path`` on ``branch`` (a branch, never master: callers pass the PR's)."""
+    found = api.get(f"/repos/{repo}/contents/{urllib.parse.quote(path)}", ref=branch)
+    api.put(f"/repos/{repo}/contents/{urllib.parse.quote(path)}", {
+        "message": message, "branch": branch, "sha": found["sha"],
+        "content": base64.b64encode(text.encode()).decode()})
+
+
+def blog_step(api, version: str, pr: dict, content: str | None, find, auto_merge: bool, now: datetime,
+              repo: str = REPO) -> tuple[list[str], str | None]:
+    """(what still keeps the PR from merging, "post" or "category").
+
+    The blog post found: the entry links it. Not found: wait, rechecked each run until 23:00 UTC
+    on Release Day, then link the releases category page (the status post flags it, and the
+    fix-up PR replaces it once the post is out)."""
+    short = changelog_release.short_version(version)
+    current = entry_blog_link(content, version)
+    post, problem = find(version)
+    release_day = release_day_of(api, version, repo) or now.date()
+    deadline = datetime(release_day.year, release_day.month, release_day.day, BLOG_DEADLINE, tzinfo=timezone.utc)
+    if post:
+        target, kind = post, "post"
+    elif now < deadline:
+        why = f" ({problem})" if problem else ""
+        return [f"waiting for the {short} blog post{why}: checked again each run until {BLOG_DEADLINE}:00 UTC on Release "
+                f"Day ({release_day.isoformat()}), then merged with the releases category link"], None
+    else:
+        target, kind = CATEGORY_URL, "category"
+    if current is None:
+        print(f"::warning title=No blog link::the {short} entry has no 'this blog post' link to set")
+        return [], kind
+    if same_page(current, target):
+        return [], kind
+    if not auto_merge:
+        return [f"the blog link would be set to {target}"], kind
+    branch = (pr.get("head") or {}).get("ref") or f"changelog/{version}"
+    try:
+        put_file(api, repo, changelog_release.changelog_path(version), branch, with_blog_link(content, version, target),
+                 f"docs: link the {short} blog post in the changelog" if kind == "post"
+                 else f"docs: link the releases category in the {short} changelog until the blog post is out")
+    except ApiError as err:
+        return [f"the blog link couldn't be set (HTTP {err.status})"], kind
+    return [f"the blog link was set to {target}; the PR merges on a later run, once its checks pass on that commit"], kind
+
+
+def fixup_branch(version: str) -> str:
+    return f"changelog/{version}-blog-link"
+
+
+def run_blog_fixup(api, version: str, today: date, find, reviewers: str = "", repo: str = REPO) -> str:
+    """After the merge, until 10 working days after Release Day: when the blog post is out and the
+    entry on master links anything else, open one PR changing only that link, and request the
+    release manager's review. Never pushes to master; never a second PR for the release, whatever
+    happened to the first."""
+    short = changelog_release.short_version(version)
+    merged = merged_changelog_pr(api, version, repo)
+    if merged is None:
+        return ""
+    release_day = release_day_of(api, version, repo) or datetime.fromisoformat(
+        merged["merged_at"].replace("Z", "+00:00")).date()
+    if today > add_working_days(release_day, FIXUP_WORKING_DAYS):
+        return ""
+    branch = fixup_branch(version)
+    existing = api.get(f"/repos/{repo}/pulls", head=f"{repo.split('/')[0]}:{branch}", state="all", per_page=10) or []
+    if existing:
+        return f"Blog link fix PR for {short}: [mattermost#{existing[0]['number']}]({existing[0]['html_url']}) ({existing[0]['state']})."
+    path = changelog_release.changelog_path(version)
+    content = file_text(api, repo, path, "master")
+    current = entry_blog_link(content, version)
+    post, problem = find(version)
+    if not post:
+        return f"The {short} blog post isn't out yet{f' ({problem})' if problem else ''}; the changelog links {current}."
+    if current is None or same_page(current, post):
+        return "" if current else f"The merged {short} entry has no blog post link to fix."
+    sha = api.get(f"/repos/{repo}/git/ref/heads/master")["object"]["sha"]
+    try:
+        api.post(f"/repos/{repo}/git/refs", {"ref": f"refs/heads/{branch}", "sha": sha})
+    except ApiError as err:
+        if err.status != 422:  # 422: the branch is there from a run that stopped before opening the PR
+            raise
+    if entry_blog_link(file_text(api, repo, path, branch), version) != post:
+        put_file(api, repo, path, branch, with_blog_link(content, version, post), f"docs: link the {short} blog post in the changelog")
+    created = api.post(f"/repos/{repo}/pulls", {
+        "title": f"Link the {short} blog post in the changelog", "head": branch, "base": "master",
+        "body": f"The {short} changelog was merged linking {current}. The blog post is now published: {post}.\n\n"
+                "This changes only that link.\n\n```release-note\nNONE\n```\n"})
+    users = [r for r in split_names(reviewers) if "/" not in r]
+    teams = [r.split("/", 1)[1] for r in split_names(reviewers) if "/" in r]
+    if users or teams:
+        try:
+            api.post(f"/repos/{repo}/pulls/{created['number']}/requested_reviewers", {"reviewers": users, "team_reviewers": teams})
+        except ApiError as err:
+            print(f"::warning::Could not request review on #{created['number']} (HTTP {err.status})")
+    return f"Opened [mattermost#{created['number']}]({created['html_url']}) to link the {short} blog post."
+
+
 def merge_summary(version: str, outcome: dict) -> str:
     pr = f"[mattermost#{outcome['pr']}](https://github.com/{REPO}/pull/{outcome['pr']})" if outcome["pr"] else "no PR"
     lines = [f"## {version} changelog merge", ""]
     if outcome["merged"]:
-        lines.append(f"Merged {pr}.")
+        lines.append(f"Merged {pr}." + (" It links the releases category page until the blog post is out: the status post "
+                                         "flags it, and a fix PR follows." if outcome.get("blog_link") == "category" else ""))
     elif outcome["problems"]:
         lines += [f"Not merged: {pr} is missing {len(outcome['problems'])} thing(s):", ""]
         lines += [f"- {problem}" for problem in outcome["problems"]]
@@ -882,21 +1052,53 @@ def cmd_ready(env: dict) -> int:
     return 0
 
 
+def recent_releases(api, today: date, days: int = 20, repo: str = REPO) -> list[str]:
+    """The vX.Y.0 releases published (not drafts or prereleases) in the last ``days`` days, newest first."""
+    found = []
+    for release in api.get(f"/repos/{repo}/releases", per_page=30) or []:
+        tag = release.get("tag_name", "")
+        if release.get("draft") or release.get("prerelease") or not re.fullmatch(r"v\d+\.\d+\.0", tag):
+            continue
+        published = datetime.fromisoformat((release.get("published_at") or "1970-01-01T00:00:00Z").replace("Z", "+00:00")).date()
+        if (today - published).days <= days:
+            found.append(tag)
+    return found
+
+
 def cmd_merge(env: dict) -> int:
-    version = release_version(env.get("EVENT_NAME", ""), env.get("RELEASE_TAG", ""), env.get("INPUT_VERSION", ""))
-    if version is None:
-        _summary("Not a feature release (vX.Y.0), so no changelog is merged.")
-        return 0
-    reports = fetch_reports(version, env, limit=100)
-    report = next(reports, None)
     api = Api(env["GH_TOKEN"])
-    outcome = run_merge(api, version, report, env.get("AUTO_MERGE", "").strip().lower() == "true")
-    _summary(merge_summary(version, outcome))
-    label_api = Api(env["LABEL_TOKEN"]) if env.get("LABEL_TOKEN") else None
-    if label_api is None:
-        _summary("Changelog labels not reconciled: no labels token for the source repos.")
+    now = datetime.now(timezone.utc)
+    if env.get("EVENT_NAME") == "schedule":
+        # Hourly on weekdays: the releases still waiting for their changelog (or its blog link fix).
+        versions = recent_releases(api, now.date())
+        if not versions:
+            _summary("No feature release in the last 20 days; nothing to merge or fix.")
+            return 0
     else:
-        _summary(merge_labels(api, version, [report, *reports] if report else [], env.get("LABEL_ACTOR", ""), label_api))
+        version = release_version(env.get("EVENT_NAME", ""), env.get("RELEASE_TAG", ""), env.get("INPUT_VERSION", ""))
+        if version is None:
+            _summary("Not a feature release (vX.Y.0), so no changelog is merged.")
+            return 0
+        versions = [version]
+    find = blog_finder()
+    for version in versions:
+        merged_now = False
+        if find_changelog_pr(api, version) is not None:
+            reports = fetch_reports(version, env, limit=100)
+            report = next(reports, None)
+            outcome = run_merge(api, version, report, env.get("AUTO_MERGE", "").strip().lower() == "true", blog=find, now=now)
+            _summary(merge_summary(version, outcome))
+            merged_now = outcome["merged"]
+            if merged_now or env.get("EVENT_NAME") != "schedule":
+                label_api = Api(env["LABEL_TOKEN"]) if env.get("LABEL_TOKEN") else None
+                if label_api is None:
+                    _summary("Changelog labels not reconciled: no labels token for the source repos.")
+                else:
+                    _summary(merge_labels(api, version, [report, *reports] if report else [], env.get("LABEL_ACTOR", ""),
+                                          label_api))
+        fixed = run_blog_fixup(api, version, now.date(), find, env.get("RELEASE_MANAGER", ""))
+        if fixed:
+            _summary(fixed)
     return 0
 
 

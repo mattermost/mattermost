@@ -28,6 +28,8 @@ name: Generate Changelog
 #   CHANGELOG_DEFAULT_REVIEWERS — logins or org/team slugs (comma or space separated)
 #                                 requested, besides the section reviewers, when the PR is
 #                                 marked ready for review
+#   CHANGELOG_RELEASE_MANAGER   — GitHub login (or org/team) asked to review the blog link fix
+#                                 PR; unset, no review is requested
 #   CHANGELOG_AUTO_MERGE        — true to merge the changelog PR on Release Day when every
 #                                 condition holds; anything else (the default, false) only
 #                                 reports what would happen
@@ -60,6 +62,18 @@ name: Generate Changelog
 # merged, it swaps Changelog/Done for Changelog/Not Needed on each PR whose bullet a
 # reviewer deleted, only where this workflow's app added Changelog/Done.
 #
+# The blog link: before merging, the entry's "this blog post" link is set to the published
+# post (found on mattermost.com as the release agent's blog check finds it). If the post isn't
+# out, the merge job (hourly on weekdays, besides the release event) checks again each run
+# until 23:00 UTC on Release Day, then merges with the releases category page linked; the
+# release agent's status post flags "Blog link in the changelog to update". A link set in a run
+# is a commit on the changelog PR's branch, so the PR merges on a later run, once checks pass.
+# After the merge, until 10 working days after Release Day, once the post is out and master
+# links anything else, the job opens one PR (branch changelog/vX.Y.0-blog-link) changing only
+# that link and requests review from CHANGELOG_RELEASE_MANAGER; the status post shows
+# "Waiting: changelog blog link fix PR" until it merges. It never pushes to master, and never
+# opens a second fix PR for a release.
+#
 # Labelling uses the changelog write app, which needs Pull requests: write on both
 # mattermost/mattermost and mattermost/enterprise. The labelling steps mint their own token
 # for those two repos with that one permission; every other write token is limited to
@@ -70,6 +84,9 @@ name: Generate Changelog
 on:
   schedule:
     - cron: '0 6 * * 1-5'
+    # The merge job only: on Release Day, until the changelog is merged, and for 10 working days
+    # after it, until its blog link is the published post.
+    - cron: '37 * * * 1-5'
   release:
     types: [released]
   workflow_dispatch:
@@ -130,7 +147,7 @@ jobs:
   # milestone disagree on the major version, which would file one release's notes
   # under another's.
   resolve:
-    if: github.repository == 'mattermost/mattermost' && github.event_name != 'release' && inputs.mode != 'merge'
+    if: github.repository == 'mattermost/mattermost' && github.event_name != 'release' && inputs.mode != 'merge' && github.event.schedule != '37 * * * 1-5'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -533,7 +550,7 @@ jobs:
   # mode. Merges the changelog PR only when CHANGELOG_AUTO_MERGE is true and nothing is
   # missing; otherwise the run summary lists what is.
   merge:
-    if: github.repository == 'mattermost/mattermost' && (github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'merge'))
+    if: github.repository == 'mattermost/mattermost' && (github.event_name == 'release' || github.event.schedule == '37 * * * 1-5' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'merge'))
     runs-on: ubuntu-latest
     concurrency:
       group: generate-changelog-merge
@@ -581,6 +598,8 @@ jobs:
           RELEASE_TAG: ${{ github.event.release.tag_name }}
           INPUT_VERSION: ${{ inputs.version }}
           AUTO_MERGE: ${{ vars.CHANGELOG_AUTO_MERGE }}
+          # GitHub login (or org/team) asked to review the blog link fix PR.
+          RELEASE_MANAGER: ${{ vars.CHANGELOG_RELEASE_MANAGER }}
           LABEL_TOKEN: ${{ steps.labelToken.outputs.token }}
           # Changelog/Done is swapped only on PRs this app labelled.
           LABEL_ACTOR: ${{ steps.labelToken.outputs.app-slug }}[bot]

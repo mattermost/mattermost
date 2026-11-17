@@ -2,7 +2,7 @@ import base64
 import re
 import unittest
 import urllib.parse
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from unittest import mock
 
@@ -744,6 +744,157 @@ class LabelTokenWorkflowTest(unittest.TestCase):
         merge.assert_called_once()
         self.assertEqual(summary.call_args_list[-1].args[0],
                          "Changelog labels not reconciled: no labels token for the source repos.")
+
+
+GUESS = "https://mattermost.com/blog/mattermost-v12-2-is-now-available/"
+POST = "https://mattermost.com/blog/mattermost-12-2-faster-search/"
+BLOG_CHANGELOG = CHANGELOG.replace("### Improvements\n", f"### Improvements\nSee [this blog post]({GUESS}) on the highlights "
+                                   "in our latest release.\n", 1)
+RELEASE_DAY = date(2026, 11, 16)
+
+
+def at(day, hour):
+    return datetime(day.year, day.month, day.day, hour, tzinfo=timezone.utc)
+
+
+class BlogRepo(FakeApi):
+    """mattermost/mattermost for the blog link: the changelog PR (open, then merged), its branch,
+    master, the v12.2.0 release, and the PRs opened."""
+
+    def __init__(self, content=BLOG_CHANGELOG, merged=False):
+        super().__init__()
+        self.files = {"changelog/v12.2.0": content, "master": content if merged else CHANGELOG}
+        self.merged, self.opened, self.refs, self.reviewers = merged, [], [], []
+        self.head = "abc"
+
+    def _route(self, method, path, payload):
+        base = "/repos/mattermost/mattermost"
+        self.calls.append((method, path, payload))
+        contents = f"{base}/contents/{urllib.parse.quote(FILE)}"
+        if path == f"{base}/pulls" and method == "GET":
+            if payload.get("head", "").endswith("-blog-link"):
+                return [p for p in self.opened if p["head"] == payload["head"].split(":")[1]]
+            changelog = {**pr(sha=self.head), "head": {"sha": self.head, "ref": "changelog/v12.2.0"}}
+            if payload.get("state") == "closed":
+                return [{**changelog, "merged_at": "2026-11-16T12:00:00Z"}] if self.merged else []
+            return [] if self.merged else [changelog]
+        if path == contents and method == "GET":
+            ref = payload["ref"]
+            text = self.files.get("changelog/v12.2.0" if ref == self.head else ref)
+            if text is None:
+                raise ca.ApiError(404)
+            return {"encoding": "base64", "content": base64.b64encode(text.encode()).decode(), "sha": f"blob-{ref}"}
+        if path == contents and method == "PUT":
+            assert payload["branch"] != "master", "never pushes to master"
+            self.files[payload["branch"]] = base64.b64decode(payload["content"]).decode()
+            if payload["branch"] == "changelog/v12.2.0":
+                self.head = self.head + "x"  # a new commit on the PR branch; its checks run again
+            return {}
+        if path == f"{base}/releases/tags/v12.2.0":
+            return {"published_at": "2026-11-16T09:00:00Z"}
+        if path == f"{base}/pulls/50/reviews":
+            return [{"state": "APPROVED", "user": {"login": "amy"}}]
+        if path.startswith(f"{base}/commits/") and path.endswith("/check-runs"):
+            return GREEN
+        if path == f"{base}/pulls/50/merge":
+            self.merged, self.files["master"] = True, self.files["changelog/v12.2.0"]
+            return {"merged": True}
+        if path == f"{base}/git/ref/heads/master":
+            return {"object": {"sha": "m1"}}
+        if path == f"{base}/git/refs":
+            self.refs.append(payload["ref"])
+            self.files[payload["ref"].removeprefix("refs/heads/")] = self.files["master"]
+            return {}
+        if path == f"{base}/pulls" and method == "POST":
+            created = {"number": 77, "html_url": "https://github.com/mattermost/mattermost/pull/77", "state": "open", **payload}
+            self.opened.append(created)
+            return created
+        if path == f"{base}/pulls/77/requested_reviewers":
+            self.reviewers.append(payload)
+            return {}
+        raise ca.ApiError(404)
+
+
+def finder(*answers):
+    """``find(version)`` answering each call from ``answers`` in turn (the last one repeats)."""
+    answers = list(answers)
+    return lambda version: (answers.pop(0) if len(answers) > 1 else answers[0], None)
+
+
+class BlogLinkTest(unittest.TestCase):
+    def merge(self, repo, find, now):
+        return ca.run_merge(repo, VERSION, REPORT, True, blog=find, now=now)
+
+    def link_on(self, repo, ref):
+        return ca.entry_blog_link(repo.files[ref], VERSION)
+
+    def test_blog_found_before_the_merge_is_linked_then_merged(self):
+        repo = BlogRepo()
+        first = self.merge(repo, finder(POST), at(RELEASE_DAY, 10))
+        self.assertFalse(first["merged"])
+        self.assertIn(f"the blog link was set to {POST}", first["problems"][0])
+        self.assertEqual(self.link_on(repo, "changelog/v12.2.0"), POST)
+        self.assertEqual(repo.files["changelog/v12.2.0"], BLOG_CHANGELOG.replace(GUESS, POST))  # the link only
+        second = self.merge(repo, finder(POST), at(RELEASE_DAY, 11))
+        self.assertTrue(second["merged"])
+        self.assertEqual((self.link_on(repo, "master"), second["blog_link"]), (POST, "post"))
+        self.assertEqual(ca.run_blog_fixup(repo, VERSION, RELEASE_DAY, finder(POST), "amy"), "")  # nothing to fix
+        self.assertEqual(repo.opened, [])
+
+    def test_a_correct_link_is_left_alone(self):
+        repo = BlogRepo()
+        outcome = self.merge(repo, finder(GUESS), at(RELEASE_DAY, 10))  # the guessed URL is the post
+        self.assertTrue(outcome["merged"])
+        self.assertEqual([c for c in repo.calls if c[0] == "PUT" and "contents" in c[1]], [])
+        merged = BlogRepo(merged=True)
+        self.assertEqual(ca.run_blog_fixup(merged, VERSION, date(2026, 11, 18), finder(GUESS), "amy"), "")
+        self.assertEqual((merged.opened, merged.refs), ([], []))
+
+    def test_never_found_waits_until_23_utc_then_merges_with_the_category_link(self):
+        repo = BlogRepo()
+        waiting = self.merge(repo, finder(None), at(RELEASE_DAY, 15))
+        self.assertFalse(waiting["merged"])
+        self.assertIn("waiting for the v12.2 blog post: checked again each run until 23:00 UTC on Release Day (2026-11-16)",
+                      waiting["problems"][0])
+        self.assertEqual(self.link_on(repo, "changelog/v12.2.0"), GUESS)  # nothing changed while waiting
+        late = self.merge(repo, finder(None), at(RELEASE_DAY, 23))
+        self.assertFalse(late["merged"])
+        self.assertEqual(self.link_on(repo, "changelog/v12.2.0"), ca.CATEGORY_URL)
+        merged = self.merge(repo, finder(None), at(RELEASE_DAY, 23).replace(minute=40))
+        self.assertTrue(merged["merged"])
+        self.assertEqual(merged["blog_link"], "category")
+        self.assertIn("It links the releases category page until the blog post is out", ca.merge_summary(VERSION, merged))
+        # The post comes out two days later: one fix PR, for the link only, never on master.
+        self.assertIn("isn't out yet", ca.run_blog_fixup(repo, VERSION, date(2026, 11, 17), finder(None), "amy"))
+        self.assertEqual(repo.opened, [])
+        self.assertIn("Opened [mattermost#77]", ca.run_blog_fixup(repo, VERSION, date(2026, 11, 18), finder(POST), "amy"))
+        fix = repo.files["changelog/v12.2.0-blog-link"]
+        self.assertEqual(fix, repo.files["master"].replace(ca.CATEGORY_URL, POST, 1))
+        self.assertEqual(self.link_on(repo, "master"), ca.CATEGORY_URL)  # master untouched
+
+    def test_found_after_the_merge_opens_one_fix_pr_for_the_release_manager(self):
+        repo = BlogRepo(merged=True)  # merged by hand with the guessed link, and the post's URL is another one
+        self.assertIn("Opened [mattermost#77]", ca.run_blog_fixup(repo, VERSION, date(2026, 11, 17), finder(POST), "amy"))
+        self.assertEqual([(p["head"], p["base"]) for p in repo.opened], [("changelog/v12.2.0-blog-link", "master")])
+        self.assertEqual(repo.reviewers, [{"reviewers": ["amy"], "team_reviewers": []}])
+        self.assertIn("This changes only that link.", repo.opened[0]["body"])
+        again = ca.run_blog_fixup(repo, VERSION, date(2026, 11, 18), finder(POST), "amy")
+        self.assertIn("Blog link fix PR for v12.2: [mattermost#77]", again)
+        repo.opened[0]["state"] = "closed"  # even closed without merging: never a second one
+        ca.run_blog_fixup(repo, VERSION, date(2026, 11, 19), finder(POST), "amy")
+        self.assertEqual(len(repo.opened), 1)
+
+    def test_no_fix_after_10_working_days(self):
+        repo = BlogRepo(merged=True)
+        self.assertEqual(ca.add_working_days(RELEASE_DAY, 10), date(2026, 11, 30))
+        self.assertEqual(ca.run_blog_fixup(repo, VERSION, date(2026, 12, 1), finder(POST), "amy"), "")
+        self.assertEqual(repo.opened, [])
+
+    def test_with_auto_merge_off_the_link_is_only_reported(self):
+        repo = BlogRepo()
+        outcome = ca.run_merge(repo, VERSION, REPORT, False, blog=finder(POST), now=at(RELEASE_DAY, 10))
+        self.assertIn(f"the blog link would be set to {POST}", outcome["problems"])
+        self.assertEqual(self.link_on(repo, "changelog/v12.2.0"), GUESS)
 
 
 if __name__ == "__main__":

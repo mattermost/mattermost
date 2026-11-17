@@ -343,6 +343,24 @@ rules:
     pass_when: published
     on_fail: needs_attention
 
+  # The merged changelog's Improvements line links the published blog post. generate-changelog.yml
+  # sets it before merging (the releases category page if the post isn't out by 23:00 UTC on
+  # Release Day) and opens one fix PR afterwards; while that PR is open the post says "Waiting".
+  - task: changelog-blog-link
+    title: Changelog blog link
+    playbook_item: null
+    due: release_day
+    type: changelog_blog_link
+    source: [github, web]
+    query:
+      repo: mattermost/mattermost
+      base_branch: master
+      fix_branch: "changelog/{version}-blog-link"
+      post_url: "https://mattermost.com/blog/mattermost-v{major}-{minor}-is-now-available/"
+      category_url: "https://mattermost.com/blog/category/releases/"
+    pass_when: links_the_post
+    on_fail: needs_attention
+
   # No playbook item. generate-changelog.yml adds these labels itself; this is a backstop
   # listing the merged PRs the changelog workflow hasn't labelled yet.
   - task: changelog-labels

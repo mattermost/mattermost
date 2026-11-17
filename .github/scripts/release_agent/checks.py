@@ -941,32 +941,73 @@ def _same_page(a: str, b: str) -> bool:
     return a.split("#")[0].split("?")[0].rstrip("/").lower() == b.split("#")[0].split("?")[0].rstrip("/").lower()
 
 
-def blog_published(ctx: Context, rule: dict) -> Result:
-    """The release's blog post is published: its URL is served (not a 404 or a redirect to another
-    page), or the releases category lists a post whose title names vX.Y. A page that can't be
-    read is an error ("couldn't check"), never a pass."""
+BLOG_LINK_RE = re.compile(r"\[this blog post\]\((https?://[^)\s]+)\)")
+
+
+def find_blog_post(fetch_web, major: int, minor: int, post_url: str, category_url: str) -> tuple[str | None, str]:
+    """(the release's published blog post, its title or ""), or (None, "") when it isn't published.
+
+    Published: ``post_url`` is served as itself (not a 404 or a redirect to another page), or the
+    releases category lists a post whose title names vX.Y. A page that can't be read raises
+    ServiceError, so the caller can say it couldn't check rather than "not published"."""
     from .clients import ServiceError
-    query = ctx.query(rule)
-    release = ctx.release
-    post_url, category_url = query["post_url"], query["category_url"]
     failure = None
     try:
-        served, _ = ctx.fetch_web(post_url)
+        served, _ = fetch_web(post_url)
         if _same_page(served, post_url):
-            return Result(PASS, f"Blog post for {release.short_version} is published", [], post_url)
+            return post_url, ""
     except ServiceError as err:
         if err.status != 404:
             failure = err
-    _, page = ctx.fetch_web(category_url)  # an error here is "couldn't check"
+    _, page = fetch_web(category_url)
     for href, text in _LINK_RE.findall(page or ""):
         title = html.unescape(re.sub(r"<[^>]+>", " ", text))
-        if "/blog/" in href and "/category/" not in href and _names_version(title, release.major, release.minor):
-            url = urllib.parse.urljoin(category_url, href)
-            return Result(PASS, f"Blog post for {release.short_version} is published: {' '.join(title.split())}", [], url)
+        if "/blog/" in href and "/category/" not in href and _names_version(title, major, minor):
+            return urllib.parse.urljoin(category_url, href), " ".join(title.split())
     if failure is not None:
         raise failure  # the post's own URL couldn't be read, and the category doesn't list it
+    return None, ""
+
+
+def blog_published(ctx: Context, rule: dict) -> Result:
+    """The release's blog post is published (``find_blog_post``). A page that can't be read is an
+    error ("couldn't check"), never a pass."""
+    query = ctx.query(rule)
+    release = ctx.release
+    url, title = find_blog_post(ctx.fetch_web, release.major, release.minor, query["post_url"], query["category_url"])
+    if url:
+        return Result(PASS, f"Blog post for {release.short_version} is published" + (f": {title}" if title else ""),
+                      [], url)
     return Result(FAIL, f"Blog post for {release.short_version} not published yet",
-                  [Item("Releases on the blog", "", category_url, note="where the post is listed once published")])
+                  [Item("Releases on the blog", "", query["category_url"], note="where the post is listed once published")])
+
+
+def changelog_blog_link(ctx: Context, rule: dict) -> Result:
+    """The merged changelog entry's Improvements line links the release's published blog post.
+
+    The changelog workflow sets the link before merging on Release Day (the releases category
+    page when the post isn't out by 23:00 UTC), and afterwards opens one PR to fix it. While that
+    PR is open this reports "Waiting"; otherwise a link that isn't the post needs attention."""
+    query = ctx.query(rule)
+    repo, short = query["repo"], ctx.release.short_version
+    entry = entry_text(ctx.github.file_text(repo, changelog_file(ctx), query["base_branch"]), short)
+    if entry is None:
+        return Result(SKIPPED, f"The {short} changelog isn't merged yet", hidden=True)
+    match = BLOG_LINK_RE.search(entry)
+    link = match.group(1) if match else ""
+    fixes = [pr for pr in ctx.github.pulls_by_head(repo, f"{repo.split('/')[0]}:{query['fix_branch']}")
+             if pr.get("state") == "open"]
+    if fixes:
+        item = pr_item(repo, fixes[0])
+        return Result(INFO, f"Waiting: changelog blog link fix PR [{item.label}]({item.url})")
+    post, _ = find_blog_post(ctx.fetch_web, ctx.release.major, ctx.release.minor, query["post_url"], query["category_url"])
+    if post and link and _same_page(link, post):
+        return Result(PASS, "The changelog links the blog post", [], post)
+    items = [Item("Linked now", "", link or "", note="no blog post link" if not link else
+                  ("the releases category page" if _same_page(link, query["category_url"]) else "not the post"))]
+    if post:
+        items.append(Item("The blog post", "", post))
+    return Result(FAIL, "Blog link in the changelog to update", items)
 
 
 CHECKS = {
@@ -985,5 +1026,6 @@ CHECKS = {
     "changelog_labels": (changelog_labels, "none_missing"),
     "holidays_page": (holidays_page, "next_year_listed"),
     "blog_published": (blog_published, "published"),
+    "changelog_blog_link": (changelog_blog_link, "links_the_post"),
 }
 

@@ -99,6 +99,7 @@ class LiveRunTest(unittest.TestCase):
             "changelog-review": "ok",
             "changelog-merged": "not_due",
             "blog-published": "not_due",
+            "changelog-blog-link": "skipped",  # the changelog isn't merged yet
             "final-tags": "not_due",
             "version-go-prs": "skipped",
             "changelog-labels": "ok",
@@ -213,7 +214,7 @@ class LiveRunTest(unittest.TestCase):
 
     def test_totals(self):
         self.assertEqual(self.body["totals"]["releases"], 2)
-        self.assertEqual(self.body["totals"]["checks_run"], 36)
+        self.assertEqual(self.body["totals"]["checks_run"], 38)
         self.assertEqual(self.body["totals"]["ticked"], 6)
         self.assertEqual(self.body["totals"]["alarms_raised"], 3)
         self.assertEqual(self.body["totals"]["false_alarms"], 0)

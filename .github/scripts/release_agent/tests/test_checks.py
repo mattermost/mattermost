@@ -962,5 +962,58 @@ class BlogPublishedTest(unittest.TestCase):
         self.assertEqual(self.check(blog(post=500, category=card("Mattermost v12.2 is now available"))).state, "ok")
 
 
+LOG = "docs/main/product-overview/mattermost-v12-changelog.mdx"
+
+
+def merged_changelog(link):
+    return (f"## Release v12.2 - Feature Release\n\n### Improvements\nSee [this blog post]({link}) on the highlights in our "
+            "latest release.\n\n## Release v12.1 - Feature Release\n")
+
+
+class ChangelogBlogLinkTest(unittest.TestCase):
+    def check(self, link=None, fetch=None, fix_prs=()):
+        from release_agent import agent
+        github = FakeGitHub()
+        if link is not None:
+            github.files[("mattermost/mattermost", "master", LOG)] = merged_changelog(link)
+        github.head_prs["mattermost:changelog/v12.2.0-blog-link"] = list(fix_prs)
+        today = date(2026, 11, 17)
+        return agent.evaluate(context(github=github, fetch_web=fetch or blog(post=200), today=today),
+                              RULES["changelog-blog-link"], date(2026, 11, 16), today)
+
+    def test_the_merged_changelog_linking_the_post_passes(self):
+        outcome = self.check(POST_URL)
+        self.assertEqual((outcome.state, outcome.result.summary, outcome.result.proof_url),
+                         ("ok", "The changelog links the blog post", POST_URL))
+
+    def test_the_category_link_is_flagged_while_the_post_isnt_out(self):
+        outcome = self.check(CATEGORY_URL, blog(post=404, category=card("Mattermost v12.1 is now available")))
+        self.assertEqual((outcome.state, outcome.result.summary), ("needs_attention", "Blog link in the changelog to update"))
+        self.assertEqual(outcome.result.items[0].note, "the releases category page")
+
+    def test_another_link_than_the_published_post_is_flagged_with_the_post(self):
+        post = "https://mattermost.com/blog/v12-2-faster-search/"
+        outcome = self.check(CATEGORY_URL, blog(post=404, category=card("Mattermost v12.2: faster search", post)))
+        self.assertEqual(outcome.result.summary, "Blog link in the changelog to update")
+        self.assertEqual([item.url for item in outcome.result.items], [CATEGORY_URL, post])
+
+    def test_an_open_fix_pr_shows_waiting(self):
+        fix = {"number": 77, "title": "Link the v12.2 blog post", "state": "open", "html_url": "https://github.com/x/pull/77",
+               "user": {"login": "app"}, "assignees": []}
+        outcome = self.check(CATEGORY_URL, fix_prs=[fix])
+        self.assertEqual((outcome.state, outcome.result.summary),
+                         ("report", "Waiting: changelog blog link fix PR [mattermost#77](https://github.com/x/pull/77)"))
+        merged = self.check(POST_URL, fix_prs=[{**fix, "state": "closed"}])  # merged: the link is the post now
+        self.assertEqual(merged.state, "ok")
+
+    def test_before_the_changelog_is_merged_nothing_shows(self):
+        outcome = self.check(None)
+        self.assertEqual(outcome.state, "skipped")
+        self.assertTrue(outcome.result.hidden)
+
+    def test_a_page_that_cant_be_read_is_couldnt_check(self):
+        self.assertEqual(self.check(CATEGORY_URL, blog(post=500, category=503)).state, "error")
+
+
 if __name__ == "__main__":
     unittest.main()

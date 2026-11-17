@@ -99,7 +99,8 @@
             "version_go_prs",
             "changelog_labels",
             "holidays_page",
-            "blog_published"
+            "blog_published",
+            "changelog_blog_link"
           ]
         },
         "source": {
@@ -139,7 +140,8 @@
             "state_reached",
             "described_or_none",
             "next_year_listed",
-            "published"
+            "published",
+            "links_the_post"
           ]
         },
         "on_fail": {"enum": ["needs_attention", "log_only", "report"]}

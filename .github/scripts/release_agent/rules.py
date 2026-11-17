@@ -58,6 +58,7 @@ REQUIRED_QUERY = {
     "changelog_labels": ("repos", "labels"),
     "holidays_page": ("month", "heading", "min_dates"),
     "blog_published": ("post_url", "category_url"),
+    "changelog_blog_link": ("repo", "base_branch", "fix_branch", "post_url", "category_url"),
     "e2e_results": ("match_any",),
     "release_tags": ("repos",),
     "changelog_pr": ("state", "repo", "branch", "base_branch", "live_url"),
