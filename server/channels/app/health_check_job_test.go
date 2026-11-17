@@ -141,46 +141,13 @@ func TestStartHealthCheckRun(t *testing.T) {
 		assert.Equal(t, 0, countJobs(t, th))
 	})
 
-	// missLookup makes the job server's lookup of the active run miss the given number of times,
-	// as if the run had just finished, calling beforeMiss first each time.
-	missLookup := func(t *testing.T, th *TestHelper, misses int, beforeMiss func()) {
-		t.Helper()
-		jobServer := th.App.Srv().Jobs
-		orig := jobServer.Store
-		jobServer.Store = &missingJobStore{Store: orig, misses: misses, beforeMiss: beforeMiss}
-		t.Cleanup(func() { jobServer.Store = orig })
-	}
-
-	t.Run("returns the pending run when a lookup misses it once", func(t *testing.T) {
-		th := setup(t)
-		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
-		missLookup(t, th, 1, nil)
-
-		job, appErr := th.App.StartHealthCheckRun(th.Context)
-		require.Nil(t, appErr)
-		assert.Equal(t, pending.Id, job.Id)
-		assert.Equal(t, 1, countJobs(t, th))
-	})
-
-	t.Run("starts a run when the blocking run finished before it could be read", func(t *testing.T) {
-		th := setup(t)
-		pending := saveJob(t, th, &model.Job{Status: model.JobStatusPending})
-		missLookup(t, th, 1, func() {
-			_, err := th.App.Srv().Store().Job().UpdateStatus(pending.Id, model.JobStatusSuccess)
-			require.NoError(t, err)
-		})
-
-		job, appErr := th.App.StartHealthCheckRun(th.Context)
-		require.Nil(t, appErr)
-		assert.NotEqual(t, pending.Id, job.Id)
-		assert.Equal(t, model.JobStatusPending, job.Status)
-		assert.Equal(t, 2, countJobs(t, th))
-	})
-
-	t.Run("answers 409 when the lookup keeps missing", func(t *testing.T) {
+	t.Run("answers 409 when the run in the way finished before it could be read", func(t *testing.T) {
 		th := setup(t)
 		saveJob(t, th, &model.Job{Status: model.JobStatusPending})
-		missLookup(t, th, 2, nil)
+		jobServer := th.App.Srv().Jobs
+		orig := jobServer.Store
+		jobServer.Store = &missingActiveRunStore{Store: orig}
+		t.Cleanup(func() { jobServer.Store = orig })
 
 		_, appErr := th.App.StartHealthCheckRun(th.Context)
 		require.NotNil(t, appErr)
@@ -189,30 +156,21 @@ func TestStartHealthCheckRun(t *testing.T) {
 	})
 }
 
-type missingJobStore struct {
+// missingActiveRunStore makes the lookup of the active run miss, as if that run had just finished.
+type missingActiveRunStore struct {
 	store.Store
-	misses     int
-	beforeMiss func()
 }
 
-func (s *missingJobStore) Job() store.JobStore {
-	return &missingJobs{JobStore: s.Store.Job(), parent: s}
+func (s *missingActiveRunStore) Job() store.JobStore {
+	return missingActiveRunJobs{s.Store.Job()}
 }
 
-type missingJobs struct {
+type missingActiveRunJobs struct {
 	store.JobStore
-	parent *missingJobStore
 }
 
-func (j *missingJobs) GetNewestJobByStatusesAndType(statuses []string, jobType string) (*model.Job, error) {
-	if j.parent.misses > 0 {
-		j.parent.misses--
-		if j.parent.beforeMiss != nil {
-			j.parent.beforeMiss()
-		}
-		return nil, store.NewErrNotFound("Job", jobType)
-	}
-	return j.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+func (missingActiveRunJobs) GetNewestJobByStatusesAndType(_ []string, jobType string) (*model.Job, error) {
+	return nil, store.NewErrNotFound("Job", jobType)
 }
 
 func TestStopHealthCheckWorkersCancelsRunningJob(t *testing.T) {
