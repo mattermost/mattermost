@@ -347,6 +347,17 @@ class StatusPublicationContract(unittest.TestCase):
                 self.assertLess(step(workers, 'ci/dispatch-run')['timeout-minutes'], workers['timeout-minutes'] - 5)
 
 
+class TestcontainersWorkers(unittest.TestCase):
+    """Testcontainers settings that keep a worker's server alive across its separate Playwright processes."""
+    def test_ryuk_is_disabled_wherever_workers_reuse_the_stack(self):
+        """Ryuk would reap a server the next process needs; the upgrade swap's server is not even withReuse()."""
+        for name in ('playwright-template', 'playwright-rolling-upgrades-template'):
+            with self.subTest(workflow=name):
+                env = workflow(name)['jobs']['workers']['env']
+                self.assertEqual(env['PW_TESTCONTAINERS_REUSE'], 'true')
+                self.assertEqual(env['TESTCONTAINERS_RYUK_DISABLED'], 'true')
+
+
 def fake_bin(tmp, **scripts):
     """A PATH directory holding the given fake commands, for running a step's script offline."""
     bin_dir = pathlib.Path(tmp) / 'bin'
