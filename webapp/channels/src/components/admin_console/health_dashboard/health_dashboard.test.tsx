@@ -153,6 +153,17 @@ describe('components/admin_console/health_dashboard', () => {
             expect(screen.queryByText('Resolved recently')).not.toBeInTheDocument();
         });
 
+        test('could not be evaluated lists the most severe checks first', async () => {
+            await renderDashboard(evaluated([
+                makeFinding({fingerprint: 'u1', severity: 'info', state: 'unknown', title: 'Unknown info', state_since: NOW - (3 * hour)}),
+                makeFinding({fingerprint: 'u2', severity: 'warning', state: 'unknown', title: 'Unknown warning', state_since: NOW - (5 * 60000)}),
+                makeFinding({fingerprint: 'u3', severity: 'critical', state: 'unknown', title: 'Unknown critical', state_since: NOW - (30 * 60000)}),
+            ]));
+
+            expect(sectionHeadings()).toEqual(['Could not be evaluated3']);
+            expect(rowTitles()).toEqual(['Unknown critical', 'Unknown warning', 'Unknown info']);
+        });
+
         test('a severity tab lists firing findings of that severity only', async () => {
             await renderDashboard(evaluated(mixed));
 
@@ -312,6 +323,30 @@ describe('components/admin_console/health_dashboard', () => {
             await userEvent.click(database);
             expect(database).toHaveAttribute('aria-expanded', 'true');
             expect(screen.getByText('Warning new')).toBeVisible();
+        });
+
+        test('severity sections omit row badges, while category rows show the severity or a plain state', async () => {
+            await renderDashboard(evaluated(mixed));
+
+            expect(screen.queryByTestId('healthFindingBadge')).not.toBeInTheDocument();
+
+            await userEvent.click(screen.getByRole('button', {name: 'Category'}));
+
+            const badges = Object.fromEntries(screen.getAllByTestId(/^healthFinding-/).map((row) => [
+                row.querySelector('.HealthFinding__title')?.textContent,
+                within(row).getByTestId('healthFindingBadge').textContent,
+            ]));
+            expect(badges).toEqual({
+                'Critical one': 'Critical',
+                'Warning new': 'Warning',
+                'Warning old': 'Warning',
+                'Info one': 'Info',
+                'Unknown one': 'Unknown',
+            });
+
+            await userEvent.click(screen.getByRole('tab', {name: /^Recently resolved/}));
+
+            expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Resolved$/);
         });
 
         test('an unknown-only area is not expanded for its rule severity', async () => {

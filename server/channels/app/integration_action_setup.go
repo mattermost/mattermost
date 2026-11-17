@@ -157,7 +157,7 @@ func (a *App) startUpstreamTeamFetch(teamID string) <-chan store.StoreResult[*mo
 func (a *App) populateUpstreamRequestIdentity(
 	upstreamRequest *model.PostActionIntegrationRequest,
 	userChan <-chan store.StoreResult[*model.User],
-) *model.AppError {
+) error {
 	teamChan := a.startUpstreamTeamFetch(upstreamRequest.TeamId)
 
 	ur := <-userChan
@@ -202,8 +202,8 @@ func (a *App) finishPostActionSetup(
 	if gotoURL != "" {
 		return nil, gotoURL, nil
 	}
-	if appErr := a.populateUpstreamRequestIdentity(setup.upstreamRequest, userChan); appErr != nil {
-		return nil, "", appErr
+	if err := a.populateUpstreamRequestIdentity(setup.upstreamRequest, userChan); err != nil {
+		return nil, "", model.AsAppError(err)
 	}
 	return setup, "", nil
 }
@@ -251,9 +251,9 @@ func (a *App) setupFromLegacyCookie(
 		return nil, "", model.NewAppError("DoPostActionWithCookie", "api.post.do_action.action_integration.app_error", nil, "postId doesn't match", http.StatusBadRequest)
 	}
 
-	channel, appErr := a.channelForPostAction(cookie.ChannelId)
-	if appErr != nil {
-		return nil, "", appErr
+	channel, err := a.channelForPostAction(cookie.ChannelId)
+	if err != nil {
+		return nil, "", model.AsAppError(err)
 	}
 
 	fillUpstreamChannel(upstreamRequest, channel, cookie.ChannelId)
@@ -293,13 +293,13 @@ func (a *App) setupFromMmBlocksCookie(
 
 	channel, appErr := a.channelForPostAction(cookie.ChannelId)
 	if appErr != nil {
-		return nil, "", appErr
+		return nil, "", model.AsAppError(appErr)
 	}
 
 	mmSpec := cookie.ActionSpec(actionID)
 	resolved, err := model.ResolveMmBlocksAction(mmSpec, actionID, clientQuery)
 	if appErr := mmBlocksResolveAppError(actionID, err); appErr != nil {
-		return nil, "", appErr
+		return nil, "", model.AsAppError(appErr)
 	}
 	if resolved.OpenURLGoto != "" {
 		return nil, resolved.OpenURLGoto, nil
@@ -342,7 +342,7 @@ func (a *App) resolvePostActionSetupFromPost(
 		mmSpec := post.GetMmBlocksActionSpec(actionID)
 		resolved, err := model.ResolveMmBlocksAction(mmSpec, actionID, clientQuery)
 		if appErr := mmBlocksResolveAppError(actionID, err); appErr != nil {
-			return nil, "", appErr
+			return nil, "", model.AsAppError(appErr)
 		}
 		if resolved.OpenURLGoto != "" {
 			return nil, resolved.OpenURLGoto, nil
@@ -399,7 +399,7 @@ func fillUpstreamChannel(req *model.PostActionIntegrationRequest, channel *model
 	req.TeamId = channel.TeamId
 }
 
-func (a *App) channelForPostAction(channelID string) (*model.Channel, *model.AppError) {
+func (a *App) channelForPostAction(channelID string) (*model.Channel, error) {
 	channel, err := a.Srv().Store().Channel().Get(channelID, true)
 	if err != nil {
 		errCtx := map[string]any{"channel_id": channelID}
@@ -414,7 +414,7 @@ func (a *App) channelForPostAction(channelID string) (*model.Channel, *model.App
 	return channel, nil
 }
 
-func mmBlocksResolveAppError(actionID string, err error) *model.AppError {
+func mmBlocksResolveAppError(actionID string, err error) error {
 	if err == nil {
 		return nil
 	}
