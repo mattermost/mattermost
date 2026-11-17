@@ -193,6 +193,17 @@ class MattermostTest(unittest.TestCase):
         self.assertEqual(Mattermost("https://hub", "t", http).search_users("Ann Lee"), [{"username": "ann"}])
         self.assertEqual(http.calls[0][3], {"term": "Ann Lee", "allow_inactive": False, "limit": 100})
 
+    def test_thread_follows_every_page(self):
+        root = {"id": "root", "root_id": "", "create_at": 1}
+        first = {"root": root, **{f"r{n}": {"id": f"r{n}", "root_id": "root", "create_at": 10 + n} for n in range(3)}}
+        second = {"root": root, "r3": {"id": "r3", "root_id": "root", "create_at": 20, "message": "go"}}
+        http = RecordingHttp([({}, {"posts": first, "has_next": True}), ({}, {"posts": second, "has_next": False})])
+        thread = Mattermost("https://hub", "t", http).thread("root")
+        self.assertEqual([p["id"] for p in thread], ["root", "r0", "r1", "r2", "r3"])
+        self.assertEqual([c[2] for c in http.calls], [
+            {"perPage": 200, "direction": "down"},
+            {"perPage": 200, "direction": "down", "fromPost": "r2", "fromCreateAt": 12}])
+
     def test_playbooks_close_item(self):
         http = RecordingHttp([({}, None)])
         Playbooks(Mattermost("https://hub", "t", http)).close_item("run1", 2, 5)

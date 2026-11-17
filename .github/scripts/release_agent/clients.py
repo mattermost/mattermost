@@ -395,9 +395,17 @@ class Mattermost:
         return self._user_or_none(f"/api/v4/users/{urllib.parse.quote(user_id)}")
 
     def thread(self, post_id: str) -> list[dict]:
-        """The root post and its replies, oldest first."""
-        result = self.http.get(f"/api/v4/posts/{post_id}/thread") or {}
-        posts = result.get("posts") or {}
+        """The root post and its replies, oldest first, across every page."""
+        posts, params = {}, {"perPage": 200, "direction": "down"}
+        while True:
+            result = self.http.get(f"/api/v4/posts/{post_id}/thread", **params) or {}
+            page = result.get("posts") or {}
+            posts.update(page)
+            replies = [p for p in page.values() if p.get("root_id") == post_id]
+            if not result.get("has_next") or not replies:
+                break
+            last = max(replies, key=lambda p: (p.get("create_at", 0), p.get("id", "")))
+            params.update(fromPost=last["id"], fromCreateAt=last["create_at"])
         return sorted(posts.values(), key=lambda p: p.get("create_at", 0))
 
     def reactions(self, post_id: str) -> list[dict]:
