@@ -31,7 +31,8 @@ export default class PostDotMenu {
         const getMenuItem = (hasText: string) => container.getByRole('menuitem').filter({hasText});
 
         this.replyMenuItem = getMenuItem('Reply');
-        this.quoteMenuItem = getMenuItem('Quote');
+        // Compass menu items are not exposed as menuitem to Playwright 1.65's accessibility tree.
+        this.quoteMenuItem = container.locator('[data-testid^="quote_post_"]');
         this.forwardMenuItem = getMenuItem('Forward');
         this.followMessageMenuItem = getMenuItem('Follow message');
         this.markAsUnreadMenuItem = getMenuItem('Mark as Unread');

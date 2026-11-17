@@ -57,7 +57,12 @@ export default class NewChannelModal {
     }
 
     getAttributeCombobox(fieldName: string): Locator {
-        return this.getAttributeRow(fieldName).getByTestId(`channelAttribute-${fieldName}`);
+        // The test id sits on the combobox shell. aria-expanded and aria-controls are on the inner
+        // input, which Playwright 1.65 does not expose through getByRole('combobox').
+        const testId = `channelAttribute-${fieldName}`;
+        return this.getAttributeRow(fieldName).locator(
+            `[data-testid="${testId}"][role="combobox"], [data-testid="${testId}"] [role="combobox"]`,
+        );
     }
 
     // The menu is portaled out of the modal, so it is reached through the input's aria-controls.
