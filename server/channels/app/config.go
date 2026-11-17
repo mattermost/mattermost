@@ -17,6 +17,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -292,12 +293,13 @@ func (a *App) GetSanitizedConfig() *model.Config {
 
 // SanitizedConfig sanitizes a given configuration for a system admin without any secrets.
 func (a *App) SanitizedConfig(cfg *model.Config) {
-	a.ConfigSanitizer()(cfg)
+	a.ConfigSanitizer(nil)(cfg)
 }
 
-// ConfigSanitizer returns a function that sanitizes a configuration as SanitizedConfig does.
-// It reads the plugin manifests only once, for sanitizing many configurations.
-func (a *App) ConfigSanitizer() func(*model.Config) {
+// ConfigSanitizer returns a function that sanitizes a configuration as SanitizedConfig does,
+// with the given options. It reads the plugin manifests only once, for sanitizing many
+// configurations.
+func (a *App) ConfigSanitizer(opts *model.SanitizeOptions) func(*model.Config) {
 	manifests, err := a.getPluginManifests()
 	if err != nil {
 		// GetPluginManifests might error, e.g. when plugins are disabled.
@@ -306,7 +308,7 @@ func (a *App) ConfigSanitizer() func(*model.Config) {
 	}
 
 	return func(cfg *model.Config) {
-		cfg.Sanitize(manifests, nil)
+		cfg.Sanitize(manifests, opts)
 	}
 }
 
@@ -329,6 +331,52 @@ func (a *App) GetConfigHistory(offset, limit int) ([]*config.HistoryEntry, error
 		return nil, configHistoryAppError("GetConfigHistory", err)
 	}
 	return history, nil
+}
+
+// GetConfigHistoryChanges returns the saved configurations, newest first, skipping the first
+// offset, each with the settings that changed from the configuration saved before it. filter, if
+// not nil, copies a configuration with only the settings to compare, and values are compared as
+// sanitize leaves them, so a change to a value it masks is listed without the value. A
+// configuration that can't be loaded is listed without its changes, as is the one saved after it.
+func (a *App) GetConfigHistoryChanges(rctx request.CTX, offset, limit int, filter func(*model.Config) (*model.Config, error), sanitize func(*model.Config)) ([]*model.ConfigHistoryEntry, error) {
+	// The oldest entry is compared with the one saved before it, so fetch one more.
+	history, err := a.GetConfigHistory(offset, limit+1)
+	if err != nil {
+		return nil, err
+	}
+
+	entries := make([]*model.ConfigHistoryEntry, len(history))
+	var newer *model.Config
+	for i, saved := range history {
+		entries[i] = saved.ConfigHistoryEntry
+		if saved.LoadErr != nil {
+			rctx.Logger().Warn("Failed to load a saved configuration", mlog.String("config_id", saved.Id), mlog.Err(saved.LoadErr))
+			newer = nil
+			continue
+		}
+
+		cfg := saved.Config
+		if filter != nil {
+			if cfg, err = filter(cfg); err != nil {
+				return nil, err
+			}
+		}
+
+		if newer != nil {
+			diffs, diffErr := config.SanitizedDiff(cfg, newer, sanitize)
+			if diffErr != nil {
+				return nil, model.NewAppError("GetConfigHistoryChanges", "api.config.get_config_history.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(diffErr)
+			}
+			entries[i-1].Changes = diffs.ToConfigChanges()
+		}
+		newer = cfg
+	}
+
+	if len(entries) > limit {
+		entries = entries[:limit]
+	}
+
+	return entries, nil
 }
 
 // GetHistoricalConfig returns the saved configuration with the given id, unsanitized, with the

@@ -14,6 +14,8 @@ const (
 	SupportPacketStatsFileName       = "stats.yaml"
 	SupportPacketJobsFileName        = "jobs.yaml"
 	SupportPacketPluginsFileName     = "plugins.json"
+	// SupportPacketConfigHistoryFileName is only included when the configuration is stored in the database.
+	SupportPacketConfigHistoryFileName = "config_history.json"
 )
 
 type SupportPacketLicense struct {
@@ -249,6 +251,17 @@ type SupportPacketConfig struct {
 type SupportPacketPluginList struct {
 	Enabled  []Manifest `json:"enabled"`
 	Disabled []Manifest `json:"disabled"`
+}
+
+// SupportPacketConfigHistory lists the most recently saved configurations, newest first, as
+// GET /api/v4/config/history does. It is included in the Support Packet.
+type SupportPacketConfigHistory []*SupportPacketConfigHistoryEntry
+
+// SupportPacketConfigHistoryEntry is a saved configuration with the time it was saved, in the
+// server's time zone, as the Support Packet formats times.
+type SupportPacketConfigHistoryEntry struct {
+	SavedAt string `json:"saved_at"`
+	*ConfigHistoryEntry
 }
 
 // SupportPacketDatabaseSchema contains the database schema information.

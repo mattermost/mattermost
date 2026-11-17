@@ -16,8 +16,13 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 )
+
+// supportPacketConfigHistoryLimit is the number of saved configurations the Support Packet lists.
+// The history is kept forever by default, so it can't include all of them.
+const supportPacketConfigHistoryLimit = 10
 
 func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	functions := map[string]func(rctx request.CTX) (*model.FileData, error){
@@ -37,6 +42,9 @@ func (a *App) GenerateSupportPacket(rctx request.CTX, options *model.SupportPack
 			return supportPacketPluginsFile(a.getPluginsList(rctx))
 		},
 		"schema": a.getSupportPacketDatabaseSchema,
+		"config_history": func(rctx request.CTX) (*model.FileData, error) {
+			return supportPacketConfigHistoryFile(a.getSupportPacketConfigHistory(rctx))
+		},
 	}
 
 	var (
@@ -164,6 +172,35 @@ func supportPacketPermissionsFile(p *model.SupportPacketPermissionInfo, err erro
 
 func supportPacketPluginsFile(p *model.SupportPacketPluginList, err error) (*model.FileData, error) {
 	return platform.JSONFile(model.SupportPacketPluginsFileName, p, err)
+}
+
+func supportPacketConfigHistoryFile(h *model.SupportPacketConfigHistory, err error) (*model.FileData, error) {
+	return platform.JSONFile(model.SupportPacketConfigHistoryFileName, h, err)
+}
+
+// getSupportPacketConfigHistory returns the most recently saved configurations, each with the
+// settings that changed from the one saved before it, sanitized as sanitized_config.json is. A
+// configuration stored in a file keeps no history, so it returns nil without an error.
+func (a *App) getSupportPacketConfigHistory(rctx request.CTX) (*model.SupportPacketConfigHistory, error) {
+	sanitize := a.ConfigSanitizer(&model.SanitizeOptions{PartiallyRedactDataSources: true})
+	entries, err := a.GetConfigHistoryChanges(rctx, 0, supportPacketConfigHistoryLimit, nil, sanitize)
+	if err != nil {
+		var appErr *model.AppError
+		if errors.As(err, &appErr) && appErr.Id == "app.config.history.not_supported.app_error" {
+			return nil, nil
+		}
+		return nil, errors.Wrap(err, "failed to get the configuration history")
+	}
+
+	history := make(model.SupportPacketConfigHistory, len(entries))
+	for i, entry := range entries {
+		history[i] = &model.SupportPacketConfigHistoryEntry{
+			SavedAt:            timeutils.FormatMillis(entry.CreateAt),
+			ConfigHistoryEntry: entry,
+		}
+	}
+
+	return &history, nil
 }
 
 func (a *App) getSupportPacketStats(rctx request.CTX) (*model.SupportPacketStats, error) {
