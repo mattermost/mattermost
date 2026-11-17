@@ -842,6 +842,18 @@ func (s *SqlThreadStore) DeleteMembershipForUser(userId string, postId string) e
 	return nil
 }
 
+func (s *SqlThreadStore) PermanentDeleteMembershipsByUser(userId string) error {
+	query := s.getQueryBuilder().
+		Delete("ThreadMemberships").
+		Where(sq.Eq{"UserId": userId})
+
+	if _, err := s.GetMaster().ExecBuilder(query); err != nil {
+		return errors.Wrapf(err, "failed to delete thread memberships with userid=%s", userId)
+	}
+
+	return nil
+}
+
 // MaintainMembership creates or updates a thread membership for the given user
 // and post. This method is used to update the state of a membership in response
 // to some events like:

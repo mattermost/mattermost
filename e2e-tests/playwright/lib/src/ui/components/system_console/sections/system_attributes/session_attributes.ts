@@ -146,13 +146,17 @@ export default class SessionAttributes {
 
         await expect(async () => {
             await this.page.keyboard.press('Escape');
-            await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 2000});
+            await this.page.keyboard.press('Escape');
+            if (await this.dotMenu(fieldId).isVisible()) {
+                await this.page.locator('body').click({position: {x: 1, y: 1}, force: true});
+            }
+            await expect(this.dotMenu(fieldId)).toBeHidden({timeout: 5000});
 
             await this.dotMenuButton(fieldId).click();
-            await expect(trigger).toBeVisible({timeout: 2000});
+            await expect(trigger).toBeVisible({timeout: 3000});
             await trigger.press('ArrowRight');
-            await expect(option).toBeVisible({timeout: 2000});
-        }).toPass({timeout: 20000, intervals: [250, 500, 1000]});
+            await expect(option).toBeVisible({timeout: 4000});
+        }).toPass({timeout: 30000, intervals: [250, 500, 1000]});
 
         await option.click();
 

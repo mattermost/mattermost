@@ -194,7 +194,7 @@ describe('User Management', () => {
 
             // # Set new password.
             cy.get('input[type=password]').type('new' + testUser.password);
-            cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+            cy.get('button.GenericModal__button.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify Update email option is visible.
             cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
@@ -269,14 +269,14 @@ describe('User Management', () => {
         }
 
         // # Click the "Update" button.
-        cy.get('button.btn-primary.confirm').click();
+        cy.get('button.GenericModal__button.confirm').click();
 
         // * Check for the error messages, if any.
         if (errorMsg.length > 0) {
             cy.get('.Input___error').should('be.visible').and('contain', errorMsg);
 
             // # Close the modal.
-            cy.get('button.close').click();
+            cy.get('#resetEmailModal').find('button[aria-label="Close"]').click();
         }
     }
 

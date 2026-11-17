@@ -137,11 +137,13 @@ export type ClientConfig = {
     FeatureFlagChannelAttributesRequired: string;
     FeatureFlagPropertyFieldRank: string;
     FeatureFlagPropertyFieldGraph: string;
+    FeatureFlagOpenIdAttributeSync: string;
     FeatureFlagManagedChannelCategories: string;
     FeatureFlagSessionAttributes: string;
     FeatureFlagPostAttributes: string;
     FeatureFlagDiscoverableChannels: string;
     FeatureFlagRecurringScheduledPosts: string;
+    FeatureFlagProductRail: string;
 
     ForgotPasswordLink: string;
     GiphySdkKey: string;
@@ -720,6 +722,10 @@ export type SSOSettings = {
     ButtonText: string;
     ButtonColor: string;
     UsePreferredUsername: boolean;
+
+    // Space-separated scopes requested on top of profile, openid and email.
+    // Applied to the OpenID Connect service only.
+    AdditionalScopes: string;
 };
 
 export type Office365Settings = {
@@ -1007,6 +1013,7 @@ export type PluginSettings = {
     MarketplaceURL: string;
     SignaturePublicKeyFiles: string[];
     ChimeraOAuthProxyURL: string;
+    RestrictUnauthenticatedWebappPlugins: boolean;
 };
 
 export type DisplaySettings = {
@@ -1033,6 +1040,7 @@ export type CloudSettings = {
     CWSMock: boolean;
     Disable: boolean;
     PreviewModalBucketURL: string;
+    PreviewLandingPath: string;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;

@@ -377,7 +377,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                             className='loadingIndicator'
                             onLoaded={this.setLoadingFinished}
                         >
-                            <LoadingSpinner/>
+                            <LoadingSpinner size='32'/>
                         </SmartLoader>
                     }
 

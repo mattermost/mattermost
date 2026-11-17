@@ -6,6 +6,8 @@ import React from 'react';
 import type {ReactNode, CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
 type Props = {
     position?: 'absolute' | 'fixed' | 'relative' | 'static' | 'inherit';
     style?: CSSProperties;
@@ -26,12 +28,9 @@ function LoadingScreen({message, position = 'relative', style, className = '', c
             style={{position, ...style}}
         >
             <div className='loading__content'>
-                <p>
-                    {message || formatMessage({id: 'loading_screen.loading', defaultMessage: 'Loading'})}
-                </p>
-                <div className='round round-1'/>
-                <div className='round round-2'/>
-                <div className='round round-3'/>
+                <LoadingSpinner
+                    text={message || formatMessage({id: 'loading_screen.loading', defaultMessage: 'Loading'})}
+                />
             </div>
         </div>
     );

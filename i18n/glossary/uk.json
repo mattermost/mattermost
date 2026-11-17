@@ -446,5 +446,28 @@
   "server": {
     "target": "сервер",
     "note": "Masculine. Genitive 'сервера'."
+  },
+  "health dashboard": {
+    "target": "Працездатність сайту",
+    "note": "Name of the System Console page; quote it as a name in running text: сторінка «Працездатність сайту». Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "результат перевірки працездатності",
+    "note": "Shorten to 'результат перевірки' inside the page itself (e.g. 'Немає критичних результатів перевірки'). Consistent in existing translations."
+  },
+  "Agents plugin": {
+    "target": "плагін Agents",
+    "note": "Inflect 'плагін' only: 'плагіна Agents', 'у плагіні Agents'. Consistent in existing translations."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English and undeclined. Put the head noun 'служба' in front and decline that: 'про службу Mattermost Hosted Push Notification Service', 'служби Mattermost Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English and undeclined, with a declined 'служба' in front, like Hosted Push Notification Service. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

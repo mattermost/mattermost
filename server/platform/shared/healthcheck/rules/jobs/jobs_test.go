@@ -41,20 +41,45 @@ func jobsConfig(enabled bool) *model.Config {
 	return cfg
 }
 
+func jobsFeatures(granted bool) *model.Features {
+	return &model.Features{LDAP: new(granted), MessageExport: new(granted), Elasticsearch: new(granted), DataRetention: new(granted)}
+}
+
+func leaderWithLicense(license model.SupportPacketLicense) *healthcheck.Snapshot {
+	diag := &model.SupportPacketDiagnostics{License: license}
+	return healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{{
+		Hostname:    "app-1",
+		IsLeader:    true,
+		Diagnostics: &model.NodeDiagnostics{Diagnostics: diag},
+	}})
+}
+
+var fullLicense = model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, Features: jobsFeatures(true)}
+
+func configSnapshot(license model.SupportPacketLicense, cfg *model.Config) *healthcheck.Snapshot {
+	s := leaderWithLicense(license)
+	s.CollectedAt = collectedAt
+	s.Config = &model.SupportPacketConfig{Config: cfg}
+	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+	return s
+}
+
 // jobsSnapshot returns a snapshot with every gate open and the given runs, newest first, for every job type.
 func jobsSnapshot(runs ...*model.Job) *healthcheck.Snapshot {
-	return &healthcheck.Snapshot{
-		CollectedAt: collectedAt,
-		Config:      &model.SupportPacketConfig{Config: jobsConfig(true)},
-		Jobs: &model.SupportPacketJobList{
-			LDAPSyncJobs:               runs,
-			DataRetentionJobs:          runs,
-			MessageExportJobs:          runs,
-			ElasticPostIndexingJobs:    runs,
-			ElasticPostAggregationJobs: runs,
-		},
-		Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil, model.SectionJobs: nil},
+	return licensedJobsSnapshot(fullLicense, runs...)
+}
+
+func licensedJobsSnapshot(license model.SupportPacketLicense, runs ...*model.Job) *healthcheck.Snapshot {
+	s := configSnapshot(license, jobsConfig(true))
+	s.Jobs = &model.SupportPacketJobList{
+		LDAPSyncJobs:               runs,
+		DataRetentionJobs:          runs,
+		MessageExportJobs:          runs,
+		ElasticPostIndexingJobs:    runs,
+		ElasticPostAggregationJobs: runs,
 	}
+	s.Sections[model.SectionJobs] = nil
+	return s
 }
 
 func withoutCollectedAt(s *healthcheck.Snapshot) *healthcheck.Snapshot {
@@ -110,12 +135,17 @@ func TestJobRulesEmitOneResultPerSubject(t *testing.T) {
 		{rule: jobFailed, subjects: allTypes},
 	}
 
+	configAbsent := leaderWithLicense(fullLicense)
+	configAbsent.CollectedAt = collectedAt
+
 	snapshots := map[string]*healthcheck.Snapshot{
-		"no runs":        jobsSnapshot(),
-		"config absent":  {CollectedAt: collectedAt},
-		"gates closed":   {CollectedAt: collectedAt, Config: &model.SupportPacketConfig{Config: jobsConfig(false)}, Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil}},
-		"jobs absent":    {CollectedAt: collectedAt, Config: &model.SupportPacketConfig{Config: jobsConfig(true)}, Sections: map[model.WorkspaceSection]error{model.SectionConfig: nil}},
-		"collected zero": withoutCollectedAt(jobsSnapshot()),
+		"no runs":         jobsSnapshot(),
+		"config absent":   configAbsent,
+		"gates closed":    configSnapshot(fullLicense, jobsConfig(false)),
+		"jobs absent":     configSnapshot(fullLicense, jobsConfig(true)),
+		"collected zero":  withoutCollectedAt(jobsSnapshot()),
+		"license absent":  {CollectedAt: collectedAt},
+		"features denied": licensedJobsSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuProfessional, Features: jobsFeatures(false)}),
 	}
 
 	for _, tc := range testCases {
@@ -149,6 +179,13 @@ func TestJobRulesUnknownWithoutData(t *testing.T) {
 	configErrored := jobsSnapshot(stale)
 	configErrored.Sections[model.SectionConfig] = errors.New("boom")
 
+	configAbsent := jobsSnapshot(stale)
+	delete(configAbsent.Sections, model.SectionConfig)
+
+	licenseAbsent := &healthcheck.Snapshot{CollectedAt: collectedAt, Config: full.Config, Jobs: full.Jobs, Sections: full.Sections}
+
+	licensedWithoutFeatures := licensedJobsSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise}, stale)
+
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
@@ -156,8 +193,13 @@ func TestJobRulesUnknownWithoutData(t *testing.T) {
 	}{
 		{
 			name:     "config section absent",
-			snapshot: &healthcheck.Snapshot{CollectedAt: collectedAt, Jobs: full.Jobs, Sections: map[model.WorkspaceSection]error{model.SectionJobs: nil}},
+			snapshot: configAbsent,
 			reason:   healthcheck.ReasonConfigUnavailable,
+		},
+		{
+			name:     "license absent",
+			snapshot: licenseAbsent,
+			reason:   healthcheck.ReasonLicenseUnavailable,
 		},
 		{
 			name:     "config section failed",
@@ -187,6 +229,14 @@ func TestJobRulesUnknownWithoutData(t *testing.T) {
 			}
 		})
 	}
+
+	t.Run("licensed packet predating features runs the rules", func(t *testing.T) {
+		t.Parallel()
+
+		for _, rule := range []healthcheck.Rule{jobStuck, jobWedgedAtZero, jobFailed} {
+			assert.Equal(t, rule.Eval(full), rule.Eval(licensedWithoutFeatures), rule.Code)
+		}
+	})
 }
 
 func TestJobRulesGates(t *testing.T) {
@@ -239,6 +289,47 @@ func TestJobRulesGates(t *testing.T) {
 		for _, tc := range testCases {
 			snapshot := jobsSnapshot(stale)
 			tc.close(snapshot.Config.Config)
+
+			for subject, result := range resultsBySubject(t, jobStuck, snapshot) {
+				if slices.Contains(tc.closed, subject) {
+					assert.Equal(t, healthcheck.StateResolved, result.State, tc.name, subject)
+				} else {
+					assert.Equal(t, healthcheck.StateFiring, result.State, tc.name, subject)
+				}
+			}
+		}
+	})
+
+	t.Run("unlicensed resolves a stale run and a latest error", func(t *testing.T) {
+		t.Parallel()
+
+		snapshot := licensedJobsSnapshot(model.SupportPacketLicense{}, stale, failed)
+
+		for _, rule := range []healthcheck.Rule{jobStuck, jobWedgedAtZero, jobFailed} {
+			for subject, result := range resultsBySubject(t, rule, snapshot) {
+				assert.Equal(t, healthcheck.StateResolved, result.State, rule.Code, subject)
+			}
+		}
+	})
+
+	t.Run("each license feature closes only its own job types", func(t *testing.T) {
+		t.Parallel()
+
+		testCases := []struct {
+			name   string
+			deny   func(f *model.Features)
+			closed []string
+		}{
+			{name: "LDAP", deny: func(f *model.Features) { f.LDAP = new(false) }, closed: []string{model.JobTypeLdapSync}},
+			{name: "MessageExport", deny: func(f *model.Features) { f.MessageExport = new(false) }, closed: []string{model.JobTypeMessageExport}},
+			{name: "Elasticsearch", deny: func(f *model.Features) { f.Elasticsearch = new(false) }, closed: []string{model.JobTypeElasticsearchPostIndexing, model.JobTypeElasticsearchPostAggregation}},
+			{name: "DataRetention", deny: func(f *model.Features) { f.DataRetention = new(false) }, closed: []string{model.JobTypeDataRetention}},
+		}
+
+		for _, tc := range testCases {
+			features := jobsFeatures(true)
+			tc.deny(features)
+			snapshot := licensedJobsSnapshot(model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise, Features: features}, stale)
 
 			for subject, result := range resultsBySubject(t, jobStuck, snapshot) {
 				if slices.Contains(tc.closed, subject) {

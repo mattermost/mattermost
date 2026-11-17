@@ -15,7 +15,7 @@ jest.mock('mattermost-redux/client');
 
 describe('components/admin_console/custom_profile_attributes/CustomProfileAttributes', () => {
     const baseProps = {
-        isDisabled: false,
+        disabled: false,
         setSaveNeeded: jest.fn(),
         registerSaveAction: jest.fn(),
         unRegisterSaveAction: jest.fn(),
@@ -232,11 +232,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
         );
     });
 
-    test('should respect disabled state', async () => {
+    test('should respect the disabled prop the settings page passes', async () => {
         renderWithContext(
             <CustomProfileAttributes
                 {...baseProps}
-                isDisabled={true}
+                disabled={true}
             />,
             initialState,
         );
@@ -388,6 +388,75 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
             expect(Client4.patchPropertyField).toHaveBeenCalledWith(
                 'access_control', 'user', 'linked-user-field-id', {attrs: {ldap: null}},
             );
+        });
+    });
+
+    describe('OpenID Connect attributes', () => {
+        const openIdProps = {...baseProps, id: 'OpenIdSettings.CustomProfileAttributes'};
+
+        test('should render the OpenID Connect claim and its help text', async () => {
+            const claimAttr = createAttribute('attr4', 'Country', {openid: 'address.country'});
+
+            renderWithContext(
+                <CustomProfileAttributes {...openIdProps}/>,
+                createInitialState({claimAttr}),
+            );
+
+            expect(await screen.findByDisplayValue('address.country')).toBeInTheDocument();
+            expect(screen.getByText((content) => content.includes('The claim in the ID token or userinfo response used to populate the Country'))).toBeInTheDocument();
+            expect(screen.getByText((content) => content.includes('If the claim is missing at sign-in, the value is removed.'))).toBeInTheDocument();
+        });
+
+        test('should save the claim under attrs.openid', async () => {
+            jest.spyOn(Client4, 'patchPropertyField').mockResolvedValue({} as any);
+            const unlinked = createAttribute('attr5', 'Department', {});
+
+            renderWithContext(
+                <CustomProfileAttributes {...openIdProps}/>,
+                createInitialState({unlinked}),
+            );
+
+            await userEvent.type(await screen.findByDisplayValue(''), 'org.department');
+
+            const saveAction = baseProps.registerSaveAction.mock.calls.at(-1)[0];
+            await act(async () => {
+                await saveAction();
+            });
+
+            expect(Client4.patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'attr5', {attrs: {openid: 'org.department'}});
+        });
+
+        test('should lock an attribute synced from AD/LDAP or SAML on the OpenID Connect page, and say why', async () => {
+            renderWithContext(
+                <CustomProfileAttributes {...openIdProps}/>,
+                createInitialState({attr1, samlAttr}),
+            );
+
+            const inputs = await screen.findAllByRole('textbox');
+            expect(inputs).toHaveLength(2);
+            for (const input of inputs) {
+                expect(input).toBeDisabled();
+            }
+            expect(screen.getByText(/This attribute is synced from AD\/LDAP\. An attribute synced from OpenID Connect can't also sync from AD\/LDAP or SAML\./)).toBeInTheDocument();
+            expect(screen.getByText(/This attribute is synced from SAML\./)).toBeInTheDocument();
+        });
+
+        test.each([
+            ['AD/LDAP', 'LdapSettings.CustomProfileAttributes'],
+            ['SAML', 'SamlSettings.CustomProfileAttributes'],
+        ])('should lock an attribute synced from OpenID Connect on the %s page', async (_, id) => {
+            const claimAttr = createAttribute('attr4', 'Country', {openid: 'address.country'});
+
+            renderWithContext(
+                <CustomProfileAttributes
+                    {...baseProps}
+                    id={id}
+                />,
+                createInitialState({claimAttr}),
+            );
+
+            expect(await screen.findByRole('textbox')).toBeDisabled();
+            expect(screen.getByText(/This attribute is synced from OpenID Connect\./)).toBeInTheDocument();
         });
     });
 

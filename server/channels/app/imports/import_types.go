@@ -194,6 +194,11 @@ type ReactionImportData struct {
 	EmojiName *string `json:"emoji_name"`
 }
 
+type PostAcknowledgementImportData struct {
+	User           *string `json:"user"`
+	AcknowledgedAt *int64  `json:"acknowledged_at"`
+}
+
 type ReplyImportData struct {
 	User *string `json:"user"`
 
@@ -227,6 +232,9 @@ type PostImportData struct {
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 
 	ThreadFollowers *[]ThreadFollowerImportData `json:"thread_followers,omitempty"`
+
+	Priority         *model.PostPriority              `json:"priority,omitempty"`
+	Acknowledgements *[]PostAcknowledgementImportData `json:"acknowledgements,omitempty"`
 }
 
 type DirectChannelImportData struct {
@@ -255,6 +263,9 @@ type DirectPostImportData struct {
 	IsPinned    *bool                   `json:"is_pinned,omitempty"`
 
 	ThreadFollowers *[]ThreadFollowerImportData `json:"thread_followers,omitempty"`
+
+	Priority         *model.PostPriority              `json:"priority,omitempty"`
+	Acknowledgements *[]PostAcknowledgementImportData `json:"acknowledgements,omitempty"`
 }
 
 type SchemeImportData struct {

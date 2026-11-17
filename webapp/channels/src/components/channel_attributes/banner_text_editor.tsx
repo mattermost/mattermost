@@ -11,6 +11,10 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
+import {channelKindMessages} from 'utils/channel_kind_messages';
+
+import type {ChannelKind} from 'types/store/plugins';
+
 import type {BannerSegment} from './banner_template';
 import {attributeToken, insertToken, parseBannerTemplate} from './banner_template';
 import BannerTokenControls from './banner_token_controls';
@@ -122,6 +126,9 @@ type Props = {
     disabled?: boolean;
     maxLength?: number;
     hasError?: boolean;
+
+    // The channel's kind, which picks the words: board rather than channel for a board.
+    channelKind?: ChannelKind;
 };
 
 /**
@@ -133,7 +140,7 @@ type Props = {
  * chips with free text in a single caret flow; everything below exists to keep that
  * DOM and the template string in agreement.
  */
-const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, hasError}: Props) => {
+const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, hasError, channelKind = 'channel'}: Props) => {
     const {formatMessage} = useIntl();
     const editorRef = useRef<HTMLDivElement>(null);
 
@@ -345,7 +352,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                     aria-multiline='false'
                     aria-label={formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'})}
                     data-testid='bannerTextEditor'
-                    data-placeholder={formatMessage({id: 'channel_banner.banner_text.placeholder', defaultMessage: 'Channel banner text'})}
+                    data-placeholder={formatMessage(channelKindMessages.bannerTextPlaceholder[channelKind])}
                     onInput={emit}
                     onBlur={rememberCaret}
                     onKeyUp={rememberCaret}
@@ -411,6 +418,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                         attributes={attributes}
                         onInsertToken={handleInsertToken}
                         disabled={disabled}
+                        channelKind={channelKind}
                     />
                 </div>
             </div>

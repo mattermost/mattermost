@@ -468,5 +468,28 @@
   "server": {
     "target": "server",
     "note": "Masculine; locative 'na serveru'; genitive 'serveru'."
+  },
+  "health dashboard": {
+    "target": "Stav webu",
+    "note": "Name of the System Console page; matches its title and sidebar item. Use 'funkce Stav webu' or 'stránka Stav webu' in running text."
+  },
+  "health finding": {
+    "target": "zjištění",
+    "note": "Neuter, indeclinable in number (# zjištění). Expand to 'zjištění stavu webu' where the context is not already the Site health page."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Masculine; locative 'v pluginu Agents', genitive 'pluginu Agents'. With the full name: 'plugin Mattermost Agents'."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Keep the service name in English and decline the head noun 'služba' instead (e.g. 'o službě Mattermost Hosted Push Notification Service'); HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the service name in English and decline the head noun 'služba' instead (e.g. 'o službě Mattermost Test Push Notification Service'); TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

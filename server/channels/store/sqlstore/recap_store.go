@@ -324,6 +324,29 @@ func (s *SqlRecapStore) DeleteRecapChannels(recapId string) error {
 	return nil
 }
 
+func (s *SqlRecapStore) PermanentDeleteByUser(userId string) (err error) {
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	userRecaps := sq.Select("Id").From("Recaps").Where(sq.Eq{"UserId": userId})
+	if _, err = transaction.ExecBuilder(s.getQueryBuilder().Delete("RecapChannels").Where(sq.Expr("RecapId IN (?)", userRecaps))); err != nil {
+		return errors.Wrapf(err, "failed to delete RecapChannels for userId=%s", userId)
+	}
+
+	if _, err = transaction.ExecBuilder(s.getQueryBuilder().Delete("Recaps").Where(sq.Eq{"UserId": userId})); err != nil {
+		return errors.Wrapf(err, "failed to delete Recaps with userId=%s", userId)
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return errors.Wrap(err, "commit_transaction")
+	}
+
+	return nil
+}
+
 func (s *SqlRecapStore) SaveRecapChannel(recapChannel *model.RecapChannel) error {
 	rcMap, err := s.recapChannelToMap(recapChannel)
 	if err != nil {

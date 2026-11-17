@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/probes"
 )
 
 func init() {
@@ -34,7 +35,7 @@ var pushIDOnly = healthcheck.Rule{
 	Volatility:     healthcheck.VolatilityStable,
 	AppliesToCloud: true,
 	Subject:        "EmailSettings.PushNotificationContents",
-	Eval:           evalPushIDOnly,
+	Eval:           healthcheck.Gate(pushEnabled, healthcheck.ReasonConfigUnavailable, evalPushIDOnly),
 }
 
 var maxNotificationsPerChannel = healthcheck.Rule{
@@ -49,7 +50,7 @@ var maxNotificationsPerChannel = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
 	Subject:    "TeamSettings.MaxNotificationsPerChannel",
-	Eval:       evalMaxNotificationsPerChannel,
+	Eval:       healthcheck.Single(evalMaxNotificationsPerChannel),
 }
 
 var smtpUnreachable = healthcheck.Rule{
@@ -64,47 +65,39 @@ var smtpUnreachable = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    "EmailSettings.SMTPServer",
-	Eval:       evalSMTPUnreachable,
+	Eval:       healthcheck.Gate(smtpInUse, healthcheck.ReasonConfigUnavailable, evalSMTPUnreachable),
 }
 
-func evalPushIDOnly(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.EmailSettings.SendPushNotifications })
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalPushIDOnly(s *healthcheck.Snapshot) healthcheck.Result {
 	contents, ok := s.ConfigString(func(cfg *model.Config) *string { return cfg.EmailSettings.PushNotificationContents })
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	}
 	if contents != model.FullNotification {
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 
 	// full is the server default, so only flag it when id_loaded is an option for this license.
-	idLoaded, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.IDLoadedPushNotifications })
+	idLoaded, ok := s.LicenseFeature(healthcheck.FeatureIDLoaded)
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonLicenseUnavailable)
 	case idLoaded:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.push_id_only.message"))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.push_id_only.message"))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalMaxNotificationsPerChannel(s *healthcheck.Snapshot) []healthcheck.Result {
+func evalMaxNotificationsPerChannel(s *healthcheck.Snapshot) healthcheck.Result {
 	limit, ok := s.ConfigInt64(func(cfg *model.Config) *int64 { return cfg.TeamSettings.MaxNotificationsPerChannel })
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
 	case limit > maxNotificationsPerChannelLimit:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.max_notifications_per_channel.message")).WithDetail("limit", strconv.FormatInt(limit, 10)).WithValue(float64(limit))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.max_notifications_per_channel.message")).WithDetail("limit", strconv.FormatInt(limit, 10)).WithValue(float64(limit))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(limit))}
+		return healthcheck.Resolved().WithValue(float64(limit))
 	}
 }
 
@@ -128,33 +121,22 @@ func smtpInUse(s *healthcheck.Snapshot) (inUse, ok bool) {
 	return false, true
 }
 
-func evalSMTPUnreachable(s *healthcheck.Snapshot) []healthcheck.Result {
-	inUse, ok := smtpInUse(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !inUse {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
+func evalSMTPUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
+	return probes.Eval(s, smtpProbe,
+		healthcheck.TranslationId("health.rule.smtp_unreachable.message"),
+		healthcheck.TranslationId("health.rule.smtp_unreachable.message.partial"))
+}
 
-	notCollected := []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
-	leader, ok := s.Leader()
+// A disabled status means the node does not use SMTP, so it counts as passing.
+func smtpProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
+	diag, ok := n.SectionDiag(model.SectionSMTPProbe)
 	if !ok {
-		return notCollected
-	}
-	diag, ok := leader.Diag()
-	_, probeErr := leader.SectionErr(model.SectionSMTPProbe)
-	if !ok || probeErr != nil {
-		return notCollected
+		return "", ""
 	}
 
 	email := diag.Notifications.Email
-	switch email.Status {
-	case model.StatusOk, model.StatusDisabled:
-		return []healthcheck.Result{healthcheck.Resolved()}
-	case model.StatusFail:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.smtp_unreachable.message")).WithDetail("error", email.Error)}
-	default:
-		return notCollected
+	if email.Status == model.StatusDisabled {
+		return model.StatusOk, ""
 	}
+	return email.Status, email.Error
 }

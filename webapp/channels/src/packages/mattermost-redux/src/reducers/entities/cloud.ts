@@ -3,7 +3,7 @@
 
 import {combineReducers} from 'redux';
 
-import type {Product, Subscription, CloudCustomer, Invoice, Limits} from '@mattermost/types/cloud';
+import type {Product, Subscription, CloudCustomer, Limits} from '@mattermost/types/cloud';
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {CloudTypes} from 'mattermost-redux/action_types';
@@ -46,24 +46,6 @@ function products(state: Record<string, Product> | null = null, action: MMReduxA
     }
 }
 
-function invoices(state: Record<string, Invoice> | null = null, action: MMReduxAction) {
-    switch (action.type) {
-    case CloudTypes.RECEIVED_CLOUD_INVOICES: {
-        const invoiceList: Invoice[] = action.data;
-        const invoiceDict = invoiceList.reduce((map, obj) => {
-            map[obj.id] = obj;
-            return map;
-        }, {} as Record<string, Invoice>);
-        return {
-            ...state,
-            ...invoiceDict,
-        };
-    }
-    default:
-        return state;
-    }
-}
-
 export interface LimitsReducer {
     limits: Limits;
     limitsLoaded: boolean;
@@ -94,7 +76,6 @@ export interface ErrorsReducer {
     subscription?: true;
     products?: true;
     customer?: true;
-    invoices?: true;
     limits?: true;
     trueUpReview?: true;
 }
@@ -109,9 +90,6 @@ export function errors(state: ErrorsReducer = emptyErrors, action: MMReduxAction
     }
     case CloudTypes.CLOUD_CUSTOMER_FAILED: {
         return {...state, customer: true};
-    }
-    case CloudTypes.CLOUD_INVOICES_FAILED: {
-        return {...state, invoices: true};
     }
     case CloudTypes.CLOUD_LIMITS_FAILED: {
         return {...state, limits: true};
@@ -130,11 +108,6 @@ export function errors(state: ErrorsReducer = emptyErrors, action: MMReduxAction
     case CloudTypes.RECEIVED_CLOUD_CUSTOMER: {
         const newState = Object.assign({}, state);
         delete newState.customer;
-        return newState;
-    }
-    case CloudTypes.RECEIVED_CLOUD_INVOICES: {
-        const newState = Object.assign({}, state);
-        delete newState.invoices;
         return newState;
     }
     case CloudTypes.RECEIVED_CLOUD_LIMITS: {
@@ -158,11 +131,6 @@ export function errors(state: ErrorsReducer = emptyErrors, action: MMReduxAction
         delete newState.customer;
         return newState;
     }
-    case CloudTypes.CLOUD_INVOICES_REQUEST: {
-        const newState = Object.assign({}, state);
-        delete newState.invoices;
-        return newState;
-    }
     case CloudTypes.CLOUD_LIMITS_REQUEST: {
         const newState = Object.assign({}, state);
         delete newState.limits;
@@ -184,9 +152,6 @@ export default combineReducers({
 
     // represents the cloud products offered
     products,
-
-    // represents the invoices tied to the current subscription
-    invoices,
 
     // represents the usage limits associated with this workspace
     limits,

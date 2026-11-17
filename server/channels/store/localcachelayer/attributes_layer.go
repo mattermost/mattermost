@@ -89,8 +89,7 @@ func (s LocalCacheAttributesStore) GetSubject(rctx request.CTX, ID, groupID, obj
 
 	subject, err := s.AttributesStore.GetSubject(rctx, ID, groupID, objectType)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return nil, err
 		}
 		subject = &model.Subject{ID: ID, Type: objectType, Attributes: map[string]any{}}

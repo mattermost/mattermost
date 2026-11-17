@@ -5,6 +5,10 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 const MINUTE = 60 * 1000;
 
+// The day boundary below is UTC midnight, so keep the browser off the machine's timezone: on one
+// ahead of UTC the posts the harness creates land on a different local day than the one under test.
+test.use({timezoneId: 'UTC'});
+
 /**
  * @objective Verify the date separators in an open channel relabel themselves when local midnight passes, without a reload.
  * @reference MM-60727

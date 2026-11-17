@@ -110,7 +110,7 @@ func init() {
 	CheckEmptySrcCmd.Flags().String("enterprise-dir", "../../enterprise", "Path to folder with the Mattermost enterprise source code")
 	CheckEmptySrcCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
-	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale, or present but untranslated, as warnings instead of errors")
+	VerifyCmd.Flags().Bool("warn-missing-ids", false, "Report ids missing from a locale as warnings instead of errors")
 	VerifyCmd.Flags().String("server-dir", "./", "Path to folder with the Mattermost server source code")
 
 	CleanEmptyCmd.Flags().Bool("dry-run", false, "Run without applying changes")
@@ -810,6 +810,39 @@ func JSONMarshal(t any) ([]byte, error) {
 // against those the en.json source uses.
 var templateTokenRe = regexp.MustCompile(`\{\{\s*\.([A-Za-z0-9_]+)\s*\}\}`)
 
+// horizontalGlyphRe matches the same arrows and pointers as check_icu.mjs. They
+// are not bidi-mirrored, so in a right-to-left sentence one meaning "next" or
+// "leads to" points backwards.
+var horizontalGlyphRe = regexp.MustCompile(`[\x{2190}\x{2192}\x{21D0}\x{21D2}\x{27F5}\x{27F6}\x{2794}\x{279C}-\x{27BF}\x{2B05}\x{25B6}\x{25B8}\x{25BA}\x{25C0}\x{25C2}\x{25C4}]`)
+
+// rightToLeftLanguages are the base languages written right to left. The
+// webapp checker asks Intl.Locale instead; the module has no dependency that
+// could, and the list changes far less often than the catalogs.
+var rightToLeftLanguages = map[string]bool{
+	"ar": true, "ckb": true, "dv": true, "fa": true, "he": true,
+	"ps": true, "sd": true, "ug": true, "ur": true, "yi": true,
+}
+
+func isRightToLeft(locale string) bool {
+	base, _, _ := strings.Cut(locale, "-")
+	return rightToLeftLanguages[strings.ToLower(base)]
+}
+
+// translationTexts returns the text of a translation, or of each form of a
+// plural one.
+func translationTexts(raw json.RawMessage) []string {
+	var s string
+	if err := json.Unmarshal(raw, &s); err == nil {
+		return []string{s}
+	}
+	plural, _ := pluralForms(raw)
+	texts := make([]string, 0, len(plural))
+	for _, form := range plural {
+		texts = append(texts, form)
+	}
+	return texts
+}
+
 // pluralForms returns the category-to-string map of a pluralised translation,
 // and whether the translation is pluralised at all. A translation is either a
 // plain string or a map of plural category to string.
@@ -853,6 +886,44 @@ func templateTokens(raw json.RawMessage) map[string]bool {
 	return out
 }
 
+// duplicateIDs returns each id raw lists more than once, in first-seen order.
+func duplicateIDs(raw []byte) []string {
+	var list []Item
+	if err := json.Unmarshal(raw, &list); err != nil {
+		return nil
+	}
+	seen := make(map[string]int, len(list))
+	var dups []string
+	for _, item := range list {
+		seen[item.ID]++
+		if seen[item.ID] == 2 {
+			dups = append(dups, item.ID)
+		}
+	}
+	return dups
+}
+
+// firstNonCanonicalLine returns the first line at which raw differs from the
+// same entries, in the same order, re-encoded as JSONMarshal writes them, or 0 if
+// it does not differ. Entry order is not checked: the server catalogs have none.
+func firstNonCanonicalLine(raw []byte) int {
+	var list []Item
+	if err := json.Unmarshal(raw, &list); err != nil {
+		return 0
+	}
+	canonical, err := JSONMarshal(list)
+	if err != nil || bytes.Equal(raw, canonical) {
+		return 0
+	}
+	line := 1
+	for i := 0; i < len(raw) && i < len(canonical) && raw[i] == canonical[i]; i++ {
+		if raw[i] == '\n' {
+			line++
+		}
+	}
+	return line
+}
+
 // loadItems keys a locale catalog's entries by translation ID. The catalogs are
 // JSON arrays, so this is what lets a caller look an ID up in one catalog while
 // walking another.
@@ -893,8 +964,8 @@ func pluralCategories(locale string) map[language.Plural]bool {
 
 // verifyLocale checks one non-English catalog, raw, against the en.json
 // items in en, returning the defects found and, separately, the warnings. Ids
-// the catalog has yet to translate, whether by absence or by an empty value, are
-// a defect or merely a warning at the caller's choice, via warnMissingIDs. Ids
+// the catalog does not carry yet are a defect or merely a warning at the
+// caller's choice, via warnMissingIDs; an empty one is always a defect. Ids
 // en.json no longer has are always a warning: nothing reads them, so they are
 // left for a later sweep.
 func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bool) (problems, warnings []string) {
@@ -917,6 +988,14 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		return []string{fmt.Sprintf("%s: %v", name, err)}, nil
 	}
 
+	for _, id := range duplicateIDs(raw) {
+		problems = append(problems, fmt.Sprintf("%s: %s: duplicate id; the loader keeps only one", name, id))
+	}
+
+	if line := firstNonCanonicalLine(raw); line > 0 {
+		problems = append(problems, fmt.Sprintf("%s: not in canonical form from line %d: use a 2-space indent, no HTML escaping, and a trailing newline", name, line))
+	}
+
 	// Unreachable in practice, and kept as an invariant guard: the loader above
 	// derives the language with language.Parse, which only yields one when
 	// GetPluralSpec is non-nil for the same tag, so a file that loaded always
@@ -925,6 +1004,8 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 	if categories == nil {
 		problems = append(problems, fmt.Sprintf("%s: no CLDR plural spec for locale %q", name, locale))
 	}
+
+	rightToLeft := isRightToLeft(locale)
 
 	for id := range en {
 		if _, ok := items[id]; !ok {
@@ -946,15 +1027,21 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 
 		// newTemplate("") yields a nil template, so bundle.translate returns
 		// the id, exactly as for a missing id. A whitespace-only translation is
-		// worse: it renders, and the user sees nothing at all.
+		// worse: it renders, and the user sees nothing at all. Unlike a missing
+		// id, this is an error even under warnMissingIDs: it is a placeholder
+		// left behind, not work in progress.
 		if isBlankTranslation(item.Translation) {
-			msg := fmt.Sprintf("%s: %s: empty translation", name, id)
-			if warnMissingIDs {
-				warnings = append(warnings, msg)
-			} else {
-				problems = append(problems, msg)
-			}
+			problems = append(problems, fmt.Sprintf("%s: %s: empty translation", name, id))
 			continue
+		}
+
+		if rightToLeft {
+			for _, text := range translationTexts(item.Translation) {
+				if horizontalGlyphRe.MatchString(text) {
+					warnings = append(warnings, fmt.Sprintf("%s: %s: horizontal arrow in a right-to-left locale points the opposite way to the reading direction", name, id))
+					break
+				}
+			}
 		}
 
 		// An unknown token renders as "<no value>" to the user; a dropped
@@ -976,7 +1063,7 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		plural, itemIsPlural := pluralForms(item.Translation)
 
 		// Collapsing a pluralised source to a single string still loads and
-		// still renders, it just silently stops pluralising -- the same defect
+		// still renders, it just silently stops pluralising: the same defect
 		// check_icu.mjs rejects on the webapp side.
 		if sourceIsPlural && !itemIsPlural {
 			problems = append(problems, fmt.Sprintf("%s: %s: en.json pluralises this id but the translation is a single string, which silently stops pluralising", name, id))
@@ -990,7 +1077,7 @@ func verifyLocale(name string, raw []byte, en map[string]Item, warnMissingIDs bo
 		// email_batching.go passes len(notifications)-1. A language that has to
 		// inflect where English does not is translating correctly. The residual
 		// risk is a call site that passes no count, where go-i18n resolves to
-		// language.Invalid, finds no template, and renders the raw id -- not
+		// language.Invalid, finds no template, and renders the raw id. That is not
 		// something the catalogs can tell us, so it is not checked here.
 		if !itemIsPlural {
 			continue

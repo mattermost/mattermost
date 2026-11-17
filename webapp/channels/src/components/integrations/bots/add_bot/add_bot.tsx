@@ -6,7 +6,8 @@ import type {ChangeEvent, FormEvent, JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Checkbox} from '@mattermost/compass-ui/components/checkbox';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Bot} from '@mattermost/types/bots';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -35,6 +36,7 @@ import BotDefaultIcon from 'images/bot_default_icon.png';
 import {getHistory} from 'utils/browser_history';
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
+import {usernameFromDisplayName} from 'utils/username';
 import * as Utils from 'utils/utils';
 
 import {
@@ -130,8 +132,12 @@ export type State = {
 
 export default class AddBot extends React.PureComponent<Props, State> {
     previewBlob: string | null = null;
+    private readonly fileInputRef = React.createRef<HTMLInputElement>();
     private submitting = false;
     private unmounted = false;
+
+    // Whether the user typed their own username, which stops it from following the display name.
+    private usernameEdited = false;
 
     constructor(props: Props) {
         super(props);
@@ -251,14 +257,22 @@ export default class AddBot extends React.PureComponent<Props, State> {
     };
 
     updateUsername = (e: ChangeEvent<HTMLInputElement>) => {
+        this.usernameEdited = e.target.value !== '';
         this.setState({
             username: e.target.value,
         });
     };
 
     updateDisplayName = (e: ChangeEvent<HTMLInputElement>) => {
+        const displayName = e.target.value;
+        if (this.props.bot || this.usernameEdited) {
+            this.setState({displayName});
+            return;
+        }
+
         this.setState({
-            displayName: e.target.value,
+            displayName,
+            username: usernameFromDisplayName(displayName),
         });
     };
 
@@ -284,6 +298,10 @@ export default class AddBot extends React.PureComponent<Props, State> {
         this.setState({
             postChannels: e.target.checked,
         });
+    };
+
+    openFilePicker = () => {
+        this.fileInputRef.current?.click();
     };
 
     updatePicture = (e: ChangeEvent<HTMLInputElement>) => {
@@ -561,6 +579,33 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
+                                htmlFor='displayName'
+                            >
+                                <FormattedMessage
+                                    id='bots.add.displayName'
+                                    defaultMessage='Display Name'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-8'>
+                                <input
+                                    id='displayName'
+                                    type='text'
+                                    maxLength={64}
+                                    className='form-control'
+                                    value={this.state.displayName}
+                                    onChange={this.updateDisplayName}
+                                />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='bot.add.display_name.help'
+                                        defaultMessage={'(Optional) You can choose to display your bot\'s full name rather than its username.'}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-4'
                                 htmlFor='username'
                             >
                                 <FormattedMessage
@@ -605,47 +650,24 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     />
                                     {removeImageIcon}
                                 </div>
-                                <div
-                                    className={buttonClassNames({emphasis: 'primary'}, 'btn-file')}
+                                <input
+                                    ref={this.fileInputRef}
+                                    className='hidden'
+                                    accept={Constants.ACCEPT_STATIC_IMAGE}
+                                    type='file'
+                                    onChange={this.updatePicture}
+                                    aria-hidden={true}
+                                    tabIndex={-1}
+                                />
+                                <Button
+                                    emphasis='primary'
+                                    onClick={this.openFilePicker}
                                 >
                                     <FormattedMessage
                                         id='bots.image.upload'
                                         defaultMessage='Upload Image'
                                     />
-                                    <input
-                                        className='btn-file__input'
-                                        accept={Constants.ACCEPT_STATIC_IMAGE}
-                                        type='file'
-                                        onChange={this.updatePicture}
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <div className='form-group'>
-                            <label
-                                className='control-label col-sm-4'
-                                htmlFor='displayName'
-                            >
-                                <FormattedMessage
-                                    id='bots.add.displayName'
-                                    defaultMessage='Display Name'
-                                />
-                            </label>
-                            <div className='col-md-5 col-sm-8'>
-                                <input
-                                    id='displayName'
-                                    type='text'
-                                    maxLength={64}
-                                    className='form-control'
-                                    value={this.state.displayName}
-                                    onChange={this.updateDisplayName}
-                                />
-                                <div className='form__help'>
-                                    <FormattedMessage
-                                        id='bot.add.display_name.help'
-                                        defaultMessage={'(Optional) You can choose to display your bot\'s full name rather than its username.'}
-                                    />
-                                </div>
+                                </Button>
                             </div>
                         </div>
                         <div className='form-group'>
@@ -751,22 +773,19 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     defaultMessage='post:all'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8 checkbox'>
-                                <div className='checkbox no-padding'>
-                                    <label htmlFor='postAll'>
-                                        <input
-                                            id='postAll'
-                                            type='checkbox'
-                                            checked={this.state.postAll || this.state.role === roleOptionSystemAdmin}
-                                            onChange={this.updatePostAll}
-                                            disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin}
-                                        />
-                                        <FormattedMessage
-                                            id='bot.add.post_all.enabled'
-                                            defaultMessage='Enabled'
-                                        />
-                                    </label>
-                                </div>
+                            <div className='col-md-5 col-sm-8'>
+                                <Checkbox
+                                    id='postAll'
+                                    className='backstage-form__checkbox'
+                                    checked={this.state.postAll || this.state.role === roleOptionSystemAdmin}
+                                    onChange={this.updatePostAll}
+                                    disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin}
+                                >
+                                    <FormattedMessage
+                                        id='bot.add.post_all.enabled'
+                                        defaultMessage='Enabled'
+                                    />
+                                </Checkbox>
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='bot.add.post_all.help'
@@ -785,22 +804,19 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                     defaultMessage='post:channels'
                                 />
                             </label>
-                            <div className='col-md-5 col-sm-8 checkbox'>
-                                <div className='checkbox no-padding'>
-                                    <label htmlFor='postChannels'>
-                                        <input
-                                            id='postChannels'
-                                            type='checkbox'
-                                            checked={this.state.postChannels || this.state.role === roleOptionSystemAdmin || this.state.postAll}
-                                            onChange={this.updatePostChannels}
-                                            disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin || this.state.postAll}
-                                        />
-                                        <FormattedMessage
-                                            id='bot.add.post_channels.enabled'
-                                            defaultMessage='Enabled'
-                                        />
-                                    </label>
-                                </div>
+                            <div className='col-md-5 col-sm-8'>
+                                <Checkbox
+                                    id='postChannels'
+                                    className='backstage-form__checkbox'
+                                    checked={this.state.postChannels || this.state.role === roleOptionSystemAdmin || this.state.postAll}
+                                    onChange={this.updatePostChannels}
+                                    disabled={!canEditRoles || this.state.role === roleOptionSystemAdmin || this.state.postAll}
+                                >
+                                    <FormattedMessage
+                                        id='bot.add.post_channels.enabled'
+                                        defaultMessage='Enabled'
+                                    />
+                                </Checkbox>
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='bot.add.post_channels.help'
@@ -815,15 +831,17 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 type='backstage'
                                 errors={[this.state.error]}
                             />
-                            <Link
-                                className={buttonClassNames({emphasis: 'tertiary'})}
-                                to={`/${this.props.team.name}/integrations/bots`}
+                            <Button
+                                asChild={true}
+                                emphasis='tertiary'
                             >
-                                <FormattedMessage
-                                    id='bots.manage.add.cancel'
-                                    defaultMessage='Cancel'
-                                />
-                            </Link>
+                                <Link to={`/${this.props.team.name}/integrations/bots`}>
+                                    <FormattedMessage
+                                        id='bots.manage.add.cancel'
+                                        defaultMessage='Cancel'
+                                    />
+                                </Link>
+                            </Button>
                             <SpinnerButton
                                 type='submit'
                                 spinning={this.state.adding}

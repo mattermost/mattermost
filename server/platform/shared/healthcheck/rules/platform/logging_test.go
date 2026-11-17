@@ -92,11 +92,41 @@ func TestLoggingRules(t *testing.T) {
 	}
 }
 
+func TestLogWebhookPayloads(t *testing.T) {
+	t.Parallel()
+
+	webhookDebugging := func(enabled *bool) func(*model.Config) {
+		return func(cfg *model.Config) {
+			cfg.LogSettings.EnableWebhookDebugging = enabled
+		}
+	}
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     want
+	}{
+		{"config section absent", &healthcheck.Snapshot{}, configUnknown},
+		{"defaults", configSnapshot(nil), resolved},
+		{"webhook debugging off", configSnapshot(webhookDebugging(new(false))), resolved},
+		{"webhook debugging on", configSnapshot(webhookDebugging(new(true))), firing("health.rule.log_webhook_payloads.message", nil)},
+		{"webhook debugging flag unreadable", configSnapshot(webhookDebugging(nil)), configUnknown},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertResult(t, tc.want, logWebhookPayloads.Eval(tc.snapshot))
+		})
+	}
+}
+
 func TestMetricsOff(t *testing.T) {
 	t.Parallel()
 
 	licensedFor := func(metrics *bool) *healthcheck.NodeSnapshot {
 		return leaderNode(func(diag *model.SupportPacketDiagnostics) {
+			diag.License.SkuShortName = model.LicenseShortSkuEnterprise
 			diag.License.Features = &model.Features{Metrics: metrics}
 		})
 	}
@@ -111,7 +141,7 @@ func TestMetricsOff(t *testing.T) {
 		want     want
 	}{
 		{"license unavailable", configSnapshot(nil), licenseUnknown},
-		{"license metrics feature unreadable", configSnapshot(nil, licensedFor(nil)), licenseUnknown},
+		{"metrics feature not recorded runs the rule", configSnapshot(nil, licensedFor(nil)), firing("health.rule.metrics_off.message", nil)},
 		{"not licensed for metrics", configSnapshot(nil, licensedFor(new(false))), resolved},
 		{"licensed with metrics off", configSnapshot(nil, licensedFor(new(true))), firing("health.rule.metrics_off.message", nil)},
 		{"licensed with metrics on", configSnapshot(metricsOn, licensedFor(new(true))), resolved},

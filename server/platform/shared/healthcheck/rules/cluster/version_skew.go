@@ -31,8 +31,8 @@ var versionSkew = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityTopology,
 	Subject:    "cluster.version",
-	Eval:       evalVersionSkewGlobal,
-	EvalNode:   evalVersionSkewNode,
+	Eval:       clusterLicensed(healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewGlobal)),
+	EvalNode:   healthcheck.LicensedNode(healthcheck.FeatureCluster, healthcheck.GateNode((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalVersionSkewNode)),
 }
 
 // versionCounts counts the nodes reporting each version; nodes that report none are left out.
@@ -62,50 +62,34 @@ func majorityVersion(nodes []*healthcheck.NodeSnapshot) (version string, ok bool
 	return version, top > 0 && !tied
 }
 
-func evalVersionSkewGlobal(s *healthcheck.Snapshot) []healthcheck.Result {
-	enabled, ok := clusterEnabled(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalVersionSkewGlobal(s *healthcheck.Snapshot) healthcheck.Result {
 	counts := versionCounts(s.Nodes())
 	switch {
 	case len(counts) == 0:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	case len(counts) > 1:
 		versions := slices.Sorted(maps.Keys(counts))
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_version_skew.message")).WithDetail("versions", strings.Join(versions, ", "))}
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_version_skew.message")).WithDetail("versions", strings.Join(versions, ", "))
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }
 
-func evalVersionSkewNode(s *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) []healthcheck.Result {
-	enabled, ok := clusterEnabled(s)
-	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)}
-	}
-	if !enabled {
-		return []healthcheck.Result{healthcheck.Resolved()}
-	}
-
+func evalVersionSkewNode(s *healthcheck.Snapshot, n *healthcheck.NodeSnapshot) healthcheck.Result {
 	version, ok := n.NodeVersion()
 	if !ok {
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)}
+		return healthcheck.Unknown(healthcheck.ReasonDiagnosticsUnavailable)
 	}
 
 	majority, ok := majorityVersion(s.Nodes())
 	switch {
 	case !ok:
-		return []healthcheck.Result{healthcheck.Unknown(healthcheck.TranslationId("health.rule.cluster_version_skew.message.no_majority"))}
+		return healthcheck.Unknown(healthcheck.TranslationId("health.rule.cluster_version_skew.message.no_majority"))
 	case version != majority:
-		return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_version_skew.message.node")).
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.cluster_version_skew.message.node")).
 			WithDetail("version", version).
-			WithDetail("majority", majority)}
+			WithDetail("majority", majority)
 	default:
-		return []healthcheck.Result{healthcheck.Resolved()}
+		return healthcheck.Resolved()
 	}
 }

@@ -1549,8 +1549,7 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	// If eMail update is attempted by the currently logged in user, check if correct password was provided
 	if user.Email != "" && ouser.Email != user.Email && c.AppContext.Session().UserId == c.Params.UserId {
-		err = c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password)
-		if err != nil {
+		if err := c.App.DoubleCheckPassword(c.AppContext, ouser, user.Password); err != nil {
 			c.SetInvalidParam("password")
 			return
 		}
@@ -1639,8 +1638,8 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		if err = c.App.DoubleCheckPassword(c.AppContext, ouser, *patch.Password); err != nil {
-			c.Err = err
+		if err := c.App.DoubleCheckPassword(c.AppContext, ouser, *patch.Password); err != nil {
+			c.SetError(err)
 			return
 		}
 	}
@@ -2355,10 +2354,6 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		"cyber-defense": "/cyber-defense-hq",
 	}
 
-	if !c.App.Channels().License().IsCloud() {
-		c.Err = model.NewAppError("loginCWS", "api.user.login_cws.license.error", nil, "", http.StatusUnauthorized)
-		return
-	}
 	if err := r.ParseForm(); err != nil {
 		c.Logger.Warn("Failed to parse form data", mlog.Err(err))
 	}
@@ -2407,6 +2402,7 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.AppContext = c.AppContext.WithSession(session)
 	c.LogAuditWithUserId(user.Id, "success")
 	c.App.AttachSessionCookies(c.AppContext, w, r)
+	auditRec.Success()
 
 	redirectURL := *c.App.Config().ServiceSettings.SiteURL
 	if campaign != "" {
@@ -2415,10 +2411,12 @@ func loginCWS(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// If a cloud preview, redirect to the correct use case URL
-	if c.App.License().IsCloudPreview() && useCase != "" {
+	// If a cloud preview, redirect to the correct use case URL, else to the configured landing path
+	if c.App.License().IsCloudPreview() {
 		if url, ok := useCaseToURL[useCase]; ok {
 			redirectURL += url
+		} else if landing := *c.App.Config().CloudSettings.PreviewLandingPath; strings.HasPrefix(landing, "/") {
+			redirectURL += landing
 		}
 	}
 
@@ -2434,10 +2432,11 @@ func getLoginType(c *Context, w http.ResponseWriter, r *http.Request) {
 	// For the time being, we only support getting the login type when
 	// guest magic link is enabled. We can consider adding support for other
 	// login methods in the future, and this check may be removed.
+	license := c.App.Channels().License()
 	if !*c.App.Config().GuestAccountsSettings.EnableGuestMagicLink ||
 		!*c.App.Config().GuestAccountsSettings.Enable ||
-		!*c.App.Channels().License().Features.GuestAccounts {
-		w.WriteHeader(http.StatusNotFound)
+		license == nil || !*license.Features.GuestAccounts {
+		c.Err = model.NewAppError("getLoginType", "api.user.login.guest_magic_link.disabled.error", nil, "", http.StatusNotFound)
 		return
 	}
 

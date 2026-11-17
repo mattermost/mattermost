@@ -8,6 +8,8 @@ import {
     convertDialogToAppForm,
     convertAppFormValuesToDialogSubmission,
     convertElement,
+    convertServerDialogResponseToAppForm,
+    transformServerDialogToProps,
     DialogElementTypes,
     extractPrimitiveValues,
     flattenDialogElements,
@@ -543,6 +545,58 @@ describe('dialog_conversion', () => {
             expect(form.fields?.[0].type).toBe('text');
             expect(form.fields?.[0].label).toBe('Text Field');
             expect(form.fields?.[0].is_required).toBe(true);
+        });
+
+        it('should set submit_buttons on the form when provided', () => {
+            const {form} = convertDialogToAppForm(
+                [{name: 'choice', type: 'select', display_name: 'Choice', options: [{text: 'A', value: 'a'}]} as DialogElement],
+                'Test Dialog',
+                undefined,
+                undefined,
+                undefined,
+                '',
+                '',
+                legacyOptions,
+                'choice',
+            );
+
+            expect(form.submit_buttons).toBe('choice');
+        });
+
+        it('should leave submit_buttons undefined when not provided or empty', () => {
+            const convert = (submitButtons?: string) => convertDialogToAppForm([], 'Test Dialog', undefined, undefined, undefined, '', '', legacyOptions, submitButtons);
+
+            expect(convert().form.submit_buttons).toBeUndefined();
+            expect(convert('').form.submit_buttons).toBeUndefined();
+        });
+
+        it('should carry submit_buttons through convertServerDialogResponseToAppForm', () => {
+            const {form} = convertServerDialogResponseToAppForm({
+                title: 'Server Dialog',
+                elements: [{name: 'choice', type: 'select', display_name: 'Choice', options: [{text: 'A', value: 'a'}]}],
+                submit_buttons: 'choice',
+            }, legacyOptions);
+
+            expect(form.submit_buttons).toBe('choice');
+        });
+
+        it('should set refresh_on_return only when the dialog has a source_url', () => {
+            const convert = (sourceUrl: string, refreshOnReturn?: boolean) =>
+                convertDialogToAppForm([], 'Test Dialog', undefined, undefined, undefined, sourceUrl, '', legacyOptions, undefined, refreshOnReturn).form;
+
+            expect(convert('https://example.com/source', true).refresh_on_return).toBe(true);
+            expect(convert('', true).refresh_on_return).toBeUndefined();
+            expect(convert('https://example.com/source').refresh_on_return).toBeUndefined();
+        });
+
+        it('should carry refresh_on_return through convertServerDialogResponseToAppForm', () => {
+            const {form} = convertServerDialogResponseToAppForm({
+                title: 'Server Dialog',
+                source_url: 'https://example.com/source',
+                refresh_on_return: true,
+            }, legacyOptions);
+
+            expect(form.refresh_on_return).toBe(true);
         });
 
         it('should pass introduction text without escaping (Markdown.format handles sanitization)', () => {
@@ -2709,6 +2763,137 @@ describe('dialog_conversion - collapsible', () => {
             expect(form.fields?.[0].type).toBe('text');
             expect(form.fields?.[1].name).toBe('section');
             expect(form.fields?.[1].type).toBe('collapsible');
+        });
+    });
+});
+
+describe('dialog_conversion - grid layout and dialog size', () => {
+    const legacyOptions: ConversionOptions = {enhanced: false};
+
+    const textEl = (name: string): DialogElement => ({
+        name,
+        display_name: 'Text ' + name,
+        type: DialogElementTypes.TEXT,
+    } as DialogElement);
+
+    // collapsibleEl builds a collapsible, optionally carrying a subtype. The
+    // grid is a layout mode on the existing container, so it arrives as
+    // subtype: 'grid' rather than as a new element type.
+    const collapsibleEl = (name: string, elements: DialogElement[], subtype?: string): DialogElement => ({
+        name,
+        display_name: 'Section ' + name,
+        type: DialogElementTypes.COLLAPSIBLE,
+        subtype,
+        collapsible_config: {elements},
+    } as DialogElement);
+
+    describe('collapsible layout', () => {
+        it("maps subtype 'grid' to layout 'grid'", () => {
+            const {field, errors} = convertElement(collapsibleEl('g', [textEl('a')], 'grid'), legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.collapsible_config?.layout).toBe('grid');
+        });
+
+        it("defaults to layout 'stacked' when no subtype is given", () => {
+            const {field, errors} = convertElement(collapsibleEl('s', [textEl('a')]), legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.collapsible_config?.layout).toBe('stacked');
+        });
+
+        it("falls back to 'stacked' for an unrecognised subtype rather than passing it through", () => {
+            const {field, errors} = convertElement(collapsibleEl('s', [textEl('a')], 'carousel'), legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.collapsible_config?.layout).toBe('stacked');
+        });
+
+        it('sets the layout on a nested collapsible independently of its parent', () => {
+            // A grid's rows are themselves collapsibles, and they are stacked.
+            const grid = collapsibleEl('grid', [collapsibleEl('row', [textEl('cell')])], 'grid');
+            const {field, errors} = convertElement(grid, legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(field?.collapsible_config?.layout).toBe('grid');
+
+            const rowField = field?.collapsible_config?.fields?.[0];
+            expect(rowField?.type).toBe('collapsible');
+            expect(rowField?.collapsible_config?.layout).toBe('stacked');
+        });
+    });
+
+    describe('AppForm.size', () => {
+        const convert = (size?: 'small' | 'medium' | 'large') => convertDialogToAppForm(
+            [textEl('a')],
+            'Test Dialog',
+            undefined,
+            undefined,
+            undefined,
+            '',
+            '',
+            legacyOptions,
+            undefined,
+            undefined,
+            size,
+        );
+
+        it.each(['small', 'medium', 'large'] as const)('carries size %s onto the form', (size) => {
+            const {form, errors} = convert(size);
+
+            expect(errors).toHaveLength(0);
+            expect(form.size).toBe(size);
+        });
+
+        it('leaves size undefined when the dialog does not set one', () => {
+            const {form, errors} = convert();
+
+            expect(errors).toHaveLength(0);
+            expect(form.size).toBeUndefined();
+        });
+    });
+
+    describe('transformServerDialogToProps', () => {
+        it('carries size through from the server response', () => {
+            const props = transformServerDialogToProps({
+                title: 'Test Dialog',
+                elements: [],
+                size: 'large',
+            });
+
+            expect(props.size).toBe('large');
+        });
+
+        it('leaves size undefined when the server response omits it', () => {
+            const props = transformServerDialogToProps({
+                title: 'Test Dialog',
+                elements: [],
+            });
+
+            expect(props.size).toBeUndefined();
+        });
+    });
+
+    describe('convertServerDialogResponseToAppForm', () => {
+        it('carries size all the way from the server response to the form', () => {
+            const {form, errors} = convertServerDialogResponseToAppForm({
+                title: 'Test Dialog',
+                elements: [textEl('a')],
+                size: 'medium',
+            }, legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(form.size).toBe('medium');
+        });
+
+        it('leaves size undefined when the server response omits it, so the modal keeps its historical width', () => {
+            const {form, errors} = convertServerDialogResponseToAppForm({
+                title: 'Test Dialog',
+                elements: [textEl('a')],
+            }, legacyOptions);
+
+            expect(errors).toHaveLength(0);
+            expect(form.size).toBeUndefined();
         });
     });
 });

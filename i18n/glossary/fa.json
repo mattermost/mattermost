@@ -436,5 +436,28 @@
   },
   "server": {
     "target": "سرور"
+  },
+  "health dashboard": {
+    "target": "سلامت سایت",
+    "note": "Name of the System Console page; matches its title and sidebar item. In running text: 'صفحهٔ سلامت سایت'."
+  },
+  "health finding": {
+    "target": "یافتهٔ سلامت",
+    "note": "Plural: یافته‌های سلامت. Plain 'یافته' on the سلامت سایت page itself. Some server strings ship 'یافتهٔ بررسی سلامت'; prefer the shorter form."
+  },
+  "Agents plugin": {
+    "target": "افزونهٔ Agents",
+    "note": "With the full name: 'افزونهٔ Mattermost Agents'. Never پلاگین."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Keep the service name in English, introduced by 'سرویس' (e.g. 'سرویس Mattermost Hosted Push Notification Service')."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Keep the service name in English, introduced by 'سرویس' (e.g. 'سرویس Mattermost Test Push Notification Service')."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

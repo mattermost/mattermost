@@ -36,8 +36,11 @@ const (
 	// The fixtures run 11.0, which has ended.
 	versionSubject = "11.0"
 
-	expiresAtSubject = "license.expires_at"
-	seatsSubject     = "license.users"
+	complianceDirSubject      = "ComplianceSettings.Directory"
+	expiresAtSubject          = "license.expires_at"
+	filestoreDiskSubject      = "FileSettings.Directory"
+	globalRelayTimeoutSubject = "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout"
+	seatsSubject              = "license.users"
 )
 
 type finding struct {
@@ -132,14 +135,22 @@ func TestReadGoldenPackets(t *testing.T) {
 		{
 			name: "standalone",
 			expected: []finding{
+				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateFiring, Subject: complianceDirSubject},
+				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateFiring, Subject: "Database.PostsDeadTuples"},
 				{Code: "JOB_FAILED", State: healthcheck.StateFiring, Subject: model.JobTypeLdapSync},
+				{Code: "LDAP_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: "LdapSettings.LdapServer"},
+				{Code: "LDAP_RECOMMENDED_AT_SCALE", State: healthcheck.StateFiring, Subject: "LdapSettings.Enable"},
+				{Code: "LDAP_SYNC_NO_BASEDN", State: healthcheck.StateFiring, Subject: "LdapSettings.BaseDN"},
 				{Code: "LICENSE_EXPIRED", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateUnknown, Subject: expiresAtSubject},
 				{Code: "METRICS_OFF", State: healthcheck.StateFiring, Subject: "MetricsSettings.Enable"},
+				{Code: "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", State: healthcheck.StateUnknown, Subject: "Server.GoMaxProcs", Scope: "mm.example.com"},
+				{Code: "NODE_HOST_LOAD_HIGH", State: healthcheck.StateUnknown, Subject: "Server.LoadAverage15m", Scope: "mm.example.com"},
 				{Code: "PLUGIN_NOT_RUNNING", State: healthcheck.StateFiring, Subject: "PluginSettings.PluginStates"},
 				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
 				{Code: "PUSH_TEST_PROXY", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
+				{Code: "SESSION_EXTEND_OFF", State: healthcheck.StateFiring, Subject: "ServiceSettings.ExtendSessionLengthWithActivity"},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
@@ -148,13 +159,28 @@ func TestReadGoldenPackets(t *testing.T) {
 			name: "ha",
 			expected: []finding{
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
+				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateUnknown, Subject: "Database.PostsDeadTuples"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
+				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
+				{Code: "FILESTORE_DISK_FULL", State: healthcheck.StateFiring, Subject: filestoreDiskSubject, Scope: "app-3.example.com"},
+				{Code: "FILESTORE_DISK_LOW", State: healthcheck.StateFiring, Subject: filestoreDiskSubject, Scope: "app-1.example.com"},
 				{Code: "FILESTORE_LOCAL_IN_CLUSTER", State: healthcheck.StateFiring, Subject: "FileSettings.Directory"},
 				{Code: "JOB_STUCK", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
 				{Code: "JOB_WEDGED_AT_ZERO", State: healthcheck.StateFiring, Subject: model.JobTypeMessageExport},
 				{Code: "LICENSE_EXPIRING", State: healthcheck.StateFiring, Subject: expiresAtSubject},
+				{Code: "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", State: healthcheck.StateUnknown, Subject: "Server.GoMaxProcs", Scope: "app-1.example.com"},
+				{Code: "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", State: healthcheck.StateUnknown, Subject: "Server.GoMaxProcs", Scope: "app-2.example.com"},
+				{Code: "NODE_GOMAXPROCS_ABOVE_CPU_LIMIT", State: healthcheck.StateUnknown, Subject: "Server.GoMaxProcs", Scope: "app-3.example.com"},
+				{Code: "NODE_HOST_LOAD_HIGH", State: healthcheck.StateUnknown, Subject: "Server.LoadAverage15m", Scope: "app-1.example.com"},
+				{Code: "NODE_HOST_LOAD_HIGH", State: healthcheck.StateUnknown, Subject: "Server.LoadAverage15m", Scope: "app-2.example.com"},
+				{Code: "NODE_HOST_LOAD_HIGH", State: healthcheck.StateUnknown, Subject: "Server.LoadAverage15m", Scope: "app-3.example.com"},
+				{Code: "OAUTH_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: model.ServiceGitlab},
+				{Code: "OAUTH_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: model.ServiceGoogle},
+				{Code: "OAUTH_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: model.ServiceOffice365},
+				{Code: "OAUTH_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: model.ServiceOpenid},
 				{Code: "PUSH_BAD_SCHEME", State: healthcheck.StateFiring, Subject: pushSubject},
 				{Code: "PUSH_ID_ONLY", State: healthcheck.StateFiring, Subject: "EmailSettings.PushNotificationContents"},
+				{Code: "SAML_ENCRYPT_OFF", State: healthcheck.StateFiring, Subject: "SamlSettings.Encrypt"},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},
@@ -170,6 +196,28 @@ func TestReadGoldenPackets(t *testing.T) {
 			assert.ElementsMatch(t, tc.expected, evaluate(t, p.Snapshot))
 		})
 	}
+}
+
+func TestReadPostsVacuumInProgress(t *testing.T) {
+	files := fixtureFiles(t, "standalone")
+	files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(
+		files[model.SupportPacketDiagnosticsFileName],
+		[]byte("  posts_vacuum_in_progress: false\n"),
+		[]byte("  posts_vacuum_in_progress: true\n"),
+		1,
+	)
+
+	snapshot := readFiles(t, files).Snapshot
+	diag, ok := snapshot.LeaderDiag(model.SectionDatabaseStats)
+	require.True(t, ok)
+	require.NotNil(t, diag.Database.PostsVacuumInProgress)
+	assert.True(t, *diag.Database.PostsVacuumInProgress)
+
+	assert.Contains(t, evaluate(t, snapshot), finding{
+		Code:    "DB_POSTS_DEAD_TUPLES",
+		State:   healthcheck.StateUnknown,
+		Subject: "Database.PostsDeadTuples",
+	})
 }
 
 func TestReadSnapshotFields(t *testing.T) {
@@ -192,7 +240,7 @@ func TestReadSnapshotFields(t *testing.T) {
 	require.True(t, ok)
 	assert.Equal(t, model.LicenseShortSkuEnterprise, license.SkuShortName)
 	assert.Equal(t, 500, license.Users)
-	idLoaded, ok := s.LicenseFeature(func(f *model.Features) *bool { return f.IDLoadedPushNotifications })
+	idLoaded, ok := s.LicenseFeature(healthcheck.FeatureIDLoaded)
 	require.True(t, ok)
 	assert.True(t, idLoaded)
 
@@ -326,6 +374,9 @@ func TestReadCloud(t *testing.T) {
 		codes = append(codes, f.Code)
 	}
 	assert.ElementsMatch(t, []string{
+		"LDAP_PROBE_FAILED",
+		"LDAP_RECOMMENDED_AT_SCALE",
+		"LDAP_SYNC_NO_BASEDN",
 		"PLUGIN_NOT_RUNNING",
 		"PUSH_ID_ONLY",
 		"PUSH_TEST_PROXY",

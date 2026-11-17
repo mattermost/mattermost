@@ -199,4 +199,29 @@ func TestJoinUserToTeam(t *testing.T) {
 		_, _, err = th.service.JoinUserToTeam(th.Context, team, ruser1)
 		require.Error(t, err, "Should fail")
 	})
+
+	t.Run("no limit when max users per team is 0", func(t *testing.T) {
+		th.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = new(0) })
+		defer th.UpdateConfig(func(cfg *model.Config) { cfg.TeamSettings.MaxUsersPerTeam = &one })
+
+		user1 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		ruser1 := th.CreateUser(&user1)
+
+		user2 := model.User{Email: strings.ToLower(model.NewId()) + "success+test@example.com", Nickname: "Darth Vader", Username: "vader" + model.NewId(), Password: model.NewTestPassword(), AuthService: ""}
+		ruser2 := th.CreateUser(&user2)
+
+		defer th.DeleteUser(&user1)
+		defer th.DeleteUser(&user2)
+
+		// The team already holds more members than the limit of 1 this test otherwise runs with.
+		member, _, err := th.service.JoinUserToTeam(th.Context, team, ruser1)
+		require.NoError(t, err)
+		_, _, err = th.service.JoinUserToTeam(th.Context, team, ruser2)
+		require.NoError(t, err)
+
+		err = th.service.RemoveTeamMember(th.Context, member)
+		require.NoError(t, err)
+		_, _, err = th.service.JoinUserToTeam(th.Context, team, ruser1)
+		require.NoError(t, err)
+	})
 }

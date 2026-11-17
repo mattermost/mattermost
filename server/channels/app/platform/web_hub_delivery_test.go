@@ -41,7 +41,7 @@ func newDeliveryTestConn(t *testing.T, th *TestHelper, connIndex *hubConnectionI
 	wc.SetSession(&model.Session{UserId: userID})
 	wc.Active.Store(true)
 	wc.SetSessionExpiresAt(model.GetMillis() + 100000)
-	require.NoError(t, connIndex.Add(wc))
+	connIndex.Add(wc, channelList{})
 
 	return wc
 }
@@ -69,11 +69,11 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		th.Service.SetPostDeliveryRecorder(spy.record)
 		t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
 
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+		connIndex := newHubConnectionIndex(1*time.Second, false)
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
-		hub.broadcastToConn(connIndex, wc, newEvent(), marker, nil, nil)
+		deliver(hub, connIndex, wc, newEvent(), marker)
 
 		require.Len(t, spy.calls, 1)
 		require.Equal(t, marker, spy.calls[0].marker)
@@ -86,12 +86,12 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		th.Service.SetPostDeliveryRecorder(spy.record)
 		t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
 
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+		connIndex := newHubConnectionIndex(1*time.Second, false)
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
 		connIndex.Remove(wc)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
-		hub.broadcastToConn(connIndex, wc, newEvent(), marker, nil, nil)
+		deliver(hub, connIndex, wc, newEvent(), marker)
 
 		require.Empty(t, spy.calls)
 	})
@@ -101,12 +101,12 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		th.Service.SetPostDeliveryRecorder(spy.record)
 		t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
 
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+		connIndex := newHubConnectionIndex(1*time.Second, false)
 		// A zero-capacity buffer with no reader means the send always hits the default branch.
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 0)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
-		hub.broadcastToConn(connIndex, wc, newEvent(), marker, nil, nil)
+		deliver(hub, connIndex, wc, newEvent(), marker)
 
 		require.Empty(t, spy.calls)
 	})
@@ -116,7 +116,7 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		th.Service.SetPostDeliveryRecorder(spy.record)
 		t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
 
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+		connIndex := newHubConnectionIndex(1*time.Second, false)
 		// BasicUser wrote the post the marker describes.
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser.Id, 1)
 
@@ -124,7 +124,7 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		authorEvent.Add("post", "{}")
 
 		hub := th.Service.GetHubForUserId(th.BasicUser.Id)
-		hub.broadcastToConn(connIndex, wc, authorEvent, marker, nil, nil)
+		deliver(hub, connIndex, wc, authorEvent, marker)
 
 		require.Empty(t, spy.calls, "the author's own post echo is not a delivery")
 		require.Len(t, wc.send, 1, "the event still reaches the author")
@@ -135,11 +135,11 @@ func TestHubBroadcastDelivery(t *testing.T) {
 		th.Service.SetPostDeliveryRecorder(spy.record)
 		t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
 
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+		connIndex := newHubConnectionIndex(1*time.Second, false)
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
-		hub.broadcastToConn(connIndex, wc, newEvent(), nil, nil, nil)
+		deliver(hub, connIndex, wc, newEvent(), nil)
 
 		require.Empty(t, spy.calls)
 		require.Len(t, wc.send, 1)
@@ -148,12 +148,17 @@ func TestHubBroadcastDelivery(t *testing.T) {
 	t.Run("no recorder configured is a no-op", func(t *testing.T) {
 		th.Service.SetPostDeliveryRecorder(nil)
 
-		connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+		connIndex := newHubConnectionIndex(1*time.Second, false)
 		wc := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
 
 		hub := th.Service.GetHubForUserId(th.BasicUser2.Id)
 		require.NotPanics(t, func() {
-			hub.broadcastToConn(connIndex, wc, newEvent(), marker, nil, nil)
+			deliver(hub, connIndex, wc, newEvent(), marker)
 		})
 	})
+}
+
+// deliver calls broadcastToConn with the event's channel decoded, as the hub's broadcast arm does.
+func deliver(hub *Hub, connIndex *hubConnectionIndex, wc *WebConn, ev *model.WebSocketEvent, marker *model.PostDeliveryMarker) {
+	hub.broadcastToConn(connIndex, wc, ev, decodeChannelID(ev.GetBroadcast().ChannelId), marker, nil, nil)
 }

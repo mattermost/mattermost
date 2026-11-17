@@ -26,6 +26,7 @@ type RemoteProvider struct {
 
 // ensure RemoteProvider implements AutocompleteDynamicArgProvider
 var _ app.AutocompleteDynamicArgProvider = (*RemoteProvider)(nil)
+var _ app.AutocompleteQuotedArgProvider = (*RemoteProvider)(nil)
 
 const (
 	CommandTriggerRemote = "secure-connection"
@@ -99,6 +100,10 @@ func (rp *RemoteProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Co
 	}
 
 	return response(args.T("api.command_remote.unknown_action", map[string]any{"Action": action}))
+}
+
+func (rp *RemoteProvider) SplitQuotedArg(in string) (string, bool, bool) {
+	return splitQuotedArg(in)
 }
 
 func (rp *RemoteProvider) GetAutoCompleteListItems(rctx request.CTX, a *app.App, commandArgs *model.CommandArgs, arg *model.AutocompleteArg, parsed, toBeParsed string) ([]model.AutocompleteListItem, error) {

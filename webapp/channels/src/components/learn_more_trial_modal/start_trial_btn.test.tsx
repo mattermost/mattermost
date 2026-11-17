@@ -68,18 +68,10 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
         message: 'Start trial',
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <StartTrialBtn {...props}/>,
-            state,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('should handle on click', async () => {
         const mockOnClick = jest.fn();
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <StartTrialBtn
                 {...props}
                 onClick={mockOnClick}
@@ -87,7 +79,7 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
             state,
         );
 
-        await userEvent.click(container.querySelector('.btn-secondary')!);
+        await userEvent.click(screen.getByRole('button', {name: 'Start trial'}));
 
         expect(mockOnClick).toHaveBeenCalled();
     });
@@ -104,7 +96,7 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
             state,
         );
 
-        await userEvent.click(screen.getByRole('button'));
+        await userEvent.click(screen.getByRole('button', {name: 'Start trial'}));
 
         expect(mockOnClick).toHaveBeenCalled();
     });

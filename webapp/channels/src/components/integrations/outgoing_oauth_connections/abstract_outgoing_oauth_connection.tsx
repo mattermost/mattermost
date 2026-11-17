@@ -9,7 +9,7 @@ import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
-import {Button, buttonClassNames} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
@@ -471,15 +471,17 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             type='backstage'
                             errors={[props.serverError, storedError]}
                         />
-                        <Link
-                            className={buttonClassNames({emphasis: 'tertiary'})}
-                            to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}
+                        <Button
+                            asChild={true}
+                            emphasis='tertiary'
                         >
-                            <FormattedMessage
-                                id='add_outgoing_oauth_connection.cancel'
-                                defaultMessage='Cancel'
-                            />
-                        </Link>
+                            <Link to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}>
+                                <FormattedMessage
+                                    id='add_outgoing_oauth_connection.cancel'
+                                    defaultMessage='Cancel'
+                                />
+                            </Link>
+                        </Button>
                         <SpinnerButton
                             type='submit'
                             spinning={isSubmitting}
@@ -587,7 +589,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
     const validateButton = (
         <Button
             emphasis='tertiary'
-            size='sm'
+            size='small'
             type='button'
             onClick={onClick}
             id='validateConnection'

@@ -116,3 +116,25 @@ From Mattermost v11.8.0, when you leave a public channel you were added to by a 
 
 If the channel is already muted, Mattermost shows **Cancel** and **Leave channel** instead of **Mute instead**.
 
+## Hide join and leave messages in a channel
+
+From Mattermost v12.0, you can hide the system messages that display when users join, leave, are added to, or are removed from a public or private channel. This is useful in busy channels where frequent membership changes add noise.
+
+By default, any channel member can change this setting, just like the channel name and header. System admins can restrict who can change it using the **Manage Channel Settings** permission in the System Console. See the [advanced permissions](/administration-guide/onboard/advanced-permissions) documentation for details.
+
+Unlike the [Enable Join/Leave Messages](/end-user-guide/preferences/manage-advanced-options#enable-joinleave-messages) setting, which each user sets for themselves across all channels, this setting applies to a single channel and hides these messages for all channel members, regardless of their own preferences.
+
+1.  Open the channel using a web browser or the desktop app.
+2.  Select the channel name at the top of the center pane to access the drop-down menu, then select **Channel Settings**.
+3.  Select **Configuration**, then disable the **Join/Leave System Messages** option.
+4.  Select **Save** to apply the changes.
+
+Mattermost continues to store join and leave messages while they're hidden. Enable the **Join/Leave System Messages** option again to show all stored messages in the channel.
+
+<Note>
+
+- This setting isn't available for direct or group messages.
+- Users who are added to a channel are still notified, even when join and leave messages are hidden in that channel.
+
+</Note>
+

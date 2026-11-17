@@ -225,34 +225,6 @@ describe('components/drafts/drafts_row', () => {
         jest.restoreAllMocks();
     });
 
-    it('should match snapshot for channel draft', () => {
-        const {container} = renderWithContext(
-            <DraftRow
-                {...baseProps}
-            />,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot for thread draft', () => {
-        const props = {
-            ...baseProps,
-            item: {
-                ...baseProps.item,
-                rootId: 'some_id',
-            } as PostDraft,
-        };
-
-        const {container} = renderWithContext(
-            <DraftRow
-                {...props}
-            />,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     describe('sending a draft', () => {
         it('deletes the draft from the server once the post is created', async () => {
             renderWithContext(

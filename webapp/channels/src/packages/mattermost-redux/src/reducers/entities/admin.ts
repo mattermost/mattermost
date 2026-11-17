@@ -4,7 +4,7 @@
 import {combineReducers} from 'redux';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
-import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState, LogObject, LogsByNode} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -17,16 +17,71 @@ import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilitie
 
 import type {MMReduxAction} from 'mattermost-redux/action_types';
 import {AdminTypes, UserTypes} from 'mattermost-redux/action_types';
-import {Stats} from 'mattermost-redux/constants';
+import {General, Stats} from 'mattermost-redux/constants';
 import PluginState from 'mattermost-redux/constants/plugins';
+import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
 
-function logs(state: string[] = [], action: MMReduxAction) {
+// New entries are fetched from the newest loaded timestamp onwards, so they repeat the entries
+// from that millisecond, and older nodes that ignore the date filter repeat everything
+function mergeLogEntries(existing: LogObject[], allIncoming: LogObject[]): LogObject[] {
+    // The entry standing in for a node that could not be reached only describes the latest response.
+    // A scan limit entry describes how far back the full load reached, which a poll doesn't change,
+    // so the loaded one is kept at the end and a poll's own is dropped
+    const kept = existing.filter((entry) => !entry.failed_node && !entry.scan_limited);
+    const scanLimits = existing.filter((entry) => entry.scan_limited);
+    const incoming = allIncoming.filter((entry) => !entry.scan_limited);
+    if (incoming.length === 0) {
+        return kept.length + scanLimits.length === existing.length ? existing : kept.concat(scanLimits);
+    }
+
+    // Only entries from the oldest incoming timestamp onwards can be repeats
+    const since = incoming.reduce((min, entry) => Math.min(min, logEntryTime(entry)), Infinity);
+    const repeats = new Map<string, number>();
+    for (const entry of kept) {
+        if (!(logEntryTime(entry) < since)) {
+            const key = logEntryKey(entry);
+            repeats.set(key, (repeats.get(key) ?? 0) + 1);
+        }
+    }
+
+    // Counted rather than collected, so an identical entry logged again in the same millisecond is kept
+    const added = incoming.filter((entry) => {
+        const key = logEntryKey(entry);
+        const count = repeats.get(key) ?? 0;
+        if (count === 0) {
+            return true;
+        }
+        repeats.set(key, count - 1);
+        return false;
+    });
+    if (added.length === 0 && kept.length + scanLimits.length === existing.length) {
+        return existing;
+    }
+
+    const merged = kept.concat(added);
+
+    // Capped at what one query returns for a node, so a node at the cap is flagged as truncated
+    const capped = merged.length > General.LOGS_PAGE_SIZE_DEFAULT ? merged.slice(merged.length - General.LOGS_PAGE_SIZE_DEFAULT) : merged;
+    return scanLimits.length === 0 ? capped : capped.concat(scanLimits);
+}
+
+function logs(state: LogsByNode = {}, action: MMReduxAction): LogsByNode {
     switch (action.type) {
     case AdminTypes.RECEIVED_LOGS: {
         return action.data;
     }
+    case AdminTypes.RECEIVED_NEW_LOGS: {
+        let nextState = state;
+        for (const [node, entries] of Object.entries<LogObject[]>(action.data)) {
+            const merged = mergeLogEntries(state[node] ?? [], entries);
+            if (merged !== state[node]) {
+                nextState = {...nextState, [node]: merged};
+            }
+        }
+        return nextState;
+    }
     case UserTypes.LOGOUT_SUCCESS:
-        return [];
+        return {};
 
     default:
         return state;

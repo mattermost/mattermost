@@ -5,6 +5,12 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
+import {
+    ArrowBackIosIcon,
+    CloseIcon,
+} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {Channel} from '@mattermost/types/channels';
 
@@ -28,15 +34,15 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
             <span className='sidebar--right__title'>
 
                 {canGoBack && (
-                    <button
-                        className='sidebar--right__back btn btn-icon btn-sm'
-                        onClick={goBack}
-                        aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
-                    >
-                        <i
-                            className='icon icon-arrow-back-ios'
+                    <WithTooltip title={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}>
+                        <IconButton
+                            size='small'
+                            className='sidebar--right__back'
+                            icon={<Icon glyph={<ArrowBackIosIcon/>}/>}
+                            onClick={goBack}
+                            aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                         />
-                    </button>
+                    </WithTooltip>
                 )}
                 <h2>
                     <HeaderTitle
@@ -66,17 +72,14 @@ const Header = ({channel, canGoBack, onClose, goBack}: Props) => {
                     />
                 }
             >
-                <button
+                <IconButton
                     id='rhsCloseButton'
-                    type='button'
-                    className='sidebar--right__close btn btn-icon btn-sm'
+                    size='small'
+                    className='sidebar--right__close'
+                    icon={<Icon glyph={<CloseIcon/>}/>}
                     aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                     onClick={onClose}
-                >
-                    <i
-                        className='icon icon-close'
-                    />
-                </button>
+                />
             </WithTooltip>
         </div>
     );

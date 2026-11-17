@@ -49,7 +49,7 @@ func TestRateLimitOffLarge(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, tc.want, evalRateLimitOffLarge(tc.snapshot))
+			assertResult(t, tc.want, rateLimitOffLarge.Eval(tc.snapshot))
 		})
 	}
 }
@@ -77,7 +77,7 @@ func TestRateLimitStoreSmall(t *testing.T) {
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assertResult(t, tc.want, evalRateLimitStoreSmall(tc.snapshot))
+			assertResult(t, tc.want, rateLimitStoreSmall.Eval(tc.snapshot))
 		})
 	}
 }

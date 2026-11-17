@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {CollapsedThreads} from '@mattermost/types/config';
 import type {
     AccessControlSettings,
     AdminConfig,
     AnnouncementSettings,
     ClusterSettings,
+    ElasticsearchSettings,
     EmailSettings,
     ExperimentalSettings,
     IntuneSettings,
@@ -31,6 +33,7 @@ type TestAdminConfig = {
     AccessControlSettings: Partial<AccessControlSettings>;
     AnnouncementSettings: Partial<AnnouncementSettings>;
     ClusterSettings: Partial<ClusterSettings>;
+    ElasticsearchSettings: Partial<ElasticsearchSettings>;
     EmailSettings: Partial<EmailSettings>;
     ExperimentalSettings: Partial<ExperimentalSettings>;
     LogSettings: Partial<LogSettings>;
@@ -66,6 +69,13 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             Enable: testConfig.haClusterEnabled,
             ClusterName: testConfig.haClusterName,
         },
+        // Server defaults, listed so the Elasticsearch/OpenSearch specs don't leave search and autocomplete on the
+        // engine for later specs: its channel autocomplete matches names only, not purposes like the database does.
+        ElasticsearchSettings: {
+            EnableIndexing: false,
+            EnableSearching: false,
+            EnableAutocomplete: false,
+        },
         EmailSettings: {
             FeedbackName: 'Mattermost',
             PushNotificationServer: testConfig.pushNotificationServer,
@@ -86,6 +96,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             EnableForgotLink: true,
         },
         PrivacySettings: {
+            // Server defaults, listed so specs that hide them don't leak that to later specs.
+            ShowEmailAddress: true,
+            ShowFullName: true,
             UseAnonymousURLs: false,
         },
         ServiceSettings: {
@@ -95,6 +108,9 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             // internalBaseURL is the Docker network alias there, and the same as baseURL in
             // `external` mode — correct in both cases.
             SiteURL: testConfig.internalBaseURL,
+            // Server defaults, listed so specs that disable them don't leak that to later specs.
+            CollapsedThreads: CollapsedThreads.ALWAYS_ON,
+            EnableTutorial: true,
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,
             GiphySdkKey: 's0glxvzVg9azvPipKxcPLpXV0q1x1fVP',

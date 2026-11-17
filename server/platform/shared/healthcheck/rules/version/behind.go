@@ -73,27 +73,27 @@ func releasesBehind(table []model.ReleaseLifecycle, running, latest line) int {
 // feed: ESR customers are not expected to track the latest release, and an ended line gets an
 // EOL finding instead.
 func evalBehind(table []model.ReleaseLifecycle, now func() time.Time, messageID string, fires func(n int) bool) func(*healthcheck.Snapshot) []healthcheck.Result {
-	return func(s *healthcheck.Snapshot) []healthcheck.Result {
+	return healthcheck.Single(func(s *healthcheck.Snapshot) healthcheck.Result {
 		a, subject, reasonID := assess(table, s, now())
 		switch {
 		case reasonID != "":
-			return []healthcheck.Result{healthcheck.UnknownSubject(subject, reasonID)}
+			return healthcheck.UnknownSubject(subject, reasonID)
 		case a.running.ESR || a.ended:
-			return []healthcheck.Result{healthcheck.ResolvedSubject(subject)}
+			return healthcheck.ResolvedSubject(subject)
 		}
 
 		latest, ok := parseLine(s.Version.Latest)
 		if !ok {
-			return []healthcheck.Result{healthcheck.UnknownSubject(subject, reasonLatestUnknown)}
+			return healthcheck.UnknownSubject(subject, reasonLatestUnknown)
 		}
 
 		n := releasesBehind(table, a.version, latest)
 		if !fires(n) {
-			return []healthcheck.Result{healthcheck.ResolvedSubject(subject)}
+			return healthcheck.ResolvedSubject(subject)
 		}
-		return []healthcheck.Result{healthcheck.FiringSubject(subject, messageID).
+		return healthcheck.FiringSubject(subject, messageID).
 			WithDetail("version", s.Version.Current).
 			WithDetail("latest", s.Version.Latest).
-			WithValue(float64(n))}
-	}
+			WithValue(float64(n))
+	})
 }

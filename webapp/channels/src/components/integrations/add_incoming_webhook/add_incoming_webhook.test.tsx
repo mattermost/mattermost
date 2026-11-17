@@ -56,11 +56,6 @@ describe('components/integrations/AddIncomingWebhook', () => {
         actions: {createIncomingHook},
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<AddIncomingWebhook {...props}/>, initialState as GlobalState);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should have called createIncomingHook', async () => {
         const hook = TestHelper.getIncomingWebhookMock({
             channel_id: 'current_channel_id',
@@ -78,7 +73,13 @@ describe('components/integrations/AddIncomingWebhook', () => {
         await userEvent.selectOptions(screen.getByRole('combobox'), [hook.channel_id]);
         await userEvent.type(screen.getByRole('textbox', {name: 'Title'}), hook.display_name);
         await userEvent.type(screen.getByRole('textbox', {name: 'Description'}), hook.description);
-        await userEvent.type(screen.getByRole('textbox', {name: 'Username'}), hook.username);
+
+        // The username is pre-filled from the title until it's replaced
+        const usernameInput = screen.getByRole('textbox', {name: 'Username'});
+        expect(usernameInput).toHaveValue('display_name');
+        await userEvent.clear(usernameInput);
+        await userEvent.type(usernameInput, hook.username);
+
         await userEvent.type(screen.getByRole('textbox', {name: 'Profile Picture'}), hook.icon_url);
 
         await userEvent.click(screen.getByText('Save'));

@@ -6,6 +6,8 @@ import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {openModal} from 'actions/views/modals';
@@ -35,14 +37,15 @@ const AppBarMarketplace = () => {
             title={label}
             isVertical={false}
         >
-            <button
-                key='app_bar_marketplace'
+            <IconButton
                 className='app_bar__marketplace_button'
+                style='inverted'
+                size='small'
+                padding='compact'
+                icon={<Icon glyph={<ViewGridPlusOutlineIcon/>}/>}
                 aria-label={label}
                 onClick={handleOpenMarketplace}
-            >
-                <ViewGridPlusOutlineIcon size={18}/>
-            </button>
+            />
         </WithTooltip>
     );
 };

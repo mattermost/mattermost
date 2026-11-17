@@ -466,5 +466,26 @@
   "server": {
     "target": "server",
     "note": "Common gender: serveren, plural servere."
+  },
+  "health dashboard": {
+    "target": "Webstedstilstand",
+    "note": "Name of the System Console page; matches its title and sidebar item. Used without article as a page name."
+  },
+  "health finding": {
+    "target": "tilstandsfund",
+    "note": "Neuter; definite tilstandsfundet, plural tilstandsfund / tilstandsfundene. Plain 'fund' is fine on the Site health page itself."
+  },
+  "Agents plugin": {
+    "target": "Agents-plugin",
+    "note": "Neuter; definite Agents-pluginet. Hyphenate compounds: 'Agents-plugin-konfigurationen', not 'Agents plugin-konfiguration' as admin.site.localization.goToAgentsConfig ships today."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service"
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service"
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

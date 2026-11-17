@@ -61,13 +61,17 @@ export default class ScheduleMessageMenu {
         expect(dialogBox).not.toBeNull();
         expect(panelBox).not.toBeNull();
 
+        // The dialog can be taller than the viewport and start above it, so only the part of the
+        // dimmed area inside the viewport can be clicked
+        const dimmedAreaTop = Math.max(dialogBox!.y, 0);
+        const dimmedAreaHeight = panelBox!.y - dimmedAreaTop;
+
         // Guard against clicking the plain backdrop outside the dialog, which dismisses
         // the menu even without the dialog letting clicks through to it
-        const dimmedAreaHeight = panelBox!.y - dialogBox!.y;
         expect(dimmedAreaHeight).toBeGreaterThan(20);
 
         await this.mobileDialog
             .page()
-            .mouse.click(panelBox!.x + panelBox!.width / 2, panelBox!.y - dimmedAreaHeight / 2);
+            .mouse.click(panelBox!.x + panelBox!.width / 2, dimmedAreaTop + dimmedAreaHeight / 2);
     }
 }

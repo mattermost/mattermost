@@ -30,13 +30,10 @@
     }
 
     .scroll-to-bottom-toast__message {
-        display: inline-block;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
         line-height: 20px;
-        vertical-align: middle;
-
-        > svg {
-            margin-right: 8px;
-        }
     }
 
     .scroll-to-bottom-toast__dismiss {

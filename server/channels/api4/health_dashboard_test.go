@@ -132,13 +132,34 @@ func TestHealthDashboardAccess(t *testing.T) {
 		checkHealthDashboardNotImplemented(t, th)
 	})
 
-	t.Run("license below Enterprise", func(t *testing.T) {
+	t.Run("license below Professional", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE20))
 		checkHealthDashboardNotImplemented(t, th)
 	})
 
-	t.Run("admin with the flag and license", func(t *testing.T) {
+	t.Run("admin with the flag and a Professional license", func(t *testing.T) {
+		th := setupHealthDashboard(t, true)
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		finding := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+		storeHealthFindings(t, th, finding)
+
+		list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, list.Findings, 1)
+		assert.Equal(t, finding.Fingerprint, list.Findings[0].Fingerprint)
+
+		resp, err = th.SystemAdminClient.MuteHealthFinding(context.Background(), finding.Fingerprint)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = th.SystemAdminClient.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("admin with the flag and an Enterprise license", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 
 		list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
@@ -313,10 +334,21 @@ func TestGetHealthFindingsEvaluatedAt(t *testing.T) {
 	th := setupHealthDashboard(t, true)
 
 	muted := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
-	internal := newHealthFinding("SITE_URL_EMPTY", healthcheck.SurfaceInternal)
-	internal.LastSeenAt = muted.LastSeenAt + 1000
-	storeHealthFindings(t, th, muted, internal)
+	storeHealthFindings(t, th, muted)
 	require.NoError(t, th.App.Srv().Store().HealthFinding().Mute(muted.Fingerprint, th.SystemAdminUser.Id, model.GetMillis()))
+
+	now := model.GetMillis()
+	lastSuccess := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusSuccess, CreateAt: now - 2000, LastActivityAt: now - 1000}
+	for _, job := range []*model.Job{
+		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusSuccess, CreateAt: now - 4000, LastActivityAt: now - 3000},
+		lastSuccess,
+		// A run that failed or is still going has not evaluated anything.
+		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusError, CreateAt: now - 500, LastActivityAt: now - 400},
+		{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress, CreateAt: now - 300, LastActivityAt: now - 200},
+	} {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+	}
 
 	for _, tc := range []struct {
 		muted    model.MutedFilter
@@ -331,7 +363,7 @@ func TestGetHealthFindingsEvaluatedAt(t *testing.T) {
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 			assert.Equal(t, tc.expected, findingFingerprints(list.Findings))
-			assert.Equal(t, internal.LastSeenAt, list.EvaluatedAt)
+			assert.Equal(t, lastSuccess.LastActivityAt, list.EvaluatedAt)
 		})
 	}
 }
@@ -451,6 +483,11 @@ func TestMuteHealthFindingAudit(t *testing.T) {
 func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 	th := setupHealthDashboard(t, true)
 
+	const (
+		unreachableHTTPS = "https://127.0.0.1:0"
+		badSchemeHTTP    = "http://127.0.0.1:0"
+	)
+
 	setPushServer := func(url string) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
@@ -475,24 +512,40 @@ func TestHealthCheckPushURLRoundTrip(t *testing.T) {
 		return byCode
 	}
 
-	setPushServer("https://push.example.com")
-	assert.Empty(t, checkPushFindings())
+	setPushServer(unreachableHTTPS)
+	initial := checkPushFindings()
+	require.Len(t, initial, 1)
+	unreachable := initial["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachable)
+	assert.Equal(t, string(healthcheck.StateFiring), unreachable.State)
+	assert.Equal(t, "health.rule.push_proxy_unreachable.message", unreachable.MessageID)
+	assert.NotEmpty(t, unreachable.Message)
 
-	setPushServer("http://push.example.com")
+	setPushServer(badSchemeHTTP)
 	firing := checkPushFindings()
-	require.Len(t, firing, 1)
+	require.Len(t, firing, 2)
 	badScheme := firing["PUSH_BAD_SCHEME"]
 	require.NotNil(t, badScheme)
 	assert.Equal(t, string(healthcheck.StateFiring), badScheme.State)
 	assert.Equal(t, "health.rule.push_bad_scheme.message.http", badScheme.MessageID)
 	assert.NotEmpty(t, badScheme.Message)
+	unreachableCleared := firing["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachableCleared)
+	assert.Equal(t, string(healthcheck.StateResolved), unreachableCleared.State)
+	assert.Equal(t, unreachable.Fingerprint, unreachableCleared.Fingerprint)
+	assert.Equal(t, unreachable.FirstSeenAt, unreachableCleared.FirstSeenAt)
 
-	setPushServer("https://push.example.com")
+	setPushServer(unreachableHTTPS)
 	after := checkPushFindings()
-	require.Len(t, after, 1)
+	require.Len(t, after, 2)
 	cleared := after["PUSH_BAD_SCHEME"]
 	require.NotNil(t, cleared)
 	assert.Equal(t, string(healthcheck.StateResolved), cleared.State)
 	assert.Equal(t, badScheme.Fingerprint, cleared.Fingerprint)
 	assert.Equal(t, badScheme.FirstSeenAt, cleared.FirstSeenAt)
+	unreachableAgain := after["PUSH_PROXY_UNREACHABLE"]
+	require.NotNil(t, unreachableAgain)
+	assert.Equal(t, string(healthcheck.StateFiring), unreachableAgain.State)
+	assert.Equal(t, unreachable.Fingerprint, unreachableAgain.Fingerprint)
+	assert.Equal(t, unreachable.FirstSeenAt, unreachableAgain.FirstSeenAt)
 }

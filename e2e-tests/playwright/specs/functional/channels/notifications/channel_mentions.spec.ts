@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify disabling "Ignore mentions" counts @channel, @here, and @all as mentions.
@@ -26,15 +26,13 @@ test('MM-T568 Channel Notifications turn off Ignore mentions for @channel, @here
     await notificationPreferences.save();
 
     // # Move away and post each channel-wide mention from another user. @here only mentions users who
-    // are currently online, so force the receiving user's status online first to avoid a race against
-    // their websocket connection setting it asynchronously. Space the posts apart since firing them
-    // back-to-back races the per-post async mention-count update and can under-count the total.
+    // are currently online, so force the receiving user's status online first. Switch channels within
+    // the app: a full page load closes the websocket, which marks the user offline until it reconnects.
     await adminClient.updateStatus({user_id: user.id, status: 'online'});
-    await channelsPage.goto(team.name, channelB.name);
+    await channelsPage.sidebarLeft.goToItem(channelB.name);
+    await channelsPage.centerView.header.toHaveTitle(channelB.display_name);
     await adminClient.createPost({channel_id: channelA.id, user_id: sender.id, message: '@all test'});
-    await pw.wait(duration.one_sec);
     await adminClient.createPost({channel_id: channelA.id, user_id: sender.id, message: '@channel test'});
-    await pw.wait(duration.one_sec);
     await adminClient.createPost({channel_id: channelA.id, user_id: sender.id, message: '@here test'});
 
     // * Verify the channel is unread and counts all 3 channel-wide mentions exactly

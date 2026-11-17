@@ -1,5 +1,4 @@
 @use "utils/functions";
-@use "utils/mixins";
 @use "utils/variables";
 
 .sidebar--right--width-holder {
@@ -111,10 +110,6 @@
     }
 
     .sidebar--right__expand {
-        i {
-            top: 0;
-        }
-
         .icon-arrow-collapse {
             display: none;
         }
@@ -123,6 +118,7 @@
     .sidebar--right__title {
         display: flex;
         overflow: hidden;
+        overflow: clip;
         min-width: 0;
         height: auto;
         flex: 1 1 auto;
@@ -132,8 +128,8 @@
         font-size: 1.6rem;
         font-weight: 600;
         line-height: 1;
+        overflow-clip-margin: 8px;
 
-        @include mixins.clearfix;
         h2 {
             margin: 0;
             font-family: inherit;
@@ -219,11 +215,13 @@
             margin-left: -8px !important;
         }
 
-        .controls {
+        .controls,
+        .pull-right {
             display: flex;
+            flex: 0 0 auto;
             align-items: center;
             justify-content: flex-end;
-            gap: 4px;
+            gap: var(--spacing-xxxs, 4px);
         }
     }
 

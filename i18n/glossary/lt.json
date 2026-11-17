@@ -463,5 +463,28 @@
   "server": {
     "target": "serveris",
     "note": "Genitive „serverio“; locative „serveryje“."
+  },
+  "health dashboard": {
+    "target": "Svetainės būklės skydelis",
+    "note": "The page and menu title is „Svetainės būklė“. Genitive „Svetainės būklės skydelio“, dative „Svetainės būklės skydeliui“."
+  },
+  "health finding": {
+    "target": "būklės pastebėjimas",
+    "note": "Plural „būklės pastebėjimai“, genitive plural „būklės pastebėjimų“. Inside the dashboard itself plain „pastebėjimas“ is enough."
+  },
+  "Agents plugin": {
+    "target": "Agents papildinys",
+    "note": "'Agents' stays English and does not inflect; decline „papildinys“: „Agents papildinio“, „Agents papildinyje“."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English; it does not decline, so attach a Lithuanian head noun that carries the case: „Hosted Push Notification Service“ paslauga / paslaugą. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English; it does not decline, so attach a Lithuanian head noun that carries the case: „Test Push Notification Service“ paslauga / paslaugą. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

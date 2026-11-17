@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback} from 'react';
-import styled, {css} from 'styled-components';
+import classNames from 'classnames';
+import React, {memo, useCallback, useMemo} from 'react';
 
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PostAction, PostActionOption} from '@mattermost/types/integration_actions';
 
@@ -12,7 +13,8 @@ import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 import Markdown from 'components/markdown';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
+import './action_button.scss';
 
 const getStatusColors = (theme: Theme) => {
     return {
@@ -43,7 +45,7 @@ const ActionButton = ({
     handleAction,
     disabled,
     theme,
-    actionExecuting,
+    actionExecuting = false,
     actionExecutingMessage,
 }: Props) => {
     const handleActionClick = useCallback((e: React.MouseEvent) => handleAction(e, action.options), [action.options, handleAction]);
@@ -58,47 +60,55 @@ const ActionButton = ({
     }
 
     const name = action.name || action.id || '';
+    const label = actionExecuting && actionExecutingMessage ? actionExecutingMessage : name;
+
+    const colorStyle = useMemo(() => {
+        if (!hexColor) {
+            return undefined;
+        }
+
+        // Tint via CSS variables so :hover/:active/:disabled can override background
+        // (inline backgroundColor would win over Compass and custom state styles).
+        return {
+            ['--action-button-tint' as string]: hexColor,
+            ['--action-button-bg' as string]: changeOpacity(hexColor, 0.08),
+            ['--action-button-bg-hover' as string]: changeOpacity(hexColor, 0.12),
+            ['--action-button-bg-active' as string]: changeOpacity(hexColor, 0.16),
+
+            // Compass Button paints label/icon via `--button-fg`, not inherited `color`.
+            ['--button-fg' as string]: hexColor,
+        } as React.CSSProperties;
+    }, [hexColor]);
+
+    const button = (
+        <Button
+            data-action-id={action.id}
+            data-action-cookie={action.cookie}
+            disabled={disabled || actionExecuting}
+            onClick={handleActionClick}
+            size='small'
+            emphasis='tertiary'
+            loading={actionExecuting}
+            aria-busy={actionExecuting || undefined}
+            className={classNames({'ActionButton--tinted': Boolean(hexColor)})}
+            style={colorStyle}
+        >
+            <Markdown
+                message={label}
+                options={markdownOptions}
+            />
+        </Button>
+    );
+
+    if (!action.tooltip) {
+        return button;
+    }
 
     return (
-        <WithTooltip
-            title={action.tooltip}
-            disabled={!action.tooltip}
-        >
-            <ActionBtn
-                data-action-id={action.id}
-                data-action-cookie={action.cookie}
-                disabled={disabled}
-                key={action.id}
-                onClick={handleActionClick}
-                className='btn btn-sm'
-                hexColor={hexColor}
-            >
-                <LoadingWrapper
-                    loading={actionExecuting}
-                    text={actionExecutingMessage}
-                >
-                    <Markdown
-                        message={name}
-                        options={markdownOptions}
-                    />
-                </LoadingWrapper>
-            </ActionBtn>
+        <WithTooltip title={action.tooltip}>
+            {button}
         </WithTooltip>
     );
 };
-
-type ActionBtnProps = {hexColor: string | null | undefined};
-const ActionBtn = styled.button<ActionBtnProps>`
-    ${({hexColor}) => hexColor && css`
-        background-color: ${changeOpacity(hexColor, 0.08)} !important;
-        color: ${hexColor} !important;
-        &:hover {
-            background-color: ${changeOpacity(hexColor, 0.12)} !important;
-        }
-        &:active {
-            background-color: ${changeOpacity(hexColor, 0.16)} !important;
-        }
-    `}
-`;
 
 export default memo(ActionButton);

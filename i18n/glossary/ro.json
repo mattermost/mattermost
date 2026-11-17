@@ -265,7 +265,7 @@
   },
   "plugin": {
     "target": "plugin",
-    "note": "Kept as loanword in webapp ('pluginul', 'pluginuri'). Articulate as 'plugin-ul' / plural 'plugin-uri' per current orthographic norms."
+    "note": "Kept as a loanword. Articulate without a hyphen, as the final letter is pronounced as written: 'pluginul', genitive 'pluginului', plural 'pluginuri', 'pluginurile', 'pluginurilor'. 'plugin-ul' / 'plugin-uri' is wrong; the hyphen is only for loanwords whose final letter is not pronounced as written ('site-ul')."
   },
   "bot": {
     "target": "bot",
@@ -458,5 +458,28 @@
   "server": {
     "target": "server",
     "note": "Plural: 'servere'."
+  },
+  "health dashboard": {
+    "target": "Sănătatea site-ului",
+    "note": "Same as the page title ('Site health'); refer to it as pagina „Sănătatea site-ului”."
+  },
+  "health finding": {
+    "target": "constatare de sănătate",
+    "note": "Feminine: 'constatarea de sănătate', plural 'constatări de sănătate', genitive 'constatării'. Inside the dashboard plain 'constatare' is enough."
+  },
+  "Agents plugin": {
+    "target": "plugin Agents",
+    "note": "Articulated 'pluginul Agents', genitive 'pluginului Agents'. 'Agents' stays English."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name kept in English: 'serviciul Hosted Push Notification Service'. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name kept in English: 'serviciul Test Push Notification Service'. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

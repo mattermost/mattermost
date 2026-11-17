@@ -318,12 +318,13 @@ const DEPLOYMENT_GROUPS = {
     label: 'Desktop App Deployment',
     landing: 'desktop/desktop-app-deployment',
     items: [
+      'desktop/windows-desktop-install',
+      'desktop/macos-desktop-install',
       'desktop/linux-desktop-install',
+      'desktop/desktop-app-policies',
+      'desktop/desktop-app-privacy',
+      'desktop/desktop-vdi-deployment',
       'desktop/distribute-a-custom-desktop-app',
-      'desktop/silent-windows-desktop-distribution',
-      'desktop/desktop-msi-installer-and-group-policy-install',
-      'desktop/desktop-custom-dictionaries',
-      'desktop/desktop-app-managed-resources',
       'desktop/desktop-troubleshooting',
     ],
   },
@@ -478,10 +479,11 @@ const ADMIN_MANAGE_GROUPS = {
   // "Access control" rather than "Users and access": every page here is about
   // what a user is allowed to do, not about the user records themselves.
   //
-  // User attributes nests under ABAC as its first child. Custom profile
-  // attributes are usable on their own, and the page stays directly linkable,
-  // but they are a prerequisite of the access rules that follow — you define
-  // the attributes before you can write a policy against them.
+  // Attribute-based access control reads in task order: define the user,
+  // channel and session attributes first, then write policies against them
+  // (system-wide, then team, then channel), then the expression reference that
+  // all the policy editors share. The page for the User Attributes screen of
+  // releases before v12.0 comes last; its title already marks it as legacy.
   //
   // Advanced permissions is a two-page topic, so the main page is the group's
   // landing and the backend-infrastructure page is its child.
@@ -496,13 +498,14 @@ const ADMIN_MANAGE_GROUPS = {
       {doc: 'administration-guide/onboard/delegated-granular-administration'},
       {label: 'Attribute-based access control', landing: 'admin/attribute-based-access-control', items: [
         'admin/attribute-management',
-        'admin/user-attributes',
         'admin/channel-attributes',
+        'admin/session-attributes',
         'admin/abac-system-wide-policies',
         'admin/abac-team-membership',
         'admin/abac-team-channel-policies',
         'admin/abac-channel-access-rules',
-        'admin/session-attributes',
+        'admin/abac-policy-expressions',
+        'admin/user-attributes',
       ]},
     ],
   },
@@ -511,6 +514,7 @@ const ADMIN_MANAGE_GROUPS = {
     items: [
       'mmctl-command-line-tool',
       'command-line-tools',
+      'offline-documentation',
       'logging',
     ],
   },
@@ -571,7 +575,7 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'admin/attribute-based-access-control', 'admin/abac-system-wide-policies',
   'admin/abac-team-channel-policies', 'admin/abac-team-membership', 'admin/abac-channel-access-rules',
   'admin/session-attributes',
-  'command-line-tools', 'mmctl-command-line-tool', 'logging',
+  'command-line-tools', 'mmctl-command-line-tool', 'offline-documentation', 'logging',
   'admin/self-hosted-billing', 'admin/installing-license-key',
   'cloud-workspace-management', 'cloud-data-export', 'cloud-data-residency', 'cloud-ip-filtering',
   'cloud-byok',
@@ -586,7 +590,7 @@ const ADMIN_MANAGE_HIDDEN = new Set([
   'code-signing-custom-builds',
   // Listed under Monitor and troubleshoot.
   'admin/monitoring-and-performance', 'statistics', 'telemetry',
-  'configure-health-check-probes', 'request-server-health-check',
+  'site-health-dashboard', 'configure-health-check-probes', 'request-server-health-check',
   'admin/error-codes', 'admin/generating-support-packet',
 ]);
 
@@ -812,6 +816,7 @@ const ADMIN_SCALE_GROUPS = {
   health: {
     label: 'Health and diagnostics',
     items: [
+      {doc: 'administration-guide/manage/site-health-dashboard'},
       {doc: 'administration-guide/configure/optimize-your-workspace'},
       {doc: 'administration-guide/manage/statistics'},
       {doc: 'administration-guide/manage/configure-health-check-probes'},

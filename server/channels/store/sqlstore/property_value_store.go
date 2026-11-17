@@ -182,6 +182,10 @@ func (s *SqlPropertyValueStore) SearchPropertyValues(rctx request.CTX, opts mode
 		builder = builder.Where(sq.Eq{"GroupID": opts.GroupID})
 	}
 
+	if len(opts.IDs) > 0 {
+		builder = builder.Where(sq.Eq{"Id": opts.IDs})
+	}
+
 	if opts.TargetType != "" {
 		builder = builder.Where(sq.Eq{"TargetType": opts.TargetType})
 	}

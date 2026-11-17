@@ -109,7 +109,7 @@ test.describe('ABAC file permissions - redaction across surfaces', () => {
             // the server must recognize this URL as its own SiteURL to embed it through an
             // internal permalink lookup, instead of fetching it back over HTTP as a link
             // (which fails under testcontainers).
-            const permalinkUrl = `${testConfig.internalBaseURL}/${team.name}/pl/${originalPostId}`;
+            const permalinkUrl = `${testConfig.siteURL}/${team.name}/pl/${originalPostId}`;
             await adminChannelsPage.centerView.postCreate.postMessage(permalinkUrl);
             await adminChannelsPage.centerView.waitUntilLastPostContains(permalinkUrl);
 

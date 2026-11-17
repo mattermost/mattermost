@@ -45,6 +45,7 @@
   "dependencies": {
     "@axe-core/playwright": "4.13.0",
     "@azure/storage-blob": "12.33.0",
+    "@expo/devcert": "1.2.1",
     "@mattermost/client": "file:../../../webapp/platform/client",
     "@mattermost/types": "file:../../../webapp/platform/types",
     "@percy/cli": "1.32.6",

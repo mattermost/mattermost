@@ -7,6 +7,9 @@ import React from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
+import {PlusIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {ChannelCategory} from '@mattermost/types/channel_categories';
 import {CategorySorting} from '@mattermost/types/channel_categories';
@@ -36,6 +39,9 @@ type Props = {
     category: ChannelCategory;
     categoryIndex: number;
     channelIds: string[];
+
+    // Hidden because the product rail's section left it with nothing to show.
+    hiddenByProductRail?: boolean;
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     isNewCategory: boolean;
@@ -267,6 +273,10 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
             return null;
         }
 
+        if (this.props.hiddenByProductRail) {
+            return null;
+        }
+
         const renderedChannels = channelIds.map(this.renderChannel);
 
         let categoryMenu: JSX.Element;
@@ -305,14 +315,15 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
                             </>
                         }
                     >
-                        <button
+                        <IconButton
                             id='newDirectMessageButton'
+                            style='inverted'
+                            size='x-small'
                             className='SidebarChannelGroupHeader_addButton'
+                            icon={<Icon glyph={<PlusIcon/>}/>}
                             onClick={this.handleOpenDirectMessagesModal}
                             aria-label={addHelpLabel}
-                        >
-                            <i className='icon-plus'/>
-                        </button>
+                        />
                     </WithTooltip>
                 </>
             );

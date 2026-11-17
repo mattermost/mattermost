@@ -128,7 +128,17 @@ func TestFillImageTransparency(t *testing.T) {
 			var b bytes.Buffer
 			err = e.EncodePNG(&b, inputImg)
 			require.NoError(t, err)
-			require.Equal(t, expectedBytes, b.Bytes())
+
+			// Compare the decoded images rather than the encoded bytes: the
+			// compressed stream differs across Go versions (compress/flate
+			// changed in Go 1.27), but the pixels must not.
+			expectedImg, format, err := d.Decode(bytes.NewReader(expectedBytes))
+			require.NoError(t, err)
+			require.Equal(t, "png", format)
+			actualImg, format, err := d.Decode(bytes.NewReader(b.Bytes()))
+			require.NoError(t, err)
+			require.Equal(t, "png", format)
+			require.Equal(t, expectedImg, actualImg)
 		})
 	}
 

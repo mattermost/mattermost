@@ -98,7 +98,6 @@ describe('components/widgets/users/Avatars', () => {
             />,
             state,
         );
-        expect(container).toMatchSnapshot();
         expect(container.querySelector('img[src="/api/v4/users/1/image?_=1620680333191"]')).toBeInTheDocument();
         expect(container.querySelector('img[src="/api/v4/users/2/image?_=1620680333191"]')).toBeInTheDocument();
         expect(container.querySelector('img[src="/api/v4/users/3/image?_=1620680333191"]')).toBeInTheDocument();
@@ -119,8 +118,6 @@ describe('components/widgets/users/Avatars', () => {
             />,
             state,
         );
-
-        expect(container).toMatchSnapshot();
         expect(container.querySelector('img[src="/api/v4/users/1/image?_=1620680333191"]')).toBeInTheDocument();
         expect(container.querySelector('img[src="/api/v4/users/2/image?_=1620680333191"]')).toBeInTheDocument();
         expect(container.querySelector('img[src="/api/v4/users/3/image?_=1620680333191"]')).toBeInTheDocument();
@@ -165,8 +162,6 @@ describe('components/widgets/users/Avatars', () => {
             />,
             state,
         );
-
-        expect(container).toMatchSnapshot();
         expect(getMissingProfilesByIds).toHaveBeenCalledWith(['1', '6', '7', '2', '8', '9']);
 
         expect(container.querySelector('img[src="/api/v4/users/1/image?_=1620680333191"]')).toBeInTheDocument();

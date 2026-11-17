@@ -163,4 +163,21 @@ describe('useExternalLink', () => {
         expect(href).toBe(mailtoUrl);
         expect(queryParams).toEqual({});
     });
+
+    it('do not modify links to the server itself when it is hosted on mattermost.com', () => {
+        const url = 'https://hub.mattermost.com/_documentation/';
+        const state = getBaseState();
+        state.entities!.general!.config!.SiteURL = 'https://hub.mattermost.com';
+        const {result: {current: [href, queryParams]}} = renderHookWithContext(() => useExternalLink(url, 'menu_item_external_link'), state);
+        expect(href).toBe(url);
+        expect(queryParams).toEqual({});
+    });
+
+    it('still tracks other mattermost.com links when the server is hosted on mattermost.com', () => {
+        const url = 'https://docs.mattermost.com/some/page';
+        const state = getBaseState();
+        state.entities!.general!.config!.SiteURL = 'https://hub.mattermost.com';
+        const {result: {current: [href]}} = renderHookWithContext(() => useExternalLink(url), state);
+        expect(new URL(href).searchParams.get('utm_source')).toBe('mattermost');
+    });
 });

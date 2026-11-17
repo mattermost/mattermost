@@ -14707,7 +14707,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "https://push.mattermost.com (Enterprise ile birlikte gelen üretim ortamı Hosted Push Notification Service hizmeti) ya da kendi barındırdığınız bir anında bildirim vekil sunucusu kullanın."
+    "translation": "https://push.mattermost.com (Enterprise ile birlikte gelen, üretim ortamına yönelik Hosted Push Notification Service hizmeti) ya da kendi barındırdığınız bir anında bildirim vekil sunucusu kullanın."
   },
   {
     "id": "health.rule.push_test_proxy.title",

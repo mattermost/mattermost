@@ -139,6 +139,18 @@ describe('serializeToMarkdown', () => {
 
         expect(serializeToMarkdown(editor)).toBe('[Mattermost](https://mattermost.com)');
     });
+
+    it.each([
+        ['an unclosed code fence', '``` - [ ] example'],
+        ['a tilde fence', '~~~'],
+        ['a typed labelled link', '[Docs](https://docs.mattermost.com)'],
+        ['a typed task marker', '- [x] *beta*'],
+        ['inline markdown syntax', 'a * b _c_ `code` ~~gone~~ \\n'],
+    ])('leaves %s in typed text unescaped', (_, text) => {
+        editor.commands.setContent(paragraph({type: 'text', text}));
+
+        expect(serializeToMarkdown(editor)).toBe(text);
+    });
 });
 
 describe('markdown parsing', () => {
@@ -175,5 +187,7 @@ describe('markdown parsing', () => {
         const content = parseMarkdownContent(editor, '- Task List\n  - [ ] To-do item');
 
         expect(() => editor.schema.nodeFromJSON(content!).check()).not.toThrow();
+        expect(roundTrip('- Task List\n  - [ ] To-do item')).toContain('- [ ] To-do item');
     });
 });
+

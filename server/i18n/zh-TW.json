@@ -14695,7 +14695,7 @@
   },
   {
     "id": "health.rule.push_test_proxy.remediation",
-    "translation": "請改用 https://push.mattermost.com（Enterprise 隨附的正式環境託管推播通知服務），或自行架設的推播代理伺服器。"
+    "translation": "請改用 https://push.mattermost.com（Enterprise 隨附的正式環境 Hosted Push Notification Service），或自行架設的推播代理伺服器。"
   },
   {
     "id": "health.rule.push_test_proxy.title",

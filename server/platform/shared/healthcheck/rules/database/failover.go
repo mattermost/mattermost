@@ -11,6 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules/internal/hosts"
 )
 
 const failoverBurst = 400
@@ -30,7 +31,8 @@ var dbHAFailoverStormRisk = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityTopology,
 	Subject:    maxOpenConnsSubject,
-	Eval:       evalDBHAFailoverStormRisk,
+	Eval: healthcheck.Licensed(healthcheck.FeatureCluster,
+		healthcheck.Gate((*healthcheck.Snapshot).ClusterEnabled, healthcheck.ReasonConfigUnavailable, evalDBHAFailoverStormRisk)),
 }
 
 func isPoolerHost(host string) bool {
@@ -41,29 +43,21 @@ func isPoolerHost(host string) bool {
 	if h, _, err := net.SplitHostPort(host); err == nil {
 		host = h
 	}
-	host = strings.ToLower(strings.Trim(host, "[]"))
-	if ip := net.ParseIP(host); host == "localhost" || (ip != nil && ip.IsLoopback()) {
+	if hosts.IsLocal(host) {
 		return true
 	}
+	host = strings.ToLower(host)
 	return slices.ContainsFunc(poolerHostMarkers, func(marker string) bool { return strings.Contains(host, marker) })
 }
 
-func evalDBHAFailoverStormRisk(s *healthcheck.Snapshot) []healthcheck.Result {
-	clustered, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ClusterSettings.Enable })
-	if !ok {
-		return unknownConfig()
-	}
-	if !clustered {
-		return resolved()
-	}
-
-	diag, ok := leaderDiag(s, model.SectionCluster)
+func evalDBHAFailoverStormRisk(s *healthcheck.Snapshot) healthcheck.Result {
+	diag, ok := s.LeaderDiag(model.SectionCluster)
 	if !ok || diag.Cluster.NumberOfNodes == nil {
 		return unknownDiagnostics()
 	}
 	nodes := *diag.Cluster.NumberOfNodes
 	if nodes < 2 {
-		return resolved()
+		return healthcheck.Resolved()
 	}
 
 	maxOpen, ok := maxOpenConns(s)
@@ -73,7 +67,7 @@ func evalDBHAFailoverStormRisk(s *healthcheck.Snapshot) []healthcheck.Result {
 	// Only the primary pools reconnect to the promoted primary; replica pools keep their own hosts.
 	burst := maxOpen * nodes
 	if burst < failoverBurst {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(burst))}
+		return healthcheck.Resolved().WithValue(float64(burst))
 	}
 
 	dsn, ok := s.DataSource()
@@ -86,12 +80,12 @@ func evalDBHAFailoverStormRisk(s *healthcheck.Snapshot) []healthcheck.Result {
 	}
 	// The driver tries hosts in order, so any direct host can take the full burst.
 	if !slices.ContainsFunc(hosts, func(host string) bool { return !isPoolerHost(host) }) {
-		return []healthcheck.Result{healthcheck.Resolved().WithValue(float64(burst))}
+		return healthcheck.Resolved().WithValue(float64(burst))
 	}
 
-	return []healthcheck.Result{healthcheck.Firing(healthcheck.TranslationId("health.rule.db_ha_failover_storm_risk.message")).
+	return healthcheck.Firing(healthcheck.TranslationId("health.rule.db_ha_failover_storm_risk.message")).
 		WithDetail("nodes", strconv.Itoa(nodes)).
 		WithDetail("max_open", strconv.Itoa(maxOpen)).
 		WithDetail("burst", strconv.Itoa(burst)).
-		WithValue(float64(burst))}
+		WithValue(float64(burst))
 }

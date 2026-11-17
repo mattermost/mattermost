@@ -116,6 +116,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err, "couldn't get thread")
 		require.NotNil(t, thread)
 		require.Equal(t, int64(2), thread.ReplyCount)
+		require.Equal(t, max(newPosts[1].CreateAt, newPosts[2].CreateAt), thread.LastReplyAt)
 		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
 		teamId := model.NewId()
@@ -268,6 +269,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread.ReplyCount, 2)
+		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
 		err = ss.Post().Delete(rctx, replyPost.Id, 123, model.NewId())
@@ -275,6 +277,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread.ReplyCount, 1)
+		require.Equal(t, replyPost3.CreateAt, thread.LastReplyAt)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost3.UserId})
 	})
 

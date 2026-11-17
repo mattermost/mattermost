@@ -20,7 +20,7 @@ This is the Mattermost web app codebase, a React-based frontend application for 
 | Dev server (webpack-dev-server) | `make dev` or `npm run dev-server --workspace=channels` |
 | Build all workspaces | `make dist` or `npm run build` |
 | Build Channels only | `npm run build --workspace=channels` |
-| Tests | `make test` or `npm run test --workspace=channels` (use `test:watch`, `test:updatesnapshot` as needed) |
+| Tests | `make test` or `npm run test --workspace=channels` (use `test:watch` as needed) |
 | Lint / Style | `make check-style`, `make fix-style`, `npm run check --workspace=channels`, `npm run fix --workspace=channels` |
 | Type check | `make check-types` |
 | Clean artifacts | `make clean` or `npm run clean --workspaces --if-present` |
@@ -67,7 +67,7 @@ import Client4 from '../platform/client/src/client4.ts';
 - **React Router 5.3**: Client-side routing
 - **React Intl**: Internationalization
 - **Floating UI**: Tooltips and popovers (prefer `WithTooltip` from `@mattermost/shared/components/tooltip`)
-- **@mattermost/compass-ui**: Published Compass UI components (prefer `Button` from `@mattermost/compass-ui/components/button` over hand-rolled or shared Button)
+- **@mattermost/compass-ui**: Published Compass UI components (prefer `Button` from `@mattermost/compass-ui/components/button` over hand-rolled or shared Button; shared `Button` is removed, `buttonClassNames` remains for class-only cases)
 - **@mattermost/shared**: Shared components and utilities (`WithTooltip`, `Emoji`, etc.) — use where `webapp/AGENTS.md` specifies them
 - **@mattermost/compass-icons**: Icon library (prefer over font-awesome)
 - **Monaco Editor**: Code editor integration

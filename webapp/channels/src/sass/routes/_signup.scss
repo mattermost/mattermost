@@ -36,11 +36,18 @@ body {
 .signup-team__container {
     position: relative;
     display: flex;
+
+    // Load-bearing: .terms-of-service__markdown below is min-width: 100vw and
+    // would otherwise blow the page out horizontally. It does mean the
+    // container clips anything that paints outside its box -- including the
+    // Compass focus ring, which sits 3px outside a button and is 2px wide.
+    // The 8px gutter gives that ring room; max-width carries it so the content
+    // column stays 400px (box-sizing is border-box, globally, from Bootstrap).
     overflow: hidden;
-    max-width: 400px;
+    max-width: 416px;
     flex: 1;
     flex-direction: column;
-    padding: 40px 0 0;
+    padding: 40px 8px 8px;
     margin: 0 auto;
 
     .medium-center {
@@ -109,8 +116,14 @@ body {
         padding-bottom: 0.5em;
 
         .terms-of-service__button-group {
+            display: flex;
+            justify-content: center;
             padding-top: 1em;
             padding-bottom: 1em;
+
+            // Was the global `.btn + .btn` margin in _buttons.scss, which the
+            // Compass buttons no longer match.
+            gap: 8px;
         }
 
         .terms-of-service__server-error {

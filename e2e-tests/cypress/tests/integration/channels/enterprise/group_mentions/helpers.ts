@@ -14,12 +14,10 @@ export function enableGroupMention(groupName: string, groupID: string, userEmail
     }
     cy.get('#group_profile').scrollIntoView().wait(TIMEOUTS.TWO_SEC);
 
-    // # Click the allow reference button
-    cy.findByTestId('allowReferenceSwitch').then((el) => {
-        const button = el.find('button');
-        const classAttribute = button[0]?.getAttribute('class') ?? '';
-        if (!classAttribute.includes('active')) {
-            button[0].click();
+    // # Enable group mentions if not already on
+    cy.findByTestId('allowReferenceSwitch-button').then(($input) => {
+        if (!$input.prop('checked')) {
+            cy.wrap($input).click({force: true});
         }
     });
 

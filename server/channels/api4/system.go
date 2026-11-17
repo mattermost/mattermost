@@ -55,7 +55,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/caches/invalidate", api.APISessionRequired(invalidateCaches)).Methods(http.MethodPost)
 
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APISessionRequired(getLogs)).Methods(http.MethodGet)
-	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequired(downloadLogs)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/logs/download", api.APISessionRequiredGzip(downloadLogs)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/logs/query", api.APISessionRequired(queryLogs)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/logs", api.APIHandler(postLog)).Methods(http.MethodPost)
 
@@ -364,7 +364,7 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 	var logFilter *model.LogFilter
 	err := json.NewDecoder(r.Body).Decode(&logFilter)
 	if err != nil || logFilter == nil {
-		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusInternalServerError)
+		c.Err = model.NewAppError("queryLogs", "api.system.logs.invalidFilter", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
@@ -379,25 +379,33 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logsJSON := make(map[string][]any)
-	var result any
+	logsJSON := make(map[string][]any, len(logs))
 	for node, logLines := range logs {
-		for _, log := range logLines {
-			err = json.Unmarshal([]byte(log), &result)
-			if err != nil {
-				c.Logger.Warn("Error parsing log line in Server Logs", mlog.String("from_node", node), mlog.Err(err))
-			} else {
-				logsJSON[node] = append(logsJSON[node], result)
-			}
-		}
+		logsJSON[node] = decodeLogLines(logLines)
 	}
 
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+	auditRec.Success()
 
 	if _, err := w.Write(model.ToJSON(logsJSON)); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// decodeLogLines decodes the JSON log lines and skips the others, as a log file holds plain-text
+// lines when LogSettings.FileJson is off. It doesn't log them: each message would be a line in
+// the log file, which a client polling the logs would read back on its next query.
+func decodeLogLines(logLines []string) []any {
+	entries := make([]any, 0, len(logLines))
+	for _, line := range logLines {
+		var entry any
+		if err := json.Unmarshal([]byte(line), &entry); err != nil {
+			continue
+		}
+		entries = append(entries, entry)
+	}
+	return entries
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -417,6 +425,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterToAuditRec(auditRec, "page", c.Params.Page)
 	model.AddEventParameterToAuditRec(auditRec, "logs_per_page", c.Params.LogsPerPage)
+	auditRec.Success()
 
 	if _, err := w.Write([]byte(model.ArrayToJSON(lines))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -432,19 +441,26 @@ func downloadLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fileData, err := c.App.Srv().Platform().GetLogFile(c.AppContext)
+	file, err := c.App.Srv().Platform().OpenLogFile(c.AppContext)
+	if err != nil {
+		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	defer file.Close()
+
+	stat, err := file.Stat()
 	if err != nil {
 		c.Err = model.NewAppError("downloadLogs", "api.system.logs.download_bytes_buffer.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	reader := bytes.NewReader(fileData.Body)
+	// The server keeps writing to the file, so only send the bytes its size was taken from.
 	web.WriteFileResponse(config.LogFilename,
 		"text/plain",
-		int64(len(fileData.Body)),
+		stat.Size(),
 		time.Now(),
 		*c.App.Config().ServiceSettings.WebserverMode,
-		reader,
+		io.NewSectionReader(file, 0, stat.Size()),
 		true,
 		w,
 		r)
@@ -584,7 +600,7 @@ func testFileStore(c *Context, w http.ResponseWriter, r *http.Request) {
 	// after the only supported test endpoint at the time it was introduced.
 	// The new /file/test endpoint is backend-agnostic but reuses the same
 	// permission to avoid a role migration.
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionTestS3) {
+	if !c.App.SessionHasPermissionToAndNotRestrictedAdmin(*c.AppContext.Session(), model.PermissionTestS3) {
 		c.SetPermissionError(model.PermissionTestS3)
 		return
 	}

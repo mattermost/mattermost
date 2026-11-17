@@ -11,6 +11,7 @@ import LeaveChannelModal from 'components/leave_channel_modal';
 import {WithTestMenuContext} from 'components/menu/menu_context_test';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {ModalIdentifiers} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -41,6 +42,20 @@ describe('components/ChannelHeaderMenu/MenuItems/LeaveChannelTest', () => {
         expect(useDispatch).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.leaveChannel).toHaveBeenCalledTimes(1); // Ensure dispatch was called
         expect(channelActions.leaveChannel).toHaveBeenCalledWith(channel.id);
+    });
+
+    test('says Leave Board for a board', () => {
+        const channel = TestHelper.getChannelMock({id: 'board1'});
+
+        renderWithContext(
+            <WithTestMenuContext>
+                <LeaveChannel channel={channel}/>
+            </WithTestMenuContext>,
+            boardChannelsState('board1'),
+        );
+
+        expect(screen.getByText('Leave Board')).toBeInTheDocument();
+        expect(screen.queryByText('Leave Channel')).not.toBeInTheDocument();
     });
 
     test('renders the component correctly, handle click event for manage groups', async () => {

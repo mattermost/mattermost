@@ -660,4 +660,17 @@ func TestGetMatchesForHit(t *testing.T) {
 	actual, err := GetMatchesForHit(snippets)
 	require.NoError(t, err)
 	require.ElementsMatch(t, expected, actual)
+
+	t.Run("characters that are illegal in XML are ignored", func(t *testing.T) {
+		actual, err := GetMatchesForHit(map[string][]string{
+			"message": {
+				"build <em>deployment</em> \x1b[31mFAILED\x1b[0m",
+				"<em>dep\x00loy</em> and <em>release</em>\ufffe",
+				"invalid utf-8 \xff before <em>rollback</em>",
+				"<em>café</em> and <em>日本語</em> and <em>🚀</em>",
+			},
+		})
+		require.NoError(t, err)
+		require.ElementsMatch(t, []string{"deployment", "deploy", "release", "rollback", "café", "日本語", "🚀"}, actual)
+	})
 }

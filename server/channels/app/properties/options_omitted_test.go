@@ -52,23 +52,34 @@ func requireOptionsWithheld(t *testing.T, field *model.PropertyField) {
 
 // requireStoredOptionsWithheld reads the field back and asserts the withheld
 // shape. Create returns the field as the caller submitted it — option list and
-// all — so only a read shows what the field now looks like to a consumer.
-func requireStoredOptionsWithheld(t *testing.T, th *TestHelper, groupID, fieldID string) {
+// all — so only a read shows what the field now looks like to a consumer. The
+// read takes an rctx because a caller the field refuses option.read gets the
+// options *hidden* instead, which is a different shape from withheld-for-size.
+func requireStoredOptionsWithheld(t *testing.T, th *TestHelper, rctx request.CTX, groupID, fieldID string) {
 	t.Helper()
-	field, err := th.service.GetPropertyField(th.Context, groupID, fieldID)
+	field, err := th.service.GetPropertyField(rctx, groupID, fieldID)
 	require.NoError(t, err)
 	requireOptionsWithheld(t, field)
 }
 
 // requireOptionsHidden asserts a masked field discloses no option names and no
-// count. The withheld marker survives masking, though: it is what the store
-// keys its option reconciliation on, so a masked field that lost it could
-// never be written back at all.
+// count of them.
 func requireOptionsHidden(t *testing.T, field *model.PropertyField) {
 	t.Helper()
 	assert.Empty(t, field.Attrs[model.PropertyFieldAttributeOptions], "no option may be visible")
 	assert.NotContains(t, field.Attrs, model.PropertyFieldAttributeOptionsCount, "the option count is controlled information too")
-	require.True(t, model.PropertyFieldOptionsOmitted(field.Attrs))
+}
+
+// requireWithheldOptionsHidden is requireOptionsHidden for a field whose option
+// list the read left out for size. That field's withheld marker survives
+// masking, unlike its count: the store keys its option reconciliation on the
+// marker, so a masked field that lost it could never be written back at all --
+// a read-modify-write would look identical to a caller asserting the field has
+// no options.
+func requireWithheldOptionsHidden(t *testing.T, field *model.PropertyField) {
+	t.Helper()
+	requireOptionsHidden(t, field)
+	require.True(t, model.PropertyFieldOptionsOmitted(field.Attrs), "the withheld marker must survive masking")
 }
 
 // TestOptionsOmitted_ReadMasking covers the read-masking consumers of the
@@ -136,7 +147,7 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 	})
 
 	t.Run("a shared_only rank field hides every option from a holder", func(t *testing.T) {
@@ -150,7 +161,7 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 	})
 
 	t.Run("a shared_only rank field hides another user's value", func(t *testing.T) {
@@ -183,29 +194,39 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, userID), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 	})
 
 	t.Run("a masked read keeps the marker, so a write it still refuses is refused for the real reason", func(t *testing.T) {
-		// Protected+owners is a combination no caller can ask the service for --
-		// protected can only be set by the source plugin, and owners only by an
-		// administrator, and neither create nor update takes both from the same
-		// caller. Written straight to the store, as field_options_test.go's
-		// fieldWith does for the same reason.
+		// Written straight to the store, as field_options_test.go's fieldWith
+		// does: the masking and the exemption naming the managing plugin are
+		// both template-or-administrator settings, and no single caller can ask
+		// create for this whole shape in one go.
 		options := oversizedOptions(false)
 		field := th.CreatePropertyFieldDirect(t, &model.PropertyField{
 			GroupID:    th.CPAGroupID,
-			Name:       "select-owner-managed",
+			Name:       "select-plugin-managed",
 			Type:       model.PropertyFieldTypeSelect,
 			ObjectType: model.PropertyFieldObjectTypeUser,
 			TargetType: string(model.PropertyFieldTargetLevelSystem),
 			Attrs: model.StringInterface{
-				model.PropertyAttrsAccessMode:       model.PropertyAccessModeSharedOnly,
-				model.PropertyAttrsProtected:        true,
-				model.PropertyAttrsSourcePluginID:   "test-plugin",
 				model.PropertyFieldAttributeOptions: options,
-				model.PropertyAttrsOwners: []model.PropertyOwner{
-					{ID: "test-plugin", Type: model.PropertyOwnerTypePlugin},
+			},
+			Permissions: &model.Permissions{
+				// option.read: everyone lets the plain user below past the gate,
+				// so what it is served is masking's answer and not a denial's.
+				Restrictions: &model.Restrictions{
+					Option: model.ReadWrite{Read: model.PermissionLevelEveryone},
+				},
+				// A machine caller holds nothing, so the managing plugin needs
+				// both a grant to read the options at all and an exemption to be
+				// shown them.
+				Grants: []model.Grant{{
+					Identity: model.Identity{Type: model.PropertyOwnerTypePlugin, ID: "test-plugin"},
+					Allow:    []string{model.PropertyActionOptionRead},
+				}},
+				Masking: &model.Masking{
+					Except: []model.Identity{{Type: model.PropertyOwnerTypePlugin, ID: "test-plugin"}},
 				},
 			},
 		})
@@ -213,28 +234,26 @@ func TestOptionsOmitted_ReadMasking(t *testing.T) {
 		require.NoError(t, err)
 		requireOptionsWithheld(t, sourceRead)
 
-		// A plain user is neither the source plugin nor a listed owner, so this
-		// read comes back masked -- and the marker must survive that masking,
-		// which is what requireOptionsHidden below checks.
+		// The plain user holds nothing on the field supplying holdings -- itself
+		// -- so this read comes back masked, and the marker must survive that
+		// masking, which is what requireWithheldOptionsHidden below checks.
 		userID := model.NewId()
 		rctxUser := RequestContextWithCallerID(th.Context, userID)
 		retrieved, err := th.service.GetPropertyField(rctxUser, th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		requireOptionsHidden(t, retrieved)
+		requireWithheldOptionsHidden(t, retrieved)
 
-		// This field can never be written by anyone but its source plugin --
-		// shared_only implies protected, and a protected field belongs to its
-		// source plugin alone, owner or not. The point here is which error that
-		// produces: with the marker gone, the store would refuse this as an
-		// options-list replacement; with it surviving the mask, the refusal is
-		// the pre-existing protected-field one instead, and every option is left
-		// in place either way.
-		patchAttrs := model.StringInterface{"display_name": "Owner Managed"}
+		// field.write is unset, so no human may write this field's definition.
+		// The point here is which error that produces: the field-write refusal,
+		// not the store's options-list one -- a masked field that lost the
+		// marker would look like a caller asserting it has no options, and
+		// every option is left in place either way.
+		patchAttrs := model.StringInterface{"display_name": "Plugin Managed"}
 		retrieved.Patch(&model.PropertyFieldPatch{Attrs: &patchAttrs}, true)
 		_, _, err = th.service.UpdatePropertyField(rctxUser, th.CPAGroupID, retrieved)
 		require.Error(t, err)
 		require.ErrorIs(t, err, ErrAccessDenied)
-		require.ErrorContains(t, err, "only source plugin")
+		require.ErrorContains(t, err, "refuses caller")
 		assert.NotContains(t, err.Error(), "options were not loaded")
 
 		sourceRead, err = th.service.GetPropertyField(rctxSource, th.CPAGroupID, field.ID)
@@ -264,7 +283,7 @@ func TestOptionsOmitted_ValueValidation(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	requireStoredOptionsWithheld(t, th, group.ID, field.ID)
+	requireStoredOptionsWithheld(t, th, th.Context, group.ID, field.ID)
 
 	t.Run("an option the field really has is accepted", func(t *testing.T) {
 		encoded, mErr := json.Marshal(optionIDAt(t, options, 0))
@@ -304,7 +323,12 @@ func TestOptionsOmitted_WithheldGuardOnLinkedField(t *testing.T) {
 	th := Setup(t)
 	group := th.RegisterPropertyGroup(t, model.PropertyGroupVersionV2)
 
-	template, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+	// The hook gates this group, so the fixtures need a caller it recognises and
+	// permissions that let one read the options; a caller refused option.read is
+	// shown the hidden shape, not the withheld-for-size shape under test.
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
+
+	template, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 		GroupID:    group.ID,
 		Name:       "template-oversized",
 		Type:       model.PropertyFieldTypeSelect,
@@ -313,11 +337,12 @@ func TestOptionsOmitted_WithheldGuardOnLinkedField(t *testing.T) {
 		Attrs: model.StringInterface{
 			model.PropertyFieldAttributeOptions: oversizedOptions(false),
 		},
+		Permissions: openPermissions(),
 	})
 	require.NoError(t, err)
-	requireStoredOptionsWithheld(t, th, group.ID, template.ID)
+	requireStoredOptionsWithheld(t, th, rctx, group.ID, template.ID)
 
-	linked, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+	linked, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 		GroupID:       group.ID,
 		Name:          "linked-oversized",
 		Type:          model.PropertyFieldTypeSelect,
@@ -326,27 +351,27 @@ func TestOptionsOmitted_WithheldGuardOnLinkedField(t *testing.T) {
 		LinkedFieldID: model.NewPointer(template.ID),
 	})
 	require.NoError(t, err)
-	requireStoredOptionsWithheld(t, th, group.ID, linked.ID)
+	requireStoredOptionsWithheld(t, th, rctx, group.ID, linked.ID)
 
 	t.Run("a read-modify-write that supplies no options is allowed", func(t *testing.T) {
-		field, gErr := th.service.GetPropertyField(th.Context, group.ID, linked.ID)
+		field, gErr := th.service.GetPropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, gErr)
 		field.Attrs["display_name"] = "Linked"
 
-		updated, _, uErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		updated, _, uErr := th.service.UpdatePropertyField(rctx, group.ID, field)
 		require.NoError(t, uErr)
 		assert.Equal(t, "Linked", updated.Attrs["display_name"])
 		requireOptionsWithheld(t, updated)
 	})
 
 	t.Run("supplying an option list is refused", func(t *testing.T) {
-		field, gErr := th.service.GetPropertyField(th.Context, group.ID, linked.ID)
+		field, gErr := th.service.GetPropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, gErr)
 		field.Attrs[model.PropertyFieldAttributeOptions] = []any{
 			map[string]any{"id": model.NewId(), "name": "Local"},
 		}
 
-		_, _, uErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, uErr := th.service.UpdatePropertyField(rctx, group.ID, field)
 		require.Error(t, uErr)
 		assert.Contains(t, uErr.Error(), "option list of a field whose options were not loaded")
 	})
@@ -355,17 +380,17 @@ func TestOptionsOmitted_WithheldGuardOnLinkedField(t *testing.T) {
 		// A client that read the field, saw no options, and normalised that to an
 		// empty array. It asserts nothing, so it is neither refused nor obeyed —
 		// obeying it would ask the store to delete every option the field derives.
-		field, gErr := th.service.GetPropertyField(th.Context, group.ID, linked.ID)
+		field, gErr := th.service.GetPropertyField(rctx, group.ID, linked.ID)
 		require.NoError(t, gErr)
 		field.Attrs[model.PropertyFieldAttributeOptions] = []any{}
 
-		_, _, uErr := th.service.UpdatePropertyField(th.Context, group.ID, field)
+		_, _, uErr := th.service.UpdatePropertyField(rctx, group.ID, field)
 		require.NoError(t, uErr)
-		requireStoredOptionsWithheld(t, th, group.ID, linked.ID)
+		requireStoredOptionsWithheld(t, th, rctx, group.ID, linked.ID)
 	})
 
 	t.Run("the template keeps every option throughout", func(t *testing.T) {
-		field, gErr := th.service.GetPropertyField(th.Context, group.ID, template.ID)
+		field, gErr := th.service.GetPropertyField(rctx, group.ID, template.ID)
 		require.NoError(t, gErr)
 		requireOptionsWithheld(t, field)
 	})
@@ -377,8 +402,14 @@ func TestOptionsOmitted_WithheldGuardOnLinkedField(t *testing.T) {
 // as deleted options rather than as a rejected request.
 func TestOptionsOmitted_DisplayNameBackfill(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
+	// This field lives on the access_control group specifically -- the backfill
+	// under test only touches that group -- so its reads need an identified
+	// caller: an anonymous one is refused outright. The field's access mode
+	// defaults to public, which the default ladder checker's member tier
+	// already satisfies.
+	rctx := RequestContextWithCallerID(th.Context, model.NewId())
 
-	field, err := th.service.CreatePropertyField(th.Context, &model.PropertyField{
+	field, err := th.service.CreatePropertyField(rctx, &model.PropertyField{
 		GroupID:    th.CPAGroupID,
 		Name:       "oversized_select",
 		Type:       model.PropertyFieldTypeSelect,
@@ -389,14 +420,16 @@ func TestOptionsOmitted_DisplayNameBackfill(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	requireStoredOptionsWithheld(t, th, th.CPAGroupID, field.ID)
+	stored, err := th.service.GetPropertyField(rctx, th.CPAGroupID, field.ID)
+	require.NoError(t, err)
+	requireOptionsWithheld(t, stored)
 	require.Empty(t, field.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName])
 
 	backfilled, _, err := th.service.MigrateBackfillCPADisplayName(request.EmptyContext(th.Context.Logger()))
 	require.NoError(t, err)
 	require.Equal(t, 1, backfilled)
 
-	updated, err := th.service.GetPropertyField(th.Context, th.CPAGroupID, field.ID)
+	updated, err := th.service.GetPropertyField(rctx, th.CPAGroupID, field.ID)
 	require.NoError(t, err)
 	assert.Equal(t, "oversized_select", updated.Attrs[model.CustomProfileAttributesPropertyAttrsDisplayName])
 	requireOptionsWithheld(t, updated)
@@ -423,7 +456,7 @@ func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 			},
 		})
 		require.NoError(t, err)
-		requireStoredOptionsWithheld(t, th, group.ID, field.ID)
+		requireStoredOptionsWithheld(t, th, th.Context, group.ID, field.ID)
 		return field
 	}
 
@@ -455,7 +488,7 @@ func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 		}))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "option list of a field whose options were not loaded")
-		requireStoredOptionsWithheld(t, th, group.ID, field.ID)
+		requireStoredOptionsWithheld(t, th, th.Context, group.ID, field.ID)
 	})
 
 	t.Run("a supplied empty option list leaves every option in place", func(t *testing.T) {
@@ -486,6 +519,6 @@ func TestOptionsOmitted_PatchThenWrite(t *testing.T) {
 		}))
 		require.Error(t, err)
 		assert.Contains(t, err.Error(), "option list of a field whose options were not loaded")
-		requireStoredOptionsWithheld(t, th, group.ID, field.ID)
+		requireStoredOptionsWithheld(t, th, th.Context, group.ID, field.ID)
 	})
 }

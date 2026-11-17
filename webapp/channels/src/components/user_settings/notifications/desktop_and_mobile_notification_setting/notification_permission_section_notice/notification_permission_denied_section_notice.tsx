@@ -4,7 +4,7 @@
 import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
-import SectionNotice from 'components/section_notice';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 
 export default function NotificationPermissionDeniedSectionNotice() {
     const intl = useIntl();
@@ -21,17 +21,15 @@ export default function NotificationPermissionDeniedSectionNotice() {
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.title',
                     defaultMessage: 'Browser notification permission was denied',
                 })}
-                text={intl.formatMessage({
+                description={intl.formatMessage({
                     id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.message',
                     defaultMessage: 'You\'re missing important message and call notifications from Mattermost. To start receiving notifications, please enable notifications for Mattermost in your browser settings.',
                 })}
-                tertiaryButton={{
-                    text: intl.formatMessage({
-                        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.button',
-                        defaultMessage: 'How to enable notifications',
-                    }),
-                    onClick: handleClick,
-                }}
+                primaryButtonLabel={intl.formatMessage({
+                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.button',
+                    defaultMessage: 'How to enable notifications',
+                })}
+                onPrimaryAction={handleClick}
             />
         </div>
     );

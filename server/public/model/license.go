@@ -441,6 +441,11 @@ func (l *License) HasMHPNS() bool {
 	return l != nil && l.Features != nil && l.Features.MHPNS != nil && *l.Features.MHPNS
 }
 
+// HasAdvancedLogging reports whether the license allows advanced log and audit targets.
+func (l *License) HasAdvancedLogging() bool {
+	return l != nil && l.Features != nil && l.Features.AdvancedLogging != nil && *l.Features.AdvancedLogging
+}
+
 // HasAddOn reports whether the license grants the named add-on. Unlike the
 // SKU-derived helpers above, this deliberately has no minimum-license fallback:
 // an add-on is bought separately from the tier.

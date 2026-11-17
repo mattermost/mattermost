@@ -133,11 +133,11 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 	if channel.Name == model.DefaultChannelName {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(rctx, user, channel); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		} else {
 			if err := a.postAddToTeamMessage(rctx, requestor, user, channel, ""); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		}
 	} else {
@@ -189,14 +189,16 @@ func (a *App) CreateChannelWithUserAndPropertyValues(rctx request.CTX, channel *
 		return nil, model.NewAppError("CreateChannelWithUser", "app.channel.create_channel.no_team_id.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	// Get total number of channels on current team
-	count, err := a.GetNumberOfChannelsOnTeam(rctx, channel.TeamId)
-	if err != nil {
-		return nil, err
-	}
+	if maxChannelsPerTeam := *a.Config().TeamSettings.MaxChannelsPerTeam; maxChannelsPerTeam > 0 {
+		// Get total number of channels on current team
+		count, err := a.GetNumberOfChannelsOnTeam(rctx, channel.TeamId)
+		if err != nil {
+			return nil, err
+		}
 
-	if int64(count+1) > *a.Config().TeamSettings.MaxChannelsPerTeam {
-		return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]any{"MaxChannelsPerTeam": *a.Config().TeamSettings.MaxChannelsPerTeam}, "", http.StatusBadRequest)
+		if int64(count+1) > maxChannelsPerTeam {
+			return nil, model.NewAppError("CreateChannelWithUser", "api.channel.create_channel.max_channel_limit.app_error", map[string]any{"MaxChannelsPerTeam": maxChannelsPerTeam}, "", http.StatusBadRequest)
+		}
 	}
 
 	channel.CreatorId = userID
@@ -385,7 +387,7 @@ func (a *App) setChannelPropertyValuesOnCreate(rctx request.CTX, channel *model.
 		value.UpdatedBy = channel.CreatorId
 	}
 
-	_, appErr := a.UpsertPropertyValues(rctx, values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	_, appErr := a.UpsertPropertyValues(rctxWithSessionCallerID(rctx), values, model.PropertyFieldObjectTypeChannel, channel.Id, "")
 	if appErr == nil {
 		return nil
 	}
@@ -747,7 +749,7 @@ func (a *App) createGroupChannel(rctx request.CTX, userIDs []string, creatorID s
 		} else {
 			// if we could successfully share the channel, we invite
 			// the remotes involved to it
-			if sc, _ := a.getSharedChannelsService(false); sc != nil {
+			if sc, _ := a.getSharedChannelsService(); sc != nil {
 				for remoteID := range remoteIDs {
 					rc, err := a.Srv().Store().RemoteCluster().Get(remoteID, false)
 					if err != nil {
@@ -967,7 +969,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 		if _, err = a.UpdateChannel(rctx, channel); err != nil {
 			a.Log().Error("Failed to revert channel privacy after posting an update message failed", mlog.Err(err))
 		}
-		return channel, postErr
+		return channel, model.AsAppError(postErr)
 	}
 
 	// Now that the conversion is fully committed, cancel pending join
@@ -993,7 +995,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 	return channel, nil
 }
 
-func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	var authorId string
 	var authorUsername string
 	if user != nil {
@@ -1905,8 +1907,7 @@ func (a *App) addUserToChannel(rctx request.CTX, user *model.User, channel *mode
 
 	channelMember, nErr := a.Srv().Store().Channel().GetMember(rctx, channel.Id, user.Id)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); !ok {
 			return nil, model.NewAppError("AddUserToChannel", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
 	} else {
@@ -2057,8 +2058,7 @@ type ChannelMemberOpts struct {
 // AddChannelMember adds a user to a channel. It is a wrapper over AddUserToChannel.
 func (a *App) AddChannelMember(rctx request.CTX, userID string, channel *model.Channel, opts ChannelMemberOpts) (*model.ChannelMember, *model.AppError) {
 	if member, err := a.Srv().Store().Channel().GetMember(rctx, channel.Id, userID); err != nil {
-		var nfErr *store.ErrNotFound
-		if !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
 			return nil, model.NewAppError("AddChannelMember", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	} else {
@@ -2277,9 +2277,9 @@ func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID strin
 }
 
 func (a *App) GetChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
-	channel, appErr := a.Srv().getChannel(rctx, channelID)
-	if appErr != nil {
-		return nil, appErr
+	channel, err := a.Srv().getChannel(rctx, channelID)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	// Hydrate policy action set so consumers can distinguish a membership
 	// policy from a permission-only policy without a second round-trip.
@@ -2325,7 +2325,7 @@ func (a *App) GetChannelOfType(rctx request.CTX, channelID string, channelType m
 	return channel, nil
 }
 
-func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, error) {
 	channel, err := s.Store().Channel().Get(channelID, true)
 	if err != nil {
 		errCtx := map[string]any{"channel_id": channelID}
@@ -2445,7 +2445,7 @@ func (a *App) GetChannelByNameForTeamName(rctx request.CTX, channelName, teamNam
 	return result, nil
 }
 
-func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error) {
 	list, err := s.Store().Channel().GetChannels(teamID, userID, opts)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2461,9 +2461,9 @@ func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, user
 }
 
 func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	channels, appErr := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
-	if appErr != nil {
-		return nil, appErr
+	channels, err := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	// Hydrate the policy action set so the frontend can distinguish a
 	// membership policy from a permission-only one (e.g. file upload) without
@@ -2853,7 +2853,7 @@ func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel
 	return nil
 }
 
-func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.join_team.post_and_forget"), user.Username),
@@ -2983,7 +2983,7 @@ func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedU
 	return nil
 }
 
-func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
@@ -3040,7 +3040,7 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 // removeChannelMembership strips a user's channel membership and the associated
 // thread memberships. Keeping these together ensures channel access cannot be
 // revoked without also dropping the thread state that depends on it.
-func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) *model.AppError {
+func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) error {
 	if err := a.Srv().Store().Channel().RemoveMember(rctx, channelID, userID); err != nil {
 		return model.NewAppError(caller, "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3084,8 +3084,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		return err
 	}
 
-	if appErr := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); appErr != nil {
-		return appErr
+	if err := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); err != nil {
+		return model.AsAppError(err)
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(rctx, userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -4052,7 +4052,12 @@ func (a *App) GetPinnedPosts(rctx request.CTX, channelID string) (*model.PostLis
 		return nil, model.NewAppError("GetPinnedPosts", "app.channel.pinned_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	if appErr := a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
+	posts, appErr := a.revealBurnOnReadPostsForUser(rctx, posts, rctx.Session().UserId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if appErr = a.filterInaccessiblePosts(posts, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
 		return nil, appErr
 	}
 
@@ -4541,8 +4546,7 @@ func (a *App) postMessageForConvertGroupMessageToChannel(rctx request.CTX, chann
 func (s *Server) getDirectChannel(rctx request.CTX, userID, otherUserID string) (*model.Channel, *model.AppError) {
 	channel, nErr := s.Store().Channel().GetByName("", model.GetDMNameFromIds(userID, otherUserID), true)
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		if errors.As(nErr, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			return nil, nil
 		}
 

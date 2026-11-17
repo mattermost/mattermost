@@ -993,9 +993,10 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 		mentions, _ := a.getExplicitMentionsAndKeywords(rctx, post, channel, profileMap, groups, channelMemberNotifyPropsMap, nil)
 
 		userIDs := []string{}
+		const groupMembersPerPage = 100
 		for groupID := range mentions.GroupMentions {
 			for page := 0; ; page++ {
-				groupMemberPage, count, appErr := a.GetGroupMemberUsersPage(groupID, page, 100, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
+				groupMemberPage, _, appErr := a.GetGroupMemberUsersPage(groupID, page, groupMembersPerPage, &model.ViewUsersRestrictions{Channels: []string{channel.Id}})
 				if appErr != nil {
 					return appErr
 				}
@@ -1004,10 +1005,8 @@ func (a *App) RemoveNotifications(rctx request.CTX, post *model.Post, channel *m
 					userIDs = append(userIDs, user.Id)
 				}
 
-				// count is the total number of users that match the filter criteria.
-				// When we've processed `count` number of users, we know there aren't
-				// any more users left to query and we can break the loop
-				if len(userIDs) == count {
+				// A short page means there are no more users left to query.
+				if len(groupMemberPage) < groupMembersPerPage {
 					break
 				}
 			}

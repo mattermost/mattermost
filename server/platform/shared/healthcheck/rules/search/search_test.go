@@ -5,6 +5,7 @@ package search
 
 import (
 	"errors"
+	"slices"
 	"strconv"
 	"testing"
 
@@ -22,13 +23,21 @@ type searchWant struct {
 }
 
 var (
-	resolvedWant      = searchWant{state: healthcheck.StateResolved}
-	unknownConfigWant = searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
-	unknownDiagWant   = searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
+	resolvedWant       = searchWant{state: healthcheck.StateResolved}
+	unknownConfigWant  = searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonConfigUnavailable}
+	unknownDiagWant    = searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonDiagnosticsUnavailable}
+	unknownLicenseWant = searchWant{state: healthcheck.StateUnknown, messageID: healthcheck.ReasonLicenseUnavailable}
 )
 
-// searchSnapshot builds a snapshot from the default config with indexing on, the given
-// leader diagnostics (nil for none) and post count (nil for no stats).
+func enterpriseLicense() model.SupportPacketLicense {
+	return model.SupportPacketLicense{
+		SkuShortName: model.LicenseShortSkuEnterprise,
+		Features:     &model.Features{Elasticsearch: new(true), Cluster: new(true)},
+	}
+}
+
+// searchSnapshot builds a snapshot from the default config with indexing on, an Enterprise
+// license, the given leader diagnostics (nil for no search diagnostics) and post count (nil for no stats).
 func searchSnapshot(mutate func(*model.Config), diag *model.SupportPacketDiagnostics, posts *int64) *healthcheck.Snapshot {
 	cfg := &model.Config{}
 	cfg.SetDefaults()
@@ -37,10 +46,16 @@ func searchSnapshot(mutate func(*model.Config), diag *model.SupportPacketDiagnos
 		mutate(cfg)
 	}
 
-	leader := &healthcheck.NodeSnapshot{Hostname: "app-1", IsLeader: true}
+	// Copied so tests sharing a diag can set different licenses in parallel.
+	leaderDiag := model.SupportPacketDiagnostics{}
+	var errs model.SectionErrors
 	if diag != nil {
-		leader.Diagnostics = &model.NodeDiagnostics{Diagnostics: diag}
+		leaderDiag = *diag
+	} else {
+		errs = model.SectionErrors{model.SectionSearchProbe: errors.New("not collected"), model.SectionSearchEngine: errors.New("not collected")}
 	}
+	leaderDiag.License = enterpriseLicense()
+	leader := &healthcheck.NodeSnapshot{Hostname: "app-1", IsLeader: true, Diagnostics: &model.NodeDiagnostics{Diagnostics: &leaderDiag, Errors: errs}}
 
 	s := healthcheck.NewSnapshot([]*healthcheck.NodeSnapshot{leader})
 	s.Config = &model.SupportPacketConfig{Config: cfg}
@@ -50,6 +65,12 @@ func searchSnapshot(mutate func(*model.Config), diag *model.SupportPacketDiagnos
 		s.Sections[model.SectionStats] = nil
 	}
 
+	return s
+}
+
+func withLicense(s *healthcheck.Snapshot, license model.SupportPacketLicense) *healthcheck.Snapshot {
+	leader, _ := s.Leader()
+	leader.Diagnostics.Diagnostics.License = license
 	return s
 }
 
@@ -79,8 +100,11 @@ func TestConfigAbsentIsUnknown(t *testing.T) {
 	configRules := []healthcheck.Rule{esLocalhostURL, searchUnavailable, scaleESRequired, scaleESRecommended, esLiveBatchSync, esLiveBatchTooHigh, esVersionUnsupported, esMissingICU, esSkipTLSVerify}
 	failed := searchSnapshot(nil, nil, nil)
 	failed.Sections[model.SectionConfig] = errors.New("boom")
+	absent := searchSnapshot(nil, nil, nil)
+	absent.Config = nil
+	absent.Sections = nil
 
-	for name, s := range map[string]*healthcheck.Snapshot{"absent": {}, "failed": failed} {
+	for name, s := range map[string]*healthcheck.Snapshot{"absent": absent, "failed": failed} {
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
 
@@ -108,6 +132,72 @@ func TestIndexingGateClosed(t *testing.T) {
 
 	s.Config.Config.ElasticsearchSettings.LiveIndexingBatchSize = new(500)
 	assertResult(t, esLiveBatchTooHigh, s, resolvedWant)
+}
+
+func TestESLicenseGate(t *testing.T) {
+	t.Parallel()
+
+	// esLiveBatchTooHigh resolves on this snapshot, so it stays resolved even without license data.
+	firingRules := []healthcheck.Rule{esLocalhostURL, esServerError, esLiveBatchSync, esVersionUnsupported, esMissingICU, esSkipTLSVerify}
+	esRules := append(slices.Clone(firingRules), esLiveBatchTooHigh)
+	firingSnapshot := func() *healthcheck.Snapshot {
+		return searchSnapshot(func(cfg *model.Config) {
+			cfg.ElasticsearchSettings.ConnectionURL = new("https://localhost:9200")
+			cfg.ElasticsearchSettings.LiveIndexingBatchSize = new(1)
+			cfg.ElasticsearchSettings.SkipTLSVerification = new(true)
+			cfg.ClusterSettings.Enable = new(true)
+		}, esDiag(model.StatusFail, model.ElasticsearchSettingsESBackend, "7.17.0"), nil)
+	}
+
+	t.Run("licensed", func(t *testing.T) {
+		t.Parallel()
+
+		s := firingSnapshot()
+		for _, rule := range firingRules {
+			results := rule.Eval(s)
+			require.Len(t, results, 1, rule.Code)
+			assert.Equal(t, healthcheck.StateFiring, results[0].State, rule.Code)
+		}
+	})
+
+	esOff := enterpriseLicense()
+	esOff.Features.Elasticsearch = new(false)
+	licenseFailed := firingSnapshot()
+	leader, ok := licenseFailed.Leader()
+	require.True(t, ok)
+	leader.Diagnostics.Errors = model.SectionErrors{model.SectionLicense: errors.New("boom")}
+
+	for name, tc := range map[string]struct {
+		snapshot *healthcheck.Snapshot
+		rules    []healthcheck.Rule
+		want     searchWant
+	}{
+		"unlicensed":             {snapshot: withLicense(firingSnapshot(), model.SupportPacketLicense{}), rules: esRules, want: resolvedWant},
+		"feature off":            {snapshot: withLicense(firingSnapshot(), esOff), rules: esRules, want: resolvedWant},
+		"license section failed": {snapshot: licenseFailed, rules: firingRules, want: unknownLicenseWant},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			for _, rule := range tc.rules {
+				assertResult(t, rule, tc.snapshot, tc.want)
+			}
+		})
+	}
+
+	t.Run("license section failed keeps resolved rules resolved", func(t *testing.T) {
+		t.Parallel()
+		assertResult(t, esLiveBatchTooHigh, licenseFailed, resolvedWant)
+	})
+
+	t.Run("packet predating features runs the rules", func(t *testing.T) {
+		t.Parallel()
+
+		s := withLicense(firingSnapshot(), model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise})
+		for _, rule := range esRules {
+			assert.Equal(t, rule.Eval(firingSnapshot()), rule.Eval(s), rule.Code)
+		}
+	})
 }
 
 func TestESLocalhostURL(t *testing.T) {
@@ -148,6 +238,29 @@ func TestESLocalhostURL(t *testing.T) {
 			assertResult(t, esLocalhostURL, s, tc.want)
 		})
 	}
+
+	clusterLicense := func(cluster *bool) model.SupportPacketLicense {
+		license := enterpriseLicense()
+		license.Features.Cluster = cluster
+		return license
+	}
+	for name, tc := range map[string]struct {
+		license model.SupportPacketLicense
+		want    searchWant
+	}{
+		"cluster unlicensed": {license: clusterLicense(new(false)), want: resolvedWant},
+		"cluster feature not recorded counts as clustered": {license: clusterLicense(nil), want: firing("localhost")},
+	} {
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+
+			s := searchSnapshot(func(cfg *model.Config) {
+				cfg.ElasticsearchSettings.ConnectionURL = new("http://localhost:9200")
+				cfg.ClusterSettings.Enable = new(true)
+			}, nil, nil)
+			assertResult(t, esLocalhostURL, withLicense(s, tc.license), tc.want)
+		})
+	}
 }
 
 func TestESServerError(t *testing.T) {
@@ -159,8 +272,18 @@ func TestESServerError(t *testing.T) {
 		return searchWant{
 			state:     healthcheck.StateFiring,
 			messageID: messageID,
-			details:   map[string]string{"error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			details:   map[string]string{"nodes": "app-1", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
 		}
+	}
+	// withFollowers adds app-2 and app-3 with the given search diagnostics to s.
+	withFollowers := func(s *healthcheck.Snapshot, app2, app3 *healthcheck.NodeSnapshot) *healthcheck.Snapshot {
+		nodes := append(s.Nodes(), app2, app3)
+		cluster := healthcheck.NewSnapshot(nodes)
+		cluster.Config, cluster.Sections = s.Config, s.Sections
+		return cluster
+	}
+	follower := func(hostname string, diag *model.SupportPacketDiagnostics) *healthcheck.NodeSnapshot {
+		return &healthcheck.NodeSnapshot{Hostname: hostname, Diagnostics: &model.NodeDiagnostics{Diagnostics: diag}}
 	}
 
 	dbSearchDisabled := searchSnapshot(func(cfg *model.Config) {
@@ -191,8 +314,31 @@ func TestESServerError(t *testing.T) {
 		{name: "fail with database search setting absent", snapshot: dbSearchAbsent, want: firing("health.rule.es_server_error.message")},
 		{name: "empty status", snapshot: searchSnapshot(nil, esDiag("", "", ""), nil), want: unknownDiagWant},
 		{name: "leader without diagnostics", snapshot: searchSnapshot(nil, nil, nil), want: unknownDiagWant},
-		{name: "no leader", snapshot: &healthcheck.Snapshot{}, want: unknownDiagWant},
+		{name: "no leader", snapshot: &healthcheck.Snapshot{}, want: unknownLicenseWant},
 		{name: "probe section failed", snapshot: sectionFailed, want: unknownDiagWant},
+		{
+			name:     "every node fails",
+			snapshot: withFollowers(searchSnapshot(nil, failed, nil), follower("app-2", failed), follower("app-3", failed)),
+			want: searchWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.es_server_error.message",
+				details:   map[string]string{"nodes": "app-1, app-2, app-3", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			},
+		},
+		{
+			name:     "one node of three fails",
+			snapshot: withFollowers(searchSnapshot(nil, esDiag(model.StatusOk, "", ""), nil), follower("app-2", failed), follower("app-3", esDiag(model.StatusOk, "", ""))),
+			want: searchWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.es_server_error.message.partial",
+				details:   map[string]string{"nodes": "app-2", "error": `Get "https://****@search.example.com:9200/": dial tcp: connection refused`},
+			},
+		},
+		{
+			name:     "nodes without the probe are left out",
+			snapshot: withFollowers(searchSnapshot(nil, failed, nil), &healthcheck.NodeSnapshot{Hostname: "app-2", CollectErr: healthcheck.ErrNodeNoReply}, follower("app-3", esDiag("", "", ""))),
+			want:     firing("health.rule.es_server_error.message"),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -207,17 +353,27 @@ func TestSearchUnavailable(t *testing.T) {
 	t.Parallel()
 
 	firing := searchWant{state: healthcheck.StateFiring, messageID: "health.rule.search_unavailable.message"}
+	unlicensedFiring := searchWant{state: healthcheck.StateFiring, messageID: "health.rule.search_unavailable.message.unlicensed"}
+
+	esOff := enterpriseLicense()
+	esOff.Features.Elasticsearch = new(false)
 
 	testCases := []struct {
 		name       string
 		dbDisabled *bool
 		searching  *bool
+		license    *model.SupportPacketLicense
 		want       searchWant
 	}{
 		{name: "database search on, elasticsearch off", dbDisabled: new(false), searching: new(false), want: resolvedWant},
 		{name: "database search on, elasticsearch on", dbDisabled: new(false), searching: new(true), want: resolvedWant},
 		{name: "database search off, elasticsearch on", dbDisabled: new(true), searching: new(true), want: resolvedWant},
 		{name: "database search off, elasticsearch off", dbDisabled: new(true), searching: new(false), want: firing},
+		{name: "database search off, elasticsearch on but unlicensed", dbDisabled: new(true), searching: new(true), license: &model.SupportPacketLicense{}, want: unlicensedFiring},
+		{name: "database search off, elasticsearch off, unlicensed", dbDisabled: new(true), searching: new(false), license: &model.SupportPacketLicense{}, want: unlicensedFiring},
+		{name: "database search off, elasticsearch on but feature off", dbDisabled: new(true), searching: new(true), license: &esOff, want: unlicensedFiring},
+		{name: "database search off, elasticsearch on, packet predates features", dbDisabled: new(true), searching: new(true), license: &model.SupportPacketLicense{SkuShortName: model.LicenseShortSkuEnterprise}, want: resolvedWant},
+		{name: "database search on, unlicensed", dbDisabled: new(false), searching: new(true), license: &model.SupportPacketLicense{}, want: resolvedWant},
 		{name: "database search setting absent", dbDisabled: nil, searching: new(false), want: unknownConfigWant},
 		{name: "elasticsearch setting absent", dbDisabled: new(true), searching: nil, want: unknownConfigWant},
 	}
@@ -230,6 +386,9 @@ func TestSearchUnavailable(t *testing.T) {
 				cfg.SqlSettings.DisableDatabaseSearch = tc.dbDisabled
 				cfg.ElasticsearchSettings.EnableSearching = tc.searching
 			}, nil, nil)
+			if tc.license != nil {
+				withLicense(s, *tc.license)
+			}
 			assertResult(t, searchUnavailable, s, tc.want)
 		})
 	}
@@ -332,6 +491,18 @@ func TestScaleES(t *testing.T) {
 			}, nil, new(int64(6_000_000))),
 			required:    unknownConfigWant,
 			recommended: unknownConfigWant,
+		},
+		{
+			name:        "unlicensed at 6M",
+			snapshot:    withLicense(searchSnapshot(searchingOff, nil, new(int64(6_000_000))), model.SupportPacketLicense{}),
+			required:    resolvedWant,
+			recommended: resolvedAt(6_000_000),
+		},
+		{
+			name:        "unlicensed at 3M",
+			snapshot:    withLicense(searchSnapshot(searchingOff, nil, new(int64(3_000_000))), model.SupportPacketLicense{}),
+			required:    resolvedAt(3_000_000),
+			recommended: resolvedWant,
 		},
 	}
 
@@ -479,20 +650,5 @@ func TestESSkipTLSVerify(t *testing.T) {
 			}, nil, nil)
 			assertResult(t, esSkipTLSVerify, s, tc.want)
 		})
-	}
-}
-
-func TestMaskURLCredentials(t *testing.T) {
-	t.Parallel()
-
-	for in, want := range map[string]string{
-		"http://search.example.com:9200":             "http://search.example.com:9200",
-		"http://user:pass@search.example.com:9200":   "http://****@search.example.com:9200",
-		"https://token@search.example.com":           "https://****@search.example.com",
-		"https://user:p@ss@search.example.com/x@y":   "https://****@search.example.com/x@y",
-		"a http://u:p@one.example.com b ftp://x@two": "a http://****@one.example.com b ftp://****@two",
-		"no url here, user@example.com":              "no url here, user@example.com",
-	} {
-		assert.Equal(t, want, maskURLCredentials(in), in)
 	}
 }

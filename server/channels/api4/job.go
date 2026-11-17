@@ -24,7 +24,7 @@ func (api *API) InitJob() {
 	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(getJobs)).Methods(http.MethodGet)
 	api.BaseRoutes.Jobs.Handle("", api.APISessionRequired(createJob)).Methods(http.MethodPost)
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}", api.APISessionRequired(getJob)).Methods(http.MethodGet)
-	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequester(downloadJob)).Methods(http.MethodGet)
+	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/download", api.APISessionRequiredTrustRequesterGzip(downloadJob)).Methods(http.MethodGet)
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/cancel", api.APISessionRequired(cancelJob)).Methods(http.MethodPost)
 	api.BaseRoutes.Jobs.Handle("/type/{job_type:[A-Za-z0-9_-]+}", api.APISessionRequired(getJobsByType)).Methods(http.MethodGet)
 	api.BaseRoutes.Jobs.Handle("/{job_id:[A-Za-z0-9]+}/status", api.APISessionRequired(updateJobStatus)).Methods(http.MethodPatch)
