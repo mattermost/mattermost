@@ -499,4 +499,12 @@ func TestChannelAttributeNotifyChannelList(t *testing.T) {
 			list,
 		)
 	})
+
+	t.Run("flattens line breaks in the display name so it cannot end the link", func(t *testing.T) {
+		list := channelAttributeNotifyChannelList([]channelAttributeNotifyChannelRef{
+			{teamName: "team-a", channelName: "sneaky", displayName: "x\n\n# Act now\r\n[here](https://evil.example)\r"},
+		}, "", T)
+
+		assert.Equal(t, "\n- [x  # Act now \\[here\\](https://evil.example) ](/team-a/channels/sneaky)", list)
+	})
 }
