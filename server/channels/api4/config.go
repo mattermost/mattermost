@@ -607,9 +607,9 @@ func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		diffs, err := config.Diff(oldCfg, newCfg)
-		if err != nil {
-			c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		diffs, diffErr := config.Diff(oldCfg, newCfg)
+		if diffErr != nil {
+			c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(diffErr)
 			return
 		}
 		auditRec.AddEventPriorState(&diffs)
