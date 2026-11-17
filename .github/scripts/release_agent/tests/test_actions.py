@@ -809,6 +809,15 @@ class MetricsTest(unittest.TestCase):
                                         "(https://docs.google.com/spreadsheets/d/scorecard/edit#gid=42&range=E1). Left for you: "))
         self.assertIn("Number of bugs reported within a week after the release (filled on Monday, December 21)", done)
 
+    def test_should_count_reverts_by_label_or_title_once_each(self):
+        def pr(number):
+            return {"number": number, "html_url": f"https://github.com/mattermost/mattermost/pull/{number}"}
+        self.world.github.searches = {r"label:Revert milestone:\"v12\.3\.0\"": [pr(1), pr(2)],
+                                      r"Revert in:title milestone:\"v12\.3\.0\"": [pr(2), pr(3)]}
+        self.world.run(at(12, 14, 10, 2), "metrics")
+        self.assertEqual(self.column()["Number of PRs reverted"], "3")
+        self.assertEqual(len([q for q in self.world.github.queries if "Revert" in q]), 2)
+
     def test_should_fill_the_week_after_metric_a_week_later_and_never_overwrite(self):
         self.world.run(at(12, 14, 10, 2), "metrics")
         self.tab["rows"][1][4] = "2026/11/15"  # a person corrected it

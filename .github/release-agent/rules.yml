@@ -581,9 +581,13 @@ scorecard_metrics:
   "Valid bugs found after RC1 is cut":
     source: jira_count
     jql: 'project = MM AND issuetype = Bug AND (resolution is EMPTY OR resolution not in (Duplicate, "Cannot Reproduce", "Won''t Do")) AND created > "{rc1_date}" AND created < "{release_day}" AND fixVersion = "{fix_version}"'
+  # Closed PRs in the milestone with the Revert label or "Revert" in the title, each counted once,
+  # so a revert PR nobody labelled still counts.
   "Number of PRs reverted":
     source: github_count
-    query: 'repo:mattermost/mattermost is:pr is:closed label:Revert milestone:"{milestone}"'
+    queries:
+      - 'repo:mattermost/mattermost is:pr is:closed label:Revert milestone:"{milestone}"'
+      - 'repo:mattermost/mattermost is:pr is:closed Revert in:title milestone:"{milestone}"'
   "# of bugs found per release":
     source: jira_count
     jql: 'project = MM AND issuetype = Bug AND "version reported on[labels]" = {short_version}'

@@ -66,7 +66,10 @@ def value_for(ctx: ActionContext, metric: dict, values: dict) -> tuple[str | Non
     if source == "jira_count":
         return str(ctx.services.jira.count(format_values(metric["jql"], values))), ""
     if source == "github_count":
-        return str(len(ctx.services.github.search_issues(format_values(metric["query"], values)))), ""
+        # Each search's results, counted once: a PR both labelled Revert and titled "Revert …" is one PR.
+        found = {item.get("html_url") or item.get("number")
+                 for query in metric["queries"] for item in ctx.services.github.search_issues(format_values(query, values))}
+        return str(len(found)), ""
     raise ValueError(f"unknown metric source {source}")
 
 
