@@ -311,6 +311,10 @@ export type ChannelAttributeComplianceSummary = {
     unique_admin_count: number;
     channels_without_admin_count: number;
     message_preview: string;
+
+    // Milliseconds until a notify for this field is accepted again; 0 when it
+    // is accepted now.
+    notify_cooldown_ms: number;
 };
 
 export type ChannelAttributeNotifyResult = {

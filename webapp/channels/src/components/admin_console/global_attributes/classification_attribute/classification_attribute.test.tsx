@@ -111,6 +111,7 @@ describe('ClassificationAttribute', () => {
             unique_admin_count: 0,
             channels_without_admin_count: 0,
             message_preview: '',
+            notify_cooldown_ms: 0,
         });
     });
 

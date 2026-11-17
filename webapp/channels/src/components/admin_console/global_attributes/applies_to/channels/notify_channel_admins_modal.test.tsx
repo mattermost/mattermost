@@ -20,6 +20,7 @@ describe('NotifyChannelAdminsModal', () => {
         const {rerender} = renderWithContext(
             <NotifyChannelAdminsModal
                 totalCount={26}
+                sharedCount={0}
                 uniqueAdminCount={10}
                 noAdminCount={2}
                 messagePreview='Please set a value for Cost center.'
@@ -30,11 +31,12 @@ describe('NotifyChannelAdminsModal', () => {
             />,
         );
 
-        expect(screen.getByText(/no channel admin and won't be notified/)).toBeInTheDocument();
+        expect(screen.getByText(/no channel admin and aren't notified/)).toBeInTheDocument();
 
         rerender(
             <NotifyChannelAdminsModal
                 totalCount={24}
+                sharedCount={0}
                 uniqueAdminCount={10}
                 noAdminCount={0}
                 messagePreview='Please set a value for Cost center.'
@@ -45,13 +47,49 @@ describe('NotifyChannelAdminsModal', () => {
             />,
         );
 
-        expect(screen.queryByText(/no channel admin and won't be notified/)).not.toBeInTheDocument();
+        expect(screen.queryByText(/no channel admin and aren't notified/)).not.toBeInTheDocument();
+    });
+
+    it('says how many admins are notified and lists shared channels only when there are some', () => {
+        const {rerender} = renderWithContext(
+            <NotifyChannelAdminsModal
+                totalCount={26}
+                sharedCount={2}
+                uniqueAdminCount={10}
+                noAdminCount={0}
+                messagePreview='Please set a value for Cost center.'
+                attributeDisplayName='Cost center'
+                onConfirm={onConfirm}
+                onCancel={onCancel}
+                onExited={onExited}
+            />,
+        );
+
+        expect(screen.getByText('A notification will be sent to 10 channel administrators requesting them to set a value.')).toBeInTheDocument();
+        expect(screen.getByText('2 channels are shared from a connected workspace.')).toBeInTheDocument();
+
+        rerender(
+            <NotifyChannelAdminsModal
+                totalCount={26}
+                sharedCount={0}
+                uniqueAdminCount={10}
+                noAdminCount={0}
+                messagePreview='Please set a value for Cost center.'
+                attributeDisplayName='Cost center'
+                onConfirm={onConfirm}
+                onCancel={onCancel}
+                onExited={onExited}
+            />,
+        );
+
+        expect(screen.queryByText(/shared from a connected workspace/)).not.toBeInTheDocument();
     });
 
     it('renders the server-supplied message preview verbatim', () => {
         renderWithContext(
             <NotifyChannelAdminsModal
                 totalCount={26}
+                sharedCount={0}
                 uniqueAdminCount={10}
                 noAdminCount={2}
                 messagePreview='Please set a value for Cost center on your channels.'
@@ -69,6 +107,7 @@ describe('NotifyChannelAdminsModal', () => {
         renderWithContext(
             <NotifyChannelAdminsModal
                 totalCount={26}
+                sharedCount={0}
                 uniqueAdminCount={10}
                 noAdminCount={0}
                 messagePreview='preview'
@@ -87,6 +126,7 @@ describe('NotifyChannelAdminsModal', () => {
         renderWithContext(
             <NotifyChannelAdminsModal
                 totalCount={26}
+                sharedCount={0}
                 uniqueAdminCount={10}
                 noAdminCount={0}
                 messagePreview='preview'

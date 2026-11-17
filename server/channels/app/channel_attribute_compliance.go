@@ -123,6 +123,13 @@ func (a *App) GetChannelAttributeComplianceSummary(rctx request.CTX, groupID str
 
 	required := field != nil && model.IsPropertyFieldRequired(field)
 
+	// Lets the page say a notify is still cooling down before the admin
+	// confirms one, instead of only after the send is refused.
+	var notifyCooldownMillis int64
+	if field != nil {
+		notifyCooldownMillis = a.channelAttributeNotifyCooldownRemaining(rctx, field.ID)
+	}
+
 	return &model.ChannelAttributeComplianceSummary{
 		FieldId:                   fieldID,
 		Required:                  required,
@@ -131,5 +138,6 @@ func (a *App) GetChannelAttributeComplianceSummary(rctx request.CTX, groupID str
 		UniqueAdminCount:          uniqueAdminCount,
 		ChannelsWithoutAdminCount: missingLocal - channelsWithAdminCount,
 		MessagePreview:            channelAttributeNotifyMessagePreview(a.channelAttributeDisplayName(rctx, groupID, field), required, channelsWithAdminCount, viewerLocale),
+		NotifyCooldownMillis:      notifyCooldownMillis,
 	}, nil
 }

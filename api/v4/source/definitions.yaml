@@ -854,6 +854,10 @@ components:
         message_preview:
           type: string
           description: The message channel admins would receive, as Markdown, without the list of their own channels that follows it in the direct message.
+        notify_cooldown_ms:
+          type: integer
+          format: int64
+          description: Milliseconds until notifying the channel admins about this attribute is accepted again. 0 when it is accepted now, and always 0 in create mode.
     ChannelAttributeNotifyResult:
       type: object
       description: >

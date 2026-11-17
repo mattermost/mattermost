@@ -42,7 +42,7 @@ describe('ChannelsResourceRow', () => {
         mockUseChannelMissingValues.mockReturnValue({
             loading: false,
             failed: false,
-            summary: {totalCount: 0, sharedCount: 0, uniqueAdminCount: 0, noAdminCount: 0, messagePreview: '', required: false},
+            summary: {totalCount: 0, sharedCount: 0, uniqueAdminCount: 0, noAdminCount: 0, messagePreview: '', notifyAvailableAt: 0, required: false},
             reload: jest.fn(),
         });
     });

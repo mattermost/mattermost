@@ -13,8 +13,14 @@ import Markdown from 'components/markdown';
 
 import {ModalIdentifiers} from 'utils/constants';
 
+import './notify_channel_admins_modal.scss';
+
 export type NotifyChannelAdminsStats = {
     totalCount: number;
+
+    // Channels shared from a connected workspace: not counted in totalCount and
+    // never notified, since their admins live on the other server.
+    sharedCount: number;
     uniqueAdminCount: number;
     noAdminCount: number;
     messagePreview: string;
@@ -67,6 +73,7 @@ export const useNotifyChannelAdmins = () => {
 
 function NotifyChannelAdminsModal({
     totalCount,
+    sharedCount,
     uniqueAdminCount,
     noAdminCount,
     messagePreview,
@@ -92,8 +99,6 @@ function NotifyChannelAdminsModal({
         defaultMessage: 'Send notification',
     });
 
-    const notifiedChannelCount = totalCount - noAdminCount;
-
     return (
         <GenericModal
             id='notifyChannelAdminsModal'
@@ -117,17 +122,26 @@ function NotifyChannelAdminsModal({
             <ul>
                 <li>
                     <FormattedMessage
-                        id='admin.global_attributes.confirm.notify_channel_admins.bullet.unique_admins'
-                        defaultMessage='Notifications go to each unique channel admin — not one message per channel — so {adminCount, plural, one {# admin} other {# admins}} will be contacted for {channelCount, plural, one {# channel} other {# channels}}.'
-                        values={{adminCount: uniqueAdminCount, channelCount: notifiedChannelCount}}
+                        id='admin.global_attributes.confirm.notify_channel_admins.bullet.admins'
+                        defaultMessage='A notification will be sent to {count, plural, one {# channel administrator} other {# channel administrators}} requesting them to set a value.'
+                        values={{count: uniqueAdminCount}}
                     />
                 </li>
                 {noAdminCount > 0 && (
                     <li>
                         <FormattedMessage
                             id='admin.global_attributes.confirm.notify_channel_admins.bullet.no_admin'
-                            defaultMessage="{count, plural, one {# channel has} other {# channels have}} no channel admin and won't be notified."
+                            defaultMessage="{count, plural, one {# channel has no channel admin and isn't notified.} other {# channels have no channel admin and aren't notified.}}"
                             values={{count: noAdminCount}}
+                        />
+                    </li>
+                )}
+                {sharedCount > 0 && (
+                    <li>
+                        <FormattedMessage
+                            id='admin.global_attributes.confirm.notify_channel_admins.bullet.shared'
+                            defaultMessage='{count, plural, one {# channel is} other {# channels are}} shared from a connected workspace.'
+                            values={{count: sharedCount}}
                         />
                     </li>
                 )}

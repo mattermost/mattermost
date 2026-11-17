@@ -165,6 +165,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 10,
             noAdminCount: 2,
             messagePreview: 'preview',
+            notifyAvailableAt: 0,
             required: false,
         }}));
 
@@ -186,6 +187,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 10,
             noAdminCount: 2,
             messagePreview: 'preview',
+            notifyAvailableAt: 0,
             required: false,
         }}));
 
@@ -208,6 +210,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 0,
             noAdminCount: 0,
             messagePreview: 'preview',
+            notifyAvailableAt: 0,
             required: false,
         }}));
 
@@ -228,6 +231,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 10,
             noAdminCount: 2,
             messagePreview: 'preview',
+            notifyAvailableAt: 0,
             required: false,
         }}));
 
@@ -245,6 +249,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 1,
             noAdminCount: 0,
             messagePreview: 'preview',
+            notifyAvailableAt: 0,
             required: true,
         }}));
 
@@ -266,6 +271,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 0,
             noAdminCount: 0,
             messagePreview: '',
+            notifyAvailableAt: 0,
             required: false,
         }}));
         const {onChange} = renderComponent({value: {...DEFAULT_CHANNEL_RESOURCE_CONFIG, required: false}});
@@ -305,6 +311,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 3,
             noAdminCount: 0,
             messagePreview: 'preview',
+            notifyAvailableAt: 0,
             required: false,
         }}));
 
@@ -321,6 +328,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 3,
             noAdminCount: 0,
             messagePreview: 'preview',
+            notifyAvailableAt: 0,
             required: false,
         }}));
 
@@ -337,6 +345,7 @@ describe('ChannelsResourceSettings', () => {
             uniqueAdminCount: 3,
             noAdminCount: 0,
             messagePreview: 'preview',
+            notifyAvailableAt: 0,
             required: false,
         }}));
 
@@ -355,7 +364,7 @@ describe('ChannelsResourceSettings', () => {
     it('posts the notify request only after the confirmation modal resolves true, then reloads the summary', async () => {
         const reload = jest.fn();
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', required: false},
+            summary: {totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: 0, required: false},
             reload,
         }));
         promptNotify.mockResolvedValue(true);
@@ -367,6 +376,7 @@ describe('ChannelsResourceSettings', () => {
 
         expect(promptNotify).toHaveBeenCalledWith({
             totalCount: 7,
+            sharedCount: 0,
             uniqueAdminCount: 3,
             noAdminCount: 0,
             messagePreview: 'preview',
@@ -380,7 +390,7 @@ describe('ChannelsResourceSettings', () => {
 
     it('tells the admin the notify run was truncated instead of implying every admin was reached', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview', required: false},
+            summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: 0, required: false},
         }));
         promptNotify.mockResolvedValue(true);
         mockNotify.mockResolvedValue({queued_admin_count: 20000, queued_channel_count: 20000, channels_without_admin_count: 0, truncated: true});
@@ -397,7 +407,7 @@ describe('ChannelsResourceSettings', () => {
 
     it('shows the server\'s explanation when notify is throttled', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 3, sharedCount: 0, uniqueAdminCount: 1, noAdminCount: 0, messagePreview: 'preview', required: false},
+            summary: {totalCount: 3, sharedCount: 0, uniqueAdminCount: 1, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: 0, required: false},
         }));
         promptNotify.mockResolvedValue(true);
         const throttled = 'The notifications were not sent since channel admins were recently notified about this. You can send another notification in 42 minutes.';
@@ -411,9 +421,26 @@ describe('ChannelsResourceSettings', () => {
         expect(screen.queryByText('The notifications couldn\'t be sent. Please try again.')).not.toBeInTheDocument();
     });
 
+    it('skips the confirmation, shows the wait and refetches the summary when channel admins were notified recently', async () => {
+        const reload = jest.fn();
+        mockUseChannelMissingValues.mockReturnValue(missingValuesState({
+            summary: {totalCount: 3, sharedCount: 0, uniqueAdminCount: 1, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: Date.now() + (41.5 * 60 * 1000), required: false},
+            reload,
+        }));
+
+        renderComponent({channelFieldId: 'field1'});
+
+        await userEvent.click(screen.getByRole('button', {name: 'Notify all channel admins'}));
+
+        expect(screen.getByText('Channel admins were recently notified about this. You can send another notification in 42 minutes.')).toBeInTheDocument();
+        expect(promptNotify).not.toHaveBeenCalled();
+        expect(mockNotify).not.toHaveBeenCalled();
+        expect(reload).toHaveBeenCalled();
+    });
+
     it('keeps the generic failure copy for errors other than throttling', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 3, sharedCount: 0, uniqueAdminCount: 1, noAdminCount: 0, messagePreview: 'preview', required: false},
+            summary: {totalCount: 3, sharedCount: 0, uniqueAdminCount: 1, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: 0, required: false},
         }));
         promptNotify.mockResolvedValue(true);
         mockNotify.mockRejectedValue({status_code: 500, message: 'internal details'});
@@ -428,7 +455,7 @@ describe('ChannelsResourceSettings', () => {
 
     it('does not carry a field\'s queued notification result over to a different field', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview', required: false},
+            summary: {totalCount: 30000, sharedCount: 0, uniqueAdminCount: 20000, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: 0, required: false},
         }));
         promptNotify.mockResolvedValue(true);
         mockNotify.mockResolvedValue({queued_admin_count: 20000, queued_channel_count: 20000, channels_without_admin_count: 0, truncated: true});
@@ -470,7 +497,7 @@ describe('ChannelsResourceSettings', () => {
 
     it('does not act on a confirmation that resolves after the admin has switched to a different field', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({
-            summary: {totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', required: false},
+            summary: {totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: 0, required: false},
         }));
 
         let resolveConfirm: (value: boolean) => void = () => {};
@@ -512,7 +539,7 @@ describe('ChannelsResourceSettings', () => {
 
     it('does not POST when the confirmation is cancelled', async () => {
         mockUseChannelMissingValues.mockReturnValue(missingValuesState({summary: {
-            totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', required: false,
+            totalCount: 7, sharedCount: 0, uniqueAdminCount: 3, noAdminCount: 0, messagePreview: 'preview', notifyAvailableAt: 0, required: false,
         }}));
         promptNotify.mockResolvedValue(false);
 

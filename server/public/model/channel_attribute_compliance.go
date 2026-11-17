@@ -51,6 +51,9 @@ type ChannelAttributeComplianceSummary struct {
 	UniqueAdminCount          int64  `json:"unique_admin_count"`
 	ChannelsWithoutAdminCount int64  `json:"channels_without_admin_count"`
 	MessagePreview            string `json:"message_preview"`
+	// NotifyCooldownMillis is how long until a notify for this field is
+	// accepted again; 0 when it is accepted now.
+	NotifyCooldownMillis int64 `json:"notify_cooldown_ms"`
 }
 
 // ChannelAttributeNotifyResult is returned synchronously by the notify
