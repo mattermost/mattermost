@@ -208,8 +208,9 @@ func loadSystemSettingPolicyOrder(systemStore store.SystemStore) ([]string, erro
 	return strings.Split(system.Value, ","), nil
 }
 
-// sortSystemSettingPolicies orders policies by their position in order, then
-// places unlisted policies after listed ones by CreateAt and ID.
+// sortSystemSettingPolicies places policies missing from order first, newest
+// CreateAt first and then by ID, matching where a save puts a new policy, then
+// the listed policies by their position in order.
 func sortSystemSettingPolicies(policies []cachedSystemSettingPolicy, order []string) {
 	rank := make(map[string]int, len(order))
 	for i, id := range order {
@@ -222,11 +223,11 @@ func sortSystemSettingPolicies(policies []cachedSystemSettingPolicy, order []str
 		case listedA && listedB:
 			return cmp.Compare(rankA, rankB)
 		case listedA:
-			return -1
-		case listedB:
 			return 1
+		case listedB:
+			return -1
 		}
-		if c := cmp.Compare(a.CreateAt, b.CreateAt); c != 0 {
+		if c := cmp.Compare(b.CreateAt, a.CreateAt); c != 0 {
 			return c
 		}
 		return cmp.Compare(a.ID, b.ID)
@@ -482,7 +483,7 @@ func (a *App) saveSystemSettingPolicyOrder(ids []string) *model.AppError {
 }
 
 // ensureSystemSettingPolicyInOrder stores the current effective order with
-// policyID last when it is not yet listed. AccessControlPolicy.CreateAt moves
+// policyID first when it is not yet listed. AccessControlPolicy.CreateAt moves
 // on every revision, so unlisted policies would otherwise shift whenever one
 // is edited.
 func (a *App) ensureSystemSettingPolicyInOrder(rctx request.CTX, policyID string) {
@@ -509,10 +510,10 @@ func (a *App) ensureSystemSettingPolicyInOrder(rctx request.CTX, policyID string
 	sortSystemSettingPolicies(items, order)
 
 	ids := make([]string, 0, len(items)+1)
+	ids = append(ids, policyID)
 	for _, p := range items {
 		ids = append(ids, p.ID)
 	}
-	ids = append(ids, policyID)
 	if len(ids) > model.MaxSystemSettingPolicyOrderLength {
 		return
 	}

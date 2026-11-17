@@ -323,9 +323,9 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 			})
 			return created
 		}
+		everyone := bannerPolicy("Everyone banner", "true", "Company all-hands Thursday")
 		finance := bannerPolicy("Finance banner", `user.attributes.dept == "finance"`, "Finance: quarter close Monday")
 		financeID = finance.ID
-		everyone := bannerPolicy("Everyone banner", "true", "Company all-hands Thursday")
 
 		order, resp, err := th.SystemAdminClient.GetSystemSettingPolicyOrder(context.Background())
 		require.NoError(t, err)

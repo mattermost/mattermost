@@ -27,9 +27,11 @@ export function getScopedConfigurationPrefillRoute(settingKey: string): string {
     return `${SCOPED_CONFIGURATION_EDIT_ROUTE}/setting/${encodeURIComponent(settingKey)}`;
 }
 
+// Policies missing from order come first, as the server ranks new policies
+// above every policy in the stored order.
 export function sortPoliciesByOrder<T extends {id: string}>(policies: T[], order: string[]): T[] {
     const rank = new Map(order.map((id, index) => [id, index]));
-    const rankOf = (policy: T) => rank.get(policy.id) ?? Number.MAX_SAFE_INTEGER;
+    const rankOf = (policy: T) => rank.get(policy.id) ?? -1;
     return [...policies].sort((a, b) => rankOf(a) - rankOf(b));
 }
 

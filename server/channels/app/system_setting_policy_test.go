@@ -508,7 +508,7 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 		assert.Empty(t, evaluated(guest.Id))
 	})
 
-	t.Run("unlisted policies rank after listed ones, oldest first", func(t *testing.T) {
+	t.Run("unlisted policies rank before listed ones, newest first", func(t *testing.T) {
 		_ = enableSystemSettingABAC(t)
 		newPolicy := func(name string) *model.AccessControlPolicy {
 			p := saveStoredPolicy(t, &model.AccessControlPolicy{
@@ -528,20 +528,20 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 
 		order, appErr := th.App.GetSystemSettingPolicyOrder(th.Context)
 		require.Nil(t, appErr)
-		assert.Equal(t, []string{oldest.ID, middle.ID, newest.ID}, order.PolicyIDs)
+		assert.Equal(t, []string{newest.ID, middle.ID, oldest.ID}, order.PolicyIDs)
 
 		require.NoError(t, th.App.Srv().Store().System().SaveOrUpdate(&model.System{
 			Name:  model.SystemSystemSettingPolicyOrderKey,
-			Value: strings.Join([]string{newest.ID, model.NewId()}, ","),
+			Value: strings.Join([]string{oldest.ID, model.NewId()}, ","),
 		}))
 		th.App.invalidateSystemSettingPolicyCache()
 
 		order, appErr = th.App.GetSystemSettingPolicyOrder(th.Context)
 		require.Nil(t, appErr)
-		assert.Equal(t, []string{newest.ID, oldest.ID, middle.ID}, order.PolicyIDs, "stale IDs are ignored and unlisted policies follow by CreateAt")
+		assert.Equal(t, []string{newest.ID, middle.ID, oldest.ID}, order.PolicyIDs, "stale IDs are ignored and unlisted policies lead by CreateAt")
 	})
 
-	t.Run("saving adds new policies to the bottom and deleting removes them", func(t *testing.T) {
+	t.Run("saving adds new policies to the top and deleting removes them", func(t *testing.T) {
 		mockACS := enableSystemSettingABAC(t)
 		adminCtx := sessionCtx(th.SystemAdminUser)
 		mockStoredSystemSettingPolicies(th, mockACS)
@@ -566,23 +566,23 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 
 		a := create("Banner A")
 		b := create("Banner B")
-		assert.Equal(t, []string{a.ID, b.ID}, storedOrder())
+		assert.Equal(t, []string{b.ID, a.ID}, storedOrder())
 
-		_, appErr := th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{b.ID, a.ID}})
+		_, appErr := th.App.UpdateSystemSettingPolicyOrder(th.Context, &model.SystemSettingPolicyOrder{PolicyIDs: []string{a.ID, b.ID}})
 		require.Nil(t, appErr)
 
 		a.Rules[0].Value = "Banner A edited"
 		_, appErr = th.App.CreateOrUpdateAccessControlPolicy(adminCtx, a)
 		require.Nil(t, appErr)
 		c := create("Banner C")
-		assert.Equal(t, []string{b.ID, a.ID, c.ID}, storedOrder(), "edits keep their position and new policies go last")
+		assert.Equal(t, []string{c.ID, a.ID, b.ID}, storedOrder(), "edits keep their position and new policies go first")
 
 		require.Nil(t, th.App.DeleteAccessControlPolicy(adminCtx, a.ID))
-		assert.Equal(t, []string{b.ID, c.ID}, storedOrder())
+		assert.Equal(t, []string{c.ID, b.ID}, storedOrder())
 
 		order, appErr := th.App.GetSystemSettingPolicyOrder(th.Context)
 		require.Nil(t, appErr)
-		assert.Equal(t, []string{b.ID, c.ID}, order.PolicyIDs)
+		assert.Equal(t, []string{c.ID, b.ID}, order.PolicyIDs)
 	})
 
 	t.Run("UpdateSystemSettingPolicyOrder validates IDs and readiness", func(t *testing.T) {
@@ -655,5 +655,5 @@ func TestSortSystemSettingPolicies(t *testing.T) {
 	for _, p := range policies {
 		ids = append(ids, p.ID)
 	}
-	assert.Equal(t, []string{"listed_first", "listed_second", "unlisted_tie_a", "unlisted_tie_b", "unlisted_new"}, ids)
+	assert.Equal(t, []string{"unlisted_new", "unlisted_tie_a", "unlisted_tie_b", "listed_first", "listed_second"}, ids)
 }
