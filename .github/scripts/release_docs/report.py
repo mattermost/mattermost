@@ -16,6 +16,7 @@ the same output posts nothing new.
 """
 
 import hashlib
+import json
 import os
 import re
 
@@ -81,6 +82,31 @@ def review_channel(hub, env: dict, version_text: str) -> str:
     return hublib.review_channel_id(env, live, hublib.release_channel(hub, version))
 
 
+STATE_PROP = "release_docs_state"
+
+
+def report_marker(task: str, version: str, kind: str = "") -> str:
+    return f"release-docs:report:{task}:{version}" + (f":{kind}" if kind else "")
+
+
+def read_state(hub, env: dict, task: str, version: str, kind: str = "") -> tuple[dict | None, str | None]:
+    """(the state kept with the newest Hub report of ``task`` for ``version``, a problem). None when
+    there is no such report yet; the problem says why it couldn't be read."""
+    if hub is None:
+        return None, "RELEASE_AGENT_MM_TOKEN is not set, so Hub can't be read"
+    channel = review_channel(hub, env, version)
+    if not channel:
+        return None, hublib.NO_REVIEW_CHANNEL
+    try:
+        post = hublib.find_post(hub, channel, report_marker(task, version, kind))
+    except hublib.HubError as err:
+        return None, f"Hub could not be read: {err}"
+    try:
+        return (json.loads(((post or {}).get("props") or {}).get(STATE_PROP) or "null") if post else None), None
+    except ValueError:
+        return None, "the Hub report's saved state isn't valid JSON"
+
+
 def deliver(result: Result, env: dict, hub, run_url: str = "") -> tuple[bool, str]:
     """Post the full output to Hub. (posted or already there, what happened, in public words)."""
     if hub is None:
@@ -89,15 +115,17 @@ def deliver(result: Result, env: dict, hub, run_url: str = "") -> tuple[bool, st
     if not channel:
         return False, "not posted: " + hublib.NO_REVIEW_CHANNEL
     report = full_report(result, run_url)
-    digest = hashlib.sha256((report + "".join(f"{k}\n{v}" for k, v in sorted(result.artifacts.items()))).encode()).hexdigest()
-    marker = f"release-docs:report:{result.task}:{result.version}"
+    state = json.dumps(result.state, sort_keys=True) if result.state else ""
+    digest = hashlib.sha256((report + state + "".join(f"{k}\n{v}" for k, v in sorted(result.artifacts.items())))
+                            .encode()).hexdigest()
+    marker = report_marker(result.task, result.version, result.report_kind)
     existing = hublib.find_post(hub, channel, marker)
     if existing and (existing.get("props") or {}).get(HASH_PROP) == digest:
         return True, "unchanged since the last Hub post, so nothing new was posted"
     try:
         file_ids = [hub.upload_file(channel, name, content.encode()) for name, content in sorted(result.artifacts.items())]
         parts = chunks(report)
-        props = {hublib.MARKER_PROP: marker, HASH_PROP: digest}
+        props = {hublib.MARKER_PROP: marker, HASH_PROP: digest, **({STATE_PROP: state} if state else {})}
         root = hub.create_post(channel, parts[0], props, file_ids=file_ids)
         for index, part in enumerate(parts[1:], 2):
             hub.create_post(channel, f"({index}/{len(parts)})\n{part}", {hublib.MARKER_PROP: f"{marker}:part"},

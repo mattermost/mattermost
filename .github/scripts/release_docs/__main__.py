@@ -13,13 +13,15 @@ import sys
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from changelog_release import changelog_path, parse_ls_remote, unreleased_branches
+from changelog_release import MIGRATIONS_DIR, changelog_path, parse_ls_remote, unreleased_branches
 
 from . import (
     announcement,
     breaking,
+    breaking_diff,
     calendar,
     changelog,
+    changelog_run,
     docker_env,
     dot_release,
     drafts,
@@ -37,6 +39,7 @@ from . import (
     release_docs_pr,
     report,
     schedule,
+    upgrade_docs,
     version_archive,
 )
 from . import hub as hublib
@@ -297,9 +300,25 @@ def _run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch
 
     if task == "breaking-changes":
         repos = [r.strip() for r in env.get("REPOS", SERVER_REPO).split(",") if r.strip()]
-        jira_problems = []
+        jira_problems, notes = [], []
+        listed = None
+        if breaking.parse_confirmed(env.get("CONFIRMED", "")) is not None:
+            # A confirmation decides on the candidates of the latest list, kept with its Hub post.
+            state, problem = report.read_state(hublib.from_env(env), breaking_hub_env(env), breaking.TASK, raw_version)
+            listed = (state or {}).get("candidates")
+            if problem:
+                notes.append(f"The latest candidate list could not be read ({problem}).")
+            items = None
+        else:
+            reports, problem = changelog_run.fetch_reports(raw_version, env.get("ACTIONS_TOKEN", ""))
+            items = changelog_run.items(reports) if reports else None
+            if problem:
+                notes.append(f"The changelog run's sections.json was not read: {problem}.")
         result = breaking.run(read_gh, repos, raw_version, env.get("CONFIRMED", ""), claude,
-                              jira_labels_by_key(env, jira_problems))
+                              jira_labels_by_key(env, jira_problems), items,
+                              breaking_diff.run_apidiff if env.get("RUN_APIDIFF") == "true" else None,
+                              breaking.strong_phrases(), listed)
+        result.notes = notes + result.notes
         if not (env.get("JIRA_EMAIL") and env.get("JIRA_TOKEN")):
             result.notes.append("Jira was not read (no RELEASE_AGENT_JIRA_* settings): labels were read from GitHub only.")
         result.notes += jira_problems
@@ -371,8 +390,9 @@ def _run_task(task: str, raw_version: str, env: dict, gh, read_gh, claude, fetch
                 gh.file(SERVER_REPO, release_docs_pr.POSTGRES_REQUIREMENT, branch)
                 if gh.branch_sha(SERVER_REPO, branch) else gh.file(SERVER_REPO, release_docs_pr.POSTGRES_REQUIREMENT, target.base))
             accessibility = accessibility_tickets(env, version, events or [], live, result)
+            upgrade = upgrade_from_breaking_changes(env, gh, read_gh, claude, version)
             built = release_docs_pr.build(version, {p: read(p) for p in release_docs_pr.FILES}, esr, day, code_minimum,
-                                          events or [], accessibility)
+                                          events or [], accessibility, upgrade)
             built.todos = result.todos + built.todos
             built.notes = result.notes + built.notes
             result = built
@@ -580,6 +600,51 @@ def due_release(task: str, events: list, today: date, holidays) -> tuple[Version
                 schedule.add_working_days(found["feature_complete"].start, 1, holidays) <= today < day:
             return version, day
     return None, None
+
+
+def breaking_hub_env(env: dict) -> dict:
+    """Where breaking-changes reports are read from: release-docs-breaking-changes.yml always runs it
+    as a dry run, so its reports are in the channel a dry run uses (RELEASE_DOCS_REVIEW_CHANNEL_ID,
+    else the test channel), whatever mode the reading task runs in."""
+    return {**env, "MODE": "dry_run"}
+
+
+def upgrade_from_breaking_changes(env: dict, gh, read_gh, claude, version: Version):
+    """Important Upgrade Notes and Deprecated Features from the confirmed breaking changes.
+
+    The candidate list and the confirmation are read from their Hub reports (breaking-changes
+    keeps them there); each confirmed PR's wording from its changelog bullets (the changelog
+    runs' sections.json, matched to the entry as it is now). Claude drafts only for a
+    mattermost/mattermost PR with no bullet."""
+    hub = hublib.from_env(env)
+    listing, problem = report.read_state(hub, breaking_hub_env(env), breaking.TASK, version.tag)
+    decision, decision_problem = report.read_state(hub, breaking_hub_env(env), breaking.TASK, version.tag,
+                                                   breaking.DECISION)
+    problem = problem or decision_problem
+    if problem:
+        return upgrade_docs.plan([], None, None, {}, {}, f"the breaking-change list and confirmations could not be "
+                                                         f"read from Hub ({problem})")
+    confirmed = list((decision or {}).get("confirmed") or [])
+    bullets, drafted = {}, {}
+    if confirmed:
+        reports, report_problem = changelog_run.fetch_reports(version.tag, env.get("ACTIONS_TOKEN", ""))
+        items = changelog_run.items(reports)
+        branch = f"release-{version.major}.{version.minor}"
+        for item in items:  # a schema bullet written for a migration is the bullet of the PR that added it
+            for source in [s for s in item["sources"] if s.startswith("migration:")]:
+                sha = gh.last_commit_for_path(SERVER_REPO, f"{MIGRATIONS_DIR}/{source[len('migration:'):]}.up.sql", branch)
+                item["sources"] += [f"{SERVER_REPO}#{p['number']}" for p in (gh.commit_pulls(SERVER_REPO, sha) if sha else [])]
+        entry, _ = changelog_entry(gh, version)
+        bullets = {source: changelog_run.bullets_for(source, items, entry) for source in confirmed}
+        bare = [s for s in confirmed if not upgrade_docs._wording(bullets[s]) and s.startswith(SERVER_REPO + "#")]
+        if bare:
+            prs = {p["id"]: p for p in drafts.milestone_prs(read_gh, [SERVER_REPO], version.tag)}
+            drafted = drafts.draft_notices([prs[s] for s in bare if s in prs], claude, Result(breaking.TASK, version.tag))
+        if report_problem and not items:
+            return upgrade_docs.plan(confirmed, (listing or {}).get("candidates"), (decision or {}).get("reviewed"), {},
+                                     drafted, f"the changelog run's bullets could not be read ({report_problem})")
+    return upgrade_docs.plan(confirmed, (listing or {}).get("candidates"), (decision or {}).get("reviewed"),
+                             bullets, drafted)
 
 
 def accessibility_tickets(env: dict, version: Version, events: list, live: bool, result: Result):
@@ -962,6 +1027,49 @@ def check_dot_release_pr(env: dict) -> int:
     return 1 if problems else 0
 
 
+UPGRADE_PAGES = {release_docs_pr.UPGRADE_NOTES: "Important Upgrade Notes",
+                 release_docs_pr.DEPRECATED_FEATURES: "Deprecated Features"}
+
+
+def release_docs_problems(files: dict) -> list[str]:
+    """What still keeps the release docs PR from merging: a placeholder or TODO marker left on the
+    Important Upgrade Notes or Deprecated Features page (breaking changes not decided, or with no
+    wording). Other pages' placeholders are filled in later PRs and don't count."""
+    problems = []
+    for path, what in UPGRADE_PAGES.items():
+        text = files.get(path) or ""
+        for line in text.splitlines():
+            if release_docs_pr.PLACEHOLDER_MARKER in line and what in line:
+                problems.append(f"{path} still has its {what} placeholder: breaking-change candidates are waiting to be "
+                                "confirmed or removed, or a confirmed one has no wording (see the PR's Missing inputs)")
+            elif TODO_MARKER in line:
+                problems.append(f"{path} has a {TODO_MARKER} marker")
+    return problems
+
+
+def check_release_docs_pr(env: dict) -> int:
+    """The release docs PR's check, run in its checkout."""
+    import subprocess
+
+    root = env.get("REPO_ROOT") or subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True,
+                                                  text=True).stdout.strip()
+    files = {}
+    for path in UPGRADE_PAGES:
+        with open(os.path.join(root, path), encoding="utf-8") as f:
+            files[path] = f.read()
+    problems = release_docs_problems(files)
+    lines = ["## Release docs check: Important Upgrade Notes and Deprecated Features", ""]
+    lines += [f"- {p}" for p in problems] or ["No placeholder or TODO marker left on either page."]
+    text = "\n".join(lines) + "\n"
+    print(text)
+    if env.get("GITHUB_STEP_SUMMARY"):
+        with open(env["GITHUB_STEP_SUMMARY"], "a", encoding="utf-8") as f:
+            f.write(text)
+    for problem in problems:
+        print(f"::error title=Release docs::{problem}")
+    return 1 if problems else 0
+
+
 def main(argv: list[str]) -> int:
     parser = argparse.ArgumentParser(prog="release_docs")
     parser.add_argument("command", choices=("resolve", "run", "check"))
@@ -970,8 +1078,10 @@ def main(argv: list[str]) -> int:
     env = dict(os.environ)
 
     if args.command == "check":
+        if args.task == release_docs_pr.TASK:
+            return check_release_docs_pr(env)
         if args.task != dot_release.TASK:
-            parser.error(f"check is only for {dot_release.TASK}")
+            parser.error(f"check is only for {dot_release.TASK} and {release_docs_pr.TASK}")
         return check_dot_release_pr(env)
 
     if args.command == "resolve":

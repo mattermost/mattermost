@@ -132,6 +132,7 @@ jobs:
     timeout-minutes: 120
     permissions:
       contents: read
+      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -225,9 +226,18 @@ jobs:
           echo "::error title=Write token for mattermost/mattermost-mobile::Could not get a token from the changelog write app (CHANGELOG_WRITE_CLIENT_ID / CHANGELOG_WRITE_PRIVATE_KEY) for mattermost/mattermost-mobile. Check that the app is installed on mattermost/mattermost-mobile with contents and pull requests write access. The mobile ESR PR is not opened; its changes are posted in Hub instead."
           exit 1
 
+      # breaking-changes lists candidates with apidiff over the server/public Go module, which needs
+      # Go; each side is then built with the Go version its go.mod names (GOTOOLCHAIN).
+      - name: Set up Go
+        if: steps.resolve.outputs.run == 'true' && inputs.task == 'breaking-changes' && inputs.confirmed == ''
+        uses: actions/setup-go@4b73464bb391d4059bd26b0524d20df3927bd417 # v6.3.0
+        with:
+          go-version-file: server/public/go.mod
+          cache: false
+
       - name: Install dependencies
         if: steps.resolve.outputs.run == 'true'
-        run: pip install requests==2.32.3 cryptography==44.0.2 --quiet
+        run: pip install requests==2.32.3 cryptography==44.0.2 pyyaml==6.0.2 --quiet
 
       - name: Run ${{ inputs.task }}
         if: steps.resolve.outputs.run == 'true'
@@ -238,6 +248,9 @@ jobs:
           MODE: ${{ steps.resolve.outputs.mode }}
           EVENT_NAME: ${{ github.event_name }}
           GITHUB_TOKEN: ${{ github.token }}
+          # Reads the changelog runs' sections.json (actions: read).
+          ACTIONS_TOKEN: ${{ github.token }}
+          RUN_APIDIFF: ${{ inputs.task == 'breaking-changes' && inputs.confirmed == '' && 'true' || '' }}
           READ_TOKEN: ${{ steps.read.outputs.token }}
           WRITE_TOKEN: ${{ steps.write.outputs.token }}
           MOBILE_WRITE_TOKEN: ${{ steps.mobile_write.outputs.token }}

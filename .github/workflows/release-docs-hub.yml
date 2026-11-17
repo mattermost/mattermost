@@ -92,6 +92,7 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)
 
   daily:
     if: github.event.schedule == '41 12 * * 1-5' || (github.event_name == 'workflow_dispatch' && inputs.task != 'announcement')
@@ -109,3 +110,4 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)

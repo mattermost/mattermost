@@ -45,3 +45,4 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)

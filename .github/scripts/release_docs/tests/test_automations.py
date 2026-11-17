@@ -9,7 +9,7 @@ from contextlib import redirect_stdout
 from unittest import mock
 
 from release_docs import __main__ as cli
-from release_docs import docker_env, notice, publish, release_docs_pr, version_archive
+from release_docs import docker_env, notice, publish, release_docs_pr, upgrade_docs, version_archive
 from release_docs.result import LABEL, TODO_MARKER
 
 from .fakes import FakeClaude, FakeGitHub, fixture, release_server
@@ -81,7 +81,10 @@ class Scenario:
     def run(self, gh, live: bool, complete: bool = True):
         inputs = self.inputs(complete)
         env = {**inputs.pop("env"), "MODE": "live" if live else "dry_run"}
-        return cli.run_task(self.task, self.version, env, gh, gh, sleep=lambda _: None, **inputs)
+        # The breaking-change list ran and found nothing: the upgrade pages have nothing to add.
+        # (test_upgrade_docs.py covers the pages themselves.)
+        with mock.patch.object(cli, "upgrade_from_breaking_changes", return_value=upgrade_docs.plan([], [], [], {}, {})):
+            return cli.run_task(self.task, self.version, env, gh, gh, sleep=lambda _: None, **inputs)
 
     @property
     def branch(self):

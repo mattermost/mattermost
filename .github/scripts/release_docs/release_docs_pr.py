@@ -473,12 +473,33 @@ PLACEHOLDERS = (
 
 # ── The PR ──────────────────────────────────────────────────────────────────────────
 
+def upgrade_lines(upgrade) -> list[str]:
+    """The PR body's lines for the two pages filled from confirmed breaking changes. Private PRs are
+    only counted: the PR is public."""
+    def public(entries):
+        return sorted({e.source for e in entries if e.source.startswith("mattermost/mattermost#")})
+
+    done = "x" if upgrade.complete else " "
+    lines = [f"- [{done}] Important Upgrade Notes: {len(upgrade.notes)} row(s) from confirmed breaking changes, worded "
+             "from their changelog bullets" + ("" if upgrade.complete else "; the placeholder stays (see Missing inputs)"),
+             f"- [{done}] Deprecated Features: {len(upgrade.removed)} entr{'y' if len(upgrade.removed) == 1 else 'ies'} for "
+             "confirmed removals and deprecations"]
+    drafted = public(upgrade.drafted())
+    if drafted:
+        lines += ["", "Drafted by Claude, because the PR has no changelog bullet in Upgrade Impact or API Changes. Check "
+                      "the wording before merging:", ""]
+        lines += [f"- [ ] {source}" for source in drafted]
+    return lines
+
+
 def build(version: Version, files: dict, esr_versions: str, release_day: date | None, code_minimum: int | None,
-          events: list | None = None, accessibility: tuple[int, bool] | None = None) -> Result:
+          events: list | None = None, accessibility: tuple[int, bool] | None = None, upgrade=None) -> Result:
     """``files`` maps each path in ``FILES`` to its text on the base branch (None if absent).
     ``events`` are the Release Dates calendar's. ``accessibility`` is (how many tickets the
     accessibility filter found, whether they were listed on Hub), or None when Jira wasn't
-    read: Jira is private, so the tickets themselves are never in the PR or the run output."""
+    read: Jira is private, so the tickets themselves are never in the PR or the run output.
+    ``upgrade`` (upgrade_docs.UpgradeDocs) fills Important Upgrade Notes and Deprecated Features
+    from confirmed breaking changes; without it they get placeholders."""
     result = Result(TASK, version.tag, repo="mattermost/mattermost")
     result.upcoming, result.delayed = [], []
     updated = dict(files)
@@ -502,7 +523,20 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
     for path in DEPLOY_PAGES:
         apply(path, lambda c, path=path: update_deploy_page(c, version, esr_versions, result, path))
     for path, after, what in PLACEHOLDERS:
+        if upgrade is not None and path in (UPGRADE_NOTES, DEPRECATED_FEATURES):
+            continue
         apply(path, lambda c, after=after, what=what: add_placeholder(c, after, placeholder(version, what)))
+    if upgrade is not None:
+        from . import upgrade_docs
+        keep = not upgrade.complete
+        rows = upgrade_docs.note_rows(version.short, upgrade.notes) if upgrade.notes else ""
+        removed = upgrade_docs.removed_section(version.short, release_day, upgrade.removed) if upgrade.removed else ""
+        apply(UPGRADE_NOTES, lambda c: upgrade_docs.fill(c, "<tbody>\n", rows, placeholder(version, "Important Upgrade Notes"),
+                                                         keep))
+        apply(DEPRECATED_FEATURES, lambda c: upgrade_docs.fill(c, "## Removed features by Mattermost version\n\n", removed,
+                                                               placeholder(version, "Deprecated Features"), keep))
+        for todo in upgrade.todos:
+            result.todo(todo)
 
     result.files = {path: text for path, text in updated.items() if text is not None and text != files.get(path)}
     esr_note = " (ESR)" if is_esr(version, esr_versions) else ""
@@ -538,8 +572,7 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
         "Sections that need a person are marked with an MDX comment and are filled in a later PR:",
         "",
         f"- [ ] UI & Accessibility changelog. {ada}",
-        "- [ ] Important Upgrade Notes",
-        "- [ ] Deprecated Features",
+        *(upgrade_lines(upgrade) if upgrade is not None else ["- [ ] Important Upgrade Notes", "- [ ] Deprecated Features"]),
         "",
         f"Playbook (T-16): {PLAYBOOK_QUOTE}",
         "",

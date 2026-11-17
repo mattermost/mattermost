@@ -32,6 +32,10 @@ class Result:
     private: bool = False
     counts: dict = field(default_factory=dict)
     pr_branch: str = ""  # for tasks whose branch is not named after one version
+    # Kept with a private result's Hub post (report.py), for a later task to read: the
+    # breaking-change candidates, or a confirmation (``report_kind`` "decision").
+    state: dict = field(default_factory=dict)
+    report_kind: str = ""
 
     def todo(self, reason: str, bare: bool = False) -> str:
         """Record a missing input and return the visible marker to put where the value goes.

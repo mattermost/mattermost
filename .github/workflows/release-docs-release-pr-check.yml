@@ -1,0 +1,42 @@
+name: Release Docs PR Check
+
+# Fails the release docs PR (branch release-agent/vX.Y.0/release-docs) while the Important
+# Upgrade Notes or Deprecated Features page still has its release-agent placeholder or a
+# TODO(release-agent) marker: breaking-change candidates that nobody has confirmed or removed
+# yet, or a confirmed one with no wording. The release docs task fills both pages from the
+# confirmed breaking changes and updates the PR as confirmations arrive; a person can also
+# fill them by hand and remove the placeholder. Rerun by any push to the PR.
+
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, edited]
+    paths:
+      - "docs/main/administration-guide/upgrade/important-upgrade-notes.mdx"
+      - "docs/main/product-overview/deprecated-features.mdx"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-docs-pr-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    name: Check release docs
+    if: startsWith(github.head_ref, 'release-agent/') && endsWith(github.head_ref, '/release-docs')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Check
+        working-directory: .github/scripts
+        run: python3 -m release_docs check release-docs

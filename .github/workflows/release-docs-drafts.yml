@@ -69,6 +69,7 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)
 
   release-highlights:
     if: github.event_name == 'release' || inputs.task == 'release-highlights'
@@ -80,3 +81,4 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)

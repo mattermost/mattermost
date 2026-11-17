@@ -74,6 +74,30 @@ class GitHub:
         found = self.request("GET", f"/repos/{repo}/commits?" + urllib.parse.urlencode({"path": path, "sha": ref, "per_page": 1}))
         return found[0]["sha"] if found else None
 
+    def commits_for_path(self, repo: str, path: str, ref: str, since: str, limit: int = 300) -> list[str]:
+        """The commits on ``ref`` since ``since`` (ISO 8601) that touched ``path`` (a file or folder), newest first."""
+        shas, page = [], 1
+        while len(shas) < limit:
+            batch = self.request("GET", f"/repos/{repo}/commits?" + urllib.parse.urlencode(
+                {"path": path, "sha": ref, "since": since, "per_page": 100, "page": page})) or []
+            shas += [c["sha"] for c in batch]
+            if len(batch) < 100:
+                break
+            page += 1
+        return shas[:limit]
+
+    def merge_base_date(self, repo: str, base: str, head: str) -> str | None:
+        """When the last commit both refs share was made: for a release tag and the next release
+        branch, the previous release branch's cut."""
+        found = self.request("GET", f"/repos/{repo}/compare/{urllib.parse.quote(base)}...{urllib.parse.quote(head)}"
+                                    "?per_page=1", missing_ok=True) or {}
+        return ((found.get("merge_base_commit") or {}).get("commit") or {}).get("committer", {}).get("date")
+
+    def commit_patches(self, repo: str, sha: str) -> dict:
+        """``{file name: patch}`` of one commit (a file too large for the API has no patch)."""
+        found = self.request("GET", f"/repos/{repo}/commits/{urllib.parse.quote(sha)}") or {}
+        return {f["filename"]: f.get("patch") or "" for f in found.get("files") or []}
+
     def matching_refs(self, repo: str, prefix: str) -> list[str]:
         """Full ref names starting with ``prefix``, such as ``tags/v12.`` or ``heads/release-``."""
         refs = self.request("GET", f"/repos/{repo}/git/matching-refs/{urllib.parse.quote(prefix)}") or []

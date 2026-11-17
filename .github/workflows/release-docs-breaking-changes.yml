@@ -5,12 +5,21 @@ name: Release Docs - Breaking Change Notices
 # breaking changes: once when the branch is created, then every weekday, so PRs cherry-picked
 # into the release are picked up. Other pushes to a release branch (cherry-picks) start nothing:
 # the weekday run covers them. It is not tied to code freeze, which has no GitHub event.
-# Each candidate comes with its source PR and why: breaking-change or deprecation labels on
-# the PR or its Jira ticket, removals config-change-checker.yml wrote into the release note,
-# release-note wording, removed WebSocket events and destructive migrations
-# in the release diff, and a Claude review of the milestone's release notes.
+# Each candidate comes with its source PR and why. Strong signals: breaking-change or deprecation
+# labels on the PR or its Jira ticket, removals config-change-checker.yml wrote into the release
+# note, release-note phrases listed in .github/release-docs/rules.yml, and where the changelog run
+# placed the PR's bullet (its sections.json: Upgrade Impact/Compatibility, removed API endpoints
+# and config settings, destructive schema changes). From the release diff (the previous release
+# tag to the release branch), each with the PR that made it: removed WebSocket events,
+# destructive migrations, removed or changed plugin API methods and hooks, incompatible changes
+# in the server/public Go module (apidiff), changed config defaults, removed mmctl commands and
+# flags, and raised minimum versions (PostgreSQL, Go, browsers). Other release-note wording is a
+# weak signal, and Claude reviews the milestone's release notes for anything else.
 # A person keeps or removes items, then runs this by hand with `confirmed` set to the PRs kept,
-# and Claude drafts one notice per confirmed PR, citing it. The list and the notices name Jira
+# and Claude drafts one notice per confirmed PR, citing it. The confirmation is kept with its Hub
+# post, and the release docs PR is updated at once: Important Upgrade Notes and Deprecated
+# Features are filled from the confirmed PRs (their changelog bullets), and keep their
+# placeholders, failing the PR check, while any candidate is undecided. The list and the notices name Jira
 # tickets and mattermost/enterprise PRs, so they are posted to the review channel in Hub (also
 # in a dry run); the run summary and artifact keep only counts and mattermost/mattermost PRs.
 # Nothing else is published. See release-docs-task.yml.
@@ -50,3 +59,19 @@ jobs:
     secrets: inherit
     permissions:
       contents: read
+      actions: read # the changelog runs' sections.json (breaking-changes and release-docs)
+
+  # A confirmation updates the release docs PR at once: its Important Upgrade Notes and Deprecated
+  # Features are filled from the confirmed breaking changes (the weekday run would also pick it up).
+  release-docs:
+    needs: breaking-changes
+    if: ${{ !cancelled() && needs.breaking-changes.result == 'success' && github.event_name == 'workflow_dispatch' && inputs.confirmed != '' }}
+    uses: ./.github/workflows/release-docs-task.yml
+    with:
+      task: release-docs
+      version: ${{ inputs.version }}
+      mode: default
+    secrets: inherit
+    permissions:
+      contents: read
+      actions: read

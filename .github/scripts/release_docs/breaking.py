@@ -1,8 +1,12 @@
 """Breaking changes in a milestone, found from what is already there: developers are asked nothing.
 
 Rules read each merged PR's labels (and its Jira ticket's), the lines config-change-checker
-writes into its release-note block, and the wording of its release note; the release diff
-gives removed WebSocket events and destructive migrations. Claude then reads the
+writes into its release-note block, the wording of its release note (phrases listed in
+.github/release-docs/rules.yml are strong evidence, other wording weak), and where the
+changelog run placed its bullets (sections.json: Upgrade Impact/Compatibility, removed API
+endpoints and config settings, destructive schema changes). The release diff gives removed
+WebSocket events, destructive migrations and the changes in breaking_diff.py (plugin API and
+hooks, the server/public Go API, config defaults, mmctl commands and flags, minimum versions). Claude then reads the
 milestone's titles and release notes for anything the rules missed. Every candidate names
 its source and why. A person keeps or removes candidates, and notices are drafted only for
 the PRs they confirm (the ``confirmed`` input).
@@ -11,6 +15,7 @@ the PRs they confirm (the ``confirmed`` input).
 import json
 import re
 from dataclasses import dataclass, field
+from pathlib import Path
 
 from changelog_release import (
     MIGRATIONS_DIR,
@@ -22,7 +27,7 @@ from changelog_release import (
 )
 from check_config_changes_ci import _AUTO_LINE_RE as CHECKER_LINE
 
-from . import drafts
+from . import breaking_diff, drafts
 from .result import Result
 from .versions import Version
 
@@ -38,6 +43,21 @@ def _is_signal(label: str) -> bool:
 
 
 NOTE_WORDS = re.compile(r"(?i)\b(?:breaking|removed|deprecated|no longer|must now)\b")
+RULES_PATH = Path(__file__).resolve().parents[2] / "release-docs" / "rules.yml"
+
+
+def strong_phrases(path: Path = RULES_PATH) -> list[str]:
+    """The release-note phrases that are strong evidence, from rules.yml."""
+    import yaml  # installed by the workflow; only this list needs it
+    with open(path, encoding="utf-8") as f:
+        phrases = (yaml.safe_load(f) or {})["breaking_changes"]["strong_phrases"]
+    if not phrases or not all(isinstance(p, str) and p.strip() for p in phrases):
+        raise ValueError(f"{path}: breaking_changes.strong_phrases must be a list of phrases")
+    return [" ".join(p.split()) for p in phrases]
+
+
+def _phrase_pattern(phrases: list[str]):
+    return re.compile(r"(?i)\b(?:" + "|".join(r"\s+".join(map(re.escape, p.split())) for p in phrases) + r")\b")
 CHECKER_REMOVAL = re.compile(r"^Removed `{1,2}[^`]+`{1,2}.*(?:configuration setting|API endpoint)\.|^🗑️\s+Removed API file:")
 DESTRUCTIVE_SQL = re.compile(r"(?i)\bDROP\s+(?:TABLE|COLUMN)\b|\bRENAME\s+(?:COLUMN\b|TO\b)"
                              r"|\bALTER\s+COLUMN\s+\S+\s+(?:TYPE|SET\s+NOT\s+NULL)\b")
@@ -45,15 +65,21 @@ CONFIRMED_ID = re.compile(r"^(?:([\w.-]+/[\w.-]+)?#)?(\d+)$")
 EXCERPT = 160
 
 
-def signals(labels, body: str, jira: set = frozenset()) -> list[tuple[str, bool]]:
+def _excerpt(text: str) -> str:
+    return text if len(text) <= EXCERPT else text[:EXCERPT - 1] + "…"
+
+
+def signals(labels, body: str, jira: set = frozenset(), phrases: list[str] | None = None) -> list[tuple[str, bool]]:
     """(why a PR may be a breaking change, whether that is strong evidence) for each signal.
 
-    Strong: a breaking-change or deprecation label on the PR or its Jira ticket, or a
-    removal config-change-checker wrote into the release note. Weak: the release note's
-    wording ("breaking", "removed", "deprecated", "no longer", "must now").
+    Strong: a breaking-change or deprecation label on the PR or its Jira ticket, a removal
+    config-change-checker wrote into the release note, or a release-note phrase from
+    rules.yml ("no longer supported", "before upgrading", ...). Weak: other wording
+    ("breaking", "removed", "deprecated", "no longer", "must now").
     """
     from generate_changelog import extract_release_notes  # needs requests; imported where used
 
+    strong = _phrase_pattern(phrases) if phrases else None
     found = [(f"PR label `{label}`", True) for label in sorted(labels) if _is_signal(label)]
     found += [(f"Jira label `{label}`", True) for label in sorted(jira) if _is_signal(label)]
     for note in extract_release_notes(body or "") or []:
@@ -61,10 +87,41 @@ def signals(labels, body: str, jira: set = frozenset()) -> list[tuple[str, bool]
             if CHECKER_REMOVAL.match(line):
                 found.append((f"config-change-checker: {line}", True))
             elif line and not CHECKER_LINE.match(line):
+                match = strong.search(line) if strong else None
+                if match:
+                    found.append((f"release note says \"{' '.join(match.group(0).lower().split())}\": {_excerpt(line)}", True))
+                    continue
                 match = NOTE_WORDS.search(line)
                 if match:
-                    text = line if len(line) <= EXCERPT else line[:EXCERPT - 1] + "…"
-                    found.append((f"release note says \"{match.group(0).lower()}\": {text}", False))
+                    found.append((f"release note says \"{match.group(0).lower()}\": {_excerpt(line)}", False))
+    return found
+
+
+DESTRUCTIVE_TEXT = re.compile(r"(?i)\b(?:drop(?:s|ped)?|removed?|renamed?|rewrit(?:es|ten)|changed\s+the\s+type|type\s+of)\b")
+
+
+def changelog_signals(all_items: list[dict], migration_pr=lambda name: None) -> dict:
+    """``{source: [(reason, True)]}`` from where the changelog run placed each PR's bullet: under
+    Upgrade Impact/Compatibility, a removed API endpoint or config setting, or a schema change
+    that drops, removes, renames or retypes something. A schema bullet written for a migration
+    (``migration:NAME``) belongs to the PR that added it, from ``migration_pr(name)``."""
+    found = {}
+    for item in all_items:
+        section, subsection, text = item["section"], item["subsection"], item["text"]
+        if (section, subsection) == ("Upgrade Impact", "Compatibility"):
+            reason = "changelog places it under Upgrade Impact/Compatibility"
+        elif section == "API Changes" and re.match(r"(?i)removed\b", text):
+            reason = "changelog: a removed API endpoint"
+        elif subsection == "config.json" and re.match(r"(?i)removed\b", text):
+            reason = "changelog: a removed config setting"
+        elif subsection == "Database Schema Changes" and DESTRUCTIVE_TEXT.search(text):
+            reason = "changelog: a destructive schema change"
+        else:
+            continue
+        owners = [s for s in item["sources"] if "#" in s]
+        owners += [pr for s in item["sources"] if s.startswith("migration:") for pr in [migration_pr(s[len("migration:"):])] if pr]
+        for owner in dict.fromkeys(owners):
+            found.setdefault(owner, []).append((f"{reason}: {_excerpt(text)}", True))
     return found
 
 
@@ -148,34 +205,60 @@ def claude_pass(claude, prs: list[dict], found: dict) -> tuple[dict, str | None]
     return picked, None
 
 
-def find(gh, repos: list[str], milestone: str, claude, jira_labels=None) -> tuple[list[Candidate], list[dict], dict]:
-    """(candidates with a PR, release diff findings with no PR, facts for the summary)."""
+def find(gh, repos: list[str], milestone: str, claude, jira_labels=None, changelog_items=None, apidiff=None,
+         phrases=None) -> tuple[list[Candidate], list[dict], dict]:
+    """(candidates with a PR, release diff findings with no PR, facts for the summary).
+
+    ``changelog_items`` are the changelog runs' bullets (changelog_run.items), or None when they
+    couldn't be read; ``apidiff(base, head)`` returns (apidiff's output, a problem), or is None
+    when it isn't run; ``phrases`` are rules.yml's strong release-note phrases."""
     prs = drafts.milestone_prs(gh, repos, milestone)
     keys = {p["id"]: jira_keys(p["title"], "", p.get("body", "")) for p in prs}
     labels_by_key = jira_labels(set().union(*keys.values())) if jira_labels and any(keys.values()) else {}
     found = {}
     for p in prs:
         jira = set().union(*(labels_by_key.get(k, set()) for k in keys[p["id"]])) if keys[p["id"]] else set()
-        found[p["id"]] = signals(p.get("labels", []), p.get("body", ""), jira)
+        found[p["id"]] = signals(p.get("labels", []), p.get("body", ""), jira, phrases)
     facts = {"prs": len(prs), "range": None, "other_migrations": 0, "problems": []}
     loose = []
     version = Version.parse(milestone)
     refs = release_refs(gh, DEFAULT_REPO, version)
+
+    def add(owner, reason, url=""):
+        found.setdefault(owner, []).append((reason, True))
+        if owner not in {p["id"] for p in prs}:
+            prs.append({"id": owner, "url": url or _pr_url(owner), "title": "(not in the milestone)", "note": "",
+                        "upgrade_notes": ""})
+
     if refs:
         facts["range"] = refs
         diff, facts["other_migrations"] = diff_signals(gh, DEFAULT_REPO, *refs)
-        for item in diff:
+        output, problem = apidiff(*refs) if apidiff else (None, "apidiff was not run")
+        if problem:
+            facts["problems"].append(problem)
+        more, problems = breaking_diff.diff_changes(gh, DEFAULT_REPO, *refs, apidiff=output)
+        facts["problems"] += problems
+        for item in diff + more:
             owner = item["pr"]
             if owner is None and item.get("event"):
                 owner = next((p["id"] for p in prs if item["event"] in f"{p['title']} {p.get('body', '')}"), None)
             if owner:
-                found.setdefault(owner, []).append((item["reason"], True))
-                if owner not in {p["id"] for p in prs}:
-                    prs.append({"id": owner, "url": item["url"], "title": "(not in the milestone)", "note": "", "upgrade_notes": ""})
+                add(owner, item["reason"], item["url"])
             else:
                 loose.append(item)
     else:
         facts["problems"].append(f"no release before {version.short} found, so the release diff was not read")
+    if changelog_items is None:
+        facts["problems"].append("the changelog run's sections.json was not read, so the changelog's placements "
+                                 "were not used")
+    else:
+        def migration_pr(name):
+            sha = gh.last_commit_for_path(DEFAULT_REPO, f"{MIGRATIONS_DIR}/{name}.up.sql", refs[1]) if refs else None
+            pulls = gh.commit_pulls(DEFAULT_REPO, sha) if sha else []
+            return f"{DEFAULT_REPO}#{pulls[0]['number']}" if pulls else None
+        for owner, reasons in changelog_signals(changelog_items, migration_pr).items():
+            for reason, _ in reasons:
+                add(owner, reason)
     picked, problem = claude_pass(claude, prs, found)
     if problem:
         facts["problems"].append(problem)
@@ -190,13 +273,20 @@ def find(gh, repos: list[str], milestone: str, claude, jira_labels=None) -> tupl
     return candidates, loose, facts
 
 
+def _pr_url(source: str) -> str:
+    repo, _, number = source.partition("#")
+    return f"https://github.com/{repo}/pull/{number}"
+
+
 def candidate_list(milestone: str, candidates: list[Candidate], loose: list[dict], facts: dict) -> str:
     where = f"the release diff `{facts['range'][0]}...{facts['range'][1]}`" if facts["range"] else "no release diff"
     lines = [f"# Possible breaking changes in {milestone}", "",
              f"From {facts['prs']} merged PRs in the milestone and {where}. Developers were not asked anything: "
              "these come from labels, config-change-checker's lines, release-note wording, the release diff and Claude. "
              "Keep or remove each. To draft notices for the ones you keep, run **Release Docs - Breaking Change Notices** "
-             "again with `confirmed` set to their PRs, for example `39001, mattermost/enterprise#1234`.", ""]
+             "again with `confirmed` set to their PRs, for example `39001, mattermost/enterprise#1234` (or `none`). The "
+             "candidates you don't list count as removed, and the release docs PR then fills Important Upgrade Notes and "
+             "Deprecated Features from the confirmed ones; until then they keep their placeholders.", ""]
     if not candidates and not loose:
         lines.append("No candidates found.")
     for c in candidates:
@@ -226,19 +316,30 @@ def parse_confirmed(raw: str) -> list[str] | None:
     return list(dict.fromkeys(ids))
 
 
-def run(gh, repos: list[str], milestone: str, confirmed: str, claude, jira_labels=None) -> Result:
+def run(gh, repos: list[str], milestone: str, confirmed: str, claude, jira_labels=None, changelog_items=None,
+        apidiff=None, phrases=None, listed=None) -> Result:
+    """The candidate list, or the notices for the ``confirmed`` PRs.
+
+    Both record their state for the release docs PR (``result.state``, kept with the Hub post):
+    the list its candidates; a confirmation the PRs confirmed and the candidates it decided on,
+    which are the ones ``listed`` by the latest list (from Hub) plus those confirmed."""
     chosen = parse_confirmed(confirmed)
     if chosen is None:
-        candidates, loose, facts = find(gh, repos, milestone, claude, jira_labels)
+        candidates, loose, facts = find(gh, repos, milestone, claude, jira_labels, changelog_items, apidiff, phrases)
         result = Result(TASK, milestone, text=candidate_list(milestone, candidates, loose, facts))
         result.notes += facts["problems"]
         result.counts = {"merged PRs read": facts["prs"], "candidates": len(candidates),
                          "strong signals": sum(1 for c in candidates if c.strong),
                          "release diff findings with no PR": len(loose)}
+        result.state = {"candidates": [c.id for c in candidates]}
         return result
+    decision = {"confirmed": chosen, "reviewed": sorted(set(listed or []) | set(chosen))}
+    if listed is None:
+        decision["note"] = "no candidate list was found, so only the confirmed PRs count as decided"
     if not chosen:
         result = Result(TASK, milestone, text=f"No breaking changes confirmed for {milestone}; no notices drafted.\n")
         result.counts = {"confirmed PRs": 0}
+        result.state, result.report_kind = decision, DECISION
         return result
     prs = {p["id"]: p for p in drafts.milestone_prs(gh, repos, milestone)}
     missing = [i for i in chosen if i not in prs]
@@ -246,4 +347,8 @@ def run(gh, repos: list[str], milestone: str, confirmed: str, claude, jira_label
     for item in missing:
         result.todo(f"{item} is not a merged PR in milestone {milestone}")
     result.counts = {"confirmed PRs": len(chosen), "notices drafted": result.text.count("\nSource: ")}
+    result.state, result.report_kind = decision, DECISION
     return result
+
+
+DECISION = "decision"  # the Hub report of a confirmation, apart from the candidate list
