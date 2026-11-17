@@ -15107,6 +15107,11 @@
     "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
   },
   {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "The {{.job_type}} job {{.job_id}} is in progress but has recorded no activity for {{.days}} days. This usually means the worker died mid-run or the scheduler is wedged.",
+    "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity for two days or more; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.days}} is a whole number of days, at least 2."
+  },
+  {
     "id": "health.rule.job_stuck.remediation",
     "translation": "Cancel the stuck job from its System Console page, with mmctl job cancel, or through the API. Check the server logs around the job's last activity, then run it again.",
     "description": "Health dashboard fix-it step for a background job stuck in progress; 'mmctl job cancel' is a command and should not be translated."
