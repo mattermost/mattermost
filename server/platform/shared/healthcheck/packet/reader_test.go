@@ -441,6 +441,69 @@ func TestReadLicense(t *testing.T) {
 	})
 }
 
+func TestReadCertificates(t *testing.T) {
+	nodeDiagnostics := func(t *testing.T, p *Packet) *model.SupportPacketDiagnostics {
+		t.Helper()
+		nodes := p.Snapshot.Nodes()
+		require.Len(t, nodes, 1)
+		diag, ok := nodes[0].Diag()
+		require.True(t, ok)
+		return diag
+	}
+
+	t.Run("an older packet has no certificates", func(t *testing.T) {
+		files := fixtureFiles(t, "standalone")
+		require.NotContains(t, string(files[model.SupportPacketDiagnosticsFileName]), "certificate")
+
+		p := readFiles(t, files)
+
+		assert.Empty(t, p.Warnings)
+		diag := nodeDiagnostics(t, p)
+		assert.Nil(t, diag.TLS.Certificate)
+		assert.Nil(t, diag.LDAP.ServerCertificate)
+		assert.Nil(t, diag.LDAP.ClientCertificate)
+		assert.Nil(t, diag.SAML.IdpCertificate)
+		assert.Nil(t, diag.SAML.SPCertificate)
+		assert.True(t, p.Snapshot.Nodes()[0].Has(model.SectionTLS))
+	})
+
+	t.Run("reads the certificates", func(t *testing.T) {
+		files := fixtureFiles(t, "standalone")
+		name := model.SupportPacketDiagnosticsFileName
+		files[name] = bytes.Replace(files[name], []byte("ldap:\n  status: disabled\nsaml:\n  status: disabled\n"), []byte(`ldap:
+  status: fail
+  server_certificate:
+    common_name: dc01.corp.example.com
+    issuer: Example Corp Issuing CA 2
+    not_after: 2026-11-10T23:59:59Z
+  client_certificate:
+    error: 'failed to parse certificate "ldap-public.crt": x509: malformed certificate'
+saml:
+  status: ok
+  idp_certificate:
+    common_name: Microsoft Azure Federated SSO Certificate
+    issuer: Microsoft Azure Federated SSO Certificate
+    not_after: 2026-12-09T16:41:55Z
+tls:
+  certificate:
+    common_name: chat.example.com
+    issuer: R11
+    not_after: 2026-11-28T09:14:02Z
+`), 1)
+		require.Contains(t, string(files[name]), "tls:\n")
+
+		p := readFiles(t, files)
+
+		assert.Empty(t, p.Warnings)
+		diag := nodeDiagnostics(t, p)
+		assert.Equal(t, &model.SupportPacketCertificate{CommonName: "chat.example.com", Issuer: "R11", NotAfter: time.Date(2026, time.November, 28, 9, 14, 2, 0, time.UTC)}, diag.TLS.Certificate)
+		assert.Equal(t, &model.SupportPacketCertificate{CommonName: "dc01.corp.example.com", Issuer: "Example Corp Issuing CA 2", NotAfter: time.Date(2026, time.November, 10, 23, 59, 59, 0, time.UTC)}, diag.LDAP.ServerCertificate)
+		assert.Equal(t, &model.SupportPacketCertificate{Error: `failed to parse certificate "ldap-public.crt": x509: malformed certificate`}, diag.LDAP.ClientCertificate)
+		assert.Equal(t, time.Date(2026, time.December, 9, 16, 41, 55, 0, time.UTC), diag.SAML.IdpCertificate.NotAfter)
+		assert.Nil(t, diag.SAML.SPCertificate)
+	})
+}
+
 func TestReadMissingStats(t *testing.T) {
 	files := fixtureFiles(t, "standalone")
 	delete(files, model.SupportPacketStatsFileName)

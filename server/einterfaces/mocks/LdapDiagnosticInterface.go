@@ -50,6 +50,47 @@ func (_m *LdapDiagnosticInterface) GetVendorNameAndVendorVersion(rctx request.CT
 	return r0, r1, r2
 }
 
+// RunSupportPacketTest provides a mock function with given fields: rctx
+func (_m *LdapDiagnosticInterface) RunSupportPacketTest(rctx request.CTX) (*model.SupportPacketCertificate, *model.SupportPacketCertificate, *model.AppError) {
+	ret := _m.Called(rctx)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RunSupportPacketTest")
+	}
+
+	var r0 *model.SupportPacketCertificate
+	var r1 *model.SupportPacketCertificate
+	var r2 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX) (*model.SupportPacketCertificate, *model.SupportPacketCertificate, *model.AppError)); ok {
+		return rf(rctx)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX) *model.SupportPacketCertificate); ok {
+		r0 = rf(rctx)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.SupportPacketCertificate)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX) *model.SupportPacketCertificate); ok {
+		r1 = rf(rctx)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.SupportPacketCertificate)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(request.CTX) *model.AppError); ok {
+		r2 = rf(rctx)
+	} else {
+		if ret.Get(2) != nil {
+			r2 = ret.Get(2).(*model.AppError)
+		}
+	}
+
+	return r0, r1, r2
+}
+
 // RunTest provides a mock function with given fields: rctx
 func (_m *LdapDiagnosticInterface) RunTest(rctx request.CTX) *model.AppError {
 	ret := _m.Called(rctx)

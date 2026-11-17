@@ -5,10 +5,17 @@ package app
 
 import (
 	"bufio"
+	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/tls"
+	"crypto/x509"
+	"crypto/x509/pkix"
+	"encoding/pem"
 	"errors"
 	"fmt"
 	"io"
+	"math/big"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -25,6 +32,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -164,6 +172,62 @@ func TestStartServerTLSSuccess(t *testing.T) {
 
 	s.Shutdown()
 	require.NoError(t, serverErr)
+}
+
+func TestStartServerTLSReportsServedCertificate(t *testing.T) {
+	mainHelper.Parallel(t)
+	dir := t.TempDir()
+	certFile, keyFile := path.Join(dir, "cert.pem"), path.Join(dir, "key.pem")
+	writeTestKeyPair := func(commonName string, notAfter time.Time) {
+		key, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
+		require.NoError(t, err)
+		template := &x509.Certificate{
+			SerialNumber: big.NewInt(1),
+			Subject:      pkix.Name{CommonName: commonName},
+			DNSNames:     []string{"localhost"},
+			NotBefore:    time.Now().Add(-time.Hour),
+			NotAfter:     notAfter,
+		}
+		der, err := x509.CreateCertificate(rand.Reader, template, template, &key.PublicKey, key)
+		require.NoError(t, err)
+		keyDER, err := x509.MarshalECPrivateKey(key)
+		require.NoError(t, err)
+		require.NoError(t, os.WriteFile(certFile, pem.EncodeToMemory(&pem.Block{Type: "CERTIFICATE", Bytes: der}), 0600))
+		require.NoError(t, os.WriteFile(keyFile, pem.EncodeToMemory(&pem.Block{Type: "EC PRIVATE KEY", Bytes: keyDER}), 0600))
+	}
+	servedNotAfter := time.Now().Add(10 * 24 * time.Hour).Truncate(time.Second).UTC()
+	writeTestKeyPair("served.example.com", servedNotAfter)
+
+	s, err := newServerWithConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.ListenAddress = "localhost:0"
+		*cfg.ServiceSettings.ConnectionSecurity = model.ConnSecurityTLS
+		*cfg.ServiceSettings.TLSCertFile = certFile
+		*cfg.ServiceSettings.TLSKeyFile = keyFile
+		*cfg.EmailSettings.SendPushNotifications = false
+	})
+	require.NoError(t, err)
+	require.NoError(t, s.Start())
+	t.Cleanup(s.Shutdown)
+
+	servedCommonName := func() string {
+		conn, err := tls.Dial("tcp", s.ListenAddr.String(), &tls.Config{InsecureSkipVerify: true})
+		require.NoError(t, err)
+		defer conn.Close()
+		return conn.ConnectionState().PeerCertificates[0].Subject.CommonName
+	}
+	require.Equal(t, "served.example.com", servedCommonName())
+
+	// A renewed file isn't served until a restart, so the packet must keep reporting the loaded certificate.
+	writeTestKeyPair("renewed.example.com", time.Now().Add(365*24*time.Hour))
+	require.Equal(t, "served.example.com", servedCommonName())
+
+	nodeDiagnostics, _ := s.platform.GetSupportPacketDiagnostics(request.TestContext(t))
+	require.NotNil(t, nodeDiagnostics)
+	assert.Equal(t, &model.SupportPacketCertificate{
+		CommonName: "served.example.com",
+		Issuer:     "served.example.com",
+		NotAfter:   servedNotAfter,
+	}, nodeDiagnostics.Diagnostics.TLS.Certificate)
 }
 
 func TestStartServerTLSVersion(t *testing.T) {

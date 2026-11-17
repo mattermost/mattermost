@@ -9,5 +9,7 @@ import (
 )
 
 type SamlDiagnosticInterface interface {
-	RunSupportPacketTest(rctx request.CTX, settings model.SamlSettings) error
+	// RunSupportPacketTest returns err if SAML sign-in would fail, and the certificates that apply
+	// to settings, which are reported even then. A certificate that can't be read carries its own error.
+	RunSupportPacketTest(rctx request.CTX, settings model.SamlSettings) (idpCert, spCert *model.SupportPacketCertificate, err error)
 }

@@ -3,7 +3,11 @@
 
 package model
 
-import "time"
+import (
+	"cmp"
+	"crypto/x509"
+	"time"
+)
 
 const (
 	CurrentSupportPacketVersion = 2
@@ -168,13 +172,26 @@ type SupportPacketDiagnostics struct {
 		Error         string `yaml:"error,omitempty"`
 		ServerName    string `yaml:"server_name,omitempty"`
 		ServerVersion string `yaml:"server_version,omitempty"`
+		// ServerCertificate is collected when the connection uses TLS or STARTTLS.
+		ServerCertificate *SupportPacketCertificate `yaml:"server_certificate,omitempty"`
+		// ClientCertificate is collected when both PublicCertificateFile and PrivateKeyFile are set.
+		ClientCertificate *SupportPacketCertificate `yaml:"client_certificate,omitempty"`
 	} `yaml:"ldap"`
 
 	SAML struct {
-		ProviderType string `yaml:"provider_type,omitempty"`
-		Status       string `yaml:"status,omitempty"`
-		Error        string `yaml:"error,omitempty"`
+		ProviderType   string                    `yaml:"provider_type,omitempty"`
+		Status         string                    `yaml:"status,omitempty"`
+		Error          string                    `yaml:"error,omitempty"`
+		IdpCertificate *SupportPacketCertificate `yaml:"idp_certificate,omitempty"`
+		// SPCertificate is collected when Encrypt or SignRequest is on.
+		SPCertificate *SupportPacketCertificate `yaml:"sp_certificate,omitempty"`
 	} `yaml:"saml"`
+
+	TLS struct {
+		// Certificate is the one the HTTPS listener loaded at startup, which is what clients are served
+		// until a restart, even if the file has been renewed since.
+		Certificate *SupportPacketCertificate `yaml:"certificate,omitempty"`
+	} `yaml:"tls,omitempty"`
 
 	ElasticSearch struct {
 		Status        string   `yaml:"status,omitempty"`
@@ -199,6 +216,32 @@ type OAuthProviders struct {
 	Google    OAuthProviderStatus `yaml:"google,omitempty"`
 	Office365 OAuthProviderStatus `yaml:"office365,omitempty"`
 	OpenID    OAuthProviderStatus `yaml:"openid,omitempty"`
+}
+
+// SupportPacketCertificate identifies a certificate and its expiry, for a chain its leaf, without
+// the certificate itself. Error is set instead when the certificate couldn't be read or parsed.
+type SupportPacketCertificate struct {
+	CommonName string    `yaml:"common_name,omitempty"`
+	Issuer     string    `yaml:"issuer,omitempty"`
+	NotAfter   time.Time `yaml:"not_after,omitempty"`
+	Error      string    `yaml:"error,omitempty"`
+}
+
+// NewSupportPacketCertificate describes cert, or err if it is set. A missing certificate with no
+// error returns nil.
+func NewSupportPacketCertificate(cert *x509.Certificate, err error) *SupportPacketCertificate {
+	switch {
+	case err != nil:
+		return &SupportPacketCertificate{Error: err.Error()}
+	case cert == nil:
+		return nil
+	}
+
+	return &SupportPacketCertificate{
+		CommonName: cmp.Or(cert.Subject.CommonName, cert.Subject.String()),
+		Issuer:     cmp.Or(cert.Issuer.CommonName, cert.Issuer.String()),
+		NotAfter:   cert.NotAfter.UTC(),
+	}
 }
 
 // SupportPacketStats reports workspace-scale analytics. Every field is a pointer: a nil value means the underlying query failed, which is not the same as zero.
