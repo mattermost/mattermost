@@ -38,6 +38,10 @@ export function getAccessControlPolicy(state: GlobalState, id: string) {
     return state.entities.admin.accessControlPolicies[id];
 }
 
+export function getSystemSettingPolicyOrder(state: GlobalState) {
+    return state.entities.admin.systemSettingPolicyOrder;
+}
+
 export const getChannelIdsForAccessControlPolicy = createSelector(
     'getChannelIdsForAccessControlPolicy',
     (state: GlobalState, parentId: string) => state.entities.admin.channelsForAccessControlPolicy[parentId],

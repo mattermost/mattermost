@@ -28,6 +28,14 @@ export type AccessControlPoliciesResult = {
     total: number;
 };
 
+/**
+ * System setting policy IDs from highest to lowest priority. For each setting,
+ * the first matching policy in the list supplies the value.
+ */
+export type SystemSettingPolicyOrder = {
+    policy_ids: string[];
+};
+
 export type AccessControlPolicySearchOpts = {
     term: string;
     type: string;

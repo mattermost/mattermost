@@ -114,6 +114,7 @@ export type AdminState = {
     dataRetentionCustomPoliciesCount: number;
     prevTrialLicense: ClientLicense;
     accessControlPolicies: IDMappedObjects<AccessControlPolicy>;
+    systemSettingPolicyOrder: string[];
     channelsForAccessControlPolicy: Record<string, string[]>;
 };
 

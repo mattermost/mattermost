@@ -63,4 +63,51 @@ describe('Actions.AccessControl', () => {
             expect(store.getState().entities.admin.accessControlPolicies.policy1).toBeDefined();
         });
     });
+
+    describe('system setting policy order', () => {
+        it('getSystemSettingPolicyOrder stores the server order', async () => {
+            nock(Client4.getBaseRoute()).
+                get('/access_control_policies/system_setting/order').
+                reply(200, {policy_ids: ['fin', 'everyone']});
+
+            const result: any = await store.dispatch(AccessControlActions.getSystemSettingPolicyOrder());
+
+            expect(result.data).toEqual({policy_ids: ['fin', 'everyone']});
+            expect(store.getState().entities.admin.systemSettingPolicyOrder).toEqual(['fin', 'everyone']);
+        });
+
+        it('updateSystemSettingPolicyOrder applies the order immediately and keeps the server result', async () => {
+            store.dispatch({type: AdminTypes.RECEIVED_SYSTEM_SETTING_POLICY_ORDER, data: {policy_ids: ['fin', 'everyone']}});
+
+            let bodySent: unknown;
+            nock(Client4.getBaseRoute()).
+                put('/access_control_policies/system_setting/order', (body) => {
+                    bodySent = body;
+                    return true;
+                }).
+                reply(200, {policy_ids: ['everyone', 'fin', 'eng']});
+
+            const pending = store.dispatch(AccessControlActions.updateSystemSettingPolicyOrder(['everyone', 'fin']));
+            expect(store.getState().entities.admin.systemSettingPolicyOrder).toEqual(['everyone', 'fin']);
+
+            const result: any = await pending;
+
+            expect(bodySent).toEqual({policy_ids: ['everyone', 'fin']});
+            expect(result.error).toBeUndefined();
+            expect(store.getState().entities.admin.systemSettingPolicyOrder).toEqual(['everyone', 'fin', 'eng']);
+        });
+
+        it('updateSystemSettingPolicyOrder restores the previous order when the server rejects it', async () => {
+            store.dispatch({type: AdminTypes.RECEIVED_SYSTEM_SETTING_POLICY_ORDER, data: {policy_ids: ['fin', 'everyone']}});
+
+            nock(Client4.getBaseRoute()).
+                put('/access_control_policies/system_setting/order').
+                reply(400, {id: 'app.system_setting_policy_order.unknown_policy.app_error', message: 'unknown'});
+
+            const result: any = await store.dispatch(AccessControlActions.updateSystemSettingPolicyOrder(['everyone', 'fin']));
+
+            expect(result.error).toBeDefined();
+            expect(store.getState().entities.admin.systemSettingPolicyOrder).toEqual(['fin', 'everyone']);
+        });
+    });
 });

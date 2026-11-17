@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlTestResult, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
+import type {AccessControlPoliciesResult, AccessControlPolicy, AccessControlPolicyActiveUpdate, AccessControlTestResult, PolicySimulationResponse, PolicySimulationByUsersParams, SystemSettingPolicyOrder} from '@mattermost/types/access_control';
 import type {ChannelSearchOpts, ChannelsWithTotalCount} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
@@ -107,6 +107,33 @@ export function searchSystemSettingPolicies(term: string, after: string, limit: 
         dispatch(
             {type: AdminTypes.RECEIVED_ACCESS_CONTROL_POLICIES_SEARCH, data: data.policies},
         );
+
+        return {data};
+    };
+}
+
+export function getSystemSettingPolicyOrder() {
+    return bindClientFunc({
+        clientFunc: Client4.getSystemSettingPolicyOrder,
+        onSuccess: [AdminTypes.RECEIVED_SYSTEM_SETTING_POLICY_ORDER],
+    });
+}
+
+export function updateSystemSettingPolicyOrder(policyIds: string[]): ActionFuncAsync<SystemSettingPolicyOrder> {
+    return async (dispatch, getState) => {
+        const previous = getState().entities.admin.systemSettingPolicyOrder;
+        dispatch({type: AdminTypes.RECEIVED_SYSTEM_SETTING_POLICY_ORDER, data: {policy_ids: policyIds}});
+
+        let data;
+        try {
+            data = await Client4.updateSystemSettingPolicyOrder(policyIds);
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch({type: AdminTypes.RECEIVED_SYSTEM_SETTING_POLICY_ORDER, data: {policy_ids: previous}});
+            return {error};
+        }
+
+        dispatch({type: AdminTypes.RECEIVED_SYSTEM_SETTING_POLICY_ORDER, data});
 
         return {data};
     };

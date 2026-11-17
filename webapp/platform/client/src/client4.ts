@@ -3,7 +3,7 @@
 
 /* eslint-disable max-lines */
 
-import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams} from '@mattermost/types/access_control';
+import type {AccessControlPolicy, CELExpressionError, AccessControlTestResult, AccessControlPoliciesResult, AccessControlPolicyChannelsResult, AccessControlVisualAST, AccessControlAttributes, AccessControlPolicyActiveUpdate, PolicySimulationResponse, PolicySimulationByUsersParams, SystemSettingPolicyOrder} from '@mattermost/types/access_control';
 import type {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery, LogsByNode} from '@mattermost/types/admin';
 import type {Agent, LLMService} from '@mattermost/types/agents';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
@@ -5202,6 +5202,20 @@ export default class Client4 {
                     ...(actions && actions.length > 0 && {actions}),
                 }),
             },
+        );
+    };
+
+    getSystemSettingPolicyOrder = () => {
+        return this.doFetch<SystemSettingPolicyOrder>(
+            `${this.getBaseRoute()}/access_control_policies/system_setting/order`,
+            {method: 'get'},
+        );
+    };
+
+    updateSystemSettingPolicyOrder = (policyIds: string[]) => {
+        return this.doFetch<SystemSettingPolicyOrder>(
+            `${this.getBaseRoute()}/access_control_policies/system_setting/order`,
+            {method: 'put', body: JSON.stringify({policy_ids: policyIds})},
         );
     };
 

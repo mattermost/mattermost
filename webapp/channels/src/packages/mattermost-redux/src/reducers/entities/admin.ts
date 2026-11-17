@@ -742,6 +742,22 @@ function accessControlPolicies(state: IDMappedObjects<AccessControlPolicy> = {},
     }
 }
 
+function systemSettingPolicyOrder(state: string[] = [], action: MMReduxAction) {
+    switch (action.type) {
+    case AdminTypes.RECEIVED_SYSTEM_SETTING_POLICY_ORDER:
+        return action.data?.policy_ids ?? [];
+    case AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS:
+        if (!state.includes(action.data.id)) {
+            return state;
+        }
+        return state.filter((id) => id !== action.data.id);
+    case UserTypes.LOGOUT_SUCCESS:
+        return [];
+    default:
+        return state;
+    }
+}
+
 function channelsForAccessControlPolicy(state: Record<string, string[]> = {}, action: MMReduxAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_ACCESS_CONTROL_CHILD_POLICIES:
@@ -827,4 +843,7 @@ export default combineReducers({
 
     // object with policy ids as keys and arrays of channel ids as values
     channelsForAccessControlPolicy,
+
+    // system setting policy ids from highest to lowest priority
+    systemSettingPolicyOrder,
 });

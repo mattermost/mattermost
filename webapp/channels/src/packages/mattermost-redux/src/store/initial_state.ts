@@ -141,6 +141,7 @@ const state: GlobalState = {
             prevTrialLicense: {},
             accessControlPolicies: {},
             channelsForAccessControlPolicy: {},
+            systemSettingPolicyOrder: [],
         },
         jobs: {
             jobs: {},

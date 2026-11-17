@@ -1151,4 +1151,38 @@ describe('reducers.entities.admin', () => {
             expect(actual.logs).toEqual({});
         });
     });
+
+    describe('systemSettingPolicyOrder', () => {
+        it('RECEIVED_SYSTEM_SETTING_POLICY_ORDER replaces the order', () => {
+            const state = deepFreezeAndThrowOnMutation(['a', 'b']);
+            const actual = reducer({systemSettingPolicyOrder: state} as ReducerState, {
+                type: AdminTypes.RECEIVED_SYSTEM_SETTING_POLICY_ORDER,
+                data: {policy_ids: ['b', 'a', 'c']},
+            });
+
+            expect(actual.systemSettingPolicyOrder).toEqual(['b', 'a', 'c']);
+        });
+
+        it('DELETE_ACCESS_CONTROL_POLICY_SUCCESS removes the deleted policy and keeps unrelated deletes as-is', () => {
+            const state = deepFreezeAndThrowOnMutation(['a', 'b', 'c']);
+
+            const removed = reducer({systemSettingPolicyOrder: state} as ReducerState, {
+                type: AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS,
+                data: {id: 'b'},
+            });
+            expect(removed.systemSettingPolicyOrder).toEqual(['a', 'c']);
+
+            const untouched = reducer({systemSettingPolicyOrder: state} as ReducerState, {
+                type: AdminTypes.DELETE_ACCESS_CONTROL_POLICY_SUCCESS,
+                data: {id: 'channel-policy'},
+            });
+            expect(untouched.systemSettingPolicyOrder).toBe(state);
+        });
+
+        it('LOGOUT_SUCCESS clears the order', () => {
+            const actual = reducer({systemSettingPolicyOrder: ['a']} as ReducerState, {type: UserTypes.LOGOUT_SUCCESS});
+
+            expect(actual.systemSettingPolicyOrder).toEqual([]);
+        });
+    });
 });
