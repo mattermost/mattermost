@@ -109,7 +109,7 @@ describe('components/new_channel_modal', () => {
                         text: 'Create new board',
                         action: createBoardAction,
                         icon: <i className='icon-product-boards'/>,
-                        placement: 'afterCreateChannel',
+                        placement: 'afterCreateChannel' as const,
                     }],
                 },
             },
