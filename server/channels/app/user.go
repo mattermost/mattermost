@@ -2829,7 +2829,7 @@ func (a *App) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId s
 	if len(restrictions.Channels) > 0 {
 		result, err := a.userBelongsToChannels(otherUserId, restrictions.Channels)
 		if err != nil {
-			return false, err
+			return false, model.AsAppError(err)
 		}
 		if result {
 			return true, nil
@@ -2839,7 +2839,7 @@ func (a *App) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId s
 	return false, nil
 }
 
-func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *model.AppError) {
+func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, error) {
 	belongs, err := a.Srv().Store().Channel().UserBelongsToChannels(userID, channelIDs)
 	if err != nil {
 		return false, model.NewAppError("userBelongsToChannels", "app.channel.user_belongs_to_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

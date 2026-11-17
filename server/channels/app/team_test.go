@@ -2547,8 +2547,8 @@ func TestTeamSendEvents(t *testing.T) {
 
 	wsEvents := []model.WebsocketEventType{model.WebsocketEventUpdateTeam, model.WebsocketEventRestoreTeam, model.WebsocketEventDeleteTeam}
 	for _, wsEvent := range wsEvents {
-		appErr := th.App.sendTeamEvent(team, wsEvent)
-		require.Nil(t, appErr)
+		err := th.App.sendTeamEvent(team, wsEvent)
+		require.NoError(t, err)
 	}
 
 	msgs := testCluster.GetMessages()
