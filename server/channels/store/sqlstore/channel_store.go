@@ -4152,7 +4152,9 @@ func (s SqlChannelStore) GetChannelAdminsInfoByChannelIds(channelIDs []string) (
 		Join("Users AS u ON u.Id = cm.UserId").
 		LeftJoin("Bots AS b ON b.UserId = u.Id").
 		Where(sq.Eq{"cm.ChannelId": channelIDs}).
-		Where(sq.Eq{"cm.SchemeAdmin": true}).
+		// A literal, not a bound parameter, so the planner can match the
+		// partial index on channel admins.
+		Where("cm.SchemeAdmin = true").
 		Where(sq.Eq{"u.DeleteAt": 0}).
 		Where(sq.Expr("b.UserId IS NULL"))
 
