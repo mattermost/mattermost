@@ -5,6 +5,7 @@ release's latest tag, so a cut only starts when that tag is the one before it. Q
 release channel when the build is done."""
 
 import re
+from datetime import datetime
 
 from . import engine, gated, text
 from .engine import ActionContext, Status
@@ -104,8 +105,8 @@ def run(ctx: ActionContext) -> Status:
             return Status(engine.NOT_DUE, f"{engine.NOT_DUE}: RC-1 cut ({text.day_words(due) if due else 'not on the calendar'}).", "not_due")
         return gated.advance(ctx, rc1)
 
-    if rc1_state.get("state") == "started" and ctx.execute:
-        gated.advance(ctx, rc1)  # RC-1's run finished since: tell QA, then mark it done
+    if ctx.execute and 1 in numbers and rc1_state.get("state") in ("started", "failed"):
+        _settle_rc1(ctx, rc1, rc1_post, rc1_state)
         rc1_state = engine.state_of(gated.latest_post(ctx, rc1))
     rc1_done = rc1_state.get("state") == "done"
     head = Status(engine.DONE, f"{engine.DONE}: {release.version}-rc1 cut and QA notified.", "rc1_done", done=True,
@@ -141,6 +142,18 @@ def run(ctx: ActionContext) -> Status:
     if _blockers(ctx):
         return _combine(head, Status(engine.WAITING, f"{engine.WAITING}: no RC proposal while a Blocker ticket is open.", "blocked"))
     return _combine(head, gated.advance(ctx, gate))
+
+
+def _settle_rc1(ctx: ActionContext, gate: gated.Gate, post: dict, state: dict) -> None:
+    """rc1 is tagged, so RC-1 is never dispatched again (the workflow would cut rc2). A failed post is
+    finished once its runs turn out to have succeeded, or on an approved ``go``."""
+    if state["state"] == "started":
+        gated.advance(ctx, gate)
+        return
+    result, _ = engine.runs_state(ctx, state.get("runs") or [])
+    since = engine.ms(datetime.fromisoformat(state["failed_at"]))
+    if result == "success" or engine.first_go(ctx, post, state, since, gate.what):
+        gate.on_success(ctx, post, state)
 
 
 def _close_overtaken(ctx: ActionContext, latest: int) -> None:

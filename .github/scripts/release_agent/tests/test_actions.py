@@ -412,6 +412,38 @@ class RcTest(unittest.TestCase):
             "(https://releases.mattermost.com/12.3.0-rc1/mattermost-12.3.0-rc1-linux-amd64.tar.gz). cc @yasser.khan"])
         self.assertTrue(self.world.status(at(12, 1), "rc").done)
 
+    def ready_posts(self):
+        return [p for p in self.world.posts("c123") if p["message"].startswith("Done: v12.3.0-rc1 is ready")]
+
+    def test_should_finish_rc1_when_the_tag_shows_up_after_the_run_succeeded(self):
+        day = self.due
+        self.world.run(at(day.month, day.day, 8, 0), "rc")
+        self.world.run(at(day.month, day.day, 9, 2), "rc")
+        self.world.dispatcher.finish("success")
+        self.assertEqual(self.world.run(at(day.month, day.day, 10, 2), "rc")["state"], engine.FAILED)
+        self.world.add_tag("v12.3.0-rc1")
+        self.assertEqual(self.world.run(at(day.month, day.day, 11, 2), "rc")["state"], engine.DONE)
+        self.assertEqual(len(self.ready_posts()), 1)
+        self.assertEqual(len(self.world.dispatcher.dispatched), 1)
+        self.assertTrue(self.world.status(at(12, 1), "rc").done)
+
+    def test_should_finish_a_failed_rc1_that_was_tagged_on_go_without_cutting_again(self):
+        day = self.due
+        self.world.run(at(day.month, day.day, 8, 0), "rc")
+        self.world.run(at(day.month, day.day, 9, 2), "rc")
+        self.world.dispatcher.finish("failure")
+        self.world.add_tag("v12.3.0-rc1")
+        self.world.run(at(day.month, day.day, 10, 2), "rc")
+        self.world.run(at(day.month, day.day, 11, 2), "rc")
+        self.assertEqual(self.ready_posts(), [])
+        self.assertFalse(self.world.status(at(day.month, day.day, 11, 30), "rc").done)
+        notice = self.world.posts("c123")[0]
+        self.world.hub.reply(notice["id"], "go", "u-rm", ms(at(day.month, day.day, 11, 30)))
+        self.world.run(at(day.month, day.day, 12, 2), "rc")
+        self.assertEqual(len(self.ready_posts()), 1)
+        self.assertEqual(len(self.world.dispatcher.dispatched), 1, "rc1 is tagged, so nothing is cut again")
+        self.assertTrue(self.world.status(at(12, 1), "rc").done)
+
     def test_should_not_tick_an_rc1_cut_by_hand(self):
         self.world.add_tag("v12.3.0-rc1")
         self.assertFalse(self.world.status(at(12, 1), "rc").done)
