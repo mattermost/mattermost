@@ -767,6 +767,32 @@ func TestPostLog(t *testing.T) {
 	logMessage, _, err := th.SystemAdminClient.PostLog(context.Background(), message)
 	require.NoError(t, err)
 	require.NotEmpty(t, logMessage, "should return the log message")
+
+	t.Run("system admin error is logged with request context", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnableDeveloper = false
+		msg := "admin error " + model.NewId()
+		_, _, err := th.SystemAdminClient.PostLog(context.Background(), map[string]string{"level": "ERROR", "message": msg})
+		require.NoError(t, err)
+
+		entry, raw := requireLogEntry(t, th, "Client Logs API Endpoint Message: "+msg)
+		assert.Equal(t, "error", entry["level"])
+		assert.Equal(t, "client_message", entry["type"])
+		assert.NotEmpty(t, entry["session_id"])
+		assertRequestContext(t, entry, http.MethodPost, "/api/v4/logs", th.SystemAdminUser.Id)
+		assert.Equal(t, 1, strings.Count(raw, `"user_id":`), "user_id should be logged once")
+	})
+
+	t.Run("regular user error is downgraded to debug with request context", func(t *testing.T) {
+		*th.App.Config().ServiceSettings.EnableDeveloper = false
+		th.LoginBasic(t)
+		msg := "user error " + model.NewId()
+		_, _, err := th.Client.PostLog(context.Background(), map[string]string{"level": "ERROR", "message": msg})
+		require.NoError(t, err)
+
+		entry, _ := requireLogEntry(t, th, "Client Logs API Endpoint Message: "+msg)
+		assert.Equal(t, "debug", entry["level"])
+		assertRequestContext(t, entry, http.MethodPost, "/api/v4/logs", th.BasicUser.Id)
+	})
 }
 
 func TestGetAnalyticsOld(t *testing.T) {

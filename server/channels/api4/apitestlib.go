@@ -1506,3 +1506,26 @@ func FindAuditEntry(data string, eventName string, userID string) *AuditEntry {
 	}
 	return nil
 }
+
+// requireLogEntry returns the first JSON entry in th.LogBuffer with the given message, parsed and raw.
+func requireLogEntry(tb testing.TB, th *TestHelper, msg string) (map[string]any, string) {
+	tb.Helper()
+	require.NoError(tb, th.TestLogger.Flush())
+	for line := range strings.SplitSeq(th.LogBuffer.String(), "\n") {
+		var entry map[string]any
+		if json.Unmarshal([]byte(line), &entry) == nil && entry["msg"] == msg {
+			return entry, line
+		}
+	}
+	require.FailNowf(tb, "log entry not found", "msg: %q", msg)
+	return nil, ""
+}
+
+func assertRequestContext(tb testing.TB, entry map[string]any, method, path, userID string) {
+	tb.Helper()
+	require.NotEmpty(tb, entry["request_id"])
+	require.NotEmpty(tb, entry["ip_addr"])
+	require.Equal(tb, method, entry["method"])
+	require.Equal(tb, path, entry["path"])
+	require.Equal(tb, userID, entry["user_id"])
+}
