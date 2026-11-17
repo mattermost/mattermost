@@ -2940,7 +2940,7 @@ Typically set to **true** in a production environment.
 </colgroup>
 <tbody>
 <tr>
-<td><p>Log failed incoming webhook requests with their payload, for debugging.</p><ul><li><strong>true</strong>: Failed incoming webhook requests are logged with their payload.</li><li><strong>false</strong>: <strong>(Default)</strong> Payloads aren’t logged.</li></ul></td>
+<td><p>Log failed incoming webhook requests with their payload, for debugging.</p><ul><li><strong>true</strong>: Failed incoming webhook requests are logged with their payload, if it could be parsed.</li><li><strong>false</strong>: <strong>(Default)</strong> Payloads aren’t logged.</li></ul></td>
 <td><ul><li>System Config path: <strong>Environment &gt; Logging</strong></li><li><code>config.json</code> setting: <code>LogSettings</code> &gt; <code>EnableWebhookDebugging</code> &gt; <code>false</code></li><li>Environment variable: <code>MM_LOGSETTINGS_ENABLEWEBHOOKDEBUGGING</code></li></ul></td>
 </tr>
 </tbody>
