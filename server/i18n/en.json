@@ -240,6 +240,11 @@
     "description": "Admin console error when generating the Mattermost Service Provider metadata for SAML setup fails; 'Service Provider' is a SAML role term."
   },
   {
+    "id": "api.admin.saml.mismatched_sp_key_pair.app_error",
+    "translation": "The uploaded file doesn't match the stored Service Provider certificate or private key. Disable encryption to replace them one at a time.",
+    "description": "Admin console error when an uploaded SAML Service Provider certificate or private key doesn't belong to the other half of the key pair while SAML encryption is enabled; 'Service Provider' is a SAML role term."
+  },
+  {
     "id": "api.admin.saml.not_available.app_error",
     "translation": "SAML 2.0 is not configured or supported on this server.",
     "description": "API error when a SAML operation is attempted but SAML 2.0 is not configured or supported on the server; admin-facing."
