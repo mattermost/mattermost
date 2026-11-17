@@ -10,8 +10,8 @@ import type {Job} from '@mattermost/types/jobs';
 import {Client4} from 'mattermost-redux/client';
 
 import {handleJobUpdated} from 'actions/websocket_actions';
-import WebSocketClient from 'client/web_websocket_client';
 
+import WebSocketClient from 'client/web_websocket_client';
 import {act, renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
