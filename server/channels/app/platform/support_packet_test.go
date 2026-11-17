@@ -1296,6 +1296,12 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 	th := Setup(t)
 
+	// The default "./data/" only exists once the file store probe has created it, which
+	// races with the disk space lookup on the first call.
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		cfg.FileSettings.Directory = model.NewPointer(t.TempDir())
+	})
+
 	setStore := func(t *testing.T, s *failingDiagnosticsStore) {
 		originalStore := th.Service.Store
 		s.Store = originalStore
