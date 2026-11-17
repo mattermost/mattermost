@@ -100,7 +100,13 @@ func TestClientConfigOverridesPush(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.ConfigStore.SetReadOnlyFF(false)
 
-	enable := func(t *testing.T, policyRole string) *mocks.AccessControlServiceInterface {
+	groupID := model.NewId()
+	deptFieldID := model.NewId()
+	unreadFieldID := model.NewId()
+	readsDeptAndIP := "user.id_" + groupID + ".id_" + deptFieldID + ` == "finance" || user.session.` + model.SessionAttributesPropertyFieldIPAddress + ` == "192.0.2.10"`
+	readsVPN := `user.session.` + model.SessionAttributesPropertyFieldVPNActive + ` == "true"`
+
+	enable := func(t *testing.T, policyRole, expression string) *mocks.AccessControlServiceInterface {
 		t.Helper()
 		require.True(t, th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)))
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -125,7 +131,7 @@ func TestClientConfigOverridesPush(t *testing.T) {
 			Roles:   []string{policyRole},
 			Rules: []model.AccessControlPolicyRule{{
 				Actions:    []string{model.ClientConfigKeyMobileEnableBiometrics},
-				Expression: `user.attributes.dept == "finance"`,
+				Expression: expression,
 				Value:      "true",
 			}},
 		})
@@ -146,27 +152,42 @@ func TestClientConfigOverridesPush(t *testing.T) {
 	}
 	expectOverrides := expectSystemSettingOverrides
 	expectNothing := expectNoSystemSettingEvent
+	userValue := func(userID, fieldID string) *model.PropertyValue {
+		return &model.PropertyValue{TargetType: model.PropertyFieldObjectTypeUser, TargetID: userID, FieldID: fieldID}
+	}
 
 	biometricsOn := map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"}
 
 	t.Run("user attribute change pushes to every session of that user only", func(t *testing.T) {
-		enable(t, model.SystemUserRoleId)
+		enable(t, model.SystemUserRoleId, readsDeptAndIP)
 		first, _ := connect(t, th.BasicUser.Id)
 		second, _ := connect(t, th.BasicUser.Id)
 		other, _ := connect(t, th.BasicUser2.Id)
 
-		th.App.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{{
-			TargetType: model.PropertyFieldObjectTypeUser,
-			TargetID:   th.BasicUser.Id,
-		}})
+		th.App.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{
+			userValue(th.BasicUser.Id, unreadFieldID),
+			userValue(th.BasicUser.Id, deptFieldID),
+		})
 
 		expectOverrides(t, first, biometricsOn)
 		expectOverrides(t, second, biometricsOn)
 		expectNothing(t, other)
 	})
 
+	t.Run("user attribute change on a field no policy reads pushes nothing", func(t *testing.T) {
+		enable(t, model.SystemUserRoleId, readsDeptAndIP)
+		messages, _ := connect(t, th.BasicUser.Id)
+
+		th.App.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{userValue(th.BasicUser.Id, unreadFieldID)})
+		th.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, th.BasicUser.Id, []string{unreadFieldID})
+		expectNothing(t, messages)
+
+		th.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, th.BasicUser.Id, nil)
+		expectOverrides(t, messages, biometricsOn)
+	})
+
 	t.Run("session attribute change pushes only to the changed session", func(t *testing.T) {
-		enable(t, model.SystemUserRoleId)
+		enable(t, model.SystemUserRoleId, readsDeptAndIP)
 		enableSessionAttributesCollection(t, th)
 		th.ConfigStore.SetReadOnlyFF(false)
 
@@ -183,13 +204,29 @@ func TestClientConfigOverridesPush(t *testing.T) {
 
 		th.App.ProcessSessionAttributesRequest(rctx, newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234"))
 		expectNothing(t, changed)
+
+		th.App.ProcessSessionAttributesRequest(rctx, newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.11:1234"))
+		expectOverrides(t, changed, biometricsOn)
+	})
+
+	t.Run("session attribute change no policy reads pushes nothing", func(t *testing.T) {
+		enable(t, model.SystemUserRoleId, readsVPN)
+		enableSessionAttributesCollection(t, th)
+		th.ConfigStore.SetReadOnlyFF(false)
+
+		messages, sessionID := connect(t, th.BasicUser.Id)
+		session, appErr := th.App.GetSessionById(th.Context, sessionID)
+		require.Nil(t, appErr)
+
+		th.App.ProcessSessionAttributesRequest(th.Context.WithSession(session), newSessionAttributesRequest(t, testUserAgentChrome, "192.0.2.10:1234"))
+		expectNothing(t, messages)
 	})
 
 	t.Run("skips users no policy targets unless their role changed", func(t *testing.T) {
-		enable(t, model.SystemAdminRoleId)
+		enable(t, model.SystemAdminRoleId, readsDeptAndIP)
 		messages, _ := connect(t, th.BasicUser.Id)
 
-		th.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, th.BasicUser.Id)
+		th.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, th.BasicUser.Id, nil)
 		expectNothing(t, messages)
 
 		_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.SystemUserRoleId, false)
@@ -197,15 +234,30 @@ func TestClientConfigOverridesPush(t *testing.T) {
 		expectOverrides(t, messages, map[string]any{})
 	})
 
-	t.Run("attribute field changes re-evaluate every connection", func(t *testing.T) {
-		enable(t, model.SystemUserRoleId)
+	t.Run("attribute field changes re-evaluate every connection a reading policy targets", func(t *testing.T) {
+		enable(t, model.SystemUserRoleId, readsDeptAndIP)
 		matched, _ := connect(t, th.BasicUser.Id)
 		unmatched, _ := connect(t, th.BasicUser2.Id)
 
-		th.App.invalidateAllUserAttributeCaches()
+		th.App.invalidateAllUserAttributeCaches([]string{unreadFieldID})
+		expectNothing(t, matched)
+		expectNothing(t, unmatched)
 
+		th.App.invalidateAllUserAttributeCaches([]string{unreadFieldID, deptFieldID})
 		expectOverrides(t, matched, biometricsOn)
 		expectOverrides(t, unmatched, map[string]any{})
+
+		th.App.invalidateAllUserAttributeCaches(nil)
+		expectOverrides(t, matched, biometricsOn)
+		expectOverrides(t, unmatched, map[string]any{})
+	})
+
+	t.Run("attribute field changes skip connections no reading policy targets", func(t *testing.T) {
+		enable(t, model.SystemAdminRoleId, readsDeptAndIP)
+		messages, _ := connect(t, th.BasicUser.Id)
+
+		th.App.invalidateAllUserAttributeCaches([]string{deptFieldID})
+		expectNothing(t, messages)
 	})
 
 	t.Run("pushes nothing when no system_setting policy exists", func(t *testing.T) {

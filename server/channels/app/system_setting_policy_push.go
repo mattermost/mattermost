@@ -25,20 +25,20 @@ func (a *App) systemSettingPoliciesEvaluated() bool {
 		model.MinimumEnterpriseAdvancedLicense(a.License())
 }
 
-// systemSettingPolicyPushActive reports whether any system_setting policy can
-// produce overrides on this server, so callers can skip pushes entirely when
-// the feature is off or no policy exists.
-func (a *App) systemSettingPolicyPushActive(rctx request.CTX) bool {
+// systemSettingPoliciesForPush returns the cached system_setting policies, or
+// none when the feature is off, so callers can skip pushes entirely when no
+// policy can produce overrides.
+func (a *App) systemSettingPoliciesForPush(rctx request.CTX) []cachedSystemSettingPolicy {
 	if !a.systemSettingPoliciesEvaluated() {
-		return false
+		return nil
 	}
 
 	policies, err := a.Srv().Channels().systemSettingPoliciesCache.Get(rctx, a.Srv().Store().AccessControlPolicy())
 	if err != nil {
 		rctx.Logger().Warn("Failed to load system setting policies for override push", mlog.Err(err))
-		return false
+		return nil
 	}
-	return len(policies) > 0
+	return policies
 }
 
 // pushClientConfigOverrides re-evaluates overrides for the user's sessions in
@@ -47,23 +47,67 @@ func (a *App) systemSettingPolicyPushActive(rctx request.CTX) bool {
 // targets, so a role change that moves a user out of a targeted role clears
 // its overrides.
 func (a *App) pushClientConfigOverrides(rctx request.CTX, userID, sessionID string, force bool) {
-	if userID == "" || !a.systemSettingPolicyPushActive(rctx) {
+	if userID == "" || len(a.systemSettingPoliciesForPush(rctx)) == 0 {
+		return
+	}
+	a.goPushClientConfigOverrides(userID, sessionID, force)
+}
+
+// pushClientConfigOverridesForUserAttributes pushes to every session of the
+// user when a policy reads one of the changed user attribute fields. A nil
+// fieldIDs means the changed fields are unknown.
+func (a *App) pushClientConfigOverridesForUserAttributes(rctx request.CTX, userID string, fieldIDs []string) {
+	if userID == "" {
+		return
+	}
+	policies := a.systemSettingPoliciesForPush(rctx)
+	if !slices.ContainsFunc(policies, func(p cachedSystemSettingPolicy) bool {
+		return fieldIDs == nil || p.referencesField(fieldIDs)
+	}) {
+		return
+	}
+	a.goPushClientConfigOverrides(userID, "", false)
+}
+
+// pushClientConfigOverridesForSessionAttributes pushes to the session when a
+// policy reads one of the session attributes whose value changed.
+func (a *App) pushClientConfigOverridesForSessionAttributes(rctx request.CTX, userID, sessionID string, changed []string) {
+	if userID == "" {
+		return
+	}
+	policies := a.systemSettingPoliciesForPush(rctx)
+	if !slices.ContainsFunc(policies, func(p cachedSystemSettingPolicy) bool {
+		return p.referencesSessionAttribute(changed)
+	}) {
+		return
+	}
+	a.goPushClientConfigOverrides(userID, sessionID, false)
+}
+
+// pushClientConfigOverridesForFields re-evaluates overrides on every
+// connection a policy reading one of the changed fields targets, for field
+// mutations that can affect any user. A nil fieldIDs means the changed fields
+// are unknown.
+func (a *App) pushClientConfigOverridesForFields(rctx request.CTX, fieldIDs []string) {
+	var targetRoles []string
+	for _, p := range a.systemSettingPoliciesForPush(rctx) {
+		if len(p.Roles) == 0 || (fieldIDs != nil && !p.referencesField(fieldIDs)) {
+			continue
+		}
+		targetRoles = append(targetRoles, p.Roles[0])
+	}
+	if len(targetRoles) == 0 {
 		return
 	}
 
+	slices.Sort(targetRoles)
+	a.publishSystemSettingPolicyUpdate(rctx, slices.Compact(targetRoles))
+}
+
+func (a *App) goPushClientConfigOverrides(userID, sessionID string, force bool) {
 	a.Srv().Go(func() {
 		a.pushClientConfigOverridesForUser(request.EmptyContext(a.Log()), userID, sessionID, force)
 	})
-}
-
-// pushClientConfigOverridesForEveryone re-evaluates overrides for every
-// connected session, for changes such as attribute field mutations that may
-// affect any user.
-func (a *App) pushClientConfigOverridesForEveryone(rctx request.CTX) {
-	if !a.systemSettingPolicyPushActive(rctx) {
-		return
-	}
-	a.publishSystemSettingPolicyUpdate(rctx)
 }
 
 // pushClientConfigOverridesForUser evaluates overrides on this node for each
@@ -136,7 +180,7 @@ func (a *App) pushSystemSettingPolicyChange(rctx request.CTX, before *model.Acce
 		return
 	}
 	if !beforeKnown {
-		a.publishSystemSettingPolicyUpdate(rctx)
+		a.publishSystemSettingPolicyUpdate(rctx, nil)
 		return
 	}
 
@@ -152,7 +196,7 @@ func (a *App) pushSystemSettingPolicyChange(rctx request.CTX, before *model.Acce
 		userIDs, appErr := matcher.affectedUsers(queries)
 		if appErr != nil {
 			queryCtx.Logger().Warn("Failed to resolve users affected by a system setting policy change; re-evaluating every connection", mlog.Err(appErr))
-			a.publishSystemSettingPolicyUpdate(queryCtx)
+			a.publishSystemSettingPolicyUpdate(queryCtx, nil)
 			return
 		}
 

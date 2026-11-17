@@ -30,14 +30,70 @@ type cachedSystemSettingPolicy struct {
 	ID    string
 	Roles []string
 	Rules []cachedSystemSettingRule
+	// FieldIDs holds every id_<id> token of the stored rule expressions, which
+	// name property fields by ID, so it can also hold the property group ID.
+	FieldIDs            map[string]struct{}
+	AnyField            bool
+	SessionAttributes   map[string]struct{}
+	AnySessionAttribute bool
 }
 
-var expressionSessionRootPattern = regexp.MustCompile(`\buser\s*\.\s*session\b`)
+var (
+	expressionIDTokenPattern          = regexp.MustCompile(`id_([a-z0-9]{26})`)
+	expressionAttributesByNamePattern = regexp.MustCompile(`\buser\s*\.\s*attributes\b`)
+	expressionSessionRootPattern      = regexp.MustCompile(`\buser\s*\.\s*session\b`)
+	expressionSessionAttributePattern = regexp.MustCompile(`\buser\s*\.\s*session\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)`)
+)
 
 // expressionReferencesSessionAttributes reports whether expr reads any
 // user.session.* attribute.
 func expressionReferencesSessionAttributes(expr string) bool {
 	return expressionSessionRootPattern.MatchString(expr)
+}
+
+// addExpressionReferences records the property fields and session attributes
+// a stored rule expression reads. A user.attributes reference counts as
+// reading every field, and a user.session reference other than a
+// user.session.<name> selector as reading every session attribute.
+func (p *cachedSystemSettingPolicy) addExpressionReferences(expr string) {
+	for _, match := range expressionIDTokenPattern.FindAllStringSubmatch(expr, -1) {
+		p.FieldIDs[match[1]] = struct{}{}
+	}
+	if expressionAttributesByNamePattern.MatchString(expr) {
+		p.AnyField = true
+	}
+
+	named := expressionSessionAttributePattern.FindAllStringSubmatch(expr, -1)
+	for _, match := range named {
+		p.SessionAttributes[match[1]] = struct{}{}
+	}
+	if len(expressionSessionRootPattern.FindAllStringIndex(expr, -1)) > len(named) {
+		p.AnySessionAttribute = true
+	}
+}
+
+func (p *cachedSystemSettingPolicy) referencesField(fieldIDs []string) bool {
+	if p.AnyField && len(fieldIDs) > 0 {
+		return true
+	}
+	for _, id := range fieldIDs {
+		if _, ok := p.FieldIDs[id]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *cachedSystemSettingPolicy) referencesSessionAttribute(names []string) bool {
+	if p.AnySessionAttribute && len(names) > 0 {
+		return true
+	}
+	for _, name := range names {
+		if _, ok := p.SessionAttributes[name]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 type systemSettingPolicyCache struct {
@@ -85,21 +141,24 @@ func (c *systemSettingPolicyCache) Get(rctx request.CTX, policyStore store.Acces
 			}
 
 			for _, p := range policies {
-				rules := make([]cachedSystemSettingRule, 0, len(p.Rules))
+				item := cachedSystemSettingPolicy{
+					ID:                p.ID,
+					Roles:             slices.Clone(p.Roles),
+					Rules:             make([]cachedSystemSettingRule, 0, len(p.Rules)),
+					FieldIDs:          map[string]struct{}{},
+					SessionAttributes: map[string]struct{}{},
+				}
 				for _, r := range p.Rules {
 					if len(r.Actions) != 1 || r.Expression == "" {
 						continue
 					}
-					rules = append(rules, cachedSystemSettingRule{
+					item.Rules = append(item.Rules, cachedSystemSettingRule{
 						Key:   r.Actions[0],
 						Value: r.Value,
 					})
+					item.addExpressionReferences(r.Expression)
 				}
-				items = append(items, cachedSystemSettingPolicy{
-					ID:    p.ID,
-					Roles: slices.Clone(p.Roles),
-					Rules: rules,
-				})
+				items = append(items, item)
 			}
 
 			if len(policies) < systemSettingPolicySearchPageSize {
@@ -304,9 +363,12 @@ func (a *App) validateSystemSettingPolicyOnSave(rctx request.CTX, policy *model.
 	return nil
 }
 
-func (a *App) publishSystemSettingPolicyUpdate(_ request.CTX) {
+// publishSystemSettingPolicyUpdate has every connection re-evaluate its
+// overrides. A non-nil targetRoles limits this to connections whose role chain
+// includes one of them.
+func (a *App) publishSystemSettingPolicyUpdate(_ request.CTX, targetRoles []string) {
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
-	useSystemSettingPolicyHook(messageWs)
+	useSystemSettingPolicyHook(messageWs, targetRoles)
 	a.Publish(messageWs)
 }
 

@@ -125,7 +125,7 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, co
 		// named would skip the invalidation in the case most likely to need it.
 		// The cost of invalidating when nothing was affected is one matview
 		// refresh.
-		a.invalidateAllUserAttributeCaches()
+		a.invalidateAllUserAttributeCaches(nil)
 		return
 	}
 
@@ -139,7 +139,7 @@ func (a *App) propertyFieldOptionsChanged(rctx request.CTX, groupID, fieldID, co
 	// without touching a single PropertyValues row -- which is what the per-user
 	// epoch is computed from, so it cannot see this on its own.
 	if current.ObjectType == model.PropertyFieldObjectTypeUser || anyUserObjectType(dependents) {
-		a.invalidateAllUserAttributeCaches()
+		a.invalidateAllUserAttributeCaches(propertyFieldIDs([]*model.PropertyField{current}, dependents))
 	}
 
 	a.publishPropertyFieldEvent(rctx, model.WebsocketEventPropertyFieldUpdated, current, connectionID)

@@ -59,6 +59,53 @@ func TestExpressionReferencesSessionAttributes(t *testing.T) {
 	}
 }
 
+func TestCachedSystemSettingPolicyReferences(t *testing.T) {
+	groupID := model.NewId()
+	deptID := model.NewId()
+	levelID := model.NewId()
+	otherID := model.NewId()
+
+	policyFor := func(exprs ...string) *cachedSystemSettingPolicy {
+		p := &cachedSystemSettingPolicy{FieldIDs: map[string]struct{}{}, SessionAttributes: map[string]struct{}{}}
+		for _, expr := range exprs {
+			p.addExpressionReferences(expr)
+		}
+		return p
+	}
+
+	t.Run("fields named by ID across rules", func(t *testing.T) {
+		p := policyFor(
+			"user.id_"+groupID+".id_"+deptID+` == "finance"`,
+			"_rank_gte(user.id_"+groupID+".id_"+levelID+`, "secret")`,
+		)
+		assert.True(t, p.referencesField([]string{otherID, deptID}))
+		assert.True(t, p.referencesField([]string{levelID}))
+		assert.False(t, p.referencesField([]string{otherID}))
+		assert.False(t, p.referencesField(nil))
+		assert.False(t, p.referencesSessionAttribute([]string{model.SessionAttributesPropertyFieldIPAddress}))
+	})
+
+	t.Run("fields named by name count as every field", func(t *testing.T) {
+		p := policyFor(`user.attributes.dept == "finance"`)
+		assert.True(t, p.referencesField([]string{otherID}))
+		assert.False(t, p.referencesField(nil))
+	})
+
+	t.Run("session attribute selectors", func(t *testing.T) {
+		p := policyFor(`user.session.vpn_active == "true" || user . session . ip_address == "192.0.2.10"`)
+		assert.True(t, p.referencesSessionAttribute([]string{"os_platform", "ip_address"}))
+		assert.True(t, p.referencesSessionAttribute([]string{"vpn_active"}))
+		assert.False(t, p.referencesSessionAttribute([]string{"os_platform"}))
+		assert.False(t, p.referencesField([]string{otherID}))
+	})
+
+	t.Run("session root without a selector counts as every session attribute", func(t *testing.T) {
+		p := policyFor(`user.session.vpn_active == "true" && "ip_address" in user.session`)
+		assert.True(t, p.referencesSessionAttribute([]string{"os_platform"}))
+		assert.False(t, p.referencesSessionAttribute(nil))
+	})
+}
+
 func TestEvaluateClientConfigOverrides(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.ConfigStore.SetReadOnlyFF(false)
