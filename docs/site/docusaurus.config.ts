@@ -38,12 +38,8 @@ const algoliaThemeConfig =
       }
     : {};
 
-// OneTrust cookie consent banner, shared with mattermost.com. Only the hosted
-// production build sets ONETRUST_DOMAIN_SCRIPT (see docs-cd.yml); local, CI,
-// preview and air-gapped builds omit it, so they make no third-party request
-// and check-egress stays green. The production script is tied to the
-// mattermost.com domain, so it works on docs.mattermost.com and consent given
-// on either site is shared via the .mattermost.com OptanonConsent cookie.
+// OneTrust cookie banner, shared with mattermost.com (consent carries over).
+// Set only in production (docs-cd.yml); other builds skip it for check-egress.
 const oneTrustDomainScript = process.env.ONETRUST_DOMAIN_SCRIPT;
 const oneTrustHeadTags = oneTrustDomainScript
   ? [
