@@ -12,6 +12,8 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"text/template"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -129,6 +131,34 @@ var ConfigExportCmd = &cobra.Command{
 	RunE:    withClient(configExportCmdF),
 }
 
+var ConfigHistoryCmd = &cobra.Command{
+	Use:   "history",
+	Short: "List saved configurations",
+	Long: `Lists the configurations saved by the server, newest first, with the settings that changed in each one. The server keeps this history only when its configuration is stored in the database.
+
+Only settings you have permission to read are listed, and sensitive values are always hidden.`,
+	Example: `  config history
+  config history --detailed
+  config history --page 1 --per-page 20`,
+	Args: cobra.NoArgs,
+	RunE: withClient(configHistoryCmdF),
+}
+
+var ConfigRollbackCmd = &cobra.Command{
+	Use:   "rollback <config-id>",
+	Short: "Roll back to a saved configuration",
+	Long: `Replaces the server configuration with a saved configuration from "config history". The configuration it replaces stays in the history.
+
+It first lists the settings that rolling back would change and asks for confirmation, unless --confirm is given. With --dry-run, it only lists them.
+
+Settings set through environment variables keep the values set there. Without --local, settings that can't be changed through the API and settings you don't have permission to change also keep their current values.`,
+	Example: `  config rollback hpgt7dw7si8odbc9gg938iqjhr
+  config rollback hpgt7dw7si8odbc9gg938iqjhr --dry-run
+  config rollback hpgt7dw7si8odbc9gg938iqjhr --confirm`,
+	Args: cobra.ExactArgs(1),
+	RunE: withClient(configRollbackCmdF),
+}
+
 func init() {
 	ConfigResetCmd.Flags().Bool("confirm", false, "confirm you really want to reset all configuration settings to its default value")
 
@@ -139,6 +169,13 @@ func init() {
 
 	ConfigExportCmd.Flags().Bool("remove-masked", true, "remove masked values from the exported configuration")
 	ConfigExportCmd.Flags().Bool("remove-defaults", false, "remove default values from the exported configuration")
+
+	ConfigHistoryCmd.Flags().Int("page", 0, "Page number to fetch for the list of saved configurations")
+	ConfigHistoryCmd.Flags().Int("per-page", 10, "Number of saved configurations to be fetched")
+	ConfigHistoryCmd.Flags().Bool("detailed", false, "Show the old and new value of each changed setting")
+
+	ConfigRollbackCmd.Flags().Bool("confirm", false, "roll back without listing the settings that would change and asking for confirmation")
+	ConfigRollbackCmd.Flags().Bool("dry-run", false, "list the settings that would change without rolling back")
 
 	ConfigCmd.AddCommand(
 		ConfigGetCmd,
@@ -151,6 +188,8 @@ func init() {
 		ConfigMigrateCmd,
 		ConfigSubpathCmd,
 		ConfigExportCmd,
+		ConfigHistoryCmd,
+		ConfigRollbackCmd,
 	)
 	RootCmd.AddCommand(ConfigCmd)
 }
@@ -615,4 +654,102 @@ func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.Print(config)
 
 	return nil
+}
+
+func configHistoryCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
+	page, _ := cmd.Flags().GetInt("page")
+	perPage, _ := cmd.Flags().GetInt("per-page")
+	detailed, _ := cmd.Flags().GetBool("detailed")
+
+	entries, _, err := c.GetConfigHistory(context.TODO(), page, perPage)
+	if err != nil {
+		return fmt.Errorf("failed to get the configuration history: %w", err)
+	}
+
+	tpl := template.Must(template.New("").Funcs(template.FuncMap{
+		"savedAt": formatSavedAt,
+		"change": func(change *model.ConfigChange) string {
+			if !detailed {
+				return change.Path
+			}
+			return formatConfigChange(change)
+		},
+	}).Parse(`{{.Id}}  {{savedAt .CreateAt}}{{if .Active}}  (active){{end}}{{if .Unreadable}}  (can't be read){{end}}{{range .Changes}}
+  {{change .}}{{end}}`))
+
+	for _, entry := range entries {
+		printer.PrintPreparedT(tpl, entry)
+	}
+
+	return nil
+}
+
+type configRollbackResult struct {
+	ConfigId string                `json:"config_id"`
+	DryRun   bool                  `json:"dry_run"`
+	Changes  []*model.ConfigChange `json:"changes"`
+}
+
+var configRollbackTemplate = template.Must(template.New("").Funcs(template.FuncMap{
+	"change": formatConfigChange,
+}).Parse(`{{if .DryRun}}Rolling back to saved configuration {{.ConfigId}} would {{if .Changes}}change these settings:{{range .Changes}}
+  {{change .}}{{end}}{{else}}change no settings.{{end}}{{else}}Rolled back to saved configuration {{.ConfigId}}. {{if .Changes}}Changed settings:{{range .Changes}}
+  {{change .}}{{end}}{{else}}No settings changed.{{end}}{{end}}`))
+
+func configRollbackCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	configID := args[0]
+	if !model.IsValidId(configID) {
+		return fmt.Errorf("invalid configuration ID: %s", configID)
+	}
+	confirmFlag, _ := cmd.Flags().GetBool("confirm")
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
+
+	if dryRun || !confirmFlag {
+		changes, _, err := c.RestoreHistoricalConfig(context.TODO(), configID, true)
+		if err != nil {
+			return fmt.Errorf("failed to get the settings that rolling back to saved configuration %s would change: %w", configID, err)
+		}
+		printer.PrintPreparedT(configRollbackTemplate, &configRollbackResult{ConfigId: configID, DryRun: true, Changes: changes})
+		if dryRun || len(changes) == 0 {
+			return nil
+		}
+
+		// The printer writes its lines only when the command ends, so print them before asking.
+		if err := printer.Flush(); err != nil {
+			return fmt.Errorf("failed to print the settings that would change: %w", err)
+		}
+		if err := getConfirmation(fmt.Sprintf("Are you sure you want to roll back to saved configuration %s?", configID), false); err != nil {
+			return err
+		}
+	}
+
+	changes, _, err := c.RestoreHistoricalConfig(context.TODO(), configID, false)
+	if err != nil {
+		return fmt.Errorf("failed to roll back to saved configuration %s: %w", configID, err)
+	}
+	printer.PrintPreparedT(configRollbackTemplate, &configRollbackResult{ConfigId: configID, Changes: changes})
+
+	return nil
+}
+
+func formatSavedAt(millis int64) string {
+	return time.UnixMilli(millis).Format("2006-01-02 15:04:05 MST")
+}
+
+func formatConfigChange(change *model.ConfigChange) string {
+	if change.OldValue == model.FakeSetting && change.NewValue == model.FakeSetting {
+		return change.Path + ": [redacted]"
+	}
+	return fmt.Sprintf("%s: %s -> %s", change.Path, formatConfigValue(change.OldValue), formatConfigValue(change.NewValue))
+}
+
+func formatConfigValue(value any) string {
+	if value == model.FakeSetting {
+		return "[redacted]"
+	}
+	b, err := json.Marshal(value)
+	if err != nil {
+		return fmt.Sprintf("%v", value)
+	}
+	return string(b)
 }

@@ -483,15 +483,15 @@ func (ch *Channels) enablePlugin(id string) *model.AppError {
 // DisablePlugin will set the config for an installed plugin to disabled, triggering deactivation if active.
 // Notifies cluster peers through config change.
 func (a *App) DisablePlugin(id string) *model.AppError {
-	appErr := a.ch.disablePlugin(id)
-	if appErr != nil {
-		return appErr
+	err := a.ch.disablePlugin(id)
+	if err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
 }
 
-func (ch *Channels) disablePlugin(id string) *model.AppError {
+func (ch *Channels) disablePlugin(id string) error {
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
 		return model.NewAppError("DisablePlugin", "app.plugin.disabled.app_error", nil, "", http.StatusNotImplemented)
@@ -565,9 +565,9 @@ func (a *App) GetMarketplacePlugins(rctx request.CTX, filter *model.MarketplaceP
 	plugins := map[string]*model.MarketplacePlugin{}
 
 	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
-		p, appErr := a.getRemotePlugins()
-		if appErr != nil {
-			return nil, appErr
+		p, err := a.getRemotePlugins()
+		if err != nil {
+			return nil, model.AsAppError(err)
 		}
 		plugins = p
 	}
@@ -647,7 +647,7 @@ func (ch *Channels) getRemoteMarketplacePlugin(pluginID, version string) (*model
 	return plugin, nil
 }
 
-func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, *model.AppError) {
+func (a *App) getRemotePlugins() (map[string]*model.MarketplacePlugin, error) {
 	result := map[string]*model.MarketplacePlugin{}
 
 	pluginsEnvironment := a.GetPluginsEnvironment()

@@ -3864,7 +3864,7 @@
     "description": "Row label in the Connection Security help table (SMTP/LDAP admin settings); STARTTLS is a protocol name and should not be translated."
   },
   "admin.connectionSecurityStartDescription": {
-    "defaultMessage": "Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.",
+    "defaultMessage": "Upgrades an existing insecure connection to TLS. The connection fails if the server doesn't support STARTTLS.",
     "description": "Description of the 'STARTTLS' option in the Connection Security dropdown used by System Console settings such as SMTP and LDAP."
   },
   "admin.connectionSecurityTitle": {
@@ -7409,15 +7409,11 @@
   },
   "admin.health_dashboard.detail.first_seen": {
     "defaultMessage": "First detected",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
+    "description": "Label in an expanded firing finding on the System Console Site health page, shown only when the finding was first seen in an earlier state; followed by the date it was first seen, such as \"November 4, 2026\"."
   },
   "admin.health_dashboard.detail.go_to_setting": {
     "defaultMessage": "Go to setting",
     "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
-  },
-  "admin.health_dashboard.detail.last_seen": {
-    "defaultMessage": "Last checked",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
   },
   "admin.health_dashboard.detail.node": {
     "defaultMessage": "Node",
@@ -7439,9 +7435,9 @@
     "defaultMessage": "Resolve here",
     "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
   },
-  "admin.health_dashboard.detail.state": {
-    "defaultMessage": "State",
-    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
+  "admin.health_dashboard.detail.severity": {
+    "defaultMessage": "Severity",
+    "description": "Label in the details list of an expanded unknown or resolved finding on the System Console Site health page; the value is the severity the check has when firing (Critical, Warning or Info)."
   },
   "admin.health_dashboard.duration.days": {
     "defaultMessage": "{days}d",
@@ -7519,17 +7515,17 @@
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
   },
-  "admin.health_dashboard.finding.resolved_badge": {
-    "defaultMessage": "Resolved ({severity} when firing)",
-    "description": "Badge on a recently resolved finding row on the System Console Site health page; {severity} is the severity label (Critical, Warning or Info) the finding had while firing."
+  "admin.health_dashboard.finding.resolved": {
+    "defaultMessage": "Resolved",
+    "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
   },
   "admin.health_dashboard.finding.title_on_node": {
     "defaultMessage": "{title} on {node}",
     "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
   },
-  "admin.health_dashboard.finding.unknown_badge": {
-    "defaultMessage": "Unknown ({severity} if firing)",
-    "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
+  "admin.health_dashboard.finding.unknown": {
+    "defaultMessage": "Unknown",
+    "description": "Badge on a finding row of the System Console Site health page, when findings are grouped by category, for a check that could not be evaluated."
   },
   "admin.health_dashboard.finding.unknown_fallback": {
     "defaultMessage": "This check could not run, so its result is unknown.",
@@ -9559,9 +9555,9 @@
     "defaultMessage": "Enable Webhook Debugging:",
     "description": "Setting label (toggle) on the Logging admin page; sends webhook request debug output to server logs. Ends with a colon."
   },
-  "admin.log.enableWebhookDebuggingDescription": {
-    "defaultMessage": "When true, sends webhook debug messages to the server logs. To also output the request body of incoming webhooks, set {boldedLogLevel} to \"DEBUG\".",
-    "description": "Help text for the Enable Webhook Debugging setting; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
+  "admin.log.enableWebhookDebuggingPayloadDescription": {
+    "defaultMessage": "When true, failed incoming webhook requests are logged with their payload at the \"DEBUG\" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting.",
+    "description": "Help text for the Enable Webhook Debugging setting, warning that it logs webhook payloads; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
   },
   "admin.log.fileDescription": {
     "defaultMessage": "Typically set to true in production. When true, logged events are written to the mattermost.log file in the directory specified in the File Log Directory field. The logs are rotated at 100 MB and archived to a file in the same directory, and given a name with a datestamp and serial number. For example, mattermost.2017-03-31.001. Changing this setting requires a server restart before taking effect.",
