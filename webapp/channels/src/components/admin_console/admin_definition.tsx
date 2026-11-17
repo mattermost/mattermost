@@ -296,10 +296,13 @@ const adminDefinitionMessages = defineMessages({
 const siteHealthHidden = it.any(
     it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
     it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
-    it.not(it.isSystemAdmin),
+    it.not(it.any(
+        it.isSystemAdmin,
+        it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS),
+    )),
 );
 
-// Site health replaces Workspace Optimization only for admins who can see it; delegated admins keep the old page.
+// Site health replaces Workspace Optimization for every admin who can see it, so each admin sees one dashboard.
 const workspaceOptimizationHidden = it.any(
     it.not(siteHealthHidden),
     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SITE_STATISTICS)),

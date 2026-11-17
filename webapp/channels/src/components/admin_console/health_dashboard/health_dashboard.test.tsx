@@ -398,17 +398,27 @@ describe('components/admin_console/health_dashboard', () => {
     });
 
     describe('mute', () => {
-        const admins = {
-            entities: {
-                users: {
-                    currentUserId: 'admin1',
-                    profiles: {
-                        admin1: TestHelper.getUserMock({id: 'admin1', username: 'alice'}),
-                        admin2: TestHelper.getUserMock({id: 'admin2', username: 'bob'}),
+        function viewedBy(roles: string) {
+            return {
+                entities: {
+                    users: {
+                        currentUserId: 'admin1',
+                        profiles: {
+                            admin1: TestHelper.getUserMock({id: 'admin1', username: 'alice', roles}),
+                            admin2: TestHelper.getUserMock({id: 'admin2', username: 'bob'}),
+                        },
+                    },
+                    roles: {
+                        roles: {
+                            system_admin: TestHelper.getRoleMock({name: 'system_admin', permissions: ['manage_system', 'sysconsole_read_reporting_site_statistics']}),
+                            system_manager: TestHelper.getRoleMock({name: 'system_manager', permissions: ['sysconsole_read_reporting_site_statistics']}),
+                        },
                     },
                 },
-            },
-        };
+            };
+        }
+
+        const admins = viewedBy('system_user system_admin');
 
         const pushFinding = makeFinding({fingerprint: 'c1', severity: 'critical', title: 'Push notification server is not HTTPS'});
         const diskFinding = makeFinding({fingerprint: 'n3', code: 'disk_low', scope: 'node-3', title: 'Disk space is low'});
@@ -534,6 +544,21 @@ describe('components/admin_console/health_dashboard', () => {
             expect(await screen.findByText('The finding could not be unmuted, so it is still muted. Try again.')).toBeVisible();
             expect(rowTitles()).toEqual(['Muted by a colleague']);
             expect(mutedToggle()).toHaveTextContent('Muted1');
+        });
+
+        test('a delegated admin without manage_system sees open and muted findings but no mute or unmute controls', async () => {
+            await renderDashboard(evaluated([pushFinding, mutedByBob]), viewedBy('system_user system_manager'));
+
+            expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);
+            await userEvent.click(screen.getByRole('button', {name: /Push notification server is not HTTPS/}));
+            expect(within(row('Push notification server is not HTTPS')).getByText('Fix it.')).toBeVisible();
+            expect(screen.queryByRole('button', {name: 'Mute'})).not.toBeInTheDocument();
+
+            await userEvent.click(mutedToggle());
+
+            expect(rowTitles()).toEqual(['Muted by a colleague']);
+            expect(within(row('Muted by a colleague')).getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @bob 2 days ago');
+            expect(screen.queryByRole('button', {name: 'Unmute'})).not.toBeInTheDocument();
         });
     });
 });

@@ -15,20 +15,25 @@ const enterpriseAdvancedLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus
 const professionalLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus.Professional} as ClientLicense;
 const cloudEnterpriseLicense = {IsLicensed: 'true', SkuShortName: LicenseSkus.Enterprise, Cloud: 'true'} as ClientLicense;
 const noLicense = {IsLicensed: 'false'} as ClientLicense;
-const reportingAccess = {
-    read: {[RESOURCE_KEYS.REPORTING.SITE_STATISTICS]: true},
-    write: {[RESOURCE_KEYS.REPORTING.SITE_STATISTICS]: true},
-} as ConsoleAccess;
+
+type Viewer = {isSystemAdmin: boolean; canReadSiteStatistics: boolean};
+const systemAdmin: Viewer = {isSystemAdmin: true, canReadSiteStatistics: true};
+const delegatedAdmin: Viewer = {isSystemAdmin: false, canReadSiteStatistics: true};
+const delegatedAdminWithoutSiteStatistics: Viewer = {isSystemAdmin: false, canReadSiteStatistics: false};
 
 const reporting = AdminDefinition.reporting.subsections;
 type ReportingKey = keyof typeof reporting;
 
-function isHidden(key: ReportingKey, license: ClientLicense, isSystemAdmin = true, flag = true) {
+function isHidden(key: ReportingKey, license: ClientLicense, viewer = systemAdmin, flag = true) {
     const check: Check | undefined = reporting[key].isHidden;
     if (typeof check !== 'function') {
         return Boolean(check);
     }
-    return check({FeatureFlags: {HealthDashboard: flag}}, {}, license, true, reportingAccess, undefined, isSystemAdmin);
+    const consoleAccess = {
+        read: {[RESOURCE_KEYS.REPORTING.SITE_STATISTICS]: viewer.canReadSiteStatistics},
+        write: {[RESOURCE_KEYS.REPORTING.SITE_STATISTICS]: viewer.isSystemAdmin},
+    } as ConsoleAccess;
+    return check({FeatureFlags: {HealthDashboard: flag}}, {}, license, true, consoleAccess, undefined, viewer.isSystemAdmin);
 }
 
 describe('AdminDefinition - Site health', () => {
@@ -41,29 +46,40 @@ describe('AdminDefinition - Site health', () => {
         expect(isHidden('site_health', enterpriseAdvancedLicense)).toBe(false);
     });
 
+    test('is shown to a delegated admin who can read Site Statistics', () => {
+        expect(isHidden('site_health', enterpriseLicense, delegatedAdmin)).toBe(false);
+    });
+
+    test('is hidden from a delegated admin who cannot read Site Statistics', () => {
+        expect(isHidden('site_health', enterpriseLicense, delegatedAdminWithoutSiteStatistics)).toBe(true);
+    });
+
     test('is hidden when the feature flag is off', () => {
-        expect(isHidden('site_health', enterpriseLicense, true, false)).toBe(true);
+        expect(isHidden('site_health', enterpriseLicense, systemAdmin, false)).toBe(true);
+        expect(isHidden('site_health', enterpriseLicense, delegatedAdmin, false)).toBe(true);
     });
 
     test('is hidden below an Enterprise license', () => {
-        expect(isHidden('site_health', professionalLicense)).toBe(true);
-        expect(isHidden('site_health', noLicense)).toBe(true);
-    });
-
-    test('is hidden from anyone who is not a system admin', () => {
-        expect(isHidden('site_health', enterpriseLicense, false)).toBe(true);
+        for (const viewer of [systemAdmin, delegatedAdmin]) {
+            expect(isHidden('site_health', professionalLicense, viewer)).toBe(true);
+            expect(isHidden('site_health', noLicense, viewer)).toBe(true);
+        }
     });
 });
 
 describe('AdminDefinition - Site health or Workspace Optimization, never both', () => {
     test('flag on with an Enterprise license shows Site health and hides Workspace Optimization', () => {
-        expect(isHidden('site_health', enterpriseLicense)).toBe(false);
-        expect(isHidden('workspace_optimization', enterpriseLicense)).toBe(true);
+        for (const viewer of [systemAdmin, delegatedAdmin]) {
+            expect(isHidden('site_health', enterpriseLicense, viewer)).toBe(false);
+            expect(isHidden('workspace_optimization', enterpriseLicense, viewer)).toBe(true);
+        }
     });
 
     test('flag off shows Workspace Optimization and hides Site health', () => {
-        expect(isHidden('workspace_optimization', enterpriseLicense, true, false)).toBe(false);
-        expect(isHidden('site_health', enterpriseLicense, true, false)).toBe(true);
+        for (const viewer of [systemAdmin, delegatedAdmin]) {
+            expect(isHidden('workspace_optimization', enterpriseLicense, viewer, false)).toBe(false);
+            expect(isHidden('site_health', enterpriseLicense, viewer, false)).toBe(true);
+        }
     });
 
     test('flag on below Enterprise shows only Workspace Optimization', () => {
@@ -73,9 +89,11 @@ describe('AdminDefinition - Site health or Workspace Optimization, never both', 
         }
     });
 
-    test('flag on with an Enterprise license keeps Workspace Optimization for delegated admins who cannot see Site health', () => {
-        expect(isHidden('site_health', enterpriseLicense, false)).toBe(true);
-        expect(isHidden('workspace_optimization', enterpriseLicense, false)).toBe(false);
+    test('a delegated admin who cannot read Site Statistics sees neither dashboard', () => {
+        for (const flag of [true, false]) {
+            expect(isHidden('site_health', enterpriseLicense, delegatedAdminWithoutSiteStatistics, flag)).toBe(true);
+            expect(isHidden('workspace_optimization', enterpriseLicense, delegatedAdminWithoutSiteStatistics, flag)).toBe(true);
+        }
     });
 
     test('flag on with a Cloud Enterprise license shows Site health only', () => {
@@ -87,8 +105,8 @@ describe('AdminDefinition - Site health or Workspace Optimization, never both', 
         const licenses = [enterpriseLicense, enterpriseAdvancedLicense, professionalLicense, cloudEnterpriseLicense, noLicense];
         for (const license of licenses) {
             for (const flag of [true, false]) {
-                for (const isSystemAdmin of [true, false]) {
-                    const visible = (Object.keys(reporting) as ReportingKey[]).filter((key) => !isHidden(key, license, isSystemAdmin, flag));
+                for (const viewer of [systemAdmin, delegatedAdmin, delegatedAdminWithoutSiteStatistics]) {
+                    const visible = (Object.keys(reporting) as ReportingKey[]).filter((key) => !isHidden(key, license, viewer, flag));
                     expect(visible.includes('site_health') && visible.includes('workspace_optimization')).toBe(false);
                 }
             }

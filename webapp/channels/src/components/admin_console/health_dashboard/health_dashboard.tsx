@@ -34,6 +34,7 @@ export type Props = {
     findings: HealthFinding[];
     mutedFindings: HealthFinding[];
     lastEvaluatedAt: number;
+    canMute: boolean;
     actions: {
         getHealthFindings: (filter?: HealthFindingFilter) => Promise<ActionResult<HealthFindingList>>;
         muteHealthFinding: (fingerprint: string) => Promise<ActionResult>;
@@ -51,7 +52,7 @@ const unmuteErrorMessage = defineMessage({
     defaultMessage: 'The finding could not be unmuted, so it is still muted. Try again.',
 });
 
-const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Props) => {
+const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canMute, actions}: Props) => {
     const [loading, setLoading] = useState(true);
     const [failed, setFailed] = useState(false);
     const [now, setNow] = useState(Date.now);
@@ -101,7 +102,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, actions}: Pr
         setMuteError(error ? unmuteErrorMessage : null);
     }, [actions]);
 
-    const rowState = {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute};
+    const rowState = canMute ? {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute} : {now, expanded, onToggle: toggle};
 
     let content;
     if (loading) {
