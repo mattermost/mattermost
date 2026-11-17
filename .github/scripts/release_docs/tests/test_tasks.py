@@ -126,8 +126,10 @@ class GitHubReleaseTest(unittest.TestCase):
 
 
 def real_docs():
-    """The docs pages the release docs PR edits, as they are in this checkout."""
-    root = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+    """The docs pages the release docs PR edits, as they were before the v12.1 release
+    (fixtures/docs-pages). Not this checkout's docs: once master publishes a release, the
+    expected PR would change under the tests."""
+    root = os.path.join(os.path.dirname(__file__), "fixtures", "docs-pages")
     files = {}
     for path in release_docs_pr.FILES:
         with open(os.path.join(root, path), encoding="utf-8") as f:
@@ -257,7 +259,7 @@ class ReleaseDocsTest(unittest.TestCase):
         self.assertEqual(esr.count("12.4.0/mattermost-12.4.0"), 2)
         self.assertEqual(release_docs_pr.update_deploy_page(page, Version.parse("v11.11.0"), ESR), page)
 
-    def test_full_pr_on_this_checkouts_docs_is_idempotent(self):
+    def test_full_pr_on_the_real_docs_is_idempotent(self):
         files = real_docs()
         events = calendar.parse_ics("\n".join(
             f"BEGIN:VEVENT\nSUMMARY:{title}\nDTSTART;VALUE=DATE:{day}\nEND:VEVENT" for title, day in (
