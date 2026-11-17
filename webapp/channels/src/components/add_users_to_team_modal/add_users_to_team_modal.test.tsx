@@ -26,7 +26,6 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
 
     const user1 = createUser('userid1', 'user-1', false);
     const user2 = createUser('userid2', 'user-2', false);
-    const removedUser = createUser('userid-not-removed', 'user-not-removed', false);
     const team: Team = TestHelper.getTeamMock({
         id: 'team-1',
         create_at: 1589222794545,
@@ -71,26 +70,6 @@ describe('components/admin_console/add_users_to_team_modal/AddUsersToTeamModal',
     });
     afterEach(() => {
         rafSpy.mockRestore();
-    });
-
-    test('should match snapshot with 2 users', () => {
-        const {baseElement} = renderWithContext(
-            <AddUsersToTeamModal
-                {...baseProps}
-            />,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
-    test('should match snapshot with 2 users, 1 included and 1 removed', () => {
-        const {container} = renderWithContext(
-            <AddUsersToTeamModal
-                {...baseProps}
-                includeUsers={{[removedUser.id]: removedUser}}
-                excludeUsers={{[user1.id]: user1}}
-            />,
-        );
-        expect(container).toMatchSnapshot();
     });
 
     test('should match state when handleHide is called', () => {

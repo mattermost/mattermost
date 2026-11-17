@@ -4,6 +4,7 @@
 package app
 
 import (
+	"context"
 	"net/http"
 	"os"
 	"os/signal"
@@ -21,6 +22,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
@@ -101,7 +103,8 @@ type Channels struct {
 	postReminderTask  leaderTask
 	scheduledPostTask leaderTask
 
-	healthCheckTask leaderTask
+	healthCheckWorkers *jobs.Workers
+	cancelHealthCheck  context.CancelFunc
 
 	interruptQuitChan chan struct{}
 }
@@ -148,14 +151,10 @@ func NewChannels(s *Server) (*Channels, error) {
 	}
 	if samlInterface != nil {
 		ch.Saml = samlInterface(New(ServerConnector(ch)))
-		if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
-			s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-		}
+		ch.configureSaml(request.EmptyContext(s.Log()))
 
 		ch.AddConfigListener(func(_, _ *model.Config) {
-			if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
-				s.Log().Error("An error occurred while configuring SAML Service Provider", mlog.Err(err))
-			}
+			ch.configureSaml(request.EmptyContext(s.Log()))
 		})
 	}
 
@@ -329,7 +328,7 @@ func (ch *Channels) Stop() error {
 	ch.dndTask.stop()
 	ch.postReminderTask.stop()
 	ch.scheduledPostTask.stop()
-	ch.healthCheckTask.stop()
+	ch.stopHealthCheckWorkers()
 
 	close(ch.interruptQuitChan)
 

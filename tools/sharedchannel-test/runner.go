@@ -16,6 +16,12 @@ type TestResult struct {
 	Detail string
 }
 
+// nodeClient talks to one cluster node directly, bypassing the proxy.
+type nodeClient struct {
+	name   string
+	client *model.Client4
+}
+
 // TestRunner orchestrates the full integration test sequence.
 type TestRunner struct {
 	cfg      Config
@@ -23,6 +29,8 @@ type TestRunner struct {
 	mgr      *ServerManager
 	clientA  *model.Client4
 	clientB  *model.Client4
+	nodesA   []nodeClient // HA mode only
+	nodesB   []nodeClient // HA mode only
 	teamA    *model.Team
 	teamB    *model.Team
 	remoteID string // single remote cluster connection, reused for all tests
@@ -74,38 +82,65 @@ func (tr *TestRunner) Run(ctx context.Context) error {
 	if err := tr.runReactionTests(ctx); err != nil {
 		tr.logger.Error("Reaction tests had errors", mlog.Err(err))
 	}
+	if err := tr.runHATests(ctx); err != nil {
+		tr.logger.Error("HA tests had errors", mlog.Err(err))
+	}
 	if err := tr.runOfflineRecoveryTests(ctx); err != nil {
 		tr.logger.Error("Offline recovery tests had errors", mlog.Err(err))
+	}
+	if err := tr.runCatchUpTests(ctx); err != nil {
+		tr.logger.Error("Outage catch-up tests had errors", mlog.Err(err))
+	}
+	if err := tr.runCursorRewindTests(ctx); err != nil {
+		tr.logger.Error("Cursor rewind tests had errors", mlog.Err(err))
 	}
 
 	// Report
 	return tr.report()
 }
 
+func (tr *TestRunner) ha() bool {
+	return tr.mgr != nil && tr.mgr.ha()
+}
+
 func (tr *TestRunner) provision(ctx context.Context) error {
 	var err error
 
+	adminURLA, adminURLB := tr.cfg.ServerAURL, tr.cfg.ServerBURL
+	if tr.ha() {
+		// The admin role is granted straight in the DB, which no node's user cache hears
+		// about, so every provisioning step runs on the same node.
+		adminURLA, adminURLB = tr.mgr.NodesA()[0].url, tr.mgr.NodesB()[0].url
+	}
+
 	// Create admin users and login
 	tr.logger.Info("Provisioning admin users...")
-	tr.clientA, err = ProvisionAdmin(ctx, tr.cfg.ServerAURL, "mattermost_test",
+	tr.clientA, err = ProvisionAdmin(ctx, adminURLA, tr.cfg.DBNameA,
 		tr.cfg.AdminUser, "admin-a@test.local", tr.cfg.AdminPass)
 	if err != nil {
 		return fmt.Errorf("provision server A: %w", err)
 	}
 
-	tr.clientB, err = ProvisionAdmin(ctx, tr.cfg.ServerBURL, "mattermost_node_test",
+	tr.clientB, err = ProvisionAdmin(ctx, adminURLB, tr.cfg.DBNameB,
 		tr.cfg.AdminUser, "admin-b@test.local", tr.cfg.AdminPass)
 	if err != nil {
 		return fmt.Errorf("provision server B: %w", err)
 	}
 
-	// Upload license
-	tr.logger.Info("Uploading license...")
-	if err := UploadLicense(ctx, tr.clientA, tr.cfg.LicensePath); err != nil {
-		return fmt.Errorf("license server A: %w", err)
-	}
-	if err := UploadLicense(ctx, tr.clientB, tr.cfg.LicensePath); err != nil {
-		return fmt.Errorf("license server B: %w", err)
+	if tr.ha() {
+		// No license upload: HA nodes got it at boot through MM_LICENSE.
+		tr.nodesA = nodeClients(tr.mgr.NodesA(), tr.clientA.AuthToken)
+		tr.nodesB = nodeClients(tr.mgr.NodesB(), tr.clientB.AuthToken)
+		tr.clientA = clientWithToken(tr.cfg.ServerAURL, tr.clientA.AuthToken)
+		tr.clientB = clientWithToken(tr.cfg.ServerBURL, tr.clientB.AuthToken)
+	} else {
+		tr.logger.Info("Uploading license...")
+		if err := UploadLicense(ctx, tr.clientA, tr.cfg.LicensePath); err != nil {
+			return fmt.Errorf("license server A: %w", err)
+		}
+		if err := UploadLicense(ctx, tr.clientB, tr.cfg.LicensePath); err != nil {
+			return fmt.Errorf("license server B: %w", err)
+		}
 	}
 
 	// Wait for remote cluster service to become available after license upload
@@ -114,6 +149,19 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 		return err == nil
 	}); err != nil {
 		return fmt.Errorf("remote cluster service not ready on server A: %w", err)
+	}
+
+	if tr.ha() {
+		for _, side := range []struct {
+			name  string
+			nodes []nodeClient
+		}{{"A", tr.nodesA}, {"B", tr.nodesB}} {
+			leader, err := tr.waitForCluster(ctx, side.nodes)
+			if err != nil {
+				return fmt.Errorf("server %s cluster: %w", side.name, err)
+			}
+			tr.logger.Info("Cluster formed", mlog.String("server", side.name), mlog.String("leader", leader))
+		}
 	}
 
 	// Create teams
@@ -174,22 +222,40 @@ func (tr *TestRunner) provision(ctx context.Context) error {
 // setupSharedChannel creates a channel on Server A, shares it with Server B via
 // the pre-established remote cluster, and returns both channel IDs.
 func (tr *TestRunner) setupSharedChannel(ctx context.Context, channelName string) (channelA, channelB string, err error) {
-	uniqueName := channelName + "-" + tr.suffix
+	channelA, err = tr.createChannelOnA(ctx, channelName)
+	if err != nil {
+		return "", "", err
+	}
+	channelB, err = tr.shareChannelWithB(ctx, channelName, channelA)
+	if err != nil {
+		return "", "", err
+	}
+	return channelA, channelB, nil
+}
+
+// createChannelOnA creates an open channel on Server A without sharing it.
+func (tr *TestRunner) createChannelOnA(ctx context.Context, channelName string) (string, error) {
 	ch, _, err := tr.clientA.CreateChannel(ctx, &model.Channel{
 		TeamId:      tr.teamA.Id,
-		Name:        uniqueName,
+		Name:        channelName + "-" + tr.suffix,
 		DisplayName: "Shared: " + channelName,
 		Type:        model.ChannelTypeOpen,
 	})
 	if err != nil {
-		return "", "", fmt.Errorf("create channel: %w", err)
+		return "", fmt.Errorf("create channel: %w", err)
 	}
-	channelA = ch.Id
+	return ch.Id, nil
+}
+
+// shareChannelWithB shares a channel created by createChannelOnA through the
+// pre-established remote cluster and returns its ID on Server B.
+func (tr *TestRunner) shareChannelWithB(ctx context.Context, channelName, channelA string) (channelB string, err error) {
+	uniqueName := channelName + "-" + tr.suffix
 
 	// Share the channel through the existing remote
 	_, err = tr.clientA.InviteRemoteClusterToChannel(ctx, tr.remoteID, channelA)
 	if err != nil {
-		return "", "", fmt.Errorf("share channel: %w", err)
+		return "", fmt.Errorf("share channel: %w", err)
 	}
 
 	// Wait for channel to appear on B
@@ -207,10 +273,10 @@ func (tr *TestRunner) setupSharedChannel(ctx context.Context, channelName string
 		}
 		return false
 	}); err != nil {
-		return "", "", fmt.Errorf("channel did not appear on server B: %w", err)
+		return "", fmt.Errorf("channel did not appear on server B: %w", err)
 	}
 
-	return channelA, channelB, nil
+	return channelB, nil
 }
 
 func (tr *TestRunner) waitForRemoteOnline(ctx context.Context, remoteID string) error {
@@ -221,6 +287,67 @@ func (tr *TestRunner) waitForRemoteOnline(ctx context.Context, remoteID string) 
 		}
 		return rc.LastPingAt > 0
 	})
+}
+
+func nodeClients(nodes []*serverNode, token string) []nodeClient {
+	clients := make([]nodeClient, 0, len(nodes))
+	for _, n := range nodes {
+		clients = append(clients, nodeClient{name: n.label, client: clientWithToken(n.url, token)})
+	}
+	return clients
+}
+
+func clientWithToken(url, token string) *model.Client4 {
+	client := model.NewAPIv4Client(url)
+	client.SetToken(token)
+	return client
+}
+
+// waitForCluster waits until every node in nodes sees exactly those nodes as cluster
+// members, then returns the leader's node name.
+func (tr *TestRunner) waitForCluster(ctx context.Context, nodes []nodeClient) (string, error) {
+	const timeout = 90 * time.Second
+	// The client sets no HTTP timeout, so a stalled node would block past waitFor's deadline.
+	ctx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	var leader string
+	err := tr.waitFor(ctx, timeout, func() bool {
+		leader = ""
+		for _, n := range nodes {
+			infos, _, err := n.client.GetClusterStatus(ctx)
+			if err != nil {
+				return false
+			}
+			nodeLeader, connected := clusterLeader(infos)
+			if connected != len(nodes) || (leader != "" && nodeLeader != leader) {
+				return false
+			}
+			leader = nodeLeader
+		}
+		return true
+	})
+	if err != nil {
+		return "", fmt.Errorf("%d-node cluster did not form (the license must include the Cluster feature): %w", len(nodes), err)
+	}
+	return leader, nil
+}
+
+// clusterLeader mirrors the server's election: the connected node with the lowest
+// cluster ID leads.
+func clusterLeader(infos []*model.ClusterInfo) (leader string, connected int) {
+	var leaderID string
+	for _, info := range infos {
+		// Nodes that are only registered in the DB, not in the memberlist, have no config hash.
+		if info.ConfigHash == "" {
+			continue
+		}
+		connected++
+		if leaderID == "" || info.Id < leaderID {
+			leaderID, leader = info.Id, info.Hostname
+		}
+	}
+	return leader, connected
 }
 
 func (tr *TestRunner) waitFor(ctx context.Context, timeout time.Duration, condition func() bool) error {

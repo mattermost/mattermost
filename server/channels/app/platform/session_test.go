@@ -121,8 +121,13 @@ func TestOAuthRevokeAccessToken(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
 
-	err := th.Service.RevokeAccessToken(th.Context, model.NewRandomString(16))
+	unknownToken := model.NewRandomString(16)
+	err := th.Service.RevokeAccessToken(th.Context, unknownToken)
 	require.Error(t, err, "Should have failed due to an incorrect token")
+	// RevokeAccessToken formats the store error into GetTokenError, which callers
+	// log, so the token must not be part of it; MM-70121.
+	require.ErrorIs(t, err, GetTokenError)
+	assert.NotContains(t, err.Error(), unknownToken)
 
 	session := &model.Session{}
 	session.CreateAt = model.GetMillis()

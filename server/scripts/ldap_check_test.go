@@ -83,9 +83,6 @@ func argsBeforeDoubleDash(argv []string) []string {
 func runLdapCheck(t *testing.T, settings ldapSettings, args []string) ldapCheckResult {
 	t.Helper()
 
-	_, err := exec.LookPath("jq")
-	require.NoError(t, err, "jq must be on PATH")
-
 	workdir := t.TempDir()
 	binDir := filepath.Join(workdir, "bin")
 	require.NoError(t, os.Mkdir(binDir, 0o755))
@@ -96,6 +93,20 @@ func runLdapCheck(t *testing.T, settings ldapSettings, args []string) ldapCheckR
 		"while (($#)); do [[ $1 == -y ]] && cat \"$2\" > \"${LDAPCHECK_PW_FILE}\"; shift; done\nexit 0\n"
 	require.NoError(t, os.WriteFile(filepath.Join(binDir, "ldapsearch"), []byte(stub), 0o755))
 
+	// jq is not installed in the FIPS build image, so stand in for `jq -r .LdapSettings.<Name>`.
+	settingsDir := filepath.Join(workdir, "settings")
+	require.NoError(t, os.Mkdir(settingsDir, 0o755))
+	jqStub := "#!/bin/bash\ncat > /dev/null\ncat \"${LDAPCHECK_SETTINGS_DIR}/${2#.LdapSettings.}\"\n"
+	require.NoError(t, os.WriteFile(filepath.Join(binDir, "jq"), []byte(jqStub), 0o755))
+
+	settingsJSON, err := json.Marshal(settings)
+	require.NoError(t, err)
+	var settingsByName map[string]string
+	require.NoError(t, json.Unmarshal(settingsJSON, &settingsByName))
+	for name, value := range settingsByName {
+		require.NoError(t, os.WriteFile(filepath.Join(settingsDir, name), []byte(value), 0o644))
+	}
+
 	cfg, err := json.Marshal(struct {
 		LdapSettings ldapSettings `json:"LdapSettings"`
 	}{LdapSettings: settings})
@@ -105,9 +116,10 @@ func runLdapCheck(t *testing.T, settings ldapSettings, args []string) ldapCheckR
 	cmd := exec.Command("bash", append([]string{ldapCheckScriptPath(t)}, args...)...)
 	cmd.Dir = workdir
 	cmd.Env = withEnv(os.Environ(), map[string]string{
-		"PATH":                binDir + string(os.PathListSeparator) + os.Getenv("PATH"),
-		"LDAPCHECK_ARGV_FILE": argvFile,
-		"LDAPCHECK_PW_FILE":   passwordFile,
+		"PATH":                   binDir + string(os.PathListSeparator) + os.Getenv("PATH"),
+		"LDAPCHECK_ARGV_FILE":    argvFile,
+		"LDAPCHECK_PW_FILE":      passwordFile,
+		"LDAPCHECK_SETTINGS_DIR": settingsDir,
 	})
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout

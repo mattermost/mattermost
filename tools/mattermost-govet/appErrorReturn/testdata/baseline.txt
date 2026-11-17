@@ -1,0 +1,9 @@
+example.com/app.(*App).Baselined
+example.com/app.(*App).Deleted
+example.com/app.(*App).Migrated
+example.com/app.(*Store).Get
+example.com/app.App.BaselinedValueReceiver
+example.com/app.baselinedFunc
+example.com/app/clean.Fixed
+example.com/app/gone.Foo
+example.com/app/sub.Baselined

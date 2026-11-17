@@ -7,7 +7,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getAllLanguages} from 'i18n/i18n';
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import {ManageLanguage} from './manage_languages';
 
@@ -27,6 +27,13 @@ describe('components/user_settings/display/manage_languages/manage_languages', (
             patchUser: jest.fn(() => Promise.resolve({})),
         },
     };
+
+    test('renders the language help text without external links', () => {
+        renderWithContext(<ManageLanguage {...requiredProps}/>);
+
+        expect(screen.getByText('Select which language Mattermost displays in the user interface.')).toBeInTheDocument();
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+    });
 
     test('submitUser() should have called updateMe', async () => {
         const updateMe = jest.fn(() => Promise.resolve({data: true}));
