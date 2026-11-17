@@ -52,7 +52,7 @@ const SidebarCategoryMenu = ({
     const {formatMessage} = useIntl();
 
     let muteUnmuteCategoryMenuItem: JSX.Element | null = null;
-    if (category.type !== CategoryTypes.DIRECT_MESSAGES) {
+    if (category.type !== CategoryTypes.DIRECT_MESSAGES && category.type !== CategoryTypes.AGENTS) {
         function toggleCategoryMute() {
             dispatch(setCategoryMuted(category.id, !category.muted));
         }
@@ -205,17 +205,19 @@ const SidebarCategoryMenu = ({
                 onClick={() => handleSortChannels(CategorySorting.Recency)}
                 trailingElements={category.sorting === CategorySorting.Recency ? <CheckIcon size={16}/> : null}
             />
-            <Menu.Item
-                id={`sortManual-${category.id}`}
-                labels={(
-                    <FormattedMessage
-                        id='sidebar.sortedManually'
-                        defaultMessage='Manually'
-                    />
-                )}
-                onClick={() => handleSortChannels(CategorySorting.Manual)}
-                trailingElements={category.sorting === CategorySorting.Manual ? <CheckIcon size={16}/> : null}
-            />
+            {category.type !== CategoryTypes.AGENTS && (
+                <Menu.Item
+                    id={`sortManual-${category.id}`}
+                    labels={(
+                        <FormattedMessage
+                            id='sidebar.sortedManually'
+                            defaultMessage='Manually'
+                        />
+                    )}
+                    onClick={() => handleSortChannels(CategorySorting.Manual)}
+                    trailingElements={category.sorting === CategorySorting.Manual ? <CheckIcon size={16}/> : null}
+                />
+            )}
         </Menu.SubMenu>
     );
 

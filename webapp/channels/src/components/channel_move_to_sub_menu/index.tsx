@@ -21,6 +21,8 @@ import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCategoryInTeamWithChannel, isChannelInManagedCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
+import {canChannelBeInCategoryType, isAgentDirectChannel} from 'mattermost-redux/utils/channel_utils';
 
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
@@ -29,7 +31,7 @@ import {getNonManagedCategoriesForCurrentTeam} from 'selectors/views/channel_sid
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -46,6 +48,8 @@ const ChannelMoveToSubMenu = (props: Props) => {
     const dispatch = useDispatch();
 
     const allChannels = useSelector(getAllChannels);
+    const currentUserId = useSelector(getCurrentUserId);
+    const profiles = useSelector(getUsers);
     const multiSelectedChannelIds = useSelector((state: GlobalState) => state.views.channelSidebar.multiSelectedChannelIds);
 
     const isInManagedCategory = useSelector((state: GlobalState) => {
@@ -89,6 +93,14 @@ const ChannelMoveToSubMenu = (props: Props) => {
                     <FormattedMessage
                         id='sidebar_left.sidebar_channel_menu.favorites'
                         defaultMessage='Favorites'
+                    />
+                );
+            }
+            if (category.type === CategoryTypes.AGENTS) {
+                text = (
+                    <FormattedMessage
+                        id='sidebar_left.sidebar_channel_menu.agents'
+                        defaultMessage='Agents'
                     />
                 );
             }
@@ -143,12 +155,8 @@ const ChannelMoveToSubMenu = (props: Props) => {
         return [...allCategories, ...dividerAndNewCategory];
     }
 
-    function filterCategoriesBasedOnChannelType(categories: ChannelCategory[], isDmOrGm = false) {
-        if (isDmOrGm) {
-            return categories.filter((category) => category.type !== CategoryTypes.CHANNELS);
-        }
-
-        return categories.filter((category) => category.type !== CategoryTypes.DIRECT_MESSAGES);
+    function filterCategoriesBasedOnChannelType(categories: ChannelCategory[], channelsToMove: Channel[]) {
+        return categories.filter((category) => channelsToMove.every((channel) => canChannelBeInCategoryType(channel, category.type, isAgentDirectChannel(channel, currentUserId, profiles))));
     }
 
     function getMoveToCategorySubmenuItems(categories: ChannelCategory[], currentCategory?: ChannelCategory) {
@@ -156,25 +164,13 @@ const ChannelMoveToSubMenu = (props: Props) => {
 
         // If sub menu is in channel header dropdown OR If multiple channels are selected but the menu is open outside of those selected channels
         if (props.inHeaderDropdown || !isSubmenuOneOfSelectedChannels) {
-            const isDmOrGm = props.channel.type === Constants.DM_CHANNEL || props.channel.type === Constants.GM_CHANNEL;
-            const filteredCategories = filterCategoriesBasedOnChannelType(categories, isDmOrGm);
+            const filteredCategories = filterCategoriesBasedOnChannelType(categories, [props.channel]);
             return createSubmenuItemsForCategoryArray(filteredCategories, currentCategory);
         }
 
-        const areAllSelectedChannelsDMorGM = multiSelectedChannelIds.every((channelId) => allChannels[channelId].type === Constants.DM_CHANNEL || allChannels[channelId].type === Constants.GM_CHANNEL);
-        if (areAllSelectedChannelsDMorGM) {
-            const filteredCategories = filterCategoriesBasedOnChannelType(categories, true);
-            return createSubmenuItemsForCategoryArray(filteredCategories, currentCategory);
-        }
-
-        const areAllSelectedChannelsAreNotDMorGM = multiSelectedChannelIds.every((channelId) => allChannels[channelId].type !== Constants.DM_CHANNEL && allChannels[channelId].type !== Constants.GM_CHANNEL);
-        if (areAllSelectedChannelsAreNotDMorGM) {
-            const filteredCategories = filterCategoriesBasedOnChannelType(categories, false);
-            return createSubmenuItemsForCategoryArray(filteredCategories, currentCategory);
-        }
-
-        // If we have a mix of channel types, we need to filter out both the DM and Channel categories
-        const filteredCategories = categories.filter((category) => category.type !== CategoryTypes.CHANNELS && category.type !== CategoryTypes.DIRECT_MESSAGES);
+        // With a mix of channel types, only the categories that fit every selected channel are offered
+        const selectedChannels = multiSelectedChannelIds.map((channelId) => allChannels[channelId]).filter(Boolean);
+        const filteredCategories = filterCategoriesBasedOnChannelType(categories, selectedChannels);
         return createSubmenuItemsForCategoryArray(filteredCategories, currentCategory);
     }
 

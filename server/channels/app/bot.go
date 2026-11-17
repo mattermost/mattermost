@@ -48,6 +48,7 @@ func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (stri
 				Username:    &bot.Username,
 				DisplayName: &bot.DisplayName,
 				Description: &bot.Description,
+				IsAgent:     &bot.IsAgent,
 			}
 
 			if _, appErr = a.PatchBot(rctx, botID, botPatch); appErr != nil {

@@ -31455,6 +31455,10 @@
     "defaultMessage": "Add Members",
     "description": "Menu item in a sidebar channel's options menu that opens the add members dialog."
   },
+  "sidebar_left.sidebar_channel_menu.agents": {
+    "defaultMessage": "Agents",
+    "description": "Name of the Agents category in the 'Move to...' submenu of a channel's sidebar menu."
+  },
   "sidebar_left.sidebar_channel_menu.channels": {
     "defaultMessage": "Channels",
     "description": "Destination option in the 'Move to' submenu of a channel's menu; the default Channels sidebar category."
@@ -31666,6 +31670,10 @@
   "sidebar.team_select": {
     "defaultMessage": "{siteName} - Join a team",
     "description": "Browser tab / window title on the team selection page; {siteName} is the server name."
+  },
+  "sidebar.types.agents": {
+    "defaultMessage": "AGENTS",
+    "description": "All-caps default header of the Agents category in the channel sidebar, which holds direct messages with agents; compact space."
   },
   "sidebar.types.channels": {
     "defaultMessage": "CHANNELS",

@@ -162,6 +162,72 @@ func TestCreateBot(t *testing.T) {
 	})
 }
 
+func TestBotIsAgentFlag(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+	defaultPerms := th.SaveDefaultRolePermissions(t)
+	defer th.RestoreDefaultRolePermissions(t, defaultPerms)
+
+	th.AddPermissionToRole(t, model.PermissionCreateBot.Id, model.TeamUserRoleId)
+	th.AddPermissionToRole(t, model.PermissionManageBots.Id, model.TeamUserRoleId)
+	_, appErr := th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
+	require.Nil(t, appErr)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableBotAccountCreation = true
+	})
+
+	t.Run("cannot create an agent bot through the API", func(t *testing.T) {
+		_, resp, err := th.Client.CreateBot(context.Background(), &model.Bot{
+			Username: GenerateTestUsername(),
+			IsAgent:  true,
+		})
+		CheckErrorID(t, err, "api.bot.is_agent.forbidden.app_error")
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("cannot change the agent flag through the API", func(t *testing.T) {
+		regularBot, _, err := th.Client.CreateBot(context.Background(), &model.Bot{Username: GenerateTestUsername()})
+		require.NoError(t, err)
+		require.False(t, regularBot.IsAgent)
+
+		_, resp, err := th.Client.PatchBot(context.Background(), regularBot.UserId, &model.BotPatch{IsAgent: new(true)})
+		CheckErrorID(t, err, "api.bot.is_agent.forbidden.app_error")
+		CheckForbiddenStatus(t, resp)
+
+		agentBot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username: GenerateTestUsername(),
+			OwnerId:  th.BasicUser.Id,
+			IsAgent:  true,
+		})
+		require.Nil(t, appErr)
+
+		_, resp, err = th.Client.PatchBot(context.Background(), agentBot.UserId, &model.BotPatch{IsAgent: new(false)})
+		CheckErrorID(t, err, "api.bot.is_agent.forbidden.app_error")
+		CheckForbiddenStatus(t, resp)
+
+		stored, appErr := th.App.GetBot(th.Context, agentBot.UserId, false)
+		require.Nil(t, appErr)
+		require.True(t, stored.IsAgent)
+	})
+
+	t.Run("can patch other fields and resend the unchanged flag", func(t *testing.T) {
+		agentBot, appErr := th.App.CreateBot(th.Context, &model.Bot{
+			Username: GenerateTestUsername(),
+			OwnerId:  th.BasicUser.Id,
+			IsAgent:  true,
+		})
+		require.Nil(t, appErr)
+
+		patched, _, err := th.Client.PatchBot(context.Background(), agentBot.UserId, &model.BotPatch{
+			DisplayName: new("renamed"),
+			IsAgent:     new(true),
+		})
+		require.NoError(t, err)
+		require.Equal(t, "renamed", patched.DisplayName)
+		require.True(t, patched.IsAgent)
+	})
+}
+
 func TestPatchBot(t *testing.T) {
 	mainHelper.Parallel(t)
 	t.Run("patch non-existent bot", func(t *testing.T) {

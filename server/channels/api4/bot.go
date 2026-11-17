@@ -31,6 +31,11 @@ func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if botPatch.IsAgent != nil && *botPatch.IsAgent {
+		c.Err = model.NewAppError("createBot", "api.bot.is_agent.forbidden.app_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	bot := &model.Bot{
 		OwnerId: c.AppContext.Session().UserId,
 	}
@@ -95,6 +100,18 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
+	}
+
+	if botPatch.IsAgent != nil {
+		existingBot, appErr := c.App.GetBot(c.AppContext, botUserId, true)
+		if appErr != nil {
+			c.Err = appErr
+			return
+		}
+		if existingBot.IsAgent != *botPatch.IsAgent {
+			c.Err = model.NewAppError("patchBot", "api.bot.is_agent.forbidden.app_error", nil, "", http.StatusForbidden)
+			return
+		}
 	}
 
 	updatedBot, appErr := c.App.PatchBot(c.AppContext, botUserId, botPatch)

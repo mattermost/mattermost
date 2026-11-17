@@ -37,7 +37,9 @@ import {
     isManuallyUnread,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
+import {isAgentDirectChannel} from 'mattermost-redux/utils/channel_utils';
 import {DelayedDataLoader} from 'mattermost-redux/utils/data_loader';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
@@ -1405,11 +1407,14 @@ export function unfavoriteChannel(channelId: string): ActionFuncAsync {
             return {data: false};
         }
 
-        const category = getCategoryInTeamByType(
-            state,
-            channel.team_id || getCurrentTeamId(state),
-            channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL ? CategoryTypes.DIRECT_MESSAGES : CategoryTypes.CHANNELS,
-        );
+        let categoryType = CategoryTypes.CHANNELS;
+        if (isAgentDirectChannel(channel, getCurrentUserId(state), state.entities.users.profiles)) {
+            categoryType = CategoryTypes.AGENTS;
+        } else if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+            categoryType = CategoryTypes.DIRECT_MESSAGES;
+        }
+
+        const category = getCategoryInTeamByType(state, channel.team_id || getCurrentTeamId(state), categoryType);
 
         if (!category) {
             return {data: false};

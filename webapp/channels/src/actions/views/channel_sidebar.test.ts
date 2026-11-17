@@ -3,10 +3,13 @@
 
 import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {insertWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
 import configureStore from 'store';
+
+import type {GlobalState} from 'types/store';
 
 import * as Actions from './channel_sidebar';
 
@@ -313,5 +316,86 @@ describe('multiSelectChannelTo', () => {
         store.dispatch(Actions.multiSelectChannelTo('category2_two'));
 
         expect(store.getState().views.channelSidebar.multiSelectedChannelIds).toEqual(['category1_five', 'category1_six', 'category1_seven', 'category2_one', 'category2_two']);
+    });
+});
+
+describe('moveChannelsInSidebar', () => {
+    const makeState = (): DeepPartial<GlobalState> => ({
+        entities: {
+            users: {
+                currentUserId: 'user',
+                profiles: {
+                    agent: {id: 'agent', is_bot: true, is_agent: true},
+                    teammate: {id: 'teammate'},
+                },
+            },
+            channelCategories: {
+                byId: {
+                    favorites: {id: 'favorites', team_id: 'team1', type: 'favorites' as const, channel_ids: ['agentDm'], sorting: CategorySorting.Manual},
+                    agents: {id: 'agents', team_id: 'team1', type: 'agents' as const, channel_ids: [], sorting: CategorySorting.Recency},
+                    dms: {id: 'dms', team_id: 'team1', type: 'direct_messages' as const, channel_ids: ['teammateDm'], sorting: CategorySorting.Recency},
+                    channels: {id: 'channels', team_id: 'team1', type: 'channels' as const, channel_ids: ['publicChannel'], sorting: CategorySorting.Alphabetical},
+                },
+                orderByTeam: {
+                    team1: ['favorites', 'agents', 'dms', 'channels'],
+                },
+            },
+            channels: {
+                currentChannelId: 'publicChannel',
+                channels: {
+                    agentDm: {id: 'agentDm', type: 'D' as const, name: 'user__agent', delete_at: 0},
+                    teammateDm: {id: 'teammateDm', type: 'D' as const, name: 'user__teammate', delete_at: 0},
+                    publicChannel: {id: 'publicChannel', type: 'O' as const, name: 'public', delete_at: 0},
+                },
+                myMembers: {
+                    agentDm: {channel_id: 'agentDm', user_id: 'user'},
+                    teammateDm: {channel_id: 'teammateDm', user_id: 'user'},
+                    publicChannel: {channel_id: 'publicChannel', user_id: 'user'},
+                },
+                channelsInTeam: {
+                    team1: new Set(['agentDm', 'teammateDm', 'publicChannel']),
+                },
+            },
+            preferences: {
+                myPreferences: {
+                    'direct_channel_show--agent': {category: 'direct_channel_show', name: 'agent', value: 'true'},
+                    'direct_channel_show--teammate': {category: 'direct_channel_show', name: 'teammate', value: 'true'},
+                },
+            },
+            teams: {
+                currentTeamId: 'team1',
+            },
+        },
+        views: {
+            channelSidebar: {
+                multiSelectedChannelIds: ['agentDm', 'teammateDm', 'publicChannel'],
+                lastSelectedChannel: '',
+            },
+        },
+    });
+
+    function movedChannelIds(targetCategoryId: string) {
+        const store = configureStore(makeState());
+
+        // The categories are updated optimistically before the server is called
+        store.dispatch(Actions.moveChannelsInSidebar(targetCategoryId, 0, 'agentDm'));
+
+        return store.getState().entities.channelCategories.byId[targetCategoryId].channel_ids;
+    }
+
+    test('should only move agent DMs into the Agents category', () => {
+        expect(movedChannelIds('agents')).toEqual(['agentDm']);
+    });
+
+    test('should not move agent DMs into the Direct Messages category', () => {
+        expect(movedChannelIds('dms')).toEqual(['teammateDm']);
+    });
+
+    test('should not move agent DMs into the Channels category', () => {
+        expect(movedChannelIds('channels')).toEqual(['publicChannel']);
+    });
+
+    test('should move any channel into Favorites', () => {
+        expect(movedChannelIds('favorites')).toEqual(['agentDm', 'teammateDm', 'publicChannel']);
     });
 });

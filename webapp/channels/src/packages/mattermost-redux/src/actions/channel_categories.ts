@@ -12,6 +12,7 @@ import type {Team} from '@mattermost/types/teams';
 import {ChannelCategoryTypes, ChannelTypes, PropertyTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
+import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {CategoryTypes, ManagedCategoryPropertyFieldName, ManagedCategoryPropertyGroupName} from 'mattermost-redux/constants/channel_categories';
 import {
@@ -30,6 +31,7 @@ import type {
     ThunkActionFunc,
 } from 'mattermost-redux/types/actions';
 import {insertMultipleWithoutDuplicates, insertWithoutDuplicates, removeItem} from 'mattermost-redux/utils/array_utils';
+import {getUserIdFromChannelName, isAgentDirectChannel} from 'mattermost-redux/utils/channel_utils';
 
 import {General} from '../constants';
 
@@ -164,16 +166,25 @@ function fetchNonManagedCategories(teamId: string, isWebSocket?: boolean): Thunk
 
 // addChannelToInitialCategory returns an action that can be dispatched to add a newly-joined or newly-created channel
 // to its either the Channels or Direct Messages category based on the type of channel. New DM and GM channels are
-// added to the Direct Messages category on each team.
+// added to the Direct Messages category on each team, except DMs with agents which are added to the Agents category.
 //
 // Unless setOnServer is true, this only affects the categories on this client. If it is set to true, this updates
 // categories on the server too.
 export function addChannelToInitialCategory(channel: Channel, setOnServer = false): ActionFuncAsync {
     return async (dispatch, getState) => {
+        if (channel.type === General.DM_CHANNEL) {
+            const teammateId = getUserIdFromChannelName(getCurrentUserId(getState()), channel.name);
+            if (!getState().entities.users.profiles[teammateId]) {
+                // Whether this is an agent DM depends on the teammate's profile
+                await dispatch(getProfilesByIds([teammateId]));
+            }
+        }
+
         const state = getState();
         const categories = Object.values(getAllCategoriesByIds(state));
 
         if (channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL) {
+            const isAgentDM = isAgentDirectChannel(channel, getCurrentUserId(state), state.entities.users.profiles);
             const allDmCategories = categories.filter((category) => category.type === CategoryTypes.DIRECT_MESSAGES);
 
             // Get all the categories in which channel exists
@@ -181,14 +192,28 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
                 return category.channel_ids.findIndex((channelId) => channelId === channel.id) !== -1;
             });
 
-            // Skip DM categories where channel already exists in a different category
-            const dmCategories = allDmCategories.filter((dmCategory) => {
-                return channelInCategories.findIndex((category) => dmCategory.team_id === category.team_id) === -1;
+            const targetCategoryType = isAgentDM ? CategoryTypes.AGENTS : CategoryTypes.DIRECT_MESSAGES;
+            const allTargetCategories = categories.filter((category) => category.type === targetCategoryType);
+
+            if (isAgentDM) {
+                // The server only creates the Agents category once the user has a DM with an agent, so load it for
+                // the teams that don't have it yet.
+                const teamsWithoutAgentsCategory = allDmCategories.
+                    map((category) => category.team_id).
+                    filter((teamId) => !allTargetCategories.some((category) => category.team_id === teamId));
+                if (teamsWithoutAgentsCategory.length > 0) {
+                    await Promise.all(teamsWithoutAgentsCategory.map((teamId) => dispatch(fetchMyCategories(teamId))));
+                }
+            }
+
+            // Skip categories where channel already exists in a different category
+            const targetCategories = allTargetCategories.filter((targetCategory) => {
+                return channelInCategories.findIndex((category) => targetCategory.team_id === category.team_id) === -1;
             });
 
             return dispatch({
                 type: ChannelCategoryTypes.RECEIVED_CATEGORIES,
-                data: dmCategories.map((category) => ({
+                data: targetCategories.map((category) => ({
                     ...category,
                     channel_ids: insertWithoutDuplicates(category.channel_ids, channel.id, 0),
                 })),
@@ -251,6 +276,7 @@ export function moveChannelToCategory(categoryId: string, channelId: string, new
         let sorting = targetCategory.sorting;
         if (setManualSorting &&
             targetCategory.type !== CategoryTypes.DIRECT_MESSAGES &&
+            targetCategory.type !== CategoryTypes.AGENTS &&
             targetCategory.sorting === CategorySorting.Default) {
             sorting = CategorySorting.Manual;
         }
@@ -309,6 +335,7 @@ export function moveChannelsToCategory(categoryId: string, channelIds: string[],
         let sorting = targetCategory.sorting;
         if (setManualSorting &&
             targetCategory.type !== CategoryTypes.DIRECT_MESSAGES &&
+            targetCategory.type !== CategoryTypes.AGENTS &&
             targetCategory.sorting === CategorySorting.Default) {
             sorting = CategorySorting.Manual;
         }

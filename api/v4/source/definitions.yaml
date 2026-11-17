@@ -3982,6 +3982,7 @@ components:
             - custom
             - direct_messages
             - favorites
+            - agents
     SidebarCategoryWithChannels:
       description: User's sidebar category with it's channels
       type: object
@@ -4001,6 +4002,7 @@ components:
             - custom
             - direct_messages
             - favorites
+            - agents
         channel_ids:
           type: array
           items:
@@ -4045,6 +4047,9 @@ components:
         owner_id:
           description: The user id of the user that currently owns this bot.
           type: string
+        is_agent:
+          description: Whether the bot is an agent, which places its direct messages in the Agents sidebar category. Only plugins can set it; the API rejects attempts to change it.
+          type: boolean
     Server_Busy:
       type: object
       properties:

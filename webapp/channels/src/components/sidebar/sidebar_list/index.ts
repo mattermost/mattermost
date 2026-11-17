@@ -30,6 +30,7 @@ import {close, switchToLhsStaticPage} from 'actions/views/lhs';
 import {openModal} from 'actions/views/modals';
 import {getCurrentStaticPageId, getVisibleStaticPages} from 'selectors/lhs';
 import {
+    getDisplayedAgentChannelIds,
     getDisplayedChannels,
     getDraggingState,
     getCategoriesForCurrentTeam,
@@ -61,6 +62,7 @@ function mapStateToProps(state: GlobalState) {
         isUnreadFilterEnabled: isUnreadFilterEnabled(state),
         unreadChannelIds: getUnreadChannelIds(state),
         displayedChannels: getDisplayedChannels(state),
+        displayedAgentChannelIds: getDisplayedAgentChannelIds(state),
         draggingState: getDraggingState(state),
         newCategoryIds: state.views.channelSidebar.newCategoryIds,
         multiSelectedChannelIds: state.views.channelSidebar.multiSelectedChannelIds,

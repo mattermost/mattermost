@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {ChannelCategoryType} from '@mattermost/types/channel_categories';
+import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
-import type {UsersState} from '@mattermost/types/users';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
 
 import {
     areChannelMentionsIgnored,
@@ -12,6 +13,8 @@ import {
     sortChannelsByDisplayName,
     sortChannelsByTypeListAndDisplayName,
     completeDirectGroupInfo,
+    isAgentDirectChannel,
+    canChannelBeInCategoryType,
 } from 'mattermost-redux/utils/channel_utils';
 
 import TestHelper from '../../test/test_helper';
@@ -237,6 +240,58 @@ describe('ChannelUtils', () => {
             const channel = {...baseChannel, id: 'channel1'};
             const result = completeDirectGroupInfo(usersState, 'username', channel, false);
             expect(result.display_name).toBe('current_user_id, user1, user2');
+        });
+    });
+});
+
+describe('agent direct channels', () => {
+    const currentUserId = 'currentUser';
+    const profiles = {
+        agent: {id: 'agent', is_bot: true, is_agent: true},
+        bot: {id: 'bot', is_bot: true},
+        user: {id: 'user'},
+    } as unknown as Record<string, UserProfile>;
+
+    const agentDm = {id: 'agentDm', type: General.DM_CHANNEL, name: `${currentUserId}__agent`} as Channel;
+    const reversedAgentDm = {id: 'reversedAgentDm', type: General.DM_CHANNEL, name: `agent__${currentUserId}`} as Channel;
+    const botDm = {id: 'botDm', type: General.DM_CHANNEL, name: `${currentUserId}__bot`} as Channel;
+    const userDm = {id: 'userDm', type: General.DM_CHANNEL, name: `${currentUserId}__user`} as Channel;
+    const gm = {id: 'gm', type: General.GM_CHANNEL, name: 'gmhash'} as Channel;
+    const publicChannel = {id: 'public', type: General.OPEN_CHANNEL, name: 'town-square'} as Channel;
+
+    describe('isAgentDirectChannel', () => {
+        it('should only be true for DMs with an agent', () => {
+            expect(isAgentDirectChannel(agentDm, currentUserId, profiles)).toBe(true);
+            expect(isAgentDirectChannel(reversedAgentDm, currentUserId, profiles)).toBe(true);
+            expect(isAgentDirectChannel(botDm, currentUserId, profiles)).toBe(false);
+            expect(isAgentDirectChannel(userDm, currentUserId, profiles)).toBe(false);
+            expect(isAgentDirectChannel(gm, currentUserId, profiles)).toBe(false);
+            expect(isAgentDirectChannel(publicChannel, currentUserId, profiles)).toBe(false);
+            expect(isAgentDirectChannel(undefined, currentUserId, profiles)).toBe(false);
+        });
+
+        it('should be false while the teammate profile is not loaded', () => {
+            expect(isAgentDirectChannel(agentDm, currentUserId, {})).toBe(false);
+        });
+    });
+
+    describe('canChannelBeInCategoryType', () => {
+        const allowed = (channel: Channel, isAgentDM: boolean) => {
+            const types: ChannelCategoryType[] = ['favorites', 'channels', 'direct_messages', 'agents', 'custom'];
+            return types.filter((type) => canChannelBeInCategoryType(channel, type, isAgentDM));
+        };
+
+        it('should keep agent DMs out of Direct Messages and Channels', () => {
+            expect(allowed(agentDm, true)).toEqual(['favorites', 'agents', 'custom']);
+        });
+
+        it('should keep regular DMs and GMs out of Agents and Channels', () => {
+            expect(allowed(userDm, false)).toEqual(['favorites', 'direct_messages', 'custom']);
+            expect(allowed(gm, false)).toEqual(['favorites', 'direct_messages', 'custom']);
+        });
+
+        it('should keep channels out of Direct Messages and Agents', () => {
+            expect(allowed(publicChannel, false)).toEqual(['favorites', 'channels', 'custom']);
         });
     });
 });

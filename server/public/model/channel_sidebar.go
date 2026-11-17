@@ -12,11 +12,12 @@ type SidebarCategoryType string
 type SidebarCategorySorting string
 
 const (
-	// Each sidebar category has a 'type'. System categories are Channels, Favorites and DMs
+	// Each sidebar category has a 'type'. System categories are Channels, Favorites, DMs and Agents
 	// All user-created categories will have type Custom
 	SidebarCategoryChannels       SidebarCategoryType = "channels"
 	SidebarCategoryDirectMessages SidebarCategoryType = "direct_messages"
 	SidebarCategoryFavorites      SidebarCategoryType = "favorites"
+	SidebarCategoryAgents         SidebarCategoryType = "agents"
 	SidebarCategoryCustom         SidebarCategoryType = "custom"
 	SidebarCategoryManaged        SidebarCategoryType = "managed"
 	// Increment to use when adding/reordering things in the sidebar
@@ -25,12 +26,13 @@ const (
 	DefaultSidebarSortOrderFavorites = 0
 	DefaultSidebarSortOrderChannels  = DefaultSidebarSortOrderFavorites + MinimalSidebarSortDistance
 	DefaultSidebarSortOrderDMs       = DefaultSidebarSortOrderChannels + MinimalSidebarSortDistance
+	DefaultSidebarSortOrderAgents    = DefaultSidebarSortOrderDMs + MinimalSidebarSortDistance
 	// Sorting modes
-	// default for all categories except DMs (behaves like manual)
+	// default for all categories except DMs and Agents (behaves like manual)
 	SidebarCategorySortDefault SidebarCategorySorting = ""
 	// sort manually
 	SidebarCategorySortManual SidebarCategorySorting = "manual"
-	// sort by recency (default for DMs)
+	// sort by recency (default for DMs and Agents)
 	SidebarCategorySortRecent SidebarCategorySorting = "recent"
 	// sort by display name alphabetically
 	SidebarCategorySortAlphabetical SidebarCategorySorting = "alpha"
@@ -80,7 +82,7 @@ type SidebarChannel struct {
 type SidebarChannels []*SidebarChannel
 type SidebarCategoriesWithChannels []*SidebarCategoryWithChannels
 
-var categoryIdPattern = regexp.MustCompile("(favorites|channels|direct_messages)_[a-z0-9]{26}_[a-z0-9]{26}")
+var categoryIdPattern = regexp.MustCompile("(favorites|channels|direct_messages|agents)_[a-z0-9]{26}_[a-z0-9]{26}")
 
 func IsValidCategoryId(s string) bool {
 	// Category IDs can either be regular IDs

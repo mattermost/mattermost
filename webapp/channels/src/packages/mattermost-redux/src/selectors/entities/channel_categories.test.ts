@@ -203,6 +203,26 @@ describe('makeFilterAutoclosedDMs', () => {
         expect(filterAutoclosedDMs(state, [gmChannel1, gmChannel2], CategoryTypes.DIRECT_MESSAGES)).toEqual([gmChannel1]);
     });
 
+    test('Should never autoclose DMs in the Agents category', () => {
+        const filterAutoclosedDMs = Selectors.makeFilterAutoclosedDMs();
+
+        const agentDm1 = ch({id: 'agentDm1', type: General.DM_CHANNEL, name: `${currentUser.id}__tigerKing`});
+        const agentDm2 = ch({id: 'agentDm2', type: General.DM_CHANNEL, name: `${currentUser.id}__bojackHorseman`});
+
+        const state = mergeObjects(baseState, {
+            entities: {
+                preferences: {
+                    myPreferences: {
+                        [getPreferenceKey(Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.LIMIT_VISIBLE_DMS_GMS)]: {value: '1'},
+                    },
+                },
+            },
+        });
+
+        expect(filterAutoclosedDMs(state, [agentDm1, agentDm2], CategoryTypes.AGENTS)).toEqual([agentDm1, agentDm2]);
+        expect(filterAutoclosedDMs(state, [agentDm1, agentDm2], CategoryTypes.DIRECT_MESSAGES)).toHaveLength(1);
+    });
+
     test('Should always show the current channel', () => {
         const filterAutoclosedDMs = Selectors.makeFilterAutoclosedDMs();
 

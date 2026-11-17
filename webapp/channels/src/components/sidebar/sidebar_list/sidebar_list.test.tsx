@@ -133,6 +133,7 @@ describe('SidebarList', () => {
         unreadChannelIds: ['channel_id_2'],
         currentUserId: 'current_user_id',
         displayedChannels: [currentChannel, unreadChannel],
+        displayedAgentChannelIds: [],
         newCategoryIds: [],
         multiSelectedChannelIds: [],
         isUnreadFilterEnabled: false,
@@ -343,6 +344,40 @@ describe('SidebarList', () => {
 
         instance.onBeforeCapture(channelBefore);
         expect(baseProps.actions.setDraggingState).toHaveBeenCalledWith(expectedChannelBefore);
+
+        querySpy.mockRestore();
+    });
+
+    test('should set the dragging state for agent DMs and keep them out of the plain DM type', () => {
+        const querySpy = jest.spyOn(document, 'querySelectorAll').mockReturnValue([{style: {}}] as any);
+
+        const agentDm = {...currentChannel, id: 'agent_dm', type: 'D' as const};
+        const userDm = {...currentChannel, id: 'user_dm', type: 'D' as const};
+        const sidebarListRef = React.createRef<SidebarListComponent>();
+        renderWithContext(
+            <SidebarListComponent
+                {...baseProps}
+                displayedChannels={[agentDm, userDm]}
+                displayedAgentChannelIds={[agentDm.id]}
+                intl={intl}
+                ref={sidebarListRef}
+            />,
+        );
+        const instance = sidebarListRef.current!;
+
+        instance.onBeforeCapture({draggableId: agentDm.id, mode: 'SNAP' as MovementMode});
+        expect(baseProps.actions.setDraggingState).toHaveBeenLastCalledWith({
+            state: DraggingStates.CAPTURE,
+            id: agentDm.id,
+            type: DraggingStateTypes.AGENT_DM,
+        });
+
+        instance.onBeforeCapture({draggableId: userDm.id, mode: 'SNAP' as MovementMode});
+        expect(baseProps.actions.setDraggingState).toHaveBeenLastCalledWith({
+            state: DraggingStates.CAPTURE,
+            id: userDm.id,
+            type: DraggingStateTypes.DM,
+        });
 
         querySpy.mockRestore();
     });
