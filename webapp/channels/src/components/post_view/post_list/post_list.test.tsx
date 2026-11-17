@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, act, runPostRenderAct} from 'tests/react_testing_utils';
+import {renderWithContext, act, runPostRenderAct, screen} from 'tests/react_testing_utils';
 import {PostRequestTypes} from 'utils/constants';
 
 import PostList, {MAX_EXTRA_PAGES_LOADED} from './post_list';
@@ -48,6 +48,7 @@ const actionsProp = {
     markChannelAsRead: jest.fn(),
     updateNewMessagesAtInChannel: jest.fn(),
     toggleShouldStartFromBottomWhenUnread: jest.fn(),
+    getTotalUsersStats: jest.fn().mockResolvedValue({data: {total_users_count: 3}}),
 };
 
 const lastViewedAt = 1532345226632;
@@ -545,6 +546,95 @@ describe('components/post_view/post_list', () => {
             expect(loadPosts).toHaveBeenCalledWith(expect.objectContaining({
                 perPage: 200,
             }));
+        });
+    });
+
+    describe('waiting for the total user count used by the channel intro', () => {
+        const postIds = createFakePosIds(2);
+
+        test('should show the loading screen and fetch the count until it is known', async () => {
+            const {rerender} = renderWithContext(
+                <PostList
+                    {...{...baseProps, postListIds: postIds, atOldestPost: true, needsTotalUsersStats: true}}
+                />,
+            );
+
+            expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+            expect(screen.queryByTestId('virt-post-list')).not.toBeInTheDocument();
+            expect(actionsProp.getTotalUsersStats).toHaveBeenCalledTimes(1);
+
+            await runPostRenderAct();
+
+            rerender(
+                <PostList
+                    {...{...baseProps, postListIds: postIds, atOldestPost: true, needsTotalUsersStats: false}}
+                />,
+            );
+
+            expect(screen.getByTestId('virt-post-list')).toBeInTheDocument();
+            expect(actionsProp.getTotalUsersStats).toHaveBeenCalledTimes(1);
+        });
+
+        test('should show the posts if fetching the count fails', async () => {
+            actionsProp.getTotalUsersStats.mockResolvedValueOnce({error: new Error('failed')});
+
+            renderWithContext(
+                <PostList
+                    {...{...baseProps, postListIds: postIds, atOldestPost: true, needsTotalUsersStats: true}}
+                />,
+            );
+
+            expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+
+            await runPostRenderAct();
+
+            expect(screen.getByTestId('virt-post-list')).toBeInTheDocument();
+            expect(actionsProp.getTotalUsersStats).toHaveBeenCalledTimes(1);
+        });
+
+        test('should not fetch the count when the channel intro does not need it', () => {
+            renderWithContext(
+                <PostList
+                    {...{...baseProps, postListIds: postIds, needsTotalUsersStats: false}}
+                />,
+            );
+
+            expect(screen.getByTestId('virt-post-list')).toBeInTheDocument();
+            expect(actionsProp.getTotalUsersStats).not.toHaveBeenCalled();
+        });
+
+        test('should not hide posts that are already shown when the oldest post is reached later', () => {
+            const {rerender} = renderWithContext(
+                <PostList
+                    {...{...baseProps, postListIds: postIds, needsTotalUsersStats: false}}
+                />,
+            );
+
+            rerender(
+                <PostList
+                    {...{...baseProps, postListIds: postIds, atOldestPost: true, needsTotalUsersStats: true}}
+                />,
+            );
+
+            expect(screen.getByTestId('virt-post-list')).toBeInTheDocument();
+            expect(actionsProp.getTotalUsersStats).not.toHaveBeenCalled();
+        });
+
+        test('should wait for the count again after switching channels', () => {
+            const {rerender} = renderWithContext(
+                <PostList
+                    {...{...baseProps, postListIds: postIds, needsTotalUsersStats: false}}
+                />,
+            );
+
+            rerender(
+                <PostList
+                    {...{...baseProps, channelId: 'other-channel', postListIds: postIds, atOldestPost: true, needsTotalUsersStats: true}}
+                />,
+            );
+
+            expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+            expect(actionsProp.getTotalUsersStats).toHaveBeenCalledTimes(1);
         });
     });
 });

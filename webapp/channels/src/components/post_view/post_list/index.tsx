@@ -6,9 +6,11 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {markChannelAsRead} from 'mattermost-redux/actions/channels';
+import {getTotalUsersStats} from 'mattermost-redux/actions/users';
 import {RequestStatus} from 'mattermost-redux/constants';
-import {isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, isMyChannelAutotranslated} from 'mattermost-redux/selectors/entities/channels';
 import {getRecentPostsChunkInChannel, makeGetPostsChunkAroundPost, getUnreadPostsChunk, getPost, isPostsChunkIncludingUnreadsPosts, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
+import {getTotalUsersStats as getTotalUsersStatsSelector} from 'mattermost-redux/selectors/entities/users';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {makePreparePostIdsForPostList} from 'mattermost-redux/utils/post_list';
 
@@ -22,6 +24,7 @@ import {
 } from 'actions/views/channel';
 import {getIsMobileView} from 'selectors/views/browser';
 
+import {Constants} from 'utils/constants';
 import {getLatestPostId} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
@@ -29,6 +32,12 @@ import type {GlobalState} from 'types/store';
 import PostList from './post_list';
 
 const isFirstLoad = (state: GlobalState, channelId: string) => !state.entities.posts.postsInChannel[channelId];
+
+// The intro for these channels picks its action buttons based on the total user count
+const isChannelIntroUsingTotalUsers = (state: GlobalState, channelId: string) => {
+    const channelType = getChannel(state, channelId)?.type;
+    return channelType !== Constants.DM_CHANNEL && channelType !== Constants.GM_CHANNEL;
+};
 const memoizedGetLatestPostId = memoizeResult((postIds: string[]) => getLatestPostId(postIds));
 
 // This function is added as a fail safe for the channel sync issue we have.
@@ -103,6 +112,7 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             hasInaccessiblePosts,
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
+            needsTotalUsersStats: atOldestPost && getTotalUsersStatsSelector(state).total_users_count === undefined && isChannelIntroUsingTotalUsers(state, channelId),
         };
     };
 }
@@ -117,6 +127,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             syncPostsInChannel,
             markChannelAsRead,
             updateNewMessagesAtInChannel,
+            getTotalUsersStats,
         }, dispatch),
     };
 }
