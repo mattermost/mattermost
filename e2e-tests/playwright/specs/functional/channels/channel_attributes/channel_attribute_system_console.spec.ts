@@ -57,7 +57,10 @@ test.describe('System Console - Channel attributes section', {tag: ['@channel_at
             const {page} = await pw.testBrowser.login(adminUser);
             await page.goto(`/admin_console/user_management/channels/${channel.id}`);
 
-            const trigger = page.getByTestId(`channelAttributesSettings-${program.name}`);
+            // The menu's first option carries the trigger's testid too, so scope to the row.
+            const trigger = page
+                .getByTestId(`channelAttributesSettingsRow-${program.name}`)
+                .getByTestId(`channelAttributesSettings-${program.name}`);
             await expect(trigger).toBeVisible();
 
             // # Pick a value, but do not save yet
