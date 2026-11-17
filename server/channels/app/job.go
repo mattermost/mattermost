@@ -395,8 +395,13 @@ func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType strin
 		model.JobTypeDeleteExpiredPosts,
 		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionReadJobs
-	case model.JobTypeAccessControlSync, model.JobTypeHealthCheck:
+	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
+	case model.JobTypeHealthCheck:
+		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
+			return true, model.PermissionManageSystem
+		}
+		permission = model.PermissionSysconsoleReadReportingSiteStatistics
 	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 			return true, model.PermissionManageSystem

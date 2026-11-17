@@ -788,6 +788,7 @@ func TestPublishJobStatus(t *testing.T) {
 			{"ldap sync", model.JobTypeLdapSync, model.PermissionReadLdapSyncJob},
 			{"generic jobs", model.JobTypeExportProcess, model.PermissionReadJobs},
 			{"access control sync", model.JobTypeAccessControlSync, model.PermissionManageSystem},
+			{"health check", model.JobTypeHealthCheck, model.PermissionSysconsoleReadReportingSiteStatistics},
 			{"access control team sync", model.JobTypeAccessControlTeamSync, model.PermissionManageTeamAccessRules},
 		}
 

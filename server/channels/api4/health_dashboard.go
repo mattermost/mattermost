@@ -20,11 +20,19 @@ func (api *API) InitHealthDashboard() {
 	api.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", api.APISessionRequired(unmuteHealthFinding)).Methods(http.MethodDelete)
 }
 
-// requireHealthDashboard sets c.Err and returns false unless the caller may use the health
-// dashboard. Permission is checked first so a non-admin learns nothing about the flag or license.
-func requireHealthDashboard(c *Context) bool {
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
-		c.SetPermissionError(model.PermissionManageSystem)
+// healthFindingsReadPermissions lets delegated admins who can read Site Statistics see the
+// dashboard. Muting stays manage_system, since a mute changes what every admin sees.
+var healthFindingsReadPermissions = []*model.Permission{
+	model.PermissionManageSystem,
+	model.PermissionSysconsoleReadReportingSiteStatistics,
+}
+
+// requireHealthDashboard sets c.Err and returns false unless the caller holds one of permissions
+// and the health dashboard is available. Permission is checked first so a caller without it
+// learns nothing about the flag or license.
+func requireHealthDashboard(c *Context, permissions ...*model.Permission) bool {
+	if !c.App.SessionHasPermissionToAny(*c.AppContext.Session(), permissions) {
+		c.SetPermissionError(permissions...)
 		return false
 	}
 
@@ -59,7 +67,7 @@ func renderFindings(c *Context, findings []*model.HealthFinding) []*model.Health
 }
 
 func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
+	if !requireHealthDashboard(c, healthFindingsReadPermissions...) {
 		return
 	}
 
@@ -82,7 +90,7 @@ func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func muteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
+	if !requireHealthDashboard(c, model.PermissionManageSystem) {
 		return
 	}
 
@@ -109,7 +117,7 @@ func muteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func unmuteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !requireHealthDashboard(c) {
+	if !requireHealthDashboard(c, model.PermissionManageSystem) {
 		return
 	}
 

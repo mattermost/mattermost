@@ -172,8 +172,11 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionReadJobs
-	case model.JobTypeAccessControlSync, model.JobTypeHealthCheck:
+	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
+	case model.JobTypeHealthCheck:
+		// System admins hold every permission, so this reaches them and delegated admins alike.
+		permission = model.PermissionSysconsoleReadReportingSiteStatistics
 	case model.JobTypeAccessControlTeamSync:
 		permission = model.PermissionManageTeamAccessRules
 	}

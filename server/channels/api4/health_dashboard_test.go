@@ -62,6 +62,14 @@ func findingFingerprints(findings []*model.HealthFinding) []string {
 	return fingerprints
 }
 
+func jobIDs(jobs []*model.Job) []string {
+	ids := make([]string, 0, len(jobs))
+	for _, job := range jobs {
+		ids = append(ids, job.Id)
+	}
+	return ids
+}
+
 func checkHealthDashboardNotImplemented(t *testing.T, th *TestHelper) {
 	t.Helper()
 
@@ -111,6 +119,107 @@ func TestHealthDashboardAccess(t *testing.T) {
 		resp, err = th.Client.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("delegated admin who can read Site Statistics reads but cannot mute", func(t *testing.T) {
+		th := setupHealthDashboard(t, true)
+		th.LoginSystemManager(t)
+		open := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+		muted := newHealthFinding("SITE_URL_EMPTY", healthcheck.SurfaceProduct)
+		muted.MessageID = "health.rule.site_url_empty.message"
+		storeHealthFindings(t, th, open, muted)
+		require.NoError(t, th.App.Srv().Store().HealthFinding().Mute(muted.Fingerprint, th.SystemAdminUser.Id, model.GetMillis()))
+
+		list, resp, err := th.SystemManagerClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{Muted: model.MutedIncluded})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		assert.ElementsMatch(t, []string{open.Fingerprint, muted.Fingerprint}, findingFingerprints(list.Findings))
+
+		resp, err = th.SystemManagerClient.MuteHealthFinding(context.Background(), open.Fingerprint)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		resp, err = th.SystemManagerClient.UnmuteHealthFinding(context.Background(), muted.Fingerprint)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+
+		stored, err := th.App.Srv().Store().HealthFinding().GetByFingerprints([]string{open.Fingerprint, muted.Fingerprint})
+		require.NoError(t, err)
+		mutedByFingerprint := map[string]bool{}
+		for _, finding := range stored {
+			mutedByFingerprint[finding.Fingerprint] = finding.IsMuted()
+		}
+		assert.Equal(t, map[string]bool{open.Fingerprint: false, muted.Fingerprint: true}, mutedByFingerprint)
+	})
+
+	t.Run("delegated admin who cannot read Site Statistics", func(t *testing.T) {
+		th := setupHealthDashboard(t, true)
+		th.LoginSystemManager(t)
+		th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadReportingSiteStatistics.Id, model.SystemManagerRoleId)
+		t.Cleanup(func() {
+			th.AddPermissionToRole(t, model.PermissionSysconsoleReadReportingSiteStatistics.Id, model.SystemManagerRoleId)
+		})
+
+		_, resp, err := th.SystemManagerClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+	})
+
+	t.Run("health check jobs follow the findings read permission", func(t *testing.T) {
+		th := setupHealthDashboard(t, true)
+		th.LoginSystemManager(t)
+		job, err := th.App.Srv().Store().Job().Save(&model.Job{
+			Id:     model.NewId(),
+			Type:   model.JobTypeHealthCheck,
+			Status: model.JobStatusSuccess,
+		})
+		require.NoError(t, err)
+
+		for name, client := range map[string]*model.Client4{"system admin": th.SystemAdminClient, "system manager": th.SystemManagerClient} {
+			t.Run(name, func(t *testing.T) {
+				got, resp, err := client.GetJob(context.Background(), job.Id)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				assert.Equal(t, job.Id, got.Id)
+
+				jobs, resp, err := client.GetJobsByType(context.Background(), model.JobTypeHealthCheck, 0, 10)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				require.Len(t, jobs, 1)
+				assert.Equal(t, job.Id, jobs[0].Id)
+
+				jobs, resp, err = client.GetJobs(context.Background(), "", "", 0, 100)
+				require.NoError(t, err)
+				CheckOKStatus(t, resp)
+				assert.Contains(t, jobIDs(jobs), job.Id)
+			})
+		}
+
+		t.Run("non-admin", func(t *testing.T) {
+			_, resp, err := th.Client.GetJob(context.Background(), job.Id)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			_, resp, err = th.Client.GetJobsByType(context.Background(), model.JobTypeHealthCheck, 0, 10)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		})
+
+		t.Run("system manager who cannot read Site Statistics", func(t *testing.T) {
+			th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadReportingSiteStatistics.Id, model.SystemManagerRoleId)
+			t.Cleanup(func() {
+				th.AddPermissionToRole(t, model.PermissionSysconsoleReadReportingSiteStatistics.Id, model.SystemManagerRoleId)
+			})
+
+			_, resp, err := th.SystemManagerClient.GetJob(context.Background(), job.Id)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+
+			jobs, resp, err := th.SystemManagerClient.GetJobs(context.Background(), "", "", 0, 100)
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			assert.NotContains(t, jobIDs(jobs), job.Id)
+		})
 	})
 
 	t.Run("non-admin with the flag off", func(t *testing.T) {
