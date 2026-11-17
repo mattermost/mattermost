@@ -218,6 +218,12 @@ jobs:
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           owner: mattermost
           repositories: mattermost
+          # Named, so the token never carries the app's Actions: write, which only
+          # release-actions.yml uses (for delivery-platform).
+          permission-contents: write
+          permission-pull-requests: write
+          permission-checks: read
+          permission-statuses: read
 
       - name: Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -550,6 +556,12 @@ jobs:
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           owner: mattermost
           repositories: mattermost
+          # Named, so the token never carries the app's Actions: write, which only
+          # release-actions.yml uses (for delivery-platform).
+          permission-contents: write
+          permission-pull-requests: write
+          permission-checks: read
+          permission-statuses: read
 
       # Only for the T-0 label swap on the source PRs in both repos: Pull requests: write only.
       # It must never block the merge: without it, the merge step still runs and only the swap

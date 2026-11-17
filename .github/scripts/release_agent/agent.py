@@ -34,6 +34,9 @@ class Settings:
     holidays_page_id: str = ""
     dev_leads: list = field(default_factory=list)  # RELEASE_AGENT_DEV_LEADS, parsed
     dev_leads_problem: str = ""  # what's wrong with it, without repeating it
+    # The release actions' settings (actions.engine.Settings), to show them in the status post and
+    # tick their items. None leaves the "Release actions" section out.
+    actions: object = None
 
 
 @dataclass
@@ -126,7 +129,7 @@ def evaluate(ctx: checks.Context, rule: dict, due: date | None, today: date) -> 
 
 def check_release(release, rules: dict, settings: Settings, services: Services, today: date,
                   holidays: frozenset, branches: set, tags: set, ls_remote: str,
-                  primary: bool = True) -> posting.ReleaseReport:
+                  primary: bool = True, events: list | None = None, releases: dict | None = None) -> posting.ReleaseReport:
     t_day = workdays.t_day(today, release.release_day, holidays) if release.release_day else None
     report = posting.ReleaseReport(release, t_day, settings.mode)
     report.flags += release_calendar.cross_check(release, branches, tags, today)
@@ -147,36 +150,8 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
             report.flags.append(f"{rule['task']} is due at {rule['due']}, which isn't on the calendar for {release.short_version}.")
         report.outcomes.append(evaluate(ctx, rule, due, today))
 
-    names = ctx.vars["release_channels"]
-    channel_name, ambiguous = "", False
-    try:
-        channels = list({c["id"]: c for name in names for c in services.hub.channels_named(name)}.values())
-        if len(channels) > 1:
-            ambiguous = True
-            report.flags.append(f"The bot is in {len(channels)} channels named "
-                                f"{' or '.join(f'“{name}”' for name in names)}, so none is used.")
-        elif channels:
-            report.release_channel, channel_name = channels[0]["id"], channels[0]["display_name"]
-    except Exception as err:  # noqa: BLE001
-        report.flags.append(f"Couldn't list the bot's channels: {public_error(err)}")
-
-    run = None
-    try:
-        found = problem = None
-        if ambiguous:
-            pass  # several channels match: no fallback to a run found by name, so nothing is ticked
-        elif report.release_channel:
-            runs = services.playbooks.in_progress_runs(playbook_id=settings.playbook_id, channel_id=report.release_channel)
-            found, problem = playbook.find_run(runs, channel_name, by_name=False)
-        else:
-            runs = services.playbooks.in_progress_runs(search_term=release.short_version, playbook_id=settings.playbook_id)
-            found, problem = playbook.find_run(runs, release.short_version)
-        if problem:
-            report.flags.append(problem)
-        elif found:
-            run = services.playbooks.run(found["id"])
-    except Exception as err:  # noqa: BLE001 - checks still get posted without the run
-        report.flags.append(f"Couldn't read the playbook runs: {public_error(err)}")
+    report.release_channel, run, found_flags = find_channel_and_run(release, ctx.vars["release_channels"], settings, services)
+    report.flags += found_flags
     report.run = run
 
     # A report's item asks for the list in the run's channel, so it is ticked only when the
@@ -185,6 +160,9 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
         else {posting.OK}
     passing = [(o.rule, o.result) for o in report.outcomes
                if o.state in tickable and o.rule["playbook_item"] and o.due and today >= o.due]
+    if settings.actions is not None and rules.get("actions"):
+        passing += release_actions(report, rules, settings, services, today, holidays, events or [], releases or {},
+                                   branches, tags, rc_numbers, ctx.vars)
     if run and passing:
         # Planned only: the items are closed in post_report, once the status post is up.
         report.ticks = playbook.tick_items(services.playbooks, run, passing, settings.mode == "live", execute=False)
@@ -195,6 +173,57 @@ def check_release(release, rules: dict, settings: Settings, services: Services, 
             elif tick.action == playbook.FAILED:
                 report.flags.append(f"Ticking “{tick.playbook_item}” ({tick.task}) failed.")
     return report
+
+
+def release_actions(report, rules, settings, services, today, holidays, events, releases, branches, tags,
+                    rc_numbers, variables) -> list:
+    """The release actions' states for the status post (read only), and the done ones to tick."""
+    from .actions import runner
+    now = datetime.now(timezone.utc)
+    if now.date() != today:
+        now = datetime.combine(today, datetime.min.time(), tzinfo=timezone.utc).replace(hour=9)
+    statuses = runner.release_status(report.release, rules, settings.actions, services, now, holidays, events, releases,
+                                     branches, tags, rc_numbers, report.release_channel, report.run, variables)
+    report.actions = [(spec["task"], spec["title"], status) for spec, status in statuses]
+    for _, status in statuses:
+        for line in status.attention:
+            report.flags.append(line)
+            report.private_flags.add(line)  # may carry links or Jira keys: Hub only
+    return runner.tick_results(statuses)
+
+
+def find_channel_and_run(release, names: list, settings, services) -> tuple[str, dict | None, list]:
+    """(the release channel's id or "", its in-progress playbook run or None, flags)."""
+    flags, channel_id, channel_name, ambiguous = [], "", "", False
+    try:
+        channels = list({c["id"]: c for name in names for c in services.hub.channels_named(name)}.values())
+        if len(channels) > 1:
+            ambiguous = True
+            flags.append(f"The bot is in {len(channels)} channels named "
+                         f"{' or '.join(f'“{name}”' for name in names)}, so none is used.")
+        elif channels:
+            channel_id, channel_name = channels[0]["id"], channels[0]["display_name"]
+    except Exception as err:  # noqa: BLE001
+        flags.append(f"Couldn't list the bot's channels: {public_error(err)}")
+
+    run = None
+    try:
+        found = problem = None
+        if ambiguous:
+            pass  # several channels match: no fallback to a run found by name, so nothing is ticked
+        elif channel_id:
+            runs = services.playbooks.in_progress_runs(playbook_id=settings.playbook_id, channel_id=channel_id)
+            found, problem = playbook.find_run(runs, channel_name, by_name=False)
+        else:
+            runs = services.playbooks.in_progress_runs(search_term=release.short_version, playbook_id=settings.playbook_id)
+            found, problem = playbook.find_run(runs, release.short_version)
+        if problem:
+            flags.append(problem)
+        elif found:
+            run = services.playbooks.run(found["id"])
+    except Exception as err:  # noqa: BLE001 - checks still get posted without the run
+        flags.append(f"Couldn't read the playbook runs: {public_error(err)}")
+    return channel_id, run, flags
 
 
 def live_channel(report: posting.ReleaseReport, settings: Settings) -> str:
@@ -315,7 +344,7 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
     problem_flags = [settings.dev_leads_problem] if settings.dev_leads_problem and selected else []
     for index, release in enumerate(selected):
         report = check_release(release, rules, settings, services, today, holidays, branches, tags, ls_remote,
-                               primary=index == 0)
+                               primary=index == 0, events=events, releases=releases)
         report.flags += problem_flags + lead_flags
         report.private_flags |= set(lead_flags)  # they name people from a private variable: Hub only
         try:
@@ -337,6 +366,7 @@ def run(rules: dict, settings: Settings, services: Services, today: date) -> tup
             "status": "needs_attention" if report.needs_attention else "all_good",
             **post,
             "checks": [public_result(o) for o in report.outcomes],
+            "actions": [{"task": task, "state": status.word, "summary": status.public} for task, _, status in report.actions],
             "ticked": [{"task": t.task, "playbook_item": t.playbook_item} for t in report.ticks if t.action == playbook.TICKED],
             "would_tick": [t.task for t in report.ticks if t.action == playbook.WOULD_TICK],
             "not_ticked": [{"task": t.task, "reason": t.action} for t in report.ticks
@@ -383,4 +413,14 @@ def env_settings(env=os.environ) -> Settings:
         holidays_page_id=env.get("HOLIDAYS_PAGE_ID", "").strip(),
         dev_leads=dev_leads,
         dev_leads_problem=dev_leads_problem,
+        actions=actions_settings(env),
     )
+
+
+def actions_settings(env):
+    """The release actions' settings for the status post. The schedule's view: where live actions post."""
+    from .actions import engine
+    try:
+        return engine.settings_from_env(env, trigger="schedule")
+    except ValueError:
+        return None  # a bad RELEASE_ACTIONS_* value fails release-actions.yml, not the daily checks

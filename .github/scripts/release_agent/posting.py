@@ -69,6 +69,7 @@ class ReleaseReport:
     release_channel: str = ""
     false_alarms: set = field(default_factory=set)
     private_flags: set = field(default_factory=set)  # flags for Hub only: run.json and the summary get a count
+    actions: list = field(default_factory=list)  # [(task, title, actions.engine.Status)]: the "Release actions" section
 
     @property
     def needs_attention(self) -> bool:
@@ -217,6 +218,14 @@ def format_post(report: ReleaseReport, today: date, milestone_names: dict, emoji
         for outcome in waiting:
             due = f" (due {_day(outcome.due)})" if outcome.due else ""
             lines.append(f"- **{outcome.title}**{due} — {outcome.result.summary}")
+
+    if report.actions:
+        lines += ["", "**Release actions**"]
+        for task, _title, status in report.actions:
+            note = _tick_note(ticks, task) if status.done else ""
+            first, *rest = status.line.split("\n")
+            lines.append(f"- {first}{note}")
+            lines += [f"  {line.strip()}" if line.strip().startswith("-") else line for line in rest]
 
     for outcome in by_state.get(REPORT, []):
         lines += ["", f"**{outcome.title}** — {outcome.result.summary}{_proof(outcome.result, 'Jira filter')}"

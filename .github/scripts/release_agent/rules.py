@@ -98,11 +98,40 @@ def problems(rules: dict, schema: dict, template_titles: set[str] | None = None)
         if known_items is not None and rule["playbook_item"] is not None \
                 and not any(title_matches(known, rule["playbook_item"]) for known in known_items):
             errors.append(f"{task}: playbook_item {rule['playbook_item']!r} is not in the playbook template")
+    errors += action_problems(rules, known_items, seen)
     for day in rules.get("holidays", []):
         try:
             date.fromisoformat(day)
         except ValueError:
             errors.append(f"holidays: {day!r} is not a calendar date")
+    return errors
+
+
+def action_problems(rules: dict, known_items: list | None, tasks: set) -> list[str]:
+    """Cross-field checks of the release actions: unique tasks and actions, real playbook items,
+    due days on the calendar, and notice templates that exist."""
+    from .actions.text import TEMPLATES_DIR
+    errors, actions = [], set()
+    milestones = rules["calendar"]["milestones"]
+    for spec in rules.get("actions", []):
+        task = spec["task"]
+        if task in tasks:
+            errors.append(f"{task}: task is listed twice")
+        tasks.add(task)
+        if spec["action"] in actions:
+            errors.append(f"{task}: action {spec['action']} is listed twice")
+        actions.add(spec["action"])
+        for key in ("due", "until", "preview"):
+            anchor = re.fullmatch(r"([a-z][a-z0-9_]*)([-+]\d+)?", spec.get(key) or "T-0")
+            if anchor and anchor.group(1) not in milestones:
+                errors.append(f"{task}: {key} {spec[key]!r} names no calendar milestone")
+        if spec.get("notice") and not (TEMPLATES_DIR / f"{spec['notice']}.md").exists():
+            errors.append(f"{task}: notice template {spec['notice']!r} doesn't exist")
+        if known_items is not None and spec["playbook_item"] is not None \
+                and not any(title_matches(known, spec["playbook_item"]) for known in known_items):
+            errors.append(f"{task}: playbook_item {spec['playbook_item']!r} is not in the playbook template")
+    if rules.get("actions") and "release_actions" not in rules:
+        errors.append("actions need release_actions")
     return errors
 
 

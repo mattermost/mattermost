@@ -4,33 +4,61 @@
   "title": "Release agent rules",
   "type": "object",
   "additionalProperties": false,
-  "required": ["version", "calendar", "naming", "false_alarm_emoji", "rules"],
+  "required": [
+    "version",
+    "calendar",
+    "naming",
+    "false_alarm_emoji",
+    "rules"
+  ],
   "properties": {
-    "version": {"const": 1},
+    "version": {
+      "const": 1
+    },
     "calendar": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["milestones", "active_days_after_release"],
+      "required": [
+        "milestones",
+        "active_days_after_release"
+      ],
       "properties": {
         "milestones": {
           "description": "Milestone key to the substring that identifies its calendar event title.",
           "type": "object",
-          "required": ["branch_cut", "release_day"],
-          "propertyNames": {"pattern": "^[a-z][a-z0-9_]*$"},
-          "additionalProperties": {"type": "string", "minLength": 1}
+          "required": [
+            "branch_cut",
+            "release_day"
+          ],
+          "propertyNames": {
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "holiday_markers": {
           "description": "Substrings that mark a calendar event as a non-working day.",
           "type": "array",
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
-        "active_days_after_release": {"type": "integer", "minimum": 0}
+        "active_days_after_release": {
+          "type": "integer",
+          "minimum": 0
+        }
       }
     },
     "holidays": {
       "description": "Extra non-working days, as YYYY-MM-DD.",
       "type": "array",
-      "items": {"type": "string", "pattern": "^\\d{4}-\\d{2}-\\d{2}$"}
+      "items": {
+        "type": "string",
+        "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+      }
     },
     "holidays_page_heading": {
       "description": "Heading of each year's list on the Confluence holidays page, with {year}.",
@@ -40,43 +68,136 @@
     "naming": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["milestone", "fix_version", "release_channels"],
+      "required": [
+        "milestone",
+        "fix_version",
+        "release_channels"
+      ],
       "properties": {
-        "milestone": {"type": "string", "minLength": 1},
-        "fix_version": {"type": "string", "minLength": 1},
+        "milestone": {
+          "type": "string",
+          "minLength": 1
+        },
+        "fix_version": {
+          "type": "string",
+          "minLength": 1
+        },
         "release_channels": {
           "description": "Display names a release's channel can have, such as the ESR one.",
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         }
       }
     },
-    "false_alarm_emoji": {"type": "string", "pattern": "^[a-z0-9_+-]+$"},
+    "false_alarm_emoji": {
+      "type": "string",
+      "pattern": "^[a-z0-9_+-]+$"
+    },
     "rules": {
       "type": "array",
       "minItems": 1,
-      "items": {"$ref": "#/$defs/rule"}
+      "items": {
+        "$ref": "#/$defs/rule"
+      }
+    },
+    "release_actions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "active_days_after_release",
+        "delivery_platform"
+      ],
+      "properties": {
+        "active_days_after_release": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "delivery_platform": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "repo",
+            "ref"
+          ],
+          "properties": {
+            "repo": {
+              "const": "mattermost/delivery-platform"
+            },
+            "ref": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        }
+      }
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/action"
+      }
+    },
+    "scorecard_metrics": {
+      "description": "Release Scorecard metrics, keyed by their text in column B.",
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "$ref": "#/$defs/metric"
+      }
+    },
+    "scorecard_manual": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
     }
   },
   "$defs": {
     "rule": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["task", "title", "playbook_item", "due", "type", "source", "query", "pass_when", "on_fail"],
+      "required": [
+        "task",
+        "title",
+        "playbook_item",
+        "due",
+        "type",
+        "source",
+        "query",
+        "pass_when",
+        "on_fail"
+      ],
       "properties": {
-        "task": {"type": "string", "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"},
-        "title": {"description": "What the status post calls the check.", "type": "string", "minLength": 1},
+        "task": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "title": {
+          "description": "What the status post calls the check.",
+          "type": "string",
+          "minLength": 1
+        },
         "playbook_item": {
           "description": "The checklist item title in the Cloud & Self-Hosted playbook as it reads on screen, or null to tick nothing. A title ending in … matches items that start with it; a … inside the title matches any text, so a person named in the title can be left out.",
-          "type": ["string", "null"],
+          "type": [
+            "string",
+            "null"
+          ],
           "minLength": 1
         },
         "former_playbook_items": {
           "description": "Earlier titles of playbook_item, still on runs started before it was renamed.",
           "type": "array",
-          "items": {"type": "string", "minLength": 1}
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
         },
         "due": {
           "description": "T-N / T+N in working days from Release Day, or a calendar milestone key with an optional working-day offset.",
@@ -106,22 +227,57 @@
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {"enum": ["jira", "github", "hub", "confluence", "docs", "web"]}
+          "items": {
+            "enum": [
+              "jira",
+              "github",
+              "hub",
+              "confluence",
+              "docs",
+              "web"
+            ]
+          }
         },
         "query": {
           "type": "object",
           "properties": {
-            "migrations_path": {"description": "Folder of PostgreSQL migrations, e.g. server/channels/db/migrations/postgres.", "type": "string", "minLength": 1},
+            "migrations_path": {
+              "description": "Folder of PostgreSQL migrations, e.g. server/channels/db/migrations/postgres.",
+              "type": "string",
+              "minLength": 1
+            },
             "dev_leads": {
               "description": "How unassigned and bot tickets find their dev lead: which Jira field names the team. The routes themselves are the repository variable RELEASE_AGENT_DEV_LEADS, not part of this file.",
               "type": "object",
               "additionalProperties": false,
               "properties": {
-                "match_field": {"enum": ["team", "components"]},
-                "team_field": {"description": "The Jira Team field, e.g. customfield_10800.", "type": "string", "pattern": "^customfield_\\d+$"}
+                "match_field": {
+                  "enum": [
+                    "team",
+                    "components"
+                  ]
+                },
+                "team_field": {
+                  "description": "The Jira Team field, e.g. customfield_10800.",
+                  "type": "string",
+                  "pattern": "^customfield_\\d+$"
+                }
               },
-              "if": {"properties": {"match_field": {"const": "team"}}, "required": ["match_field"]},
-              "then": {"required": ["team_field"]}
+              "if": {
+                "properties": {
+                  "match_field": {
+                    "const": "team"
+                  }
+                },
+                "required": [
+                  "match_field"
+                ]
+              },
+              "then": {
+                "required": [
+                  "team_field"
+                ]
+              }
             }
           }
         },
@@ -142,12 +298,330 @@
             "published"
           ]
         },
-        "on_fail": {"enum": ["needs_attention", "log_only", "report"]}
+        "on_fail": {
+          "enum": [
+            "needs_attention",
+            "log_only",
+            "report"
+          ]
+        }
       },
       "allOf": [
         {
-          "if": {"properties": {"pass_when": {"const": "report_only"}}},
-          "then": {"properties": {"on_fail": {"const": "report"}}}
+          "if": {
+            "properties": {
+              "pass_when": {
+                "const": "report_only"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "on_fail": {
+                "const": "report"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "metric": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source"
+      ],
+      "properties": {
+        "source": {
+          "enum": [
+            "rc1_date",
+            "rc_count",
+            "days_before_16th",
+            "jira_count",
+            "github_count"
+          ]
+        },
+        "jql": {
+          "type": "string",
+          "minLength": 1
+        },
+        "query": {
+          "type": "string",
+          "minLength": 1
+        },
+        "after_days": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "jira_count"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "jql"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "source": {
+                "const": "github_count"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "query"
+            ]
+          }
+        }
+      ]
+    },
+    "action": {
+      "type": "object",
+      "required": [
+        "task",
+        "type",
+        "action",
+        "title",
+        "playbook_item",
+        "due",
+        "needed_when",
+        "notice",
+        "stop_window",
+        "run",
+        "done_when"
+      ],
+      "properties": {
+        "task": {
+          "type": "string",
+          "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+        },
+        "type": {
+          "const": "action"
+        },
+        "action": {
+          "enum": [
+            "branch_cut",
+            "qa_sheet",
+            "rc",
+            "versions",
+            "tickets",
+            "metrics"
+          ]
+        },
+        "title": {
+          "type": "string",
+          "minLength": 1
+        },
+        "playbook_item": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "minLength": 1
+        },
+        "due": {
+          "type": "string",
+          "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"
+        },
+        "until": {
+          "type": "string",
+          "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"
+        },
+        "preview": {
+          "type": "string",
+          "pattern": "^(T[-+]\\d+|[a-z][a-z0-9_]*([-+]\\d+)?)$"
+        },
+        "needed_when": {
+          "type": "string",
+          "minLength": 1
+        },
+        "done_when": {
+          "type": "string",
+          "minLength": 1
+        },
+        "notice": {
+          "description": "Template name in templates/actions/, or null.",
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "stop_window": {
+          "description": "Working minutes between the notice and the run.",
+          "type": "integer",
+          "minimum": 0
+        },
+        "run": {
+          "type": "object"
+        },
+        "sheet": {
+          "type": "object"
+        },
+        "jira_project": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9]+$"
+        },
+        "repos": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^mattermost/[\\w.-]+$"
+          }
+        },
+        "blocker_jql": {
+          "type": "string",
+          "minLength": 1
+        },
+        "target": {
+          "enum": [
+            "next",
+            "after_next"
+          ]
+        },
+        "start_date_field": {
+          "type": "string",
+          "pattern": "^customfield_\\d+$"
+        },
+        "copy_fields": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "kinds": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "summary"
+            ],
+            "properties": {
+              "summary": {
+                "type": "string",
+                "minLength": 1
+              },
+              "start_date": {
+                "const": "feature_complete"
+              }
+            }
+          }
+        }
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "enum": [
+                  "branch_cut",
+                  "rc"
+                ]
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "stop_window": {
+                "minimum": 1
+              },
+              "notice": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "rc"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "blocker_jql"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "qa_sheet"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sheet",
+              "until"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "metrics"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "sheet",
+              "jira_project"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "versions"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "jira_project",
+              "repos",
+              "preview"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "action": {
+                "const": "tickets"
+              }
+            }
+          },
+          "then": {
+            "required": [
+              "jira_project",
+              "target",
+              "start_date_field",
+              "copy_fields",
+              "kinds"
+            ]
+          }
         }
       ]
     }

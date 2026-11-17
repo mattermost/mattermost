@@ -1,0 +1,1 @@
+Stopped: {what} was stopped by {who} at {time}. Nothing more happens today; a new notice goes out on the next working day. The release manager or a backup can reply `go` or react :white_check_mark: to run it anyway.

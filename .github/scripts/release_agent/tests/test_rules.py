@@ -78,7 +78,7 @@ class RulesFileTest(unittest.TestCase):
     def test_rejects_unknown_type_and_bad_due(self):
         self.assertTrue(self.problems_with(type="nope"))
         self.assertTrue(self.problems_with(due="next tuesday"))
-        self.assertEqual(self.problems_with(due="rc1+1"), ["new-regressions: due 'rc1+1' names no calendar milestone"])
+        self.assertEqual(self.problems_with(due="rc_cut+1"), ["new-regressions: due 'rc_cut+1' names no calendar milestone"])
 
     def test_rejects_mismatched_pass_when(self):
         self.assertEqual(self.problems_with(pass_when="found"),

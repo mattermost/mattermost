@@ -32,6 +32,8 @@ calendar:
   milestones:
     branch_cut: Release Branch Cut
     feature_complete: Feature Complete
+    # "v12.2 & Mobile v2.47 RC1 Cut & QA Qualification Starts". The release metrics use its date.
+    rc1: RC1 Cut
     code_freeze: Code Freeze
     final_build: Final Release Build Cut
     release_day: Release Day
@@ -374,3 +376,221 @@ rules:
       min_dates: 8
     pass_when: next_year_listed
     on_fail: needs_attention
+
+# ── Release actions (release-actions.yml) ─────────────────────────────────────────────
+# Phase 5: the playbook items the agent does, not only checks. Hourly on weekdays, 08:00 to
+# 18:00 UTC. RELEASE_ACTIONS_MODE (dry_run by default) and RELEASE_ACTIONS_LIVE (which
+# actions may act) decide what really happens; a dry run writes nothing outside Hub and
+# shows what it would do in the test channel. Every message is a template in
+# templates/actions/. The daily status post lists each action under "Release actions" and
+# ticks its playbook_item once it's done.
+#
+#   task, title, playbook_item, due   as for the rules above
+#   type                              always "action"
+#   action                            the handler (release_agent/actions/<action>.py), also its
+#                                     name in RELEASE_ACTIONS_LIVE
+#   needed_when / done_when           what the handler checks, as the status post describes it
+#   notice                            the notice template, or null when the action posts its result
+#   stop_window                       working minutes between the notice and the run (0: none)
+#   run                               what the action starts or writes
+release_actions:
+  # Releases stay active for actions this many days after Release Day, so the "week after
+  # the release" metric can be filled in.
+  active_days_after_release: 10
+  delivery_platform:
+    repo: mattermost/delivery-platform
+    ref: master
+
+actions:
+  # Reads create-release-branches-universal.yaml's inputs: RELEASE_BRANCH, REPOSITORY_NAME and
+  # REPOSITORY_SRC_BRANCH. It cuts one repo per run, so the agent starts one run per repo that
+  # lacks the branch. Notice in the release channel, or release-agent-log with a mention of
+  # the release manager when the channel doesn't exist yet.
+  - task: branch-cut
+    type: action
+    action: branch_cut
+    title: Cut the release branches
+    playbook_item: Cut the release branches using this process. Double-check that model/version.go has been updated.
+    due: branch_cut
+    needed_when: release_branch_missing
+    notice: branch-cut-notice
+    stop_window: 60
+    run:
+      workflow: create-release-branches-universal.yaml
+      repos: [mattermost/mattermost, mattermost/enterprise]
+      source_branch: master
+      version_go: server/public/model/version.go
+      version_go_author: app/unified-ci-app
+    done_when: branches_exist_and_version_go_lists_release
+
+  - task: qa-sheet
+    type: action
+    action: qa_sheet
+    title: Fill in the QA feature tracking sheet
+    playbook_item: Fill in the QA feature tracking spreadsheet with all Epics and Story tickets in Resolved status.
+    due: T-16
+    until: T-15
+    needed_when: resolved_tickets_not_in_tab
+    notice: null
+    stop_window: 0
+    run:
+      sheet: RELEASE_ACTIONS_QA_SHEET_ID
+    sheet:
+      jql: 'project = MM AND fixVersion = "{fix_version}" AND issuetype in (Epic, Story) AND status = Resolved ORDER BY key ASC'
+      team_field: customfield_10800
+      browse_url: "https://mattermost.atlassian.net/browse/"
+      # Header names in row 1. Rows are written by header, so a moved column still works.
+      columns:
+        release: Release Version
+        feature: Feature
+        team: Team
+        dev: Dev
+        link: JIRA Epic / docs
+    done_when: first_fill_written
+
+  # release-mattermost-platform.yml takes MAJOR, MINOR, RC (a boolean), LATEST, ESR_RELEASE and
+  # optional MM_SHA, EE_SHA and PRE_RELEASE. It works out rcN from the release's latest tag, so
+  # the agent only cuts when that tag is the one before. RC-1 gets a notice and a stop window;
+  # later RCs are only proposed, and cut after an approved `go`.
+  - task: rc-cut
+    type: action
+    action: rc
+    title: Cut release candidates and notify QA
+    playbook_item: Cut a Release Candidate using this process and notify the QA team.
+    due: T-15
+    needed_when: branch_exists_and_rc_not_tagged
+    notice: rc-notice
+    stop_window: 60
+    run:
+      workflow: release-mattermost-platform.yml
+      inputs:
+        MAJOR: "{major}"
+        MINOR: "{minor}"
+        RC: true
+        LATEST: false
+        ESR_RELEASE: false
+      build_url: "https://releases.mattermost.com/{release}/mattermost-{release}-linux-amd64.tar.gz"
+    # An open Blocker with the fix version: no RC proposal.
+    blocker_jql: 'project = MM AND fixVersion = "{fix_version}" AND priority = Blocker AND status not in (Resolved, Closed)'
+    done_when: rc1_tagged_and_qa_notified
+
+  - task: fix-versions
+    type: action
+    action: versions
+    title: Close the release and add the next fix versions
+    playbook_item: Close the release in Jira and add new release fix versions in Jira and GitHub (mattermost and enterprise) for the next three releases.
+    due: T-0
+    preview: T-1
+    needed_when: github_release_published
+    notice: null
+    stop_window: 0
+    jira_project: MM
+    repos: [mattermost/mattermost, mattermost/enterprise]
+    run:
+      jira: release_and_create_versions
+      github: create_milestones
+    done_when: released_and_next_three_exist
+
+  # On Release Day, the next release's tickets ("standard tickets"). target: next makes v12.3's
+  # on v12.2's Release Day; after_next would make v12.4's. Each summary is matched exactly
+  # before creating, whatever its fix version (some older ones have none).
+  - task: next-release-tickets
+    type: action
+    action: tickets
+    title: Create the tickets for the next release
+    playbook_item: "Create tickets for next release:"
+    due: T-0
+    needed_when: target_fix_version_exists
+    notice: null
+    stop_window: 0
+    jira_project: MM
+    target: next
+    start_date_field: customfield_11107
+    copy_fields: [issuetype, description, components, labels, customfield_10800]
+    # {short} is 12.3, {short_version} v12.3, {month} the target's Release Day month, and
+    # {previous_short} and {previous_month} the release before it.
+    kinds:
+      - summary: "Prepackage Calls for {short_version}"
+      - summary: "Prepackage Playbooks & FIPS for {short_version}"
+      - summary: "Prepackage Boards & FIPS for {short_version}"
+      - summary: "Prepackage Agents & FIPS for {short_version}"
+      - summary: "📈 Loadtest {short}, {month} (vs {previous_short}, {previous_month})"
+        start_date: feature_complete
+    run:
+      jira: create_issues
+    done_when: all_exist_and_epic_has_start_date
+
+  - task: release-metrics
+    type: action
+    action: metrics
+    title: Prepare the release metrics
+    playbook_item: Prepare release metrics.
+    due: T-0
+    needed_when: release_closed_in_jira
+    notice: null
+    stop_window: 0
+    jira_project: MM
+    sheet:
+      tab: "Cloud & Self-Hosted"
+      # Column E, zero-based: A to D are Type, Metric, Data source and Target.
+      first_release_column: 4
+    run:
+      sheet: RELEASE_ACTIONS_SCORECARD_SHEET_ID
+    done_when: column_filled
+
+# "Release Scorecard Definitions" on the Release Processes Overview page (Confluence
+# 2928869382), keyed by the metric's text in column B. Placeholders: {fix_version}
+# (v12.2 (December 2026)), {next_fix_version}, {rc1_date}, {release_day}, {prev_17th} (the
+# 17th of the month before Release Day's), {week_after} (Release Day + 7 days) and
+# {short_version} (v12.2). The documented queries, cleaned up: missing spaces fixed,
+# "project = Mattermost" written as MM, repeated labels removed, "Won't fix" written as the
+# resolution that exists ("Won't Do"), and "resolution IN (Unresolved, …)" written as
+# "resolution is EMPTY OR …", since Jira rejects a query naming a value it doesn't have.
+scorecard_metrics:
+  "Date/time RC1 cut":
+    source: rc1_date
+  "Total number of RCs cut":
+    source: rc_count
+  # 16 minus the day of the month vX.Y.0 was tagged (about 7 for a T-5 build).
+  "Number of days the final build is cut before the 16th":
+    source: days_before_16th
+  "Community + Customer bugs reported during release timeframe (17th to 16th)":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Bug AND status in (Backlog, Closed, "In Progress", Open, Reopened, Resolved, "Selected for Development", Submitted) AND labels in (community-bug, customer-bug) AND created >= "{prev_17th}" AND created <= "{release_day}" AND ("Environment[Dropdown]" not in ("Mobile app", "Desktop app") OR "Environment[Dropdown]" is EMPTY)'
+  "Number of bugs reported within a week after the release":
+    source: jira_count
+    after_days: 7
+    jql: 'project = MM AND issuetype = Bug AND labels in (community-bug, customer-bug) AND created >= "{release_day}" AND created <= "{week_after}" AND ("Environment[Dropdown]" not in ("Mobile app", "Desktop app") OR "Environment[Dropdown]" is EMPTY)'
+  "Number of customer-bug bugs fixed during release":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Bug AND labels in (customer_bug, customer-bug) AND fixVersion = "{fix_version}"'
+  "Total valid bug fixes in fix version":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Bug AND status in (Closed, Resolved) AND resolution = Done AND fixVersion = "{fix_version}"'
+  # No rc1: RC-1 tickets aren't tracked here and have no label.
+  "Total valid regressions in fix version":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Bug AND status in (Closed, Resolved) AND (resolution is EMPTY OR resolution = Done) AND labels in (rc2, rc3, rc4, rc5, rc6) AND fixVersion = "{fix_version}"'
+  # The current release's fix version, as documented.
+  "Valid bugs found after RC1 pushed to next release":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Bug AND status in (Closed, Resolved) AND (resolution is EMPTY OR resolution = Done) AND created >= "{rc1_date}" AND created <= "{release_day}" AND fixVersion = "{fix_version}"'
+  "Valid bugs found after RC1 fix version = other (eg unscheduled, not set)":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Bug AND (resolution is EMPTY OR resolution not in (Duplicate, "Cannot Reproduce", "Won''t Do")) AND created > "{rc1_date}" AND created < "{release_day}" AND (fixVersion not in ("{fix_version}", "{next_fix_version}") OR fixVersion is EMPTY) AND ("Environment[Dropdown]" not in ("Mobile app", "Desktop app") OR "Environment[Dropdown]" is EMPTY)'
+  "Valid bugs found after RC1 is cut":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Bug AND (resolution is EMPTY OR resolution not in (Duplicate, "Cannot Reproduce", "Won''t Do")) AND created > "{rc1_date}" AND created < "{release_day}" AND fixVersion = "{fix_version}"'
+  "Number of PRs reverted":
+    source: github_count
+    query: 'repo:mattermost/mattermost is:pr is:closed label:Revert milestone:"{milestone}"'
+  "# of bugs found per release":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Bug AND "version reported on[labels]" = {short_version}'
+  "Total features/improvements in fix version":
+    source: jira_count
+    jql: 'project = MM AND issuetype = Story AND status in (Closed, Resolved) AND (resolution is EMPTY OR resolution = Done) AND fixVersion = "{fix_version}"'
+
+# Known only later, so left for the release manager (the "Release KPIs" tab is theirs too).
+scorecard_manual:
+  - Non-security bugs requiring patch release
