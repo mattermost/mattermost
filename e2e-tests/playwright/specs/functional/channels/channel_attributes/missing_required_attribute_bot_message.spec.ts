@@ -27,7 +27,7 @@ test.describe('Missing required channel attribute System bot message', {tag: ['@
 
     /**
      * @objective Verify creating a team sends its creator one System bot message that names Off-Topic,
-     * Town Square and the attribute, and that its Off-Topic link opens the channel.
+     * Town Square and the attribute, and that it links to Off-Topic.
      */
     test('messages the team creator once about both default channels', async ({pw}) => {
         await pw.ensureFeatureFlag({ChannelAttributes: true, ChannelAttributesRequired: true});
@@ -59,12 +59,12 @@ test.describe('Missing required channel attribute System bot message', {tag: ['@
             await expect(message).toContainText('Town Square');
             await expect(message).toContainText(field.name);
 
-            // # Follow the Off-Topic link
-            await message.getByRole('link', {name: 'Off-Topic'}).click();
-
-            // * The channel opens
-            await expect(channelsPage.page).toHaveURL(new RegExp(`/${team.name}/channels/${offTopic.name}$`));
-            await channelsPage.centerView.header.toHaveTitle('Off-Topic');
+            // * The Off-Topic link points at the channel. It's built from the SiteURL, which in e2e isn't
+            // the browser's origin, so following it would leave the app.
+            await expect(message.getByRole('link', {name: 'Off-Topic'})).toHaveAttribute(
+                'href',
+                new RegExp(`/${team.name}/channels/${offTopic.name}$`),
+            );
         } finally {
             await deleteAttributes(adminClient, created);
         }
