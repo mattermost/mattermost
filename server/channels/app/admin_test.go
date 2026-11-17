@@ -6,10 +6,12 @@ package app
 import (
 	"encoding/json"
 	"maps"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -101,6 +103,71 @@ func TestGetLatestVersion(t *testing.T) {
 
 		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)
+	})
+}
+
+// Not parallel: overrides the package-level testSiteURLTimeout.
+func TestTestSiteURL(t *testing.T) {
+	th := Setup(t)
+
+	t.Run("valid site URL", func(t *testing.T) {
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Equal(t, "/api/v4/system/ping", r.URL.Path)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer ts.Close()
+
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		require.Nil(t, appErr)
+	})
+
+	t.Run("non-200 response fails and releases the connection for reuse", func(t *testing.T) {
+		var newConns atomic.Int32
+		ts := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			_, _ = w.Write([]byte("not found"))
+		}))
+		ts.Config.ConnState = func(_ net.Conn, state http.ConnState) {
+			if state == http.StateNew {
+				newConns.Add(1)
+			}
+		}
+		ts.Start()
+		defer ts.Close()
+
+		for range 3 {
+			appErr := th.App.TestSiteURL(th.Context, ts.URL)
+			require.NotNil(t, appErr)
+			assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+			assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		}
+		assert.Equal(t, int32(1), newConns.Load())
+	})
+
+	t.Run("server that never responds times out", func(t *testing.T) {
+		originalTimeout := testSiteURLTimeout
+		testSiteURLTimeout = 200 * time.Millisecond
+		defer func() { testSiteURLTimeout = originalTimeout }()
+
+		release := make(chan struct{})
+		ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			<-release
+		}))
+		defer ts.Close()
+		defer close(release)
+
+		start := time.Now()
+		appErr := th.App.TestSiteURL(th.Context, ts.URL)
+		elapsed := time.Since(start)
+
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.admin.test_site_url.failure", appErr.Id)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		var netErr net.Error
+		require.ErrorAs(t, appErr.Unwrap(), &netErr)
+		assert.True(t, netErr.Timeout())
+		assert.GreaterOrEqual(t, elapsed, testSiteURLTimeout)
+		assert.Less(t, elapsed, 5*time.Second)
 	})
 }
 
