@@ -217,8 +217,8 @@ func (s *Server) ensureInstallationDate() error {
 }
 
 func (s *Server) ensureFirstServerRunTimestamp() error {
-	_, appErr := s.getFirstServerRunTimestamp()
-	if appErr == nil {
+	_, err := s.getFirstServerRunTimestamp()
+	if err == nil {
 		return nil
 	}
 

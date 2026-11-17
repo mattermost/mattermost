@@ -7409,15 +7409,11 @@
   },
   "admin.health_dashboard.detail.first_seen": {
     "defaultMessage": "First detected",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
+    "description": "Label in an expanded firing finding on the System Console Site health page, shown only when the finding was first seen in an earlier state; followed by the date it was first seen, such as \"November 4, 2026\"."
   },
   "admin.health_dashboard.detail.go_to_setting": {
     "defaultMessage": "Go to setting",
     "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
-  },
-  "admin.health_dashboard.detail.last_seen": {
-    "defaultMessage": "Last checked",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
   },
   "admin.health_dashboard.detail.node": {
     "defaultMessage": "Node",
@@ -7441,11 +7437,7 @@
   },
   "admin.health_dashboard.detail.severity": {
     "defaultMessage": "Severity",
-    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value is the severity of the check (Critical, Warning or Info)."
-  },
-  "admin.health_dashboard.detail.state": {
-    "defaultMessage": "State",
-    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
+    "description": "Label in the details list of an expanded unknown or resolved finding on the System Console Site health page; the value is the severity the check has when firing (Critical, Warning or Info)."
   },
   "admin.health_dashboard.duration.days": {
     "defaultMessage": "{days}d",
@@ -9563,9 +9555,9 @@
     "defaultMessage": "Enable Webhook Debugging:",
     "description": "Setting label (toggle) on the Logging admin page; sends webhook request debug output to server logs. Ends with a colon."
   },
-  "admin.log.enableWebhookDebuggingDescription": {
-    "defaultMessage": "When true, sends webhook debug messages to the server logs. To also output the request body of incoming webhooks, set {boldedLogLevel} to \"DEBUG\".",
-    "description": "Help text for the Enable Webhook Debugging setting; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
+  "admin.log.enableWebhookDebuggingPayloadDescription": {
+    "defaultMessage": "When true, failed incoming webhook requests are logged with their payload at the \"DEBUG\" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting.",
+    "description": "Help text for the Enable Webhook Debugging setting, warning that it logs webhook payloads; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
   },
   "admin.log.fileDescription": {
     "defaultMessage": "Typically set to true in production. When true, logged events are written to the mattermost.log file in the directory specified in the File Log Directory field. The logs are rotated at 100 MB and archived to a file in the same directory, and given a name with a datestamp and serial number. For example, mattermost.2017-03-31.001. Changing this setting requires a server restart before taking effect.",

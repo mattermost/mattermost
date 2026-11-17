@@ -38,10 +38,62 @@ const algoliaThemeConfig =
       }
     : {};
 
+// OneTrust cookie banner, shared with mattermost.com (consent carries over).
+// Set only in production (docs-cd.yml); other builds skip it for check-egress.
+const oneTrustDomainScript = process.env.ONETRUST_DOMAIN_SCRIPT;
+const oneTrustHeadTags = oneTrustDomainScript
+  ? [
+      {
+        tagName: 'script',
+        attributes: {
+          src: 'https://cdn.cookielaw.org/scripttemplates/otSDKStub.js',
+          type: 'text/javascript',
+          charset: 'UTF-8',
+          'data-domain-script': oneTrustDomainScript,
+        },
+      },
+      {
+        tagName: 'script',
+        attributes: {type: 'text/javascript'},
+        innerHTML: 'function OptanonWrapper() { }',
+      },
+    ]
+  : [];
+// Google Tag Manager container for docs. Analytics and marketing tags are
+// managed in GTM, not here. Loaded after OneTrust and only alongside it, so
+// tags never load without the consent manager.
+// The ID is interpolated into an inline script, so only a well-formed
+// container ID is accepted.
+const gtmContainerId = process.env.GTM_CONTAINER_ID;
+if (gtmContainerId && !/^GTM-[A-Z0-9]+$/.test(gtmContainerId)) {
+  throw new Error(`Invalid GTM_CONTAINER_ID: ${gtmContainerId}`);
+}
+const gtmHeadTags =
+  oneTrustDomainScript && gtmContainerId
+    ? [
+        {
+          tagName: 'script',
+          attributes: {type: 'text/javascript'},
+          innerHTML: `(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','${gtmContainerId}');`,
+        },
+      ]
+    : [];
+// Lets visitors reopen the preference center to change or withdraw consent.
+// Rendered only with the banner, since without it the button does nothing.
+const oneTrustFooterItems = oneTrustDomainScript
+  ? [
+      {
+        html: '<button type="button" id="ot-sdk-btn" class="ot-sdk-show-settings">Cookie settings</button>',
+      },
+    ]
+  : [];
+
 const config: Config = {
   title: 'Mattermost Documentation',
   tagline: 'Mission in Motion',
   favicon: 'img/brand/icon-denim.svg',
+
+  headTags: [...oneTrustHeadTags, ...gtmHeadTags],
 
   future: {
     v4: true,
@@ -225,6 +277,7 @@ const config: Config = {
           items: [
             {label: 'GitHub', href: 'https://github.com/mattermost/mattermost'},
             {label: 'Forum', href: 'https://forum.mattermost.com/'},
+            ...oneTrustFooterItems,
           ],
         },
       ],

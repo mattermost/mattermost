@@ -15,26 +15,31 @@ import {
 import type {HealthFinding} from '@mattermost/types/health';
 
 import ExternalLink from 'components/external_link';
+import Timestamp from 'components/timestamp';
 
-import RelativeTime from './relative_time';
 import {severityMessages} from './severity';
-import Trend from './trend';
 
 type Props = {
     id: string;
     finding: HealthFinding;
-    now: number;
     hidden: boolean;
 };
 
 const iconProps = {size: 18, color: 'currentColor', 'aria-hidden': true} as const;
 
-const FindingDetail = ({id, finding, now, hidden}: Props) => {
+const FindingDetail = ({id, finding, hidden}: Props) => {
     const history = useHistory();
     const details = Object.entries(finding.details ?? {}).sort(([a], [b]) => a.localeCompare(b));
     const consolePath = finding.console_path;
     const actionable = finding.state === 'firing' || finding.state === 'unknown';
     const hasLinks = Boolean(consolePath || finding.docs_url);
+
+    // state_since resets on every state change, so a firing finding first seen earlier was in another state before.
+    const seenEarlier = finding.state === 'firing' && finding.first_seen_at !== finding.state_since;
+
+    // A firing finding's severity is already on its badge or section header.
+    const showSeverity = finding.state !== 'firing';
+    const hasDetails = showSeverity || seenEarlier || Boolean(finding.scope) || details.length > 0;
 
     return (
         <div
@@ -98,66 +103,64 @@ const FindingDetail = ({id, finding, now, hidden}: Props) => {
                     )}
                 </section>
             )}
-            <section className='HealthFinding__detailSection'>
-                <h4 className='HealthFinding__detailTitle'>
-                    <FormattedMessage
-                        id='admin.health_dashboard.detail.details'
-                        defaultMessage='Details'
-                    />
-                </h4>
-                <dl className='HealthFinding__details'>
-                    <dt>
+            {hasDetails && (
+                <section className='HealthFinding__detailSection'>
+                    <h4 className='HealthFinding__detailTitle'>
                         <FormattedMessage
-                            id='admin.health_dashboard.detail.severity'
-                            defaultMessage='Severity'
+                            id='admin.health_dashboard.detail.details'
+                            defaultMessage='Details'
                         />
-                    </dt>
-                    <dd><FormattedMessage {...severityMessages[finding.severity]}/></dd>
-                    <dt>
-                        <FormattedMessage
-                            id='admin.health_dashboard.detail.state'
-                            defaultMessage='State'
-                        />
-                    </dt>
-                    <dd>
-                        <Trend
-                            finding={finding}
-                            now={now}
-                        />
-                    </dd>
-                    <dt>
-                        <FormattedMessage
-                            id='admin.health_dashboard.detail.first_seen'
-                            defaultMessage='First detected'
-                        />
-                    </dt>
-                    <dd><RelativeTime value={finding.first_seen_at}/></dd>
-                    <dt>
-                        <FormattedMessage
-                            id='admin.health_dashboard.detail.last_seen'
-                            defaultMessage='Last checked'
-                        />
-                    </dt>
-                    <dd><RelativeTime value={finding.last_seen_at}/></dd>
-                    {finding.scope && (
-                        <>
-                            <dt>
-                                <FormattedMessage
-                                    id='admin.health_dashboard.detail.node'
-                                    defaultMessage='Node'
-                                />
-                            </dt>
-                            <dd>{finding.scope}</dd>
-                        </>
-                    )}
-                    {details.map(([key, value]) => (
-                        <React.Fragment key={key}>
-                            <dt><code>{key}</code></dt>
-                            <dd>{value}</dd>
-                        </React.Fragment>
-                    ))}
-                </dl>
-            </section>
+                    </h4>
+                    <dl className='HealthFinding__details'>
+                        {showSeverity && (
+                            <>
+                                <dt>
+                                    <FormattedMessage
+                                        id='admin.health_dashboard.detail.severity'
+                                        defaultMessage='Severity'
+                                    />
+                                </dt>
+                                <dd><FormattedMessage {...severityMessages[finding.severity]}/></dd>
+                            </>
+                        )}
+                        {seenEarlier && (
+                            <>
+                                <dt>
+                                    <FormattedMessage
+                                        id='admin.health_dashboard.detail.first_seen'
+                                        defaultMessage='First detected'
+                                    />
+                                </dt>
+                                <dd>
+                                    <Timestamp
+                                        value={finding.first_seen_at}
+                                        useRelative={false}
+                                        useDate={{year: 'numeric', month: 'long', day: 'numeric'}}
+                                        useTime={false}
+                                    />
+                                </dd>
+                            </>
+                        )}
+                        {finding.scope && (
+                            <>
+                                <dt>
+                                    <FormattedMessage
+                                        id='admin.health_dashboard.detail.node'
+                                        defaultMessage='Node'
+                                    />
+                                </dt>
+                                <dd>{finding.scope}</dd>
+                            </>
+                        )}
+                        {details.map(([key, value]) => (
+                            <React.Fragment key={key}>
+                                <dt><code>{key}</code></dt>
+                                <dd>{value}</dd>
+                            </React.Fragment>
+                        ))}
+                    </dl>
+                </section>
+            )}
             {actionable && consolePath && (
                 <div className='HealthFinding__actions'>
                     <button
