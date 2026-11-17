@@ -128,9 +128,9 @@ type channelAttributeAdminBatch struct {
 // stands) and, when it is, the token that claim was written under --
 // releaseChannelAttributeNotifyThrottle needs it back to release only this
 // specific claim, not whatever happens to be there when release runs.
-func (a *App) claimChannelAttributeNotifyThrottle(fieldID string) (claimed bool, token string, appErr *model.AppError) {
+func (a *App) claimChannelAttributeNotifyThrottle(fieldID string) (claimed bool, token string, err error) {
 	token = strconv.FormatInt(model.GetMillis(), 10)
-	claimed, err := a.Srv().Store().System().TryClaimIfOlderThan(
+	claimed, err = a.Srv().Store().System().TryClaimIfOlderThan(
 		channelAttributeNotifyThrottleKey(fieldID),
 		token,
 		channelAttributeNotifyCoolOffMillis,
@@ -160,7 +160,7 @@ func (a *App) channelAttributeNotifyCooldownRemaining(rctx request.CTX, fieldID 
 
 // channelAttributeNotifyThrottledError names the wait until the next notify
 // is accepted, or no wait when it can't be worked out.
-func (a *App) channelAttributeNotifyThrottledError(rctx request.CTX, fieldID string) *model.AppError {
+func (a *App) channelAttributeNotifyThrottledError(rctx request.CTX, fieldID string) error {
 	remainingMillis := a.channelAttributeNotifyCooldownRemaining(rctx, fieldID)
 	if remainingMillis <= 0 {
 		return model.NewAppError("NotifyChannelAdminsOfMissingAttribute", "api.property_field.notify_missing_values.throttled_unknown_wait.app_error", nil, "", http.StatusTooManyRequests)
@@ -213,16 +213,16 @@ func (a *App) fetchAllChannelAdminAssignments(groupID, fieldID string) ([]*model
 // unique channel admin of a channel missing a value for field, throttled per
 // field. Counts are computed synchronously so the caller can render them
 // immediately; delivery happens in the background.
-func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID string, field *model.PropertyField) (*model.ChannelAttributeNotifyResult, *model.AppError) {
+func (a *App) NotifyChannelAdminsOfMissingAttribute(rctx request.CTX, groupID string, field *model.PropertyField) (*model.ChannelAttributeNotifyResult, error) {
 	// Claimed atomically, and first: closes the double-click/two-HA-node
 	// race a separate check-then-write could not. Everything below that can
 	// still fail (transient store errors, a fully-failed delivery) releases
 	// this claim before returning, so a real "nobody was notified" outcome
 	// never costs the full hour -- see releaseChannelAttributeNotifyThrottle
 	// and its call sites.
-	claimed, token, appErr := a.claimChannelAttributeNotifyThrottle(field.ID)
-	if appErr != nil {
-		return nil, appErr
+	claimed, token, err := a.claimChannelAttributeNotifyThrottle(field.ID)
+	if err != nil {
+		return nil, err
 	}
 	if !claimed {
 		return nil, a.channelAttributeNotifyThrottledError(rctx, field.ID)

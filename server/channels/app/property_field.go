@@ -41,7 +41,7 @@ func propertyFieldOptionsEqual(a, b any) bool {
 // unarchived channel can re-enter the population without a value -- see
 // MM-70717), so a level-triggered check would trap admins on unrelated edits
 // to an already-required field.
-func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, groupID string, prev, next *model.PropertyField) *model.AppError {
+func (a *App) checkRequiredAttributeTransition(rctx request.CTX, callerName, groupID string, prev, next *model.PropertyField) error {
 	if !a.Config().FeatureFlags.IsChannelAttributesRequiredEnabled() || !model.MinimumEnterpriseAdvancedLicense(a.License()) {
 		return nil
 	}
@@ -174,7 +174,7 @@ func (a *App) publishPropertyFieldEvent(rctx request.CTX, eventType model.Websoc
 // rank type and ship behind the separate, GA-by-default ClassificationMarkings
 // flag. Gating those here would break the classification admin panel (create
 // and edit alike) whenever PropertyFieldRank is off.
-func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *model.AppError {
+func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) error {
 	if field == nil || field.Type != model.PropertyFieldTypeRank {
 		return nil
 	}
@@ -214,7 +214,7 @@ func (a *App) rankPropertyFieldGate(where string, field *model.PropertyField) *m
 // exempt, and a hierarchy is normally defined on a template field that user and
 // channel fields link to — narrowing to user objects would leave the definition
 // itself ungated.
-func (a *App) graphPropertyFieldGate(field *model.PropertyField) *model.AppError {
+func (a *App) graphPropertyFieldGate(field *model.PropertyField) error {
 	if field == nil || field.Type != model.PropertyFieldTypeGraph {
 		return nil
 	}
@@ -256,12 +256,12 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 		}
 	}
 
-	if appErr := a.rankPropertyFieldGate("CreatePropertyField", field); appErr != nil {
-		return nil, appErr
+	if err := a.rankPropertyFieldGate("CreatePropertyField", field); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
-	if appErr := a.graphPropertyFieldGate(field); appErr != nil {
-		return nil, appErr
+	if err := a.graphPropertyFieldGate(field); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	// A field created with a linked_field_id takes its type from the template it
@@ -280,8 +280,8 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 		case appErr != nil:
 			return nil, appErr
 		default:
-			if appErr := a.graphPropertyFieldGate(source); appErr != nil {
-				return nil, appErr
+			if err := a.graphPropertyFieldGate(source); err != nil {
+				return nil, model.AsAppError(err)
 			}
 		}
 	}
@@ -291,8 +291,8 @@ func (a *App) CreatePropertyField(rctx request.CTX, field *model.PropertyField, 
 	// already marked required. Since a new field has no ID yet, no existing
 	// channel can hold a value for it; installations with active local channels
 	// must therefore create it optional, backfill values, then mark it required.
-	if appErr := a.checkRequiredAttributeTransition(rctx, "CreatePropertyField", field.GroupID, nil, field); appErr != nil {
-		return nil, appErr
+	if err := a.checkRequiredAttributeTransition(rctx, "CreatePropertyField", field.GroupID, nil, field); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	if !bypassProtectedCheck && field.Protected {
@@ -492,8 +492,8 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 
 		// Rank-type gate: block converting a field to rank while the feature
 		// flag is off (shares the create-path check).
-		if appErr := a.rankPropertyFieldGate("UpdatePropertyFields", f); appErr != nil {
-			return nil, nil, appErr
+		if err = a.rankPropertyFieldGate("UpdatePropertyFields", f); err != nil {
+			return nil, nil, model.AsAppError(err)
 		}
 
 		// Linked-field diff invariants. "Linked" = LinkedFieldID != nil &&
@@ -562,8 +562,8 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 			)
 		}
 
-		if appErr := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); appErr != nil {
-			return nil, nil, appErr
+		if err := a.checkRequiredAttributeTransition(rctx, "UpdatePropertyFields", groupID, existing, f); err != nil {
+			return nil, nil, model.AsAppError(err)
 		}
 	}
 
