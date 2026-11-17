@@ -42,6 +42,73 @@ func TestExpressionReferencesResourceRoot(t *testing.T) {
 	}
 }
 
+func TestExpressionReferencesSessionAttributes(t *testing.T) {
+	cases := []struct {
+		name string
+		expr string
+		want bool
+	}{
+		{name: "session selector", expr: `user.session.vpn_active == "true"`, want: true},
+		{name: "session selector combined with attributes", expr: `user.id_abc.id_def == "x" && user.session.os_platform == "ios"`, want: true},
+		{name: "whitespace around dots", expr: `user . session . vpn_active == "true"`, want: true},
+		{name: "attributes only", expr: `user.attributes.dept == "finance"`, want: false},
+		{name: "attribute named like session", expr: `user.attributes.session == "x" || user.sessions == "y"`, want: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, expressionReferencesSessionAttributes(tc.expr))
+		})
+	}
+}
+
+func TestCachedSystemSettingPolicyReferences(t *testing.T) {
+	groupID := model.NewId()
+	deptID := model.NewId()
+	levelID := model.NewId()
+	otherID := model.NewId()
+
+	policyFor := func(exprs ...string) *cachedSystemSettingPolicy {
+		p := &cachedSystemSettingPolicy{FieldIDs: map[string]struct{}{}, SessionAttributes: map[string]struct{}{}}
+		for _, expr := range exprs {
+			p.addExpressionReferences(expr)
+		}
+		return p
+	}
+
+	t.Run("fields named by ID across rules", func(t *testing.T) {
+		p := policyFor(
+			"user.id_"+groupID+".id_"+deptID+` == "finance"`,
+			"_rank_gte(user.id_"+groupID+".id_"+levelID+`, "secret")`,
+		)
+		assert.True(t, p.referencesField([]string{otherID, deptID}))
+		assert.True(t, p.referencesField([]string{levelID}))
+		assert.False(t, p.referencesField([]string{otherID}))
+		assert.False(t, p.referencesField(nil))
+		assert.False(t, p.referencesSessionAttribute([]string{model.SessionAttributesPropertyFieldIPAddress}))
+	})
+
+	t.Run("fields named by name count as every field", func(t *testing.T) {
+		p := policyFor(`user.attributes.dept == "finance"`)
+		assert.True(t, p.referencesField([]string{otherID}))
+		assert.False(t, p.referencesField(nil))
+	})
+
+	t.Run("session attribute selectors", func(t *testing.T) {
+		p := policyFor(`user.session.vpn_active == "true" || user . session . ip_address == "192.0.2.10"`)
+		assert.True(t, p.referencesSessionAttribute([]string{"os_platform", "ip_address"}))
+		assert.True(t, p.referencesSessionAttribute([]string{"vpn_active"}))
+		assert.False(t, p.referencesSessionAttribute([]string{"os_platform"}))
+		assert.False(t, p.referencesField([]string{otherID}))
+	})
+
+	t.Run("session root without a selector counts as every session attribute", func(t *testing.T) {
+		p := policyFor(`user.session.vpn_active == "true" && "ip_address" in user.session`)
+		assert.True(t, p.referencesSessionAttribute([]string{"os_platform"}))
+		assert.False(t, p.referencesSessionAttribute(nil))
+	})
+}
+
 func TestEvaluateClientConfigOverrides(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.ConfigStore.SetReadOnlyFF(false)
@@ -73,17 +140,6 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 			_ = th.App.Srv().Store().AccessControlPolicy().Delete(th.Context, id)
 			th.App.invalidateSystemSettingPolicyCache()
 		})
-	}
-
-	mockSavePolicy := func(t *testing.T, mockACS *mocks.AccessControlServiceInterface, rctx request.CTX) {
-		t.Helper()
-		mockACS.On("SavePolicy", mock.Anything, mock.AnythingOfType("*model.AccessControlPolicy")).
-			Run(func(args mock.Arguments) {
-				p := args.Get(1).(*model.AccessControlPolicy)
-				_, err := th.App.Srv().Store().AccessControlPolicy().Save(rctx, p)
-				require.NoError(t, err)
-			}).
-			Return(func(_ request.CTX, p *model.AccessControlPolicy) *model.AccessControlPolicy { return p }, nil)
 	}
 
 	// recordEvaluations answers every AccessEvaluation with decide and returns
@@ -269,7 +325,6 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 	t.Run("allows several policies per ClientConfig key and rejects resource selectors", func(t *testing.T) {
 		mockACS := enableSystemSettingABAC(t)
 		adminCtx := sessionCtx(th.SystemAdminUser)
-		mockSavePolicy(t, mockACS, adminCtx)
 
 		first := &model.AccessControlPolicy{
 			Name:  "First Biometrics Policy",
@@ -281,6 +336,10 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 				Value:      "true",
 			}},
 		}
+
+		mockStoredSystemSettingPolicies(th, mockACS)
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).Return([]*model.User{}, int64(0), nil).Maybe()
+
 		savedFirst, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, first)
 		require.Nil(t, appErr)
 		cleanupPolicy(t, savedFirst.ID)
@@ -485,17 +544,8 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 	t.Run("saving adds new policies to the bottom and deleting removes them", func(t *testing.T) {
 		mockACS := enableSystemSettingABAC(t)
 		adminCtx := sessionCtx(th.SystemAdminUser)
-		mockSavePolicy(t, mockACS, adminCtx)
-		mockACS.On("GetPolicy", mock.Anything, mock.AnythingOfType("string")).
-			Return(func(rctx request.CTX, id string) *model.AccessControlPolicy {
-				p, _ := th.App.Srv().Store().AccessControlPolicy().Get(rctx, id)
-				return p
-			}, nil)
-		mockACS.On("DeletePolicy", mock.Anything, mock.AnythingOfType("string")).
-			Return(func(rctx request.CTX, id string) *model.AppError {
-				require.NoError(t, th.App.Srv().Store().AccessControlPolicy().Delete(rctx, id))
-				return nil
-			})
+		mockStoredSystemSettingPolicies(th, mockACS)
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).Return([]*model.User{}, int64(0), nil).Maybe()
 
 		create := func(name string) *model.AccessControlPolicy {
 			saved, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, &model.AccessControlPolicy{

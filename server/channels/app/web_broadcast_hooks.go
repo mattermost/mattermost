@@ -739,15 +739,35 @@ func getTypedArg[T any](args map[string]any, key string) (T, error) {
 
 type systemSettingPolicyBroadcastHook struct{}
 
-func useSystemSettingPolicyHook(message *model.WebSocketEvent) {
-	message.GetBroadcast().AddHook(broadcastSystemSetting, map[string]any{})
+// useSystemSettingPolicyHook has each connection evaluate its own overrides. A
+// non-nil targetRoles rejects connections whose role chain includes none of
+// them, since no policy that changed can apply to them.
+func useSystemSettingPolicyHook(message *model.WebSocketEvent, targetRoles []string) {
+	args := map[string]any{}
+	if targetRoles != nil {
+		args["target_roles"] = model.StringArray(targetRoles)
+	}
+	message.GetBroadcast().AddHook(broadcastSystemSetting, args)
 }
 
-func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, _ map[string]any) error {
+func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
 	session := webConn.GetSession()
 	if session == nil || session.UserId == "" {
 		msg.Reject()
 		return nil
+	}
+
+	if _, scoped := args["target_roles"]; scoped {
+		targetRoles, err := getTypedArg[model.StringArray](args, "target_roles")
+		if err != nil {
+			msg.Reject()
+			return errors.Wrap(err, "Invalid target_roles value passed to systemSettingPolicyBroadcastHook")
+		}
+		candidateRoles := systemSettingRoleChain(ResolveSystemRole(session.Roles), true)
+		if !slices.ContainsFunc(candidateRoles, func(role string) bool { return slices.Contains(targetRoles, role) }) {
+			msg.Reject()
+			return nil
+		}
 	}
 
 	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)

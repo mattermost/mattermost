@@ -1575,6 +1575,68 @@ func TestSystemSettingPolicyBroadcastHook_Process(t *testing.T) {
 		suite2.AssertExpectations(t)
 		suite3.AssertExpectations(t)
 	})
+
+	t.Run("target_roles rejects connections whose role chain no policy targets", func(t *testing.T) {
+		baseEvent := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+		useSystemSettingPolicyHook(baseEvent, []string{model.SystemAdminRoleId})
+		require.Len(t, baseEvent.GetBroadcast().BroadcastHookArgs, 1)
+		args := baseEvent.GetBroadcast().BroadcastHookArgs[0]
+
+		var clusterArgs map[string]any
+		buf, err := json.Marshal(args)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(buf, &clusterArgs))
+
+		connection := func(roles string, suite *platform_mocks.SuiteIFace) *platform.WebConn {
+			userID := model.NewId()
+			wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}, Suite: suite}
+			wc.SetSession(&model.Session{Id: model.NewId(), UserId: userID, Roles: roles})
+			return wc
+		}
+
+		for name, hookArgs := range map[string]map[string]any{"local": args, "cluster": clusterArgs} {
+			t.Run(name, func(t *testing.T) {
+				untargeted := &platform_mocks.SuiteIFace{}
+				msg := platform.MakeHookedWebSocketEvent(baseEvent)
+				require.NoError(t, hook.Process(msg, connection(model.SystemUserRoleId, untargeted), hookArgs))
+				assert.True(t, msg.Event().IsRejected())
+				untargeted.AssertNotCalled(t, "EvaluateClientConfigOverrides", mock.Anything)
+
+				targeted := &platform_mocks.SuiteIFace{}
+				targeted.On("EvaluateClientConfigOverrides", mock.Anything).Return(map[string]string{}, nil).Once()
+				msg = platform.MakeHookedWebSocketEvent(baseEvent)
+				require.NoError(t, hook.Process(msg, connection(model.SystemUserRoleId+" "+model.SystemAdminRoleId, targeted), hookArgs))
+				assert.False(t, msg.Event().IsRejected())
+				assert.Equal(t, map[string]string{}, msg.Get("overrides"))
+				targeted.AssertExpectations(t)
+			})
+		}
+
+		t.Run("system_user policies reach admins without a system_admin policy", func(t *testing.T) {
+			event := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+			useSystemSettingPolicyHook(event, []string{model.SystemUserRoleId})
+
+			suite := &platform_mocks.SuiteIFace{}
+			suite.On("EvaluateClientConfigOverrides", mock.Anything).Return(map[string]string{}, nil).Once()
+			msg := platform.MakeHookedWebSocketEvent(event)
+			require.NoError(t, hook.Process(msg, connection(model.SystemUserRoleId+" "+model.SystemAdminRoleId, suite), event.GetBroadcast().BroadcastHookArgs[0]))
+			assert.False(t, msg.Event().IsRejected())
+			suite.AssertExpectations(t)
+		})
+
+		t.Run("an invalid value rejects the event", func(t *testing.T) {
+			msg := platform.MakeHookedWebSocketEvent(baseEvent)
+			err := hook.Process(msg, connection(model.SystemAdminRoleId, &platform_mocks.SuiteIFace{}), map[string]any{"target_roles": 42})
+			require.Error(t, err)
+			assert.True(t, msg.Event().IsRejected())
+		})
+
+		t.Run("no target_roles evaluates every connection", func(t *testing.T) {
+			event := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+			useSystemSettingPolicyHook(event, nil)
+			assert.NotContains(t, event.GetBroadcast().BroadcastHookArgs[0], "target_roles")
+		})
+	})
 }
 
 func TestSystemSettingOverridesBySessionBroadcastHook_Process(t *testing.T) {
