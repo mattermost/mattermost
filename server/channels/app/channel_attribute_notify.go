@@ -348,9 +348,11 @@ func (a *App) sendChannelAttributeNotifyDMs(rctx request.CTX, batches map[string
 
 // escapeChannelAttributeMarkdownLinkText escapes backslashes and square
 // brackets so a channel display name, which any channel admin controls, cannot
-// terminate the link text it is inserted into and redirect the link.
+// terminate the link text it is inserted into and redirect the link. Line
+// breaks become spaces, since a blank line would end the link and let the rest
+// of the name render as the bot's own markdown.
 func escapeChannelAttributeMarkdownLinkText(displayName string) string {
-	return strings.NewReplacer(`\`, `\\`, `[`, `\[`, `]`, `\]`).Replace(displayName)
+	return strings.NewReplacer("\r\n", " ", "\r", " ", "\n", " ", `\`, `\\`, `[`, `\[`, `]`, `\]`).Replace(displayName)
 }
 
 // channelAttributeNotifyChannelList renders the bulleted channel list for a
