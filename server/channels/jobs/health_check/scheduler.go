@@ -72,9 +72,10 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, _ *model.Config, pendingJobs b
 // blocked by a dead run.
 func RunningJob(rctx request.CTX, jobServer *jobs.JobServer) (*model.Job, *model.AppError) {
 	running, err := jobServer.Store.Job().GetNewestJobByStatusAndType(model.JobStatusInProgress, model.JobTypeHealthCheck)
-	var nfErr *store.ErrNotFound
-	if err != nil && !errors.As(err, &nfErr) {
-		return nil, model.NewAppError("RunningJob", "app.job.get_newest_job_by_status_and_type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+			return nil, model.NewAppError("RunningJob", "app.job.get_newest_job_by_status_and_type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 	}
 	if running == nil {
 		return nil, nil
