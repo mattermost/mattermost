@@ -37,6 +37,10 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
     // state_since resets on every state change, so a firing finding first seen earlier fired before.
     const recurring = finding.state === 'firing' && finding.first_seen_at !== finding.state_since;
 
+    // A firing finding's severity is already on its badge or section header.
+    const showSeverity = finding.state !== 'firing';
+    const hasDetails = showSeverity || recurring || Boolean(finding.scope) || details.length > 0;
+
     return (
         <div
             id={id}
@@ -99,58 +103,64 @@ const FindingDetail = ({id, finding, hidden}: Props) => {
                     )}
                 </section>
             )}
-            <section className='HealthFinding__detailSection'>
-                <h4 className='HealthFinding__detailTitle'>
-                    <FormattedMessage
-                        id='admin.health_dashboard.detail.details'
-                        defaultMessage='Details'
-                    />
-                </h4>
-                <dl className='HealthFinding__details'>
-                    <dt>
+            {hasDetails && (
+                <section className='HealthFinding__detailSection'>
+                    <h4 className='HealthFinding__detailTitle'>
                         <FormattedMessage
-                            id='admin.health_dashboard.detail.severity'
-                            defaultMessage='Severity'
+                            id='admin.health_dashboard.detail.details'
+                            defaultMessage='Details'
                         />
-                    </dt>
-                    <dd><FormattedMessage {...severityMessages[finding.severity]}/></dd>
-                    {recurring && (
-                        <>
-                            <dt>
-                                <FormattedMessage
-                                    id='admin.health_dashboard.detail.recurring_since'
-                                    defaultMessage='Recurring since'
-                                />
-                            </dt>
-                            <dd>
-                                <Timestamp
-                                    value={finding.first_seen_at}
-                                    useRelative={false}
-                                    useDate={{year: 'numeric', month: 'long', day: 'numeric'}}
-                                    useTime={false}
-                                />
-                            </dd>
-                        </>
-                    )}
-                    {finding.scope && (
-                        <>
-                            <dt>
-                                <FormattedMessage
-                                    id='admin.health_dashboard.detail.node'
-                                    defaultMessage='Node'
-                                />
-                            </dt>
-                            <dd>{finding.scope}</dd>
-                        </>
-                    )}
-                    {details.map(([key, value]) => (
-                        <React.Fragment key={key}>
-                            <dt><code>{key}</code></dt>
-                            <dd>{value}</dd>
-                        </React.Fragment>
-                    ))}
-                </dl>
-            </section>
+                    </h4>
+                    <dl className='HealthFinding__details'>
+                        {showSeverity && (
+                            <>
+                                <dt>
+                                    <FormattedMessage
+                                        id='admin.health_dashboard.detail.severity'
+                                        defaultMessage='Severity'
+                                    />
+                                </dt>
+                                <dd><FormattedMessage {...severityMessages[finding.severity]}/></dd>
+                            </>
+                        )}
+                        {recurring && (
+                            <>
+                                <dt>
+                                    <FormattedMessage
+                                        id='admin.health_dashboard.detail.recurring_since'
+                                        defaultMessage='Recurring since'
+                                    />
+                                </dt>
+                                <dd>
+                                    <Timestamp
+                                        value={finding.first_seen_at}
+                                        useRelative={false}
+                                        useDate={{year: 'numeric', month: 'long', day: 'numeric'}}
+                                        useTime={false}
+                                    />
+                                </dd>
+                            </>
+                        )}
+                        {finding.scope && (
+                            <>
+                                <dt>
+                                    <FormattedMessage
+                                        id='admin.health_dashboard.detail.node'
+                                        defaultMessage='Node'
+                                    />
+                                </dt>
+                                <dd>{finding.scope}</dd>
+                            </>
+                        )}
+                        {details.map(([key, value]) => (
+                            <React.Fragment key={key}>
+                                <dt><code>{key}</code></dt>
+                                <dd>{value}</dd>
+                            </React.Fragment>
+                        ))}
+                    </dl>
+                </section>
+            )}
             {actionable && consolePath && (
                 <div className='HealthFinding__actions'>
                     <button

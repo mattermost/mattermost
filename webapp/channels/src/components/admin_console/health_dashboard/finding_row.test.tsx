@@ -82,8 +82,14 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         expect(screen.queryByTestId('healthFindingArea')).not.toBeInTheDocument();
     });
 
+    test('hideSeverity omits the badge of a firing finding, whose section names its severity', () => {
+        renderRow(makeFinding({severity: 'warning'}), {hideSeverity: true, expanded: true});
+
+        expect(screen.queryByTestId('healthFindingBadge')).not.toBeInTheDocument();
+        expect(screen.queryByText('Warning')).not.toBeInTheDocument();
+    });
+
     test.each([
-        ['firing' as const],
         ['unknown' as const],
         ['resolved' as const],
     ])('hideSeverity omits the badge of a %s finding but keeps the severity in the detail', (state) => {
@@ -151,15 +157,15 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         return Array.from(detail.querySelectorAll('dt')).map((term) => term.textContent);
     }
 
-    test('the expanded detail shows the remediation, severity, node and details without repeating the state or times', () => {
+    test('the expanded detail shows the remediation, node and details without repeating the severity, state or times', () => {
         renderRow(makeFinding({scope: 'node-3'}), {expanded: true});
 
         const detail = expandedDetail();
         expect(within(detail).getByRole('heading', {name: 'How to fix it'})).toBeInTheDocument();
         expect(within(detail).getByText('Set Push Notification Server to an https:// URL.')).toBeInTheDocument();
         expect(within(detail).getByRole('heading', {name: 'Details'})).toBeInTheDocument();
-        expect(detailTerms(detail)).toEqual(['Severity', 'Node', 'url']);
-        expect(within(detail).getByText('Critical')).toBeInTheDocument();
+        expect(detailTerms(detail)).toEqual(['Node', 'url']);
+        expect(within(detail).queryByText('Critical')).not.toBeInTheDocument();
         expect(within(detail).getByText('node-3')).toBeInTheDocument();
         expect(within(detail).getByText('http://push.example.com')).toBeInTheDocument();
         expect(within(detail).queryByText('Firing for 1m')).not.toBeInTheDocument();
@@ -171,7 +177,7 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
 
         const detail = expandedDetail();
         expect(within(detail).getByRole('heading', {name: 'Details'})).toBeInTheDocument();
-        expect(detailTerms(detail)).toEqual(['Severity', 'Recurring since']);
+        expect(detailTerms(detail)).toEqual(['Recurring since']);
         expect(within(detail).getByText('Recurring since').nextElementSibling).toHaveTextContent('November 4, 2026');
     });
 
@@ -179,25 +185,28 @@ describe('components/admin_console/health_dashboard/finding_row', () => {
         renderRow(makeFinding({details: {}, scope: 'node-3'}), {expanded: true});
 
         const detail = expandedDetail();
-        expect(detailTerms(detail)).toEqual(['Severity', 'Node']);
+        expect(detailTerms(detail)).toEqual(['Node']);
         expect(within(detail).getByText('Node').nextElementSibling).toHaveTextContent('node-3');
     });
 
     test.each([
         ['resolved' as const],
         ['unknown' as const],
-    ])('a %s finding first seen before its current state is not called recurring', (state) => {
+    ])('a %s finding shows its severity and, if first seen before its current state, is not called recurring', (state) => {
         renderRow(makeFinding({state, first_seen_at: now - (3 * 24 * 60 * 60000), state_since: now - 60000}), {expanded: true});
 
-        expect(detailTerms(expandedDetail())).toEqual(['Severity', 'url']);
+        const detail = expandedDetail();
+        expect(detailTerms(detail)).toEqual(['Severity', 'url']);
+        expect(within(detail).getByText('Severity').nextElementSibling).toHaveTextContent('Critical');
     });
 
-    test('the details section only lists the severity when the finding is not recurring, has no node and no details', () => {
+    test('the details section is hidden when a firing finding is not recurring, has no node and no details', () => {
         renderRow(makeFinding({details: {}}), {expanded: true});
 
         const detail = expandedDetail();
         expect(within(detail).getByRole('heading', {name: 'How to fix it'})).toBeInTheDocument();
-        expect(detailTerms(detail)).toEqual(['Severity']);
+        expect(within(detail).queryByRole('heading', {name: 'Details'})).not.toBeInTheDocument();
+        expect(detail.querySelector('dl')).not.toBeInTheDocument();
     });
 
     describe('resolve here', () => {
