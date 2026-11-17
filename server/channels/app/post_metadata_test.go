@@ -16,6 +16,7 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
@@ -3055,6 +3056,258 @@ func TestGetLinkMetadata(t *testing.T) {
 			assertCached(t, nilURL, nil, nil, nil)
 		})
 	})
+}
+
+func newLinkMetadataCountingServer(t *testing.T) (*httptest.Server, func(path string) int32) {
+	t.Helper()
+
+	var mu sync.Mutex
+	counts := map[string]int32{}
+
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		mu.Lock()
+		counts[r.URL.Path]++
+		mu.Unlock()
+
+		switch {
+		case strings.HasPrefix(r.URL.Path, "/image"):
+			w.Header().Set("Content-Type", "image/png")
+			img := image.NewGray(image.Rect(0, 0, 40, 30))
+			assert.NoError(t, png.Encode(w, img))
+		case strings.HasPrefix(r.URL.Path, "/opengraph"):
+			w.Header().Set("Content-Type", "text/html")
+			_, err := w.Write([]byte(`<html prefix="og:http://ogp.me/ns#"><head>` +
+				`<meta property="og:title" content="Cached Title" />` +
+				`<meta property="og:description" content="Cached Description" />` +
+				`</head><body></body></html>`))
+			assert.NoError(t, err)
+		default:
+			w.WriteHeader(http.StatusNotFound)
+		}
+	}))
+	t.Cleanup(server.Close)
+
+	return server, func(path string) int32 {
+		mu.Lock()
+		defer mu.Unlock()
+		return counts[path]
+	}
+}
+
+func TestGetLinkMetadataWithPreviewedPostUsesCache(t *testing.T) {
+	setup := func(t *testing.T) *TestHelper {
+		th := Setup(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1,::1"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+		})
+
+		require.NoError(t, platform.PurgeLinkCache())
+
+		return th
+	}
+
+	t.Run("getLinkMetadata does not refetch non-permalink URLs", func(t *testing.T) {
+		for _, tc := range []struct {
+			name             string
+			path             string
+			expectImage      bool
+			secondIsNewPost  bool
+			purgeMemoryCache bool
+		}{
+			{name: "image from memory cache", path: "/image.png", expectImage: true},
+			{name: "image from memory cache for new post", path: "/image.png", expectImage: true, secondIsNewPost: true},
+			{name: "image from database cache", path: "/image.png", expectImage: true, purgeMemoryCache: true},
+			{name: "opengraph from memory cache", path: "/opengraph"},
+			{name: "opengraph from memory cache for new post", path: "/opengraph", secondIsNewPost: true},
+			{name: "opengraph from database cache", path: "/opengraph", purgeMemoryCache: true},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				th := setup(t)
+				server, requestCount := newLinkMetadataCountingServer(t)
+
+				requestURL := server.URL + tc.path
+				timestamp := int64(1547510400000)
+				previewedPostID := model.NewId()
+
+				og, img, permalink, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, previewedPostID)
+				require.NoError(t, err)
+				require.Nil(t, permalink)
+				if tc.expectImage {
+					require.NotNil(t, img)
+					require.Nil(t, og)
+				} else {
+					require.NotNil(t, og)
+					require.Nil(t, img)
+				}
+				require.Equal(t, int32(1), requestCount(tc.path), "first read should fetch the URL")
+
+				if tc.purgeMemoryCache {
+					require.NoError(t, platform.PurgeLinkCache())
+					_, _, _, ok := getLinkMetadataFromCache(requestURL, model.FloorToNearestHour(timestamp))
+					require.False(t, ok, "data should not exist in in-memory cache")
+					_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, model.FloorToNearestHour(timestamp))
+					require.True(t, ok, "data should exist in database")
+				}
+
+				og2, img2, permalink2, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, tc.secondIsNewPost, previewedPostID)
+				require.NoError(t, err)
+				assert.Nil(t, permalink2)
+				assert.Equal(t, og, og2)
+				assert.Equal(t, img, img2)
+				assert.Equal(t, int32(1), requestCount(tc.path), "repeated read of a non-permalink URL should be served from cache, not refetched")
+			})
+		}
+	})
+
+	t.Run("post read path does not refetch images of a post with previewed_post set", func(t *testing.T) {
+		th := setup(t)
+		server, requestCount := newLinkMetadataCountingServer(t)
+
+		imageURL1 := server.URL + "/image1.png"
+		imageURL2 := server.URL + "/image2.png"
+		openGraphURL := server.URL + "/opengraph"
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			ChannelId: model.NewId(),
+			UserId:    model.NewId(),
+			CreateAt:  int64(1547510400000),
+			Message:   openGraphURL + " ![one](" + imageURL1 + ") ![two](" + imageURL2 + ")",
+		}
+		post.AddProp(model.PostPropsPreviewedPost, model.NewId())
+
+		for i, purgeBefore := range []bool{false, false, true, false} {
+			if purgeBefore {
+				require.NoError(t, platform.PurgeLinkCache())
+			}
+
+			prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+			require.NotNil(t, prepared.Metadata)
+			require.Len(t, prepared.Metadata.Images, 2, "read %d", i)
+			require.Contains(t, prepared.Metadata.Images, imageURL1)
+			require.Contains(t, prepared.Metadata.Images, imageURL2)
+			require.Len(t, prepared.Metadata.Embeds, 1, "read %d", i)
+			require.Equal(t, model.PostEmbedOpengraph, prepared.Metadata.Embeds[0].Type)
+		}
+
+		assert.Equal(t, int32(1), requestCount("/image1.png"), "image 1 should be fetched only once across repeated reads")
+		assert.Equal(t, int32(1), requestCount("/image2.png"), "image 2 should be fetched only once across repeated reads")
+		assert.Equal(t, int32(1), requestCount("/opengraph"), "opengraph page should be fetched only once across repeated reads")
+	})
+
+	t.Run("permalink URL is re-resolved instead of served from cache", func(t *testing.T) {
+		th := setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+		})
+
+		referencedPost := th.CreatePost(t, th.BasicChannel)
+		requestURL := th.App.GetSiteURL() + "/" + th.BasicTeam.Name + "/pl/" + referencedPost.Id
+		require.True(t, looksLikeAPermalink(requestURL, th.App.GetSiteURL()))
+
+		timestamp := model.FloorToNearestHour(int64(1547510400000))
+		stale := &model.Permalink{PreviewPost: &model.PreviewPost{PostID: "stale"}}
+		cacheLinkMetadata(th.Context, requestURL, timestamp, nil, nil, stale)
+
+		for _, isNewPost := range []bool{false, true} {
+			_, _, permalink, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, isNewPost, referencedPost.Id)
+			require.NoError(t, err)
+			require.NotNil(t, permalink)
+			require.NotNil(t, permalink.PreviewPost)
+			assert.Equal(t, referencedPost.Id, permalink.PreviewPost.PostID, "isNewPost=%v", isNewPost)
+
+			cacheLinkMetadata(th.Context, requestURL, timestamp, nil, nil, stale)
+		}
+	})
+}
+
+func TestGetLinkMetadataWithPreviewedPostAndPermalinkPreviewsDisabledUsesCache(t *testing.T) {
+	setup := func(t *testing.T, siteURL func(serverURL string) string) (*TestHelper, *httptest.Server, func(path string) int32) {
+		th := Setup(t)
+		server, requestCount := newLinkMetadataCountingServer(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1,::1"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.EnablePermalinkPreviews = false
+			*cfg.ServiceSettings.SiteURL = siteURL(server.URL)
+		})
+
+		require.NoError(t, platform.PurgeLinkCache())
+
+		return th, server, requestCount
+	}
+
+	for _, tc := range []struct {
+		name    string
+		siteURL func(serverURL string) string
+		path    func(postID string) string
+	}{
+		{
+			name:    "site permalink URL",
+			siteURL: func(serverURL string) string { return serverURL },
+			path:    func(postID string) string { return "/team/pl/" + postID },
+		},
+		{
+			name: "URL on another origin that has the site URL as a string prefix",
+			siteURL: func(serverURL string) string {
+				return serverURL[:len(serverURL)-1]
+			},
+			path: func(postID string) string { return "/pl/" + postID },
+		},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Run("getLinkMetadata", func(t *testing.T) {
+				th, server, requestCount := setup(t, tc.siteURL)
+
+				path := tc.path(model.NewId())
+				requestURL := server.URL + path
+				require.True(t, looksLikeAPermalink(requestURL, th.App.GetSiteURL()))
+
+				timestamp := int64(1547510400000)
+				previewedPostID := model.NewId()
+
+				for i, purgeBefore := range []bool{false, false, true, false} {
+					if purgeBefore {
+						require.NoError(t, platform.PurgeLinkCache())
+					}
+
+					_, _, permalink, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, previewedPostID)
+					require.NoError(t, err, "read %d", i)
+					assert.Nil(t, permalink, "read %d", i)
+				}
+
+				assert.Equal(t, int32(1), requestCount(path), "with permalink previews disabled, repeated reads should be served from cache, not refetched")
+			})
+
+			t.Run("post read path", func(t *testing.T) {
+				th, server, requestCount := setup(t, tc.siteURL)
+
+				path := tc.path(model.NewId())
+				requestURL := server.URL + path
+				require.True(t, looksLikeAPermalink(requestURL, th.App.GetSiteURL()))
+
+				post := &model.Post{
+					Id:        model.NewId(),
+					ChannelId: model.NewId(),
+					UserId:    model.NewId(),
+					CreateAt:  int64(1547510400000),
+					Message:   requestURL,
+				}
+				post.AddProp(model.PostPropsPreviewedPost, model.NewId())
+
+				for range 3 {
+					prepared := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+					require.NotNil(t, prepared.Metadata)
+				}
+
+				assert.Equal(t, int32(1), requestCount(path), "with permalink previews disabled, repeated reads should be served from cache, not refetched")
+			})
+		})
+	}
 }
 
 func TestResolveMetadataURL(t *testing.T) {

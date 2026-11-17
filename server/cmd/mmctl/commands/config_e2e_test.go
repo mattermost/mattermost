@@ -479,8 +479,8 @@ func newConfigRollbackCmd(t *testing.T, confirm, dryRun bool) *cobra.Command {
 
 // latestConfigID returns the id of the active saved configuration.
 func (s *MmctlE2ETestSuite) latestConfigID() string {
-	history, appErr := s.th.App.GetConfigHistory(0, 1)
-	s.Require().Nil(appErr)
+	history, err := s.th.App.GetConfigHistory(0, 1)
+	s.Require().NoError(err)
 	s.Require().Len(history, 1)
 	return history[0].Id
 }
