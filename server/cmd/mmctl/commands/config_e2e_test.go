@@ -113,6 +113,17 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
+	s.RunForSystemAdminAndLocal("Get a cloud restricted value that isn't a pointer", func(c client.Client) {
+		s.th.App.UpdateConfig(func(cfg *model.Config) { cfg.RateLimitSettings.VaryByHeader = "X-Forwarded-For" })
+
+		args := []string{"RateLimitSettings.VaryByHeader"}
+		err := configGetCmdF(c, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("X-Forwarded-For", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
 	s.RunForSystemAdminAndLocal("Expect error when using a nonexistent key", func(c client.Client) {
 		printer.Clean()
 

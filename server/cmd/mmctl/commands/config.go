@@ -395,7 +395,7 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return errors.New("invalid key")
 	}
 
-	if cloudRestricted(config, path) && reflect.ValueOf(val).IsNil() {
+	if cloudRestricted(config, path) && isNilValue(val) {
 		return fmt.Errorf("accessing this config path: %s is restricted in a cloud environment", args[0])
 	}
 
@@ -635,6 +635,20 @@ func cloudRestrictedR(t reflect.Type, path []string) bool {
 	}
 
 	return false
+}
+
+// isNilValue reports whether v is nil. Unlike reflect.Value.IsNil, it returns false rather than
+// panicking for a value that can't be nil, such as a string.
+func isNilValue(v any) bool {
+	rv := reflect.ValueOf(v)
+	switch rv.Kind() {
+	case reflect.Invalid:
+		return true
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return rv.IsNil()
+	default:
+		return false
+	}
 }
 
 func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {

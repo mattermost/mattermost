@@ -284,6 +284,45 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
+
+	s.Run("Get a cloud restricted value that isn't a pointer", func() {
+		printer.Clean()
+		args := []string{"RateLimitSettings.VaryByHeader"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+		outputConfig.RateLimitSettings.VaryByHeader = "X-Forwarded-For"
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("X-Forwarded-For", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get an empty cloud restricted value that isn't a pointer", func() {
+		printer.Clean()
+		args := []string{"ClientRequirements.AndroidLatestVersion"}
+		outputConfig := &model.Config{}
+		outputConfig.SetDefaults()
+
+		s.client.
+			EXPECT().
+			GetConfig(context.TODO()).
+			Return(outputConfig, &model.Response{}, nil).
+			Times(1)
+
+		err := configGetCmdF(s.client, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
