@@ -32,7 +32,7 @@ export function matchesFilter(incomingWebhook: IncomingWebhook, channel: Channel
     }
 
     if (incomingWebhook.channel_id) {
-        if (channel && channel.name.toLowerCase().indexOf(filter) !== -1) {
+        if (channel?.name && channel.name.toLowerCase().indexOf(filter) !== -1) {
             return true;
         }
     }

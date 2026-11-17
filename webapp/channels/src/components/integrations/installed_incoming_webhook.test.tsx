@@ -10,6 +10,7 @@ import type {IncomingWebhook} from '@mattermost/types/integrations';
 import InstalledIncomingWebhook, {matchesFilter} from 'components/integrations/installed_incoming_webhook';
 
 import {renderWithContext} from 'tests/react_testing_utils';
+import {getSiteURL} from 'utils/url';
 
 describe('components/integrations/InstalledIncomingWebhook', () => {
     const incomingWebhook: IncomingWebhook = {
@@ -190,7 +191,7 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         const channel = {name: 'town-square'} as Channel;
 
         // Full URL as copied from the page
-        expect(matchesFilter(incomingWebhook, channel, `http://localhost:8065/hooks/${incomingWebhook.id}`)).toEqual(true);
+        expect(matchesFilter(incomingWebhook, channel, `${getSiteURL()}/hooks/${incomingWebhook.id}`)).toEqual(true);
 
         // Just the hook ID
         expect(matchesFilter(incomingWebhook, channel, incomingWebhook.id)).toEqual(true);
@@ -198,6 +199,13 @@ describe('components/integrations/InstalledIncomingWebhook', () => {
         // Partial path
         expect(matchesFilter(incomingWebhook, channel, `/hooks/${incomingWebhook.id.substring(0, 6)}`)).toEqual(true);
 
-        expect(matchesFilter(incomingWebhook, channel, 'http://localhost:8065/hooks/doesnotexist')).toEqual(false);
+        expect(matchesFilter(incomingWebhook, channel, `${getSiteURL()}/hooks/doesnotexist`)).toEqual(false);
+    });
+
+    test('matchesFilter should not throw when the channel has no name', () => {
+        const channel = {} as Channel;
+
+        expect(() => matchesFilter(incomingWebhook, channel, 'something')).not.toThrow();
+        expect(matchesFilter(incomingWebhook, channel, 'something')).toEqual(false);
     });
 });
