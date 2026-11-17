@@ -180,6 +180,12 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		return nil, appErr
 	}
 
+	var systemSettingPolicyBefore *model.AccessControlPolicy
+	systemSettingPolicyBeforeKnown := true
+	if policy.Type == model.AccessControlPolicyTypeSystemSetting && a.systemSettingPoliciesEvaluated() {
+		systemSettingPolicyBefore, systemSettingPolicyBeforeKnown = a.systemSettingPolicyBeforeSave(rctx, acs, policy.ID)
+	}
+
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
 		return nil, appErr
@@ -197,7 +203,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		a.publishPermissionPolicyUpdate(rctx)
 	case model.AccessControlPolicyTypeSystemSetting:
 		a.invalidateSystemSettingPolicyCache()
-		a.publishSystemSettingPolicyUpdate(rctx)
+		a.pushSystemSettingPolicyChange(rctx, systemSettingPolicyBefore, systemSettingPolicyBeforeKnown, policy)
 	}
 
 	return policy, nil
@@ -753,7 +759,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		a.publishPermissionPolicyUpdate(rctx)
 	case policy.Type == model.AccessControlPolicyTypeSystemSetting:
 		a.invalidateSystemSettingPolicyCache()
-		a.publishSystemSettingPolicyUpdate(rctx)
+		a.pushSystemSettingPolicyChange(rctx, policy, true, nil)
 	}
 
 	return nil

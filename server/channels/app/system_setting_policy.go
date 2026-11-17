@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"slices"
 	"sync/atomic"
 	"unicode"
@@ -29,6 +30,14 @@ type cachedSystemSettingPolicy struct {
 	ID    string
 	Roles []string
 	Rules []cachedSystemSettingRule
+}
+
+var expressionSessionRootPattern = regexp.MustCompile(`\buser\s*\.\s*session\b`)
+
+// expressionReferencesSessionAttributes reports whether expr reads any
+// user.session.* attribute.
+func expressionReferencesSessionAttributes(expr string) bool {
+	return expressionSessionRootPattern.MatchString(expr)
 }
 
 type systemSettingPolicyCache struct {

@@ -164,6 +164,8 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 			}
 			return model.AccessDecision{Decision: false}
 		}, nil)
+		mockACS.On("QueryUsersForExpression", mock.Anything, `user.attributes.dept == "finance"`, mock.Anything).
+			Return([]*model.User{th.BasicUser}, int64(1), nil)
 
 		client2 := th.CreateClient()
 		_, _, err := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
@@ -226,8 +228,20 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 			}
 		}
 
+		expectNoSystemSettingEvent := func(ws *model.WebSocketClient) {
+			deadline := time.After(500 * time.Millisecond)
+			for {
+				select {
+				case ev := <-ws.EventChannel:
+					require.NotEqual(t, model.WebsocketEventSystemSettingPolicyUpdated, ev.EventType(), "unexpected system_setting_policy_updated: %v", ev.GetData())
+				case <-deadline:
+					return
+				}
+			}
+		}
+
 		assert.Equal(t, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"}, waitForSystemSettingEvent(wsUser1))
-		assert.Equal(t, map[string]any{}, waitForSystemSettingEvent(wsUser2))
+		expectNoSystemSettingEvent(wsUser2)
 
 		overrides1, resp, err := th.Client.GetClientConfigOverrides(context.Background())
 		require.NoError(t, err)

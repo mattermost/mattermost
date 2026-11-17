@@ -39,6 +39,26 @@ func TestExpressionReferencesResourceRoot(t *testing.T) {
 	}
 }
 
+func TestExpressionReferencesSessionAttributes(t *testing.T) {
+	cases := []struct {
+		name string
+		expr string
+		want bool
+	}{
+		{name: "session selector", expr: `user.session.vpn_active == "true"`, want: true},
+		{name: "session selector combined with attributes", expr: `user.id_abc.id_def == "x" && user.session.os_platform == "ios"`, want: true},
+		{name: "whitespace around dots", expr: `user . session . vpn_active == "true"`, want: true},
+		{name: "attributes only", expr: `user.attributes.dept == "finance"`, want: false},
+		{name: "attribute named like session", expr: `user.attributes.session == "x" || user.sessions == "y"`, want: false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, expressionReferencesSessionAttributes(tc.expr))
+		})
+	}
+}
+
 func TestEvaluateClientConfigOverrides(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.ConfigStore.SetReadOnlyFF(false)
@@ -189,13 +209,8 @@ func TestEvaluateClientConfigOverrides(t *testing.T) {
 			}},
 		}
 
-		mockACS.On("SavePolicy", mock.Anything, mock.AnythingOfType("*model.AccessControlPolicy")).
-			Run(func(args mock.Arguments) {
-				p := args.Get(1).(*model.AccessControlPolicy)
-				_, err := th.App.Srv().Store().AccessControlPolicy().Save(adminCtx, p)
-				require.NoError(t, err)
-			}).
-			Return(func(_ request.CTX, p *model.AccessControlPolicy) *model.AccessControlPolicy { return p }, nil)
+		mockStoredSystemSettingPolicies(th, mockACS)
+		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).Return([]*model.User{}, int64(0), nil).Maybe()
 
 		savedFirst, appErr := th.App.CreateOrUpdateAccessControlPolicy(adminCtx, first)
 		require.Nil(t, appErr)
