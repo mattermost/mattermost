@@ -1015,6 +1015,7 @@ func filterSVGImage(image *model.PostImage, imageURL string) *model.PostImage {
 
 func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
+	skipCache := previewedPostPropVal != "" && *a.Config().ServiceSettings.EnablePermalinkPreviews && looksLikeAPermalink(requestURL, a.GetSiteURL())
 
 	// If it's an embedded image, nothing to do.
 	if strings.HasPrefix(strings.ToLower(requestURL), "data:image/") {
@@ -1029,7 +1030,7 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 		permalink = nil
 	}
 
-	if ok && previewedPostPropVal == "" {
+	if ok && !skipCache {
 		og = model.TruncateOpenGraph(og)
 		image = filterSVGImage(image, requestURL)
 		return og, image, permalink, nil
@@ -1038,7 +1039,7 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 	// Check the database if this isn't a new post. If it is a new post and the data is cached, it should be in memory.
 	if !isNewPost {
 		og, image, ok = a.getLinkMetadataFromDatabase(requestURL, timestamp)
-		if ok && previewedPostPropVal == "" {
+		if ok && !skipCache {
 			og = model.TruncateOpenGraph(og)
 			image = filterSVGImage(image, requestURL)
 			cacheLinkMetadata(rctx, requestURL, timestamp, og, image, nil)
