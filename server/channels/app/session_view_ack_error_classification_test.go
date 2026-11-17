@@ -44,6 +44,40 @@ func TestViewStoreErrorClassification(t *testing.T) {
 	plain := errors.New("db down")
 	wrapped := model.NewAppError("Update", "app.custom.error", nil, "", http.StatusTeapot)
 
+	t.Run("CreateView", func(t *testing.T) {
+		for _, tc := range []storeErrCase{
+			{fmt.Errorf("wrap: %w", wrapped), "app.custom.error", http.StatusTeapot},
+			{plain, "app.view.create.app_error", http.StatusInternalServerError},
+		} {
+			viewMock.On("CountForChannel", mock.Anything, mock.Anything).Return(int64(0), nil).Once()
+			viewMock.On("Save", mock.Anything).Return(nil, tc.err).Once()
+			_, appErr := th.App.CreateView(th.Context, &model.View{ChannelId: model.NewId()}, "")
+			assertAppErrorFor(t, tc, appErr)
+		}
+	})
+
+	t.Run("GetViewsForChannel", func(t *testing.T) {
+		for _, tc := range []storeErrCase{
+			{invalid, "app.view.get_for_channel.invalid_input.app_error", http.StatusBadRequest},
+			{plain, "app.view.get_for_channel.app_error", http.StatusInternalServerError},
+		} {
+			viewMock.On("GetForChannel", mock.Anything, mock.Anything).Return(nil, tc.err).Once()
+			_, appErr := th.App.GetViewsForChannel(th.Context, model.NewId(), model.ViewQueryOpts{})
+			assertAppErrorFor(t, tc, appErr)
+		}
+	})
+
+	t.Run("DeleteView", func(t *testing.T) {
+		for _, tc := range []storeErrCase{
+			{notFound, "app.view.delete.not_found.app_error", http.StatusNotFound},
+			{plain, "app.view.delete.app_error", http.StatusInternalServerError},
+		} {
+			viewMock.On("Delete", mock.Anything, mock.Anything).Return(tc.err).Once()
+			appErr := th.App.DeleteView(th.Context, &model.View{Id: model.NewId()}, "")
+			assertAppErrorFor(t, tc, appErr)
+		}
+	})
+
 	t.Run("GetView", func(t *testing.T) {
 		for _, tc := range []storeErrCase{
 			{notFound, "app.view.get.not_found.app_error", http.StatusNotFound},
