@@ -363,6 +363,62 @@ class InfrastructureRetries(unittest.TestCase):
     TEMPLATES = ('cypress-template', 'playwright-template', 'playwright-rolling-upgrades-template')
     WAIT_SCRIPT = GITHUB / 'actions' / 'wait-for-server-image' / 'wait.sh'
 
+    def test_publication_is_retried_once_with_the_same_inputs(self):
+        """A failed publication is retried once, with the same inputs, and the retry decides the job."""
+        lane = lane_result_workflow()['jobs']['lane-result']
+        first, retry = step(lane, 'ci/publish-result'), step(lane, 'ci/publish-result-retry')
+        self.assertEqual(first['id'], 'publish')
+        self.assertTrue(first['continue-on-error'])
+        self.assertNotIn('continue-on-error', retry)
+        self.assertEqual(first['uses'], retry['uses'])
+        self.assertEqual(first['with'], retry['with'])
+        for name in ('ci/wait-for-github-api', 'ci/publish-result-retry'):
+            with self.subTest(step=name):
+                self.assertEqual(step(lane, name)['if'], "${{ !cancelled() && steps.publish.outcome == 'failure' }}")
+        names = [s.get('name') for s in lane['steps']]
+        order = ['ci/publish-result', 'ci/wait-for-github-api', 'ci/publish-result-retry', 'ci/publish-result-outputs', 'ci/e2e-triage']
+        self.assertEqual([n for n in names if n in order], order)
+
+    def test_downstream_steps_read_the_attempt_that_ran_last(self):
+        """Triage and the assertion read the outputs of whichever attempt ran last, under the id they always used."""
+        merged = step(lane_result_workflow()['jobs']['lane-result'], 'ci/publish-result-outputs')
+        self.assertEqual(merged['id'], 'result')
+        self.assertEqual(merged['if'], '${{ !cancelled() }}')
+        for key, output in (('STATE', 'state'), ('REPORTS_COMPLETE', 'reports-complete'), ('PUBLISHED', 'published')):
+            self.assertEqual(merged['env'][key], f'${{{{ steps.publish.outputs.{output} || steps.publish-retry.outputs.{output} }}}}')
+        with tempfile.TemporaryDirectory() as tmp:
+            output = pathlib.Path(tmp) / 'out'
+            output.touch()
+            subprocess.run(['bash', '-e', '-c', merged['run']], check=True, env={
+                'STATE': 'failure', 'REPORTS_COMPLETE': 'false', 'PUBLISHED': 'true', 'GITHUB_OUTPUT': str(output)})
+            self.assertEqual(output.read_text(), 'state=failure\nreports-complete=false\npublished=true\n')
+
+    def test_summary_refresh_is_skipped_only_when_publication_already_did_it(self):
+        """The refresh is skipped only for a green lane that published: its publication refreshed and triage did not run."""
+        lane = lane_result_workflow()['jobs']['lane-result']
+        self.assertEqual(step(lane, 'ci/refresh-lane-summary')['if'],
+                         "${{ !cancelled() && !(steps.result.outputs.state == 'success' && steps.result.outputs.published == 'true') }}")
+        self.assertIn("steps.result.outputs.state != 'success'", step(lane, 'ci/e2e-triage')['if'])
+
+    def run_api_wait(self, rate_limit, now=1_000_000):
+        """Runs ci/wait-for-github-api with a fake gh answering rate_limit (None: the call fails); returns its sleep."""
+        wait = step(lane_result_workflow()['jobs']['lane-result'], 'ci/wait-for-github-api')
+        gh = f'echo "{rate_limit}"' if rate_limit is not None else 'exit 1'
+        with tempfile.TemporaryDirectory() as tmp:
+            path = fake_bin(tmp, gh=gh, sleep='echo "slept $1"', date=f'[ "$1" = +%s ] && echo {now} || /bin/date "$@"')
+            result = subprocess.run(['bash', '-e', '-c', wait['run']], capture_output=True, text=True, env={
+                'PATH': path, 'MAX_WAIT_SECONDS': wait['env']['MAX_WAIT_SECONDS'], 'BACKOFF_SECONDS': wait['env']['BACKOFF_SECONDS']})
+        self.assertEqual(result.returncode, 0, result.stderr)
+        return int(re.search(r'slept (\d+)', result.stdout).group(1))
+
+    def test_api_wait_honours_the_quota_reset_within_its_budget(self):
+        """The wait lasts until the quota resets when that is within budget, else it is the short backoff."""
+        self.assertEqual(self.run_api_wait('0 1000300'), 305)
+        self.assertEqual(self.run_api_wait('0 1000010'), 60)
+        self.assertEqual(self.run_api_wait('0 1003000'), 60)
+        self.assertEqual(self.run_api_wait('4000 1000300'), 60)
+        self.assertEqual(self.run_api_wait(None), 60)
+
     def test_fips_lanes_wait_for_their_image_before_the_run_begins(self):
         """FIPS lanes wait for their server image, loaded from this workflow's own ref, before the run begins."""
         for name in self.TEMPLATES:
