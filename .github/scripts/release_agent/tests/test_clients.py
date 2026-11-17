@@ -113,6 +113,21 @@ class GitHubTest(unittest.TestCase):
         self.assertEqual(len(GitHub("t", http).search_issues("q")), 103)
         self.assertEqual([c[2]["page"] for c in http.calls], [1, 2])
 
+    def test_compare_commits_follows_every_page_past_250(self):
+        pages = [({}, {"total_commits": 260, "commits": [{"sha": f"{p}-{n}"} for n in range(size)]})
+                 for p, size in ((1, 100), (2, 100), (3, 60))]
+        http = RecordingHttp(pages)
+        commits = GitHub("t", http).compare_commits("o/r", "v12.3.0-rc1", "release-12.3")
+        self.assertEqual(len(commits), 260)
+        self.assertEqual(commits[0]["sha"], "1-0")
+        self.assertEqual([c[2] for c in http.calls], [{"per_page": 100, "page": n} for n in (1, 2, 3)])
+        self.assertEqual(http.calls[0][1], "/repos/o/r/compare/v12.3.0-rc1...release-12.3")
+
+    def test_compare_commits_raises_when_pages_run_out_early(self):
+        http = RecordingHttp([({}, {"total_commits": 150, "commits": [{}] * 100}), ({}, {"total_commits": 150, "commits": []})])
+        with self.assertRaises(TruncatedError):
+            GitHub("t", http).compare_commits("o/r", "a", "b")
+
     def test_is_on_branch(self):
         http = RecordingHttp([({}, {"status": "ahead"}), ({}, {"status": "diverged"})])
         github = GitHub("t", http)

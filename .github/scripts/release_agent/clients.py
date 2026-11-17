@@ -243,12 +243,19 @@ class GitHub:
             raise
 
     def compare_commits(self, repo: str, base: str, head: str) -> list[dict]:
-        """Commits on ``head`` that ``base`` doesn't have, oldest first (GitHub lists up to 250)."""
-        result = self.http.get(f"/repos/{repo}/compare/{urllib.parse.quote(base, safe='')}..."
-                               f"{urllib.parse.quote(head, safe='')}", per_page=250) or {}
-        if (result.get("total_commits") or 0) > len(result.get("commits") or []):
-            raise TruncatedError("GitHub", len(result.get("commits") or []))
-        return result.get("commits") or []
+        """Commits on ``head`` that ``base`` doesn't have, oldest first, across every page."""
+        path = f"/repos/{repo}/compare/{urllib.parse.quote(base, safe='')}...{urllib.parse.quote(head, safe='')}"
+        commits, page = [], 1
+        while True:
+            result = self.http.get(path, per_page=100, page=page) or {}
+            batch = result.get("commits") or []
+            commits += batch
+            total = result.get("total_commits") or 0
+            if len(commits) >= total:
+                return commits
+            if not batch:
+                raise TruncatedError("GitHub", len(commits))
+            page += 1
 
     def milestones(self, repo: str) -> list[dict]:
         items, page = [], 1
