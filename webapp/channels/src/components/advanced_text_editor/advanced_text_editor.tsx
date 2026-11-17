@@ -59,6 +59,7 @@ import Constants, {
     ModalIdentifiers,
     AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
+import {replaceTextboxValue} from 'utils/exec_commands';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
@@ -381,10 +382,12 @@ const AdvancedTextEditor = ({
             message: input.value ?? '',
         });
 
-        handleDraftChange({
-            ...draftRef.current,
-            message: res.message,
-        });
+        if (!replaceTextboxValue(input, res.message)) {
+            handleDraftChange({
+                ...draftRef.current,
+                message: res.message,
+            });
+        }
 
         setTimeout(() => {
             const textbox = textboxRef.current?.getInputBox();
