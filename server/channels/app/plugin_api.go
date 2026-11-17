@@ -1838,6 +1838,10 @@ func (api *PluginAPI) UpdateSharedChannelCursor(channelID, remoteID string, cusr
 	return api.app.UpdateSharedChannelCursor(channelID, remoteID, cusror)
 }
 
+func (api *PluginAPI) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	return api.app.GetSharedChannelCursor(api.id, channelID, remoteID)
+}
+
 func (api *PluginAPI) SyncSharedChannel(channelID string) error {
 	return api.app.SyncSharedChannel(channelID)
 }

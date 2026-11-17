@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/tools/mattermost-govet
 
-go 1.26.10
+go 1.27.3
 
 require (
 	github.com/pb33f/libopenapi v0.36.4

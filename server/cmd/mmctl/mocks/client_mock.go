@@ -2196,6 +2196,22 @@ func (mr *MockClientMockRecorder) PromoteGuestToUser(ctx, userID any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PromoteGuestToUser", reflect.TypeOf((*MockClient)(nil).PromoteGuestToUser), ctx, userID)
 }
 
+// QueryLogs mocks base method.
+func (m *MockClient) QueryLogs(ctx context.Context, page, perPage int, filter *model.LogFilter) (map[string][]json.RawMessage, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "QueryLogs", ctx, page, perPage, filter)
+	ret0, _ := ret[0].(map[string][]json.RawMessage)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// QueryLogs indicates an expected call of QueryLogs.
+func (mr *MockClientMockRecorder) QueryLogs(ctx, page, perPage, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryLogs", reflect.TypeOf((*MockClient)(nil).QueryLogs), ctx, page, perPage, filter)
+}
+
 // RegenOutgoingHookToken mocks base method.
 func (m *MockClient) RegenOutgoingHookToken(ctx context.Context, hookID string) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()

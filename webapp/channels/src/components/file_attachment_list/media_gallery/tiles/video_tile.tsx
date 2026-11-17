@@ -12,12 +12,12 @@ import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
 import TileUtilityButtons from './tile_utility_buttons';
 
+import {tileSizeVars} from '../tile_size';
+
 type Props = {
     fileInfo: FileInfo;
     index: number;
     total: number;
-    width: number;
-    height: number;
     enablePublicLink: boolean;
     onClick: (index: number) => void;
 };
@@ -154,7 +154,7 @@ function formatDuration(seconds: number): string {
     return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onClick}: Props) => {
+const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) => {
     const {formatMessage} = useIntl();
     const fileUrl = getFileUrl(fileInfo.id);
     const tileRef = useRef<HTMLDivElement>(null);
@@ -178,12 +178,6 @@ const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
         {current: index + 1, total, name: fileInfo.name || ''},
     );
 
-    const tileStyle: CSSProperties = {
-        width: `${width}px`,
-        height: `${height}px`,
-        flex: `0 0 ${width}px`,
-    };
-
     const mediaStyle: CSSProperties = {};
     if (fileInfo.width && fileInfo.height) {
         mediaStyle.maxWidth = `${fileInfo.width}px`;
@@ -202,7 +196,7 @@ const VideoTile = ({fileInfo, index, total, width, height, enablePublicLink, onC
             aria-label={label}
             data-testid='media-gallery-tile'
             data-file-name={fileInfo.name || ''}
-            style={tileStyle}
+            style={tileSizeVars(fileInfo)}
             onClick={handleActivate}
             onKeyDown={handleKeyDown}
         >

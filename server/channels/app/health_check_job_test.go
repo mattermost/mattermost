@@ -12,6 +12,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/health_check"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -212,6 +213,51 @@ func (j *missingJobs) GetNewestJobByStatusesAndType(statuses []string, jobType s
 		return nil, store.NewErrNotFound("Job", jobType)
 	}
 	return j.JobStore.GetNewestJobByStatusesAndType(statuses, jobType)
+}
+
+func TestStopHealthCheckWorkersCancelsRunningJob(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.HealthDashboard = true
+	})
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+	job, appErr := health_check.MakeScheduler(th.Server.Jobs, th.App.Srv().License).ScheduleJob(th.Context, th.App.Config(), false, nil)
+	require.Nil(t, appErr)
+	require.NotNil(t, job)
+
+	// The run blocks until its context is canceled, like a collect waiting on a slow node.
+	started := make(chan struct{})
+	ch := th.Server.Channels()
+	ch.startHealthCheckWorkersWithRun(func(rctx request.CTX) error {
+		close(started)
+		<-rctx.Context().Done()
+		return rctx.Context().Err()
+	})
+	t.Cleanup(ch.stopHealthCheckWorkers)
+
+	ch.healthCheckWorkers.Watcher.PollAndNotify()
+	select {
+	case <-started:
+	case <-time.After(30 * time.Second):
+		require.FailNow(t, "health check job did not start")
+	}
+
+	stopped := make(chan struct{})
+	go func() {
+		ch.stopHealthCheckWorkers()
+		close(stopped)
+	}()
+	select {
+	case <-stopped:
+	case <-time.After(10 * time.Second):
+		require.FailNow(t, "stopHealthCheckWorkers did not cancel the running job")
+	}
+	assert.Nil(t, ch.healthCheckWorkers)
+
+	stored, err := th.App.Srv().Store().Job().Get(th.Context, job.Id)
+	require.NoError(t, err)
+	assert.Equal(t, model.JobStatusError, stored.Status)
 }
 
 // Not parallel: it uses the process-wide latest-version cache that BuildHealthSnapshot reads.

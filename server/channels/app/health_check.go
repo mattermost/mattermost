@@ -50,10 +50,15 @@ func NewHealthCheckService(s store.Store, logger mlog.LoggerIFace) *HealthCheckS
 // can't run them: a node runs all of its framework workers or none, and dedicated job servers,
 // which usually run them, are not cluster members and could not collect from the other nodes.
 func (ch *Channels) startHealthCheckWorkers() {
+	ch.startHealthCheckWorkersWithRun(New(ServerConnector(ch)).RunHealthCheck)
+}
+
+// startHealthCheckWorkersWithRun starts the worker set with run as the job body, so tests
+// can stand in for RunHealthCheck.
+func (ch *Channels) startHealthCheckWorkersWithRun(run func(rctx request.CTX) error) {
 	ctx, cancel := context.WithCancel(context.Background())
-	a := New(ServerConnector(ch))
 	worker := health_check.MakeWorker(ch.srv.Jobs, func(rctx request.CTX) error {
-		return a.RunHealthCheck(rctx.WithContext(ctx))
+		return run(rctx.WithContext(ctx))
 	})
 
 	ch.cancelHealthCheck = cancel
@@ -73,15 +78,18 @@ func (ch *Channels) stopHealthCheckWorkers() {
 }
 
 // RunHealthCheck performs one evaluation cycle over every connected node and stores the
-// resulting findings. It is a no-op unless the HealthDashboard feature flag is on and the
-// license is at least Enterprise.
+// resulting findings. It is a no-op unless the HealthDashboard feature flag is on, and fails
+// without at least an Enterprise license, so a job run then isn't recorded as an evaluation.
 func (a *App) RunHealthCheck(rctx request.CTX) error {
 	return a.runHealthCheck(rctx, NewHealthCheckService(a.Srv().Store(), a.Log()))
 }
 
 func (a *App) runHealthCheck(rctx request.CTX, svc *HealthCheckService) error {
-	if !a.Config().FeatureFlags.HealthDashboard || !model.MinimumEnterpriseLicense(a.License()) {
+	if !a.Config().FeatureFlags.HealthDashboard {
 		return nil
+	}
+	if !model.MinimumEnterpriseLicense(a.License()) {
+		return errors.New("health check requires an Enterprise license")
 	}
 
 	snapshot, err := a.BuildHealthSnapshot(rctx)

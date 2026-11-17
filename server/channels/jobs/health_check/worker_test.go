@@ -54,6 +54,8 @@ func TestWorkers(t *testing.T) {
 	claimed := *pending
 	claimed.Status = model.JobStatusInProgress
 	mockStore.JobStore.On("UpdateStatusOptimistically", pending.Id, model.JobStatusPending, model.JobStatusInProgress).Return(&claimed, nil).Once()
+	// The watcher keeps offering the pending job; later claims find it already taken.
+	mockStore.JobStore.On("UpdateStatusOptimistically", pending.Id, model.JobStatusPending, model.JobStatusInProgress).Return((*model.Job)(nil), nil)
 	mockStore.JobStore.On("UpdateOptimistically", mock.Anything, model.JobStatusInProgress).Return(&claimed, nil)
 	var succeeded atomic.Bool
 	mockStore.JobStore.On("UpdateStatus", pending.Id, model.JobStatusSuccess).Return(&claimed, nil).

@@ -131,16 +131,13 @@ func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.Cha
 func (a *App) UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIndex int64, connectionId string) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
 	bookmarks, err := a.Srv().Store().ChannelBookmark().UpdateSortOrder(bookmarkId, channelId, newIndex)
 	if err != nil {
-		var iiErr *store.ErrInvalidInput
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &iiErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.invalid_input.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.missing_bookmark.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.missing_bookmark.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkSorted, "", channelId, "", nil, connectionId)

@@ -35,7 +35,7 @@ import LDAPTextSetting from './ldap_text_setting';
 import {ldapWizardAdminDefinition} from '../admin_definition_ldap_wizard';
 import {getConfigFromState, isSetByEnv, SchemaAdminSettings} from '../schema_admin_settings';
 import SchemaText from '../schema_text';
-import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess} from '../types';
+import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingButton, AdminDefinitionSettingFileUpload, AdminDefinitionSubSectionSchema, ConsoleAccess, SearchableStrings} from '../types';
 import './ldap_wizard.scss';
 
 const SECTION_OBSERVER_OPTIONS: IntersectionObserverInit = {
@@ -359,7 +359,7 @@ const LDAPWizard = (props: Props) => {
         if (typeof name === 'string') {
             return (
                 <AdminHeader>
-                    {name}
+                    <span>{name}</span>
                 </AdminHeader>
             );
         }
@@ -759,5 +759,26 @@ const groupAttributeTestNames = new Set(['GroupDisplayNameAttribute', 'GroupIdAt
 const isFilterTestName = (testName: string) => filterTestNames.has(testName);
 const isAttributeTestName = (testName: string) => attributeTestNames.has(testName);
 const isGroupAttributeTestName = (testName: string) => groupAttributeTestNames.has(testName);
+
+const isSearchable = (text?: string | JSX.Element | MessageDescriptor): text is string | MessageDescriptor => {
+    return Boolean(text) && (typeof text === 'string' || isMessageDescriptor(text));
+};
+
+const getSettingsSearchableStrings = (settings: AdminDefinitionSetting[]): SearchableStrings => {
+    return settings.flatMap((setting) => {
+        const strings: SearchableStrings = [setting.label, setting.help_text].filter(isSearchable);
+        if (setting.type === Constants.SettingsTypes.TYPE_EXPANDABLE_SETTING) {
+            strings.push(...getSettingsSearchableStrings(setting.settings));
+        }
+        return strings;
+    });
+};
+
+const sections: LDAPAdminDefinitionConfigSchemaSection[] = ldapWizardAdminDefinition.sections ?? [];
+
+export const searchableStrings: SearchableStrings = sections.flatMap((section) => [
+    ...[section.title, section.subtitle, section.sectionTitle].filter(isSearchable),
+    ...getSettingsSearchableStrings(section.settings),
+]);
 
 export default LDAPWizard;

@@ -91,6 +91,11 @@ func (srv *JobServer) _createJob(rctx request.CTX, jobType string, jobData map[s
 		return nil, err
 	}
 
+	// A type with only a scheduler is valid: health_check is run by a worker set of
+	// its own on app servers, not by the framework, because a run collects
+	// diagnostics from the other nodes and job servers never join the cluster.
+	// If job servers join the cluster or go away, health_check can register a
+	// framework worker and this can require one again.
 	if srv.workers.Get(job.Type) == nil && srv.schedulers.Get(job.Type) == nil {
 		return nil, model.NewAppError("Job.IsValid", "model.job.is_valid.type.app_error", nil, "id="+job.Id, http.StatusBadRequest)
 	}

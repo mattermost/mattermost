@@ -10,8 +10,10 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"maps"
 	"net/http"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 
@@ -366,6 +368,16 @@ func (a *App) bulkImport(rctx request.CTX, jsonlReader io.Reader, attachmentsRea
 			// passes below, which are the first thing that writes.
 			if deactivateMissingUsers && !importedUsers.IsValid() {
 				return lineNumber, model.NewAppError("BulkImport", "app.import.bulk_import.imported_users_choice_required.error", nil, "", http.StatusBadRequest)
+			}
+
+			if attachmentsReader != nil {
+				newUsersInactive := deactivateMissingUsers && importedUsers == model.ImportedUsersInactive
+				if appErr := a.checkTeamMemberLimits(rctx, attachmentsReader, sourceTeamName, destinationTeam, deactivateMissingUsers, newUsersInactive, skipPreflight); appErr != nil {
+					return lineNumber, appErr
+				}
+			} else if maxUsersPerTeam := *a.Config().TeamSettings.MaxUsersPerTeam; !dryRun && maxUsersPerTeam > 0 {
+				rctx.Logger().Warn("PREFLIGHT: TeamSettings.MaxUsersPerTeam is not checked before importing a JSONL file without its zip archive, so teams can end up past the limit",
+					mlog.Int("max_users_per_team", maxUsersPerTeam))
 			}
 
 			if deactivateMissingUsers && attachmentsReader != nil {
@@ -739,6 +751,227 @@ func (a *App) checkSSOProviderConfig(rctx request.CTX, zipReader *zip.Reader, sk
 		}
 	}
 	return nil
+}
+
+// checkTeamMemberLimits scans the export and fails when importing it would take
+// a team past TeamSettings.MaxUsersPerTeam. importUserTeams does not enforce the
+// limit, so that an import is never aborted partway through by it; this check
+// is what tells the admin up front instead.
+//
+// sourceTeam and destinationTeam mirror the --destination-team-name remap applied
+// by the main pass. scoped reports whether this is a scoped import, which changes
+// how user lines are matched to existing accounts (see resolveImportedUsers).
+// newUsersInactive reports whether accounts created by the import start
+// deactivated, in which case they don't count towards the limit.
+// skipPreflight=true logs a warning instead of failing.
+func (a *App) checkTeamMemberLimits(rctx request.CTX, zipReader *zip.Reader, sourceTeam, destinationTeam string, scoped, newUsersInactive, skipPreflight bool) *model.AppError {
+	maxUsersPerTeam := *a.Config().TeamSettings.MaxUsersPerTeam
+	if maxUsersPerTeam <= 0 {
+		return nil
+	}
+
+	rc, err := openRootJsonl(zipReader)
+	if err != nil {
+		if skipPreflight {
+			rctx.Logger().Warn("PREFLIGHT (skipped): unable to read the import file to check TeamSettings.MaxUsersPerTeam — proceeding anyway as --skip-preflight was set", mlog.Err(err))
+			return nil
+		}
+		return model.NewAppError("BulkImport", "app.import.preflight.team_member_limit_read.error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	defer rc.Close()
+
+	scanner := bufio.NewScanner(rc)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, maxScanTokenSize)
+
+	// For each team, the users joining it, mapped to whether their line
+	// explicitly marks them active (which reactivates an existing deactivated account).
+	usersByTeam := map[string]map[importedTeamUser]bool{}
+	allUsers := map[importedTeamUser]struct{}{}
+	lineNumber := 0
+	for scanner.Scan() {
+		lineNumber++
+		if lineNumber == 1 {
+			continue
+		}
+		var line imports.LineImportData
+		if err := json.Unmarshal(scanner.Bytes(), &line); err != nil {
+			continue
+		}
+		if destinationTeam != "" {
+			if sourceTeam == "" && line.Type == "team" && line.Team != nil && line.Team.Name != nil {
+				sourceTeam = *line.Team.Name
+			}
+			if sourceTeam != "" {
+				rewriteTeamName(&line, sourceTeam, destinationTeam)
+			}
+		}
+		if line.Type != "user" || line.User == nil || line.User.Username == nil || line.User.Teams == nil {
+			continue
+		}
+		if line.User.DeleteAt != nil && *line.User.DeleteAt > 0 {
+			continue
+		}
+		user := importedTeamUser{username: *line.User.Username}
+		if line.User.AuthService != nil && line.User.AuthData != nil && *line.User.AuthData != "" {
+			user.authService = *line.User.AuthService
+			user.authData = *line.User.AuthData
+		}
+		allUsers[user] = struct{}{}
+		explicitlyActive := line.User.DeleteAt != nil
+		for _, team := range *line.User.Teams {
+			if team.Name == nil {
+				continue
+			}
+			teamName := strings.ToLower(*team.Name)
+			if usersByTeam[teamName] == nil {
+				usersByTeam[teamName] = map[importedTeamUser]bool{}
+			}
+			usersByTeam[teamName][user] = explicitlyActive
+		}
+	}
+
+	accounts, appErr := a.resolveImportedUsers(slices.Collect(maps.Keys(allUsers)), scoped)
+	if appErr != nil {
+		return appErr
+	}
+
+	for _, teamName := range slices.Sorted(maps.Keys(usersByTeam)) {
+		existing, gained, appErr := a.countTeamMembersAfterImport(teamName, usersByTeam[teamName], accounts, newUsersInactive)
+		if appErr != nil {
+			return appErr
+		}
+		total := existing + gained
+		if gained == 0 || total <= maxUsersPerTeam {
+			continue
+		}
+		if skipPreflight {
+			rctx.Logger().Warn("PREFLIGHT (skipped): import takes a team past TeamSettings.MaxUsersPerTeam — proceeding anyway as --skip-preflight was set",
+				mlog.String("team", teamName),
+				mlog.Int("max_users_per_team", maxUsersPerTeam),
+				mlog.Int("member_count", total))
+			continue
+		}
+		return model.NewAppError("BulkImport", "app.import.preflight.team_member_limit_exceeded.error",
+			map[string]any{"Team": teamName, "Adding": gained, "Total": total, "Limit": maxUsersPerTeam}, "", http.StatusBadRequest)
+	}
+	return nil
+}
+
+func openRootJsonl(zipReader *zip.Reader) (io.ReadCloser, error) {
+	for _, f := range zipReader.File {
+		if imports.IsRootJsonlFile(f.Name) {
+			return f.Open()
+		}
+	}
+	return nil, errors.New("no JSONL file at the root of the archive")
+}
+
+// importedTeamUser identifies a user line the way importUser looks it up:
+// authData is set only when the line carries an SSO identity.
+type importedTeamUser struct {
+	username    string
+	authService string
+	authData    string
+}
+
+// importedAccount is the destination account a user line is imported into.
+type importedAccount struct {
+	// user is nil when the import creates a new account.
+	user *model.User
+	// skipped is set when the import cannot create the account, as a scoped
+	// import doesn't link an SSO user to an existing account by username.
+	skipped bool
+}
+
+// resolveImportedUsers matches user lines to destination accounts with the same
+// lookups as importUser: SSO users by auth_data, falling back to username only in
+// a full import, and everyone else by username. Users missing from the result
+// get a new account.
+func (a *App) resolveImportedUsers(users []importedTeamUser, scoped bool) (map[importedTeamUser]importedAccount, *model.AppError) {
+	accounts := make(map[importedTeamUser]importedAccount, len(users))
+	byUsername := map[string][]importedTeamUser{}
+	for _, u := range users {
+		if u.authData != "" {
+			account, err := a.Srv().Store().User().GetByAuth(&u.authData, u.authService)
+			if err == nil {
+				accounts[u] = importedAccount{user: account}
+				continue
+			}
+			if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+				return nil, model.NewAppError("checkTeamMemberLimits", "app.user.get_by_auth.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			}
+		}
+		byUsername[u.username] = append(byUsername[u.username], u)
+	}
+
+	for chunk := range slices.Chunk(slices.Collect(maps.Keys(byUsername)), 1000) {
+		profiles, err := a.Srv().Store().User().GetProfilesByUsernames(chunk, nil)
+		if err != nil {
+			return nil, model.NewAppError("checkTeamMemberLimits", "app.user.get_profiles.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		for _, profile := range profiles {
+			for _, u := range byUsername[profile.Username] {
+				if scoped && u.authData != "" {
+					accounts[u] = importedAccount{skipped: true}
+				} else {
+					accounts[u] = importedAccount{user: profile}
+				}
+			}
+		}
+	}
+	return accounts, nil
+}
+
+// countTeamMembersAfterImport returns the team's current active member count and
+// how many active members importing the given users would add to it. Users that
+// are already active members, or whose accounts exist but stay deactivated, add none.
+func (a *App) countTeamMembersAfterImport(teamName string, users map[importedTeamUser]bool, accounts map[importedTeamUser]importedAccount, newUsersInactive bool) (existing, gained int, appErr *model.AppError) {
+	team, err := a.Srv().Store().Team().GetByName(teamName)
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+			return 0, 0, model.NewAppError("checkTeamMemberLimits", "app.team.get_by_name.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	} else {
+		count, err := a.Srv().Store().Team().GetActiveMemberCount(team.Id, nil)
+		if err != nil {
+			return 0, 0, model.NewAppError("checkTeamMemberLimits", "app.team.get_active_member_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		existing = int(count)
+	}
+
+	// Maps each existing account that will be active after the import to
+	// whether it is active now, i.e. possibly already counted in existing.
+	currentlyActive := map[string]bool{}
+	for u, explicitlyActive := range users {
+		account := accounts[u]
+		switch {
+		case account.skipped:
+		case account.user == nil:
+			if !newUsersInactive {
+				gained++
+			}
+		case account.user.DeleteAt == 0 || explicitlyActive:
+			currentlyActive[account.user.Id] = account.user.DeleteAt == 0
+		}
+	}
+	gained += len(currentlyActive)
+	if team == nil {
+		return existing, gained, nil
+	}
+
+	for chunk := range slices.Chunk(slices.Collect(maps.Keys(currentlyActive)), 1000) {
+		members, err := a.Srv().Store().Team().GetMembersByIds(team.Id, chunk, nil)
+		if err != nil {
+			return 0, 0, model.NewAppError("checkTeamMemberLimits", "app.team.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		for _, member := range members {
+			if currentlyActive[member.UserId] {
+				gained--
+			}
+		}
+	}
+	return existing, gained, nil
 }
 
 // preCreateSSOUsers does a lightweight first pass over the JSONL to create SSO

@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.26.10
+go 1.27.3
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.4
@@ -8,6 +8,7 @@ require (
 	github.com/Azure/azure-sdk-for-go/sdk/azidentity v1.15.0
 	github.com/Azure/azure-sdk-for-go/sdk/storage/azblob v1.8.2
 	github.com/Masterminds/semver/v3 v3.5.0
+	github.com/ProtonMail/go-crypto v1.5.2
 	github.com/avct/uasurfer v0.0.0-20250915105040-a942f6fb6edc
 	github.com/aws/aws-sdk-go-v2 v1.47.5
 	github.com/aws/aws-sdk-go-v2/config v1.33.13
@@ -27,6 +28,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/golang-migrate/migrate/v4 v4.20.1
 	github.com/golang/freetype v0.0.0-20170609003504-e2365dfdc4a0
+	github.com/google/renameio/v2 v2.0.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/handlers v1.5.2
 	github.com/gorilla/mux v1.8.1
@@ -35,6 +37,7 @@ require (
 	github.com/h2non/go-is-svg v0.0.0-20160927212452-35e8c4b0612c
 	github.com/hako/durafmt v0.0.0-20210608085754-5c1018a4e16b
 	github.com/hashicorp/go-multierror v1.1.1
+	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/hashicorp/memberlist v0.7.0
 	github.com/icrowley/fake v0.0.0-20240710202011-f797eb4a99c0
 	github.com/isacikgoz/prompt v0.1.0
@@ -89,16 +92,9 @@ require (
 )
 
 require (
-	github.com/Azure/azure-sdk-for-go/sdk/storage/internal v0.1.0 // indirect
-	github.com/apache/arrow-go/v18 v18.8.0 // indirect
-	github.com/google/flatbuffers v25.12.19+incompatible // indirect
-	github.com/pandatix/go-abnf v0.5.5 // indirect
-	go.opentelemetry.io/otel/log v1.47.0 // indirect
-)
-
-require (
 	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/Azure/azure-sdk-for-go/sdk/internal v1.13.0 // indirect
+	github.com/Azure/azure-sdk-for-go/sdk/storage/internal v0.1.0 // indirect
 	github.com/AzureAD/microsoft-authentication-library-for-go v1.10.1 // indirect
 	github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 // indirect
 	github.com/PuerkitoBio/goquery v1.13.0 // indirect
@@ -106,6 +102,7 @@ require (
 	github.com/advancedlogic/GoOse v0.0.0-20231203033844-ae6b36caf275 // indirect
 	github.com/andybalholm/brotli v1.2.7 // indirect
 	github.com/andybalholm/cascadia v1.3.5 // indirect
+	github.com/apache/arrow-go/v18 v18.8.0 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
 	github.com/aws/aws-sdk-go-v2/internal/configsources v1.5.8 // indirect
 	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.8.8 // indirect
@@ -127,6 +124,7 @@ require (
 	github.com/bodgit/windows v1.0.1 // indirect
 	github.com/clipperhouse/displaywidth v0.11.0 // indirect
 	github.com/clipperhouse/uax29/v2 v2.7.0 // indirect
+	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/corpix/uarand v0.2.0 // indirect
 	github.com/cpuguy83/go-md2man/v2 v2.0.7 // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
@@ -147,6 +145,7 @@ require (
 	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/gomodule/redigo v2.0.0+incompatible // indirect
 	github.com/google/btree v1.1.3 // indirect
+	github.com/google/flatbuffers v25.12.19+incompatible // indirect
 	github.com/google/jsonschema-go v0.4.3 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
@@ -157,7 +156,6 @@ require (
 	github.com/hashicorp/go-plugin v1.8.0 // indirect
 	github.com/hashicorp/go-sockaddr v1.0.7 // indirect
 	github.com/hashicorp/golang-lru v1.0.2 // indirect
-	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
 	github.com/isacikgoz/fuzzy v0.2.0 // indirect
@@ -188,6 +186,7 @@ require (
 	github.com/olekukonko/ll v0.1.9 // indirect
 	github.com/olekukonko/tablewriter v1.1.5 // indirect
 	github.com/otiai10/gosseract/v2 v2.4.1 // indirect
+	github.com/pandatix/go-abnf v0.5.5 // indirect
 	github.com/pborman/uuid v1.2.1 // indirect
 	github.com/pelletier/go-toml v1.9.5 // indirect
 	github.com/pelletier/go-toml/v2 v2.4.3 // indirect
@@ -219,6 +218,7 @@ require (
 	github.com/zeebo/xxh3 v1.1.0 // indirect
 	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
 	go.opentelemetry.io/otel v1.47.0 // indirect
+	go.opentelemetry.io/otel/log v1.47.0 // indirect
 	go.opentelemetry.io/otel/metric v1.47.0 // indirect
 	go.opentelemetry.io/otel/trace v1.47.0 // indirect
 	go.uber.org/atomic v1.12.0 // indirect

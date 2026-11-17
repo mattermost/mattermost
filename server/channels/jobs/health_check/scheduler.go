@@ -16,10 +16,14 @@ import (
 
 const schedFreq = time.Hour
 
-// StaleInProgressAfter is how long an in-progress job may go without activity. A run takes
-// minutes at most, so an older in-progress job belongs to a node that died mid-run. It is closed
-// as failed so it neither blocks new runs nor shows as running for ever.
-const StaleInProgressAfter = time.Hour
+// StaleInProgressAfter is how long an in-progress job may go without activity. A run can't
+// hang: collecting diagnostics is capped by healthCollectTimeout (3 minutes, in the
+// app package), and every later step is a database query bounded by SqlSettings.QueryTimeout, or
+// in-memory work. A run therefore ends within a few minutes, and an in-progress job older than this
+// belongs to a node that died mid-run. It is closed as failed so it neither blocks new runs nor
+// shows as running for ever. Keep this well above healthCollectTimeout if that is raised: closing a
+// run that is still going would let a second run start alongside it.
+const StaleInProgressAfter = 15 * time.Minute
 
 func isEnabled(cfg *model.Config) bool {
 	return cfg.FeatureFlags.HealthDashboard
@@ -39,10 +43,9 @@ func MakeScheduler(jobServer *jobs.JobServer, licenseFunc func() *model.License)
 	}
 }
 
-// ScheduleJob skips without an Enterprise license: the run would be a no-op, yet its job would
-// succeed and report the server as evaluated. The license is checked here rather than in
-// Enabled, which the framework only re-reads on config changes, so a license added later still
-// gets the next hourly run.
+// ScheduleJob skips without an Enterprise license, as the run would only fail. The license is
+// checked here rather than in Enabled, which the framework only re-reads on config changes, so
+// a license added later still gets the next hourly run.
 //
 // It also keeps runs from overlapping, which the framework doesn't: it passes pendingJobs but
 // PeriodicScheduler ignores it and creates a job every period. A job pending or in progress

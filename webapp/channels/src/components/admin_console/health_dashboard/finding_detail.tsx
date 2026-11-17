@@ -17,6 +17,7 @@ import type {HealthFinding} from '@mattermost/types/health';
 import ExternalLink from 'components/external_link';
 
 import RelativeTime from './relative_time';
+import {severityMessages} from './severity';
 import Trend from './trend';
 
 type Props = {
@@ -105,6 +106,13 @@ const FindingDetail = ({id, finding, now, hidden}: Props) => {
                     />
                 </h4>
                 <dl className='HealthFinding__details'>
+                    <dt>
+                        <FormattedMessage
+                            id='admin.health_dashboard.detail.severity'
+                            defaultMessage='Severity'
+                        />
+                    </dt>
+                    <dd><FormattedMessage {...severityMessages[finding.severity]}/></dd>
                     <dt>
                         <FormattedMessage
                             id='admin.health_dashboard.detail.state'
