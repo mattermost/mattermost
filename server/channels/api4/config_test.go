@@ -1551,8 +1551,8 @@ func TestGetConfigHistory(t *testing.T) {
 func TestGetHistoricalConfig(t *testing.T) {
 	th := setupConfigHistory(t)
 
-	history, appErr := th.App.GetConfigHistory(0, 2)
-	require.Nil(t, appErr)
+	history, err := th.App.GetConfigHistory(0, 2)
+	require.NoError(t, err)
 	require.Len(t, history, 2)
 	oldConfigID := history[1].Id
 
@@ -1602,8 +1602,8 @@ func TestGetHistoricalConfig(t *testing.T) {
 func TestRestoreHistoricalConfig(t *testing.T) {
 	th := setupConfigHistory(t)
 
-	history, appErr := th.App.GetConfigHistory(0, 2)
-	require.Nil(t, appErr)
+	history, err := th.App.GetConfigHistory(0, 2)
+	require.NoError(t, err)
 	require.Len(t, history, 2)
 	oldConfigID := history[1].Id
 
@@ -1656,8 +1656,8 @@ func TestRestoreHistoricalConfig(t *testing.T) {
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 		saveNewConfig()
-		latest, appErr := th.App.GetConfigHistory(0, 1)
-		require.Nil(t, appErr)
+		latest, err := th.App.GetConfigHistory(0, 1)
+		require.NoError(t, err)
 		require.Len(t, latest, 1)
 
 		changes, _, err := client.RestoreHistoricalConfig(context.Background(), oldConfigID, true)
@@ -1667,8 +1667,8 @@ func TestRestoreHistoricalConfig(t *testing.T) {
 		assert.Equal(t, "New Site", *th.App.Config().TeamSettings.SiteName)
 		assert.Equal(t, "new-password", *th.App.Config().EmailSettings.SMTPPassword)
 
-		dryRunLatest, appErr := th.App.GetConfigHistory(0, 1)
-		require.Nil(t, appErr)
+		dryRunLatest, err := th.App.GetConfigHistory(0, 1)
+		require.NoError(t, err)
 		require.Len(t, dryRunLatest, 1)
 		assert.Equal(t, latest[0].Id, dryRunLatest[0].Id, "a dry run should save nothing")
 	}, "lists the changes without saving them in a dry run")
@@ -1702,12 +1702,12 @@ func TestRestoreHistoricalConfig(t *testing.T) {
 	t.Run("keeps the settings that can't be changed through the API, except in local mode", func(t *testing.T) {
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = model.ImportSettingsDefaultDirectory })
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "./old-import" })
-		latest, appErr := th.App.GetConfigHistory(0, 1)
-		require.Nil(t, appErr)
+		latest, err := th.App.GetConfigHistory(0, 1)
+		require.NoError(t, err)
 		require.Len(t, latest, 1)
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ImportSettings.Directory = "./new-import" })
 
-		_, _, err := th.SystemAdminClient.RestoreHistoricalConfig(context.Background(), latest[0].Id, false)
+		_, _, err = th.SystemAdminClient.RestoreHistoricalConfig(context.Background(), latest[0].Id, false)
 		require.NoError(t, err)
 		assert.Equal(t, "./new-import", *th.App.Config().ImportSettings.Directory)
 

@@ -456,9 +456,9 @@ func getConfigHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	// The oldest entry on the page is compared with the one saved before it, so fetch one more.
-	history, appErr := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
-	if appErr != nil {
-		c.Err = appErr
+	history, err := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 
@@ -522,16 +522,16 @@ func getHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterToAuditRec(auditRec, "config_id", configID)
 
-	cfg, appErr := c.App.GetHistoricalConfig(configID)
-	if appErr != nil {
-		c.Err = appErr
+	cfg, err := c.App.GetHistoricalConfig(configID)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 
 	if !c.AppContext.Session().IsUnrestricted() {
 		c.App.SanitizedConfig(cfg)
 	}
-	cfg, appErr = newReadableConfigFilter(c)(cfg)
+	cfg, appErr := newReadableConfigFilter(c)(cfg)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -575,13 +575,14 @@ func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request)
 	model.AddEventParameterToAuditRec(auditRec, "config_id", configID)
 	model.AddEventParameterToAuditRec(auditRec, "dry_run", dryRun)
 
-	cfg, appErr := c.App.GetHistoricalConfig(configID)
-	if appErr != nil {
-		c.Err = appErr
+	cfg, err := c.App.GetHistoricalConfig(configID)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 
 	appCfg := c.App.Config()
+	var appErr *model.AppError
 	if c.AppContext.Session().IsUnrestricted() {
 		c.App.HandleMessageExportConfig(cfg, appCfg)
 		appErr = cfg.IsValid()
@@ -606,9 +607,9 @@ func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request)
 			return
 		}
 
-		diffs, err := config.Diff(oldCfg, newCfg)
-		if err != nil {
-			c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		diffs, diffErr := config.Diff(oldCfg, newCfg)
+		if diffErr != nil {
+			c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.update_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(diffErr)
 			return
 		}
 		auditRec.AddEventPriorState(&diffs)
