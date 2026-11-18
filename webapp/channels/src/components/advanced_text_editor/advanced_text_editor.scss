@@ -204,6 +204,28 @@
         gap: 8px;
     }
 
+    // The + sits at the start of this row and send at the end. The row is in
+    // the flow, under the editor, so neither control covers the text.
+    &__agent-controls {
+        display: flex;
+        height: 48px;
+        align-items: center;
+        justify-content: space-between;
+        background: var(--center-channel-bg);
+        padding-inline: 7px;
+    }
+
+    // Out of the flow, but not display:none, so a click from the + menu can
+    // still open the file dialog.
+    &__agent-file-input {
+        position: absolute;
+        overflow: hidden;
+        width: 32px;
+        height: 32px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
 }
 
 @media screen and (max-width: 768px) {

@@ -1409,6 +1409,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('button', {name: 'select an emoji'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'Message options'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('agent-composer-controls')).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeInTheDocument();
         });
 
@@ -1432,6 +1433,49 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+        });
+
+        it('puts the + at the start of the control row and send at the end', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            const controls = screen.getByTestId('agent-composer-controls');
+            const menu = screen.getByRole('button', {name: 'Message options'});
+            const send = screen.getByTestId('SendMessageButton');
+
+            expect(controls).toContainElement(menu);
+            expect(controls).toContainElement(send);
+            expect(controls.firstElementChild).toContainElement(menu);
+            expect(controls.lastElementChild).toContainElement(send);
+            expect(menu.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+
+        it('omits Add attributes when post attributes are off', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                mergeObjects(chromeState, {
+                    entities: {
+                        general: {
+                            config: {
+                                FeatureFlagPostAttributes: 'false',
+                            },
+                        },
+                    },
+                }),
+            );
+
+            await openMenu();
+
+            expect(screen.queryByRole('menuitem', {name: 'Add attributes'})).not.toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Attach files'})).toBeInTheDocument();
         });
 
         it('puts attach, emoji, attributes, and formatting in the + menu', async () => {

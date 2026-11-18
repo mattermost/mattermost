@@ -913,7 +913,10 @@ const AdvancedTextEditor = ({
         );
     }, [isInEditMode, isRHS]);
 
-    const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
+    // Channel composers reserve a row under long, previewed, RHS, and thread
+    // messages so the overlaid controls clear the text. Agent mode has its own
+    // control row, so it does not need that spacer.
+    const showFormattingSpacer = !agentMode && (isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView);
 
     const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
 
@@ -1036,42 +1039,47 @@ const AdvancedTextEditor = ({
                                 {formattingBar}
                             </FormattingBarSpacer>
                         ) : formattingBar}
-                        {/* Keep the input in the layout. `hidden` is display:none, and Safari will not open a file dialog from that. */}
-                        {agentMode && fileUploadJSX}
-                        {!isDisabled && (
+                        {/* Keep the input rendered. `hidden` is display:none, and Safari will not open a file dialog from that. */}
+                        {agentMode && (
+                            <div className='AdvancedTextEditor__agent-file-input'>
+                                {fileUploadJSX}
+                            </div>
+                        )}
+                        {agentMode && !isDisabled && (
+                            <div
+                                className='AdvancedTextEditor__agent-controls'
+                                data-testid='agent-composer-controls'
+                            >
+                                <AgentComposerMenu
+                                    canAttach={canUploadFiles}
+                                    attachDisabled={uploadDisabledByPolicy}
+                                    onAttach={openFileDialog}
+                                    enableEmojiPicker={enableEmojiPicker}
+                                    emojiDisabled={showPreview}
+                                    onEmoji={toggleEmojiPicker}
+                                    showAttributes={postAttributesEnabled && !isInEditMode}
+                                    formattingDisabled={showPreview}
+                                    onToggleFormatting={toggleAdvanceTextEditor}
+                                    emojiAnchorRef={setEmojiReference}
+                                />
+                                {sendControl}
+                            </div>
+                        )}
+                        {agentMode && emojiPickerPortal}
+                        {!agentMode && !isDisabled && (
                             <TexteditorActions
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
-                                {agentMode ? (
-                                    <>
-                                        <AgentComposerMenu
-                                            canAttach={canUploadFiles}
-                                            attachDisabled={uploadDisabledByPolicy}
-                                            onAttach={openFileDialog}
-                                            enableEmojiPicker={enableEmojiPicker}
-                                            emojiDisabled={showPreview}
-                                            onEmoji={toggleEmojiPicker}
-                                            showAttributes={postAttributesEnabled && !isInEditMode}
-                                            formattingDisabled={showPreview}
-                                            onToggleFormatting={toggleAdvanceTextEditor}
-                                            emojiAnchorRef={setEmojiReference}
-                                        />
-                                        {emojiPickerPortal}
-                                    </>
-                                ) : (
-                                    <>
-                                        {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
-                                        <ToggleFormattingBar
-                                            onClick={toggleAdvanceTextEditor}
-                                            active={showFormattingBar}
-                                            disabled={showPreview}
-                                        />
-                                        <Separator/>
-                                        {fileUploadJSX}
-                                        {emojiPicker}
-                                    </>
-                                )}
+                                {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
+                                <ToggleFormattingBar
+                                    onClick={toggleAdvanceTextEditor}
+                                    active={showFormattingBar}
+                                    disabled={showPreview}
+                                />
+                                <Separator/>
+                                {fileUploadJSX}
+                                {emojiPicker}
                                 {sendControl}
                             </TexteditorActions>
                         )}
