@@ -9715,9 +9715,29 @@
     "defaultMessage": "Timestamp",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the date and time of the entry follows."
   },
+  "admin.logs.download.dropdownAriaLabel": {
+    "defaultMessage": "Download menu",
+    "description": "Accessible name of the Download menu on the System Console Server Logs page (structured log viewer); read by screen readers."
+  },
+  "admin.logs.download.filtered": {
+    "defaultMessage": "Filtered entries ({count, number})",
+    "description": "Item in the Download menu on the System Console Server Logs page (structured log viewer); downloads the entries currently matching the filters as a JSON Lines file. {count} is the number of matching entries."
+  },
+  "admin.logs.download.filteredPartial": {
+    "defaultMessage": "Only the loaded entries are included",
+    "description": "Secondary text under the filtered entries item in the Download menu on the System Console Server Logs page; shown when older matching entries were not loaded, so the file only has what is on the page."
+  },
+  "admin.logs.download.fullFile": {
+    "defaultMessage": "Full log file",
+    "description": "Item in the Download menu on the System Console Server Logs page (structured log viewer); downloads the server's whole log file, ignoring the filters."
+  },
+  "admin.logs.download.menuButtonAriaLabel": {
+    "defaultMessage": "Open menu to download the logs",
+    "description": "Accessible name of the Download button on the System Console Server Logs page (structured log viewer), which opens a menu with the download choices; read by screen readers."
+  },
   "admin.logs.DownloadLogs": {
     "defaultMessage": "Download",
-    "description": "Button label on the System Console Server Logs page, in both the structured and the plain text log viewer; downloads the log file."
+    "description": "Label of the Download button on the System Console Server Logs page. In the plain text log viewer it downloads the log file; in the structured viewer it opens a menu of download choices."
   },
   "admin.logs.duration": {
     "defaultMessage": "Duration",

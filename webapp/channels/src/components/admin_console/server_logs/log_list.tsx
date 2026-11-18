@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import debounce from 'lodash/debounce';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import omit from 'lodash/omit';
+import React, {forwardRef, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -20,8 +21,8 @@ import {logEntryKey, logEntryTime, parseLogTimestamp} from 'mattermost-redux/uti
 
 import {isUseMilitaryTime} from 'selectors/preferences';
 
-import ExternalLink from 'components/external_link';
 import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -31,7 +32,7 @@ import CustomRangeModal from './custom_range_modal';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, PluginOption, ScanLimitedLogNode, TimeRange} from './types';
-import {FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes, nextDayStart} from './utils';
+import {FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, downloadTextFile, filteredLogsFilename, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, logsToJsonLines, newestLogTimes, nextDayStart} from './utils';
 
 import './log_list.scss';
 
@@ -229,6 +230,19 @@ function savePrefs(prefs: StoredPrefs) {
     }
 }
 
+const DownloadMenuTrigger = forwardRef<HTMLButtonElement, MenuButtonComponentProps>(({children, ...props}, ref) => (
+    <Button
+        {...omit(props, 'count')}
+        ref={ref}
+        emphasis='primary'
+        size='medium'
+        leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
+    >
+        {children}
+    </Button>
+));
+DownloadMenuTrigger.displayName = 'DownloadMenuTrigger';
+
 const NO_SCAN_LIMITED_NODES: ScanLimitedLogNode[] = [];
 
 export default function LogList({
@@ -402,6 +416,11 @@ export default function LogList({
     const matchCount = search ? processedLogs.length : null;
     const truncated = truncatedNodes.some((node) => !selectedNode || node === selectedNode);
     const scanLimited = scanLimitedNodes.filter(({node}) => !selectedNode || node === selectedNode);
+
+    // What's on screen, minus the paging. Search and plugin filters were applied by the server
+    const handleDownloadFiltered = useCallback(() => {
+        downloadTextFile(filteredLogsFilename(), logsToJsonLines(processedLogs));
+    }, [processedLogs]);
 
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;
@@ -983,22 +1002,61 @@ export default function LogList({
                     defaultMessage='Reload'
                 />
             </Button>
-            <Button
-                asChild={true}
-                emphasis='primary'
-                size='medium'
-                leadingIcon={<Icon glyph={<DownloadOutlineIcon/>}/>}
+            <Menu.Container
+                menuButton={{
+                    id: 'serverLogsDownloadMenuButton',
+                    as: DownloadMenuTrigger,
+                    'aria-label': intl.formatMessage({id: 'admin.logs.download.menuButtonAriaLabel', defaultMessage: 'Open menu to download the logs'}),
+                    children: (
+                        <FormattedMessage
+                            id='admin.logs.DownloadLogs'
+                            defaultMessage='Download'
+                        />
+                    ),
+                }}
+                menu={{
+                    id: 'serverLogsDownloadMenu',
+                    'aria-label': intl.formatMessage({id: 'admin.logs.download.dropdownAriaLabel', defaultMessage: 'Download menu'}),
+                }}
             >
-                <ExternalLink
+                <Menu.ItemExternalLink
+                    id='serverLogsDownloadFull'
                     location='download_logs'
                     href={downloadUrl}
-                >
-                    <FormattedMessage
-                        id='admin.logs.DownloadLogs'
-                        defaultMessage='Download'
-                    />
-                </ExternalLink>
-            </Button>
+                    forceCloseOnSelect={true}
+                    labels={
+                        <FormattedMessage
+                            id='admin.logs.download.fullFile'
+                            defaultMessage='Full log file'
+                        />
+                    }
+                />
+                <Menu.Item
+                    id='serverLogsDownloadFiltered'
+                    disabled={processedLogs.length === 0}
+                    forceCloseOnSelect={true}
+                    labels={
+                        <>
+                            <span>
+                                <FormattedMessage
+                                    id='admin.logs.download.filtered'
+                                    defaultMessage='Filtered entries ({count, number})'
+                                    values={{count: processedLogs.length}}
+                                />
+                            </span>
+                            {(truncated || scanLimited.length > 0) && (
+                                <span>
+                                    <FormattedMessage
+                                        id='admin.logs.download.filteredPartial'
+                                        defaultMessage='Only the loaded entries are included'
+                                    />
+                                </span>
+                            )}
+                        </>
+                    }
+                    onClick={handleDownloadFiltered}
+                />
+            </Menu.Container>
         </div>
     );
 

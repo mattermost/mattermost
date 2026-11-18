@@ -1380,4 +1380,81 @@ describe('components/admin_console/server_logs/LogList plugin filter', () => {
         fireEvent.click(pluginMenuItem('GitHub'), {ctrlKey: true});
         expect(onSelectedPluginsChange).toHaveBeenCalledWith([]);
     });
+
+    describe('download menu', () => {
+        const originalCreate = URL.createObjectURL;
+        const originalRevoke = URL.revokeObjectURL;
+        let createObjectURL: jest.Mock;
+        let revokeObjectURL: jest.Mock;
+
+        beforeEach(() => {
+            createObjectURL = jest.fn(() => 'blob:test');
+            revokeObjectURL = jest.fn();
+            URL.createObjectURL = createObjectURL;
+            URL.revokeObjectURL = revokeObjectURL;
+            jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            URL.createObjectURL = originalCreate;
+            URL.revokeObjectURL = originalRevoke;
+            jest.restoreAllMocks();
+        });
+
+        function openDownloadMenu() {
+            fireEvent.click(screen.getByLabelText('Open menu to download the logs'));
+        }
+
+        test('should offer the full file and the filtered entries with their count', () => {
+            renderListWith({logs: makeLogs(3), downloadUrl: '/api/v4/logs/download'});
+            openDownloadMenu();
+
+            expect(screen.getByRole('menuitem', {name: 'Full log file'})).toHaveAttribute('href', '/api/v4/logs/download');
+            expect(screen.getByRole('menuitem', {name: /^Filtered entries \(3\)/})).toBeInTheDocument();
+            expect(screen.queryByText('Only the loaded entries are included')).not.toBeInTheDocument();
+        });
+
+        test('should say only the loaded entries are included when the list is truncated', () => {
+            renderListWith({logs: makeLogs(3), truncatedNodes: ['']});
+            openDownloadMenu();
+
+            expect(screen.getByText('Only the loaded entries are included')).toBeInTheDocument();
+        });
+
+        test('should download the filtered entries as JSON Lines', async () => {
+            renderListWith({logs: [
+                ...makeLogs(2),
+                makeLog('noisy', '2026-03-12T10:00:30.000Z', LogLevelEnum.DEBUG),
+            ]});
+
+            // Entries of a level that's turned off aren't on screen, so they aren't downloaded
+            openLevelsMenu();
+            fireEvent.click(levelMenuItem('Debug'));
+            fireEvent.keyDown(document.activeElement ?? document.body, {key: 'Escape'});
+            openDownloadMenu();
+            fireEvent.click(screen.getByRole('menuitem', {name: /^Filtered entries/}));
+
+            // The menu closes first, and the click handler runs after
+            await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
+            const blob = createObjectURL.mock.calls[0][0] as Blob;
+            const text = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.readAsText(blob);
+            });
+            const entries = text.split('\n').map((line) => JSON.parse(line));
+            expect(entries.map((entry) => entry.msg)).toEqual(['msg 1', 'msg 2']);
+            await waitFor(() => expect(revokeObjectURL).toHaveBeenCalledWith('blob:test'));
+        });
+
+        test('should disable the filtered entries when there are none', () => {
+            renderListWith({logs: []});
+            openDownloadMenu();
+
+            const item = screen.getByRole('menuitem', {name: /^Filtered entries \(0\)/});
+            expect(item).toHaveAttribute('aria-disabled', 'true');
+            fireEvent.click(item);
+            expect(createObjectURL).not.toHaveBeenCalled();
+        });
+    });
 });
