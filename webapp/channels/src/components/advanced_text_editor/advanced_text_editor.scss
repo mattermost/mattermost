@@ -35,31 +35,10 @@
 
     .sidebar--right & {
         padding-top: 12px;
-
-        .AutoHeight {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-        }
     }
 
     .ThreadViewer & {
         padding-top: 0px;
-
-        .AutoHeight {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-        }
-    }
-
-    // A thread or the RHS pins the formatting bar to the bottom of the cell.
-    // Agent mode keeps that bar in the control row under the text.
-    .sidebar--right &--agent,
-    .ThreadViewer &--agent {
-        .AutoHeight {
-            position: static;
-        }
     }
 
     .custom-textarea {
@@ -256,10 +235,11 @@
 
     // Agent mode: the text is the top row. This row under it holds the +,
     // the formatting bar, and send. The buttons stay absolute against this
-    // row, so they line up with the formatting controls.
+    // row, so they line up with the formatting controls. Its height follows
+    // the formatting bar's own animation. A fixed min-height would snap the
+    // row open in the RHS before that animation runs.
     &__agent-controls {
         position: relative;
-        min-height: 46px;
 
         [data-testid='formattingBarContainer'] {
             padding-right: 62px;
@@ -287,16 +267,6 @@
     &--agent:not(.formatting-bar):not(&--plus-overlay) {
         .AdvancedTextEditor__agent-controls {
             min-height: 40px;
-        }
-    }
-
-    // A hidden formatting bar starts as one line. The + and send overlay that
-    // line; they stay absolute (bottom: 7px). Wrapped text drops plus-overlay,
-    // and the 40px row above comes back.
-    &--agent#{&}--plus-overlay:not(.formatting-bar) {
-        .AdvancedTextEditor__agent-controls {
-            height: 0;
-            min-height: 0;
         }
     }
 

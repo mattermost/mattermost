@@ -923,13 +923,10 @@ const AdvancedTextEditor = ({
 
     // A hidden formatting bar starts as one line: the + and send overlay the
     // text. Wrapped text, a preview, or attachments take the row under it.
-    // An RHS or thread pins an open formatting bar to the bottom of the cell,
-    // so that bar still gets a spacer. Agent mode uses the same one-line
-    // class and collapses its control row instead of a spacer.
+    // Opening the bar uses the same in-flow height animation in the center,
+    // the thread, and the agents RHS. A spacer here would pop that row in.
     const oneLine = !showFormattingBar && !isMessageLong && !showPreview && !attachmentPreview;
-    const showFormattingSpacer = !agentMode && (
-        isMessageLong || showPreview || attachmentPreview || ((isRHS || isThreadView) && !oneLine)
-    );
+    const showFormattingSpacer = !agentMode && (isMessageLong || showPreview || attachmentPreview);
 
     const messageEditor = wysiwygEnabled ? (
         <WysiwygEditor

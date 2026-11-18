@@ -12,7 +12,8 @@
     color: var(--button-color);
 
     &.scheduledPost {
-        width: 56px;
+        // 32px arrow segment plus the 21px schedule chevron.
+        width: 53px;
     }
 
     &.disabled {
@@ -22,8 +23,8 @@
             fill: rgba(var(--center-channel-color-rgb), 0.32);
         }
 
-        .button_send_post_options {
-            border-color: rgba(var(--center-channel-color-rgb), 0.16);
+        .button_send_post_options::before {
+            background: rgba(var(--center-channel-color-rgb), 0.16);
         }
     }
 
@@ -48,6 +49,15 @@
         place-items: center;
         transition: color 150ms;
 
+        // The segmented arrow is a 32px target. The old right padding made
+        // this side wider than the icon.
+        &:not(.singleAction) {
+            width: 32px;
+            flex: 0 0 32px;
+            padding-right: 0;
+            padding-left: 0;
+        }
+
         .android &,
         .ios & {
             display: flex;
@@ -63,10 +73,22 @@
     }
 
     .button_send_post_options {
+        position: relative;
         width: 21px;
         border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
-        border-left: 1px solid color-mix(in srgb, currentColor 20%, transparent);
+        border-left: none;
         padding-inline: 2px;
+
+        // The divider sits 8px in from the top and bottom of the 32px pill.
+        &::before {
+            position: absolute;
+            top: 8px;
+            bottom: 8px;
+            left: 0;
+            width: 1px;
+            background: color-mix(in srgb, currentColor 20%, transparent);
+            content: '';
+        }
 
         &:not(.disabled):hover {
             background: color-mix(in srgb, var(--button-bg) 90%, #000);
