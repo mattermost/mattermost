@@ -92,8 +92,9 @@
         --right-padding-for-scrollbar: 8px;
     }
 
-    // With the formatting bar disabled, leave room on the right for the post controls until the text takes up
-    // multiple lines. At that point, leave space below the text as if the controls were still there.
+    // Leave room beside the + and send until the text takes up multiple lines.
+    // Then the text uses the full width, including the space above the +, and
+    // the buttons sit on the row under it.
     &.formatting-bar {
         --right-padding-for-preview-button: 32px;
     }

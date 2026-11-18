@@ -23,7 +23,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
 
-import AdvancedTextEditor from './advanced_text_editor';
+import AdvancedTextEditor, {messageUsesFullWidth} from './advanced_text_editor';
 import type {Props} from './advanced_text_editor';
 
 jest.mock('actions/views/drafts', () => ({
@@ -207,6 +207,20 @@ const baseProps = {
 };
 
 describe('components/avanced_text_editor/advanced_text_editor', () => {
+    describe('messageUsesFullWidth', () => {
+        it('keeps a short line beside the plus', () => {
+            expect(messageUsesFullWidth(120, 1, 400)).toBe(false);
+        });
+
+        it('uses the full width once the line reaches the plus', () => {
+            expect(messageUsesFullWidth(400, 1, 400)).toBe(true);
+        });
+
+        it('uses the full width when the message breaks onto another line', () => {
+            expect(messageUsesFullWidth(40, 2, 400)).toBe(true);
+        });
+    });
+
     afterEach(() => {
         jest.useRealTimers();
     });

@@ -138,6 +138,36 @@ export type Props = {
     renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
 };
 
+// The + and send share the first line. Once the text is wider than the room
+// beside them, or the user breaks a line, the text uses the full width and
+// those buttons sit on the row under it.
+const PLUS_ROW_CLEARANCE = 46;
+
+export function messageUsesFullWidth(longestLineWidth: number, lineCount: number, roomBesideButtons: number): boolean {
+    return lineCount > 1 || longestLineWidth >= roomBesideButtons;
+}
+
+function measureLongestLine(text: string, fontSource: Element): number {
+    const style = window.getComputedStyle(fontSource);
+    const probe = document.createElement('span');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.whiteSpace = 'pre';
+    probe.style.font = style.font;
+    probe.style.letterSpacing = style.letterSpacing;
+    probe.style.wordSpacing = style.wordSpacing;
+    document.body.appendChild(probe);
+
+    let max = 0;
+    for (const line of text.split('\n')) {
+        probe.textContent = line;
+        max = Math.max(max, probe.offsetWidth);
+    }
+    probe.remove();
+    return max;
+}
+
 const AdvancedTextEditor = ({
     location,
     channelId,
@@ -669,28 +699,33 @@ const AdvancedTextEditor = ({
         });
     }, [handleDraftChange]);
 
-    const handleWidthChange = useCallback((width: number) => {
-        const input = textboxRef.current?.getInputBox();
-        if (!editorBodyRef.current || !editorActionsRef.current || !input) {
+    const message = draft?.message ?? '';
+
+    const handleWidthChange = useCallback(() => {
+        if (agentMode) {
             return;
         }
 
-        // The left + is outside the measured action cluster. 7px inset, 32px button, 7px gap.
-        const plusWidth = showPlus ? 46 : 0;
-        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth - plusWidth;
+        const body = editorBodyRef.current;
+        const actions = editorActionsRef.current;
+        if (!body || !actions) {
+            return;
+        }
 
         if (!hasDraftMessage) {
-            // if we do not have a message we can just render the default state
             setIsMessageLong(false);
             return;
         }
 
-        if (width >= maxWidth) {
-            setIsMessageLong(true);
-        } else {
-            setIsMessageLong(false);
-        }
-    }, [hasDraftMessage, showPlus]);
+        const fontSource = body.querySelector('textarea, .ProseMirror') ?? body;
+        const longest = measureLongestLine(message, fontSource);
+        const roomBesideButtons = body.offsetWidth - actions.offsetWidth - (showPlus ? PLUS_ROW_CLEARANCE : 0);
+        setIsMessageLong(messageUsesFullWidth(longest, message.split('\n').length, roomBesideButtons));
+    }, [agentMode, hasDraftMessage, message, showPlus]);
+
+    useEffect(() => {
+        handleWidthChange();
+    }, [handleWidthChange]);
 
     const prefillMessage = useCallback((message: string) => {
         handleDraftChange({
@@ -702,13 +737,6 @@ const AdvancedTextEditor = ({
         inputBox?.click();
         focusTextbox(true);
     }, [handleDraftChange, focusTextbox, draft, textboxRef]);
-
-    // Handle width change when there is no message.
-    useEffect(() => {
-        if (!hasDraftMessage) {
-            handleWidthChange(0);
-        }
-    }, [hasDraftMessage, handleWidthChange]);
 
     // Clear timeout on unmount
     useEffect(() => {
