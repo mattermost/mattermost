@@ -124,6 +124,10 @@ components:
           description: The time in milliseconds the user accepted the terms of service
           type: integer
           format: int64
+        is_agent:
+          description: Whether the user is a bot that a plugin marked as an agent. This field is not present
+            if false.
+          type: boolean
     UsersStats:
       type: object
       properties:
