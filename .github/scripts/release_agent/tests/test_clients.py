@@ -113,6 +113,21 @@ class GitHubTest(unittest.TestCase):
         self.assertEqual(len(GitHub("t", http).search_issues("q")), 103)
         self.assertEqual([c[2]["page"] for c in http.calls], [1, 2])
 
+    def test_compare_commits_follows_every_page_past_250(self):
+        pages = [({}, {"total_commits": 260, "commits": [{"sha": f"{p}-{n}"} for n in range(size)]})
+                 for p, size in ((1, 100), (2, 100), (3, 60))]
+        http = RecordingHttp(pages)
+        commits = GitHub("t", http).compare_commits("o/r", "v12.3.0-rc1", "release-12.3")
+        self.assertEqual(len(commits), 260)
+        self.assertEqual(commits[0]["sha"], "1-0")
+        self.assertEqual([c[2] for c in http.calls], [{"per_page": 100, "page": n} for n in (1, 2, 3)])
+        self.assertEqual(http.calls[0][1], "/repos/o/r/compare/v12.3.0-rc1...release-12.3")
+
+    def test_compare_commits_raises_when_pages_run_out_early(self):
+        http = RecordingHttp([({}, {"total_commits": 150, "commits": [{}] * 100}), ({}, {"total_commits": 150, "commits": []})])
+        with self.assertRaises(TruncatedError):
+            GitHub("t", http).compare_commits("o/r", "a", "b")
+
     def test_is_on_branch(self):
         http = RecordingHttp([({}, {"status": "ahead"}), ({}, {"status": "diverged"})])
         github = GitHub("t", http)
@@ -192,6 +207,25 @@ class MattermostTest(unittest.TestCase):
         http = RecordingHttp([({}, [{"username": "ann"}])])
         self.assertEqual(Mattermost("https://hub", "t", http).search_users("Ann Lee"), [{"username": "ann"}])
         self.assertEqual(http.calls[0][3], {"term": "Ann Lee", "allow_inactive": False, "limit": 100})
+
+    def test_thread_follows_every_page(self):
+        root = {"id": "root", "root_id": "", "create_at": 1}
+        first = {"root": root, **{f"r{n}": {"id": f"r{n}", "root_id": "root", "create_at": 10 + n} for n in range(3)}}
+        second = {"root": root, "r3": {"id": "r3", "root_id": "root", "create_at": 20, "message": "go"}}
+        http = RecordingHttp([({}, {"posts": first, "has_next": True}), ({}, {"posts": second, "has_next": False})])
+        thread = Mattermost("https://hub", "t", http).thread("root")
+        self.assertEqual([p["id"] for p in thread], ["root", "r0", "r1", "r2", "r3"])
+        self.assertEqual([c[2] for c in http.calls], [
+            {"perPage": 200, "direction": "down"},
+            {"perPage": 200, "direction": "down", "fromPost": "r2", "fromCreateAt": 12}])
+
+    def test_thread_stops_when_a_page_repeats_itself(self):
+        root = {"id": "root", "root_id": "", "create_at": 1}
+        page = {"root": root, "r0": {"id": "r0", "root_id": "root", "create_at": 10}}
+        http = RecordingHttp([({}, {"posts": page, "has_next": True}), ({}, {"posts": page, "has_next": True})])
+        thread = Mattermost("https://hub", "t", http).thread("root")
+        self.assertEqual([p["id"] for p in thread], ["root", "r0"])
+        self.assertEqual(len(http.calls), 2)
 
     def test_playbooks_close_item(self):
         http = RecordingHttp([({}, None)])

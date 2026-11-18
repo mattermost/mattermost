@@ -8,6 +8,8 @@ on:
       - '.github/scripts/changelog_release.py'
       - '.github/workflows/release-agent.yml'
       - '.github/workflows/release-agent-test.yml'
+      - '.github/workflows/release-actions.yml'
+      - '.github/workflows/generate-changelog.yml'
 
 permissions: {}
 
@@ -52,4 +54,4 @@ jobs:
         run: |
           docker run --rm -v "$PWD:/repo" --workdir /repo \
             rhysd/actionlint:1.7.7@sha256:887a259a5a534f3c4f36cb02dca341673c6089431057242cdc931e9f133147e9 \
-            -color .github/workflows/release-agent.yml .github/workflows/release-agent-test.yml
+            -color .github/workflows/release-agent.yml .github/workflows/release-agent-test.yml .github/workflows/release-actions.yml

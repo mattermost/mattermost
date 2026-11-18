@@ -214,6 +214,58 @@ class GitHub:
                 return set()
         return set()
 
+    def tag_date(self, repo: str, tag: str) -> str:
+        """When ``tag`` was made: an annotated tag's tagger date, else its commit's date."""
+        ref = self.http.get(f"/repos/{repo}/git/ref/tags/{urllib.parse.quote(tag, safe='')}") or {}
+        target = ref.get("object") or {}
+        if target.get("type") == "tag":
+            tagger = (self.http.get(f"/repos/{repo}/git/tags/{target['sha']}") or {}).get("tagger") or {}
+            if tagger.get("date"):
+                return tagger["date"]
+        return self.commit_date(repo, tag)
+
+    def branch_exists(self, repo: str, branch: str) -> bool:
+        try:
+            self.http.get(f"/repos/{repo}/branches/{urllib.parse.quote(branch, safe='')}")
+        except ServiceError as err:
+            if err.status == 404:
+                return False
+            raise
+        return True
+
+    def release_by_tag(self, repo: str, tag: str) -> dict | None:
+        """The GitHub release for ``tag``, or None when there is none (drafts aren't visible here)."""
+        try:
+            return self.http.get(f"/repos/{repo}/releases/tags/{urllib.parse.quote(tag, safe='')}")
+        except ServiceError as err:
+            if err.status == 404:
+                return None
+            raise
+
+    def compare_commits(self, repo: str, base: str, head: str) -> list[dict]:
+        """Commits on ``head`` that ``base`` doesn't have, oldest first, across every page."""
+        path = f"/repos/{repo}/compare/{urllib.parse.quote(base, safe='')}...{urllib.parse.quote(head, safe='')}"
+        commits, page = [], 1
+        while True:
+            result = self.http.get(path, per_page=100, page=page) or {}
+            batch = result.get("commits") or []
+            commits += batch
+            total = result.get("total_commits") or 0
+            if len(commits) >= total:
+                return commits
+            if not batch:
+                raise TruncatedError("GitHub", len(commits))
+            page += 1
+
+    def milestones(self, repo: str) -> list[dict]:
+        items, page = [], 1
+        while True:
+            batch = self.http.get(f"/repos/{repo}/milestones", state="all", per_page=100, page=page) or []
+            items.extend(batch)
+            if len(batch) < 100:
+                return items
+            page += 1
+
     def tags_with_prefix(self, repo: str, prefix: str) -> list[str]:
         refs = self.http.get(f"/repos/{repo}/git/matching-refs/tags/{urllib.parse.quote(prefix, safe='')}") or []
         return [ref["ref"].removeprefix("refs/tags/") for ref in refs]
@@ -244,6 +296,28 @@ class Jira:
                 raise TruncatedError("Jira", len(issues))
             if not more:
                 return issues
+
+    def count(self, jql: str, limit: int = 20000) -> int:
+        """How many issues the JQL matches, reading every page of ids."""
+        total, token = 0, None
+        while True:
+            body = {"jql": jql, "fields": ["id"], "maxResults": 5000}
+            if token:
+                body["nextPageToken"] = token
+            result = self.http.request("POST", "/rest/api/3/search/jql", body=body)[1] or {}
+            total += len(result.get("issues", []))
+            token = result.get("nextPageToken")
+            if not token or result.get("isLast", True):
+                return total
+            if total >= limit:
+                raise TruncatedError("Jira", total)
+
+    def versions(self, project: str) -> list[dict]:
+        return self.http.get(f"/rest/api/3/project/{urllib.parse.quote(project)}/versions") or []
+
+    def issue(self, key: str, fields: list | tuple = ()) -> dict:
+        params = {"fields": ",".join(fields)} if fields else {}
+        return self.http.get(f"/rest/api/3/issue/{urllib.parse.quote(key)}", **params)
 
     def remote_links(self, key: str) -> list[dict]:
         return self.http.get(f"/rest/api/3/issue/{urllib.parse.quote(key)}/remotelink") or []
@@ -323,6 +397,25 @@ class Mattermost:
         wanted = " ".join(display_name.split()).casefold()
         return [c for c in self.http.get("/api/v4/users/me/channels") or []
                 if not c.get("delete_at") and " ".join((c.get("display_name") or "").split()).casefold() == wanted]
+
+    def user(self, user_id: str) -> dict | None:
+        return self._user_or_none(f"/api/v4/users/{urllib.parse.quote(user_id)}")
+
+    def thread(self, post_id: str) -> list[dict]:
+        """The root post and its replies, oldest first, across every page."""
+        posts, params = {}, {"perPage": 200, "direction": "down"}
+        while True:
+            result = self.http.get(f"/api/v4/posts/{post_id}/thread", **params) or {}
+            page = result.get("posts") or {}
+            replies = [p for p in page.values() if p.get("root_id") == post_id]
+            new = [p for p in replies if p.get("id") not in posts]
+            posts.update(page)
+            # A page with no reply it hasn't seen ends the loop, even if Hub still says has_next.
+            if not result.get("has_next") or not new:
+                break
+            last = max(replies, key=lambda p: (p.get("create_at", 0), p.get("id", "")))
+            params.update(fromPost=last["id"], fromCreateAt=last["create_at"])
+        return sorted(posts.values(), key=lambda p: p.get("create_at", 0))
 
     def reactions(self, post_id: str) -> list[dict]:
         return self.http.get(f"/api/v4/posts/{post_id}/reactions") or []

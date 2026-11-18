@@ -1,0 +1,175 @@
+name: Release Actions
+
+# Phase 5 of self-hosted release automation: the release agent does six playbook items, and the
+# release manager only watches and can stop them (see .github/release-agent/rules.yml, actions):
+#   - cut the release branches (Release Branch Cut day: notice, one-hour stop window, then
+#     create-release-branches-universal.yaml in delivery-platform)
+#   - fill in the QA feature tracking sheet (T-16, daily until T-15)
+#   - cut RC-1 (T-15: notice and stop window) and propose later RCs, cut only after a `go`;
+#     QA is told when each build is done
+#   - close the release in Jira and add the next three fix versions and milestones (T-0)
+#   - create the tickets for the next release (T-0)
+#   - fill in the release's Release Scorecard column (T-0, and a week later)
+# No AI: every message is a template in .github/release-agent/templates/actions/.
+#
+# Hourly on weekdays from 08:00 to 18:00 UTC, because a cut waits an hour after its notice.
+# The daily checks and status post stay in release-agent.yml, which shows these actions under
+# "Release actions" and ticks their playbook items once done.
+#
+# Safe by default:
+#   RELEASE_ACTIONS_MODE  dry_run (default) or live. A dry run starts no workflow and writes
+#                         nothing to Jira, GitHub or Google Sheets; it shows in the test channel
+#                         what it would do.
+#   RELEASE_ACTIONS_LIVE  in live mode, the actions that may act, comma-separated:
+#                         qa_sheet,tickets,metrics,versions,rc,branch_cut. Others stay dry run.
+# Running it from the Actions tab is always a dry run. A live cut on request is a `go` reply on
+# Hub from the playbook run's owner or RELEASE_AGENT_PEOPLE.release_manager or .release_backup;
+# anyone can reply `stop` (or react :no_entry_sign:) to a notice.
+#
+# This repo is public, so its Actions logs are too: Jira keys, ticket text, delivery-platform
+# run links and sheet contents go to Hub only. run.json and the step summary have statuses
+# and counts.
+#
+# Secrets (repository-level):
+#   RELEASE_AGENT_MM_TOKEN          Hub bot token
+#   RELEASE_AGENT_JIRA_TOKEN        read-only Atlassian token (Jira, and the holidays page)
+#   RELEASE_AGENT_JIRA_WRITE_TOKEN  the Jira write account's token: Administer Projects on MM (to
+#                                   release and create versions) and Create Issues
+#   CHANGELOG_READ_PRIVATE_KEY      the read app (mattermost and enterprise)
+#   CHANGELOG_WRITE_PRIVATE_KEY     the changelog write app. Only this workflow mints a token for
+#                                   delivery-platform from it, with Actions: write only, and only
+#                                   on master's schedule in live mode
+#   RELEASE_DOCS_GOOGLE_SA_KEY      Google service account key; share both sheets with it as an editor
+#   RELEASE_AGENT_CALENDAR_ICS_URL  optional, as in release-agent.yml
+# Variables:
+#   RELEASE_ACTIONS_MODE, RELEASE_ACTIONS_LIVE   see above
+#   RELEASE_ACTIONS_QA_SHEET_ID         the QA Release Plan Feature Tracking Spreadsheet
+#   RELEASE_ACTIONS_SCORECARD_SHEET_ID  the Release Scorecard
+#   RELEASE_AGENT_JIRA_WRITE_EMAIL      the Jira write account
+#   RELEASE_AGENT_PEOPLE                Hub usernames by role (JSON): release_manager,
+#                                       release_backup (a list) and qa are used here
+#   CHANGELOG_WRITE_CLIENT_ID, CHANGELOG_READ_CLIENT_ID, and RELEASE_AGENT_MM_URL,
+#   RELEASE_AGENT_CALENDAR_ICS_URL, RELEASE_AGENT_LOG_CHANNEL_ID, RELEASE_AGENT_TEST_CHANNEL_ID,
+#   RELEASE_AGENT_JIRA_EMAIL, RELEASE_AGENT_PLAYBOOK_ID, RELEASE_AGENT_RELEASE_CHANNEL_IDS and
+#   RELEASE_AGENT_HOLIDAYS_PAGE_ID as in release-agent.yml
+on:
+  schedule:
+    - cron: '0 8-18 * * 1-5'
+  workflow_dispatch:
+    inputs:
+      release:
+        description: 'Dry run only this release (e.g. v12.2), even outside its calendar window'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-actions
+  cancel-in-progress: false
+
+jobs:
+  release-actions:
+    if: github.repository == 'mattermost/mattermost'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    env:
+      MM_URL: ${{ vars.RELEASE_AGENT_MM_URL || 'https://hub.mattermost.com' }}
+      RELEASE_ACTIONS_MODE: ${{ vars.RELEASE_ACTIONS_MODE || 'dry_run' }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      # Live only on master's schedule. Every write token below is minted only then.
+      ACTS_LIVE: ${{ vars.RELEASE_ACTIONS_MODE == 'live' && github.event_name == 'schedule' && github.ref == 'refs/heads/master' }}
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install --quiet -r .github/release-agent/requirements.txt
+
+      - name: Get read token (mattermost and enterprise)
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: readToken
+        with:
+          client-id: ${{ vars.CHANGELOG_READ_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_READ_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost,enterprise
+
+      # The only token for delivery-platform: Actions: write, to start the branch and RC workflows.
+      - name: Get dispatch token (delivery-platform)
+        if: env.ACTS_LIVE == 'true' && (contains(vars.RELEASE_ACTIONS_LIVE, 'branch_cut') || contains(vars.RELEASE_ACTIONS_LIVE, 'rc'))
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: dispatchToken
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: delivery-platform
+          permission-actions: write
+
+      - name: Get milestones token (mattermost and enterprise)
+        if: env.ACTS_LIVE == 'true' && contains(vars.RELEASE_ACTIONS_LIVE, 'versions')
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: milestonesToken
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost,enterprise
+          permission-issues: write
+
+      - name: Run the release actions
+        working-directory: .github/scripts
+        env:
+          INPUT_RELEASE: ${{ inputs.release }}
+          RELEASE_ACTIONS_LIVE: ${{ env.ACTS_LIVE == 'true' && vars.RELEASE_ACTIONS_LIVE || '' }}
+          GH_TOKEN: ${{ steps.readToken.outputs.token }}
+          DISPATCH_TOKEN: ${{ steps.dispatchToken.outputs.token }}
+          MILESTONES_TOKEN: ${{ steps.milestonesToken.outputs.token }}
+          MM_TOKEN: ${{ secrets.RELEASE_AGENT_MM_TOKEN }}
+          JIRA_EMAIL: ${{ vars.RELEASE_AGENT_JIRA_EMAIL }}
+          JIRA_TOKEN: ${{ secrets.RELEASE_AGENT_JIRA_TOKEN }}
+          JIRA_WRITE_EMAIL: ${{ env.ACTS_LIVE == 'true' && vars.RELEASE_AGENT_JIRA_WRITE_EMAIL || '' }}
+          JIRA_WRITE_TOKEN: ${{ env.ACTS_LIVE == 'true' && secrets.RELEASE_AGENT_JIRA_WRITE_TOKEN || '' }}
+          GOOGLE_SA_KEY: ${{ secrets.RELEASE_DOCS_GOOGLE_SA_KEY }}
+          QA_SHEET_ID: ${{ vars.RELEASE_ACTIONS_QA_SHEET_ID }}
+          SCORECARD_SHEET_ID: ${{ vars.RELEASE_ACTIONS_SCORECARD_SHEET_ID }}
+          CALENDAR_ICS_URL: ${{ secrets.RELEASE_AGENT_CALENDAR_ICS_URL || vars.RELEASE_AGENT_CALENDAR_ICS_URL }}
+          TEST_CHANNEL_ID: ${{ vars.RELEASE_AGENT_TEST_CHANNEL_ID }}
+          LOG_CHANNEL_ID: ${{ vars.RELEASE_AGENT_LOG_CHANNEL_ID }}
+          PLAYBOOK_ID: ${{ vars.RELEASE_AGENT_PLAYBOOK_ID }}
+          RELEASE_CHANNEL_IDS: ${{ vars.RELEASE_AGENT_RELEASE_CHANNEL_IDS }}
+          HOLIDAYS_PAGE_ID: ${{ vars.RELEASE_AGENT_HOLIDAYS_PAGE_ID }}
+          PEOPLE: ${{ vars.RELEASE_AGENT_PEOPLE }}
+          OUT_DIR: ${{ runner.temp }}/release-actions
+        run: python3 -m release_agent actions --out-dir "$OUT_DIR"
+
+      # run.json only: details.txt and audit.txt can hold private details and go to Hub instead.
+      - name: Upload run.json
+        if: always()
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: release-actions-run
+          path: ${{ runner.temp }}/release-actions/run.json
+          if-no-files-found: warn
+          retention-days: 90
+
+      - name: Write to release-agent-log
+        if: always()
+        working-directory: .github/scripts
+        env:
+          JOB_STATUS: ${{ job.status }}
+          MM_TOKEN: ${{ secrets.RELEASE_AGENT_MM_TOKEN }}
+          LOG_CHANNEL_ID: ${{ vars.RELEASE_AGENT_LOG_CHANNEL_ID }}
+          OUT_DIR: ${{ runner.temp }}/release-actions
+        run: python3 -m release_agent actions-log --out-dir "$OUT_DIR"
