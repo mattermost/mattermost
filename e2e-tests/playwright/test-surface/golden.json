@@ -1,0 +1,8 @@
+{
+  "errors": {},
+  "ceilings": {
+    "allow": 0,
+    "strictExceptions": 0,
+    "actionLintDisables": 0
+  }
+}

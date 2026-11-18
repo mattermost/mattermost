@@ -1,0 +1,1 @@
+{"root": ".", "tsconfig": "tsconfig.json", "include": ["src"], "output": {"report": "test-surface.json"}, "entries": ["src/main.tsx"], "staleReferences": {"roots": ["e2e"], "allow": [{"testid": "computed-at-runtime", "reason": "built from a label at runtime"}]}}

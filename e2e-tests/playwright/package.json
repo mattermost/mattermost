@@ -1,14 +1,15 @@
 {
   "name": "mattermost-playwright",
   "workspaces": [
-    "lib"
+    "lib",
+    "test-surface"
   ],
   "scripts": {
     "postinstall": "script/post_install.sh && npm run build",
     "build": "npm run build --workspaces",
     "build:watch": "npm run build:watch --workspaces",
     "tsc": "npm run tsc --workspaces && tsc -b",
-    "lint": "eslint .",
+    "lint": "eslint . && npm run check --workspace @mattermost/test-surface",
     "lint:test-docs": "node script/lint-test-docs.js",
     "prettier": "prettier . --check",
     "prettier:fix": "prettier --write .",

@@ -1,0 +1,11 @@
+{
+    "version": 4,
+    "families": {},
+    "scopes": {},
+    "operations": {},
+    "sets": {},
+    "pages": {},
+    "pluginSlots": {
+        "channel_header_menu_item": "channel_header.menu.plugin:{key}--menuitem"
+    }
+}

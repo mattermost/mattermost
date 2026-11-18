@@ -1,0 +1,12 @@
+{
+    "pluginSlots": {
+        "channel_header_menu_item": {
+            "template": "channel_header.menu.plugin:{key}--menuitem",
+            "registry": ["registerChannelHeaderMenuAction"]
+        },
+        "user_settings_tab": {
+            "template": "user_settings_modal.tabs.plugin:{key}--tab",
+            "registry": ["registerUserSettings"]
+        }
+    }
+}
