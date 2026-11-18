@@ -26,11 +26,13 @@ import (
 //     holder with no rank counts for nothing.
 //   - graph: a holder at-or-above the candidate covers it (see CoveredBy).
 //   - select and multiselect: a candidate is covered only when it is itself one
-//     of the holders.
+//     of the holders. This is membership only and does not check that the
+//     option is still on the field, which shows the caller nothing they do not
+//     already hold.
 //
-// Missing data denies and never grants: no holders cover nothing, and an option
-// the field does not have (deleted, or never one of its options) has no rank, so
-// it is not covered even when it is among the holders.
+// Missing data denies and never grants: no holders cover nothing, and on a rank
+// field an option the field does not have (deleted, or never one of its
+// options) has no rank, so it is not covered even when it is among the holders.
 //
 // A field with no option list is refused, because asking about one is a caller
 // bug and not a "no". A failed lookup returns the error with a nil map, never a
