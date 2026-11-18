@@ -21,9 +21,7 @@ test('should be able to scroll the post list with page up and down', async ({pw}
     // # Press the page up key with the post textbox focused
     channelsPage.centerView.postCreate.input.focus();
     await page.keyboard.press('PageUp');
-    // Sample the in-progress scroll. Waiting until it settles lands on the top or bottom, so the next key cannot move further.
-    // Sample the in-progress scroll before it settles at the top or bottom.
-    await page.waitForTimeout(200);
+    await page.waitForTimeout(200); // Wait for the browser's page up/down animation
 
     // * Verify that the post list scrolled up by a page
     let currentScrollTop = await getScrollTop(page, '#postListScrollContainer');
@@ -32,7 +30,6 @@ test('should be able to scroll the post list with page up and down', async ({pw}
 
     // # Press the page up key with the post list focused
     await page.keyboard.press('PageUp');
-    // Sample the in-progress scroll before it settles at the top or bottom.
     await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled up another page
@@ -42,7 +39,6 @@ test('should be able to scroll the post list with page up and down', async ({pw}
 
     // # Press the page down key with the post list focused
     await page.keyboard.press('PageDown');
-    // Sample the in-progress scroll before it settles at the top or bottom.
     await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled back down a page
@@ -53,7 +49,6 @@ test('should be able to scroll the post list with page up and down', async ({pw}
     // # Press the page down key with the post textbox focused
     channelsPage.centerView.postCreate.input.focus();
     await page.keyboard.press('PageDown');
-    // Sample the in-progress scroll before it settles at the top or bottom.
     await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled back to the bottom
