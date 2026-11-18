@@ -631,7 +631,8 @@
         "RequirePluginSignature": null,
         "MarketplaceURL": null,
         "SignaturePublicKeyFiles": null,
-        "RestrictUnauthenticatedWebappPlugins": null
+        "RestrictUnauthenticatedWebappPlugins": null,
+        "CallsVersion": null
     },
     "DisplaySettings": {
         "CustomURLSchemes": null,

@@ -12975,6 +12975,26 @@
     "defaultMessage": "When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.",
     "description": "Help text for the Enable Automatic Prepackaged Plugins setting in System Console Plugin Management."
   },
+  "admin.plugins.settings.callsVersion": {
+    "defaultMessage": "Calls Version:",
+    "description": "Label for the dropdown in System Console Plugin Management that selects whether the prepackaged Calls plugin version 1 or version 2 is installed; ends with a colon."
+  },
+  "admin.plugins.settings.callsVersionAuto": {
+    "defaultMessage": "Automatic",
+    "description": "Option in the Calls Version dropdown in System Console Plugin Management meaning the server chooses the version: v1 while it is prepackaged, otherwise v2."
+  },
+  "admin.plugins.settings.callsVersionDesc": {
+    "defaultMessage": "Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.",
+    "description": "Help text for the Calls Version setting in System Console Plugin Management; explains Automatic, warns that switching disconnects active calls and to list them first with the /call list-all command, and explains how an uploaded Calls plugin interacts with the setting."
+  },
+  "admin.plugins.settings.callsVersionV1": {
+    "defaultMessage": "v1 (RTC / RTCD)",
+    "description": "Option in the Calls Version dropdown in System Console Plugin Management for Calls version 1, which uses the built-in RTC service or RTCD."
+  },
+  "admin.plugins.settings.callsVersionV2": {
+    "defaultMessage": "v2 (LiveKit)",
+    "description": "Option in the Calls Version dropdown in System Console Plugin Management for Calls version 2, which uses LiveKit."
+  },
   "admin.plugins.settings.enable": {
     "defaultMessage": "Enable Plugins: ",
     "description": "Setting label in System Console > Plugin Management for the toggle that enables the plugin framework; note the trailing colon and space."
