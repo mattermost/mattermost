@@ -127,6 +127,7 @@ export default class ChannelsPostCreate {
      * Sends the message already written in the input
      */
     async sendMessage() {
+        await this.closePlusMenu();
         await expect(this.input).toBeVisible();
         const messageInputValue = await this.getInputValue();
         expect(messageInputValue).not.toBe('');
@@ -150,10 +151,14 @@ export default class ChannelsPostCreate {
     }
 
     async closePlusMenu() {
-        if ((await this.plusButton.getAttribute('aria-expanded')) === 'true') {
-            await this.plusButton.click();
-            await expect(this.plusButton).toHaveAttribute('aria-expanded', 'false');
+        if ((await this.plusButton.getAttribute('aria-expanded')) !== 'true') {
+            return;
         }
+
+        // The open menu's backdrop covers the + button, so a click there never lands.
+        // Escape is what dismisses the menu.
+        await this.plusMenu.press('Escape');
+        await expect(this.plusButton).toHaveAttribute('aria-expanded', 'false');
     }
 
     /**
@@ -183,11 +188,13 @@ export default class ChannelsPostCreate {
     async expectAttachFilesEnabled(timeout?: number) {
         await this.openPlusMenu();
         await expect(this.attachFilesItem).toBeEnabled({timeout});
+        await this.closePlusMenu();
     }
 
     async expectAttachFilesDisabled(timeout?: number) {
         await this.openPlusMenu();
         await expect(this.attachFilesItem).toBeDisabled({timeout});
+        await this.closePlusMenu();
     }
 
     /**
@@ -354,9 +361,18 @@ export default class ChannelsPostCreate {
      * Toggle the burn-on-read feature for the message
      */
     async toggleBurnOnRead() {
+        const wasOn = await this.burnOnReadLabel.isVisible();
         await this.openPlusMenu();
         await expect(this.burnOnReadButton).toBeEnabled();
         await this.burnOnReadButton.click();
+
+        // The menu runs this item's action after its close animation. Wait until the
+        // label matches the new state so a later write is not overwritten by that action.
+        if (wasOn) {
+            await expect(this.burnOnReadLabel).toBeHidden();
+        } else {
+            await expect(this.burnOnReadLabel).toBeVisible();
+        }
     }
 
     /**
