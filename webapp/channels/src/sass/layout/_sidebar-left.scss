@@ -1352,11 +1352,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
         }
 
+        // In line with a channel row's menu button and the expand toggle, 16px from the edge.
         &__menu {
             position: absolute;
             z-index: 1;
             top: 4px;
-            right: 4px;
+            right: 16px;
             opacity: 0;
         }
 
@@ -1396,7 +1397,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &__row.hasMenu:hover > .SidebarChannelSubItem__link,
         &__row.hasMenu:focus-within > .SidebarChannelSubItem__link,
         &__row.hasMenu.menuOpen > .SidebarChannelSubItem__link {
-            padding-right: 32px;
+            padding-right: 44px;
         }
 
         // With .icon too, so it outranks #SidebarContainer .icon's inherited size, as channel icons do.
