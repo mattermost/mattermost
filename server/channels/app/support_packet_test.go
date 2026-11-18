@@ -724,7 +724,8 @@ func TestSupportPacketJobSummary(t *testing.T) {
 	readJobsFile := func(t *testing.T) (*model.SupportPacketJobList, string, []model.FileData) {
 		t.Helper()
 
-		files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: shortCPUProfileDuration})
+		// The CPU profiler is process-wide, so a parallel test must not start it.
+		files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: model.NewPointer(time.Duration(0))})
 		for _, file := range files {
 			if file.Filename == model.SupportPacketJobsFileName {
 				var jobs model.SupportPacketJobList
