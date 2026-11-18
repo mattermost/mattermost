@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"fmt"
+	"slices"
 	"testing"
 	"time"
 
@@ -149,6 +150,90 @@ func TestPropertyFieldOptionsPage(t *testing.T) {
 			require.NoError(t, err)
 			require.False(t, page.HasMore)
 			require.ElementsMatch(t, []string{"X", "Y", "Z", "A", "B", "C"}, named(ids, page.Options))
+		})
+	})
+}
+
+// TestPropertyFieldOptionsPageRank covers the rank branch of the filtered page:
+// a candidate passes when its rank is at or below the highest rank held.
+func TestPropertyFieldOptionsPageRank(t *testing.T) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
+		groupID := model.NewId()
+		fieldStore := ss.PropertyField().(*SqlPropertyFieldStore)
+
+		// All options of one Create share a CreateAt, so the page order is the ID
+		// order; sorted IDs make Internal, Secret, Top Secret, Unranked the
+		// listing order.
+		raw := []string{model.NewId(), model.NewId(), model.NewId(), model.NewId()}
+		slices.Sort(raw)
+		internal, secret, topSecret, unranked := raw[0], raw[1], raw[2], raw[3]
+		names := map[string]string{internal: "Internal", secret: "Secret", topSecret: "Top Secret", unranked: "Unranked"}
+
+		template, err := ss.PropertyField().Create(&model.PropertyField{
+			GroupID:    groupID,
+			Name:       "RankPage-" + model.NewId(),
+			Type:       model.PropertyFieldTypeRank,
+			ObjectType: model.PropertyFieldObjectTypeTemplate,
+			TargetType: string(model.PropertyFieldTargetLevelSystem),
+			Attrs: model.StringInterface{"options": []any{
+				map[string]any{"id": internal, "name": "Internal", "rank": 1},
+				map[string]any{"id": secret, "name": "Secret", "rank": 2},
+				map[string]any{"id": topSecret, "name": "Top Secret", "rank": 3},
+				map[string]any{"id": unranked, "name": "Unranked"},
+			}},
+		})
+		require.NoError(t, err)
+
+		// walk pages the whole listing and returns the names it reached, in order.
+		walk := func(t *testing.T, field *model.PropertyField, coveredBy []string, perPage, maxCandidates int) []string {
+			t.Helper()
+			filter := &model.PropertyFieldOptionPageFilter{CoveredBy: coveredBy}
+			reached := []string{}
+			var createAt int64
+			var cursor string
+			for {
+				page, err := fieldStore.getFieldOptionsPage(field, createAt, cursor, perPage, filter, maxCandidates)
+				require.NoError(t, err)
+				for _, option := range page.Options {
+					reached = append(reached, names[option.ID])
+				}
+				if !page.HasMore {
+					return reached
+				}
+				createAt, cursor = page.NextCursorCreateAt, page.NextCursorID
+			}
+		}
+
+		t.Run("pages every option at or below the highest held rank", func(t *testing.T) {
+			require.Equal(t, []string{"Internal"}, walk(t, template, []string{internal}, 1, 2000))
+			require.Equal(t, []string{"Internal", "Secret"}, walk(t, template, []string{secret}, 1, 2000))
+			require.Equal(t, []string{"Internal", "Secret", "Top Secret"}, walk(t, template, []string{topSecret}, 1, 2000))
+		})
+
+		t.Run("the highest of several held options counts", func(t *testing.T) {
+			require.Equal(t, []string{"Internal", "Secret"}, walk(t, template, []string{internal, secret}, 5, 2000))
+		})
+
+		t.Run("an unranked or unknown held option covers nothing", func(t *testing.T) {
+			require.Empty(t, walk(t, template, []string{unranked}, 5, 2000))
+			require.Empty(t, walk(t, template, []string{model.NewId()}, 5, 2000))
+		})
+
+		t.Run("a small candidate window still reaches every passing option", func(t *testing.T) {
+			require.Equal(t, []string{"Internal", "Secret", "Top Secret"}, walk(t, template, []string{topSecret}, 1, 1))
+		})
+
+		t.Run("a linked field pages its template's options by the same rule", func(t *testing.T) {
+			linked, err := ss.PropertyField().Create(&model.PropertyField{
+				GroupID:       groupID,
+				Name:          "RankPageLinked-" + model.NewId(),
+				Type:          model.PropertyFieldTypeRank,
+				ObjectType:    model.PropertyFieldObjectTypeUser,
+				TargetType:    string(model.PropertyFieldTargetLevelSystem),
+				LinkedFieldID: &template.ID,
+			})
+			require.NoError(t, err)
+			require.Equal(t, []string{"Internal", "Secret"}, walk(t, linked, []string{secret}, 1, 2000))
 		})
 	})
 }

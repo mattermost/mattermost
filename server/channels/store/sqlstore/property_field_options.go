@@ -406,6 +406,9 @@ func (s *SqlPropertyFieldStore) unfilteredFieldOptionsPage(replica *sqlxDBWrappe
 // covered's seeds come from PropertyOptions rather than straight from
 // coveredBy, so a held option that is no longer live reaches nothing.
 //
+// A rank field has no edges, so it swaps covered for a number: a candidate passes
+// when its Rank is at or below the highest Rank among the live coveredBy options.
+//
 // LIMIT applies to candidates, after covered has already been computed in
 // full -- so a page comes back full while options remain, rather than being
 // filtered down from a LIMIT taken before the masking. That is the whole point
@@ -445,15 +448,31 @@ func (s *SqlPropertyFieldStore) filteredFieldOptionsPage(replica *sqlxDBWrapper,
 	pageBuilder := s.getQueryBuilder().
 		Select(propertyOptionColumns...).
 		From("candidates").
-		Where("ID IN (SELECT OptionID FROM covered)").
 		OrderBy("CreateAt ASC", "ID ASC").
-		Limit(uint64(perPage)).
-		Prefix(`WITH RECURSIVE covered (OptionID) AS (
+		Limit(uint64(perPage))
+	if field.Type == model.PropertyFieldTypeRank {
+		// A rank field has no edges: coverage is a number, the highest rank held.
+		// MAX over no rows is NULL, so held options that are unranked, deleted or
+		// not in the field's set cover nothing, as does a NULL candidate rank.
+		maxHeldRank := s.getSubQueryBuilder().
+			Select("MAX(held.Rank)").
+			From("PropertyOptions held").
+			Where(sq.Eq{"held.FieldID": optionOwnerIDs(field)}).
+			Where(sq.Eq{"held.ID": coveredBy}).
+			Where(sq.Eq{"held.DeleteAt": 0})
+		pageBuilder = pageBuilder.
+			Where(sq.Expr("Rank <= (?)", maxHeldRank)).
+			Prefix("WITH candidates AS (?)", candidatesQuery())
+	} else {
+		pageBuilder = pageBuilder.
+			Where("ID IN (SELECT OptionID FROM covered)").
+			Prefix(`WITH RECURSIVE covered (OptionID) AS (
 			? UNION
 			SELECT edge.ChildOptionID FROM PropertyOptionEdges edge
 			JOIN covered ON covered.OptionID = edge.ParentOptionID
 			WHERE edge.FieldID = ?
 		), candidates AS (?)`, coveredSeeds, ownerID, candidatesQuery())
+	}
 
 	rows := []*propertyOptionRow{}
 	if err := replica.SelectBuilder(&rows, pageBuilder); err != nil {

@@ -1897,7 +1897,11 @@ func newMaskedListFixture(t *testing.T, th *TestHelper, fieldType model.Property
 // Top Secret > Secret > Internal options.
 func (f *maskedListFixture) newTemplate(t *testing.T, name string) *model.PropertyField {
 	t.Helper()
-	options := []any{map[string]any{"name": "Top Secret"}, map[string]any{"name": "Secret"}, map[string]any{"name": "Internal"}}
+	options := []any{
+		map[string]any{"name": "Top Secret", "rank": 3},
+		map[string]any{"name": "Secret", "rank": 2},
+		map[string]any{"name": "Internal", "rank": 1},
+	}
 	if f.fieldType == model.PropertyFieldTypeGraph {
 		options = []any{
 			map[string]any{"name": "Top Secret"},
