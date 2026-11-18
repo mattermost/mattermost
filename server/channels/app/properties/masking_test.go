@@ -80,6 +80,18 @@ func (c *countingPropertyFieldStore) GetLinkedFields(fieldIDs, excludeIDs []stri
 	return c.PropertyFieldStore.GetLinkedFields(fieldIDs, excludeIDs)
 }
 
+// countingOptionPageStore counts the option pages read from the store, so a
+// test can assert a listing the hook refused never reached it.
+type countingOptionPageStore struct {
+	store.PropertyFieldStore
+	pages int
+}
+
+func (c *countingOptionPageStore) GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error) {
+	c.pages++
+	return c.PropertyFieldStore.GetFieldOptions(field, cursorCreateAt, cursorID, perPage, filter)
+}
+
 func TestResolveFieldMasking(t *testing.T) {
 	th := Setup(t).RegisterCPAPropertyGroup(t)
 	h := th.service.accessControlHookForTests()
@@ -2059,6 +2071,39 @@ func TestMaskingHoldingsOnAnotherOptionList(t *testing.T) {
 			})
 		}
 	}
+
+	t.Run("the listing is refused up front, without scanning the field's rows", func(t *testing.T) {
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeRank, model.PropertyFieldTypeGraph} {
+			for _, b := range holdingsBreaks {
+				t.Run(string(fieldType)+": holdings field "+b.name, func(t *testing.T) {
+					f := newMaskedListFixture(t, th, fieldType, "Foreign-Filter-"+b.name)
+					b.apply(t, f)
+					// The unlinked holdings field keeps the template's option IDs, so
+					// the caller holds IDs the masked list also has.
+					caller := model.NewId()
+					writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+					ctx := RequestContextWithCallerID(th.Context, caller)
+
+					filter, err := h.PreGetPropertyFieldOptions(ctx, f.linked, nil)
+					require.NoError(t, err)
+					require.NotNil(t, filter)
+					assert.True(t, filter.ShowNothing)
+					assert.Empty(t, filter.CoveredBy)
+
+					counter := &countingOptionPageStore{PropertyFieldStore: th.service.fieldStore}
+					th.service.fieldStore = counter
+					t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+					page, err := th.service.GetFieldOptions(ctx, f.linked.GroupID, f.linked.ID, 0, "", 1)
+					require.NoError(t, err)
+					assert.Empty(t, page.Options)
+					assert.False(t, page.HasMore)
+					assert.Zero(t, counter.pages, "no option row is scanned for a page the hook already knows is empty")
+				})
+			}
+		}
+	})
 
 	t.Run("a batch read of several values on such a field reads the holdings field once", func(t *testing.T) {
 		f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "Foreign-Batch")
