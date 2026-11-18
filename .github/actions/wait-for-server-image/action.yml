@@ -12,7 +12,7 @@ inputs:
   timeout-minutes:
     description: How long to keep polling while the registry answers "not found"
     required: false
-    default: "30"
+    default: "5"
   interval-seconds:
     description: Seconds between polls
     required: false

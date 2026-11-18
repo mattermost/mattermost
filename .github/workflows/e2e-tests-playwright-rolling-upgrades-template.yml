@@ -261,24 +261,6 @@ jobs:
           persist-credentials: false
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 1
-      # The FIPS image can be pushed well after the run is dispatched (17-22 minutes on master in Nov 2026).
-      # Wait here, before the run begins, so the workers don't all fail their pull. The action comes from
-      # this workflow's own ref: a tested commit may predate it.
-      - name: ci/checkout-trusted-actions
-        if: inputs.server_edition == 'fips'
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-        with:
-          persist-credentials: false
-          ref: ${{ github.sha }}
-          sparse-checkout: .github
-          path: .e2e-trusted
-          fetch-depth: 1
-      - name: ci/wait-for-server-image
-        if: inputs.server_edition == 'fips'
-        timeout-minutes: 35
-        uses: ./.e2e-trusted/.github/actions/wait-for-server-image
-        with:
-          image: ${{ env.SERVER_IMAGE }}
       - name: ci/dispatch-begin
         uses: mattermost/mattermost-test-system-io/.github/actions/test-system-io-dispatch-begin@c31c00f723b0b1c3e1d6b45a50b938d5afae729f # 2026-11-09 (#132)
         with:

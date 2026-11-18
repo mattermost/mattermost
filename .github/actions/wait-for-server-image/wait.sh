@@ -7,7 +7,7 @@ set -euo pipefail
 
 REGISTRY_URL="${REGISTRY_URL:-https://registry-1.docker.io}"
 AUTH_URL="${AUTH_URL:-https://auth.docker.io}"
-TIMEOUT_MINUTES="${TIMEOUT_MINUTES:-30}"
+TIMEOUT_MINUTES="${TIMEOUT_MINUTES:-5}"
 INTERVAL_SECONDS="${INTERVAL_SECONDS:-30}"
 
 if ! [[ "${IMAGE:-}" =~ ^([a-z0-9._-]+/[a-z0-9._-]+):([A-Za-z0-9._-]+)$ ]]; then

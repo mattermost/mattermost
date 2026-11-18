@@ -205,8 +205,20 @@ jobs:
 
   # Enterprise FIPS Edition
   # FIPS builds were introduced in release-11.0; skip for older branches.
-  e2e-cypress-fips:
+  # A FIPS image can be pushed after this run is dispatched; its lanes start only once it is published.
+  wait-for-fips-server-image:
     needs: generate-build-variables
+    if: needs.generate-build-variables.outputs.fips_supported == 'true'
+    permissions:
+      contents: read
+    uses: ./.github/workflows/wait-for-server-image.yml
+    with:
+      server_image: mattermostdevelopment/mattermost-enterprise-fips-edition:${{ inputs.server_image_tag }}
+
+  e2e-cypress-fips:
+    needs:
+      - generate-build-variables
+      - wait-for-fips-server-image
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
     permissions:
       actions: read
@@ -236,6 +248,7 @@ jobs:
     needs:
       - generate-build-variables
       - check-changes
+      - wait-for-fips-server-image
     if: needs.generate-build-variables.outputs.fips_supported == 'true'
     permissions:
       actions: read

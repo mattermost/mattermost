@@ -436,25 +436,39 @@ class InfrastructureRetries(unittest.TestCase):
         self.assertEqual(self.run_api_wait('4000 1000300'), 60)
         self.assertEqual(self.run_api_wait(None), 60)
 
-    def test_fips_lanes_wait_for_their_image_before_the_run_begins(self):
-        """FIPS lanes wait for their server image, loaded from this workflow's own ref, before the run begins."""
+    def test_fips_lanes_need_the_image_gate_outside_the_e2e_templates(self):
+        """Every FIPS lane caller needs its own image gate, under the same condition; the templates do not wait."""
+        gate_uses = './.github/workflows/wait-for-server-image.yml'
+        for caller, repo, tag in (('ci', 'mattermostdevelopment', '${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}'),
+                                  ('on-merge', 'mattermostdevelopment', '${{ inputs.server_image_tag }}'),
+                                  ('on-release', 'mattermost', '${{ inputs.server_image_tag }}')):
+            with self.subTest(caller=caller):
+                jobs = workflow(caller)['jobs']
+                gate = jobs['wait-for-fips-server-image']
+                self.assertEqual(gate['uses'], gate_uses)
+                self.assertEqual(gate['with'], {'server_image': f'{repo}/mattermost-enterprise-fips-edition:{tag}'})
+                lanes = {name: job for name, job in jobs.items() if job.get('with', {}).get('server_edition') == 'fips'}
+                self.assertEqual(sorted(lanes), ['e2e-cypress-fips', 'e2e-playwright-fips'])
+                for name, lane in lanes.items():
+                    self.assertIn('wait-for-fips-server-image', lane['needs'])
+                    self.assertEqual(lane['if'], gate['if'], name)
+                    self.assertEqual(lane['with']['server_image_tag'], tag)
+                    self.assertEqual(lane['with'].get('server_image_repo', 'mattermostdevelopment'), repo)
         for name in self.TEMPLATES:
             with self.subTest(template=name):
-                job = workflow(name)['jobs']['dispatch-begin']
-                names = [s.get('name') for s in job['steps']]
-                checkout, wait = step(job, 'ci/checkout-trusted-actions'), step(job, 'ci/wait-for-server-image')
-                self.assertEqual(names.index('ci/checkout-trusted-actions') + 1, names.index('ci/wait-for-server-image'))
-                self.assertLess(names.index('ci/checkout-repo'), names.index('ci/checkout-trusted-actions'))
-                self.assertLess(names.index('ci/wait-for-server-image'), names.index('ci/dispatch-begin'))
-                self.assertEqual(checkout['with'], {
-                    'persist-credentials': False, 'ref': '${{ github.sha }}',
-                    'sparse-checkout': '.github', 'path': '.e2e-trusted', 'fetch-depth': 1,
-                })
-                self.assertEqual(wait['uses'], './.e2e-trusted/.github/actions/wait-for-server-image')
-                self.assertEqual(wait['with'], {'image': '${{ env.SERVER_IMAGE }}'})
-                for s in (checkout, wait):
-                    self.assertEqual(s['if'], "inputs.server_edition == 'fips'")
-                self.assertNotIn('continue-on-error', wait)
+                self.assertNotIn('wait-for-server-image', (WORKFLOWS / f'e2e-tests-{name}.yml').read_text())
+
+    def test_image_gate_waits_five_minutes_within_a_ten_minute_limit(self):
+        """The gate polls for 5 minutes by default, and its job is cut off at 10."""
+        gate = yaml.safe_load((WORKFLOWS / 'wait-for-server-image.yml').read_text())['jobs']['wait-for-server-image']
+        self.assertEqual(gate['timeout-minutes'], 10)
+        wait = step(gate, 'ci/wait-for-server-image')
+        self.assertEqual(wait['uses'], './.github/actions/wait-for-server-image')
+        self.assertEqual(wait['with'], {'image': '${{ inputs.server_image }}'})
+        self.assertNotIn('continue-on-error', wait)
+        action = yaml.safe_load((GITHUB / 'actions' / 'wait-for-server-image' / 'action.yml').read_text())
+        self.assertEqual(action['inputs']['timeout-minutes']['default'], '5')
+        self.assertIn('TIMEOUT_MINUTES="${TIMEOUT_MINUTES:-5}"', self.WAIT_SCRIPT.read_text())
 
     def run_image_wait(self, code, timeout_minutes='0'):
         """Runs wait.sh with a fake registry that answers code for the manifest; returns the completed process."""
