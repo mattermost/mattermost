@@ -1,0 +1,6 @@
+dist/
+reports/
+spike/
+
+# fixtures that stand in for an installed package
+!test/fixtures/*/node_modules/

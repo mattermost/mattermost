@@ -1,0 +1,16 @@
+{
+    "version": 4,
+    "families": {
+        "PluginsCalls": {"parts":{"start":{"role":"button"},"status":{"role":"text"}}}
+    },
+    "scopes": {
+        "plugins.calls": {"family":"PluginsCalls"}
+    },
+    "operations": {
+        "StartCall": {"body":null,"method":"POST","path":"/plugins/com.mattermost.calls/calls/{channel_id}"}
+    },
+    "sets": {},
+    "pages": {},
+    "pluginSlots": {},
+    "plugin": {"id":"com.mattermost.calls","scope":"plugins.calls","slots":["channel_header_menu_item"]}
+}

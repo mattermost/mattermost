@@ -1,0 +1,24 @@
+/api/v4/channels/{channel_id}/patch:
+  put:
+    operationId: PatchChannel
+    responses:
+      "200":
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Channel"
+/api/v4/users/{user_id}:
+  get:
+    operationId: GetUser
+    responses:
+      "200":
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/User"
+/api/v4/logs:
+  post:
+    operationId: PostLog
+    responses:
+      "200":
+        description: ok

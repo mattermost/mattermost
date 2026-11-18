@@ -1,0 +1,1 @@
+{"root": ".", "tsconfig": "tsconfig.json", "include": ["src"], "libraries": [{"package": "compass", "parts": "lib/compass/test-parts.json"}], "output": {"report": "test-surface.json"}, "checks": {"strictPaths": ["src/"]}}
