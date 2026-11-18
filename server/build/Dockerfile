@@ -41,7 +41,8 @@ RUN apk add --no-cache --no-scripts --root /base-chroot \
 # CJK PDFs: Wolfi has no poppler-data package. Pinned and checksummed until it ships one.
 ARG POPPLER_DATA_VERSION=0.4.12
 ARG POPPLER_DATA_SHA256=c835b640a40ce357e1b83666aabd95edffa24ddddd49b8daff63adb851cdab74
-RUN curl -fsSL "https://poppler.freedesktop.org/poppler-data-${POPPLER_DATA_VERSION}.tar.gz" \
+RUN curl -fsSL --retry 3 --connect-timeout 30 --max-time 120 \
+      "https://poppler.freedesktop.org/poppler-data-${POPPLER_DATA_VERSION}.tar.gz" \
       -o /tmp/poppler-data.tar.gz \
   && echo "${POPPLER_DATA_SHA256}  /tmp/poppler-data.tar.gz" | sha256sum -c - \
   && tar -xzf /tmp/poppler-data.tar.gz -C /tmp --no-same-owner \

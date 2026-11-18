@@ -27,7 +27,7 @@ test(
         test.skip(isFips, 'The FIPS image (Dockerfile.fips) does not ship pdfinfo or poppler-data');
 
         // # Log in and post the PDF (message must not contain the search term)
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {page, channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, 'off-topic');
         await channelsPage.toBeVisible();
         await channelsPage.postMessage(`pdf extract search ${pw.random.id()}`, [pdfFile]);
@@ -36,18 +36,26 @@ test(
         const post = await channelsPage.getLastPost();
         await expect(post.container.getByText(pdfFile, {exact: true})).toBeVisible();
 
-        // * Verify the PDF is found by its extracted content
+        // # Search until the files search returns the PDF (the upload may still be indexing)
         await expect
             .poll(
                 async () => {
+                    const filesSearch = page.waitForResponse(
+                        (response) =>
+                            response.url().includes('/files/search') && response.request().method() === 'POST',
+                    );
                     await channelsPage.globalHeader.openSearch();
                     await channelsPage.searchBox.search(contentTerm);
-                    await channelsPage.searchResultsPanel.toBeVisible();
-                    await channelsPage.searchResultsPanel.filesTab.click();
-                    return channelsPage.searchResultsPanel.container.getByText(pdfFile, {exact: true}).isVisible();
+                    const {file_infos: fileInfos = {}} = await (await filesSearch).json();
+                    return Object.values<{name: string}>(fileInfos).some(({name}) => name === pdfFile);
                 },
                 {timeout: pw.duration.half_min},
             )
             .toBe(true);
+
+        // * Verify the PDF is found by its extracted content
+        await channelsPage.searchResultsPanel.toBeVisible();
+        await channelsPage.searchResultsPanel.filesTab.click();
+        await expect(channelsPage.searchResultsPanel.container.getByText(pdfFile, {exact: true})).toBeVisible();
     },
 );

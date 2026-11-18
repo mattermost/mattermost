@@ -159,29 +159,39 @@ jobs:
         run: |
           echo "TAG=$(echo "${WORKFLOW_RUN_HEAD_SHA}" | cut -c1-7)" >> $GITHUB_OUTPUT
 
-      - name: cd/docker-build-and-push
-        id: docker
+      - name: cd/docker-build-and-push-by-digest
+        id: build
         env:
           MM_PACKAGE: https://pr-builds.mattermost.com/mattermost/commit/${{ inputs.head-sha }}/mattermost-team-linux-amd64.tar.gz
-          TAG: ${{ steps.set_tag.outputs.TAG }}
         run: |
           cd server/build
-          # Push untagged (by digest) with provenance, check that exact image, then publish the tags from it.
+          # Pushed untagged, so nothing is published until the checks pass.
           docker buildx build --no-cache --platform linux/amd64 --provenance=mode=min \
             --build-arg MM_PACKAGE=${MM_PACKAGE} \
             --output type=image,name=mattermostdevelopment/mattermost-team-edition,push-by-digest=true,push=true \
             --metadata-file "${RUNNER_TEMP}/build-metadata.json" .
-          IMAGE="mattermostdevelopment/mattermost-team-edition@$(jq -r '."containerimage.digest"' "${RUNNER_TEMP}/build-metadata.json")"
+          echo "IMAGE=mattermostdevelopment/mattermost-team-edition@$(jq -r '."containerimage.digest"' "${RUNNER_TEMP}/build-metadata.json")" >> "${GITHUB_OUTPUT}"
 
-          # Document extraction tools must start in the image; a failure here blocks publishing the tags.
+      - name: cd/check-document-extraction
+        env:
+          IMAGE: ${{ steps.build.outputs.IMAGE }}
+        run: |
+          cd server/build
           for check in "pdfinfo -v" "pdftotext -v" "unrtf --version" "tidy -v"; do
             read -r bin flag <<< "${check}"
             docker run --rm --entrypoint "/usr/bin/${bin}" "${IMAGE}" "${flag}"
           done
           # CJK PDF text only extracts with poppler-data CMaps.
-          docker run --rm -v "${PWD}/testdata:/testdata:ro" --entrypoint /usr/bin/pdftotext "${IMAGE}" \
-            -q /testdata/pdf-cmap-canary.pdf - | grep -q popplercmapcanary
+          text="$(docker run --rm -v "${PWD}/testdata:/testdata:ro" --entrypoint /usr/bin/pdftotext "${IMAGE}" \
+            -q /testdata/pdf-cmap-canary.pdf -)"
+          grep -q popplercmapcanary <<< "${text}"
 
+      - name: cd/docker-publish-tags
+        id: docker
+        env:
+          IMAGE: ${{ steps.build.outputs.IMAGE }}
+          TAG: ${{ steps.set_tag.outputs.TAG }}
+        run: |
           docker buildx imagetools create \
             -t mattermostdevelopment/mm-te-test:${TAG} \
             -t mattermostdevelopment/mattermost-team-edition:${TAG} \
