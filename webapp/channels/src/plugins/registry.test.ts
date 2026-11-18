@@ -208,6 +208,13 @@ describe('PluginRegistry — registerProductRailChannelSection', () => {
         expect(getSections()).toEqual([expect.objectContaining({id, pluginId: PLUGIN_ID, matcher, label: 'Docs', icon: 'file-text-outline', emptyState: 'No spaces'})]);
     });
 
+    it('keeps the section\'s sidebar wording', () => {
+        const sidebarMessages = {categoryName: {id: 'docs.spaces', defaultMessage: 'SPACES'}};
+        new PluginRegistry(PLUGIN_ID).registerProductRailChannelSection({matcher: () => true, label: 'Docs', icon: 'file-text-outline', sidebarMessages});
+
+        expect(getSections()[0].sidebarMessages).toBe(sidebarMessages);
+    });
+
     it('ignores a registration without a matcher', () => {
         const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
         new PluginRegistry(PLUGIN_ID).registerProductRailChannelSection({matcher: undefined as never, label: 'Docs', icon: 'file-text-outline'});

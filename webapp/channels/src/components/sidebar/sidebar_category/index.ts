@@ -13,7 +13,7 @@ import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entit
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {getCategoryIdsHiddenByProductRail, getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
-import {getProductRailFilter} from 'selectors/views/product_rail';
+import {getProductRailFilter, getProductRailSectionMessages} from 'selectors/views/product_rail';
 
 import type {GlobalState} from 'types/store';
 
@@ -36,6 +36,7 @@ function makeMapStateToProps() {
             channelIds,
             hiddenByProductRail,
             channelKind: getProductRailFilter(state) === 'boards' ? 'board' as const : 'channel' as const,
+            channelsCategoryName: getProductRailSectionMessages(state)?.categoryName,
             draggingState: getDraggingState(state),
             currentUserId: getCurrentUserId(state),
             isAdmin: isAdmin(getCurrentUser(state).roles),

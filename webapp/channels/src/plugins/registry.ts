@@ -1676,7 +1676,10 @@ export default class PluginRegistry {
      * `matcher` receives the full GlobalState and a Channel, as for registerChannelKind; throws are
      * caught and treated as no-match. `label` names the item under its icon; `icon` is a compass
      * glyph name or an element. `emptyState` is shown at the top of the sidebar while none of the
-     * team's channels match. A plugin gets one section: later registrations from it are ignored.
+     * team's channels match. `sidebarMessages` renames the sidebar's list while the section is
+     * selected (category header, Add button, quick switcher), as Boards' own wording does; each is a
+     * message the plugin registered with registerTranslations. A plugin gets one section: later
+     * registrations from it are ignored.
      * Registrations are cleaned up automatically when the plugin is removed.
      *
      * @example
@@ -1685,15 +1688,17 @@ export default class PluginRegistry {
      *     label: 'Docs',
      *     icon: 'file-document-outline',
      *     emptyState: <NoSpaces/>,
+     *     sidebarMessages: {categoryName: {id: 'docs.spaces', defaultMessage: 'SPACES'}},
      * });
      *
      * @returns Auto-generated unique id for this registration.
      */
-    registerProductRailChannelSection = reArg(['matcher', 'label', 'icon', 'emptyState'], ({matcher, label, icon, emptyState}: {
+    registerProductRailChannelSection = reArg(['matcher', 'label', 'icon', 'emptyState', 'sidebarMessages'], ({matcher, label, icon, emptyState, sidebarMessages}: {
         matcher: ProductRailChannelSectionRegistration['matcher'];
         label: ReactResolvable;
         icon: ReactResolvable;
         emptyState?: ReactResolvable;
+        sidebarMessages?: ProductRailChannelSectionRegistration['sidebarMessages'];
     }) => {
         const id = generateId();
         if (typeof matcher !== 'function') {
@@ -1708,6 +1713,7 @@ export default class PluginRegistry {
             label: resolveReactElement(label),
             icon: typeof icon === 'string' ? icon : resolveReactElement(icon),
             emptyState: resolveReactElement(emptyState),
+            sidebarMessages,
         });
         return id;
     });

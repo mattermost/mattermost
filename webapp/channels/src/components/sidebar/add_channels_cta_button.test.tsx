@@ -97,6 +97,62 @@ describe('components/new_channel_modal', () => {
         mockRailKind = 'channel';
     });
 
+    describe('on a plugin\'s product rail section', () => {
+        const createSpaceAction = jest.fn();
+        const createSpaceItem = {
+            id: 'create_space',
+            pluginId: 'conflux',
+            text: 'Create new space',
+            action: createSpaceAction,
+            icon: <i className='icon-book-outline'/>,
+            placement: 'afterCreateChannel' as const,
+        };
+        const withDocsSection = (menuItems = [createSpaceItem]) => ({
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                general: {config: {FeatureFlagProductRail: 'true'}},
+            },
+            plugins: {
+                components: {
+                    ProductRailChannelSection: [{
+                        id: 'docs',
+                        pluginId: 'conflux',
+                        label: 'Docs',
+                        icon: 'file-text-outline',
+                        matcher: () => false,
+                        sidebarMessages: {addChannels: {id: 'conflux.addSpaces', defaultMessage: 'Add Spaces'}},
+                    }],
+                    SidebarBrowseOrAddChannelMenu: menuItems,
+                },
+            },
+            views: {
+                ...initialState.views,
+                productRail: {section: 'plugin:conflux' as const, lastPathByTeam: {}, lastPathsLoaded: false},
+            },
+        });
+
+        beforeEach(() => {
+            createSpaceAction.mockClear();
+        });
+
+        test('should name the button with the section\'s wording and offer its plugin\'s create item', async () => {
+            renderWithContext(<AddChannelsCtaButton/>, withDocsSection());
+
+            await userEvent.click(screen.getByRole('button', {name: /add spaces/i}));
+
+            expect(screen.queryByText('Create new channel')).not.toBeInTheDocument();
+            await userEvent.click(screen.getByRole('menuitem', {name: /create new space/i}));
+            await waitFor(() => expect(createSpaceAction).toHaveBeenCalledWith('current_team_id'));
+        });
+
+        test('should keep the channel wording when the section\'s plugin offers no create item', () => {
+            renderWithContext(<AddChannelsCtaButton/>, withDocsSection([{...createSpaceItem, pluginId: 'tasks'}]));
+
+            expect(screen.getByRole('button', {name: /add channels/i})).toBeInTheDocument();
+        });
+    });
+
     describe('on the Boards item of the product rail', () => {
         const createBoardAction = jest.fn();
         const withBoardMenuItem = {

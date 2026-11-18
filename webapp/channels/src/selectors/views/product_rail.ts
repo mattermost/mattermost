@@ -18,7 +18,7 @@ import {getIsMobileView} from 'selectors/views/browser';
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-import type {ProductRailChannelSectionRegistration} from 'types/store/plugins';
+import type {ProductRailChannelSectionRegistration, ProductRailSectionMessages} from 'types/store/plugins';
 import type {PluginProductRailSection, ProductRailSection, ProductRailTab} from 'types/store/views';
 
 /**
@@ -145,6 +145,16 @@ export function getPluginRailSectionRegistration(state: GlobalState, section: Pr
         return undefined;
     }
     return getPluginRailSections(state).find((registration) => pluginRailSection(registration.pluginId) === section);
+}
+
+/** The selected plugin section's sidebar wording, while the sidebar is narrowed to it. */
+export function getProductRailSectionMessages(state: GlobalState): ProductRailSectionMessages | undefined {
+    return getPluginRailSectionRegistration(state, getProductRailFilter(state))?.sidebarMessages;
+}
+
+/** The id of the plugin whose section narrows the sidebar, if one does. */
+export function getProductRailSectionPluginId(state: GlobalState): string | undefined {
+    return getPluginRailSectionRegistration(state, getProductRailFilter(state))?.pluginId;
 }
 
 const emptyChannelIds = new Set<string>();
