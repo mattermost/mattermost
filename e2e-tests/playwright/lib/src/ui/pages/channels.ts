@@ -21,6 +21,7 @@ import {
     NewChannelModal,
     components,
     ChannelsSidebarLeft,
+    ChannelsSidebarRight,
 } from '@/ui/components';
 import {duration} from '@/util';
 
@@ -35,7 +36,7 @@ export default class ChannelsPage {
     readonly searchBox;
     readonly centerView;
     readonly sidebarLeft;
-    readonly sidebarRight;
+    readonly sidebarRight: ChannelsSidebarRight;
     readonly appBar;
     readonly userProfilePopover;
     readonly messagePriority;

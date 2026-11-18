@@ -19,7 +19,7 @@ test('should be able to scroll the RHS with page up and down', async ({pw}) => {
     }
 
     const threadList = channelsPage.sidebarRight.threadList;
-    const readScrollTop = () => threadList.evaluate((el) => el.scrollTop);
+    const readScrollTop = () => threadList.evaluate((el: HTMLElement) => el.scrollTop);
     let lastScrollTop = await readScrollTop();
 
     // The sample has to land while the browser is still scrolling. Waiting until the

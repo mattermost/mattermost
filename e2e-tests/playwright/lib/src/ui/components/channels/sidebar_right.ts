@@ -34,7 +34,7 @@ export default class ChannelsSidebarRight {
     readonly channelBanner;
     readonly notificationSeparator;
     readonly mobileSearchInput;
-    readonly threadList;
+    readonly threadList: Locator;
     readonly attributes: ChannelInfoAttributes;
     readonly threadAttributes: ChannelAttributeLabels;
 
