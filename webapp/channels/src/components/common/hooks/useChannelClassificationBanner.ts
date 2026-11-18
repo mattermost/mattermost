@@ -174,7 +174,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
             CHANNEL_OBJECT_TYPE,
             SYSTEM_TARGET_TYPE,
             SYSTEM_TARGET_ID,
-        ));
+        )).catch(() => {});
     }, [attributesEnabled, hasAdvancedLicense, channelFields.length, dispatch]);
 
     // Returns every access_control value on the channel, so this also feeds the
