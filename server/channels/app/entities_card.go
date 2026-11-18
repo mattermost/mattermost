@@ -21,6 +21,12 @@ func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.Enti
 		return nil, model.NewAppError("GetEntityCard", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
 
+	// Only a built-in type is described with no post. A glossary term and any
+	// other type stay on the post-scoped routes, and an unknown value of a
+	// plugin type gets the same refusal as a registered one.
+	if typeID != entities.CoreTimeTypeID {
+		return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+	}
 	card, remote, err := entities.Prepare(rctx.Context(), typeID, value, 0)
 	if err != nil {
 		return nil, model.NewAppError("GetEntityCard", "api.context.invalid_url_param.app_error", map[string]any{"Name": "value"}, err.Error(), http.StatusBadRequest)
@@ -265,18 +271,30 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 }
 
 // qualifyEntityCardLinks writes each related type as a wire id. A provider
-// may name one of its own types by its bare name.
+// may name one of its own types by its bare name. A related term that arrived
+// without a URL takes the link stored for that term. The caller can already
+// read the card this link is attached to.
 func qualifyEntityCardLinks(owner string, card *model.EntityCard) {
 	for i := range card.Related {
-		if card.Related[i].TypeID == "" {
+		if card.Related[i].TypeID != "" {
+			ref, ok := entities.ResolveRef(owner, card.Related[i].TypeID)
+			if !ok {
+				card.Related[i].TypeID = ""
+			} else {
+				card.Related[i].TypeID = ref.String()
+			}
+		}
+		if card.Related[i].URL != "" || card.Related[i].TypeID == "" || card.Related[i].Text == "" {
 			continue
 		}
-		ref, ok := entities.ResolveRef(owner, card.Related[i].TypeID)
+		term, ok := entities.TermCard(card.Related[i].TypeID, card.Related[i].Text)
 		if !ok {
-			card.Related[i].TypeID = ""
 			continue
 		}
-		card.Related[i].TypeID = ref.String()
+		card.Related[i].URL = term.URL
+		if card.Related[i].Label == "" {
+			card.Related[i].Label = term.Title
+		}
 	}
 }
 

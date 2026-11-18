@@ -70,6 +70,33 @@ func TestProviderEntityCardNeedsAPost(t *testing.T) {
 	}
 }
 
+func TestTermCardNeedsAPost(t *testing.T) {
+	const pluginID = "com.example.glossary"
+	typeID := pluginID + ":acronym"
+	t.Cleanup(func() { entities.RemoveOwner(pluginID) })
+	require.NoError(t, entities.AddType(pluginID, &model.EntityType{Name: "acronym", DisplayName: "Acronym"}))
+	_, _, err := entities.ReplaceTerms(pluginID, typeID, []model.EntityTerm{{
+		Value: "MLT",
+		Title: "Mattermost leadership team",
+		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
+	}})
+	require.NoError(t, err)
+
+	app := entityEnabledApp(nil)
+	for _, value := range []string{"MLT", "ZZZ"} {
+		card, appErr := app.GetEntityCard(request.TestContext(t), typeID, value)
+		require.Nil(t, card)
+		require.NotNil(t, appErr)
+		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		require.Equal(t, "api.context.permissions.app_error", appErr.Id)
+	}
+
+	clock, appErr := app.GetEntityCard(request.TestContext(t), "mm:time", "2024-06-01T15:04:05Z")
+	require.Nil(t, appErr)
+	require.Equal(t, "mm:time", clock.TypeID)
+	require.NotZero(t, clock.Instant)
+}
+
 func TestEntityCardLinksAreQualifiedByTheProvider(t *testing.T) {
 	card := &model.EntityCard{Related: []model.EntityCardLink{
 		{Label: "own", TypeID: "vuln"},
@@ -82,6 +109,35 @@ func TestEntityCardLinksAreQualifiedByTheProvider(t *testing.T) {
 	assert.Equal(t, "mm:time", card.Related[1].TypeID)
 	assert.Empty(t, card.Related[2].TypeID)
 	assert.Empty(t, card.Related[3].TypeID)
+}
+
+func TestRelatedTermTakesItsStoredLink(t *testing.T) {
+	const pluginID = "com.example.glossary"
+	typeID := pluginID + ":acronym"
+	t.Cleanup(func() { entities.RemoveOwner(pluginID) })
+	require.NoError(t, entities.AddType(pluginID, &model.EntityType{Name: "acronym", DisplayName: "Acronym"}))
+	_, _, err := entities.ReplaceTerms(pluginID, typeID, []model.EntityTerm{{
+		Value: "MLT",
+		Title: "Mattermost leadership team",
+		URL:   "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz",
+	}})
+	require.NoError(t, err)
+
+	card := &model.EntityCard{Related: []model.EntityCardLink{
+		{Label: "Glossary", Text: "MLT", TypeID: "acronym"},
+		{Text: "MLT", TypeID: typeID},
+		{Label: "Kept", Text: "MLT", TypeID: typeID, URL: "https://example.com/kept"},
+		{Label: "When", Text: "16:30 CET", TypeID: "mm:time"},
+	}}
+	qualifyEntityCardLinks(pluginID, card)
+
+	assert.Equal(t, typeID, card.Related[0].TypeID)
+	assert.Equal(t, "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz", card.Related[0].URL)
+	assert.Equal(t, "Glossary", card.Related[0].Label)
+	assert.Equal(t, "Mattermost leadership team", card.Related[1].Label)
+	assert.Equal(t, card.Related[0].URL, card.Related[1].URL)
+	assert.Equal(t, "https://example.com/kept", card.Related[2].URL)
+	assert.Empty(t, card.Related[3].URL)
 }
 
 func TestLocalizeEntityCardTranslatesCoreTime(t *testing.T) {

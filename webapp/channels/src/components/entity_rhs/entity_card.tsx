@@ -143,15 +143,6 @@ function RelatedValue({
     link: NonNullable<EntityCard['related']>[number];
     onOpen?: (target: EntityOpenTarget) => void;
 }) {
-    if (link.type_id && link.text && onOpen) {
-        return (
-            <button
-                type='button'
-                onClick={() => onOpen({typeId: link.type_id!, value: link.text!, label: link.label})}
-                style={{background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--link-color)', cursor: 'pointer', textAlign: 'left'}}
-            >{link.text}</button>
-        );
-    }
     const href = link.url ? externalHref(link.url) : '';
     if (href) {
         return (
@@ -159,6 +150,15 @@ function RelatedValue({
                 href={href}
                 location='entity_card'
             >{link.text || link.label}</ExternalLink>
+        );
+    }
+    if (link.type_id && link.text && onOpen) {
+        return (
+            <button
+                type='button'
+                onClick={() => onOpen({typeId: link.type_id!, value: link.text!, label: link.label})}
+                style={{background: 'none', border: 'none', padding: 0, font: 'inherit', color: 'var(--link-color)', cursor: 'pointer', textAlign: 'left'}}
+            >{link.text}</button>
         );
     }
     return <span>{link.text}</span>;

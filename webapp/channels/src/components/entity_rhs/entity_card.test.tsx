@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import userEvent from '@testing-library/user-event';
 
 import type {EntityCard} from '@mattermost/types/posts';
 
@@ -44,5 +45,30 @@ describe('EntityCardView', () => {
         expect(getByTestId('entity-card')).toBeInTheDocument();
         expect(getByTestId('entity-card-blocks')).toBeInTheDocument();
         expect(getByTestId('entity-card-link')).toHaveAttribute('href', 'https://example.com/time');
+    });
+
+    it('renders a related term as its link and opens a typed value that has none', async () => {
+        const onOpen = jest.fn();
+        const card: EntityCard = {
+            ...baseCard,
+            related: [
+                {label: 'Glossary', text: 'MLT', type_id: 'com.example:acronym', url: '/conflux/team/pages/abcdefghijklmnopqrstuvwxyz'},
+                {label: 'When', text: '16:30 CET', type_id: 'mm:time'},
+            ],
+        };
+        const {getByRole} = renderWithContext(
+            <EntityCardView
+                card={card}
+                onOpen={onOpen}
+            />,
+        );
+
+        const term = getByRole('link', {name: 'MLT'});
+        expect(term).toHaveAttribute('href', '/conflux/team/pages/abcdefghijklmnopqrstuvwxyz');
+        await userEvent.click(term);
+        expect(onOpen).not.toHaveBeenCalled();
+
+        await userEvent.click(getByRole('button', {name: '16:30 CET'}));
+        expect(onOpen).toHaveBeenCalledWith({typeId: 'mm:time', value: '16:30 CET', label: 'When'});
     });
 });

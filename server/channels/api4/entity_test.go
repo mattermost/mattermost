@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 )
 
 func enableEntities(cfg *model.Config) {
@@ -165,6 +166,60 @@ func TestGetEntityCardUsesThePostDate(t *testing.T) {
 
 	rfc := fetch(rfc3339, "")
 	require.Equal(t, time.Date(2024, time.June, 1, 15, 4, 5, 0, time.UTC).UnixMilli(), rfc.Instant)
+}
+
+func TestGetEntityCardTermRequiresAPost(t *testing.T) {
+	th := SetupConfig(t, enableEntities).InitBasic(t)
+
+	const owner = "com.example.glossary"
+	typeID := owner + ":acronym"
+	const title = "Mattermost leadership team"
+	const link = "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz"
+	t.Cleanup(func() { entities.RemoveOwner(owner) })
+	require.NoError(t, entities.AddType(owner, &model.EntityType{Name: "acronym", DisplayName: "Acronym"}))
+	_, _, err := entities.ReplaceTerms(owner, typeID, []model.EntityTerm{{
+		Value: "MLT",
+		Title: title,
+		URL:   link,
+	}})
+	require.NoError(t, err)
+
+	bare := func(value string) string {
+		t.Helper()
+		resp, getErr := th.Client.DoAPIGet(context.Background(), "/entities/card?type_id="+url.QueryEscape(typeID)+"&value="+url.QueryEscape(value), "")
+		require.Error(t, getErr)
+		require.Equal(t, http.StatusForbidden, resp.StatusCode)
+		appErr, ok := getErr.(*model.AppError)
+		require.True(t, ok)
+		require.NotContains(t, appErr.Id+appErr.Message+appErr.DetailedError, title)
+		require.NotContains(t, appErr.DetailedError, link)
+		return appErr.Id
+	}
+	require.Equal(t, bare("MLT"), bare("ZZZ"))
+
+	created, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "ask the MLT",
+	})
+	require.NoError(t, err)
+
+	resp, err := th.Client.DoAPIGet(context.Background(), "/entities/card?post_id="+created.Id+"&type_id="+url.QueryEscape(typeID)+"&value=MLT", "")
+	require.NoError(t, err)
+	CheckOKStatus(t, model.BuildResponse(resp))
+	defer resp.Body.Close()
+	var card model.EntityCard
+	require.NoError(t, json.NewDecoder(resp.Body).Decode(&card))
+	require.Equal(t, title, card.Title)
+	require.Equal(t, link, card.URL)
+
+	other, _, err := th.Client.CreatePost(context.Background(), &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "nothing to see here",
+	})
+	require.NoError(t, err)
+	resp, err = th.Client.DoAPIGet(context.Background(), "/entities/card?post_id="+other.Id+"&type_id="+url.QueryEscape(typeID)+"&value=MLT", "")
+	require.Error(t, err)
+	CheckNotFoundStatus(t, model.BuildResponse(resp))
 }
 
 func TestGetPostIncludesEntityEtag(t *testing.T) {
