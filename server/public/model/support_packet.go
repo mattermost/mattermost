@@ -228,6 +228,26 @@ type SupportPacketJobList struct {
 	ElasticPostIndexingJobs    []*Job `yaml:"elastic_post_indexing_jobs"`
 	ElasticPostAggregationJobs []*Job `yaml:"elastic_post_aggregation_jobs"`
 	MigrationJobs              []*Job `yaml:"migration_jobs"`
+
+	// JobSummary maps each job type with runs in the Jobs table to a summary of them.
+	// Types removed by job cleanup (CleanupJobsThresholdDays) are not listed.
+	// Absent when not collected.
+	JobSummary map[string]*SupportPacketJobTypeSummary `yaml:"job_summary,omitempty"`
+}
+
+// SupportPacketJobTypeSummary summarizes the runs of one job type. All timestamps are the runs' CreateAt in epoch milliseconds.
+type SupportPacketJobTypeSummary struct {
+	LastRunID       string `yaml:"last_run_id"` // job_id in the server logs
+	LastRunStatus   string `yaml:"last_run_status"`
+	LastRunCreateAt int64  `yaml:"last_run_create_at"`
+	// LastRunError is masked for URL credentials and truncated; the full error is in the server logs under LastRunID.
+	LastRunError  string `yaml:"last_run_error,omitempty"`
+	LastSuccessAt int64  `yaml:"last_success_at,omitempty"` // CreateAt of the newest success or warning; 0 = never
+	// RunsCreated counts runs of this type created in the 30 days before the packet was
+	// generated, whatever their status (pending, in_progress and canceled included).
+	RunsCreated int64 `yaml:"runs_created"`
+	// RunsFailed counts those of RunsCreated that ended with status error.
+	RunsFailed int64 `yaml:"runs_failed"`
 }
 
 // SupportPacketPermissionInfo contains the list of schemes and the list of roles.

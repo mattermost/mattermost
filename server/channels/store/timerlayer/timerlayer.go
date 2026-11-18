@@ -6402,6 +6402,22 @@ func (s *TimerLayerJobStore) GetNewestJobByStatusesAndType(statuses []string, jo
 	return result, err
 }
 
+func (s *TimerLayerJobStore) GetTypeSummaries(rctx request.CTX, since int64) ([]*store.JobTypeSummary, error) {
+	start := time.Now()
+
+	result, err := s.JobStore.GetTypeSummaries(rctx, since)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("JobStore.GetTypeSummaries", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerJobStore) Save(job *model.Job) (*model.Job, error) {
 	start := time.Now()
 
