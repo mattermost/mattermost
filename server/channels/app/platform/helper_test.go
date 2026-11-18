@@ -168,6 +168,10 @@ func SetupWithCluster(tb testing.TB, cluster einterfaces.ClusterInterface) *Test
 func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterprise bool, includeCacheLayer bool, updateConfig func(cfg *model.Config), tb testing.TB, options ...Option) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	require.NoError(tb, err)
+	// Shutdown removes the workspace too, but it is only registered once the service has
+	// started; this covers a setup that fails before that. Cleanups run last in, first out, so
+	// it runs after Shutdown.
+	tb.Cleanup(func() { os.RemoveAll(tempWorkspace) })
 
 	configStore := config.NewTestMemoryStore()
 
