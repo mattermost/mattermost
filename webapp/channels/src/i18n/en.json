@@ -9711,6 +9711,10 @@
     "defaultMessage": "Caller",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the source file and line that wrote the log follows."
   },
+  "admin.logs.detail.node": {
+    "defaultMessage": "Node",
+    "description": "Field label in an expanded log entry on the System Console Server Logs page; the name of the cluster node that wrote the entry follows."
+  },
   "admin.logs.detail.timestamp": {
     "defaultMessage": "Timestamp",
     "description": "Field label in an expanded log entry on the System Console Server Logs page; the date and time of the entry follows."
@@ -9762,6 +9766,10 @@
   "admin.logs.header.node": {
     "defaultMessage": "Node",
     "description": "Column header on the System Console Server Logs page; the cluster node each log entry came from."
+  },
+  "admin.logs.header.resizeColumn": {
+    "defaultMessage": "Resize {column} column",
+    "description": "Accessible label for the draggable divider beside a column header on the System Console Server Logs page; {column} is the column's header name, such as Time, Node or Caller."
   },
   "admin.logs.header.time": {
     "defaultMessage": "Time",

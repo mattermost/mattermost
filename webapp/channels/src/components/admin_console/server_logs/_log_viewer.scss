@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-@use "sass:math";
-
 // Shared by the structured and plain text viewers so both read as the same page
 
 $level-column-width: 56px;
@@ -11,9 +9,10 @@ $level-column-width: 56px;
 $timestamp-char-width: 8px;
 
 // LogViewer sets the longest time's length for the format in use; 12 fits "HH:mm:ss.SSS"
-$timestamp-column-width: calc(var(--log-timestamp-chars, 12) * $timestamp-char-width);
-$caller-column-width: 200px;
-$node-column-width: 120px;
+// A column the user dragged wider or narrower has its width in a custom property on the viewer
+$timestamp-column-width: var(--log-timestamp-width, calc(var(--log-timestamp-chars, 12) * #{$timestamp-char-width}));
+$caller-column-width: var(--log-caller-width, 200px);
+$node-column-width: var(--log-node-width, 120px);
 $node-column-min-width: 64px;
 $message-column-min-width: 120px;
 $row-padding-x: 24px;
@@ -45,8 +44,9 @@ $details-indent: calc($row-padding-x + $level-column-width + $column-gap + $time
 // Below this row width node and caller shrink: every column at its basis plus the gaps, chevron and padding
 $row-shrink-width: calc($details-indent + $node-column-width + $message-column-min-width + $caller-column-width + 3 * $column-gap + $expand-indicator-width + $row-padding-x);
 
-// The node column's rendered width: flex gives it node / (node + caller) of the row's shortfall
-$details-node-width: clamp($node-column-min-width, $node-column-width - ($row-shrink-width - 100%) * math.div($node-column-width, $node-column-width + $caller-column-width), $node-column-width);
+// The node column's rendered width: flex gives it node / (node + caller) of the row's shortfall.
+// CSS can't divide two lengths, so the viewer passes that ratio as a number
+$details-node-width: clamp($node-column-min-width, calc($node-column-width - ($row-shrink-width - 100%) * var(--log-node-share, 0.375)), $node-column-width);
 
 @mixin viewer-shell {
     display: flex;

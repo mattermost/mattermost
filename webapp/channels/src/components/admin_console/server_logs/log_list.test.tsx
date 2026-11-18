@@ -630,6 +630,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
                 sortAsc: false,
                 node: '',
+                columnWidths: {},
             });
         });
 
@@ -643,6 +644,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
                 sortAsc: false,
                 node: '',
+                columnWidths: {},
             });
         });
 
@@ -663,6 +665,7 @@ describe('components/admin_console/server_logs/LogList', () => {
                 enabledLevels: ['error', 'warn', 'info', 'debug'],
                 sortAsc: false,
                 node: '',
+                columnWidths: {},
             });
         });
     });
@@ -677,13 +680,224 @@ describe('components/admin_console/server_logs/LogList', () => {
         test('should load prefs saved before the node existed as all nodes', () => {
             localStorage.setItem(PREFS_KEY, JSON.stringify({pageSize: 50, wrapText: false, enabledLevels: ['error'], sortAsc: true}));
 
-            expect(loadPrefs()).toEqual({pageSize: 50, wrapText: false, enabledLevels: ['error'], sortAsc: true, node: ''});
+            expect(loadPrefs()).toEqual({pageSize: 50, wrapText: false, enabledLevels: ['error'], sortAsc: true, node: '', columnWidths: {}});
         });
 
         test('should save the selected node', () => {
             renderListWith({logs: [makeNodeLog('node-b', 'b')], nodes: ['node-a', 'node-b'], selectedNode: 'node-b'});
 
             expect(storedPrefs().node).toBe('node-b');
+        });
+    });
+
+    describe('resizable columns', () => {
+        const twoNodeProps = {
+            logs: [makeNodeLog('node-a', 'a'), makeNodeLog('node-b', 'b')],
+            nodes: ['node-a', 'node-b'],
+        };
+
+        const viewer = () => document.querySelector('.LogViewer') as HTMLElement;
+        const handle = (name: string) => screen.getByRole('separator', {name: `Resize ${name} column`});
+
+        let rectSpy: jest.SpyInstance;
+        beforeEach(() => {
+            // jsdom does no layout, so the cell's default width is stubbed
+            rectSpy = jest.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function(this: Element) {
+                const widths: Record<string, number> = {
+                    'LogViewer__header-timestamp': 96,
+                    'LogViewer__header-node': 120,
+                    'LogViewer__header-caller': 200,
+                };
+                const width = widths[this.className] ?? 0;
+                return {width, height: 0, top: 0, left: 0, right: width, bottom: 0, x: 0, y: 0, toJSON: () => ({})} as DOMRect;
+            });
+        });
+
+        afterEach(() => {
+            rectSpy.mockRestore();
+        });
+
+        describe('loadPrefs', () => {
+            test('should default to no custom widths', () => {
+                expect(loadPrefs().columnWidths).toEqual({});
+            });
+
+            test('should keep valid widths and clamp them to the bounds', () => {
+                localStorage.setItem(PREFS_KEY, JSON.stringify({columnWidths: {timestamp: 10, node: 9999, caller: 250}}));
+
+                expect(loadPrefs().columnWidths).toEqual({timestamp: 48, node: 600, caller: 250});
+            });
+
+            test('should drop widths that are not finite numbers', () => {
+                localStorage.setItem(PREFS_KEY, JSON.stringify({columnWidths: {timestamp: '100', node: null, caller: {}, other: 90}}));
+
+                expect(loadPrefs().columnWidths).toEqual({});
+            });
+
+            test('should ignore column widths that are not an object', () => {
+                localStorage.setItem(PREFS_KEY, JSON.stringify({columnWidths: 'wide'}));
+
+                expect(loadPrefs().columnWidths).toEqual({});
+            });
+        });
+
+        test('should only set the width properties for columns with a custom width', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({columnWidths: {node: 150}}));
+            renderListWith(twoNodeProps);
+
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('150px');
+            expect(viewer().style.getPropertyValue('--log-timestamp-width')).toBe('');
+            expect(viewer().style.getPropertyValue('--log-caller-width')).toBe('');
+
+            // 150 / (150 + 200)
+            expect(viewer().style.getPropertyValue('--log-node-share')).toBe('0.4286');
+        });
+
+        test('should share the default widths 120 and 200 as 0.375', () => {
+            renderListWith(twoNodeProps);
+
+            expect(viewer().style.getPropertyValue('--log-node-share')).toBe('0.375');
+        });
+
+        test('should describe the handle for assistive technology', () => {
+            renderListWith(twoNodeProps);
+
+            const timeHandle = handle('Time');
+            expect(timeHandle).toHaveAttribute('aria-orientation', 'vertical');
+            expect(timeHandle).toHaveAttribute('tabindex', '0');
+            expect(timeHandle).toHaveAttribute('aria-valuemin', '48');
+            expect(timeHandle).toHaveAttribute('aria-valuemax', '400');
+            expect(timeHandle).toHaveAttribute('aria-valuenow', '96');
+        });
+
+        test('should only have a node handle with two or more nodes', () => {
+            renderListWith({logs: [makeNodeLog('default', 'a')], nodes: ['default']});
+
+            expect(screen.queryByRole('separator', {name: 'Resize Node column'})).not.toBeInTheDocument();
+            expect(handle('Time')).toBeInTheDocument();
+            expect(handle('Caller')).toBeInTheDocument();
+        });
+
+        test('should not put the time handle inside the sort button', () => {
+            renderListWith(twoNodeProps);
+
+            expect(screen.getByRole('button', {name: 'Time'})).not.toContainElement(handle('Time'));
+        });
+
+        test('should resize with the arrow keys and save the committed width', () => {
+            renderListWith(twoNodeProps);
+
+            fireEvent.keyDown(handle('Node'), {key: 'ArrowRight'});
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('128px');
+            expect(storedPrefs().columnWidths).toEqual({node: 128});
+
+            fireEvent.keyDown(handle('Node'), {key: 'ArrowLeft', shiftKey: true});
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('96px');
+            expect(storedPrefs().columnWidths).toEqual({node: 96});
+            expect(handle('Node')).toHaveAttribute('aria-valuenow', '96');
+        });
+
+        test('should grow the caller column to the left', () => {
+            renderListWith(twoNodeProps);
+
+            fireEvent.keyDown(handle('Caller'), {key: 'ArrowLeft'});
+            expect(viewer().style.getPropertyValue('--log-caller-width')).toBe('208px');
+
+            fireEvent.keyDown(handle('Caller'), {key: 'ArrowRight', shiftKey: true});
+            expect(viewer().style.getPropertyValue('--log-caller-width')).toBe('176px');
+        });
+
+        test('should keep the width within the bounds', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({columnWidths: {timestamp: 50}}));
+            renderListWith(twoNodeProps);
+
+            fireEvent.keyDown(handle('Time'), {key: 'ArrowLeft', shiftKey: true});
+            expect(viewer().style.getPropertyValue('--log-timestamp-width')).toBe('48px');
+        });
+
+        test('should reset a column to its default on double click', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({columnWidths: {node: 150, caller: 250}}));
+            renderListWith(twoNodeProps);
+
+            fireEvent.doubleClick(handle('Node'));
+
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('');
+            expect(viewer().style.getPropertyValue('--log-caller-width')).toBe('250px');
+            expect(storedPrefs().columnWidths).toEqual({caller: 250});
+        });
+
+        describe('dragging', () => {
+            // jsdom has no PointerEvent, so the coordinates are set on the event
+            function pointer(element: Element, type: 'pointerDown' | 'pointerMove' | 'pointerUp', clientX: number) {
+                const event = new MouseEvent(type.toLowerCase(), {bubbles: true, cancelable: true, clientX, button: 0});
+                Object.defineProperty(event, 'pointerId', {value: 1});
+                act(() => {
+                    element.dispatchEvent(event);
+                });
+            }
+
+            test('should follow the pointer and save the width on release', () => {
+                renderListWith(twoNodeProps);
+                const nodeHandle = handle('Node');
+
+                pointer(nodeHandle, 'pointerDown', 100);
+                pointer(nodeHandle, 'pointerMove', 130);
+                expect(viewer().style.getPropertyValue('--log-node-width')).toBe('150px');
+                expect(viewer()).toHaveClass('LogViewer--resizing');
+
+                // Nothing is saved until the pointer is released
+                expect(storedPrefs().columnWidths).toEqual({});
+
+                pointer(nodeHandle, 'pointerUp', 130);
+                expect(viewer()).not.toHaveClass('LogViewer--resizing');
+                expect(viewer().style.getPropertyValue('--log-node-width')).toBe('150px');
+                expect(storedPrefs().columnWidths).toEqual({node: 150});
+            });
+
+            test('should grow the caller column when dragged left', () => {
+                renderListWith(twoNodeProps);
+                const callerHandle = handle('Caller');
+
+                pointer(callerHandle, 'pointerDown', 500);
+                pointer(callerHandle, 'pointerMove', 450);
+                pointer(callerHandle, 'pointerUp', 450);
+
+                expect(viewer().style.getPropertyValue('--log-caller-width')).toBe('250px');
+                expect(storedPrefs().columnWidths).toEqual({caller: 250});
+            });
+
+            test('should clamp the dragged width', () => {
+                renderListWith(twoNodeProps);
+                const timeHandle = handle('Time');
+
+                pointer(timeHandle, 'pointerDown', 100);
+                pointer(timeHandle, 'pointerMove', -1000);
+                pointer(timeHandle, 'pointerUp', -1000);
+
+                expect(storedPrefs().columnWidths).toEqual({timestamp: 48});
+            });
+
+            test('should not set a width when the handle is only pressed', () => {
+                renderListWith(twoNodeProps);
+                const nodeHandle = handle('Node');
+
+                pointer(nodeHandle, 'pointerDown', 100);
+                pointer(nodeHandle, 'pointerUp', 100);
+
+                expect(storedPrefs().columnWidths).toEqual({});
+            });
+        });
+
+        test('should not toggle the sort when the time handle is used', () => {
+            renderListWith(twoNodeProps);
+            const timeHandle = handle('Time');
+
+            fireEvent.click(timeHandle);
+            fireEvent.doubleClick(timeHandle);
+            fireEvent.keyDown(timeHandle, {key: 'ArrowRight'});
+
+            expect(screen.getByRole('button', {name: 'Time'})).toHaveAttribute('aria-sort', 'descending');
+            expect(storedPrefs().sortAsc).toBe(false);
         });
     });
 

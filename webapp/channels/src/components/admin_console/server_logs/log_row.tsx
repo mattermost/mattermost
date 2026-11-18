@@ -108,7 +108,13 @@ function highlightSearchTerm(text: string, searchTerm: string): React.ReactNode 
 
 const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
 
-function CopyButton({value}: {value: string}) {
+type CopyButtonProps = {
+    value: string;
+    className?: string;
+    tabIndex?: number;
+};
+
+function CopyButton({value, className, tabIndex}: CopyButtonProps) {
     const intl = useIntl();
     const [status, copy] = useClipboardCopy();
 
@@ -121,7 +127,8 @@ function CopyButton({value}: {value: string}) {
     return (
         <button
             type='button'
-            className='LogRow__copy-btn btn btn-icon btn-xs btn-compact'
+            className={`LogRow__copy-btn btn btn-icon btn-xs btn-compact${className ? ` ${className}` : ''}`}
+            tabIndex={tabIndex}
             onClick={handleCopy}
             aria-label={intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
@@ -201,6 +208,7 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
     const copyJsonSuccess = copyJsonStatus === 'copied';
     const copyLineSuccess = copyLineStatus === 'copied';
     const levelConfig = LEVEL_CONFIG[log.level];
+    const node = showNode ? log[LogNodeKey] : undefined;
 
     // Levels such as fatal or trace keep their own name but take their group's color
     const group = levelGroup(log.level);
@@ -290,11 +298,22 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                     {formatLogRowTime(log, timezone, timeFormat)}
                 </span>
                 {showNode && (
-                    <span
-                        className='LogRow__node'
-                        title={log[LogNodeKey]}
-                    >
-                        {log[LogNodeKey]}
+                    <span className='LogRow__node'>
+                        <span
+                            className='LogRow__node-text'
+                            title={log[LogNodeKey]}
+                        >
+                            {log[LogNodeKey]}
+                        </span>
+                        {node && (
+
+                            // Not a tab stop of its own: the row is the focus target and the details have the same button
+                            <CopyButton
+                                value={node}
+                                className='LogRow__node-copy-btn'
+                                tabIndex={-1}
+                            />
+                        )}
                     </span>
                 )}
                 <span className='LogRow__message'>
@@ -316,7 +335,7 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                     className='LogRow__details'
                     onClick={(e) => e.stopPropagation()}
                 >
-                    <div className='LogRow__details-core'>
+                    <div className={`LogRow__details-core${node ? ' LogRow__details-core--with-node' : ''}`}>
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>
                                 <FormattedMessage
@@ -326,6 +345,20 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                             </span>
                             <span className='LogRow__detail-value LogRow__detail-value--mono'>{log.timestamp}</span>
                         </div>
+                        {node && (
+                            <div className='LogRow__detail-item'>
+                                <span className='LogRow__detail-label'>
+                                    <FormattedMessage
+                                        id='admin.logs.detail.node'
+                                        defaultMessage='Node'
+                                    />
+                                </span>
+                                <span className='LogRow__detail-value LogRow__detail-value--mono'>
+                                    {node}
+                                    <CopyButton value={node}/>
+                                </span>
+                            </div>
+                        )}
                         <div className='LogRow__detail-item'>
                             <span className='LogRow__detail-label'>
                                 <FormattedMessage

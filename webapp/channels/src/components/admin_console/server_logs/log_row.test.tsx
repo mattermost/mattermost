@@ -547,7 +547,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
 
             const node = document.querySelector('.LogRow__node');
             expect(node).toHaveTextContent('node-a');
-            expect(node).toHaveAttribute('title', 'node-a');
+            expect(document.querySelector('.LogRow__node-text')).toHaveAttribute('title', 'node-a');
             expect(getRow()).toHaveClass('LogRow--with-node');
         });
 
@@ -564,6 +564,48 @@ describe('components/admin_console/server_logs/LogRow', () => {
             const extraKeys = Array.from(document.querySelectorAll('.LogRow__details-grid .LogRow__detail-label')).
                 map((el) => el.textContent);
             expect(extraKeys).toEqual(['job_id', 'worker']);
+        });
+
+        test('should show the node in the details with a copy button', async () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            const label = screen.getByText('Node');
+            const value = label.nextElementSibling as HTMLElement;
+            expect(value).toHaveTextContent('node-a');
+            expect(document.querySelector('.LogRow__details-core')).toHaveClass('LogRow__details-core--with-node');
+
+            await userEvent.click(value.querySelector('.LogRow__copy-btn')!);
+
+            expect(writeText).toHaveBeenCalledWith('node-a');
+            expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
+        });
+
+        test('should not show a node detail without showNode', () => {
+            renderLogRow({log: nodeLog, isExpanded: true});
+
+            expect(screen.queryByText('Node')).not.toBeInTheDocument();
+            expect(document.querySelector('.LogRow__details-core')).not.toHaveClass('LogRow__details-core--with-node');
+        });
+
+        test('should not show a node detail when the log has no node', () => {
+            renderLogRow({showNode: true, isExpanded: true});
+
+            expect(screen.queryByText('Node')).not.toBeInTheDocument();
+            expect(document.querySelector('.LogRow__node .LogRow__copy-btn')).not.toBeInTheDocument();
+            expect(document.querySelector('.LogRow__details-core')).not.toHaveClass('LogRow__details-core--with-node');
+        });
+
+        test('should copy the node from the row without expanding it', async () => {
+            renderLogRow({log: nodeLog, showNode: true});
+
+            const button = document.querySelector('.LogRow__node .LogRow__copy-btn') as HTMLElement;
+            expect(button).toHaveAttribute('tabindex', '-1');
+            expect(document.querySelector('.LogRow__node-text')).toHaveAttribute('title', 'node-a');
+
+            await userEvent.click(button);
+
+            expect(writeText).toHaveBeenCalledWith('node-a');
+            expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
         });
 
         test('should copy the log as JSON without the node', async () => {
