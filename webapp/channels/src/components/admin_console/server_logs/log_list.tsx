@@ -239,11 +239,12 @@ function filterLogs(logs: LogObjectWithAdditionalInfo[], enabledLevels: Set<stri
     });
 }
 
-function savePrefs(prefs: StoredPrefs) {
+function savePrefs(prefs: StoredPrefs): boolean {
     try {
         localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+        return true;
     } catch {
-        // ignore
+        return false;
     }
 }
 
@@ -341,19 +342,40 @@ export default function LogList({
 
     // Saved on the spot, as a list that's replaced (the viewer remounts it on reload) wouldn't run its save effect
     const columnWidthsRef = useLatest(columnWidths);
+
+    // Changes a failed save left unwritten, replayed on the next change so one failed write doesn't drop a width
+    const pendingWidthsRef = useRef<Partial<Record<ResizableColumn, number | null>>>({});
     const updateColumnWidths = useCallback((column: ResizableColumn, value: number | undefined) => {
+        pendingWidthsRef.current[column] = value ?? null;
+
         // Applied to the stored widths, as another tab may have changed its other columns since this one loaded
         const next = {...loadPrefs().columnWidths};
-        if (value === undefined) {
-            delete next[column];
-        } else {
-            next[column] = value;
+        for (const key of RESIZABLE_COLUMNS) {
+            const pending = pendingWidthsRef.current[key];
+            if (pending === null) {
+                delete next[key];
+            } else if (pending !== undefined) {
+                next[key] = pending;
+            }
         }
 
         // Set now, as useLatest only catches up after render, and a key press and a release can commit in one batch
         columnWidthsRef.current = next;
         setColumnWidths(next);
-        savePrefs({...loadPrefs(), columnWidths: next});
+        if (savePrefs({...loadPrefs(), columnWidths: next})) {
+            pendingWidthsRef.current = {};
+        }
+    }, [columnWidthsRef]);
+
+    // A replacement list (the viewer remounts it on reload) reads the prefs while rendering, before the old list's
+    // handle saves a drag in progress when it unmounts. Passive unmount cleanups run before mount effects, so the
+    // saved width is there to be read here
+    useEffect(() => {
+        const stored = loadPrefs().columnWidths;
+        if (RESIZABLE_COLUMNS.some((column) => stored[column] !== columnWidthsRef.current[column])) {
+            columnWidthsRef.current = stored;
+            setColumnWidths(stored);
+        }
     }, [columnWidthsRef]);
 
     const handleColumnCommit = useCallback((column: ResizableColumn, width: number) => {
@@ -1163,7 +1185,13 @@ export default function LogList({
                 />
             )}
 
-            <div className='LogViewer__header'>
+            {/* The rows don't scroll sideways, so neither may the header. It stays overflow: hidden, as scrollbar-gutter needs it */}
+            <div
+                className='LogViewer__header'
+                onScroll={(e) => {
+                    e.currentTarget.scrollLeft = 0;
+                }}
+            >
                 <span className='LogViewer__header-level'>
                     <FormattedMessage
                         id='admin.logs.header.level'
@@ -1194,6 +1222,7 @@ export default function LogList({
                         onResize={handleColumnResize}
                         onCommit={handleColumnCommit}
                         onReset={handleColumnReset}
+                        onCancel={clearLiveWidth}
                     />
                 </span>
                 {showNodes && (
@@ -1210,6 +1239,7 @@ export default function LogList({
                             onResize={handleColumnResize}
                             onCommit={handleColumnCommit}
                             onReset={handleColumnReset}
+                            onCancel={clearLiveWidth}
                         />
                     </span>
                 )}
@@ -1234,6 +1264,7 @@ export default function LogList({
                         onResize={handleColumnResize}
                         onCommit={handleColumnCommit}
                         onReset={handleColumnReset}
+                        onCancel={clearLiveWidth}
                     />
                 </span>
             </div>

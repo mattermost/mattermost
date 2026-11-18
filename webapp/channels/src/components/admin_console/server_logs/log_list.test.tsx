@@ -841,9 +841,12 @@ describe('components/admin_console/server_logs/LogList', () => {
             fireEvent.keyDown(handle('Node'), {key: 'ArrowRight'});
             expect(storedPrefs().columnWidths).toEqual({node: 128, caller: 300});
 
+            // Another tab changed it again before this one saves its other prefs
+            localStorage.setItem(PREFS_KEY, JSON.stringify({...storedPrefs(), columnWidths: {node: 128, caller: 320}}));
+
             fireEvent.click(screen.getByRole('button', {name: 'Wrap text'}));
             expect(storedPrefs().wrapText).toBe(false);
-            expect(storedPrefs().columnWidths).toEqual({node: 128, caller: 300});
+            expect(storedPrefs().columnWidths).toEqual({node: 128, caller: 320});
         });
 
         test('should resize with the arrow keys and save the committed width', () => {
@@ -888,6 +891,54 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(viewer().style.getPropertyValue('--log-node-width')).toBe('');
             expect(viewer().style.getPropertyValue('--log-caller-width')).toBe('250px');
             expect(storedPrefs().columnWidths).toEqual({caller: 250});
+        });
+
+        test('should not scroll the header sideways', () => {
+            renderListWith(twoNodeProps);
+            const header = document.querySelector('.LogViewer__header') as HTMLElement;
+
+            header.scrollLeft = 50;
+            fireEvent.scroll(header);
+
+            expect(header.scrollLeft).toBe(0);
+        });
+
+        test('should keep widths when a storage write fails and save them with the next change', () => {
+            renderListWith(twoNodeProps);
+
+            const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('quota');
+            });
+            fireEvent.keyDown(handle('Node'), {key: 'ArrowRight'});
+            setItem.mockRestore();
+            fireEvent.keyDown(handle('Caller'), {key: 'ArrowLeft'});
+
+            expect(storedPrefs().columnWidths).toEqual({node: 128, caller: 208});
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('128px');
+            expect(viewer().style.getPropertyValue('--log-caller-width')).toBe('208px');
+        });
+
+        test('should pick up the width a replaced list saved when its handle unmounted mid-drag', () => {
+            const {rerender} = renderWithContext(
+                <StatefulLogList
+                    key='a'
+                    {...baseProps}
+                    {...twoNodeProps}
+                />,
+            );
+            pointer(handle('Node'), 'pointerDown', 100);
+            pointer(handle('Node'), 'pointerMove', 130);
+
+            rerender(
+                <StatefulLogList
+                    key='b'
+                    {...baseProps}
+                    {...twoNodeProps}
+                />,
+            );
+
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('150px');
+            expect(storedPrefs().columnWidths.node).toBe(150);
         });
 
         describe('dragging', () => {
@@ -943,6 +994,23 @@ describe('components/admin_console/server_logs/LogList', () => {
 
                 expect(storedPrefs().columnWidths).not.toHaveProperty('timestamp');
                 expect(viewer().style.getPropertyValue('--log-timestamp-width')).toBe('');
+                expect(viewer()).not.toHaveClass('LogViewer--resizing');
+            });
+
+            test('should not touch storage when a drag returns to its start', () => {
+                renderListWith(twoNodeProps);
+                const timeHandle = handle('Time');
+
+                pointer(timeHandle, 'pointerDown', 100);
+                pointer(timeHandle, 'pointerMove', 130);
+
+                // Another tab saved a width meanwhile
+                localStorage.setItem(PREFS_KEY, JSON.stringify({...storedPrefs(), columnWidths: {timestamp: 180}}));
+
+                pointer(timeHandle, 'pointerMove', 100);
+                pointer(timeHandle, 'pointerUp', 100);
+
+                expect(storedPrefs().columnWidths.timestamp).toBe(180);
                 expect(viewer()).not.toHaveClass('LogViewer--resizing');
             });
 

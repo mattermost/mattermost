@@ -601,14 +601,8 @@ describe('components/admin_console/server_logs/LogRow', () => {
                 screen.getByRole('button', {expanded: true}).focus();
             });
 
-            // The summary is followed by the details' focusable controls, with the node copy button first
-            const focusables = Array.from(document.querySelectorAll<HTMLElement>('button:not([tabindex="-1"]):not([aria-hidden="true"])'));
-            const tabs = focusables.indexOf(button) - focusables.indexOf(screen.getByRole('button', {expanded: true}));
-            expect(tabs).toBeGreaterThan(0);
-            for (let i = 0; i < tabs; i++) {
-                // eslint-disable-next-line no-await-in-loop
-                await userEvent.tab();
-            }
+            // The node copy button is the first control after the summary
+            await userEvent.tab();
             expect(button).toHaveFocus();
 
             await userEvent.keyboard('{Enter}');

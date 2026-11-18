@@ -49,6 +49,9 @@ type Props = {
 
     // Removes the custom width
     onReset: (column: ResizableColumn) => void;
+
+    // Drops only the live width, leaving the stored one as it is
+    onCancel: (column: ResizableColumn) => void;
 };
 
 type Drag = {
@@ -62,7 +65,7 @@ type Drag = {
     automatic: boolean;
 };
 
-export default function ColumnResizeHandle({column, label, width, edge, onResize, onCommit, onReset}: Props) {
+export default function ColumnResizeHandle({column, label, width, edge, onResize, onCommit, onReset, onCancel}: Props) {
     const intl = useIntl();
     const hintId = useId();
     const ref = useRef<HTMLDivElement>(null);
@@ -105,13 +108,13 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
     }, []);
 
     // Unmounted mid-drag, as when the list reloads, keeps the width so the viewer doesn't stay in its resizing state
-    const latest = useLatest({column, onCommit, onReset});
+    const latest = useLatest({column, onCommit, onCancel});
     useEffect(() => () => {
         const current = drag.current;
         if (current?.moved) {
-            const {column: col, onCommit: commit, onReset: reset} = latest.current;
+            const {column: col, onCommit: commit, onCancel: cancel} = latest.current;
             if (current.automatic && current.width === current.startWidth) {
-                reset(col);
+                cancel(col);
             } else {
                 commit(col, current.width);
             }
@@ -158,14 +161,15 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
 
         // A plain click keeps the width the column has
         if (current.moved) {
-            // Dragged back to where it started, so the column keeps its automatic width instead of saving one
+            // Dragged back to where it started, so the column keeps its automatic width instead of saving one.
+            // Nothing is written, as another tab may have saved a width for it meanwhile
             if (current.automatic && current.width === current.startWidth) {
-                onReset(column);
+                onCancel(column);
             } else {
                 onCommit(column, current.width);
             }
         }
-    }, [column, onCommit, onReset]);
+    }, [column, onCommit, onCancel]);
 
     const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         const current = drag.current;
