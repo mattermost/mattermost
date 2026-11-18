@@ -94,7 +94,8 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 		return a.CreateAccessControlTeamSyncJob(rctx, job.Data)
 	case model.JobTypeHealthCheck:
 		// One run at a time: an active run is returned instead of a new one.
-		return a.StartHealthCheckRun(rctx)
+		run, err := a.StartHealthCheckRun(rctx)
+		return run, model.AsAppError(err)
 	case model.JobTypeElasticsearchPostIndexing:
 		if _, ok := job.Data["index_files"]; !ok {
 			if job.Data == nil {
