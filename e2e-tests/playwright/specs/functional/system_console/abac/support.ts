@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {getRandomId, newTestPassword} from '@mattermost/playwright-lib';
+import {getRandomId, newTestPassword, SystemConsolePage} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../channels/custom_profile_attributes/helpers';
 import {setupCustomProfileAttributeValuesForUser} from '../../channels/custom_profile_attributes/helpers';
@@ -862,14 +862,12 @@ export async function createAdvancedPolicy(
     // Monaco editor has a visual layer that intercepts clicks, so we need to:
     // 1. Click on the editor container to focus it
     // 2. Use keyboard to clear and type the expression
-    const monacoContainer = page.locator('.monaco-editor').first();
-    await expect(monacoContainer).toBeVisible();
+    const celEditor = new SystemConsolePage(page).celEditor;
+    await expect(celEditor.container).toBeVisible();
 
     // Click on the visible lines area to focus the editor
-    const editorLines = page.locator('.monaco-editor .view-lines').first();
-    const monacoInput = page.locator('.monaco-editor textarea').first();
-    await editorLines.click({force: true});
-    await expect(monacoInput).toBeFocused();
+    await celEditor.lines.click({force: true});
+    await expect(celEditor.input).toBeFocused();
 
     // Select all existing content and replace with our expression
     // Use Cmd+A on Mac, Ctrl+A on others
@@ -1419,13 +1417,11 @@ export async function createPermissionPolicy(
     await expect(switchBtn).toBeEnabled({timeout: 10000});
     await switchBtn.click();
 
-    const monacoContainer = page.locator('.monaco-editor').first();
-    await expect(monacoContainer).toBeVisible();
+    const celEditor = new SystemConsolePage(page).celEditor;
+    await expect(celEditor.container).toBeVisible();
 
-    const editorLines = page.locator('.monaco-editor .view-lines').first();
-    const monacoInput = page.locator('.monaco-editor textarea').first();
-    await editorLines.click({force: true});
-    await expect(monacoInput).toBeFocused();
+    await celEditor.lines.click({force: true});
+    await expect(celEditor.input).toBeFocused();
 
     const isMac = process.platform === 'darwin';
     await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');

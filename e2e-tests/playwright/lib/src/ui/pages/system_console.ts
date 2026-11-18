@@ -24,6 +24,7 @@ import GlobalAttributes from '@/ui/components/system_console/sections/system_att
 import SystemProperties from '@/ui/components/system_console/sections/system_attributes/system_properties';
 import SessionAttributes from '@/ui/components/system_console/sections/system_attributes/session_attributes';
 import MembershipPolicies from '@/ui/components/system_console/sections/system_attributes/membership_policies';
+import CelEditor from '@/ui/components/system_console/sections/system_attributes/cel_editor';
 import FeatureDiscovery from '@/ui/components/system_console/sections/system_users/feature_discovery';
 import PluginManagement from '@/ui/components/system_console/sections/plugins/plugin_management';
 import OpenIdConnect from '@/ui/components/system_console/sections/authentication/openid_connect';
@@ -66,6 +67,7 @@ export default class SystemConsolePage {
     readonly systemProperties: SystemProperties;
     readonly sessionAttributes: SessionAttributes;
     readonly membershipPolicies: MembershipPolicies;
+    readonly celEditor: CelEditor;
     readonly boardAttributes: BoardAttributes;
 
     // Feature Discovery (license-gated features)
@@ -120,6 +122,7 @@ export default class SystemConsolePage {
         this.systemProperties = new SystemProperties(adminConsoleWrapper);
         this.sessionAttributes = new SessionAttributes(adminConsoleWrapper);
         this.membershipPolicies = new MembershipPolicies(adminConsoleWrapper);
+        this.celEditor = new CelEditor(adminConsoleWrapper);
         this.boardAttributes = new BoardAttributes(adminConsoleWrapper);
 
         // Feature Discovery

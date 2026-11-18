@@ -4,6 +4,8 @@
 import {expect, type Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
+import {SystemConsolePage} from '@mattermost/playwright-lib';
+
 import {deleteFieldFromDB} from './masking_db_setup';
 
 export async function enableMaskingFlag(client: Client4): Promise<void> {
@@ -119,14 +121,14 @@ export async function createPolicyWithCEL(page: Page, name: string, celExpressio
     await advancedBtn.waitFor({state: 'visible', timeout: 5000});
     await advancedBtn.click();
 
-    const editorLines = page.locator('.monaco-editor .view-lines').first();
-    await editorLines.waitFor({state: 'visible', timeout: 5000});
-    await editorLines.click({force: true});
-    await expect(page.locator('.monaco-editor textarea.inputarea').first()).toBeFocused();
+    const celEditor = new SystemConsolePage(page).celEditor;
+    await expect(celEditor.lines).toBeVisible({timeout: 5000});
+    await celEditor.lines.click({force: true});
+    await expect(celEditor.input).toBeFocused();
     const isMac = process.platform === 'darwin';
     await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
     await page.keyboard.type(celExpression, {delay: 10});
-    await expect(editorLines).toContainText(celExpression.slice(0, Math.min(celExpression.length, 24)));
+    await expect(celEditor.lines).toContainText(celExpression.slice(0, Math.min(celExpression.length, 24)));
 
     const saveBtn = page.getByRole('button', {name: 'Save'});
     await saveBtn.waitFor({state: 'visible', timeout: 5000});

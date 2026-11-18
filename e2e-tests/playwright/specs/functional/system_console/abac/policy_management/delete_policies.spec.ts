@@ -90,18 +90,17 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         }
 
         // Fill CEL expression in Monaco editor
-        const monacoContainer = page.locator('.monaco-editor').first();
-        await monacoContainer.waitFor({state: 'visible', timeout: 5000});
+        const celEditor = systemConsolePage.celEditor;
+        await expect(celEditor.container).toBeVisible({timeout: 5000});
 
-        const editorLines = page.locator('.monaco-editor .view-lines').first();
-        await editorLines.click({force: true});
-        await expect(page.locator('.monaco-editor textarea.inputarea').first()).toBeFocused();
+        await celEditor.lines.click({force: true});
+        await expect(celEditor.input).toBeFocused();
 
         // Type a simple expression
         const isMac = process.platform === 'darwin';
         await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
         await page.keyboard.type('user.attributes.Department == "Sales"', {delay: 10});
-        await expect(editorLines).toContainText('Department == "Sales"');
+        await expect(celEditor.lines).toContainText('Department == "Sales"');
 
         // Save policy WITHOUT assigning any channels
         const saveButton = page.getByRole('button', {name: 'Save'});
