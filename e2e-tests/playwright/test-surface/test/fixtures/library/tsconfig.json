@@ -1,0 +1,1 @@
+{"extends": "../_lib/tsconfig.base.json", "compilerOptions": {"baseUrl": ".", "paths": {"compass": ["lib/compass/index.d.ts"]}}, "include": ["src", "lib", "../_lib"]}

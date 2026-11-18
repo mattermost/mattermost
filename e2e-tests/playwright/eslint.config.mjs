@@ -4,11 +4,14 @@
 import globals from 'globals';
 
 import eslintPlugin from '@mattermost/eslint-plugin';
+import testSurface from '@mattermost/test-surface/lint';
 
 export default [
     {
         ignores: [
             '**/node_modules',
+            'test-surface/**',
+            'lib/src/ui/generated/**',
             '**/dist',
             '**/playwright-report',
             '**/test-results',
@@ -18,6 +21,11 @@ export default [
         ],
     },
     ...eslintPlugin.configs.base,
+    {
+        plugins: {
+            'test-surface': testSurface,
+        },
+    },
     {
         files: ['**/*.ts', '**/*.js'],
         languageOptions: {
@@ -81,6 +89,41 @@ export default [
                     message: "toHaveURL('/path') drops the server subpath. Use toHavePath('/path') instead.",
                 },
             ],
+        },
+    },
+
+    // Actions are recognized by the type of what they are called on, so specs and flows lint with types.
+    {
+        files: ['specs/**/*.ts', 'lib/src/flows/**/*.ts', 'lib/src/ui/flows/**/*.ts'],
+        languageOptions: {
+            parserOptions: {
+                projectService: true,
+                tsconfigRootDir: import.meta.dirname,
+            },
+        },
+        rules: {
+            'test-surface/e2e-observe-actions': 'warn',
+            'test-surface/e2e-no-floating-actions': 'warn',
+            'test-surface/e2e-disable-reason': 'error',
+            'test-surface/e2e-no-locator-action': 'warn',
+        },
+    },
+
+    // Specs reach elements through the generated page objects, not literal selectors, and keep to patterns that say what
+    // a test does: no branching on page state, no swallowed errors, no sleeps, no URL text, no positions.
+    {
+        files: ['specs/**/*.ts'],
+        rules: {
+            'test-surface/e2e-no-literal-locators': 'warn',
+            'test-surface/e2e-no-probes': 'warn',
+            'test-surface/e2e-no-conditional-logic': 'warn',
+            'test-surface/e2e-no-swallowed-catch': 'warn',
+            'test-surface/e2e-no-sleeps': 'warn',
+            'test-surface/e2e-no-soft-assertions': 'warn',
+            'test-surface/e2e-no-url-assertions': 'warn',
+            'test-surface/e2e-no-positional-picks': 'warn',
+            '@typescript-eslint/await-thenable': 'warn',
+            '@typescript-eslint/no-non-null-assertion': 'warn',
         },
     },
 ];

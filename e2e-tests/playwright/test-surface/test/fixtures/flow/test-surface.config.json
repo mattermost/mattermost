@@ -1,0 +1,1 @@
+{"root":".","tsconfig":"tsconfig.json","include":["src"],"entityTypeDirs":["../effects/types"],"client":{"file":"../effects/client/client4.ts","className":"Client4","urlVersion":"/api/v4"},"openapiDir":"../effects/openapi","output":{"report":"surface.json"}}

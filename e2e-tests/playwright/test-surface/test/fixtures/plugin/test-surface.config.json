@@ -1,0 +1,17 @@
+{
+    "root": ".",
+    "tsconfig": "tsconfig.json",
+    "include": ["src"],
+    "plugin": {
+        "manifest": "plugin.json",
+        "host": {
+            "config": "hosts/config.json",
+            "reports": [
+                {"name": "12.1", "report": "hosts/12.1.json"},
+                {"name": "11.0", "report": "hosts/11.0.json"}
+            ]
+        }
+    },
+    "checks": {"strictPaths": ["src/"]},
+    "output": {"report": "test-surface.json"}
+}
