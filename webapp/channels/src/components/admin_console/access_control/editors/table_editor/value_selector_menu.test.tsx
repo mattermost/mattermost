@@ -53,6 +53,10 @@ function baseRow(overrides: Partial<TableRow> = {}): TableRow {
     };
 }
 
+// The rule row's scope a TableEditor passes down; the value control is `${ROW}.value--button`
+// (or `${ROW}.value_input--textbox` for a bare free-text input).
+const ROW = 'test.rules.row' as const;
+
 describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', () => {
     const updateValues = jest.fn();
     const onSelectTarget = jest.fn();
@@ -68,6 +72,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             renderWithContext(
                 <ValueSelectorMenu
                     row={row}
+                    testId={ROW}
                     disabled={false}
                     updateValues={updateValues}
                     options={selectOptions}
@@ -75,7 +80,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
                     onSelectTarget={onSelectTarget}
                 />,
             );
-            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.value--button`));
         }
 
         test('shows both the VALUES options and the CHANNEL ATTRIBUTES section', () => {
@@ -106,6 +111,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             renderWithContext(
                 <ValueSelectorMenu
                     row={baseRow({targetAttribute: 'owningTeam'})}
+                    testId={ROW}
                     disabled={false}
                     updateValues={updateValues}
                     options={selectOptions}
@@ -116,7 +122,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
 
             // The button (before opening) renders the target's display label,
             // not a literal value.
-            expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Owning team');
+            expect(screen.getByTestId(`${ROW}.value--button`)).toHaveTextContent('Owning team');
         });
     });
 
@@ -127,6 +133,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             renderWithContext(
                 <ValueSelectorMenu
                     row={baseRow({attribute_type: 'text'})}
+                    testId={ROW}
                     disabled={false}
                     updateValues={updateValues}
                     options={[]}
@@ -134,7 +141,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
                     onSelectTarget={onSelectTarget}
                 />,
             );
-            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.value--button`));
 
             expect(screen.getByText('Channel attributes')).toBeInTheDocument();
             expect(screen.getByText('Owning team (text)')).toBeInTheDocument();
@@ -153,16 +160,18 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             renderWithContext(
                 <ValueSelectorMenu
                     row={baseRow({attribute_type: 'text'})}
+                    testId={ROW}
                     disabled={false}
                     updateValues={updateValues}
                     options={[]}
                 />,
             );
 
-            expect(screen.queryByTestId('valueSelectorMenuButton')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${ROW}.value--button`)).not.toBeInTheDocument();
             expect(screen.queryByText('Channel attributes')).not.toBeInTheDocument();
 
-            const input = screen.getByRole('textbox');
+            // The bare input carries the row's testid, so the absent button above would have one too.
+            const input = screen.getByTestId(`${ROW}.value_input--textbox`);
             fireEvent.focus(input);
             fireEvent.change(input, {target: {value: 'platform'}});
             fireEvent.blur(input);
@@ -175,6 +184,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             renderWithContext(
                 <ValueSelectorMenu
                     row={baseRow({attribute_type: 'text', targetAttribute: 'owningTeamText'})}
+                    testId={ROW}
                     disabled={false}
                     updateValues={updateValues}
                     options={[]}
@@ -185,7 +195,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             // No options and no channel fields (still loading / feature off /
             // attribute deleted), but the row targets one — falling back to the
             // bare input would hide the target and drop it on the next keystroke.
-            expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('owningTeamText');
+            expect(screen.getByTestId(`${ROW}.value--button`)).toHaveTextContent('owningTeamText');
         });
     });
 
@@ -196,6 +206,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             renderWithContext(
                 <ValueSelectorMenu
                     row={row}
+                    testId={ROW}
                     disabled={false}
                     updateValues={updateValues}
                     options={selectOptions}
@@ -207,7 +218,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
 
         test('offers both multi-values and the channel attribute', () => {
             renderMulti(baseRow({operator: 'has any of', attribute_type: 'multiselect'}));
-            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.value--button`));
 
             expect(screen.getByText('engineering')).toBeInTheDocument();
             expect(screen.getByText('Channel programs')).toBeInTheDocument();
@@ -219,7 +230,7 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
         test('in target mode the multiselect button shows the channel attribute label', () => {
             renderMulti(baseRow({operator: 'has any of', attribute_type: 'multiselect', targetAttribute: 'channelPrograms'}));
 
-            expect(screen.getByTestId('valueSelectorMenuButton')).toHaveTextContent('Channel programs');
+            expect(screen.getByTestId(`${ROW}.value--button`)).toHaveTextContent('Channel programs');
         });
     });
 
@@ -228,12 +239,13 @@ describe('ValueSelectorMenu — consolidated value/channel-attribute dropdown', 
             renderWithContext(
                 <ValueSelectorMenu
                     row={baseRow()}
+                    testId={ROW}
                     disabled={false}
                     updateValues={updateValues}
                     options={selectOptions}
                 />,
             );
-            fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.value--button`));
 
             expect(screen.getByText('engineering')).toBeInTheDocument();
             expect(screen.queryByText('Channel attributes')).not.toBeInTheDocument();

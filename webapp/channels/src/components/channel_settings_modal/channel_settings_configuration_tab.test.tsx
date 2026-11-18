@@ -140,13 +140,13 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Check that the toggle is not enabled
-        const toggle = screen.getByTestId('channelBannerToggle-button');
+        const toggle = screen.getByTestId('channel_settings_modal.configuration.banner--switch');
         expect(toggle).toBeInTheDocument();
         expect(toggle).not.toBeChecked();
 
         // Banner text and color inputs should not be visible when banner is disabled
-        expect(screen.queryByTestId('channel_banner_banner_text_textbox')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('channel_banner_banner_background_color_picker')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channel_settings_modal.configuration.banner_text--textbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channel_settings_modal.configuration.banner_color--region')).not.toBeInTheDocument();
     });
 
     it('should render with the correct default values when banner is enabled', async () => {
@@ -154,37 +154,38 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: channelWithNoColor}}/>);
 
         // Check that the toggle is enabled
-        const toggle = screen.getByTestId('channelBannerToggle-button');
+        const toggle = screen.getByTestId('channel_settings_modal.configuration.banner--switch');
         expect(toggle).toBeInTheDocument();
         expect(toggle).not.toBeChecked();
 
         // Click the toggle to enable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Banner text and color inputs should be visible when banner is enabled
-        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
-        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toHaveValue('');
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_color--region')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toHaveValue('');
 
         // Check that the color picker has the correct value
-        expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
-        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#DDDDDD');
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox')).toHaveValue('#DDDDDD');
     });
 
     it('should render with the correct initial values when banner is enabled', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Check that the toggle is enabled
-        const toggle = screen.getByTestId('channelBannerToggle-button');
+        const toggle = screen.getByTestId('channel_settings_modal.configuration.banner--switch');
         expect(toggle).toBeInTheDocument();
         expect(toggle).toBeChecked();
 
         // Banner text and color inputs should be visible when banner is enabled
-        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
-        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toHaveValue('Test banner text');
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toHaveValue('Test banner text');
 
         // Check that the color picker has the correct value
-        expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
-        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#ff0000');
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox')).toHaveValue('#ff0000');
     });
 
     it('says board rather than channel for a board', () => {
@@ -211,14 +212,14 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Initially, banner settings should not be visible
-        expect(screen.queryByTestId('channel_banner_banner_text_textbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channel_settings_modal.configuration.banner_text--textbox')).not.toBeInTheDocument();
 
         // Click the toggle to enable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Banner settings should now be visible
-        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
-        expect(screen.getByTestId('color-inputColorValue')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox')).toBeInTheDocument();
     });
 
     it('should show SaveChangesPanel when changes are made', async () => {
@@ -228,7 +229,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
 
         // Enable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Add a small delay to ensure all state updates are processed
         await new Promise((resolve) => setTimeout(resolve, 0));
@@ -244,15 +245,15 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Enter banner text
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
         await userEvent.type(textInput, 'New banner text');
 
         // Set banner color
-        const colorInput = screen.getByTestId('color-inputColorValue');
+        const colorInput = screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox');
         await userEvent.clear(colorInput);
         await userEvent.type(colorInput, '#AA00AA');
 
@@ -278,13 +279,13 @@ describe('ChannelSettingsConfigurationTab', () => {
 
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
         await userEvent.type(textInput, 'New banner text');
 
-        const colorInput = screen.getByTestId('color-inputColorValue');
+        const colorInput = screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox');
         await userEvent.clear(colorInput);
         await userEvent.type(colorInput, '#AA00AA');
 
@@ -304,7 +305,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Change the banner text
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
         await userEvent.type(textInput, 'Changed banner text');
 
@@ -318,7 +319,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Reset'}));
 
         // Form should be reset to original values
-        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toHaveValue('Test banner text');
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toHaveValue('Test banner text');
 
         // SaveChangesPanel should be hidden after reset
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
@@ -328,10 +329,10 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Leave banner text empty
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
 
         // Click the Save button
@@ -347,13 +348,13 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Create a string that exceeds the allowed character limit
         const longText = 'a'.repeat(1025);
 
         // Enter long banner text
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
         await userEvent.type(textInput, longText);
 
@@ -384,13 +385,13 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Initially, banner settings should be visible
-        expect(screen.getByTestId('channel_banner_banner_text_textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toBeInTheDocument();
 
         // Click the toggle to disable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Banner settings should now be hidden
-        expect(screen.queryByTestId('channel_banner_banner_text_textbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channel_settings_modal.configuration.banner_text--textbox')).not.toBeInTheDocument();
     });
 
     it('should show error when banner color is empty but banner is enabled', async () => {
@@ -400,10 +401,10 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Enter banner text but leave color empty
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
         await userEvent.type(textInput, 'New banner text');
 
@@ -423,15 +424,15 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...baseProps}/>);
 
         // Enable the banner
-        await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+        await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
         // Enter banner text
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
         await userEvent.type(textInput, 'New banner text');
 
         // Enter a valid hex color
-        const colorInput = screen.getByTestId('color-inputColorValue');
+        const colorInput = screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox');
         await userEvent.clear(colorInput);
         await userEvent.type(colorInput, '#ff0000');
 
@@ -473,17 +474,17 @@ describe('ChannelSettingsConfigurationTab', () => {
         );
 
         // Enter a invalid hex color
-        const colorInput = screen.getByTestId('color-inputColorValue');
+        const colorInput = screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox');
         await userEvent.clear(colorInput);
         await userEvent.type(colorInput, 'not-a-color');
 
         // Do another action to trigger blur on this input so color is validated
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
         await userEvent.type(textInput, 'Test text');
 
         // if invalid, the color automatically returns to the original color
-        expect(screen.getByTestId('color-inputColorValue')).toHaveValue(originalColor);
+        expect(screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox')).toHaveValue(originalColor);
 
         // Check that the save changes panel is not visible
         expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
@@ -506,12 +507,12 @@ describe('ChannelSettingsConfigurationTab', () => {
         renderWithContext(<ChannelSettingsConfigurationTab {...{...baseProps, channel: mockChannelWithBanner}}/>);
 
         // Add whitespace to the banner text
-        const textInput = screen.getByTestId('channel_banner_banner_text_textbox');
+        const textInput = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
         await userEvent.clear(textInput);
         await userEvent.type(textInput, '  Banner text with whitespace  ');
 
         // Add whitespace to the banner color
-        const colorInput = screen.getByTestId('color-inputColorValue');
+        const colorInput = screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox');
         await userEvent.clear(colorInput);
         await userEvent.type(colorInput, '  #00FF00  ');
 
@@ -573,7 +574,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
+            const toggle = screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch');
             await userEvent.click(toggle);
 
             expect(screen.getByText('Add workspace')).toBeInTheDocument();
@@ -592,10 +593,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
+                expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).not.toBeDisabled();
             });
 
-            const toggle = screen.getByTestId('shareChannelWithWorkspacesToggle-button');
+            const toggle = screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch');
             await userEvent.click(toggle);
             expect(toggle).toBeChecked();
             expect(screen.getByText('Add workspace')).toBeInTheDocument();
@@ -610,7 +611,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).not.toBeChecked();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
@@ -628,12 +629,12 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
+                expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).not.toBeDisabled();
             });
 
             const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -644,9 +645,9 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).not.toBeChecked();
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
@@ -727,11 +728,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
+                expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).toBeChecked();
             });
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
+            expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).not.toBeChecked();
 
             remotes = [{...remote}];
             getRemotesForChannel.mockImplementation(() => remotes);
@@ -743,7 +744,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).not.toBeChecked();
             expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         });
 
@@ -763,7 +764,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
 
             await waitFor(() => {
@@ -811,10 +812,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeDisabled();
+                expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).not.toBeDisabled();
             });
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
@@ -939,10 +940,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
+                expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).toBeChecked();
             });
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -960,7 +961,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             }, {timeout: 2000});
 
-            expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).not.toBeChecked();
             expect(screen.queryByText('Add workspace')).not.toBeInTheDocument();
         });
 
@@ -993,10 +994,10 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('shareChannelWithWorkspacesToggle-button')).toBeChecked();
+                expect(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch')).toBeChecked();
             });
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -1064,7 +1065,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             const fetchCallsAfterMount = fetchChannelRemotes.mock.calls.length;
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
@@ -1099,7 +1100,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('shareChannelWithWorkspacesToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.share_with_workspaces--switch'));
             await userEvent.click(screen.getByRole('button', {name: /Add workspace/i}));
             await waitFor(() => {
                 expect(screen.getByRole('menuitem', {name: 'Nebula Networks'})).toBeInTheDocument();
@@ -1187,7 +1188,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             expect(screen.getByText('Classification')).toBeInTheDocument();
-            expect(screen.getByTestId('channelClassificationToggle-button')).toBeInTheDocument();
+            expect(screen.getByTestId('channel_settings_modal.configuration.classification--switch')).toBeInTheDocument();
         });
 
         it('does not render the Classification section when feature is unavailable', () => {
@@ -1247,10 +1248,10 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.classification--switch'));
 
             // The lowest-rank level (UNCLASSIFIED) should be auto-selected in the dropdown.
-            const dropdown = screen.getByTestId('channelClassificationLevel');
+            const dropdown = screen.getByTestId('channel_settings_modal.configuration.classification_level');
             expect(dropdown).toHaveTextContent(LEVEL_UNCLASSIFIED.name);
 
             // Save button should be enabled since a level is pre-selected.
@@ -1275,7 +1276,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            const textInput = await screen.findByTestId('channel_banner_banner_text_textbox');
+            const textInput = await screen.findByTestId('channel_settings_modal.configuration.banner_text--textbox');
             await userEvent.clear(textInput);
             await userEvent.type(textInput, 'Updated text');
 
@@ -1318,7 +1319,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             // Edit only the banner text without changing the classification toggle or level.
-            const textInput = await screen.findByTestId('channel_banner_banner_text_textbox');
+            const textInput = await screen.findByTestId('channel_settings_modal.configuration.banner_text--textbox');
             await userEvent.clear(textInput);
             await userEvent.type(textInput, 'Edited banner');
 
@@ -1353,7 +1354,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             // Toggle classification off (it starts on because of `hasClassification: true`).
-            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.classification--switch'));
 
             const saveButton = await screen.findByRole('button', {name: 'Save'});
             await userEvent.click(saveButton);
@@ -1411,9 +1412,9 @@ describe('ChannelSettingsConfigurationTab', () => {
                 {useMockedStore: true},
             );
 
-            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.classification--switch'));
 
-            const colorInput = screen.getByTestId('color-inputColorValue');
+            const colorInput = screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox');
             await userEvent.clear(colorInput);
             await userEvent.type(colorInput, '#AA00AA');
 
@@ -1454,11 +1455,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             await waitFor(() => {
-                expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#aa00aa');
+                expect(screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox')).toHaveValue('#aa00aa');
             });
             expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.classification--switch'));
 
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
@@ -1489,7 +1490,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             // Toggle off → triggers changes → Save panel appears with Reset.
-            const toggle = screen.getByTestId('channelClassificationToggle-button');
+            const toggle = screen.getByTestId('channel_settings_modal.configuration.classification--switch');
             await userEvent.click(toggle);
 
             const resetButton = await screen.findByRole('button', {name: 'Reset'});
@@ -1519,7 +1520,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             // Enable classification toggle — lowest-rank level is auto-selected.
-            await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.classification--switch'));
 
             // Save button should be enabled (level auto-selected).
             const saveButton = await screen.findByRole('button', {name: 'Save'});
@@ -1554,7 +1555,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             );
 
             // Toggle off then on to create a classification state change.
-            const toggle = screen.getByTestId('channelClassificationToggle-button');
+            const toggle = screen.getByTestId('channel_settings_modal.configuration.classification--switch');
             await userEvent.click(toggle);
             await userEvent.click(toggle);
 
@@ -1614,7 +1615,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         // The composer is contenteditable, so an edit is a DOM mutation followed by
         // the input event React listens for -- userEvent.clear() has nothing to clear.
         const clearComposer = () => {
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = '';
             fireEvent.input(editor);
         };
@@ -1646,7 +1647,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 withBannerField(),
             );
 
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
@@ -1666,7 +1667,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 withBannerField(),
             );
 
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(patchChannel).toHaveBeenCalledWith('channel1', expect.objectContaining({
@@ -1710,11 +1711,11 @@ describe('ChannelSettingsConfigurationTab', () => {
             clearComposer();
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
             // Off means off: the section collapses and the blocking error is gone,
             // rather than outliving the state that raised it.
-            expect(screen.queryByTestId('bannerTextEditor')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_settings_modal.configuration.banner_text--textbox')).not.toBeInTheDocument();
             expect(screen.queryByText(/Add banner text, or turn off the channel banner/)).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
         });
@@ -1725,7 +1726,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
             expect(screen.getByText(/Add banner text, or turn off the channel banner/)).toBeInTheDocument();
 
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = 'Restricted';
             fireEvent.input(editor);
 
@@ -1739,7 +1740,7 @@ describe('ChannelSettingsConfigurationTab', () => {
 
             renderTab();
             clearComposer();
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -1757,13 +1758,13 @@ describe('ChannelSettingsConfigurationTab', () => {
             renderTab();
             clearComposer();
 
-            const toggle = screen.getByTestId('channelBannerToggle-button');
+            const toggle = screen.getByTestId('channel_settings_modal.configuration.banner--switch');
             await userEvent.click(toggle);
             await userEvent.click(toggle);
 
             // Turning the banner off is how the author resolves "enabled but empty",
             // so it must not quietly restore the text they just deleted.
-            expect(screen.getByTestId('bannerTextEditor')).toHaveTextContent('');
+            expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toHaveTextContent('');
         });
 
         it('previews the emptied text rather than the saved banner', () => {
@@ -1778,14 +1779,14 @@ describe('ChannelSettingsConfigurationTab', () => {
             renderTab();
             clearComposer();
 
-            expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
-            expect(screen.queryByTestId('bannerAttributePreview')).not.toBeInTheDocument();
+            expect(screen.getByTestId('channel_settings_modal.configuration.banner_preview.empty_notice')).toBeInTheDocument();
+            expect(screen.queryByTestId('channel_settings_modal.configuration.banner_preview')).not.toBeInTheDocument();
         });
 
         it('treats the separators left behind by the last deleted attribute as empty', async () => {
             renderTab();
 
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = ' · ';
             fireEvent.input(editor);
 
@@ -1843,9 +1844,9 @@ describe('ChannelSettingsConfigurationTab', () => {
                 stateWithBannerField,
             );
 
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
-            expect(screen.getByTestId('bannerTextEditor').textContent).not.toBe('');
+            expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox').textContent).not.toBe('');
         });
 
         it('does not refill a banner the channel deliberately emptied', async () => {
@@ -1857,9 +1858,9 @@ describe('ChannelSettingsConfigurationTab', () => {
                 stateWithBannerField,
             );
 
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
 
-            expect(screen.getByTestId('bannerTextEditor').textContent).toBe('');
+            expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox').textContent).toBe('');
         });
 
         it('stops reporting changes once the emptied banner is saved', async () => {
@@ -1871,9 +1872,9 @@ describe('ChannelSettingsConfigurationTab', () => {
                 stateWithBannerField,
             );
 
-            const toggle = screen.getByTestId('channelBannerToggle-button');
+            const toggle = screen.getByTestId('channel_settings_modal.configuration.banner--switch');
             await userEvent.click(toggle);
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = '';
             fireEvent.input(editor);
             await userEvent.click(toggle);
@@ -1962,7 +1963,7 @@ describe('ChannelSettingsConfigurationTab', () => {
         it('locks the picker to the classification colour while its token is in the text', () => {
             renderTab();
 
-            const colorInput = screen.getByTestId('color-inputColorValue');
+            const colorInput = screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox');
             expect(colorInput).toBeDisabled();
             expect(colorInput).toHaveValue('#c8102e');
         });
@@ -1970,22 +1971,22 @@ describe('ChannelSettingsConfigurationTab', () => {
         it('disables the picker while the banner text would display nothing', () => {
             renderTab();
 
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = '';
             fireEvent.input(editor);
 
-            expect(screen.getByTestId('bannerPreviewEmptyNotice')).toBeInTheDocument();
-            expect(screen.getByTestId('color-inputColorValue')).toBeDisabled();
+            expect(screen.getByTestId('channel_settings_modal.configuration.banner_preview.empty_notice')).toBeInTheDocument();
+            expect(screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox')).toBeDisabled();
         });
 
         it('unlocks the picker once the classification token is removed', () => {
             renderTab();
 
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = 'Handle with care';
             fireEvent.input(editor);
 
-            const colorInput = screen.getByTestId('color-inputColorValue');
+            const colorInput = screen.getByTestId('channel_settings_modal.configuration.banner_color.value--textbox');
             expect(colorInput).not.toBeDisabled();
             expect(colorInput).toHaveValue('#00ff00');
         });
@@ -2052,7 +2053,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 attributesEnabledState,
             );
 
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = 'Handle with care';
             fireEvent.input(editor);
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -2073,7 +2074,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 expect(screen.queryByText('Settings saved')).not.toBeInTheDocument();
             }, {timeout: 5000});
 
-            const nextEdit = screen.getByTestId('bannerTextEditor');
+            const nextEdit = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             nextEdit.textContent = 'Handle with extra care';
             fireEvent.input(nextEdit);
 
@@ -2145,7 +2146,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             patchChannel.mockClear();
 
             renderTab();
-            await userEvent.click(screen.getByTestId('channelBannerToggle-button'));
+            await userEvent.click(screen.getByTestId('channel_settings_modal.configuration.banner--switch'));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             await waitFor(() => {
@@ -2160,7 +2161,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             patchChannel.mockReturnValue({type: 'MOCK_ACTION', data: {}});
 
             const {rerender} = renderTab();
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = 'Handle with care';
             fireEvent.input(editor);
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -2181,7 +2182,7 @@ describe('ChannelSettingsConfigurationTab', () => {
                 />,
             );
 
-            expect(screen.getByTestId('bannerTextEditor')).toBeInTheDocument();
+            expect(screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox')).toBeInTheDocument();
             await waitFor(() => {
                 expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
             }, {timeout: 5000});
@@ -2192,7 +2193,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             patchChannel.mockClear();
 
             renderTab();
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = '';
             fireEvent.input(editor);
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -2208,7 +2209,7 @@ describe('ChannelSettingsConfigurationTab', () => {
             patchChannel.mockClear();
 
             renderTab();
-            const editor = screen.getByTestId('bannerTextEditor');
+            const editor = screen.getByTestId('channel_settings_modal.configuration.banner_text--textbox');
             editor.textContent = 'Handle with care';
             fireEvent.input(editor);
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));

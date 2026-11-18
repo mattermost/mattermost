@@ -92,7 +92,7 @@ describe('ChannelSettingsArchiveTab', () => {
         await userEvent.click(screen.getByText('Archive this channel'));
 
         // Check that the confirmation modal is shown
-        expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
+        expect(screen.getByTestId('archive_channel_modal')).toBeInTheDocument();
         expect(screen.getByText('Archive channel?')).toBeInTheDocument();
     });
 
@@ -121,14 +121,14 @@ describe('ChannelSettingsArchiveTab', () => {
         await userEvent.click(screen.getByText('Archive this channel'));
 
         // Check that the confirmation modal is shown
-        expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
+        expect(screen.getByTestId('archive_channel_modal')).toBeInTheDocument();
 
         // Click the cancel button in the modal
-        await userEvent.click(screen.getByTestId('cancel-button'));
+        await userEvent.click(screen.getByTestId('archive_channel_modal.cancel--button'));
 
         // Check that the confirmation modal is hidden
         await waitFor(() => {
-            expect(screen.queryByTestId('archiveChannelConfirmModal')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('archive_channel_modal')).not.toBeInTheDocument();
         });
     });
 
@@ -148,7 +148,7 @@ describe('ChannelSettingsArchiveTab', () => {
         await userEvent.click(screen.getByText('Archive this channel'));
 
         // Check that the confirmation modal is shown
-        expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
+        expect(screen.getByTestId('archive_channel_modal')).toBeInTheDocument();
 
         // Click the confirm button in the modal
         await userEvent.click(screen.getByText('Confirm'));
@@ -164,12 +164,12 @@ describe('ChannelSettingsArchiveTab', () => {
         await userEvent.click(screen.getByText('Archive this channel'));
 
         // Check that the confirmation modal message mentions that archived channels cannot be viewed
-        const modalMessage = screen.getByTestId('archiveChannelConfirmModal');
+        const modalMessage = screen.getByTestId('archive_channel_modal');
         expect(modalMessage).toBeInTheDocument();
 
         // Check for the specific text content within the modal
         // Use the within function to scope the query to just the modal content
-        const modalBody = screen.getByTestId('archiveChannelConfirmModal').querySelector('#confirmModalBody');
+        const modalBody = screen.getByTestId('archive_channel_modal').querySelector('#confirmModalBody');
         expect(modalBody).toBeInTheDocument();
         expect(modalBody).toHaveTextContent(/This will archive the channel from the team/);
     });
@@ -215,7 +215,7 @@ describe('ChannelSettingsArchiveTab', () => {
             await userEvent.click(screen.getByText('Archive this channel'));
 
             // Check that the confirmation modal is shown
-            expect(screen.getByTestId('archiveChannelConfirmModal')).toBeInTheDocument();
+            expect(screen.getByTestId('archive_channel_modal')).toBeInTheDocument();
 
             // With the new approach, there should be two backdrops:
             // 1. The parent modal's backdrop (with opacity 0)

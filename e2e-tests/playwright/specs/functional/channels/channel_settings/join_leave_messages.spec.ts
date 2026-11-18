@@ -13,7 +13,15 @@
  * channel, so tests use `adminClient.addToChannel()` to produce them.
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {
+    ChannelsPage,
+    expect,
+    test,
+    closeChannelSettings,
+    openChannelSettingsConfigurationTab,
+    Api,
+    settle,
+} from '@mattermost/playwright-lib';
 
 test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
     /**
@@ -40,15 +48,15 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
         // # Open Channel Settings and navigate to Configuration tab
         const channelSettings = await channelsPage.openChannelSettings();
-        const configSettings = await channelSettings.openConfigurationTab();
+        const configSettings = await openChannelSettingsConfigurationTab(channelSettings);
 
         // * Toggle is visible
-        await expect(configSettings.joinLeaveMessagesToggle).toBeVisible();
+        await expect(configSettings.joinLeaveMessagesSwitch).toBeVisible();
 
         // * Toggle defaults to ON (messages shown)
-        await expect(configSettings.joinLeaveMessagesToggle).toBeChecked();
+        await expect(configSettings.joinLeaveMessagesSwitch).toBeOn();
 
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
     });
 
     /**
@@ -96,10 +104,11 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // # Open Channel Settings → Configuration tab and disable join/leave messages
             const channelSettings = await channelsPage.openChannelSettings();
-            const configSettings = await channelSettings.openConfigurationTab();
-            await configSettings.disableJoinLeaveMessages();
-            await configSettings.save();
-            await channelSettings.close();
+            const configSettings = await openChannelSettingsConfigurationTab(channelSettings);
+            await configSettings.joinLeaveMessagesSwitch.set(false);
+            await expect(configSettings.joinLeaveMessagesSwitch).not.toBeOn();
+            await settle(channelSettings.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+            await closeChannelSettings(channelSettings);
 
             // * The join system post is no longer visible — wait for post-list re-fetch after ETag bust
             await expect(
@@ -208,10 +217,11 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
             await adminChannelsPage.toBeVisible();
 
             const channelSettings = await adminChannelsPage.openChannelSettings();
-            const configSettings = await channelSettings.openConfigurationTab();
-            await configSettings.disableJoinLeaveMessages();
-            await configSettings.save();
-            await channelSettings.close();
+            const configSettings = await openChannelSettingsConfigurationTab(channelSettings);
+            await configSettings.joinLeaveMessagesSwitch.set(false);
+            await expect(configSettings.joinLeaveMessagesSwitch).not.toBeOn();
+            await settle(channelSettings.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+            await closeChannelSettings(channelSettings);
 
             // * secondUser's view updates in real time — join post disappears without a page reload
             await expect(secondChannelsPage.centerView.container.getByText('joined the channel')).not.toBeVisible({
@@ -252,10 +262,11 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // # Disable join/leave messages and save
             let channelSettings = await channelsPage.openChannelSettings();
-            let configSettings = await channelSettings.openConfigurationTab();
-            await configSettings.disableJoinLeaveMessages();
-            await configSettings.save();
-            await channelSettings.close();
+            let configSettings = await openChannelSettingsConfigurationTab(channelSettings);
+            await configSettings.joinLeaveMessagesSwitch.set(false);
+            await expect(configSettings.joinLeaveMessagesSwitch).not.toBeOn();
+            await settle(channelSettings.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+            await closeChannelSettings(channelSettings);
 
             // * Join system post is hidden after disabling — wait for post-list re-fetch
             await expect(
@@ -264,10 +275,11 @@ test.describe('Channel Settings Modal - Join/Leave System Messages', () => {
 
             // # Re-open Channel Settings → Configuration tab and re-enable join/leave messages
             channelSettings = await channelsPage.openChannelSettings();
-            configSettings = await channelSettings.openConfigurationTab();
-            await configSettings.enableJoinLeaveMessages();
-            await configSettings.save();
-            await channelSettings.close();
+            configSettings = await openChannelSettingsConfigurationTab(channelSettings);
+            await configSettings.joinLeaveMessagesSwitch.set(true);
+            await expect(configSettings.joinLeaveMessagesSwitch).toBeOn();
+            await settle(channelSettings.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+            await closeChannelSettings(channelSettings);
 
             // * Join system post is visible again after re-enabling
             await expect(

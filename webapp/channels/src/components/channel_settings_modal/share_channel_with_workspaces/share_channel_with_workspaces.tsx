@@ -121,7 +121,10 @@ export default function ShareChannelWithWorkspaces({
     const listHeader = remotes.length > 0 ? messages.workspacesLabel : messages.workspacesLabelEmpty;
 
     return (
-        <div className='channel_shared_with_workspaces_container'>
+        <div
+            className='channel_shared_with_workspaces_container'
+            data-testid='channel_settings_modal.configuration.workspaces'
+        >
             <WithTooltip
                 title={formatMessage({
                     id: 'channel_settings.share_channel_with_workspaces.disable_toggle_tooltip',
@@ -140,7 +143,7 @@ export default function ShareChannelWithWorkspaces({
                         checked={enabled && hasAvailableWorkspaces}
                         disabled={disabled || !hasAvailableWorkspaces}
                         onChange={handleToggle}
-                        data-testid='shareChannelWithWorkspacesToggle-button'
+                        data-testid='channel_settings_modal.configuration.share_with_workspaces--switch'
                         tabIndex={hasAvailableWorkspaces && !disabled ? 0 : -1}
                         semiBold={true}
                         secondaryLabel={subheading}

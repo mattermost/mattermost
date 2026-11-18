@@ -720,12 +720,16 @@ function ChannelSettingsAccessRulesTab({
     const accessRulesSubtitle = formatMessage(subtitleMessages[channelKind]);
 
     return (
-        <div className='ChannelSettingsModal__accessRulesTab'>
+        <div
+            className='ChannelSettingsModal__accessRulesTab'
+            data-testid='channel_settings_modal.access_rules'
+        >
             {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
             {/* Display system policies indicator if any are applied */}
             {!policiesLoading && systemPolicies.length > 0 && (
                 <div className='ChannelSettingsModal__systemPolicies'>
                     <SystemPolicyIndicator
+                        testId='channel_settings_modal.access_rules.system_policies'
                         policies={systemPolicies}
                         resourceType='channel'
                         showPolicyNames={true}
@@ -752,7 +756,7 @@ function ChannelSettingsAccessRulesTab({
             {rulesLocked && (
                 <div
                     className='ChannelSettingsModal__lockedRules'
-                    data-testid='channel-access-rules-locked-rules'
+                    data-testid='channel_settings_modal.access_rules.locked_rules'
                 >
                     <div
                         className='ChannelSettingsModal__lockedNotice'
@@ -781,6 +785,7 @@ function ChannelSettingsAccessRulesTab({
             {attributesLoaded && rulesEditable && (
                 <div className='ChannelSettingsModal__accessRulesEditor'>
                     <TableEditor
+                        testId='channel_settings_modal.access_rules.rules'
                         value={expression}
                         onChange={handleExpressionChange}
                         onValidate={() => setFormError('')}
@@ -815,6 +820,7 @@ function ChannelSettingsAccessRulesTab({
                         disabled={isReadOnly || isEmptyRulesState || !rulesEditable}
                         id='autoSyncMembersCheckbox'
                         name='autoSyncMembers'
+                        data-testid='channel_settings_modal.access_rules.auto_sync--checkbox'
                         title={(() => {
                             if (isEmptyRulesState) {
                                 return formatMessage({
@@ -868,6 +874,7 @@ function ChannelSettingsAccessRulesTab({
             {/* SaveChangesPanel for unsaved changes */}
             {shouldShowPanel && (
                 <SaveChangesPanel
+                    testId='channel_settings_modal.save_panel'
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
@@ -886,6 +893,7 @@ function ChannelSettingsAccessRulesTab({
 
             {/* Self-exclusion error modal */}
             <ConfirmModal
+                testId='channel_settings_modal.access_rules.self_exclusion_modal'
                 show={showSelfExclusionModal}
                 title={
                     <FormattedMessage

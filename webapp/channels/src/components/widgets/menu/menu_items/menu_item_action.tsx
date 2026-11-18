@@ -17,6 +17,10 @@ type Props = {
     disabled?: boolean;
     sibling?: React.ReactNode;
     iconClassName?: string;
+
+    /** Set by the menu item wrapper when the item's test id is on the wrapper's own element: the button then has none. */
+    scoped?: boolean;
+
 };
 export const MenuItemActionImpl = ({
     onClick,
@@ -29,10 +33,11 @@ export const MenuItemActionImpl = ({
     disabled,
     sibling,
     iconClassName,
+    scoped,
 }: Props) => (
     <>
         <button
-            data-testid={id}
+            data-testid={scoped ? undefined : id}
             id={id}
             className={classNames('style--none', buttonClass, {
                 'MenuItem__with-help': extraText,

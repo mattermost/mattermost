@@ -19,14 +19,6 @@ const stackedStateModifier: Record<AggregateDecisionState, string> = {
     mixed: 'SimulateAccessModal__rowChip--mixed',
 };
 
-const stackedStateTestId: Record<AggregateDecisionState, string> = {
-    pending: 'simulate-access-row-chip-stacked-pending',
-    'not-applicable': 'simulate-access-row-chip-stacked-not-applicable',
-    allowed: 'simulate-access-row-chip-stacked-allow',
-    denied: 'simulate-access-row-chip-stacked-deny',
-    mixed: 'simulate-access-row-chip-stacked-mixed',
-};
-
 // Match each aggregate state to the same filled-circle glyph the
 // single-action chip uses (see ChipIcon in decision_chip.tsx) so the
 // stacked rollup pill and the per-action pill it expands into share
@@ -63,7 +55,7 @@ export default function StackedDecisionChip({state, count, onClick}: Props): JSX
         <button
             type='button'
             className={`SimulateAccessModal__rowChip SimulateAccessModal__rowChip--stacked ${stackedStateModifier[state]}`}
-            data-testid={stackedStateTestId[state]}
+            data-testid={`admin.simulate_access.user.stacked:${state}--button`}
             onClick={(e) => {
                 e.stopPropagation();
                 onClick();

@@ -6,7 +6,7 @@ import type {Client4} from '@mattermost/client';
 import type {Team} from '@mattermost/types/teams';
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, openChannelSettingsInfoTab, Api, settle, Msg} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_LABEL_INFO,
@@ -75,25 +75,28 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
             await channelsPage.toBeVisible();
 
             const channelSettings = await channelsPage.openChannelSettings();
-            const infoSettings = await channelSettings.openInfoTab();
+            const infoSettings = await openChannelSettingsInfoTab(channelSettings);
 
             // # Add the unset attribute in the modal and commit with Enter, as the
             // # inline editor expects. An unset optional attribute has no row until added.
-            await infoSettings.attributes.add(note.name);
-            await infoSettings.attributes.editor(note.name).fill('drafted in modal');
-            await infoSettings.attributes.editor(note.name).press('Enter');
+            await infoSettings.attributes.addButton.click();
+            await expect(infoSettings.attributes.addMenu.attribute(note.id)).toBeVisible();
+            await infoSettings.attributes.addMenu.attribute(note.id).click();
+            await expect(infoSettings.attributes.attribute(note.id).editorTextbox).toBeVisible();
+            await infoSettings.attributes.attribute(note.id).editorTextbox.fill('drafted in modal');
+            await infoSettings.attributes.attribute(note.id).editorTextbox.press('Enter');
 
             // * The row reflects the edit immediately, and the tab reports an unsaved
             // * change, but nothing has reached the server yet
-            await expect(infoSettings.attributes.editButton(note.name)).toHaveText('drafted in modal');
-            await expect(channelSettings.container.getByText('You have unsaved changes')).toBeVisible();
+            await expect(infoSettings.attributes.attribute(note.id).editButton.locator).toHaveText('drafted in modal');
+            await expect(channelSettings.savePanel.messageText).toHaveMessage(Msg.saveChangesPanel.message);
             expect(valueFor(await readChannelValues(adminClient, channel.id), note)).toBeUndefined();
 
             // # Save the tab
-            await infoSettings.save();
+            await settle(channelSettings.savePanel.saveButton, {wait: Api.UpdatePropertyValues}).click();
 
             // * The panel leaves the unsaved state and the value is now stored
-            await expect(infoSettings.saveChangesPanel).not.toBeVisible();
+            await expect(channelSettings.savePanel).not.toBeVisible();
             await expect
                 .poll(async () => {
                     return valueFor(await readChannelValues(adminClient, channel.id), note);
@@ -140,17 +143,20 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
             await channelsPage.toBeVisible();
 
             const channelSettings = await channelsPage.openChannelSettings();
-            const infoSettings = await channelSettings.openInfoTab();
-            await expect(infoSettings.attributes.editButton(note.name)).toHaveText('original');
+            const infoSettings = await openChannelSettingsInfoTab(channelSettings);
+            await expect(infoSettings.attributes.attribute(note.id).editButton.locator).toHaveText('original');
 
             // # Edit the attribute, then discard it with Reset instead of Save
-            await infoSettings.attributes.setText(note.name, 'discarded', 'enter');
-            await expect(infoSettings.attributes.editButton(note.name)).toHaveText('discarded');
-            await infoSettings.resetChanges();
+            await infoSettings.attributes.attribute(note.id).editButton.click();
+            await expect(infoSettings.attributes.attribute(note.id).editorTextbox).toBeVisible();
+            await infoSettings.attributes.attribute(note.id).editorTextbox.fill('discarded');
+            await infoSettings.attributes.attribute(note.id).editorTextbox.press('Enter');
+            await expect(infoSettings.attributes.attribute(note.id).editButton.locator).toHaveText('discarded');
+            await channelSettings.savePanel.cancelButton.click();
 
             // * The row reverts to the stored value, and the panel clears
-            await expect(infoSettings.attributes.editButton(note.name)).toHaveText('original');
-            await expect(infoSettings.saveChangesPanel).not.toBeVisible();
+            await expect(infoSettings.attributes.attribute(note.id).editButton.locator).toHaveText('original');
+            await expect(channelSettings.savePanel).not.toBeVisible();
 
             // * The discarded edit never reached the server
             expect(valueFor(await readChannelValues(adminClient, channel.id), note)).toBe('original');

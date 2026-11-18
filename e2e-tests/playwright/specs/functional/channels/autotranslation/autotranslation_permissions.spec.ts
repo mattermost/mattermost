@@ -8,6 +8,10 @@ import {
     hasAutotranslationLicense,
     expect,
     test,
+    closeChannelSettings,
+    openChannelSettingsConfigurationTab,
+    Api,
+    settle,
 } from '@mattermost/playwright-lib';
 
 test(
@@ -206,12 +210,12 @@ test.describe('autotranslation configuration tests', () => {
             await channelsPage.toBeVisible();
 
             const channelSettingsModal = await channelsPage.openChannelSettings();
-            await channelSettingsModal.toBeVisible();
+            await expect(channelSettingsModal).toBeVisible();
 
             const newHeader = `DM header ${pw.random.id()}`;
-            await channelsPage.page.getByTestId('channel_settings_header_textbox').fill(newHeader);
-            await channelsPage.page.getByRole('button', {name: 'Save'}).click();
-            await channelSettingsModal.close();
+            await channelSettingsModal.info.header.container.fill(newHeader);
+            await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+            await closeChannelSettings(channelSettingsModal);
 
             await expect.poll(async () => (await adminClient.getChannel(dmChannel.id)).header).toBe(newHeader);
         },
@@ -251,12 +255,11 @@ test.describe('autotranslation configuration tests', () => {
             await channelsPage.toBeVisible();
 
             const channelSettingsModal = await channelsPage.openChannelSettings();
-            const configTabVisible = await channelSettingsModal.configurationTab.isVisible();
+            // The tabs render with the modal, and the test branches on whether this role is offered the tab at all
+            const configTabVisible = await channelSettingsModal.tabs.tab('configuration').locator.isVisible();
             if (configTabVisible) {
-                const configurationTab = await channelSettingsModal.openConfigurationTab();
-                await expect(
-                    configurationTab.container.getByTestId('channelTranslationToggle-button'),
-                ).not.toBeVisible();
+                const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
+                await expect(configurationTab.autotranslationSwitch.locator).not.toBeVisible();
             }
 
             // Restore autotranslation to disabled via patchConfig (race-safe)
@@ -270,5 +273,5 @@ async function gotoSystemSchemePage(systemConsolePage: SystemConsolePage) {
     await systemConsolePage.page.waitForURL(/\/admin_console\/user_management\/permissions/);
 
     await systemConsolePage.page.getByRole('link', {name: 'Edit Scheme'}).click();
-    await systemConsolePage.page.waitForURL(/\/admin_console\/user_management\/permissions\/system_scheme/);
+    await expect(systemConsolePage.page).toHaveURL(/\/admin_console\/user_management\/permissions\/system_scheme/);
 }

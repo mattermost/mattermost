@@ -19,18 +19,21 @@ type Props = {
      * onClick handler when user clicks back button
      */
     onClick?: React.EventHandler<React.MouseEvent>;
+
+    /** The link is `<testId>--link`; without it the header keeps `signup-header` and `back_button`. */
+    testId?: string;
 };
 
-const BackButton = ({url = '/', className, onClick}: Props): JSX.Element => {
+const BackButton = ({url = '/', className, onClick, testId}: Props): JSX.Element => {
     const {formatMessage} = useIntl();
 
     return (
         <div
-            data-testid='signup-header'
+            data-testid={testId ? undefined : 'signup-header'}
             className={classNames('signup-header', className)}
         >
             <Link
-                data-testid='back_button'
+                data-testid={testId ? `${testId}--link` : 'back_button'}
                 onClick={onClick}
                 to={url}
             >

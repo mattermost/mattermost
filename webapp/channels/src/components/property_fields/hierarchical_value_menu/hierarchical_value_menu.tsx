@@ -80,6 +80,10 @@ export type HierarchicalValueMenuProps = {
     buttonId: string;
     buttonDataTestId?: string;
 
+    // The open menu's scope: its search box is `<testIdScope>.search--textbox`, each value
+    // `<testIdScope>.node:<position>--menuitemcheckbox`.
+    testIdScope?: string;
+
     placeholder?: string;
     ariaLabel?: string;
 
@@ -150,6 +154,7 @@ export default function HierarchicalValueMenu({
     menuId,
     buttonId,
     buttonDataTestId,
+    testIdScope,
     placeholder,
     ariaLabel,
     className,
@@ -438,6 +443,7 @@ export default function HierarchicalValueMenu({
                     <HierarchicalMenuStatus
                         kind={statusKind}
                         onRetry={isRetryableStatus ? refetch : undefined}
+                        testId={testIdScope ? `${testIdScope}.loading` : undefined}
                     />
                 }
             />,
@@ -456,6 +462,8 @@ export default function HierarchicalValueMenu({
                     isSelected={selectedIdSet.has(row.valueId)}
                     insideCount={row.insideCount}
                     isFirstRow={index === 0}
+                    testId={testIdScope ? `${testIdScope}.node` : undefined}
+                    testKey={index}
                     onToggleSelect={() => handleToggleSelect(row.valueId)}
                     onToggleExpand={() => handleToggleExpand(row.occKey)}
                     onFocusSearch={focusSearch}
@@ -548,6 +556,7 @@ export default function HierarchicalValueMenu({
                         onChange={setQuery}
                         onArrowDown={focusFirstRow}
                         inputRef={searchInputRef}
+                        testId={testIdScope ? `${testIdScope}.search` : undefined}
                     />
                 }
             >

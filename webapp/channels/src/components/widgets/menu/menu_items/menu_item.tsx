@@ -13,6 +13,12 @@ export default function menuItem(Component: React.ComponentType<any>) {
     type Props = {
         show: boolean;
         id?: string;
+
+        /** The test id scope of the item: renders `<testId>--menuitem` on the item's own `li`. */
+        testId?: string;
+
+        /** The whole test id of the item's `li`, for an item whose contract ends in `--menuitem` such as a plugin's. */
+        slotTestId?: string;
         icon?: React.ReactNode;
         text?: React.ReactNode;
     };
@@ -24,7 +30,7 @@ export default function menuItem(Component: React.ComponentType<any>) {
         public static displayName?: string;
 
         public render() {
-            const {id, show, icon, text, ...props} = this.props;
+            const {id, show, icon, text, testId, slotTestId, ...props} = this.props;
             if (!show) {
                 return null;
             }
@@ -46,11 +52,13 @@ export default function menuItem(Component: React.ComponentType<any>) {
                     })}
                     role='menuitem'
                     id={id}
+                    data-testid={slotTestId ?? (testId ? `${testId}--menuitem` : undefined)}
                 >
                     <Component
                         text={textProp}
                         ariaLabel={text?.toString()}
                         id={id + '-button'}
+                        scoped={Boolean(testId || slotTestId)}
                         {...props}
                     />
                 </li>

@@ -11,7 +11,14 @@ import type {Client4} from '@mattermost/client';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {ChannelsPage, expect, getAdminClient, getRandomId, test} from '@mattermost/playwright-lib';
+import {
+    ChannelsPage,
+    expect,
+    getAdminClient,
+    getRandomId,
+    test,
+    closeChannelSettings,
+} from '@mattermost/playwright-lib';
 
 import {createPrivateChannel, enableABACConfig} from '../team_settings/helpers';
 import {createUserAttributeField} from '../../system_console/abac/support';
@@ -64,11 +71,9 @@ async function expectAdvancedRuleRejection(call: () => Promise<unknown>, because
 
 async function openMembershipPolicyTab(channelsPage: ChannelsPage) {
     const channelSettings = await channelsPage.openChannelSettings();
-    await channelSettings.container.getByTestId('access_rules-tab-button').click();
-
-    const tab = channelSettings.container.locator('.ChannelSettingsModal__accessRulesTab');
-    await expect(tab).toBeVisible({timeout: 10000});
-    return {channelSettings, tab};
+    await channelSettings.tabs.tab('access_rules').select();
+    await expect(channelSettings.accessRules.container).toBeVisible({timeout: 10000});
+    return channelSettings;
 }
 
 test.describe('Channel Settings - Membership Policy locked for Advanced rules', {tag: '@abac'}, () => {
@@ -112,19 +117,19 @@ test.describe('Channel Settings - Membership Policy locked for Advanced rules', 
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
-        const {channelSettings, tab} = await openMembershipPolicyTab(channelsPage);
+        const channelSettings = await openMembershipPolicyTab(channelsPage);
 
         // * The rule is shown read-only with the channel admin wording
-        const locked = tab.getByTestId('channel-access-rules-locked-rules');
+        const locked = channelSettings.accessRules.lockedRules;
         await expect(locked).toBeVisible({timeout: 10000});
-        await expect(locked.getByRole('status')).toHaveText(`${LOCKED_NOTICE} ${CONTACT_ADMIN}`);
-        await expect(locked.locator('code')).toHaveText(advancedRule());
+        await expect(locked.locator.getByRole('status')).toHaveText(`${LOCKED_NOTICE} ${CONTACT_ADMIN}`);
+        await expect(locked.locator.locator('code')).toHaveText(advancedRule());
 
         // * No table editor to replace it, and auto-add can't be toggled
-        await expect(tab.getByTestId('table-editor')).toHaveCount(0);
-        await expect(tab.locator('#autoSyncMembersCheckbox')).toBeDisabled();
+        await expect(channelSettings.accessRules.rules).toHaveCount(0);
+        await expect(channelSettings.accessRules.autoSyncCheckbox).toBeDisabled();
 
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
 
         // * The saved rule is untouched
         expect(await getChannelRule(adminClient, channel.id)).toBe(advancedRule());
@@ -147,18 +152,18 @@ test.describe('Channel Settings - Membership Policy locked for Advanced rules', 
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
-        const {channelSettings, tab} = await openMembershipPolicyTab(channelsPage);
+        const channelSettings = await openMembershipPolicyTab(channelsPage);
 
         // * The rule is locked with the system admin wording
-        const locked = tab.getByTestId('channel-access-rules-locked-rules');
+        const locked = channelSettings.accessRules.lockedRules;
         await expect(locked).toBeVisible({timeout: 10000});
-        await expect(locked.getByRole('status')).toHaveText(LOCKED_NOTICE);
-        await expect(locked.getByRole('status')).not.toContainText('Contact a System Admin');
-        await expect(locked.locator('code')).toHaveText(advancedRule());
-        await expect(tab.getByTestId('table-editor')).toHaveCount(0);
-        await expect(tab.locator('#autoSyncMembersCheckbox')).toBeDisabled();
+        await expect(locked.locator.getByRole('status')).toHaveText(LOCKED_NOTICE);
+        await expect(locked.locator.getByRole('status')).not.toContainText('Contact a System Admin');
+        await expect(locked.locator.locator('code')).toHaveText(advancedRule());
+        await expect(channelSettings.accessRules.rules).toHaveCount(0);
+        await expect(channelSettings.accessRules.autoSyncCheckbox).toBeDisabled();
 
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
     });
 
     /**
@@ -179,14 +184,14 @@ test.describe('Channel Settings - Membership Policy locked for Advanced rules', 
         const channelsPage = new ChannelsPage(page);
         await channelsPage.goto(team.name, channel.name);
         await channelsPage.toBeVisible();
-        const {channelSettings, tab} = await openMembershipPolicyTab(channelsPage);
+        const channelSettings = await openMembershipPolicyTab(channelsPage);
 
         // * The table editor is shown and the lock is not
-        await expect(tab.getByTestId('table-editor')).toBeVisible({timeout: 10000});
-        await expect(tab.getByTestId('channel-access-rules-locked-rules')).toHaveCount(0);
-        await expect(tab.locator('#autoSyncMembersCheckbox')).toBeEnabled();
+        await expect(channelSettings.accessRules.rules).toBeVisible({timeout: 10000});
+        await expect(channelSettings.accessRules.lockedRules).not.toBeVisible();
+        await expect(channelSettings.accessRules.autoSyncCheckbox).toBeEnabled();
 
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
     });
 
     /**

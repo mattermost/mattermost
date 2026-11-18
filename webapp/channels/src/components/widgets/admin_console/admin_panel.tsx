@@ -34,6 +34,12 @@ type Props = {
     subtitleValues?: Record<string, unknown>;
     button?: React.ReactNode;
     children?: React.ReactNode;
+
+    testId?: string;
+
+    // Override the title's / subtitle's testid (default derived from `testId`).
+    titleTestId?: string;
+    subtitleTestId?: string;
 } & Omit<CompassWithHeaderProps, 'title' | 'subtitle' | 'headerActions' | 'children' | 'className' | 'id'>;
 
 function isMessageDescriptor(value: PanelText): value is MessageDescriptor {
@@ -59,6 +65,14 @@ function renderPanelText(
         );
     }
     return undefined;
+}
+
+// Compass renders the title and subtitle itself; a wrapper carries their testids.
+function withTestId(node: React.ReactNode | undefined, testId?: string): React.ReactNode | undefined {
+    if (node == null || !testId) {
+        return node;
+    }
+    return <span data-testid={testId}>{node}</span>;
 }
 
 function hasCompassHeaderChrome(props: {
@@ -95,6 +109,9 @@ const AdminPanel = ({
     className = '',
     id,
     subtitleValues,
+    testId,
+    titleTestId = testId ? `${testId}.title--text` : undefined,
+    subtitleTestId = testId ? `${testId}.subtitle--text` : undefined,
     expandable,
     footer,
     ...rest
@@ -108,6 +125,7 @@ const AdminPanel = ({
     if (!hasCompassHeaderChrome({title, subtitle, button, expandable, ...rest})) {
         const headerlessProps = {
             id,
+            'data-testid': testId,
             className: classNameWithFlags,
             footer,
             children,
@@ -121,8 +139,8 @@ const AdminPanel = ({
         );
     }
 
-    const titleNode = renderPanelText(title);
-    const subtitleNode = renderPanelText(subtitle, subtitleValues);
+    const titleNode = withTestId(renderPanelText(title), titleTestId);
+    const subtitleNode = withTestId(renderPanelText(subtitle, subtitleValues), subtitleTestId);
 
     // Prefer a real title, then promote subtitle, then a meaningful fallback —
     // never an empty heading (Compass requires a non-empty title for headed panels).
@@ -135,6 +153,7 @@ const AdminPanel = ({
 
     const headedProps = {
         id,
+        'data-testid': testId,
         className: classNameWithFlags,
         title: headedTitle,
         subtitle: titleNode ? subtitleNode : undefined,

@@ -28,6 +28,9 @@ type Props = {
     values: ChannelAttributeSelection;
     onChange: (fieldId: string, value: string | string[] | undefined) => void;
     disabled?: boolean;
+
+    /** The form's scope: its rows are `<testId>.attribute:<field id>`. Without it the form keeps its legacy ids. */
+    testId?: string;
 };
 
 // Stable, so AttributeCombobox's memo doesn't recompute on every keystroke elsewhere in the modal.
@@ -37,7 +40,7 @@ function getOptions(field: PropertyField): PropertyFieldOption[] {
     return (field.attrs?.options as PropertyFieldOption[] | undefined) ?? NO_OPTIONS;
 }
 
-const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
+const ChannelAttributesForm = ({fields, values, onChange, disabled, testId}: Props) => {
     const {formatMessage} = useIntl();
     const [touched, setTouched] = useState<Record<string, true>>({});
 
@@ -77,7 +80,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
     return (
         <div
             className='channel-attributes-form'
-            data-testid='channelAttributesForm'
+            data-testid={testId ?? 'channelAttributesForm'}
         >
             <h4 className='channel-attributes-form__title'>
                 <FormattedMessage
@@ -104,6 +107,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                 if (supportsHierarchy(field)) {
                     control = (
                         <GraphAttributeControl
+                            buttonTestId={testId ? `${testId}.attribute.value--button` : undefined}
                             field={field}
                             value={selected}
                             onChange={onChange}
@@ -125,6 +129,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                             disabled={disabled}
                             aria-label={label}
                             required={required}
+                            testId={testId ? `${testId}.attribute.value_input` : undefined}
                         />
                     );
                 } else {
@@ -165,7 +170,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                     <div
                         key={field.id}
                         className={classNames('channel-attributes-form__row', {'channel-attributes-form__row--error': showError})}
-                        data-testid={`channelAttributeRow-${field.name}`}
+                        data-testid={testId ? `${testId}.attribute:${field.id}` : `channelAttributeRow-${field.name}`}
                     >
                         {hasOptions ? (
                             <label
@@ -192,6 +197,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
                                     id={errorId}
                                     className='channel-attributes-form__error'
                                     role='alert'
+                                    data-testid={testId ? `${testId}.attribute.error--alert` : undefined}
                                 >
                                     <i
                                         className='icon icon-alert-circle-outline'
@@ -209,6 +215,9 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled}: Props) => {
 };
 
 type GraphControlProps = {
+
+    // The picker's button testid, whole; without it the button keeps its legacy id.
+    buttonTestId?: string;
     field: PropertyField;
     value: string | string[] | undefined;
     onChange: (fieldId: string, value: string | string[] | undefined) => void;
@@ -219,7 +228,7 @@ type GraphControlProps = {
 
 // The ref is memoized on field identity because the picker keys its own memos
 // on it, and this form re-renders on every keystroke elsewhere in the modal.
-const GraphAttributeControl = ({field, value, onChange, placeholder, ariaLabel, disabled}: GraphControlProps) => {
+const GraphAttributeControl = ({field, value, onChange, placeholder, ariaLabel, disabled, buttonTestId}: GraphControlProps) => {
     const graphField = useMemo(() => asGraphFieldRef(field), [field]);
 
     const handleIdsChange = useCallback((next: string[]) => {
@@ -233,7 +242,7 @@ const GraphAttributeControl = ({field, value, onChange, placeholder, ariaLabel, 
             onIdsChange={handleIdsChange}
             menuId={`channelAttributeMenu-${field.name}`}
             buttonId={`channelAttribute-${field.name}`}
-            buttonDataTestId={`channelAttribute-${field.name}`}
+            buttonDataTestId={buttonTestId ?? `channelAttribute-${field.name}`}
             placeholder={placeholder}
             ariaLabel={ariaLabel}
             disabled={disabled}

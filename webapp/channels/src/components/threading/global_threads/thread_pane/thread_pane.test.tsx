@@ -263,11 +263,11 @@ describe('components/threading/global_threads/thread_pane', () => {
             // chips collapse together instead of competing for the space. The row stays
             // hidden until it has measured how many of them fit.
             await waitFor(() => {
-                expect(screen.getAllByTestId('attributeChip')).toHaveLength(2);
-                expect(screen.getAllByTestId('attributeChip')[0]).toBeVisible();
+                expect(screen.getAllByTestId('channel_attributes.chip')).toHaveLength(2);
+                expect(screen.getAllByTestId('channel_attributes.chip')[0]).toBeVisible();
             });
 
-            const chips = screen.getAllByTestId('attributeChip');
+            const chips = screen.getAllByTestId('channel_attributes.chip');
             expect(chips.map((chip) => chip.textContent)).toEqual(['caveat: CAVEAT', 'program: PROGRAM']);
 
             // Beside the channel name rather than among the thread controls.
@@ -284,7 +284,7 @@ describe('components/threading/global_threads/thread_pane', () => {
                 ]),
             );
 
-            const chip = await screen.findByTestId('attributeChip');
+            const chip = await screen.findByTestId('channel_attributes.chip');
             expect(chip.closest('button')).toBeNull();
         });
 
@@ -303,7 +303,7 @@ describe('components/threading/global_threads/thread_pane', () => {
 
             const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-info-header');
             expect(overflow).toHaveTextContent('+2');
-            expect(screen.queryByTestId('attributeChip')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_attributes.chip')).not.toBeInTheDocument();
         });
     });
 });

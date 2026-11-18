@@ -27,6 +27,9 @@ type URLInputProps = {
     helpText?: string;
     onChange?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
     onBlur?: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+
+    /** The input's testid scope; its parts render `<testIdScope>.label--text`, `<testIdScope>.value--textbox`, `<testIdScope>.edit--button`, `<testIdScope>.help--text` and `<testIdScope>.error--alert`. */
+    testIdScope?: string;
 };
 
 function UrlInput({
@@ -42,6 +45,7 @@ function UrlInput({
     helpText,
     onChange,
     onBlur,
+    testIdScope,
 }: URLInputProps) {
     const {formatMessage} = useIntl();
 
@@ -91,7 +95,7 @@ function UrlInput({
     const urlInputLabel = (
         <span
             className='url-input-label'
-            data-testid='urlInputLabel'
+            data-testid={testIdScope ? `${testIdScope}.label--text` : 'urlInputLabel'}
         >
             {formatMessage({id: 'url_input.label.url', defaultMessage: 'URL: '})}
             {isShortenedURL ? getShortenedURL(fullURL, shortenLength) : fullURL}
@@ -113,7 +117,7 @@ function UrlInput({
                 )}
                 {isEditing && (
                     <Input
-                        data-testid='channelURLInput'
+                        data-testid={testIdScope ? `${testIdScope}.value--textbox` : 'channelURLInput'}
                         name='url-input'
                         type='text'
                         containerClassName='url-input-editable-container'
@@ -137,6 +141,7 @@ function UrlInput({
                         emphasis='quaternary'
                         size='x-small'
                         type='button'
+                        data-testid={testIdScope ? `${testIdScope}.edit--button` : undefined}
                         onClick={handleOnButtonClick}
                         onKeyDown={handlePropagateKeyDown}
                     >
@@ -147,7 +152,10 @@ function UrlInput({
                 )}
             </div>
             {helpText && (
-                <div className='url-input-help-text'>
+                <div
+                    className='url-input-help-text'
+                    data-testid={testIdScope ? `${testIdScope}.help--text` : undefined}
+                >
                     {helpText}
                 </div>
             )}
@@ -157,6 +165,7 @@ function UrlInput({
                     <span
                         id='url-input-error'
                         role='alert'
+                        data-testid={testIdScope ? `${testIdScope}.error--alert` : undefined}
                     >
                         {error}
                     </span>

@@ -145,7 +145,7 @@ describe('ChannelInfoAttributes', () => {
         );
 
         expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
-        expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+        expect(screen.getByTestId('channel_attributes.chip')).toHaveTextContent('VALUE_PROGRAM');
     });
 
     test('calls them Channel Attributes on a channel and Board Attributes on a board', () => {
@@ -172,7 +172,7 @@ describe('ChannelInfoAttributes', () => {
 
         expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
         expect(screen.getByText('Not set')).toBeInTheDocument();
-        expect(screen.queryByTestId('attributeChip')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channel_attributes.chip')).not.toBeInTheDocument();
     });
 
     test('shows Classification rather than the stored unique name', () => {
@@ -692,7 +692,7 @@ describe('ChannelInfoAttributes', () => {
                 makeState([field('program', {attrs})], [value('program', 'opt_program')]),
             );
 
-            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByTestId('channel_attributes.chip')).toHaveTextContent('VALUE_PROGRAM');
             expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
             expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
         });
@@ -708,7 +708,7 @@ describe('ChannelInfoAttributes', () => {
                 ),
             );
 
-            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByTestId('channel_attributes.chip')).toHaveTextContent('VALUE_PROGRAM');
             expect(screen.getByLabelText(SOURCE_MANAGED_LOCK)).toBeInTheDocument();
             expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
         });
@@ -858,7 +858,7 @@ describe('ChannelInfoAttributes', () => {
                 makeState([graphProgram({changePolicy: 'never'})], [value('program', ['opt_program'])]),
             );
 
-            expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(screen.getByTestId('channel_attributes.chip')).toHaveTextContent('VALUE_PROGRAM');
             expect(screen.getByTestId('channelInfoAttributeLock-program')).toBeInTheDocument();
             expect(screen.queryByTestId('channelInfoAttributeEdit-program')).not.toBeInTheDocument();
         });
@@ -877,7 +877,7 @@ describe('ChannelInfoAttributes', () => {
                 makeState([multiField({changePolicy: 'never'})], [value('tags', ['opt_a', 'opt_b'])]),
             );
 
-            const chips = screen.getAllByTestId('attributeChip');
+            const chips = screen.getAllByTestId('channel_attributes.chip');
             expect(chips).toHaveLength(2);
             expect(chips[0]).toHaveTextContent('VALUE_A');
             expect(chips[1]).toHaveTextContent('VALUE_B');
@@ -962,7 +962,7 @@ describe('ChannelInfoAttributes', () => {
 
             // The menu closes on pick, so this chip can only be the trigger's.
             await waitFor(() => expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument());
-            expect(await screen.findByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+            expect(await screen.findByTestId('channel_attributes.chip')).toHaveTextContent('VALUE_PROGRAM');
             expect(patchSpy).not.toHaveBeenCalled();
         });
 
@@ -1026,7 +1026,7 @@ describe('ChannelInfoAttributes', () => {
                 ref.current?.discard();
             });
 
-            expect(screen.queryByTestId('attributeChip')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_attributes.chip')).not.toBeInTheDocument();
             expect(ref.current?.hasPendingChanges()).toBe(false);
             expect(patchSpy).not.toHaveBeenCalled();
         });

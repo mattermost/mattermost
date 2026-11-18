@@ -31,6 +31,8 @@ import type {TextboxElement} from './index';
 
 export type Props = {
     id: string;
+
+    testId?: string;
     channelId: string;
     rootId?: string;
     tabIndex?: number;
@@ -302,6 +304,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 <div
                     tabIndex={this.props.tabIndex}
                     ref={this.preview}
+                    {...(this.props.testId ? {'data-testid': `${this.props.testId}.preview`} : {})}
                     className={classNames('form-control custom-textarea textbox-preview-area', {'textarea--has-labels': this.props.hasLabels})}
                     onKeyPress={this.handleKeyPress}
                     onKeyDown={this.handleKeyDown}
@@ -316,6 +319,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 <SuggestionBox
                     ref={this.message}
                     id={this.props.id}
+                    {...(this.props.testId ? {'data-testid': `${this.props.testId}--textbox`} : {})}
                     className={textboxClassName}
                     spellCheck='true'
                     placeholder={this.props.createMessage}

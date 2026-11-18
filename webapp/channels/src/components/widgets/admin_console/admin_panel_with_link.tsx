@@ -20,6 +20,9 @@ type Props = {
     url: string;
     disabled?: boolean;
     linkText: MessageDescriptor;
+
+    /** The panel's testid: its link is `<testId>.action--link`. Without it the panel keeps its id based ids. */
+    testId?: string;
 };
 
 const AdminPanelWithLink = ({
@@ -32,15 +35,18 @@ const AdminPanelWithLink = ({
     disabled,
     id,
     subtitleValues,
+    testId,
 }: Props) => {
     const button = (
         <Button
             asChild={true}
             emphasis='primary'
             disabled={disabled}
-            data-testid={`${id}-link`}
         >
-            <Link to={url}>
+            <Link
+                to={url}
+                data-testid={testId ? `${testId}.action--link` : `${id}-link`}
+            >
                 <FormattedMessage
                     {...linkText}
                 />
@@ -52,7 +58,7 @@ const AdminPanelWithLink = ({
         <AdminPanel
             className={'AdminPanelWithLink ' + className}
             id={id}
-            data-testid={id}
+            data-testid={testId ?? id}
             title={title}
             subtitle={subtitle}
             subtitleValues={subtitleValues}

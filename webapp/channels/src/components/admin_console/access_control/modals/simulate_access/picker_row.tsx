@@ -115,6 +115,7 @@ export default function PickerRow({
                 <DecisionChip
                     decision={decision}
                     pending={pending}
+                    testIdScope='admin.simulate_access.user'
                 />
             );
             const drillable = !pending && shouldShowDecisionDetails(decision);
@@ -125,7 +126,7 @@ export default function PickerRow({
                 <button
                     type='button'
                     className='SimulateAccessModal__rowChipButton'
-                    data-testid='simulate-access-row-chip-button'
+                    data-testid='admin.simulate_access.user.details--button'
                     onClick={handleChipButtonClick}
                 >
                     {chip}
@@ -211,6 +212,7 @@ export default function PickerRow({
     return (
         <>
             <tr
+                data-testid={`admin.simulate_access.user:${user.id}`}
                 className={classNames('SimulateAccessModal__row', {
                     'SimulateAccessModal__row--expandable': expandable,
                     'SimulateAccessModal__row--expanded': expanded,

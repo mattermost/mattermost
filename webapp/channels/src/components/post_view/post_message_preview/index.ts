@@ -29,6 +29,9 @@ export type OwnProps = {
     preventClickAction?: boolean;
     previewFooterMessage?: string;
     usePostAsSource?: boolean;
+
+    /** The preview's testid; without it the preview renders none. */
+    testIdScope?: string;
 };
 
 function makeMapStateToProps() {
