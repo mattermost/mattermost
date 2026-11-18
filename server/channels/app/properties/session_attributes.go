@@ -91,7 +91,7 @@ func (h *SessionAttributesHook) validateUpdate(rctx request.CTX, incoming *model
 	return nil
 }
 
-func (h *SessionAttributesHook) immutableErr(verb string) *model.AppError {
+func (h *SessionAttributesHook) immutableErr(verb string) error {
 	return model.NewAppError("SessionAttributesHook", "app.session_attributes.field_immutable.app_error",
 		nil, "session attribute field "+verb, http.StatusForbidden)
 }

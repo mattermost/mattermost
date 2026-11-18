@@ -41,7 +41,8 @@
         "EnableFile": true,
         "FileLevel": "INFO",
         "FileJson": true,
-        "FileLocation": ""
+        "FileLocation": "",
+        "EnableWebhookDebugging": false
     },
     "FileSettings": {
         "DriverName": "local",

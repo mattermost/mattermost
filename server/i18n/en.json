@@ -2456,6 +2456,11 @@
     "description": "Admin API error when merging the stored configuration with restricted defaults fails while reading the config; 'config' is the server configuration."
   },
   {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Failed to compare the saved configurations.",
+    "description": "Admin API error when listing saved server configurations fails while working out which settings changed between two of them."
+  },
+  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store.",
     "description": "Error from the config migration command (moving configuration between file and database storage); admin/CLI audience."
@@ -2474,6 +2479,11 @@
     "id": "api.config.reload_config.app_error",
     "translation": "Failed to reload config.",
     "description": "Admin API error when reloading the server configuration from disk fails; 'config' is the server configuration."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Failed to compare the saved configuration with the current one.",
+    "description": "Admin API error when restoring a saved server configuration fails while working out which settings it changes."
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
@@ -3300,8 +3310,8 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "The health dashboard requires an Enterprise license.",
-    "description": "API error when a health dashboard endpoint is called on a server without an Enterprise license."
+    "translation": "The health dashboard requires a Professional license or higher.",
+    "description": "API error when a health dashboard endpoint is called on a server without at least a Professional license."
   },
   {
     "id": "api.image.get.app_error",
@@ -7863,6 +7873,21 @@
     "id": "app.compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report.",
     "description": "Admin-facing API error when saving a compliance report job fails."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Unable to get the saved configurations.",
+    "description": "Admin API and mmctl error when reading the history of saved server configurations from the database fails."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "No saved configuration has this ID.",
+    "description": "Admin API and mmctl error when the ID given for a saved server configuration doesn't match any configuration in the history."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Configuration history is only available when the configuration is stored in the database.",
+    "description": "Admin API and mmctl error when the configuration history is requested but the server reads its configuration from a file, which keeps no history; 'database' is the database the server's configuration is stored in."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
@@ -15347,6 +15372,21 @@
     "description": "Health dashboard finding title when the server does not write a log file."
   },
   {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging is true, so failed incoming webhook requests are logged with their payload, which can contain message text.",
+    "description": "Health dashboard finding detail when webhook debugging logs incoming webhook payloads; 'LogSettings.EnableWebhookDebugging' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Set LogSettings.EnableWebhookDebugging to false unless you are troubleshooting a webhook.",
+    "description": "Health dashboard fix-it step for webhook payload logging; 'LogSettings.EnableWebhookDebugging' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Webhook payloads are logged",
+    "description": "Health dashboard finding title when failed incoming webhook requests are logged with their payload, which can include message content."
+  },
+  {
     "id": "health.rule.max_notifications_per_channel.message",
     "translation": "TeamSettings.MaxNotificationsPerChannel is {{.limit}}, so @channel, @all and @here still work in channels with thousands of members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
     "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; {{.limit}} is the configured limit, 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
@@ -15363,18 +15403,18 @@
   },
   {
     "id": "health.rule.metrics_off.message",
-    "translation": "MetricsSettings.Enable is false. Metrics are optional, and many deployments do not run Prometheus. If you want runtime visibility into database connections, HTTP latency and goroutine counts, enabling metrics provides it.",
-    "description": "Health dashboard finding detail when Prometheus metrics are turned off, which is a valid choice; 'MetricsSettings.Enable' is a config setting path and 'Prometheus' is a product name; do not translate them."
+    "translation": "Mattermost isn't recording performance metrics, such as database connections, request latency and server load. Without them, there's no history to look back on when users report slowness, and nothing to share with Mattermost Support.",
+    "description": "Health dashboard finding detail when performance monitoring (MetricsSettings.Enable) is turned off, so no performance history is available for troubleshooting or for Mattermost Support; 'Mattermost Support' is a team name."
   },
   {
     "id": "health.rule.metrics_off.remediation",
-    "translation": "If you use Prometheus, set MetricsSettings.Enable to true and scrape the metrics listener (port 8067 by default).",
-    "description": "Health dashboard fix-it step for disabled Prometheus metrics; 'MetricsSettings.Enable' is a config setting path and 'scrape' is the Prometheus term for collecting metrics."
+    "translation": "Turn on Performance Monitoring in the System Console, and check that the Metrics plugin is enabled under Plugins > Plugin Management. The plugin keeps 15 days of metrics on the server, with no Prometheus needed. If you run Prometheus, point it at the metrics listener (port 8067 by default).",
+    "description": "Health dashboard fix-it step for disabled performance monitoring; 'Performance Monitoring' is the System Console setting name, 'Metrics plugin' is a Mattermost plugin and 'Prometheus' is a product name; do not translate them."
   },
   {
     "id": "health.rule.metrics_off.title",
-    "translation": "Prometheus metrics disabled (optional)",
-    "description": "Health dashboard finding title when Prometheus performance metrics are turned off; the finding is informational because metrics are optional."
+    "translation": "Performance monitoring is turned off",
+    "description": "Health dashboard finding title when performance monitoring (MetricsSettings.Enable) is turned off, so Mattermost records no performance metrics."
   },
   {
     "id": "health.rule.node_container_memory_pressure.message",

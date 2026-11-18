@@ -2414,7 +2414,17 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(rctx request.CTX, channel
 		if err != nil {
 			return nil, err
 		}
-		channel, err := a.GetOrCreateDirectChannel(rctx, userID, user.Id)
+		channel, err := a.getDirectChannel(rctx, userID, user.Id)
+		if err != nil {
+			return nil, err
+		}
+		if channel != nil {
+			return channel, nil
+		}
+		if !a.HasPermissionTo(rctx, userID, model.PermissionCreateDirectChannel) {
+			return nil, model.NewAppError("parseAndFetchChannelIdByNameFromInFilter", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+		channel, err = a.GetOrCreateDirectChannel(rctx, userID, user.Id)
 		if err != nil {
 			return nil, err
 		}
@@ -2466,8 +2476,8 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		return nil, appErr
 	}
 
-	if appErr := a.filterBurnOnReadPosts(posts); appErr != nil {
-		return nil, appErr
+	if err := a.filterBurnOnReadPosts(posts); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return posts, nil
@@ -2642,8 +2652,8 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		return nil, false, appErr
 	}
 
-	if appErr := a.filterBurnOnReadPosts(postSearchResults.PostList); appErr != nil {
-		return nil, false, appErr
+	if err := a.filterBurnOnReadPosts(postSearchResults.PostList); err != nil {
+		return nil, false, model.AsAppError(err)
 	}
 
 	if appErr := a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); appErr != nil {
@@ -4243,7 +4253,7 @@ User locale: %s. Preserve locale-specific spelling, grammar, and formatting. Kee
 func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, connectionID string) (*model.Post, *model.AppError) {
 	// Validate that this is a burn-on-read post
 	if err := a.validateBurnOnReadPost(rctx, post); err != nil {
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	// Extract and validate post expiration time
@@ -4301,13 +4311,13 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 	if isFirstReveal {
 		// Send to post author for recipient count updates
 		if err := a.publishPostRevealedEventToAuthor(rctx, revealedPost, userID, connectionID); err != nil {
-			return nil, err
+			return nil, model.AsAppError(err)
 		}
 
 		// Send to revealing user for multi-device sync
 		// Note: API layer already ensures userID != post.UserId (api4/post.go:1483-1486)
 		if err := a.publishPostRevealedEventToUser(rctx, revealedPost, userID, connectionID); err != nil {
-			return nil, err
+			return nil, model.AsAppError(err)
 		}
 	}
 
@@ -4315,7 +4325,7 @@ func (a *App) RevealPost(rctx request.CTX, post *model.Post, userID string, conn
 }
 
 // validateBurnOnReadPost ensures the post is of type burn-on-read.
-func (a *App) validateBurnOnReadPost(rctx request.CTX, post *model.Post) *model.AppError {
+func (a *App) validateBurnOnReadPost(rctx request.CTX, post *model.Post) error {
 	if post.Type != model.PostTypeBurnOnRead {
 		return model.NewAppError("RevealPost", "app.reveal_post.not_burn_on_read.app_error", nil, fmt.Sprintf("postId=%s", post.Id), http.StatusBadRequest)
 	}
@@ -4443,7 +4453,7 @@ func (a *App) validateReadReceiptNotExpired(receipt *model.ReadReceipt, currentT
 
 // publishPostRevealedEventToAuthor publishes a websocket event to the post author
 // with updated recipients list for real-time recipient count tracking.
-func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Post, revealingUserID string, connectionID string) *model.AppError {
+func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Post, revealingUserID string, connectionID string) error {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostRevealed,
 		"",
@@ -4476,7 +4486,7 @@ func (a *App) publishPostRevealedEventToAuthor(rctx request.CTX, post *model.Pos
 
 // publishPostRevealedEventToUser publishes a websocket event to the revealing user
 // for multi-device synchronization of revealed post content.
-func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post, userID string, connectionID string) *model.AppError {
+func (a *App) publishPostRevealedEventToUser(rctx request.CTX, post *model.Post, userID string, connectionID string) error {
 	event := model.NewWebSocketEvent(
 		model.WebsocketEventPostRevealed,
 		"",
@@ -4577,7 +4587,7 @@ func (a *App) revealPostForAuthor(rctx request.CTX, postList *model.PostList, po
 }
 
 // getUserReadReceipt retrieves a user's read receipt for a post, returning nil if not found.
-func (a *App) getUserReadReceipt(rctx request.CTX, postID, userID string) (*model.ReadReceipt, *model.AppError) {
+func (a *App) getUserReadReceipt(rctx request.CTX, postID, userID string) (*model.ReadReceipt, error) {
 	receipt, err := a.Srv().Store().ReadReceipt().Get(rctx, postID, userID)
 	if err != nil && !store.IsErrNotFound(err) {
 		return nil, model.NewAppError("RevealBurnOnReadPostsForUser", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
