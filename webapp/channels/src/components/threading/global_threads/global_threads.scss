@@ -65,12 +65,12 @@
 
     /* === Responsiveness === */
     // The list width can be changed by dragging its resize handle, which sets --overrideThreadsListWidth.
-    // It is kept between 300px and 60% of the view so the thread pane always has room.
+    // It is kept between 300px and 640px, and to at most half the view so the thread pane always has room.
     // No min-content floor: the virtualized list sets its own pixel width from the column's width,
     // so a min-content minimum would stop the column from ever shrinking.
     // The resize handle reads --list-default-width to know where to snap back to.
     --list-default-width: 350px;
-    --list: clamp(300px, var(--overrideThreadsListWidth, var(--list-default-width)), 60%);
+    --list: clamp(300px, var(--overrideThreadsListWidth, var(--list-default-width)), min(640px, 50%));
     --pane: minmax(0, 1fr);
 
     display: grid;
