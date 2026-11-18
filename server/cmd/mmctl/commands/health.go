@@ -4,10 +4,12 @@
 package commands
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"net/http"
+	"os"
 	"slices"
 	"strings"
 	"time"
@@ -52,8 +54,9 @@ var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Report current health findings",
 	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
-		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.",
-	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip",
+		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.\n\n" +
+		"With --output-format, export the report as HTML or Markdown to share it, written to stdout or to the file given with --output. An export includes resolved and muted findings, leaves out findings meant for support engineers, and shows times in this machine's time zone.",
+	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip\n  health check --output-format html --output health-report.html\n  health check --packet mm_support_packet.zip --output-format md",
 	Args:    cobra.NoArgs,
 	RunE:    healthCheckRunE,
 }
@@ -72,6 +75,8 @@ func init() {
 	HealthCheckCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthCheckCmd.Flags().Bool("include-muted", false, "Include muted findings")
 	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate without a server")
+	HealthCheckCmd.Flags().String("output-format", "", "Export the report in this format instead of printing it: html or md")
+	HealthCheckCmd.Flags().StringP("output", "o", "", "File to write the export to, instead of stdout. Requires --output-format")
 	HealthRunCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthRunCmd.Flags().Bool("include-muted", false, "Include muted findings")
 
@@ -82,18 +87,45 @@ func init() {
 // healthCheckRunE dispatches before any client is built: withClient connects eagerly, and
 // --packet must work with no server.
 func healthCheckRunE(cmd *cobra.Command, args []string) error {
+	if err := validateHealthExportFlags(cmd); err != nil {
+		return err
+	}
 	if packetPath, _ := cmd.Flags().GetString("packet"); packetPath != "" {
 		return healthCheckPacketCmdF(cmd, args)
 	}
 	return withClient(healthCheckCmdF)(cmd, args)
 }
 
+func validateHealthExportFlags(cmd *cobra.Command) error {
+	format, _ := cmd.Flags().GetString("output-format")
+	if format == "" {
+		if output, _ := cmd.Flags().GetString("output"); output != "" {
+			return errors.New("--output requires --output-format")
+		}
+		return nil
+	}
+
+	if format != "html" && format != "md" {
+		return fmt.Errorf("invalid --output-format %q: use html or md", format)
+	}
+	if printer.GetFormat() == printer.FormatJSON {
+		return errors.New("--json cannot be used with --output-format")
+	}
+	for _, flag := range []string{"include-resolved", "include-muted"} {
+		if include, _ := cmd.Flags().GetBool(flag); include {
+			return fmt.Errorf("--%s cannot be used with --output-format: exports already include resolved and muted findings", flag)
+		}
+	}
+	return nil
+}
+
 func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	includeResolved, _ := cmd.Flags().GetBool("include-resolved")
 	includeMuted, _ := cmd.Flags().GetBool("include-muted")
+	format, _ := cmd.Flags().GetString("output-format")
 
 	filter := model.HealthFindingFilter{}
-	if includeMuted {
+	if includeMuted || format != "" {
 		filter.Muted = model.MutedIncluded
 	}
 
@@ -102,7 +134,20 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get health findings: %w", err)
 	}
 
-	return printHealthFindings(list, includeResolved, report.Options{GeneratedAt: time.Now()})
+	opts := report.Options{GeneratedAt: time.Now()}
+	if format == "" {
+		return printHealthFindings(list, includeResolved, opts)
+	}
+
+	if config, _, configErr := c.GetClientConfig(context.TODO(), ""); configErr == nil {
+		opts.SiteURL = config["SiteURL"]
+		opts.ServerVersion = config["Version"]
+	}
+	if license, _, licenseErr := c.GetOldClientLicense(context.TODO(), ""); licenseErr == nil && license["IsLicensed"] == "true" {
+		opts.License = license["SkuShortName"]
+		opts.Company = license["Company"]
+	}
+	return exportHealthReport(cmd, list, opts)
 }
 
 func healthRunCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -214,11 +259,63 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	return printHealthFindings(&model.HealthFindingList{EvaluatedAt: collectedAt, Findings: findings}, includeResolved, report.Options{
+	list := &model.HealthFindingList{EvaluatedAt: collectedAt, Findings: findings}
+	opts := report.Options{
 		GeneratedAt: time.Now(),
 		PointInTime: true,
 		Notes:       notes,
-	})
+	}
+	if format, _ := cmd.Flags().GetString("output-format"); format == "" {
+		return printHealthFindings(list, includeResolved, opts)
+	}
+
+	opts.SiteURL, _ = p.Snapshot.ConfigString(func(cfg *model.Config) *string { return cfg.ServiceSettings.SiteURL })
+	opts.ServerVersion = p.Snapshot.Version.Current
+	if license, ok := p.Snapshot.License(); ok {
+		opts.License = license.SkuShortName
+		opts.Company = license.Company
+	}
+	return exportHealthReport(cmd, list, opts)
+}
+
+// exportHealthReport renders the report in the --output-format format, to the --output file or
+// to stdout. Only product findings are exported, as an export is meant to be shared.
+func exportHealthReport(cmd *cobra.Command, list *model.HealthFindingList, opts report.Options) error {
+	format, _ := cmd.Flags().GetString("output-format")
+	output, _ := cmd.Flags().GetString("output")
+
+	exported := &model.HealthFindingList{EvaluatedAt: list.EvaluatedAt}
+	for _, finding := range list.Findings {
+		if finding.Surface == string(healthcheck.SurfaceProduct) {
+			exported.Findings = append(exported.Findings, finding)
+		}
+	}
+
+	if err := i18n.TranslationsPreInitFromFileBytes("en.json", serveri18n.English); err != nil {
+		return fmt.Errorf("failed to load translations: %w", err)
+	}
+	opts.T = i18n.T
+	opts.Location = time.Local
+	r := report.Build(exported, opts)
+
+	write := r.WriteHTML
+	if format == "md" {
+		write = r.WriteMarkdown
+	}
+	var b bytes.Buffer
+	if err := write(&b); err != nil {
+		return fmt.Errorf("failed to render the health report: %w", err)
+	}
+
+	if output == "" {
+		printer.Print(b.String())
+		return nil
+	}
+	if err := os.WriteFile(output, b.Bytes(), 0600); err != nil {
+		return fmt.Errorf("failed to write the health report: %w", err)
+	}
+	printer.PrintT("Wrote the health report to {{ .file }}", map[string]string{"file": output})
+	return nil
 }
 
 // fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one.

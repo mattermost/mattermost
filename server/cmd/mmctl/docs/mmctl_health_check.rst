@@ -13,6 +13,8 @@ Report the findings of the server's latest health evaluation. By default only fi
 
 With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.
 
+With --output-format, export the report as HTML or Markdown to share it, written to stdout or to the file given with --output. An export includes resolved and muted findings, leaves out findings meant for support engineers, and shows times in this machine's time zone.
+
 ::
 
   mmctl health check [flags]
@@ -25,16 +27,20 @@ Examples
     health check
     health check --include-resolved --include-muted
     health check --packet mm_support_packet.zip
+    health check --output-format html --output health-report.html
+    health check --packet mm_support_packet.zip --output-format md
 
 Options
 ~~~~~~~
 
 ::
 
-  -h, --help               help for check
-      --include-muted      Include muted findings
-      --include-resolved   Include resolved findings
-      --packet string      Path to a Support Packet zip to evaluate without a server
+  -h, --help                   help for check
+      --include-muted          Include muted findings
+      --include-resolved       Include resolved findings
+  -o, --output string          File to write the export to, instead of stdout. Requires --output-format
+      --output-format string   Export the report in this format instead of printing it: html or md
+      --packet string          Path to a Support Packet zip to evaluate without a server
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
