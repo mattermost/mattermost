@@ -484,7 +484,7 @@ func byteIndexAtUTF16(s string, utf16Index int) int {
 
 func maskFromUTF16(s string, ranges [][2]int) []bool {
 	mask := make([]bool, len(s))
-	if len(ranges) == 0 || len(s) == 0 {
+	if len(ranges) == 0 || s == "" {
 		return mask
 	}
 	ordered := append([][2]int(nil), ranges...)

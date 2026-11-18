@@ -95,23 +95,23 @@ func (api *PluginAPI) RegisterCommand(command *model.Command) error {
 }
 
 func (api *PluginAPI) RegisterEntityType(t *model.EntityType) *model.AppError {
-	return api.app.RegisterPluginEntityType(api.id, t)
+	return model.AsAppError(api.app.RegisterPluginEntityType(api.id, t))
 }
 
 func (api *PluginAPI) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
-	return api.app.RegisterPluginEntityMatcher(api.id, m)
+	return model.AsAppError(api.app.RegisterPluginEntityMatcher(api.id, m))
 }
 
 func (api *PluginAPI) UnregisterEntityMatcher(name string) *model.AppError {
-	return api.app.UnregisterPluginEntityMatcher(api.id, name)
+	return model.AsAppError(api.app.UnregisterPluginEntityMatcher(api.id, name))
 }
 
 func (api *PluginAPI) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
-	return api.app.RegisterPluginEntityProvider(api.id, p)
+	return model.AsAppError(api.app.RegisterPluginEntityProvider(api.id, p))
 }
 
 func (api *PluginAPI) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
-	return api.app.RegisterPluginEntityTerms(api.id, typeName, terms)
+	return model.AsAppError(api.app.RegisterPluginEntityTerms(api.id, typeName, terms))
 }
 
 func (api *PluginAPI) UnregisterCommand(teamID, trigger string) error {

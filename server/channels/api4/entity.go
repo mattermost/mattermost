@@ -17,20 +17,20 @@ func (api *API) InitEntity() {
 
 func getEntityCard(c *Context, w http.ResponseWriter, r *http.Request) {
 	var card *model.EntityCard
-	var appErr *model.AppError
+	var err error
 	postID := r.URL.Query().Get("post_id")
 	occurrence := r.URL.Query().Get("id")
 	typeID := r.URL.Query().Get("type_id")
 	switch {
 	case postID != "" && occurrence != "":
-		card, appErr = c.App.GetEntityCardForPost(c.AppContext, postID, occurrence, typeID)
+		card, err = c.App.GetEntityCardForPost(c.AppContext, postID, occurrence, typeID)
 	case postID != "":
-		card, appErr = c.App.GetEntityCardFromPost(c.AppContext, postID, typeID, r.URL.Query().Get("value"))
+		card, err = c.App.GetEntityCardFromPost(c.AppContext, postID, typeID, r.URL.Query().Get("value"))
 	default:
-		card, appErr = c.App.GetEntityCard(c.AppContext, typeID, r.URL.Query().Get("value"))
+		card, err = c.App.GetEntityCard(c.AppContext, typeID, r.URL.Query().Get("value"))
 	}
-	if appErr != nil {
-		c.Err = appErr
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 

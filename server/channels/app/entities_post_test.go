@@ -62,8 +62,9 @@ func TestProviderEntityCardNeedsAPost(t *testing.T) {
 				Cache:   cache,
 			}))
 
-			card, appErr := entityEnabledApp(nil).GetEntityCard(request.TestContext(t), typeID, "WX-100")
+			card, err := entityEnabledApp(nil).GetEntityCard(request.TestContext(t), typeID, "WX-100")
 			require.Nil(t, card)
+			appErr := model.AsAppError(err)
 			require.NotNil(t, appErr)
 			require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		})
@@ -84,15 +85,16 @@ func TestTermCardNeedsAPost(t *testing.T) {
 
 	app := entityEnabledApp(nil)
 	for _, value := range []string{"MLT", "ZZZ"} {
-		card, appErr := app.GetEntityCard(request.TestContext(t), typeID, value)
+		card, err := app.GetEntityCard(request.TestContext(t), typeID, value)
 		require.Nil(t, card)
+		appErr := model.AsAppError(err)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		require.Equal(t, "api.context.permissions.app_error", appErr.Id)
 	}
 
-	clock, appErr := app.GetEntityCard(request.TestContext(t), "mm:time", "2024-06-01T15:04:05Z")
-	require.Nil(t, appErr)
+	clock, err := app.GetEntityCard(request.TestContext(t), "mm:time", "2024-06-01T15:04:05Z")
+	require.NoError(t, err)
 	require.Equal(t, "mm:time", clock.TypeID)
 	require.NotZero(t, clock.Instant)
 }

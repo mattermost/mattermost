@@ -16,7 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/entities"
 )
 
-func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.EntityCard, *model.AppError) {
+func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.EntityCard, error) {
 	if !a.entitiesEnabled() {
 		return nil, model.NewAppError("GetEntityCard", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
@@ -38,21 +38,21 @@ func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.Enti
 	return card, nil
 }
 
-func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value string) (*model.EntityCard, *model.AppError) {
+func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value string) (*model.EntityCard, error) {
 	if !a.entitiesEnabled() {
 		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
-	post, appErr := a.readableEntityPost(rctx, postID)
-	if appErr != nil {
-		return nil, appErr
+	post, err := a.readableEntityPost(rctx, postID)
+	if err != nil {
+		return nil, err
 	}
 	a.hydratePostEntities(rctx, post)
 	if !postContainsEntity(post, typeID, value) {
 		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
-	card, remote, err := entities.Prepare(rctx.Context(), typeID, value, post.CreateAt)
-	if err != nil {
-		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.invalid_url_param.app_error", map[string]any{"Name": "value"}, err.Error(), http.StatusBadRequest)
+	card, remote, prepErr := entities.Prepare(rctx.Context(), typeID, value, post.CreateAt)
+	if prepErr != nil {
+		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.invalid_url_param.app_error", map[string]any{"Name": "value"}, prepErr.Error(), http.StatusBadRequest)
 	}
 	if remote != nil {
 		if got := a.lookupEntityProvider(rctx, remote, typeID, value, post.Id, post.CreateAt); got != nil {
@@ -69,7 +69,7 @@ func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value stri
 	return entityCardFallback(typeID, value), nil
 }
 
-func (a *App) readableEntityPost(rctx request.CTX, postID string) (*model.Post, *model.AppError) {
+func (a *App) readableEntityPost(rctx request.CTX, postID string) (*model.Post, error) {
 	session := rctx.Session()
 	if session == nil {
 		return nil, model.NewAppError("GetEntityCardForPost", "api.context.session_expired.app_error", nil, "", http.StatusUnauthorized)
@@ -96,13 +96,13 @@ func postContainsEntity(post *model.Post, typeID, value string) bool {
 	return false
 }
 
-func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferredTypeID string) (*model.EntityCard, *model.AppError) {
+func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferredTypeID string) (*model.EntityCard, error) {
 	if !a.entitiesEnabled() {
 		return nil, model.NewAppError("GetEntityCardForPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
-	post, appErr := a.readableEntityPost(rctx, postID)
-	if appErr != nil {
-		return nil, appErr
+	post, err := a.readableEntityPost(rctx, postID)
+	if err != nil {
+		return nil, err
 	}
 	a.hydratePostEntities(rctx, post)
 	if post.Metadata == nil {
@@ -298,7 +298,7 @@ func qualifyEntityCardLinks(owner string, card *model.EntityCard) {
 	}
 }
 
-func (a *App) RegisterPluginEntityType(pluginID string, t *model.EntityType) *model.AppError {
+func (a *App) RegisterPluginEntityType(pluginID string, t *model.EntityType) error {
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityType", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
@@ -308,7 +308,7 @@ func (a *App) RegisterPluginEntityType(pluginID string, t *model.EntityType) *mo
 	return nil
 }
 
-func (a *App) RegisterPluginEntityMatcher(pluginID string, m *model.EntityMatcher) *model.AppError {
+func (a *App) RegisterPluginEntityMatcher(pluginID string, m *model.EntityMatcher) error {
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityMatcher", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
@@ -318,7 +318,7 @@ func (a *App) RegisterPluginEntityMatcher(pluginID string, m *model.EntityMatche
 	return nil
 }
 
-func (a *App) UnregisterPluginEntityMatcher(pluginID, name string) *model.AppError {
+func (a *App) UnregisterPluginEntityMatcher(pluginID, name string) error {
 	if !a.entitiesEnabled() {
 		return model.NewAppError("UnregisterPluginEntityMatcher", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
@@ -328,7 +328,7 @@ func (a *App) UnregisterPluginEntityMatcher(pluginID, name string) *model.AppErr
 	return nil
 }
 
-func (a *App) RegisterPluginEntityTerms(pluginID, typeName string, terms []model.EntityTerm) *model.AppError {
+func (a *App) RegisterPluginEntityTerms(pluginID, typeName string, terms []model.EntityTerm) error {
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityTerms", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
@@ -338,7 +338,7 @@ func (a *App) RegisterPluginEntityTerms(pluginID, typeName string, terms []model
 	return nil
 }
 
-func (a *App) RegisterPluginEntityProvider(pluginID string, p *model.EntityProvider) *model.AppError {
+func (a *App) RegisterPluginEntityProvider(pluginID string, p *model.EntityProvider) error {
 	if !a.entitiesEnabled() {
 		return model.NewAppError("RegisterPluginEntityProvider", model.EntitiesDisabledError, nil, "", http.StatusNotImplemented)
 	}
