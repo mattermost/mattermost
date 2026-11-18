@@ -188,6 +188,44 @@ describe('PluginRegistry — registerChannelKind', () => {
     });
 });
 
+describe('PluginRegistry — registerProductRailChannelSection', () => {
+    const PLUGIN_ID = 'test_plugin';
+
+    beforeEach(() => {
+        mockCurrentStore = createStore(pluginsReducer);
+    });
+
+    function getSections() {
+        return mockCurrentStore.getState().components.ProductRailChannelSection;
+    }
+
+    it('stores the plugin, matcher, label, icon and empty state, and returns an id', () => {
+        const registry = new PluginRegistry(PLUGIN_ID);
+        const matcher = () => true;
+        const id = registry.registerProductRailChannelSection({matcher, label: 'Docs', icon: 'file-text-outline', emptyState: 'No spaces'});
+
+        expect(typeof id).toBe('string');
+        expect(getSections()).toEqual([expect.objectContaining({id, pluginId: PLUGIN_ID, matcher, label: 'Docs', icon: 'file-text-outline', emptyState: 'No spaces'})]);
+    });
+
+    it('ignores a registration without a matcher', () => {
+        const error = jest.spyOn(console, 'error').mockImplementation(() => undefined);
+        new PluginRegistry(PLUGIN_ID).registerProductRailChannelSection({matcher: undefined as never, label: 'Docs', icon: 'file-text-outline'});
+
+        expect(getSections()).toHaveLength(0);
+        expect(error).toHaveBeenCalledWith(expect.stringContaining('supplied no matcher'));
+        error.mockRestore();
+    });
+
+    it('removes a plugin\'s section when the plugin is removed', () => {
+        new PluginRegistry(PLUGIN_ID).registerProductRailChannelSection({matcher: () => true, label: 'Docs', icon: 'file-text-outline'});
+        new PluginRegistry('other_plugin').registerProductRailChannelSection({matcher: () => true, label: 'Other', icon: 'file-text-outline'});
+
+        mockCurrentStore.dispatch({type: ActionTypes.REMOVED_WEBAPP_PLUGIN, data: {id: PLUGIN_ID}});
+
+        expect(getSections().map((entry: {pluginId: string}) => entry.pluginId)).toEqual(['other_plugin']);
+    });
+});
 describe('PluginRegistry — registerChannelIconOverride', () => {
     const PLUGIN_ID = 'test_plugin';
 

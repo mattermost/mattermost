@@ -77,6 +77,7 @@ export type PluginsState = {
         ChannelTypeOption: ChannelTypeOptionComponent[];
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelKind: ChannelKindRegistration[];
+        ProductRailChannelSection: ProductRailChannelSectionRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         ChannelIntro: ChannelIntroRegistration[];
         ChannelView: ChannelViewRegistration[];
@@ -515,6 +516,21 @@ export type ChannelKind = 'channel' | RegisteredChannelKind;
 export type ChannelKindRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     kind: RegisteredChannelKind;
+};
+
+/**
+ * A product rail item a plugin adds for the channels its matcher accepts (registerProductRailChannelSection).
+ * Choosing it narrows the channel sidebar to those channels, as Boards does for boards.
+ */
+export type ProductRailChannelSectionRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    label: React.ReactNode;
+
+    // A compass glyph name, or an element to render as the icon.
+    icon: IconGlyphTypes | React.ReactNode;
+
+    // Shown at the top of the sidebar while the section has no channels in the team.
+    emptyState?: React.ReactNode;
 };
 
 export type ChannelComposerBannerComponent = PluginComponent & {

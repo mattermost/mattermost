@@ -69,6 +69,9 @@ type Props = WrappedComponentProps & {
     // The product rail is showing Boards and the team has none the user can see.
     showNoBoards: boolean;
 
+    // What a plugin's product rail section shows while the team has none of its channels.
+    pluginSectionEmptyState?: React.ReactNode;
+
     // Categories the product rail's Channels or Boards section leaves empty, which aren't shown.
     categoryIdsHiddenByProductRail: Set<string>;
 
@@ -537,6 +540,11 @@ export class SidebarList extends React.PureComponent<Props, State> {
                                 defaultMessage='No boards in this team yet.'
                                 description='Shown in the left sidebar when the Boards item of the product navigation rail is selected but the team has no boards the user is a member of.'
                             />
+                        </div>
+                    )}
+                    {this.props.pluginSectionEmptyState && (
+                        <div className='SidebarProductRailEmpty'>
+                            {this.props.pluginSectionEmptyState}
                         </div>
                     )}
                     {unreadsCategory}

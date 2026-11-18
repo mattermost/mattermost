@@ -228,6 +228,7 @@ const initialComponents: PluginsState['components'] = {
     ChannelTypeOption: [],
     ChannelIconOverride: [],
     ChannelKind: [],
+    ProductRailChannelSection: [],
     ChannelComposerBanner: [],
     ChannelIntro: [],
     ChannelView: [],

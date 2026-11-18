@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, matchPath, useLocation} from 'react-router-dom';
@@ -24,6 +24,12 @@ import {selectProducts} from 'selectors/products';
 import {
     getBoardChannelIds,
     getFirstBoardInCurrentTeam,
+    getFirstChannelInPluginRailSections,
+    getPluginRailSectionChannelIds,
+    getPluginRailSections,
+    hasBoardChannelKind,
+    isPluginRailSection,
+    pluginRailSection,
     getProductRailLastPath,
     getProductRailLastPaths,
     getProductRailSection,
@@ -38,8 +44,8 @@ import {isBackstagePath, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getProductSwitcherLinkURL, useCurrentProduct} from 'utils/products';
 
 import type {GlobalState} from 'types/store';
-import type {ProductComponent} from 'types/store/plugins';
-import type {ProductRailSection, ProductRailTab} from 'types/store/views';
+import type {ProductComponent, ProductRailChannelSectionRegistration} from 'types/store/plugins';
+import type {PluginProductRailSection, ProductRailSection, ProductRailTab} from 'types/store/views';
 
 import ProductRailTeamMenu from './product_rail_team_menu';
 
@@ -116,8 +122,10 @@ function saveLastPaths(userId: string, lastPaths: Record<string, Record<string, 
 // The vertical navigation rail shown between the team sidebar and the LHS when the ProductRail
 // feature flag is on. Each item swaps what the LHS and center show. Channels and Boards both live
 // in the channels product, so they split the channel sidebar in two: boards (channels a plugin
-// registers with registerChannelKind) in Boards, everything else in Channels. Threads opens the
-// threads view, and each registered product (Playbooks, ...) brings its own LHS.
+// registers with registerChannelKind) in Boards, everything else in Channels. A plugin can add a
+// section of its own (registerProductRailChannelSection), such as Docs for spaces, which narrows
+// the sidebar to its channels while Channels keeps listing them too. Threads opens the threads
+// view, and each registered product (Playbooks, ...) brings its own LHS.
 export default function ProductRail() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -141,6 +149,15 @@ export default function ProductRail() {
     const firstBoard = useSelector(getFirstBoardInCurrentTeam);
     const teamSidebarHidden = useSelector(isTeamSidebarHidden);
     const boardsShownInChannels = useSelector(areBoardsShownInChannels);
+    const hasBoards = useSelector(hasBoardChannelKind);
+    const pluginSections = useSelector(getPluginRailSections);
+    const firstChannelInPluginSections = useSelector(getFirstChannelInPluginRailSections);
+    const pluginSectionChannelIds = useSelector(getPluginRailSectionChannelIds);
+    const currentChannelPluginSections = useMemo(() => pluginSectionsOfChannel(pluginSectionChannelIds, currentChannelId), [pluginSectionChannelIds, currentChannelId]);
+
+    // Until the first channel is filed, one in a plugin's section opens that section, so a reload
+    // or a link straight to a page lands in it rather than in Channels.
+    const firstChannelFiled = useRef(false);
 
     const currentTeamId = currentTeam?.id ?? '';
     const lastPaths = useSelector(getProductRailLastPaths);
@@ -167,8 +184,25 @@ export default function ProductRail() {
         if (urlMatchesChannel) {
             // A board opened in Channels while it lists boards too stays under Channels.
             boardViewedInChannels = section === 'channels' && boardsShownInChannels && currentChannelIsBoard;
-            viewedTab = section && currentChannelIsBoard && !boardViewedInChannels ? 'boards' : 'channels';
-            viewedPath = `/${team}/${path}/${identifier}`;
+            if (section && currentChannelIsBoard && !boardViewedInChannels) {
+                viewedTab = 'boards';
+            } else if (section && currentChannelPluginSections.length > 0) {
+                // A plugin section's channel stays where it's open, as Channels lists it too;
+                // opened from Boards or another section, or on first load, it moves to its own.
+                if (isPluginRailSection(section) && currentChannelPluginSections.includes(section)) {
+                    viewedTab = section;
+                } else if (section !== 'channels' || !firstChannelFiled.current) {
+                    viewedTab = currentChannelPluginSections[0];
+                } else {
+                    viewedTab = 'channels';
+                }
+            } else {
+                viewedTab = 'channels';
+            }
+
+            // A plugin section returns to the page it was on (its sub-path); Channels and Boards
+            // to the channel, without any permalinked post.
+            viewedPath = isPluginRailSection(viewedTab) ? pathname : `/${team}/${path}/${identifier}`;
         }
     } else if (inThreads) {
         viewedTab = 'threads';
@@ -213,10 +247,15 @@ export default function ProductRail() {
         }
 
         if (enabled && viewedTab && currentTeamId) {
-            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels;
+            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels' || isPluginRailSection(viewedTab)) && !boardViewedInChannels;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
+
+            // Only once a plugin section is registered: until then, the channel can't be in one.
+            if (channelMatch && pluginSections.length > 0) {
+                firstChannelFiled.current = true;
+            }
         }
-    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels]);
+    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels, pluginSections.length > 0]);
 
     // Saved only once the earlier paths are restored, so they're never overwritten unseen.
     useEffect(() => {
@@ -238,12 +277,7 @@ export default function ProductRail() {
             return null;
         }
 
-        // A glyph name that isn't in the compass set renders no icon rather than its raw text.
-        let icon: React.ReactNode = product.switcherIcon;
-        if (typeof product.switcherIcon === 'string') {
-            const Icon = glyphMap[product.switcherIcon as IconGlyphTypes];
-            icon = Icon ? <Icon size={20}/> : null;
-        }
+        const icon = renderGlyph(product.switcherIcon);
 
         return (
             <ProductRailItem
@@ -277,6 +311,7 @@ export default function ProductRail() {
     // With boards split off, Channels shows the rest of the sidebar; without, it's all of it.
     let channelsItem;
     let boardsItem;
+    let pluginSectionItems: React.ReactNode[] = [];
     if (section) {
         // While Channels lists boards too, its badge counts them as well.
         const channelsUnreads = boardsShownInChannels ? {
@@ -303,7 +338,7 @@ export default function ProductRail() {
                 {...channelsUnreads}
             />
         );
-        boardsItem = (
+        boardsItem = hasBoards && (
             <ProductRailItem
                 id='product-rail-item-boards'
                 to={boardsPath ?? pathname}
@@ -314,6 +349,26 @@ export default function ProductRail() {
                 {...sectionUnreads.boards}
             />
         );
+
+        // Each returns to where it was, else opens its first channel; with none, it still
+        // switches the sidebar, which shows the plugin's empty state.
+        pluginSectionItems = pluginSections.map((registration) => {
+            const key = pluginRailSection(registration.pluginId);
+            const first = firstChannelInPluginSections.get(key);
+            const sectionPath = lastPaths[key]?.[currentTeam.id] ?? (first ? `/${currentTeam.name}/channels/${first.name}` : pathname);
+            return (
+                <ProductRailItem
+                    key={key}
+                    id={`product-rail-item-${registration.pluginId}`}
+                    to={sectionPath}
+                    onClick={() => dispatch(setProductRailSection(key))}
+                    icon={renderSectionIcon(registration)}
+                    label={registration.label}
+                    active={inChannelsProduct && section === key}
+                    {...sectionUnreads[key]}
+                />
+            );
+        });
     } else {
         channelsItem = (
             <ProductRailItem
@@ -338,6 +393,7 @@ export default function ProductRail() {
             {threadsItem}
             {channelsItem}
             {boardsItem}
+            {pluginSectionItems}
             {defaultProducts.map(renderProduct)}
             {otherProducts.length > 0 && (
                 <div className='ProductRail__bottom'>
@@ -346,6 +402,28 @@ export default function ProductRail() {
             )}
         </nav>
     );
+}
+
+function pluginSectionsOfChannel(sectionChannelIds: Map<PluginProductRailSection, Set<string>>, channelId: string): PluginProductRailSection[] {
+    if (!channelId) {
+        return emptySections;
+    }
+    const sections = [...sectionChannelIds].filter(([, ids]) => ids.has(channelId)).map(([section]) => section);
+    return sections.length ? sections : emptySections;
+}
+const emptySections: PluginProductRailSection[] = [];
+
+// A glyph name that isn't in the compass set renders no icon rather than its raw text.
+function renderGlyph(icon: React.ReactNode): React.ReactNode {
+    if (typeof icon === 'string') {
+        const Icon = glyphMap[icon as IconGlyphTypes];
+        return Icon ? <Icon size={20}/> : null;
+    }
+    return icon;
+}
+
+function renderSectionIcon(registration: ProductRailChannelSectionRegistration) {
+    return renderGlyph(registration.icon as React.ReactNode);
 }
 
 type ProductRailItemProps = {

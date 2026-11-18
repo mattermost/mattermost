@@ -36,7 +36,14 @@ import {
     getCategoryIdsHiddenByProductRail,
     isUnreadFilterEnabled,
 } from 'selectors/views/channel_sidebar';
-import {getFirstBoardInCurrentTeam, getProductRailFilter, isProductRailShown} from 'selectors/views/product_rail';
+import {
+    getFirstBoardInCurrentTeam,
+    getFirstChannelInPluginRailSections,
+    getPluginRailSectionRegistration,
+    getProductRailFilter,
+    isPluginRailSection,
+    isProductRailShown,
+} from 'selectors/views/product_rail';
 
 import type {GlobalState} from 'types/store';
 
@@ -47,6 +54,8 @@ function mapStateToProps(state: GlobalState) {
     const collapsedThreads = isCollapsedThreadsEnabled(state);
     const getmarkAllAsReadWithoutConfirm = (state: GlobalState) =>
         getPreference(state, Preferences.CATEGORY_SHORTCUT_ACTIONS, Preferences.MARK_ALL_READ_WITHOUT_CONFIRM, 'false');
+
+    const railFilter = getProductRailFilter(state);
 
     let hasUnreadThreads = false;
     if (collapsedThreads) {
@@ -70,7 +79,8 @@ function mapStateToProps(state: GlobalState) {
         markAllAsReadWithoutConfirm: getmarkAllAsReadWithoutConfirm(state) === 'true',
         markAllAsReadShortcutEnabled: getFeatureFlagValue(state, 'EnableShiftEscapeToMarkAllRead') === 'true',
         isProductRailShown: isProductRailShown(state),
-        showNoBoards: getProductRailFilter(state) === 'boards' && !getFirstBoardInCurrentTeam(state),
+        showNoBoards: railFilter === 'boards' && !getFirstBoardInCurrentTeam(state),
+        pluginSectionEmptyState: isPluginRailSection(railFilter) && !getFirstChannelInPluginRailSections(state).has(railFilter) ? getPluginRailSectionRegistration(state, railFilter)?.emptyState : undefined,
         categoryIdsHiddenByProductRail: getCategoryIdsHiddenByProductRail(state),
         currentStaticPageId: getCurrentStaticPageId(state),
         staticPages: getVisibleStaticPages(state),

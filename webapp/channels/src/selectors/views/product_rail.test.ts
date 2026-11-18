@@ -8,13 +8,35 @@ import localStorageStore from 'stores/local_storage_store';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
+import type {ProductRailChannelSectionRegistration} from 'types/store/plugins';
 import type {ProductRailSection} from 'types/store/views';
 
-import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter, getProductRailSection, getProductRailTeamIdToRestore, isProductRailShown, isTeamSidebarHidden, toFullListIndex} from './product_rail';
+import {
+    filterChannelIdsForSection,
+    getBoardChannelIds,
+    getPluginRailSectionChannelIds,
+    getPluginRailSections,
+    getProductRailFilter,
+    getProductRailFilterChannelIds,
+    getProductRailSection,
+    getProductRailTeamIdToRestore,
+    isProductRailShown,
+    isTeamSidebarHidden,
+    toFullListIndex,
+} from './product_rail';
 import type {ChannelKindRegistration} from './product_rail';
 
 const channel = TestHelper.getChannelMock({id: 'channel'});
 const board = TestHelper.getChannelMock({id: 'board'});
+const space = TestHelper.getChannelMock({id: 'space'});
+
+const docsSection: ProductRailChannelSectionRegistration = {
+    id: 'docs-section',
+    pluginId: 'conflux',
+    label: 'Docs',
+    icon: 'file-text-outline',
+    matcher: (_state, c) => c.id === space.id,
+};
 
 const boardKind: ChannelKindRegistration = {
     id: 'board-kind',
@@ -23,18 +45,19 @@ const boardKind: ChannelKindRegistration = {
     matcher: (_state, c) => c.id === board.id,
 };
 
-function getState({enabled = true, registrations = [boardKind], section = 'channels'}: {
+function getState({enabled = true, registrations = [boardKind], sections = [], section = 'channels'}: {
     enabled?: boolean;
     registrations?: ChannelKindRegistration[];
+    sections?: ProductRailChannelSectionRegistration[];
     section?: ProductRailSection;
 } = {}): GlobalState {
     const state: DeepPartial<GlobalState> = {
         entities: {
             general: {config: {FeatureFlagProductRail: enabled ? 'true' : 'false'}},
-            channels: {channels: {[channel.id]: channel, [board.id]: board}},
+            channels: {channels: {[channel.id]: channel, [board.id]: board, [space.id]: space}},
             preferences: {myPreferences: {}},
         },
-        plugins: {components: {ChannelKind: registrations} as unknown as GlobalState['plugins']['components']},
+        plugins: {components: {ChannelKind: registrations, ProductRailChannelSection: sections} as unknown as GlobalState['plugins']['components']},
         views: {productRail: {section, lastPathByTeam: {}, lastPathsLoaded: false}, browser: {windowSize: 'desktopView'}},
     };
     return state as GlobalState;
@@ -238,5 +261,43 @@ describe('getProductRailTeamIdToRestore', () => {
             ...state,
             entities: {...state.entities, general: {...state.entities.general, config: {FeatureFlagProductRail: 'false'}}},
         } as GlobalState)).toBe('');
+    });
+});
+
+describe('plugin rail sections', () => {
+    test('should keep one section per plugin', () => {
+        const second = {...docsSection, id: 'second'};
+        expect(getPluginRailSections(getState({sections: [docsSection, second]}))).toEqual([docsSection]);
+    });
+
+    test('should collect the channels each section\'s matcher accepts, skipping a matcher that throws', () => {
+        const throwing = {...docsSection,
+            id: 'bad',
+            pluginId: 'bad',
+            matcher: () => {
+                throw new Error('boom');
+            }};
+        const ids = getPluginRailSectionChannelIds(getState({sections: [docsSection, throwing]}));
+        expect(ids.get('plugin:conflux')).toEqual(new Set([space.id]));
+        expect(ids.get('plugin:bad')).toEqual(new Set());
+    });
+
+    test('should split the sidebar with a plugin section even without boards', () => {
+        expect(getProductRailSection(getState({registrations: [], sections: [docsSection], section: 'plugin:conflux'}))).toBe('plugin:conflux');
+    });
+
+    test('should fall back to Channels for a section whose plugin is gone, or Boards without boards', () => {
+        expect(getProductRailSection(getState({sections: [], section: 'plugin:conflux'}))).toBe('channels');
+        expect(getProductRailSection(getState({registrations: [], sections: [docsSection], section: 'boards'}))).toBe('channels');
+    });
+
+    test('should keep only the section\'s channels in it, and leave them in Channels too', () => {
+        const ids = [channel.id, board.id, space.id];
+
+        const docs = getState({sections: [docsSection], section: 'plugin:conflux'});
+        expect(filterChannelIdsForSection(ids, getProductRailFilter(docs), getProductRailFilterChannelIds(docs))).toEqual([space.id]);
+
+        const channels = getState({sections: [docsSection], section: 'channels'});
+        expect(filterChannelIdsForSection(ids, getProductRailFilter(channels), getProductRailFilterChannelIds(channels))).toEqual([channel.id, space.id]);
     });
 });
