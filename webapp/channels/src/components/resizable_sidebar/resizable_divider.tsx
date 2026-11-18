@@ -32,7 +32,7 @@ type Props = {
     onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
 
     // Called whenever a drag ends. finalWidth is 0 if the container was hidden at the time; the width is saved only when
-    // it is positive and the pointer moved.
+    // it is positive and the pointer changed it.
     onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;
     onDividerDoubleClick?: (prevWidth: number, cssVarProperty: string) => void;
 };
@@ -255,9 +255,10 @@ function ResizableDivider({
         const onMouseUp = () => {
             const finalWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
 
-            // Only save a width the pointer changed, so pressing the handle without dragging doesn't overwrite
-            // the saved preference with a width the layout is currently capping. Always let the parent clean up.
-            if (finalWidth && pointerMoved.current) {
+            // Only save a width the pointer actually changed. Pressing the handle without dragging, or dragging
+            // against a width limit, must not overwrite the saved preference with a width the layout is
+            // currently capping. Always let the parent clean up.
+            if (finalWidth && pointerMoved.current && finalWidth !== startWidth.current) {
                 setWidth(finalWidth);
             }
             onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);

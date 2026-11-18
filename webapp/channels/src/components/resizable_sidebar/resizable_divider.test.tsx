@@ -87,11 +87,12 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
         expect(onResizeEnd).toHaveBeenCalledWith(0, '--overrideLhsWidth', '0px');
     });
 
-    test('should keep the saved width on a click and save it after a drag', () => {
-        // The container's rendered width follows the width override the divider sets on it
+    test('should save the width only when a drag changes it', () => {
+        // The container renders the width override the divider sets on it, capped by the layout
+        let cap = 400;
         const getBoundingClientRect = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function(this: HTMLElement) {
             const override = parseFloat(this.style.getPropertyValue('--overrideLhsWidth'));
-            return {width: Number.isNaN(override) ? 400 : override} as DOMRect;
+            return {width: Math.min(Number.isNaN(override) ? 400 : override, cap)} as DOMRect;
         });
         const savedWidthKey = 'resizable_test:user1';
         const getSavedWidth = (state: any) => state.storage.storage[savedWidthKey]?.value;
@@ -102,12 +103,21 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
         });
         const divider = container.querySelector(`#${dividerId}`)!;
 
-        // Pressing the handle without moving keeps the saved width
+        // Pressing the handle while the layout narrows keeps the saved width
         fireEvent.mouseDown(divider, {button: 0, clientX: 400});
+        cap = 350;
         fireEvent.mouseUp(window);
         expect(getSavedWidth(store.getState())).toBe(600);
 
-        // Dragging saves the new width
+        // Dragging against the width limit keeps the saved width
+        cap = 400;
+        fireEvent.mouseDown(divider, {button: 0, clientX: 400});
+        fireEvent.mouseMove(window, {clientX: 450});
+        fireEvent.mouseUp(window);
+        expect(getSavedWidth(store.getState())).toBe(600);
+
+        // Dragging to a new width saves it
+        cap = 1000;
         fireEvent.mouseDown(divider, {button: 0, clientX: 400});
         fireEvent.mouseMove(window, {clientX: 450});
         fireEvent.mouseUp(window);
