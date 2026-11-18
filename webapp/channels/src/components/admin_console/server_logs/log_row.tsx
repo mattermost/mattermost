@@ -115,9 +115,12 @@ type CopyButtonProps = {
 
     // Names what's copied where the generic label isn't enough
     label?: string;
+
+    // Keeps a duplicate of another button out of the accessibility tree
+    ariaHidden?: boolean;
 };
 
-function CopyButton({value, className, tabIndex, label}: CopyButtonProps) {
+function CopyButton({value, className, tabIndex, label, ariaHidden}: CopyButtonProps) {
     const intl = useIntl();
     const [status, copy] = useClipboardCopy();
 
@@ -132,6 +135,7 @@ function CopyButton({value, className, tabIndex, label}: CopyButtonProps) {
             type='button'
             className={`LogRow__copy-btn btn btn-icon btn-xs btn-compact${className ? ` ${className}` : ''}`}
             tabIndex={tabIndex}
+            aria-hidden={ariaHidden || undefined}
             onClick={handleCopy}
             aria-label={label ?? intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
@@ -312,11 +316,13 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                         </span>
                         {node && (
 
-                            // Not a tab stop of its own: the row is the focus target and the details have the same button
+                            // A pointer-only shortcut, kept out of the row summary's accessible name;
+                            // keyboard and screen reader users copy from the details panel
                             <CopyButton
                                 value={node}
                                 className='LogRow__node-copy-btn'
                                 tabIndex={-1}
+                                ariaHidden={true}
                                 label={copyNodeLabel}
                             />
                         )}

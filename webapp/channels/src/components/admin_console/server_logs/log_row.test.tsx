@@ -580,6 +580,23 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
         });
 
+        test('should copy the node from the details with the keyboard without toggling the row', async () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            // The row's own button is hidden from assistive technology, so this is the details one
+            const button = screen.getByRole('button', {name: 'Copy node name'});
+            expect(button.closest('.LogRow__details')).not.toBeNull();
+            act(() => {
+                button.focus();
+            });
+            expect(button).toHaveFocus();
+
+            await userEvent.keyboard('{Enter}');
+
+            expect(writeText).toHaveBeenCalledWith('node-a');
+            expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
+        });
+
         test('should not show a node detail without showNode', () => {
             renderLogRow({log: nodeLog, isExpanded: true});
 
@@ -600,6 +617,7 @@ describe('components/admin_console/server_logs/LogRow', () => {
 
             const button = document.querySelector('.LogRow__node .LogRow__copy-btn') as HTMLElement;
             expect(button).toHaveAttribute('tabindex', '-1');
+            expect(button).toHaveAttribute('aria-hidden', 'true');
             expect(document.querySelector('.LogRow__node-text')).toHaveAttribute('title', 'node-a');
 
             await userEvent.click(button);

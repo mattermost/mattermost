@@ -184,13 +184,13 @@
         text-align: right;
     }
 
-    // Spans the header's height, centered on the gap beside the column so it's easy to grab
+    // Spans the header's height (its vertical padding is the -12px), centered on the gap beside the column so it's easy to grab
     &__resize-handle {
         position: absolute;
         z-index: 1;
         top: -12px;
         bottom: -12px;
-        width: 12px;
+        width: log_viewer.$column-gap;
         cursor: col-resize;
         outline: none;
         touch-action: none;
@@ -199,9 +199,9 @@
             position: absolute;
             top: 0;
             bottom: 0;
-            left: 4px;
+            left: calc((#{log_viewer.$column-gap} - 4px) / 2);
             width: 4px;
-            border-radius: 2px;
+            border-radius: var(--radius-xs);
             background: var(--button-bg);
             content: '';
             opacity: 0;
@@ -213,11 +213,11 @@
         }
 
         &--end {
-            right: -12px;
+            right: -1 * log_viewer.$column-gap;
         }
 
         &--start {
-            left: -12px;
+            left: -1 * log_viewer.$column-gap;
         }
     }
 

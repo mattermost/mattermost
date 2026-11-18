@@ -9775,6 +9775,10 @@
     "defaultMessage": "Resize {column} column",
     "description": "Accessible label for the draggable divider beside a column header on the System Console Server Logs page; {column} is the column's header name, such as Time, Node or Caller."
   },
+  "admin.logs.header.resizeHint": {
+    "defaultMessage": "Drag or use the arrow keys to resize. Double-click or press Enter to reset.",
+    "description": "Tooltip and accessible description on the draggable divider beside a column header on the System Console Server Logs page; explains how to resize the column and reset it to its default width."
+  },
   "admin.logs.header.time": {
     "defaultMessage": "Time",
     "description": "Column header in the log entry list on the System Console Server Logs page; the column shows when each entry was written."

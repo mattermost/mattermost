@@ -784,6 +784,53 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(screen.getByRole('button', {name: 'Time'})).not.toContainElement(handle('Time'));
         });
 
+        // jsdom has no PointerEvent, so the coordinates and pointer are set on the event
+        function pointer(element: Element, type: 'pointerDown' | 'pointerMove' | 'pointerUp', clientX: number, pointerId = 1) {
+            const event = new MouseEvent(type.toLowerCase(), {bubbles: true, cancelable: true, clientX, button: 0, buttons: type === 'pointerUp' ? 0 : 1});
+            Object.defineProperty(event, 'pointerId', {value: pointerId});
+            act(() => {
+                element.dispatchEvent(event);
+            });
+        }
+
+        test('should resize the node and caller columns from their default basis with the arrow keys', () => {
+            renderListWith(twoNodeProps);
+
+            fireEvent.keyDown(handle('Node'), {key: 'ArrowRight'});
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('128px');
+
+            fireEvent.keyDown(handle('Caller'), {key: 'ArrowRight'});
+            expect(viewer().style.getPropertyValue('--log-caller-width')).toBe('192px');
+        });
+
+        test('should reset a column on Enter', () => {
+            localStorage.setItem(PREFS_KEY, JSON.stringify({columnWidths: {node: 150, caller: 250}}));
+            renderListWith(twoNodeProps);
+
+            fireEvent.keyDown(handle('Node'), {key: 'Enter'});
+
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('');
+            expect(storedPrefs().columnWidths).toEqual({caller: 250});
+        });
+
+        test('should jump to the minimum on Home and the maximum on End', () => {
+            renderListWith(twoNodeProps);
+
+            fireEvent.keyDown(handle('Node'), {key: 'Home'});
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('64px');
+            expect(storedPrefs().columnWidths).toEqual({node: 64});
+
+            fireEvent.keyDown(handle('Node'), {key: 'End'});
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('600px');
+            expect(storedPrefs().columnWidths).toEqual({node: 600});
+        });
+
+        test('should explain how to resize and reset in the handle title', () => {
+            renderListWith(twoNodeProps);
+
+            expect(handle('Node')).toHaveAttribute('title', 'Drag or use the arrow keys to resize. Double-click or press Enter to reset.');
+        });
+
         test('should resize with the arrow keys and save the committed width', () => {
             renderListWith(twoNodeProps);
 
@@ -794,7 +841,9 @@ describe('components/admin_console/server_logs/LogList', () => {
             fireEvent.keyDown(handle('Node'), {key: 'ArrowLeft', shiftKey: true});
             expect(viewer().style.getPropertyValue('--log-node-width')).toBe('96px');
             expect(storedPrefs().columnWidths).toEqual({node: 96});
-            expect(handle('Node')).toHaveAttribute('aria-valuenow', '96');
+
+            // The value is the rendered position, which jsdom doesn't update, so the stubbed cell width shows
+            expect(handle('Node')).toHaveAttribute('aria-valuenow', '120');
         });
 
         test('should grow the caller column to the left', () => {
@@ -827,15 +876,6 @@ describe('components/admin_console/server_logs/LogList', () => {
         });
 
         describe('dragging', () => {
-            // jsdom has no PointerEvent, so the coordinates are set on the event
-            function pointer(element: Element, type: 'pointerDown' | 'pointerMove' | 'pointerUp', clientX: number) {
-                const event = new MouseEvent(type.toLowerCase(), {bubbles: true, cancelable: true, clientX, button: 0, buttons: type === 'pointerUp' ? 0 : 1});
-                Object.defineProperty(event, 'pointerId', {value: 1});
-                act(() => {
-                    element.dispatchEvent(event);
-                });
-            }
-
             test('should follow the pointer and save the width on release', () => {
                 renderListWith(twoNodeProps);
                 const nodeHandle = handle('Node');
@@ -902,6 +942,61 @@ describe('components/admin_console/server_logs/LogList', () => {
                 });
 
                 expect(viewer()).not.toHaveClass('LogViewer--resizing');
+                expect(storedPrefs().columnWidths).toEqual({node: 150});
+            });
+
+            test('should take a key press mid-drag over the pointer release', () => {
+                renderListWith(twoNodeProps);
+                const nodeHandle = handle('Node');
+
+                pointer(nodeHandle, 'pointerDown', 100);
+                pointer(nodeHandle, 'pointerMove', 130);
+                fireEvent.keyDown(nodeHandle, {key: 'ArrowRight'});
+                expect(storedPrefs().columnWidths).toEqual({node: 158});
+
+                pointer(nodeHandle, 'pointerUp', 130);
+                expect(viewer().style.getPropertyValue('--log-node-width')).toBe('158px');
+                expect(storedPrefs().columnWidths).toEqual({node: 158});
+            });
+
+            test('should ignore a second pointer while one is dragging', () => {
+                renderListWith(twoNodeProps);
+                const nodeHandle = handle('Node');
+
+                pointer(nodeHandle, 'pointerDown', 100, 1);
+                pointer(nodeHandle, 'pointerDown', 300, 2);
+                pointer(nodeHandle, 'pointerMove', 130, 1);
+                expect(viewer().style.getPropertyValue('--log-node-width')).toBe('150px');
+
+                pointer(nodeHandle, 'pointerUp', 300, 2);
+                expect(viewer()).toHaveClass('LogViewer--resizing');
+
+                pointer(nodeHandle, 'pointerUp', 130, 1);
+                expect(storedPrefs().columnWidths).toEqual({node: 150});
+            });
+
+            test('should keep another column\'s live drag when a column is committed', () => {
+                renderListWith(twoNodeProps);
+
+                pointer(handle('Node'), 'pointerDown', 100);
+                pointer(handle('Node'), 'pointerMove', 130);
+                fireEvent.keyDown(handle('Caller'), {key: 'ArrowLeft'});
+
+                expect(viewer().style.getPropertyValue('--log-node-width')).toBe('150px');
+                expect(viewer()).toHaveClass('LogViewer--resizing');
+
+                pointer(handle('Node'), 'pointerUp', 130);
+                expect(viewer()).not.toHaveClass('LogViewer--resizing');
+                expect(storedPrefs().columnWidths).toEqual({node: 150, caller: 208});
+            });
+
+            test('should save a drag in progress when the whole list unmounts', () => {
+                const {unmount} = renderListWith(twoNodeProps);
+
+                pointer(handle('Node'), 'pointerDown', 100);
+                pointer(handle('Node'), 'pointerMove', 130);
+                unmount();
+
                 expect(storedPrefs().columnWidths).toEqual({node: 150});
             });
 

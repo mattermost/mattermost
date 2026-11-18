@@ -14,6 +14,7 @@ $timestamp-column-width: var(--log-timestamp-width, calc(var(--log-timestamp-cha
 $caller-column-width: var(--log-caller-width, 200px);
 $node-column-width: var(--log-node-width, 120px);
 $node-column-min-width: 64px;
+$caller-column-min-width: 60px;
 $message-column-min-width: 120px;
 $row-padding-x: 24px;
 $column-gap: 12px;
@@ -34,7 +35,7 @@ $mono-font: 'SFMono-Regular', consolas, 'Liberation Mono', menlo, monospace;
 }
 
 @mixin caller-column {
-    min-width: 60px;
+    min-width: $caller-column-min-width;
     flex: 0 1 $caller-column-width;
 }
 
@@ -45,8 +46,9 @@ $details-indent: calc($row-padding-x + $level-column-width + $column-gap + $time
 $row-shrink-width: calc($details-indent + $node-column-width + $message-column-min-width + $caller-column-width + 3 * $column-gap + $expand-indicator-width + $row-padding-x);
 
 // The node column's rendered width: flex gives it node / (node + caller) of the row's shortfall.
-// CSS can't divide two lengths, so the viewer passes that ratio as a number
-$details-node-width: clamp($node-column-min-width, calc($node-column-width - ($row-shrink-width - 100%) * var(--log-node-share, 0.375)), $node-column-width);
+// CSS can't divide two lengths, so the viewer passes that ratio as a number.
+// Caller stops at its min width, after which node takes the rest of the shortfall
+$details-node-width: clamp($node-column-min-width, min(calc($node-column-width - ($row-shrink-width - 100%) * var(--log-node-share, 0.375)), calc($node-column-width + $caller-column-width - $caller-column-min-width - ($row-shrink-width - 100%))), $node-column-width);
 
 @mixin viewer-shell {
     display: flex;

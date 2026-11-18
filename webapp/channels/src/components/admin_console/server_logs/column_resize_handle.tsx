@@ -47,6 +47,7 @@ type Props = {
 };
 
 type Drag = {
+    pointerId: number;
     startX: number;
     startWidth: number;
     width: number;
@@ -59,21 +60,40 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
     const drag = useRef<Drag | null>(null);
     const {min, max, fallback} = COLUMN_WIDTH_BOUNDS[column];
 
-    // Only read for aria-valuenow, since the default width isn't known until the cell is laid out
+    // The cell's rendered position, which flex may have moved off the set width; only read for aria-valuenow
     const [measured, setMeasured] = useState<number | undefined>(undefined);
 
-    // The cell's rendered width, as its default depends on the time format and the room left on the row
+    // The cell's rendered width, as the timestamp's default depends on the time format
     const measure = useCallback(() => {
         const cell = ref.current?.parentElement;
         const rendered = cell ? cell.getBoundingClientRect().width : 0;
         return rendered > 0 ? rendered : fallback;
     }, [fallback]);
 
+    // The width the column is sized from. Node and caller default to their stylesheet basis, which flex may shrink
+    // below, so dragging from the rendered width would shrink a column on the first move. The timestamp never
+    // shrinks, so its rendered width is its basis
+    const basis = useCallback(() => {
+        return width ?? (column === 'timestamp' ? measure() : fallback);
+    }, [width, column, measure, fallback]);
+
     useEffect(() => {
-        if (width === undefined) {
-            setMeasured(Math.round(measure()));
+        const cell = ref.current?.parentElement;
+        if (!cell) {
+            return undefined;
         }
-    }, [width, measure]);
+        const update = () => {
+            const rendered = Math.round(cell.getBoundingClientRect().width);
+            setMeasured(rendered > 0 ? rendered : undefined);
+        };
+        update();
+        if (typeof ResizeObserver === 'undefined') {
+            return undefined;
+        }
+        const observer = new ResizeObserver(update);
+        observer.observe(cell);
+        return () => observer.disconnect();
+    }, []);
 
     // Unmounted mid-drag, as when the list reloads, keeps the width so the viewer doesn't stay in its resizing state
     const latest = useLatest({column, onCommit});
@@ -82,7 +102,7 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         if (current?.moved) {
             latest.current.onCommit(latest.current.column, current.width);
         }
-    }, []);
+    }, [latest]);
 
     // +1 grows the column when dragged right
     const direction = edge === 'end' ? 1 : -1;
@@ -95,10 +115,12 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         }
         e.preventDefault();
 
-        // Starts from the rendered width, as on a narrow window flex may have shrunk the column below its set width
-        const rendered = ref.current?.parentElement?.getBoundingClientRect().width ?? 0;
-        const startWidth = rendered > 0 ? rendered : (width ?? measure());
-        drag.current = {startX: e.clientX, startWidth, width: startWidth, moved: false};
+        // A second pointer, as in a multi-touch gesture, doesn't take over the drag
+        if (drag.current) {
+            return;
+        }
+        const startWidth = basis();
+        drag.current = {pointerId: e.pointerId, startX: e.clientX, startWidth, width: startWidth, moved: false};
 
         // jsdom and old browsers have no pointer capture
         try {
@@ -106,11 +128,11 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         } catch {
             // ignore
         }
-    }, [width, measure]);
+    }, [basis]);
 
     const endDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         const current = drag.current;
-        if (!current) {
+        if (!current || current.pointerId !== e.pointerId) {
             return;
         }
         drag.current = null;
@@ -128,7 +150,7 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
 
     const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         const current = drag.current;
-        if (!current) {
+        if (!current || current.pointerId !== e.pointerId) {
             return;
         }
 
@@ -146,17 +168,43 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
     }, [column, direction, onResize, endDrag]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
-        if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+        const handled = ['ArrowLeft', 'ArrowRight', 'Home', 'End', 'Enter'].includes(e.key);
+        if (!handled) {
             return;
         }
 
         // The viewer has its own shortcuts
         e.preventDefault();
         e.stopPropagation();
-        const step = e.shiftKey ? KEY_STEP_LARGE : KEY_STEP;
-        const sign = e.key === 'ArrowRight' ? 1 : -1;
-        onCommit(column, clampColumnWidth(column, (width ?? measure()) + (step * sign * direction)));
-    }, [column, direction, width, measure, onCommit]);
+
+        // A key mid-drag takes over from it, so the pointer's release can't overwrite the result
+        const active = drag.current;
+        drag.current = null;
+        if (active) {
+            try {
+                ref.current?.releasePointerCapture?.(active.pointerId);
+            } catch {
+                // ignore
+            }
+        }
+
+        switch (e.key) {
+        case 'Enter':
+            onReset(column);
+            break;
+        case 'Home':
+            onCommit(column, min);
+            break;
+        case 'End':
+            onCommit(column, max);
+            break;
+        default: {
+            const step = e.shiftKey ? KEY_STEP_LARGE : KEY_STEP;
+            const sign = e.key === 'ArrowRight' ? 1 : -1;
+            onCommit(column, clampColumnWidth(column, (active ? active.width : basis()) + (step * sign * direction)));
+        }
+        }
+    }, [column, direction, min, max, basis, onCommit, onReset]);
 
     const stop = useCallback((e: React.SyntheticEvent) => e.stopPropagation(), []);
 
@@ -172,7 +220,8 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
             role='separator'
             aria-orientation='vertical'
             aria-label={intl.formatMessage({id: 'admin.logs.header.resizeColumn', defaultMessage: 'Resize {column} column'}, {column: label})}
-            aria-valuenow={Math.round(width ?? measured ?? fallback)}
+            title={intl.formatMessage({id: 'admin.logs.header.resizeHint', defaultMessage: 'Drag or use the arrow keys to resize. Double-click or press Enter to reset.'})}
+            aria-valuenow={Math.round(measured ?? width ?? fallback)}
             aria-valuemin={min}
             aria-valuemax={max}
             tabIndex={0}

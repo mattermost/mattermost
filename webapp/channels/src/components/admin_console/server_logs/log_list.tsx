@@ -325,22 +325,42 @@ export default function LogList({
         setLiveWidths((prev) => ({...prev, [column]: width}));
     }, []);
 
-    const handleColumnCommit = useCallback((column: ResizableColumn, width: number) => {
-        setLiveWidths(null);
-        setColumnWidths((prev) => (prev[column] === width ? prev : {...prev, [column]: width}));
-    }, []);
-
-    const handleColumnReset = useCallback((column: ResizableColumn) => {
-        setLiveWidths(null);
-        setColumnWidths((prev) => {
-            if (prev[column] === undefined) {
+    // A commit clears only its own column's live width, so another column's drag carries on
+    const clearLiveWidth = useCallback((column: ResizableColumn) => {
+        setLiveWidths((prev) => {
+            if (!prev || !(column in prev)) {
                 return prev;
             }
             const rest = {...prev};
             delete rest[column];
-            return rest;
+            return Object.keys(rest).length ? rest : null;
         });
     }, []);
+
+    // Saved on the spot, as a list that's replaced (the viewer remounts it on reload) wouldn't run its save effect
+    const columnWidthsRef = useLatest(columnWidths);
+    const updateColumnWidths = useCallback((next: ColumnWidths) => {
+        // Set now, as useLatest only catches up after render, and a key press and a release can commit in one batch
+        columnWidthsRef.current = next;
+        setColumnWidths(next);
+        savePrefs({...loadPrefs(), columnWidths: next});
+    }, [columnWidthsRef]);
+
+    const handleColumnCommit = useCallback((column: ResizableColumn, width: number) => {
+        clearLiveWidth(column);
+        if (columnWidthsRef.current[column] !== width) {
+            updateColumnWidths({...columnWidthsRef.current, [column]: width});
+        }
+    }, [clearLiveWidth, columnWidthsRef, updateColumnWidths]);
+
+    const handleColumnReset = useCallback((column: ResizableColumn) => {
+        clearLiveWidth(column);
+        if (columnWidthsRef.current[column] !== undefined) {
+            const rest = {...columnWidthsRef.current};
+            delete rest[column];
+            updateColumnWidths(rest);
+        }
+    }, [clearLiveWidth, columnWidthsRef, updateColumnWidths]);
 
     // Live tail entries newer than `shown` are held back until the admin is ready for them, and
     // those newer than `highlight` just arrived on that page. Null during a full load, which is shown as is
