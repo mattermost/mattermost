@@ -317,6 +317,12 @@ func TestSessionScopePublicChannelsOnListedTeams(t *testing.T) {
 		ok, _ := th.App.SessionHasPermissionToChannel(th.Context.WithSession(policySession), *policySession, policyPublic.Id, model.PermissionReadChannelContent)
 		assert.False(t, ok)
 		assert.False(t, th.App.SessionHasPermissionToTeam(*policySession, policyTeam.Id, model.PermissionViewTeam))
+
+		listedScope := f.scope()
+		listedScope.Resources.ChannelIDs = []string{policyPublic.Id}
+		listedSession := mintScoped(t, th, f.bot.Id, listedScope)
+		assert.False(t, th.App.SessionHasPermissionToTeam(*listedSession, policyTeam.Id, model.PermissionViewTeam), "listing a channel doesn't make a policy-enforced team visible")
+		assert.False(t, th.App.SessionHasPermissionToTeam(*listedSession, policyTeam.Id, model.PermissionListTeamChannels))
 	})
 
 	t.Run("a deleted team grants nothing", func(t *testing.T) {

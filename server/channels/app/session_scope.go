@@ -68,7 +68,7 @@ func (a *App) EvaluateSessionScope(rctx request.CTX, session *model.Session, per
 		if appErr != nil {
 			return true, false
 		}
-		if team.DeleteAt != 0 {
+		if team.DeleteAt != 0 || team.PolicyEnforced {
 			return true, false
 		}
 		return true, model.SessionScopeGrantsTeamPublicChannels(scope, team, a.sessionScopeLimits(rctx)) || a.scopeListsChannelOnTeam(rctx, scope, team.Id)
