@@ -5,7 +5,7 @@ import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -23,6 +23,7 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {AIActionMenuItemComponent} from 'types/store/plugins';
 
+import {isMenuRowTarget, pointerIsInside, useComposerSubmenuHover, useDelayedSubmenuClose} from './composer_submenu_hover';
 import type {RewriteMenuProps} from './rewrite_menu';
 import {RewriteSubmenu, RewriteSubMenuHeader, RewriteSubMenuFooter} from './rewrite_menu';
 
@@ -54,6 +55,8 @@ const AIActionsMenu = ({
     parentOpen = false,
 }: AIActionsMenuProps): JSX.Element | null => {
     const {formatMessage} = useIntl();
+    const {activeRow, claimRow} = useComposerSubmenuHover();
+    const panelRef = useRef<HTMLDivElement>(null);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
@@ -71,36 +74,73 @@ const AIActionsMenu = ({
 
     const hasItems = sortedItems.length > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
 
+    const closeSubmenu = useCallback(() => {
+        setActiveSubmenu(null);
+        setSubmenuAnchorEl(null);
+    }, []);
+    const {cancel: cancelClose, schedule: scheduleClose} = useDelayedSubmenuClose(closeSubmenu);
+
     const handleToggle = useCallback((open: boolean) => {
         setIsMenuOpen(open);
         if (!open) {
-            setActiveSubmenu(null);
-            setSubmenuAnchorEl(null);
+            cancelClose();
+            closeSubmenu();
         }
         if (rewriteMenuProps) {
             rewriteMenuProps.setIsMenuOpen(open);
         }
-    }, [rewriteMenuProps]);
+    }, [cancelClose, closeSubmenu, rewriteMenuProps]);
 
     useEffect(() => {
         if (!embedded) {
             return;
         }
-        if (!parentOpen) {
-            setActiveSubmenu(null);
-            setSubmenuAnchorEl(null);
+        if (!parentOpen || (activeSubmenu && activeRow !== activeSubmenu)) {
+            cancelClose();
+            closeSubmenu();
         }
         if (rewriteMenuProps) {
-            rewriteMenuProps.setIsMenuOpen(parentOpen && activeSubmenu === '__rewrite__');
+            rewriteMenuProps.setIsMenuOpen(Boolean(parentOpen && activeSubmenu && activeRow === activeSubmenu));
         }
-    }, [activeSubmenu, embedded, parentOpen, rewriteMenuProps]);
+    }, [activeRow, activeSubmenu, cancelClose, closeSubmenu, embedded, parentOpen, rewriteMenuProps]);
+
+    const closeUnlessInside = useCallback((next: EventTarget | null, anchor: HTMLElement | null) => {
+        if (pointerIsInside(next, panelRef.current) || pointerIsInside(next, anchor)) {
+            cancelClose();
+            return;
+        }
+        if (isMenuRowTarget(next)) {
+            cancelClose();
+            closeSubmenu();
+            return;
+        }
+        scheduleClose();
+    }, [cancelClose, closeSubmenu, scheduleClose]);
 
     const handleItemHover = useCallback((submenuId: string) => {
         return (event: MouseEvent<HTMLLIElement>) => {
+            cancelClose();
+            claimRow(submenuId);
             setActiveSubmenu(submenuId);
             setSubmenuAnchorEl(event.currentTarget);
         };
-    }, []);
+    }, [cancelClose, claimRow]);
+
+    const handleItemLeave = useCallback((event: MouseEvent<HTMLLIElement>) => {
+        closeUnlessInside(event.relatedTarget, event.currentTarget);
+    }, [closeUnlessInside]);
+
+    const handlePanelLeave = useCallback((event: MouseEvent<HTMLDivElement>) => {
+        closeUnlessInside(event.relatedTarget, submenuAnchorEl);
+    }, [closeUnlessInside, submenuAnchorEl]);
+
+    const handlePlainHover = useCallback((rowId: string) => {
+        return () => {
+            cancelClose();
+            claimRow(rowId);
+            closeSubmenu();
+        };
+    }, [cancelClose, claimRow, closeSubmenu]);
 
     const handleItemKeyDown = useCallback((submenuId: string) => {
         return (event: KeyboardEvent<HTMLLIElement>) => {
@@ -110,11 +150,13 @@ const AIActionsMenu = ({
                 isKeyPressed(event, Constants.KeyCodes.RIGHT)
             ) {
                 event.preventDefault();
+                cancelClose();
+                claimRow(submenuId);
                 setActiveSubmenu(submenuId);
                 setSubmenuAnchorEl(event.currentTarget);
             }
         };
-    }, []);
+    }, [cancelClose, claimRow]);
 
     const handleActionClick = useCallback((action: NonNullable<AIActionMenuItemComponent['action']>) => {
         return () => {
@@ -174,6 +216,7 @@ const AIActionsMenu = ({
                             labels={<span>{item.text}</span>}
                             trailingElements={<ChevronRightIcon size={18}/>}
                             onMouseEnter={handleItemHover(item.id)}
+                            onMouseLeave={handleItemLeave}
                             onKeyDown={handleItemKeyDown(item.id)}
                         />
                     );
@@ -186,6 +229,7 @@ const AIActionsMenu = ({
                             role='menuitem'
                             leadingElement={item.icon}
                             labels={<span>{item.text}</span>}
+                            onMouseEnter={handlePlainHover(item.id)}
                             onClick={handleActionClick(item.action)}
                         />
                     );
@@ -210,6 +254,7 @@ const AIActionsMenu = ({
                     )}
                     trailingElements={<ChevronRightIcon size={18}/>}
                     onMouseEnter={handleItemHover('__rewrite__')}
+                    onMouseLeave={handleItemLeave}
                     onKeyDown={handleItemKeyDown('__rewrite__')}
                 />
             )}
@@ -227,6 +272,14 @@ const AIActionsMenu = ({
             disableEnforceFocus={true}
             disableRestoreFocus={true}
             hideBackdrop={true}
+            transitionDuration={0}
+            slotProps={{
+                paper: {
+                    ref: panelRef,
+                    onMouseEnter: cancelClose,
+                    onMouseLeave: handlePanelLeave,
+                },
+            }}
         >
             {/* pointer-events wrapper: AsSubMenu disables pointer-events on the popover root,
                 so we re-enable on the content div to make everything inside clickable */}

@@ -3,7 +3,7 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
-import React, {useCallback, useContext, useState, memo, useMemo, useEffect} from 'react';
+import React, {useCallback, useContext, useState, memo, useMemo, useEffect, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -15,6 +15,7 @@ import {PostPriority} from '@mattermost/types/posts';
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
+import {isMenuRowTarget, pointerIsInside, useComposerSubmenuHover, useDelayedSubmenuClose} from 'components/advanced_text_editor/composer_submenu_hover';
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
 import {MenuContext} from 'components/menu/menu_context';
@@ -27,6 +28,8 @@ import {Header, MenuItem, StyledCheckIcon, ToggleItem, StandardIcon, ImportantIc
 import './post_priority_picker.scss';
 
 const PostPriorityMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
+
+const PRIORITY_ROW_ID = 'message-priority';
 
 type Props = {
     settings?: PostPriorityMetadata;
@@ -47,6 +50,8 @@ function PostPriorityPicker({
 }: Props) {
     const {formatMessage} = useIntl();
     const menu = useContext(MenuContext);
+    const {activeRow, claimRow} = useComposerSubmenuHover();
+    const panelRef = useRef<HTMLDivElement>(null);
 
     const [pickerOpen, setPickerOpen] = useState(false);
     const [itemAnchor, setItemAnchor] = useState<HTMLElement | null>(null);
@@ -261,9 +266,44 @@ function PostPriorityPicker({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [itemAnchor, presentation]);
 
-    const openItem = useCallback((event: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
-        setItemAnchor(event.currentTarget);
+    const closeItemPanel = useCallback(() => {
+        setItemAnchor(null);
     }, []);
+    const {cancel: cancelClose, schedule: scheduleClose} = useDelayedSubmenuClose(closeItemPanel);
+
+    const openItem = useCallback((event: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
+        cancelClose();
+        claimRow(PRIORITY_ROW_ID);
+        setItemAnchor(event.currentTarget);
+    }, [cancelClose, claimRow]);
+
+    const closeItemUnlessInside = useCallback((next: EventTarget | null, anchor: HTMLElement | null) => {
+        if (pointerIsInside(next, panelRef.current) || pointerIsInside(next, anchor)) {
+            cancelClose();
+            return;
+        }
+        if (isMenuRowTarget(next)) {
+            cancelClose();
+            closeItemPanel();
+            return;
+        }
+        scheduleClose();
+    }, [cancelClose, closeItemPanel, scheduleClose]);
+
+    // Close when the pointer claims another + row, and when the desktop menu
+    // closes. The mobile modal does not provide MenuContext, so a missing
+    // close function means this row is not in that desktop menu.
+    useEffect(() => {
+        if (presentation !== 'item' || !itemAnchor) {
+            return;
+        }
+        const parentClosed = Boolean(menu.close) && !menu.isOpen;
+        const anotherRow = activeRow !== null && activeRow !== PRIORITY_ROW_ID;
+        if (parentClosed || anotherRow) {
+            cancelClose();
+            closeItemPanel();
+        }
+    }, [activeRow, cancelClose, closeItemPanel, itemAnchor, menu.close, menu.isOpen, presentation]);
 
     const pickerBody = (
         <div className='PostPriorityPicker'>
@@ -309,6 +349,8 @@ function PostPriorityPicker({
                     )}
                     trailingElements={<ChevronRightIcon size={18}/>}
                     onMouseEnter={openItem}
+                    onMouseLeave={(event) => closeItemUnlessInside(event.relatedTarget, event.currentTarget)}
+                    onClick={openItem}
                     onKeyDown={(event) => {
                         if (Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER) ||
                             Keyboard.isKeyPressed(event, Constants.KeyCodes.SPACE) ||
@@ -328,6 +370,14 @@ function PostPriorityPicker({
                     disableEnforceFocus={true}
                     disableRestoreFocus={true}
                     hideBackdrop={true}
+                    transitionDuration={0}
+                    slotProps={{
+                        paper: {
+                            ref: panelRef,
+                            onMouseEnter: cancelClose,
+                            onMouseLeave: (event) => closeItemUnlessInside(event.relatedTarget, itemAnchor),
+                        },
+                    }}
                 >
                     <div style={{pointerEvents: 'auto'}}>
                         {pickerBody}

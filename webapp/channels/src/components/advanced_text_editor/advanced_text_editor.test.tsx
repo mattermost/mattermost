@@ -1459,6 +1459,23 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
         });
 
+        it('closes an open submenu when the pointer moves to another row', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                chromeState,
+            );
+
+            await openMenu();
+            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Message priority', hidden: true}));
+            expect(screen.getByRole('menuitemradio', {name: 'Standard'})).toBeInTheDocument();
+
+            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Formatting', hidden: true}));
+            expect(screen.getByRole('menuitem', {name: 'Message priority', hidden: true})).toHaveAttribute('aria-expanded', 'false');
+            await waitFor(() => {
+                expect(screen.queryByRole('menuitemradio', {name: 'Standard'})).not.toBeInTheDocument();
+            });
+        });
+
         it('hides channel chrome and keeps send', () => {
             renderWithContext(
                 <AdvancedTextEditor

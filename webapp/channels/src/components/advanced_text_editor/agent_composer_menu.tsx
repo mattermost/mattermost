@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useContext, useState, type ReactNode, type Ref} from 'react';
+import React, {memo, useCallback, useContext, useState, type ReactNode, type Ref} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -15,6 +15,7 @@ import type {FirstMenuItemProps} from 'components/menu';
 import {MenuContext} from 'components/menu/menu_context';
 
 import AIActionsMenu from './ai_actions_menu';
+import {ComposerSubmenuHoverProvider, useComposerSubmenuHover} from './composer_submenu_hover';
 
 const AGENT_COMPOSER_MENU_ID = 'agent-composer-menu';
 
@@ -138,7 +139,15 @@ const AttachFilesItem = ({disabled, onAttach, ...otherProps}: AttachFilesItemPro
  * attributes, priority, burn-on-read, skills, rewrite, and formatting are
  * items in this menu.
  */
-const AgentComposerMenu = ({
+const AgentComposerMenu = (props: Props) => {
+    return (
+        <ComposerSubmenuHoverProvider>
+            <AgentComposerMenuContents {...props}/>
+        </ComposerSubmenuHoverProvider>
+    );
+};
+
+const AgentComposerMenuContents = ({
     canAttach,
     attachDisabled,
     onAttach,
@@ -154,12 +163,22 @@ const AgentComposerMenu = ({
     aiActions,
 }: Props) => {
     const {formatMessage} = useIntl();
+    const {claimRow} = useComposerSubmenuHover();
     const [menuOpen, setMenuOpen] = useState(false);
     const label = formatMessage({
         id: 'textbox.agent_menu',
         defaultMessage: 'Message options',
         description: 'Accessible name of the + button on the composer. Opens a menu of attach, emoji, attributes, priority, burn-on-read, skills, rewrite, and formatting.',
     });
+    const claim = useCallback((id: string) => () => {
+        claimRow(id);
+    }, [claimRow]);
+    const handleToggle = useCallback((open: boolean) => {
+        setMenuOpen(open);
+        if (!open) {
+            claimRow(null);
+        }
+    }, [claimRow]);
 
     return (
         <span ref={emojiAnchorRef}>
@@ -175,7 +194,7 @@ const AgentComposerMenu = ({
                 menu={{
                     id: AGENT_COMPOSER_MENU_ID,
                     'aria-label': label,
-                    onToggle: setMenuOpen,
+                    onToggle: handleToggle,
                 }}
                 anchorOrigin={{vertical: 'top', horizontal: 'left'}}
                 transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
@@ -184,6 +203,7 @@ const AgentComposerMenu = ({
                     <AttachFilesItem
                         disabled={attachDisabled}
                         onAttach={onAttach}
+                        onMouseEnter={claim('attach')}
                     />
                 )}
                 {enableEmojiPicker && (
@@ -191,6 +211,7 @@ const AgentComposerMenu = ({
                         labels={emojiLabel}
                         leadingElement={<EmoticonHappyOutlineIcon size={18}/>}
                         onClick={onEmoji}
+                        onMouseEnter={claim('emoji')}
                         disabled={emojiDisabled}
                     />
                 )}
@@ -198,6 +219,7 @@ const AgentComposerMenu = ({
                     <Menu.Item
                         labels={attributesLabel}
                         leadingElement={<TagOutlineIcon size={18}/>}
+                        onMouseEnter={claim('attributes')}
                         disabled={true}
                     />
                 )}
@@ -209,6 +231,7 @@ const AgentComposerMenu = ({
                         trailingElements={burnOnRead.on ? <CheckIcon size={18}/> : undefined}
                         disabled={burnOnRead.disabled}
                         onClick={burnOnRead.onToggle}
+                        onMouseEnter={claim('burn-on-read')}
                     />
                 )}
                 {aiActions && (
@@ -222,6 +245,7 @@ const AgentComposerMenu = ({
                     labels={formattingLabel}
                     leadingElement={<FormatLetterCaseIcon size={18}/>}
                     onClick={onToggleFormatting}
+                    onMouseEnter={claim('formatting')}
                     disabled={formattingDisabled}
                 />
             </Menu.Container>
