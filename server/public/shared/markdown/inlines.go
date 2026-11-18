@@ -115,10 +115,12 @@ const (
 )
 
 type delimiter struct {
-	Type       delimiterType
-	IsInactive bool
-	TextNode   int
-	Range      Range
+	Type     delimiterType
+	TextNode int
+	Range    Range
+
+	// index counts the delimiters pushed before this one.
+	index int
 }
 
 type inlineParser struct {
@@ -130,6 +132,12 @@ type inlineParser struct {
 	position       int
 	inlines        []Inline
 	delimiterStack *list.List
+
+	// delimiters counts the delimiters pushed so far. Link openers whose index is below
+	// inactiveLinksBelow are inactive, and imageOpeners counts the image openers on the stack.
+	delimiters         int
+	inactiveLinksBelow int
+	imageOpeners       int
 }
 
 func newInlineParser(markdown string, ranges []Range, referenceDefinitions *ReferenceDefinitions) *inlineParser {
@@ -246,7 +254,7 @@ func (p *inlineParser) parseLinkOrImageDelimiter() {
 			Text:  "[",
 			Range: Range{absPos, absPos + 1},
 		})
-		p.delimiterStack.PushBack(&delimiter{
+		p.pushDelimiter(&delimiter{
 			Type:     linkOpeningDelimiter,
 			TextNode: len(p.inlines) - 1,
 			Range:    Range{p.position, p.position + 1},
@@ -257,7 +265,7 @@ func (p *inlineParser) parseLinkOrImageDelimiter() {
 			Text:  "![",
 			Range: Range{absPos, absPos + 2},
 		})
-		p.delimiterStack.PushBack(&delimiter{
+		p.pushDelimiter(&delimiter{
 			Type:     imageOpeningDelimiter,
 			TextNode: len(p.inlines) - 1,
 			Range:    Range{p.position, p.position + 2},
@@ -270,6 +278,26 @@ func (p *inlineParser) parseLinkOrImageDelimiter() {
 		})
 		p.position++
 	}
+}
+
+func (p *inlineParser) pushDelimiter(d *delimiter) {
+	d.index = p.delimiters
+	p.delimiters++
+	if d.Type == imageOpeningDelimiter {
+		p.imageOpeners++
+	}
+	p.delimiterStack.PushBack(d)
+}
+
+func (p *inlineParser) removeDelimiter(element *list.Element) {
+	if element.Value.(*delimiter).Type == imageOpeningDelimiter {
+		p.imageOpeners--
+	}
+	p.delimiterStack.Remove(element)
+}
+
+func (p *inlineParser) isInactive(d *delimiter) bool {
+	return d.Type == linkOpeningDelimiter && d.index < p.inactiveLinksBelow
 }
 
 func (p *inlineParser) peekAtInlineLinkDestinationAndTitle(position int, isImage bool) (destination, title Range, end int, ok bool) {
@@ -343,8 +371,8 @@ func (p *inlineParser) lookForLinkOrImage() {
 		if d.Type != imageOpeningDelimiter && d.Type != linkOpeningDelimiter {
 			continue
 		}
-		if d.IsInactive {
-			p.delimiterStack.Remove(element)
+		if p.isInactive(d) {
+			p.removeDelimiter(element)
 			break
 		}
 
@@ -398,16 +426,13 @@ func (p *inlineParser) lookForLinkOrImage() {
 				p.inlines = append(p.inlines[:d.TextNode], inline)
 			} else {
 				p.inlines = append(p.inlines[:d.TextNode], inline)
-				for inlineElement := element.Prev(); inlineElement != nil; inlineElement = inlineElement.Prev() {
-					if d := inlineElement.Value.(*delimiter); d.Type == linkOpeningDelimiter {
-						d.IsInactive = true
-					}
-				}
+				// Every link opener below this one is now inactive.
+				p.inactiveLinksBelow = max(p.inactiveLinksBelow, d.index)
 			}
-			p.delimiterStack.Remove(element)
+			p.removeDelimiter(element)
 			return
 		}
-		p.delimiterStack.Remove(element)
+		p.removeDelimiter(element)
 		break
 	}
 	absPos := relativeToAbsolutePosition(p.ranges, p.position)
@@ -470,7 +495,7 @@ func CharacterReference(ref string) string {
 func (p *inlineParser) parseCharacterReference() {
 	absPos := relativeToAbsolutePosition(p.ranges, p.position)
 	p.position++
-	if semicolon := strings.IndexByte(p.raw[p.position:], ';'); semicolon == -1 {
+	if semicolon := characterReferenceEnd(p.raw[p.position:]); semicolon == -1 {
 		p.inlines = append(p.inlines, &Text{
 			Text:  "&",
 			Range: Range{absPos, absPos + 1},
@@ -490,11 +515,14 @@ func (p *inlineParser) parseCharacterReference() {
 }
 
 func (p *inlineParser) parseAutolink(c rune) bool {
-	for element := p.delimiterStack.Back(); element != nil; element = element.Prev() {
-		d := element.Value.(*delimiter)
-		if !d.IsInactive {
-			return false
-		}
+	// Autolinks are only parsed when every delimiter on the stack is inactive. Image openers are
+	// never inactive, and the top link opener is the most recent, so it is inactive only if all
+	// the others are too.
+	if p.imageOpeners > 0 {
+		return false
+	}
+	if top := p.delimiterStack.Back(); top != nil && !p.isInactive(top.Value.(*delimiter)) {
+		return false
 	}
 
 	var link Range
@@ -669,7 +697,7 @@ func Unescape(markdown string) string {
 			}
 		case '&':
 			position++
-			if semicolon := strings.IndexByte(markdown[position:], ';'); semicolon == -1 {
+			if semicolon := characterReferenceEnd(markdown[position:]); semicolon == -1 {
 				ret.WriteString("&")
 			} else if s := CharacterReference(markdown[position : position+semicolon]); s != "" {
 				position += semicolon + 1
@@ -684,4 +712,18 @@ func Unescape(markdown string) string {
 	}
 
 	return ret.String()
+}
+
+// maxCharacterReferenceLength is the longest reference, without its & and ;, that CharacterReference
+// can decode: the entity name CounterClockwiseContourIntegral. Numeric references are at most 10.
+const maxCharacterReferenceLength = 31
+
+// characterReferenceEnd returns the index of the ; that ends the character reference s starts
+// with, or -1 if there is none. A ; further away could never end a reference that decodes, so the
+// search stops there.
+func characterReferenceEnd(s string) int {
+	if len(s) > maxCharacterReferenceLength+1 {
+		s = s[:maxCharacterReferenceLength+1]
+	}
+	return strings.IndexByte(s, ';')
 }

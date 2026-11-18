@@ -60,6 +60,15 @@ func newSnapshot(current, latest string) *healthcheck.Snapshot {
 	return &healthcheck.Snapshot{Version: healthcheck.VersionInfo{Current: current, Latest: latest}}
 }
 
+func withSecurityFixAlert(s *healthcheck.Snapshot, enabled bool) *healthcheck.Snapshot {
+	cfg := &model.Config{}
+	cfg.SetDefaults()
+	cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(enabled)
+	s.Config = &model.SupportPacketConfig{Config: cfg}
+	s.Sections = map[model.WorkspaceSection]error{model.SectionConfig: nil}
+	return s
+}
+
 type want struct {
 	state     healthcheck.State
 	messageID string

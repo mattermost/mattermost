@@ -2456,6 +2456,11 @@
     "description": "Admin API error when merging the stored configuration with restricted defaults fails while reading the config; 'config' is the server configuration."
   },
   {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Failed to compare the saved configurations.",
+    "description": "Admin API error when listing saved server configurations fails while working out which settings changed between two of them."
+  },
+  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store.",
     "description": "Error from the config migration command (moving configuration between file and database storage); admin/CLI audience."
@@ -2474,6 +2479,11 @@
     "id": "api.config.reload_config.app_error",
     "translation": "Failed to reload config.",
     "description": "Admin API error when reloading the server configuration from disk fails; 'config' is the server configuration."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Failed to compare the saved configuration with the current one.",
+    "description": "Admin API error when restoring a saved server configuration fails while working out which settings it changes."
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
@@ -3300,8 +3310,8 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "The health dashboard requires an Enterprise license.",
-    "description": "API error when a health dashboard endpoint is called on a server without an Enterprise license."
+    "translation": "The health dashboard requires a Professional license or higher.",
+    "description": "API error when a health dashboard endpoint is called on a server without at least a Professional license."
   },
   {
     "id": "api.image.get.app_error",
@@ -3337,6 +3347,11 @@
     "id": "api.io_error",
     "translation": "input/output error",
     "description": "Generic lowercase API error for a low-level input/output failure; developer/log audience."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Jobs of this type can't be canceled.",
+    "description": "Admin API error when a request tries to cancel a background job whose type does not support cancellation, such as a health check run."
   },
   {
     "id": "api.job.retrieve.nopermissions",
@@ -3829,6 +3844,21 @@
     "description": "Ephemeral system message to the poster when an @-mentioned user is not a team member; {{.Username}} is that user's username, rendered after a literal @."
   },
   {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "You do not have permission to set one or more of the requested post attribute values.",
+    "description": "API error when a post is created with a value for a post attribute the author is not allowed to set; the attribute is deliberately not named. 'Post attributes' are custom fields admins define for posts."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Burn-on-read posts can't have post attributes.",
+    "description": "API error when a burn-on-read post is created with post attribute values. 'Burn-on-read' is the self-destructing message feature name; 'post attributes' are custom fields admins define for posts."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Post attributes are not enabled on this server.",
+    "description": "API error when a post is created with post attribute values while the post attributes feature is turned off on the server. 'Post attributes' are custom fields admins define for posts."
+  },
+  {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
     "translation": "You do not have permission to send burn-on-read messages in this channel.",
     "description": "API error when a user does not have permission to send a burn-on-read message in a channel due to an attribute-based-access-control (ABAC) permission policy."
@@ -3857,6 +3887,11 @@
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter.",
     "description": "API error when a reply's root post belongs to a different channel than the one being posted to; 'ChannelId'/'RootId' are API parameter names."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "One or more post attribute values could not be applied.",
+    "description": "API error when a post is created with post attribute values that are unknown, repeated, not available in the post's channel, or that set fields the server assigns itself; the attribute is deliberately not named."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -6955,6 +6990,11 @@
     "description": "API error when saving a user's acknowledgement of a post fails."
   },
   {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Checking for the latest Mattermost release is disabled. Turn on Enable Security Alerts to allow it.",
+    "description": "API error returned when an administrator asks for the latest Mattermost release while the 'Enable Security Alerts' System Console setting is off; that setting also stops the server fetching the latest release. Admin-facing."
+  },
+  {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
     "translation": "Could not decode the XML metadata information received from the Identity Provider.",
     "description": "Admin console error when the XML metadata downloaded from the SAML Identity Provider cannot be decoded."
@@ -7863,6 +7903,21 @@
     "id": "app.compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report.",
     "description": "Admin-facing API error when saving a compliance report job fails."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Unable to get the saved configurations.",
+    "description": "Admin API and mmctl error when reading the history of saved server configurations from the database fails."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "No saved configuration has this ID.",
+    "description": "Admin API and mmctl error when the ID given for a saved server configuration doesn't match any configuration in the history."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Configuration history is only available when the configuration is stored in the database.",
+    "description": "Admin API and mmctl error when the configuration history is requested but the server reads its configuration from a file, which keeps no history; 'database' is the database the server's configuration is stored in."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
@@ -8859,6 +8914,16 @@
     "id": "app.group.username_conflict",
     "translation": "user with username \"{{.Username}}\" already exists.",
     "description": "API error returned when a group operation conflicts with an existing account; {{.Username}} is the already-taken username."
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Unable to start a health check run.",
+    "description": "Server error when a system admin asked to run the health check now and the server could neither create a run nor find the one already running."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "A health check run is already starting. Try again in a moment.",
+    "description": "Error when a system admin asked to run the health check now and the run already in the way finished at that moment, so the server could neither start a run nor return the active one."
   },
   {
     "id": "app.health_finding.get.app_error",
@@ -15107,6 +15172,11 @@
     "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
   },
   {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "The {{.job_type}} job {{.job_id}} is in progress but has recorded no activity for {{.days}} days. This usually means the worker died mid-run or the scheduler is wedged.",
+    "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity for two days or more; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.days}} is a whole number of days, at least 2."
+  },
+  {
     "id": "health.rule.job_stuck.remediation",
     "translation": "Cancel the stuck job from its System Console page, with mmctl job cancel, or through the API. Check the server logs around the job's last activity, then run it again.",
     "description": "Health dashboard fix-it step for a background job stuck in progress; 'mmctl job cancel' is a command and should not be translated."
@@ -15347,6 +15417,21 @@
     "description": "Health dashboard finding title when the server does not write a log file."
   },
   {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging is true, so failed incoming webhook requests are logged with their payload, which can contain message text.",
+    "description": "Health dashboard finding detail when webhook debugging logs incoming webhook payloads; 'LogSettings.EnableWebhookDebugging' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Set LogSettings.EnableWebhookDebugging to false unless you are troubleshooting a webhook.",
+    "description": "Health dashboard fix-it step for webhook payload logging; 'LogSettings.EnableWebhookDebugging' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Webhook payloads are logged",
+    "description": "Health dashboard finding title when failed incoming webhook requests are logged with their payload, which can include message content."
+  },
+  {
     "id": "health.rule.max_notifications_per_channel.message",
     "translation": "TeamSettings.MaxNotificationsPerChannel is {{.limit}}, so @channel, @all and @here still work in channels with thousands of members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
     "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; {{.limit}} is the configured limit, 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
@@ -15363,18 +15448,18 @@
   },
   {
     "id": "health.rule.metrics_off.message",
-    "translation": "MetricsSettings.Enable is false. Metrics are optional, and many deployments do not run Prometheus. If you want runtime visibility into database connections, HTTP latency and goroutine counts, enabling metrics provides it.",
-    "description": "Health dashboard finding detail when Prometheus metrics are turned off, which is a valid choice; 'MetricsSettings.Enable' is a config setting path and 'Prometheus' is a product name; do not translate them."
+    "translation": "Mattermost isn't recording performance metrics, such as database connections, request latency and server load. Without them, there's no history to look back on when users report slowness, and nothing to share with Mattermost Support.",
+    "description": "Health dashboard finding detail when performance monitoring (MetricsSettings.Enable) is turned off, so no performance history is available for troubleshooting or for Mattermost Support; 'Mattermost Support' is a team name."
   },
   {
     "id": "health.rule.metrics_off.remediation",
-    "translation": "If you use Prometheus, set MetricsSettings.Enable to true and scrape the metrics listener (port 8067 by default).",
-    "description": "Health dashboard fix-it step for disabled Prometheus metrics; 'MetricsSettings.Enable' is a config setting path and 'scrape' is the Prometheus term for collecting metrics."
+    "translation": "Turn on Performance Monitoring in the System Console, and check that the Metrics plugin is enabled under Plugins > Plugin Management. The plugin keeps 15 days of metrics on the server, with no Prometheus needed. If you run Prometheus, point it at the metrics listener (port 8067 by default).",
+    "description": "Health dashboard fix-it step for disabled performance monitoring; 'Performance Monitoring' is the System Console setting name, 'Metrics plugin' is a Mattermost plugin and 'Prometheus' is a product name; do not translate them."
   },
   {
     "id": "health.rule.metrics_off.title",
-    "translation": "Prometheus metrics disabled (optional)",
-    "description": "Health dashboard finding title when Prometheus performance metrics are turned off; the finding is informational because metrics are optional."
+    "translation": "Performance monitoring is turned off",
+    "description": "Health dashboard finding title when performance monitoring (MetricsSettings.Enable) is turned off, so Mattermost records no performance metrics."
   },
   {
     "id": "health.rule.node_container_memory_pressure.message",
@@ -15970,6 +16055,11 @@
     "id": "health.rule.version.unknown.latest",
     "translation": "Latest release unknown: it could not be fetched, or the packet does not record it.",
     "description": "Health dashboard reason shown when a version check could not run because the latest Mattermost release could not be fetched from GitHub or is not recorded in the Support Packet being evaluated, so the check's status is unknown."
+  },
+  {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Latest release not checked: Enable Security Alerts is off, so the server does not fetch it.",
+    "description": "Health dashboard reason shown when a version check could not run because the administrator turned off the 'Enable Security Alerts' setting, which also stops the server fetching the latest Mattermost release, so the check's status is unknown. 'Enable Security Alerts' is the name of a System Console setting."
   },
   {
     "id": "health.rule.version.unknown.line",
