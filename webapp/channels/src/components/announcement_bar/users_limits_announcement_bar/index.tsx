@@ -63,6 +63,7 @@ function UsersLimitsAnnouncementBar(props: Props) {
     if (shouldShowCriticalBanner({userIsAdmin: props.userIsAdmin, isLicensed, maxUsersHardLimit, activeUserCount})) {
         return (
             <AnnouncementBar
+                testId='announcement_bars.users_limits_critical'
                 id='users_limits_announcement_bar_critical'
                 showCloseButton={false}
                 message={
@@ -93,6 +94,7 @@ function UsersLimitsAnnouncementBar(props: Props) {
     if (shouldShowWarningBanner({userIsAdmin: props.userIsAdmin, isLicensed, maxUsersLimit, maxUsersHardLimit, activeUserCount, isWarningDismissed})) {
         return (
             <AnnouncementBar
+                testId='announcement_bars.users_limits_warning'
                 id='users_limits_announcement_bar_warning'
                 showCloseButton={true}
                 handleClose={handleWarningDismiss}

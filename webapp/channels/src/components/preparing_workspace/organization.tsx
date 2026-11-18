@@ -184,7 +184,7 @@ const Organization = (props: Props) => {
                             </PageBody>
                             <button
                                 className='primary-button'
-                                data-testid='continue'
+                                data-testid='preparing_workspace.organization.continue--button'
                                 onClick={onNext}
                                 disabled={!props.organization}
                             >

@@ -39,6 +39,7 @@ export default function NotificationPermissionNeverGrantedBar() {
 
     return (
         <AnnouncementBar
+            testId='announcement_bars.notifications_never_granted'
             type={AnnouncementBarTypes.ANNOUNCEMENT}
             message={
                 <FormattedMessage

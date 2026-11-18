@@ -66,7 +66,7 @@ describe('RequestJoinChannelModal', () => {
             baseState,
         );
 
-        await screen.findByTestId('request-join-channel-modal');
+        await screen.findByTestId('request_join_channel_modal');
 
         const stackedBackdrop = document.querySelectorAll('.modal-backdrop');
 

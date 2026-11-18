@@ -92,6 +92,7 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
             <Menu.Container
                 menuButton={{
                     id: `detailsCustomWrapper-${group.id}`,
+                    dataTestId: 'view_user_group_modal.menu--button',
                     as: UserGroupActionsMenuTrigger,
                     children: <Icon glyph={<DotsVerticalIcon/>}/>,
                     'aria-label': menuLabel,
@@ -108,6 +109,7 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 {props.permissionToEditGroup && (
                     <Menu.Item
                         id='edit-details'
+                        data-testid='view_user_group_modal.menu.edit--menuitem'
                         onClick={goToEditGroupModal}
                         labels={
                             <FormattedMessage
@@ -120,6 +122,7 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 {props.permissionToJoinGroup && !isGroupMember && (
                     <Menu.Item
                         id='join-group'
+                        data-testid='view_user_group_modal.menu.join--menuitem'
                         onClick={joinGroup}
                         labels={
                             <FormattedMessage
@@ -132,6 +135,7 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 {props.permissionToLeaveGroup && isGroupMember && (
                     <Menu.Item
                         id='leave-group'
+                        data-testid='view_user_group_modal.menu.leave--menuitem'
                         onClick={leaveGroup}
                         labels={
                             <FormattedMessage
@@ -145,6 +149,7 @@ const ViewUserGroupHeaderSubMenu = (props: Props) => {
                 {props.permissionToArchiveGroup && (
                     <Menu.Item
                         id='archive-group'
+                        data-testid='view_user_group_modal.menu.archive--menuitem'
                         onClick={archiveGroup}
                         labels={
                             <FormattedMessage

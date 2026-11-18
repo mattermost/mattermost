@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
 
 import {createLinkBookmark} from './support';
 
@@ -13,17 +13,14 @@ test('MM-T5605 uses a fallback icon when a link has no favicon', {tag: '@channel
     const {adminClient, team, user, userClient} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, `Fallback ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
-    await createLinkBookmark(userClient, channel.id, 'No favicon', 'https://invalid.example.test');
+    const bookmark = await createLinkBookmark(userClient, channel.id, 'No favicon', 'https://invalid.example.test');
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.channelBookmarksBar.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
+    await expect(app.channelBookmarks).toBeVisible();
 
     // * Verify the fallback link icon is used
-    await expect(channelsPage.channelBookmarksBar.getBookmarkIcon('No favicon')).toHaveAttribute(
-        'data-icon-kind',
-        'link-fallback',
-    );
+    await expect(app.channelBookmarks.bookmark(bookmark).icon).toHaveAttribute('data-icon-kind', 'link-fallback');
 });
 
 /**
@@ -36,38 +33,41 @@ test(
         const {adminClient, team, user, userClient} = await pw.initSetup();
         const channel = await adminClient.createPublicChannel(team.id, `Icon ${pw.random.id()}`);
         await adminClient.addToChannel(user.id, channel.id);
-        await createLinkBookmark(userClient, channel.id, 'Editable icon', 'https://invalid.example.test');
+        const bookmark = await createLinkBookmark(
+            userClient,
+            channel.id,
+            'Editable icon',
+            'https://invalid.example.test',
+        );
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.channelBookmarksBar.toBeVisible();
-        const editModal = channelsPage.getBookmarkEditModal();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.channelBookmarks).toBeVisible();
+        const item = app.channelBookmarks.bookmark(bookmark);
 
         // # Edit the bookmark and choose an emoji icon
-        await channelsPage.channelBookmarksBar.openBookmarkMenu('Editable icon');
-        await channelsPage.channelBookmarksBar.editMenuItem.click();
-        await editModal.toBeVisible();
-        await editModal.selectEmoji('smile');
-        await editModal.saveButton.click();
+        await item.container.hover();
+        await item.openMenuButton.clickTo(app.bookmarkMenu.editMenuItem);
+        let editModal = await app.bookmarkMenu.editMenuItem.clickTo(app.bookmarkModal);
+        await editModal.emojiButton.clickTo(app.emojiPicker.searchTextbox);
+        await app.emojiPicker.searchTextbox.fill('smile');
+        await app.emojiPicker.searchTextbox.press('Enter');
+        await expect(app.emojiPicker.searchTextbox).not.toBeVisible();
+        await settle(editModal.confirmButton, {wait: Api.UpdateChannelBookmark}).click();
 
         // * Verify the bookmark now uses an emoji icon
-        await expect(channelsPage.channelBookmarksBar.getBookmarkIcon('Editable icon')).toHaveAttribute(
-            'data-icon-kind',
-            'emoji',
-        );
+        await expect(item.icon).toHaveAttribute('data-icon-kind', 'emoji');
 
         // # Edit again and remove the emoji
-        await channelsPage.channelBookmarksBar.openBookmarkMenu('Editable icon');
-        await channelsPage.channelBookmarksBar.editMenuItem.click();
-        await editModal.toBeVisible();
+        await item.container.hover();
+        await item.openMenuButton.clickTo(app.bookmarkMenu.editMenuItem);
+        editModal = await app.bookmarkMenu.editMenuItem.clickTo(app.bookmarkModal);
         await editModal.removeEmojiButton.click();
-        await editModal.saveButton.click();
+        await expect(editModal.removeEmojiButton).not.toBeVisible();
+        await settle(editModal.confirmButton, {wait: Api.UpdateChannelBookmark}).click();
 
         // * Verify the fallback icon is restored
-        await expect(channelsPage.channelBookmarksBar.getBookmarkIcon('Editable icon')).toHaveAttribute(
-            'data-icon-kind',
-            'link-fallback',
-        );
+        await expect(item.icon).toHaveAttribute('data-icon-kind', 'link-fallback');
     },
 );
 
@@ -79,18 +79,18 @@ test('MM-T5608 rejects an invalid bookmark URL', {tag: '@channels'}, async ({pw}
     const channel = await adminClient.createPublicChannel(team.id, `Invalid ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
 
     // # Open Add bookmark and enter invalid URL text
-    const channelMenu = await channelsPage.openChannelMenu();
-    await channelMenu.openBookmarksSubmenu();
-    await channelMenu.addBookmarkLink.click();
-    await channelsPage.bookmarkCreateModal.toBeVisible();
-
-    await channelsPage.bookmarkCreateModal.linkInput.fill('this is not a URL');
+    const bookmarks = app.channelHeader.menu.bookmarks;
+    await app.channelHeader.openMenuButton.clickTo(bookmarks.container);
+    await bookmarks.container.hover();
+    await expect(bookmarks.addLinkMenuItem).toBeVisible();
+    await bookmarks.addLinkMenuItem.clickTo(app.bookmarkModal);
+    await app.bookmarkModal.link.container.fill('this is not a URL');
 
     // * Verify the validation error appears and saving is disabled
-    await expect(channelsPage.bookmarkCreateModal.invalidLinkMessage).toBeVisible();
-    await expect(channelsPage.bookmarkCreateModal.addButton).toBeDisabled();
+    await expect(app.bookmarkModal.link.validationAlert).toBeVisible();
+    await expect(app.bookmarkModal.confirmButton).toBeDisabled();
 });

@@ -76,14 +76,25 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
     return (
         <div
             className='scheduled-recap-item'
+            data-testid={`recaps.scheduled.recap:${scheduledRecap.id}`}
             onMouseEnter={() => setIsHovered(true)}
             onMouseLeave={() => setIsHovered(false)}
         >
             <div className='scheduled-recap-item-content'>
                 <div className='scheduled-recap-item-main'>
-                    <h3 className='scheduled-recap-item-title'>{scheduledRecap.title}</h3>
+                    <h3
+                        className='scheduled-recap-item-title'
+                        data-testid='recaps.scheduled.recap.title'
+                    >
+                        {scheduledRecap.title}
+                    </h3>
                     <div className='scheduled-recap-item-subtitle'>
-                        <span className='schedule-pattern'>{scheduleText}</span>
+                        <span
+                            className='schedule-pattern'
+                            data-testid='recaps.scheduled.recap.schedule--text'
+                        >
+                            {scheduleText}
+                        </span>
                         {nextRunText && (
                             <>
                                 <span className='metadata-separator'>{'·'}</span>
@@ -107,7 +118,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                             checked={scheduledRecap.enabled}
                             onChange={handleToggle}
                             disabled={isToggling}
-                            data-testid={`toggle-${scheduledRecap.id}-button`}
+                            data-testid='recaps.scheduled.recap.enable--switch'
                             tabIndex={0}
                             aria-label={scheduledRecap.enabled ?
                                 formatMessage({id: 'recaps.scheduled.toggle.active', defaultMessage: 'Active - click to pause'}) :
@@ -119,6 +130,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                     <Menu.Container
                         menuButton={{
                             id: buttonId,
+                            dataTestId: 'recaps.scheduled.recap.open_menu--button',
                             as: ScheduledRecapMenuTrigger,
                             'aria-label': menuLabel,
                             children: <Icon glyph={<DotsHorizontalIcon/>}/>,
@@ -140,11 +152,13 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                         }}
                     >
                         <Menu.Item
+                            data-testid='scheduled_recap_menu.edit--menuitem'
                             leadingElement={<PencilOutlineIcon size={18}/>}
                             labels={<span>{formatMessage({id: 'recaps.scheduled.menu.edit', defaultMessage: 'Edit'})}</span>}
                             onClick={handleEdit}
                         />
                         <Menu.Item
+                            data-testid='scheduled_recap_menu.delete--menuitem'
                             leadingElement={<TrashCanOutlineIcon size={18}/>}
                             labels={<span>{formatMessage({id: 'recaps.scheduled.menu.delete', defaultMessage: 'Delete'})}</span>}
                             onClick={() => setShowDeleteConfirm(true)}
@@ -155,6 +169,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
             </div>
 
             <ConfirmModal
+                testId='recaps.scheduled.delete_modal'
                 show={showDeleteConfirm}
                 title={formatMessage({id: 'recaps.scheduled.delete.title', defaultMessage: 'Delete scheduled recap?'})}
                 message={

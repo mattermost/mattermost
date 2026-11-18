@@ -51,7 +51,7 @@ test.fixme(
 
         // # Find the discoverable channel
         await dialog.getByRole('textbox', {name: 'Search channels'}).fill(channel.display_name);
-        await expect(dialog.getByTestId('loading-screen')).toHaveCount(0);
+        await expect(dialog.getByTestId('browse_channels.results.loading')).toHaveCount(0);
         const row = dialog.getByRole('search').locator('.more-modal__row').filter({hasText: channel.display_name});
 
         // * The row offers "Request to join" rather than a Join button

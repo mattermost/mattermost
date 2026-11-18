@@ -45,12 +45,15 @@ type Props = {
     open: () => void;
     buttonClassName?: string;
     isInOverflowMenu?: boolean;
+
+    testIdScope?: string;
     onBeforeAction?: () => void;
     onMenuKeyDown?: (event: React.KeyboardEvent<HTMLDivElement>, closeMenu?: () => void) => void;
 };
 const BookmarkItemDotMenu = ({
     bookmark,
     open,
+    testIdScope,
     buttonClassName,
     isInOverflowMenu = false,
     onBeforeAction,
@@ -139,6 +142,7 @@ const BookmarkItemDotMenu = ({
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
                 id: `channelBookmarksDotMenuButton-${bookmark.id}`,
+                dataTestId: testIdScope ? `${testIdScope}.open_menu--button` : undefined,
                 as: isInOverflowMenu ? BookmarkOverflowDotMenuTrigger : BookmarkBarDotMenuTrigger,
                 class: `channelBookmarksDotMenuButton ${buttonClassName ?? ''}`,
                 children: <Icon glyph={<DotsHorizontalIcon/>}/>,
@@ -155,6 +159,7 @@ const BookmarkItemDotMenu = ({
             <Menu.Item
                 key='channelBookmarksOpen'
                 id='channelBookmarksOpen'
+                data-testid='bookmark_menu.open--menuitem'
                 onClick={open}
                 leadingElement={openIcon}
                 labels={<span>{openLabel}</span>}
@@ -164,6 +169,7 @@ const BookmarkItemDotMenu = ({
                 <Menu.Item
                     key='channelBookmarksEdit'
                     id='channelBookmarksEdit'
+                    data-testid='bookmark_menu.edit--menuitem'
                     onClick={handleEdit}
                     leadingElement={<PencilOutlineIcon size={18}/>}
                     labels={<span>{editLabel}</span>}
@@ -174,6 +180,7 @@ const BookmarkItemDotMenu = ({
                 <Menu.Item
                     key='channelBookmarksLinkCopy'
                     id='channelBookmarksLinkCopy'
+                    data-testid='bookmark_menu.copy_link--menuitem'
                     onClick={copyLink}
                     leadingElement={<LinkVariantIcon size={18}/>}
                     labels={<span>{copyLinkLabel}</span>}
@@ -184,6 +191,7 @@ const BookmarkItemDotMenu = ({
                 <Menu.Item
                     key='channelBookmarksFileCopy'
                     id='channelBookmarksFileCopy'
+                    data-testid='bookmark_menu.copy_file_link--menuitem'
                     onClick={handleGetPublicLink}
                     leadingElement={<LinkVariantIcon size={18}/>}
                     labels={<span>{copyFileLabel}</span>}
@@ -194,6 +202,7 @@ const BookmarkItemDotMenu = ({
                 <Menu.Item
                     key='channelBookmarksDownload'
                     id='channelBookmarksDownload'
+                    data-testid='bookmark_menu.download--menuitem'
                     onClick={handleDownload}
                     leadingElement={<DownloadOutlineIcon size={18}/>}
                     labels={<span>{downloadLabel}</span>}
@@ -204,6 +213,7 @@ const BookmarkItemDotMenu = ({
                 <Menu.Item
                     key='channelBookmarksDelete'
                     id='channelBookmarksDelete'
+                    data-testid='bookmark_menu.delete--menuitem'
                     onClick={handleDelete}
                     leadingElement={<TrashCanOutlineIcon size={18}/>}
                     labels={<span>{deleteLabel}</span>}

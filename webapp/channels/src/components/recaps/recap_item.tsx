@@ -102,20 +102,25 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
     }
 
     // Only make header clickable for successful recaps
-    const headerProps = isFailed ? {} : {onClick: onToggle};
+    const headerProps = isFailed ? {} : {onClick: onToggle, role: 'button', 'aria-expanded': isExpanded};
 
     return (
         <div
             className={itemClassName}
-            data-testid='recap-item'
+            data-testid={`recaps.recap:${recap.id}`}
         >
             <div
                 className='recap-item-header'
-                data-testid='recap-item-header'
+                data-testid={isFailed ? undefined : 'recaps.recap.header--button'}
                 {...headerProps}
             >
                 <div className='recap-item-title-section'>
-                    <h3 className='recap-item-title'>{recap.title}</h3>
+                    <h3
+                        className='recap-item-title'
+                        data-testid='recaps.recap.header.title'
+                    >
+                        {recap.title}
+                    </h3>
                     <div className='recap-item-metadata'>
                         <span className='metadata-item'>
                             <FormattedDate
@@ -163,6 +168,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                     {!isFailed && recap.read_at === 0 && (
                         <button
                             className='recap-action-button'
+                            data-testid='recaps.recap.mark_read--button'
                             onClick={() => dispatch(markRecapAsRead(recap.id))}
                         >
                             <CheckCircleIcon size={12}/>
@@ -171,7 +177,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                     )}
                     <button
                         className='recap-icon-button recap-delete-button'
-                        data-testid='recap-delete-button'
+                        data-testid='recaps.recap.delete--button'
                         onClick={() => setShowDeleteConfirm(true)}
                     >
                         <TrashCanOutlineIcon size={16}/>
@@ -179,6 +185,8 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
                     {menuActions.length > 0 && (
                         <RecapMenu
                             actions={menuActions}
+                            testIdScope='recaps.recap.menu'
+                            menuTestIdScope='recap_options_menu'
                             ariaLabel={formatMessage(
                                 {
                                     id: 'recaps.menu.ariaLabel',
@@ -205,6 +213,7 @@ const RecapItem = ({recap, isExpanded, onToggle}: Props) => {
             )}
 
             <ConfirmModal
+                testId='recaps.recap.delete_modal'
                 show={showDeleteConfirm}
                 title={formatMessage({id: 'recaps.delete.confirm.title', defaultMessage: 'Delete recap?'})}
                 message={

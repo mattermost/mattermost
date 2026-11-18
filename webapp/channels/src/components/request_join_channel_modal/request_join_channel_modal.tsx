@@ -108,7 +108,7 @@ export default function RequestJoinChannelModal({channel, teamName, onExited}: P
             autoFocusConfirmButton={false}
             isConfirmDisabled={submitting}
             errorText={serverError ?? undefined}
-            dataTestId='request-join-channel-modal'
+            testId='request_join_channel_modal'
         >
             <div className='RequestJoinChannelModal__body'>
                 <p className='RequestJoinChannelModal__copy'>

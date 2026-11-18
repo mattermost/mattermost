@@ -678,12 +678,12 @@ describe('components/BrowseChannels', () => {
         });
 
         await waitFor(() => {
-            expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
-            expect(screen.getByTestId('ChannelRow-default-channel')).toBeInTheDocument();
+            expect(screen.getByTestId('browse_channels.results.channel:recommended-channel-id')).toBeInTheDocument();
+            expect(screen.getByTestId('browse_channels.results.channel:channel_id_1')).toBeInTheDocument();
         });
 
-        const recommendedRow = screen.getByTestId('ChannelRow-recommended-channel');
-        const defaultRow = screen.getByTestId('ChannelRow-default-channel');
+        const recommendedRow = screen.getByTestId('browse_channels.results.channel:recommended-channel-id');
+        const defaultRow = screen.getByTestId('browse_channels.results.channel:channel_id_1');
         expect(
             recommendedRow.compareDocumentPosition(defaultRow) & Node.DOCUMENT_POSITION_FOLLOWING,
         ).not.toBe(0);
@@ -692,8 +692,8 @@ describe('components/BrowseChannels', () => {
         await user.click(await screen.findByText('Recommended channels'));
 
         await waitFor(() => {
-            expect(screen.getByTestId('ChannelRow-recommended-channel')).toBeInTheDocument();
-            expect(screen.queryByTestId('ChannelRow-default-channel')).not.toBeInTheDocument();
+            expect(screen.getByTestId('browse_channels.results.channel:recommended-channel-id')).toBeInTheDocument();
+            expect(screen.queryByTestId('browse_channels.results.channel:channel_id_1')).not.toBeInTheDocument();
         });
     });
 
@@ -994,9 +994,9 @@ describe('components/BrowseChannels', () => {
             expect(searchAllChannels).toHaveBeenCalledWith('', {team_ids: ['team_1'], nonAdminSearch: true});
 
             await waitFor(() => {
-                expect(screen.getByTestId('ChannelRow-fetched-discoverable')).toBeInTheDocument();
+                expect(screen.getByTestId('browse_channels.results.channel:fetched-discoverable-id')).toBeInTheDocument();
             });
-            expect(screen.getByTestId('ChannelRow-fetched-discoverable')).toHaveTextContent(/Request to join/);
+            expect(screen.getByTestId('browse_channels.results.channel:fetched-discoverable-id')).toHaveTextContent(/Request to join/);
         });
 
         test('does NOT fetch pending requests when the FF is off', async () => {
@@ -1012,10 +1012,10 @@ describe('components/BrowseChannels', () => {
             renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
 
             await waitFor(() => {
-                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+                expect(screen.getByTestId('browse_channels.results.channel:discoverable-channel-id')).toBeInTheDocument();
             });
 
-            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            const row = screen.getByTestId('browse_channels.results.channel:discoverable-channel-id');
             expect(row).toHaveTextContent(/Discoverable/);
             expect(row).toHaveTextContent(/Request to join/);
             expect(row.querySelector('.more-modal__name .more-modal__discoverable-badge')).not.toBeInTheDocument();
@@ -1024,7 +1024,7 @@ describe('components/BrowseChannels', () => {
             // The non-discoverable private channel still renders on initial
             // mount (filtering only kicks in on search), but it shows the
             // default Join CTA and no Discoverable badge.
-            const opaqueRow = screen.getByTestId('ChannelRow-opaque-ops');
+            const opaqueRow = screen.getByTestId('browse_channels.results.channel:opaque-private-channel-id');
             expect(opaqueRow).not.toHaveTextContent(/Discoverable/);
             expect(opaqueRow).not.toHaveTextContent(/Request to join/);
         });
@@ -1050,10 +1050,10 @@ describe('components/BrowseChannels', () => {
             renderWithContext(<BrowseChannels {...propsWithPending}/>);
 
             await waitFor(() => {
-                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+                expect(screen.getByTestId('browse_channels.results.channel:discoverable-channel-id')).toBeInTheDocument();
             });
 
-            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            const row = screen.getByTestId('browse_channels.results.channel:discoverable-channel-id');
             expect(row.querySelector('.more-modal__requested-pill')).not.toBeInTheDocument();
             const withdrawButton = row.querySelector('#withdrawRequestButton');
             expect(withdrawButton).toBeInTheDocument();
@@ -1070,10 +1070,10 @@ describe('components/BrowseChannels', () => {
             renderWithContext(<BrowseChannels {...discoverablePropsBase}/>);
 
             await waitFor(() => {
-                expect(screen.getByTestId('ChannelRow-discoverable-ops')).toBeInTheDocument();
+                expect(screen.getByTestId('browse_channels.results.channel:discoverable-channel-id')).toBeInTheDocument();
             });
 
-            const row = screen.getByTestId('ChannelRow-discoverable-ops');
+            const row = screen.getByTestId('browse_channels.results.channel:discoverable-channel-id');
             const requestButton = row.querySelector('#requestToJoinChannelButton') as HTMLButtonElement;
             expect(requestButton).toBeInTheDocument();
 

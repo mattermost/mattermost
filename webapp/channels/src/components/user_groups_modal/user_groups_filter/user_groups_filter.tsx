@@ -48,6 +48,7 @@ const UserGroupsFilter = (props: Props) => {
             <Menu.Container
                 menuButton={{
                     id: 'groupsFilterDropdown',
+                    dataTestId: 'user_groups_modal.filter--button',
                     class: 'groups-filter-btn',
                     children: (
                         <>
@@ -64,6 +65,7 @@ const UserGroupsFilter = (props: Props) => {
             >
                 <Menu.Item
                     id='groupsDropdownAll'
+                    data-testid='user_groups_modal.filter_menu.all--menuitem'
                     onClick={allGroupsOnClick}
                     labels={
                         <FormattedMessage
@@ -75,6 +77,7 @@ const UserGroupsFilter = (props: Props) => {
                 />
                 <Menu.Item
                     id='groupsDropdownMy'
+                    data-testid='user_groups_modal.filter_menu.my--menuitem'
                     onClick={myGroupsOnClick}
                     labels={
                         <FormattedMessage
@@ -87,6 +90,7 @@ const UserGroupsFilter = (props: Props) => {
                 <Menu.Separator/>
                 <Menu.Item
                     id='groupsDropdownArchived'
+                    data-testid='user_groups_modal.filter_menu.archived--menuitem'
                     onClick={archivedGroupsOnClick}
                     labels={
                         <FormattedMessage

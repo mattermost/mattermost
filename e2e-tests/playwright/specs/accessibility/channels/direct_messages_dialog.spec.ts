@@ -1,7 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import type {Client4} from '@mattermost/client';
+
+import {Api, type App, expect, test, waitForApi} from '@mattermost/playwright-lib';
+
+/** Opens the Direct Messages dialog from the "Write a direct message" button on the sidebar's DM category. */
+async function openDirectMessagesDialog(app: App, client: Client4, userId: string, teamId: string) {
+    const {categories} = await client.getChannelCategories(userId, teamId);
+    const directMessages = categories.find((category) => category.type === 'direct_messages');
+    if (!directMessages) {
+        throw new Error('the user has no direct messages category');
+    }
+    const button = app.lhs.channelList.category(directMessages).newDirectMessageButton;
+    await expect(button).toHaveAccessibleName('Write a direct message');
+    return button.clickTo(app.directMessagesModal);
+}
+
+/** Fills the dialog's search and waits for the search response for that term. */
+async function search(app: App, term: string) {
+    await Promise.all([
+        waitForApi(app.page, Api.SearchUsers, {
+            predicate: (_, response) => response.request().postDataJSON()?.term === term,
+        }),
+        app.directMessagesModal.options.searchCombobox.fill(term),
+    ]);
+}
 
 /**
  * @objective Verify accessibility support in Direct Messages Dialog screen
@@ -21,40 +45,35 @@ test(
         await adminClient.addToTeam(team.id, user2.id);
 
         // # Log in as admin
-        const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
         // # Visit town-square channel
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel: 'town-square'});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Click on the Write a direct message button to open the Direct Messages dialog
-        const writeDirectMessageButton = page.getByRole('button', {name: 'Write a direct message'});
-        await writeDirectMessageButton.click();
+        const dialog = await openDirectMessagesDialog(app, adminClient, adminUser.id, team.id);
 
         // * Verify the Direct Messages dialog is visible
-        const dialog = page.getByRole('dialog', {name: 'Direct Messages'});
-        await expect(dialog).toBeVisible();
+        await expect(dialog).toHaveAccessibleName('Direct Messages');
 
-        // * Verify the heading
-        await expect(dialog.getByRole('heading', {name: 'Direct Messages'})).toBeVisible();
+        // * Verify the heading (the dialog title has no part of its own)
+        await expect(dialog.container.locator.getByRole('heading', {name: 'Direct Messages'})).toBeVisible();
 
         // * Verify the search input has proper accessibility attributes
-        const searchInput = dialog.getByLabel('Search for people');
-        await expect(searchInput).toBeVisible();
+        const searchInput = dialog.options.searchCombobox;
+        await expect(searchInput).toHaveAccessibleName('Search for people');
         await expect(searchInput).toHaveAttribute('aria-autocomplete', 'list');
 
         // # Search for a text and navigate with arrow keys
-        await searchInput.fill('s');
-        await pw.wait(pw.duration.half_sec);
+        await search(app, 's');
 
         // # Navigate down through the list
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('ArrowUp');
+        await searchInput.press('ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowUp');
 
-        // * Verify the selected row has the correct class
-        const selectedRow = dialog.locator('#multiSelectList').locator('.more-modal__row--selected');
+        // * Verify the selected row has the correct class. Which row the keyboard lands on depends on the
+        // search order, so the selected row is found by its selection class.
+        const selectedRow = dialog.options.results.container.locator.locator('.more-modal__row--selected');
         await expect(selectedRow).toBeVisible();
 
         // * Verify image alt is displayed for user profile
@@ -62,20 +81,22 @@ test(
         await expect(avatar).toHaveAttribute('alt', 'user profile image');
 
         // * Verify screen reader live region exists and has proper attributes
-        const srOnlyRegion = dialog.locator('.filtered-user-list div.sr-only:not([role="status"])');
+        const srOnlyRegion = dialog.options.results.selectionText;
         await expect(srOnlyRegion).toHaveAttribute('aria-live', 'polite');
         await expect(srOnlyRegion).toHaveAttribute('aria-atomic', 'true');
 
         // # Search for an invalid text
         const invalidSearchTerm = 'somethingwhichdoesnotexist';
         await searchInput.clear();
-        await searchInput.fill(invalidSearchTerm);
-        await pw.wait(pw.duration.half_sec);
+        await expect(searchInput).toHaveValue('');
+        await search(app, invalidSearchTerm);
 
         // * Check if the no results message is displayed with proper accessibility
-        const noResultsWrapper = dialog.locator('.multi-select__wrapper');
+        const noResultsWrapper = dialog.options.results.liveRegion;
         await expect(noResultsWrapper).toHaveAttribute('aria-live', 'polite');
-        await expect(noResultsWrapper).toContainText(`No results found matching ${invalidSearchTerm}`);
+        await expect(dialog.options.results.noResultsText).toContainText(
+            `No results found matching ${invalidSearchTerm}`,
+        );
     },
 );
 
@@ -90,22 +111,20 @@ test(
         await pw.skipIfNoLicense();
 
         // # Initialize setup
-        const {team, user} = await pw.initSetup();
+        const {team, user, userClient} = await pw.initSetup();
 
         // # Log in as admin
-        const {page, channelsPage} = await pw.testBrowser.login(user);
+        const {app, page} = await pw.testBrowser.login(user);
 
         // # Visit town-square channel
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel: 'town-square'});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Click on the Write a direct message button to open the Direct Messages dialog
-        const writeDirectMessageButton = page.getByRole('button', {name: 'Write a direct message'});
-        await writeDirectMessageButton.click();
+        const dialog = await openDirectMessagesDialog(app, userClient, user.id, team.id);
 
         // * Verify the Direct Messages dialog is visible
-        const dialog = page.getByRole('dialog', {name: 'Direct Messages'});
-        await expect(dialog).toBeVisible();
+        await expect(dialog).toHaveAccessibleName('Direct Messages');
         await pw.wait(pw.duration.one_sec);
 
         // * Verify aria snapshot of Direct Messages dialog (key structural elements only)

@@ -31,7 +31,7 @@ export default class BrowseChannelsModal {
     }
 
     async toBeDoneLoading() {
-        await expect(this.container.getByTestId('loading-screen')).toHaveCount(0);
+        await expect(this.container.getByTestId('browse_channels.results.loading')).toHaveCount(0);
     }
 
     async toHaveNResults(count: number) {

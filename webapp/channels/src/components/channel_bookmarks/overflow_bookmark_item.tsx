@@ -99,7 +99,7 @@ function OverflowBookmarkItem({
             id={`overflow-bookmark-${id}`}
             className={itemClassName}
             data-bookmark-id={id}
-            data-testid={`overflow-bookmark-item-${id}`}
+            data-testid={`bookmarks_menu.bookmark:${bookmark.id}--menuitem`}
             onClick={isKeyboardReordering ? undefined : openBookmark}
             disableCloseOnSelect={isKeyboardReordering}
             onKeyDown={handleItemKeyDown}
@@ -119,6 +119,7 @@ function OverflowBookmarkItem({
                 <BookmarkItemDotMenu
                     bookmark={bookmark}
                     open={openBookmark}
+                    testIdScope='bookmarks_menu.bookmark'
                     buttonClassName='channelBookmarksDotMenuButton--overflow'
                     isInOverflowMenu={true}
                     onBeforeAction={handleNavigate}
