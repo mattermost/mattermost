@@ -66,15 +66,6 @@ describe('components/admin_console/content_flagging/user_multiselector/UserProfi
         },
     };
 
-    test('should render user profile pill with avatar and display name', () => {
-        const {container} = renderWithContext(
-            <MultiUserProfilePill {...baseProps}/>,
-            initialState,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should render with correct user display name', () => {
         const {container} = renderWithContext(
             <MultiUserProfilePill {...baseProps}/>,

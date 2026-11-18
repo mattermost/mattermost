@@ -1651,8 +1651,8 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 		updatedCmd.TeamId = oldCmd.TeamId
 	}
 
-	if appErr := api.app.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); appErr != nil {
-		return nil, appErr
+	if err := api.app.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); err != nil {
+		return nil, err
 	}
 
 	return api.app.Srv().Store().Command().Update(updatedCmd)
@@ -1836,6 +1836,10 @@ func (api *PluginAPI) UnshareChannel(channelID string) (unshared bool, err error
 
 func (api *PluginAPI) UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
 	return api.app.UpdateSharedChannelCursor(channelID, remoteID, cusror)
+}
+
+func (api *PluginAPI) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	return api.app.GetSharedChannelCursor(api.id, channelID, remoteID)
 }
 
 func (api *PluginAPI) SyncSharedChannel(channelID string) error {

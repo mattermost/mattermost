@@ -7,7 +7,7 @@ The [Focalboard](https://www.focalboard.com) project is written in [TypeScript](
 
 Here's the process for contributing to Focalboard:
 
-1. Fork the [Focalboard repository](https://github.com/mattermost/focalboard), clone it locally, and follow the steps in the [Personal Server Setup Guide](personal-server-setup-guide) to build it. You can read the [CHANGELOG](https://github.com/mattermost/focalboard/blob/main/CHANGELOG.md) to learn about recent updates.
+1. Fork the [Focalboard repository](https://github.com/mattermost/focalboard), clone it locally, and follow the steps in the [Personal Server Setup Guide](./personal-server-setup-guide.md) to build it. You can read the [CHANGELOG](https://github.com/mattermost/focalboard/blob/main/CHANGELOG.md) to learn about recent updates.
 
 2. Find [help wanted tickets that are up for grabs in GitHub](https://github.com/mattermost/focalboard/issues?q=is%3Aopen+is%3Aissue+label%3A%22Up+for+grabs%22+label%3A%22Help+Wanted%22). Comment to let everyone know you’re working on it and let a core contributor assign the issue to you. If there’s no ticket for what you want to work on, read about [contributions without a ticket](/developers/contribute/more-info/getting-started/contributions-without-ticket).
 

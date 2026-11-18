@@ -50,6 +50,7 @@ jest.mock('utils/exec_commands.ts', () => ({
             textbox.selectionEnd = textbox.selectionStart;
         }
     },
+    replaceTextboxValue: () => false,
 }));
 
 const mockedRemoveDraft = jest.mocked(removeDraft);
@@ -647,6 +648,34 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 expect.objectContaining({message: 'typed in the first channel'}),
                 '',
                 true,
+            );
+        });
+
+        it('should send rich text whose debounced change fired right before Enter', () => {
+            jest.useFakeTimers();
+            const {container, typeInEditor} = renderRichTextEditor();
+            typeInEditor('sent right after the debounce');
+            act(() => {
+                jest.advanceTimersByTime(99);
+            });
+
+            // Like a browser, fire the 100 ms debounce and the key press outside act, with no render in between.
+            const reactGlobals = globalThis as {IS_REACT_ACT_ENVIRONMENT?: boolean};
+            const actEnvironment = reactGlobals.IS_REACT_ACT_ENVIRONMENT;
+            reactGlobals.IS_REACT_ACT_ENVIRONMENT = false;
+            try {
+                jest.advanceTimersToNextTimer();
+                (container.querySelector('.ProseMirror') as HTMLElement).dispatchEvent(new KeyboardEvent('keydown', {key: 'Enter', bubbles: true, cancelable: true}));
+            } finally {
+                reactGlobals.IS_REACT_ACT_ENVIRONMENT = actEnvironment;
+            }
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.objectContaining({message: 'sent right after the debounce'}),
+                expect.anything(),
+                undefined,
             );
         });
     });

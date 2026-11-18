@@ -111,8 +111,8 @@ func (a *App) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
-		return nil, appErr
+	if err := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return updatedTeam, nil
@@ -147,8 +147,8 @@ func (a *App) UpdateTeamScheme(team *model.Team) (*model.Team, *model.AppError) 
 
 	a.Srv().Store().Channel().ClearMembersForUserCache()
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme); appErr != nil {
-		return nil, appErr
+	if err := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeamScheme); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return oldTeam, nil
@@ -182,8 +182,8 @@ func (a *App) UpdateTeamPrivacy(teamID string, teamType string, allowOpenInvite 
 		}
 	}
 
-	if appErr := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(oldTeam, model.WebsocketEventUpdateTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -223,8 +223,8 @@ func (a *App) PatchTeam(teamID string, patch *model.TeamPatch) (*model.Team, *mo
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
-		return nil, appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return team, nil
@@ -252,14 +252,14 @@ func (a *App) RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppErro
 		}
 	}
 
-	if appErr := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); appErr != nil {
-		return nil, appErr
+	if err := a.sendTeamEvent(updatedTeam, model.WebsocketEventUpdateTeam); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	return updatedTeam, nil
 }
 
-func (a *App) sendTeamEvent(team *model.Team, event model.WebsocketEventType) *model.AppError {
+func (a *App) sendTeamEvent(team *model.Team, event model.WebsocketEventType) error {
 	sanitizedTeam := &model.Team{}
 	*sanitizedTeam = *team
 	sanitizedTeam.Sanitize()
@@ -540,7 +540,7 @@ func (a *App) AddUserToTeamWithToken(rctx request.CTX, userID string, token *mod
 
 	if token.IsExpired() {
 		if err := a.DeleteToken(token); err != nil {
-			rctx.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+			rctx.Logger().Warn("Error deleting expired team invitation token during team join", mlog.String("token_type", token.Type), mlog.Err(err))
 		}
 		return nil, nil, model.NewAppError("AddUserToTeamByToken", "api.user.create_user.signup_link_expired.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -1325,8 +1325,8 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	for _, channel := range channelList {
 		if !channel.IsGroupOrDirect() {
 			a.invalidateCacheForChannelMembers(channel.Id)
-			if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
-				return appErr
+			if err := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); err != nil {
+				return model.AsAppError(err)
 			}
 			if policyDriven {
 				a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
@@ -1343,8 +1343,8 @@ func (a *App) leaveTeam(rctx request.CTX, team *model.Team, user *model.User, re
 	}
 	for _, channel := range spaceChannels {
 		a.invalidateCacheForChannelMembers(channel.Id)
-		if appErr := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); appErr != nil {
-			return appErr
+		if err := a.removeChannelMembership(rctx, user.Id, channel.Id, "LeaveTeam"); err != nil {
+			return model.AsAppError(err)
 		}
 		if policyDriven {
 			a.logAccessControlTeamCascadedChannelRemoval(rctx, removalAudit, channel.Id)
@@ -2052,8 +2052,8 @@ func (a *App) PermanentDeleteTeam(rctx request.CTX, team *model.Team) *model.App
 
 	a.cleanupTeamAccessControlPolicy(rctx, team, "delete")
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -2086,8 +2086,8 @@ func (a *App) SoftDeleteTeam(teamID string) *model.AppError {
 
 	a.cleanupTeamAccessControlPolicy(request.EmptyContext(a.Log()), team, "archive")
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventDeleteTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -2173,8 +2173,8 @@ func (a *App) RestoreTeam(teamID string) *model.AppError {
 		}
 	}
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventRestoreTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventRestoreTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -2228,7 +2228,7 @@ func (a *App) GetTeamIdFromQuery(rctx request.CTX, query url.Values) (string, *m
 
 		if token.IsExpired() {
 			if err := a.DeleteToken(token); err != nil {
-				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_id", token.Token), mlog.String("token_type", token.Type), mlog.Err(err))
+				rctx.Logger().Warn("Error deleting expired invitation token during team ID lookup", mlog.String("token_type", token.Type), mlog.Err(err))
 			}
 			return "", model.NewAppError("GetTeamIdFromQuery", "api.oauth.signup_with_oauth.expired_link.app_error", nil, "", http.StatusBadRequest)
 		}
@@ -2366,8 +2366,8 @@ func (a *App) SetTeamIconFromFile(rctx request.CTX, team *model.Team, file io.Re
 	// manually set time to avoid possible cluster inconsistencies
 	team.LastTeamIconUpdate = curTime
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -2385,8 +2385,8 @@ func (a *App) RemoveTeamIcon(teamID string) *model.AppError {
 
 	team.LastTeamIconUpdate = 0
 
-	if appErr := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); appErr != nil {
-		return appErr
+	if err := a.sendTeamEvent(team, model.WebsocketEventUpdateTeam); err != nil {
+		return model.AsAppError(err)
 	}
 
 	return nil

@@ -66,7 +66,6 @@ import {
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
 import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
-import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
     getCustomEmojiForReaction,
@@ -172,6 +171,7 @@ import {
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
     CLASSIFICATIONS_FIELD_TARGET_ID,
 } from 'components/admin_console/classification_markings/utils';
+import {notifyAttributeFieldChanged} from 'components/admin_console/global_attributes/listing_events';
 import {EntityType, invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 import DialogRouter from 'components/dialog_router';
 import InfoToast from 'components/info_toast/info_toast';
@@ -181,7 +181,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, JobStatuses, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
 import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
@@ -1574,6 +1574,8 @@ export function handlePropertyFieldCreatedOrUpdated(
             data: {fields: [field]},
         });
 
+        notifyAttributeFieldChanged(field.group_id);
+
         if (isUserAttributeField(doGetState(), field)) {
             if (optionsOmitted) {
                 // The broadcast withheld this field's option list. The cached
@@ -1629,11 +1631,16 @@ export function handlePropertyFieldCreatedOrUpdated(
 export function handlePropertyFieldDeleted(
     msg: WebSocketMessages.PropertyFieldDeleted,
 ): ThunkActionFunc<void> {
-    return (doDispatch) => {
+    return (doDispatch, doGetState) => {
+        // Read before the reducer drops the field; the payload itself names no group.
+        const groupId = getPropertyFieldById(doGetState(), msg.data.field_id)?.group_id;
+
         doDispatch({
             type: PropertyTypes.PROPERTY_FIELD_DELETED,
             data: {fieldId: msg.data.field_id},
         });
+
+        notifyAttributeFieldChanged(groupId);
 
         // The payload carries no field, so the group it belonged to is unknown
         // here. The reducer leaves the slice alone for an id it doesn't hold,
@@ -2694,13 +2701,6 @@ export function handlePostTranslationUpdated(msg: WebSocketMessages.PostTranslat
     };
 }
 
-const terminalJobStatuses = new Set([
-    JobStatuses.SUCCESS,
-    JobStatuses.ERROR,
-    JobStatuses.WARNING,
-    JobStatuses.CANCELED,
-]);
-
 export function handleJobUpdated(msg: WebSocketMessages.JobUpdated): ThunkActionFunc<void> {
     return (dispatch) => {
         let job;
@@ -2713,13 +2713,6 @@ export function handleJobUpdated(msg: WebSocketMessages.JobUpdated): ThunkAction
             type: JobTypes.RECEIVED_JOB,
             data: job,
         });
-
-        // Re-fetch the full job list on terminal status to populate details
-        // (run time, error message) that are intentionally omitted from the
-        // WebSocket payload for security.
-        if (terminalJobStatuses.has(job.status)) {
-            dispatch(getJobsByType(job.type));
-        }
     };
 }
 

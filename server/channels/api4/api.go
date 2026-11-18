@@ -22,7 +22,7 @@ type Routes struct {
 
 	Users          *mux.Router // 'api/v4/users'
 	User           *mux.Router // 'api/v4/users/{user_id:[A-Za-z0-9]+}'
-	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9\\_\\-\\.]+}'
+	UserByUsername *mux.Router // 'api/v4/users/username/{username:[A-Za-z0-9\\_\\-\\.:]+}'
 	UserByEmail    *mux.Router // 'api/v4/users/email/{email:.+}'
 
 	Bots *mux.Router // 'api/v4/bots'
@@ -179,13 +179,14 @@ type Routes struct {
 
 	Boards *mux.Router // 'api/v4/boards'
 
-	Properties           *mux.Router // 'api/v4/properties'
-	PropertyFields       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
-	PropertyField        *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
-	PropertyFieldOptions *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}/options'
-	PropertyFieldsSearch *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/fields/search'
-	PropertyValues       *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
-	PropertySystemValues *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/system/values'
+	Properties             *mux.Router // 'api/v4/properties'
+	PropertyFields         *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields'
+	PropertyField          *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}'
+	PropertyFieldOptions   *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}/options'
+	PropertyFieldsSearch   *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/fields/search'
+	GlobalAttributesSearch *mux.Router // 'api/v4/properties/groups/access_control/attributes/search'
+	PropertyValues         *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}'
+	PropertySystemValues   *mux.Router // 'api/v4/properties/groups/{group_name:[a-z][a-z0-9_]*}/system/values'
 }
 
 type API struct {
@@ -205,7 +206,7 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Users = api.BaseRoutes.APIRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.APIRoot.PathPrefix("/users/{user_id:[A-Za-z0-9]+}").Subrouter()
-	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.:]+}").Subrouter()
 	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email:.+}").Subrouter()
 
 	api.BaseRoutes.Bots = api.BaseRoutes.APIRoot.PathPrefix("/bots").Subrouter()
@@ -353,6 +354,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PropertyFieldOptions = api.BaseRoutes.PropertyField.PathPrefix("/options").Subrouter()
 	api.BaseRoutes.PropertyFieldsSearch = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/fields/search").Subrouter()
+	api.BaseRoutes.GlobalAttributesSearch = api.BaseRoutes.Properties.PathPrefix("/groups/access_control/attributes/search").Subrouter()
 	api.BaseRoutes.PropertyValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/values/{target_id:[A-Za-z0-9]+}").Subrouter()
 	api.BaseRoutes.PropertySystemValues = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/system/values").Subrouter()
 
@@ -441,7 +443,7 @@ func InitLocal(srv *app.Server) *API {
 
 	api.BaseRoutes.Users = api.BaseRoutes.APIRoot.PathPrefix("/users").Subrouter()
 	api.BaseRoutes.User = api.BaseRoutes.Users.PathPrefix("/{user_id:[A-Za-z0-9]+}").Subrouter()
-	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	api.BaseRoutes.UserByUsername = api.BaseRoutes.Users.PathPrefix("/username/{username:[A-Za-z0-9\\_\\-\\.:]+}").Subrouter()
 	api.BaseRoutes.UserByEmail = api.BaseRoutes.Users.PathPrefix("/email/{email:.+}").Subrouter()
 
 	api.BaseRoutes.Bots = api.BaseRoutes.APIRoot.PathPrefix("/bots").Subrouter()

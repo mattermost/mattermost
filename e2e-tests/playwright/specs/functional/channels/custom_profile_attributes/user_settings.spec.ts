@@ -301,6 +301,10 @@ test(
         // # Click the menu padding just above its first option
         const listboxId = `customProfileAttribute_${fieldId}-listbox`;
         const firstOption = page.locator(`#${listboxId}`).getByRole('option').first();
+
+        // The menu ignores the pointer for a couple of frames after aria-expanded flips, then
+        // scales in; a trial click waits until the option is stable and receives pointer events.
+        await firstOption.click({trial: true});
         const optionBox = await firstOption.boundingBox();
         expect(optionBox).not.toBeNull();
         const point = {x: optionBox!.x + optionBox!.width / 2, y: optionBox!.y - 3};

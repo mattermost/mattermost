@@ -48,13 +48,10 @@ func (a *App) saveAcknowledgementForPostWithPost(rctx request.CTX, post *model.P
 
 	savedAck, nErr := a.Srv().Store().PostAcknowledgement().SaveWithModel(acknowledgement)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("SaveAcknowledgementForPost", "app.acknowledgement.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, model.NewAppError("SaveAcknowledgementForPost", "app.acknowledgement.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if appErr := a.ResolvePersistentNotification(rctx, post, userID); appErr != nil {
@@ -108,13 +105,10 @@ func (a *App) deleteAcknowledgementForPostWithPost(rctx request.CTX, post *model
 	oldAck, nErr := a.Srv().Store().PostAcknowledgement().Get(post.Id, userID)
 
 	if nErr != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(nErr, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](nErr); ok {
 			return model.NewAppError("GetPostAcknowledgement", "app.acknowledgement.get.app_error", nil, "", http.StatusNotFound).Wrap(nErr)
-		default:
-			return model.NewAppError("GetPostAcknowledgement", "app.acknowledgement.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return model.NewAppError("GetPostAcknowledgement", "app.acknowledgement.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if model.GetMillis()-oldAck.AcknowledgedAt > 5*60*1000 {
@@ -198,13 +192,10 @@ func (a *App) SaveAcknowledgementsForPost(rctx request.CTX, postID string, userI
 	// Save all acknowledgements
 	savedAcks, nErr := a.Srv().Store().PostAcknowledgement().BatchSave(acknowledgements)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("SaveAcknowledgementsForPost", "app.acknowledgement.batch_save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, model.NewAppError("SaveAcknowledgementsForPost", "app.acknowledgement.batch_save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// Resolve persistent notifications for each user
@@ -271,13 +262,10 @@ func (a *App) SaveAcknowledgementForPostWithModel(rctx request.CTX, acknowledgem
 
 	savedAck, nErr := a.Srv().Store().PostAcknowledgement().SaveWithModel(acknowledgement)
 	if nErr != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(nErr, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("SaveAcknowledgementForPostWithModel", "app.acknowledgement.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		return nil, model.NewAppError("SaveAcknowledgementForPostWithModel", "app.acknowledgement.save.save.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	if appErr := a.ResolvePersistentNotification(rctx, post, acknowledgement.UserId); appErr != nil {

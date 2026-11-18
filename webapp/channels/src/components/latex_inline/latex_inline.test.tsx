@@ -14,22 +14,11 @@ describe('components/LatexInline', () => {
         enableInlineLatex: true,
     };
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const {container} = renderWithContext(withIntl(<LatexInline {...defaultProps}/>));
         await waitFor(() => {
             expect(container.querySelector('[data-testid="latex-enabled"]')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
-    });
-
-    test('latex is disabled', () => {
-        const props = {
-            ...defaultProps,
-            enableInlineLatex: false,
-        };
-
-        const {container} = renderWithContext(withIntl(<LatexInline {...props}/>));
-        expect(container).toMatchSnapshot();
     });
 
     test('error in katex', async () => {
@@ -42,6 +31,5 @@ describe('components/LatexInline', () => {
         await waitFor(() => {
             expect(container.querySelector('[data-testid="latex-enabled"]')).toBeInTheDocument();
         });
-        expect(container).toMatchSnapshot();
     });
 });

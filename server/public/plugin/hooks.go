@@ -437,7 +437,17 @@ type Hooks interface {
 	// Shared Channels service for which they have been invited via InviteRemote.  Each SyncMsg may contain
 	// multiple updates (posts, reactions, attachments, users) for a single channel.
 	//
-	// The cursor will be advanced based on the SyncResponse returned.
+	// Return an error only when the message was not applied and sending it again may succeed. The
+	// SyncResponse is then ignored and the channel's sync cursor is not advanced, so the batch is sent
+	// again: after a short delay, a limited number of times, and once more after the next successful
+	// OnSharedChannelsPing. The posts, acknowledgements and reactions of a batch arrive in separate
+	// calls and an error from any of them holds the cursor, so the retry can repeat posts that were
+	// already applied.
+	//
+	// When the error is nil the cursor advances past the batch. Posts listed in SyncResponse.PostErrors
+	// are retried individually, a limited number of times. Users listed in UsersSyncd are marked as
+	// synchronized. UserErrors, ReactionErrors and AcknowledgementErrors are only logged, and the
+	// *LastUpdateAt fields are not read.
 	//
 	// Minimum server version: 9.5
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)

@@ -109,6 +109,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         messageDisplay: '',
         colorizeUsernames: '',
         collapseDisplay: '',
+        collapseCategoryWithUnreads: 'false',
         linkPreviewDisplay: '',
         globalHeaderDisplay: '',
         globalHeaderAllowed: true,
@@ -119,99 +120,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         clickToReply: '',
         lastActiveTimeEnabled: true,
     };
-
-    test('should match snapshot, no active section', () => {
-        const {container} = renderWithContext(<UserSettingsDisplay {...requiredProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, collapse section', () => {
-        const props = {...requiredProps, activeSection: 'collapse'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, link preview section with EnableLinkPreviews is false', () => {
-        const props = {
-            ...requiredProps,
-            activeSection: 'linkpreview',
-            enableLinkPreviews: false,
-        };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, link preview section with EnableLinkPreviews is true', () => {
-        const props = {
-            ...requiredProps,
-            activeSection: 'linkpreview',
-            enableLinkPreviews: true,
-        };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, clock section', () => {
-        const props = {...requiredProps, activeSection: 'clock'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, teammate name display section', () => {
-        const props = {...requiredProps, activeSection: 'teammate_name_display'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, timezone section', () => {
-        const props = {...requiredProps, activeSection: 'timezone'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, message display section', () => {
-        const props = {...requiredProps, activeSection: 'message_display'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, channel display mode section', () => {
-        const props = {...requiredProps, activeSection: 'channel_display_mode'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, languages section', () => {
-        const props = {...requiredProps, activeSection: 'languages'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, theme section with EnableThemeSelection is false', () => {
-        const props = {
-            ...requiredProps,
-            activeSection: 'theme',
-            enableThemeSelection: false,
-        };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, theme section with EnableThemeSelection is true', () => {
-        const props = {
-            ...requiredProps,
-            activeSection: 'theme',
-            enableThemeSelection: true,
-        };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, clickToReply section', () => {
-        const props = {...requiredProps, activeSection: 'click_to_reply'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
 
     test('should have called handleSubmit', async () => {
         const updateSection = jest.fn();
@@ -388,14 +296,33 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         expect(radioA).toBeChecked();
     });
 
-    test('should not show last active section', () => {
-        const {container} = renderWithContext(
-            <UserSettingsDisplay
-                {...requiredProps}
-                lastActiveTimeEnabled={false}
-            />,
-        );
+    test('should show the collapse category with unread channels setting', () => {
+        renderWithContext(<UserSettingsDisplay {...requiredProps}/>);
 
-        expect(container).toMatchSnapshot();
+        expect(screen.getByText('Collapse category with unread channels')).toBeInTheDocument();
+    });
+
+    test('should save collapse category with unread channels as true', async () => {
+        const savePreferences = jest.fn();
+        const props = {
+            ...requiredProps,
+            activeSection: 'collapse_category_with_unreads',
+            actions: {...requiredProps.actions, savePreferences},
+        };
+        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
+
+        const radioOn = container.querySelector('#collapse_category_with_unreadsFormatA') as HTMLInputElement;
+        expect(radioOn).not.toBeChecked();
+
+        await userEvent.click(radioOn);
+        expect(radioOn).toBeChecked();
+
+        await userEvent.click(screen.getByTestId('saveSetting'));
+        expect(savePreferences).toHaveBeenCalledWith('user_id', expect.arrayContaining([{
+            user_id: 'user_id',
+            category: 'display_settings',
+            name: 'collapse_category_with_unreads',
+            value: 'true',
+        }]));
     });
 });

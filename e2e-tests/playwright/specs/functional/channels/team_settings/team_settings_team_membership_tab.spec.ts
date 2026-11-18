@@ -349,9 +349,14 @@ test.describe('Team Settings Modal - Team Membership Tab', {tag: ['@abac', '@tea
         await pw.skipIfNoLicense();
         const {adminUser, adminClient, team} = await pw.initSetup();
         await enableTeamMembershipABACConfig(adminClient);
+        await ensureDepartmentAttribute(adminClient);
 
-        // # Create policy with auto-add=true via API
-        await createTeamMembershipPolicy(adminClient, team.id, 'true', true);
+        // # Make the admin match the rule so the self-exclusion check lets the save through
+        await setUserAttribute(adminClient, adminUser.id, 'Department', 'Engineering');
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [adminUser.id]);
+
+        // # Create policy with auto-add=true via API, using a rule the Simple table can show
+        await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', true);
 
         const {page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);

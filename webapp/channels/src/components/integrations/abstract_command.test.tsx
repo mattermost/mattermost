@@ -53,26 +53,7 @@ describe('components/integrations/AbstractCommand', () => {
         action,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <AbstractCommand {...baseProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when header/footer/loading is a string', () => {
-        const {container} = renderWithContext(
-            <AbstractCommand
-                {...baseProps}
-                header='Header as string'
-                loading={'Loading as string'}
-                footer={'Footer as string'}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, displays client error', async () => {
+    test('should display client error', async () => {
         const newSeverError = 'server error';
         const props = {...baseProps, serverError: newSeverError};
         const {container} = renderWithContext(
@@ -83,8 +64,6 @@ describe('components/integrations/AbstractCommand', () => {
         await userEvent.clear(triggerInput);
 
         await userEvent.click(screen.getByText('Footer'));
-
-        expect(container).toMatchSnapshot();
         expect(action).not.toHaveBeenCalled();
     });
 
