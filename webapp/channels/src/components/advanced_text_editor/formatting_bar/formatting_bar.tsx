@@ -28,9 +28,9 @@ export const Separator = styled.div.attrs({'data-testid': 'formatting-bar-separa
     background: rgba(var(--center-channel-color-rgb), 0.16);
 `;
 
-export const FormattingBarSpacer = styled.div`
+export const FormattingBarSpacer = styled.div<{$compact?: boolean}>`
     display: flex;
-    height: 48px;
+    height: ${({$compact}) => ($compact ? '40px' : '48px')};
     transition: height 0.25s ease;
     align-items: end;
     background: var(--center-channel-bg);

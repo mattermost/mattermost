@@ -30,6 +30,7 @@ type Props = {
     emojiDisabled: boolean;
     onEmoji: () => void;
     showAttributes: boolean;
+    formattingOpen: boolean;
     formattingDisabled: boolean;
     onToggleFormatting: () => void;
     emojiAnchorRef?: Ref<HTMLSpanElement>;
@@ -65,11 +66,19 @@ const burnOnReadLabel = (
     />
 );
 
-const formattingLabel = (
+const showFormattingLabel = (
     <FormattedMessage
-        id='textbox.agent_menu.formatting'
-        defaultMessage='Formatting'
-        description='Menu item in the agent composer that shows the formatting bar for this message box only.'
+        id='textbox.agent_menu.show_formatting'
+        defaultMessage='Show formatting'
+        description='Menu item in the composer + menu that opens the formatting bar.'
+    />
+);
+
+const hideFormattingLabel = (
+    <FormattedMessage
+        id='textbox.agent_menu.hide_formatting'
+        defaultMessage='Hide formatting'
+        description='Menu item in the composer + menu that closes the formatting bar.'
     />
 );
 
@@ -82,7 +91,7 @@ const attributesLabel = (
 );
 
 // compass-icons has no tag glyph. This is the same 24px outline the other
-// items use, so Add attributes lines up with Attach, Emoji, and Formatting.
+// items use, so Add attributes lines up with Attach, Emoji, and formatting.
 const TagOutlineIcon = ({size, color}: {size?: number | string; color?: string}) => (
     <svg
         xmlns='http://www.w3.org/2000/svg'
@@ -153,6 +162,7 @@ const AgentComposerMenuContents = ({
     emojiDisabled,
     onEmoji,
     showAttributes,
+    formattingOpen,
     formattingDisabled,
     onToggleFormatting,
     emojiAnchorRef,
@@ -240,7 +250,7 @@ const AgentComposerMenuContents = ({
                     />
                 )}
                 <Menu.Item
-                    labels={formattingLabel}
+                    labels={formattingOpen ? hideFormattingLabel : showFormattingLabel}
                     leadingElement={<FormatLetterCaseIcon size={18}/>}
                     onClick={onToggleFormatting}
                     onMouseEnter={claim('formatting')}

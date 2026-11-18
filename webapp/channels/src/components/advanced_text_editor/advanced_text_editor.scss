@@ -258,6 +258,25 @@
         padding-left: 46px;
     }
 
+    // The closed bar leaves only the + and send on the row under the text.
+    // The editor's 12px bottom padding plus the unused top of a 46px row
+    // reads as an empty band once the text wraps. Pull the last line down
+    // toward those buttons. The open bar keeps its own height.
+    &--agent:not(.formatting-bar) {
+        .AdvancedTextEditor__agent-controls {
+            min-height: 40px;
+        }
+    }
+
+    &--agent:not(.formatting-bar),
+    &--plus:not(&--agent):not(.formatting-bar):not(&--plus-overlay) {
+        textarea.custom-textarea,
+        .textbox-preview-area,
+        .WysiwygEditor .ProseMirror {
+            padding-bottom: 4px;
+        }
+    }
+
     // Out of the flow, but not display:none, so a click from the + menu can
     // still open the file dialog.
     &__agent-file-input {

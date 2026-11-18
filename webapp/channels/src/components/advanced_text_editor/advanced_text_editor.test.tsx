@@ -1268,7 +1268,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await openMenu();
 
             expect(screen.queryByRole('menuitem', {name: 'Add attributes'})).not.toBeInTheDocument();
-            expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
         });
 
@@ -1470,7 +1470,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
-            expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
         });
 
         it('closes an open submenu when the pointer moves to another row', async () => {
@@ -1483,7 +1483,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Message priority', hidden: true}));
             expect(screen.getByRole('menuitemradio', {name: 'Standard'})).toBeInTheDocument();
 
-            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Formatting', hidden: true}));
+            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Hide formatting', hidden: true}));
             expect(screen.getByRole('menuitem', {name: 'Message priority', hidden: true})).toHaveAttribute('aria-expanded', 'false');
             await waitFor(() => {
                 expect(screen.queryByRole('menuitemradio', {name: 'Standard'})).not.toBeInTheDocument();
@@ -1576,7 +1576,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
-            expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Show formatting'})).toBeInTheDocument();
 
             const attributes = screen.getByRole('menuitem', {name: 'Add attributes'});
             expect(attributes).toHaveAttribute('aria-disabled', 'true');
@@ -1596,11 +1596,15 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             await openMenu();
-            await userEvent.click(screen.getByRole('menuitem', {name: 'Formatting'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Show formatting'}));
 
             await waitFor(() => {
                 expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
             });
+
+            await openMenu();
+            expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
+            await userEvent.keyboard('{Escape}');
             const textbox = screen.getByTestId('post_textbox');
             const bar = screen.getByTestId('formattingBarContainer');
             const controls = document.querySelector('.AdvancedTextEditor__agent-controls');

@@ -32727,9 +32727,13 @@
     "defaultMessage": "Emoji",
     "description": "Menu item in the agent composer that opens the emoji picker."
   },
-  "textbox.agent_menu.formatting": {
-    "defaultMessage": "Formatting",
-    "description": "Menu item in the agent composer that shows the formatting bar for this message box only."
+  "textbox.agent_menu.hide_formatting": {
+    "defaultMessage": "Hide formatting",
+    "description": "Menu item in the composer + menu that closes the formatting bar."
+  },
+  "textbox.agent_menu.show_formatting": {
+    "defaultMessage": "Show formatting",
+    "description": "Menu item in the composer + menu that opens the formatting bar."
   },
   "textbox.bold": {
     "defaultMessage": "**bold**",

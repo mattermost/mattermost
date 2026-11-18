@@ -994,6 +994,7 @@ const AdvancedTextEditor = ({
                 emojiDisabled={showPreview}
                 onEmoji={toggleEmojiPicker}
                 showAttributes={postAttributesEnabled && !isInEditMode}
+                formattingOpen={showFormattingBar}
                 formattingDisabled={showPreview}
                 onToggleFormatting={toggleAdvanceTextEditor}
                 emojiAnchorRef={setEmojiReference}
@@ -1111,7 +1112,7 @@ const AdvancedTextEditor = ({
                                     </TexteditorActions>
                                 )}
                                 {showFormattingSpacer ? (
-                                    <FormattingBarSpacer>
+                                    <FormattingBarSpacer $compact={!showFormattingBar}>
                                         {formattingBar}
                                     </FormattingBarSpacer>
                                 ) : formattingBar}
