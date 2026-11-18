@@ -28,9 +28,12 @@ export type PluginMetadataPanelProps = {
     releaseNotesUrl?: string;
     className?: string;
     hideName?: boolean;
+
+    // The panel's path; its parts are `.id--button` and `.version--link` (or `.version--text` without release notes).
+    testId?: string;
 };
 
-const PluginMetadataId = ({id}: {id: string}) => {
+const PluginMetadataId = ({id, testId}: {id: string; testId?: string}) => {
     const intl = useIntl();
     const {copiedRecently, onClick: copyId} = useCopyText({
         text: id,
@@ -60,7 +63,7 @@ const PluginMetadataId = ({id}: {id: string}) => {
         >
             <span
                 className='PluginMetadataPanel__id'
-                data-testid='plugin-metadata-id'
+                data-testid={testId ? `${testId}--button` : undefined}
                 onClick={handleCopy}
                 onKeyDown={handleKeyDown}
                 role='button'
@@ -81,6 +84,7 @@ const PluginMetadataPanel = ({
     releaseNotesUrl,
     className,
     hideName = false,
+    testId,
 }: PluginMetadataPanelProps) => {
     const displayName = name.trim() || id;
     const formattedVersion = formatPluginVersion(version);
@@ -106,12 +110,12 @@ const PluginMetadataPanel = ({
                     <ExternalLink
                         href={releaseNotesUrl}
                         location='plugin_metadata_panel'
-                        data-testid='plugin-metadata-version'
+                        data-testid={testId ? `${testId}.release_notes--link` : undefined}
                     >
                         {formattedVersion}
                     </ExternalLink>
                 ) : (
-                    <span data-testid='plugin-metadata-version'>
+                    <span data-testid={testId ? `${testId}.version--text` : undefined}>
                         {formattedVersion}
                     </span>
                 )}
@@ -122,12 +126,15 @@ const PluginMetadataPanel = ({
     return (
         <span
             className={classNames('PluginMetadataPanel', className)}
-            data-testid='plugin-metadata-panel'
+            data-testid={testId}
         >
             {!hideName && nameElement}
             <span className='PluginMetadataPanel__metadata'>
                 {!hideName && ' ('}
-                <PluginMetadataId id={id}/>
+                <PluginMetadataId
+                    id={id}
+                    testId={testId ? `${testId}.id` : undefined}
+                />
                 {versionElement}
                 {!hideName && ')'}
             </span>

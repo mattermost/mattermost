@@ -18,6 +18,7 @@ describe('components/admin_console/CheckboxSetting', () => {
                 onChange={onChange}
                 setByEnv={false}
                 disabled={false}
+                testId='admin.setting.option'
             />,
         );
         const checkbox: HTMLInputElement = screen.getByRole('checkbox');
@@ -35,6 +36,7 @@ describe('components/admin_console/CheckboxSetting', () => {
                 onChange={onChange}
                 setByEnv={false}
                 disabled={false}
+                testId='admin.setting.option'
             />,
         );
         const checkbox: HTMLInputElement = screen.getByRole('checkbox');

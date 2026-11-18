@@ -123,11 +123,13 @@ export default class MemberListGroup extends React.PureComponent<Props, State> {
 
         return usersToDisplay.map((user) => {
             return {
+                testKey: user.id,
                 cells: {
                     id: user.id,
                     name: (
                         <UserGridName
                             user={user}
+                            testId='admin.group.members.row'
                         />
                     ),
                 },
@@ -179,6 +181,7 @@ export default class MemberListGroup extends React.PureComponent<Props, State> {
         return (
             <div className='MemberListGroup'>
                 <DataGrid
+                    testIdScope='admin.group.members'
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}

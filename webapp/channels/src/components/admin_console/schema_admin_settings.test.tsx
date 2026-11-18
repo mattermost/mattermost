@@ -707,9 +707,9 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             />,
         );
 
-        // Boolean settings render as radio buttons (True/False) using data-testid
-        const trueRadio = container.querySelector('[data-testid="FirstSettings.settingbtrue"]') as HTMLInputElement;
-        const falseRadio = container.querySelector('[data-testid="FirstSettings.settingbfalse"]') as HTMLInputElement;
+        // Boolean settings render as radio buttons (True/False) inside the setting's keyed row
+        const trueRadio = container.querySelector('[data-testid="admin.setting:FirstSettings.settingb--group"] [data-testid="admin.setting.true--radio"]') as HTMLInputElement;
+        const falseRadio = container.querySelector('[data-testid="admin.setting:FirstSettings.settingb--group"] [data-testid="admin.setting.false--radio"]') as HTMLInputElement;
 
         expect(trueRadio).toBeInTheDocument();
         expect(falseRadio).toBeInTheDocument();
@@ -977,8 +977,8 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         test('shows and hides the callout reactively as the value is toggled without saving', async () => {
             const {container} = renderBoolWarning(false);
 
-            const trueRadio = container.querySelector('[data-testid="FirstSettings.dangerSettingtrue"]') as HTMLInputElement;
-            const falseRadio = container.querySelector('[data-testid="FirstSettings.dangerSettingfalse"]') as HTMLInputElement;
+            const trueRadio = container.querySelector('[data-testid="admin.setting:FirstSettings.dangerSetting--group"] [data-testid="admin.setting.true--radio"]') as HTMLInputElement;
+            const falseRadio = container.querySelector('[data-testid="admin.setting:FirstSettings.dangerSetting--group"] [data-testid="admin.setting.false--radio"]') as HTMLInputElement;
 
             // Starts at the recommended value with no callout.
             expect(screen.queryByText(WARNING_TITLE)).not.toBeInTheDocument();

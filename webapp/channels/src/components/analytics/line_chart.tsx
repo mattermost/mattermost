@@ -13,6 +13,7 @@ type Props = {
     height?: number;
     data?: any;
     id: string;
+    testId?: string;
     options?: ChartOptions;
 };
 
@@ -88,6 +89,8 @@ export default class LineChart extends React.PureComponent<Props> {
     };
 
     public render(): JSX.Element {
+        const testId = this.props.testId ?? 'admin.statistics.chart';
+
         let content;
         if (this.props.data == null) {
             content = (
@@ -108,7 +111,7 @@ export default class LineChart extends React.PureComponent<Props> {
         } else {
             content = (
                 <canvas
-                    data-testid={this.props.id}
+                    data-testid={`${testId}.canvas`}
                     ref={this.canvasRef}
                     width={this.props.width}
                     height={this.props.height}
@@ -120,17 +123,20 @@ export default class LineChart extends React.PureComponent<Props> {
         return (
             <div className='col-sm-12'>
                 <div
-                    data-testid={this.props.id + 'Chart'}
+                    role='group'
+                    aria-labelledby={`${testId}:${this.props.id}.title`}
+                    data-testid={`${testId}:${this.props.id}--group`}
                     className='total-count by-day'
                 >
                     <div
-                        data-testid={this.props.id + 'Title'}
+                        id={`${testId}:${this.props.id}.title`}
+                        data-testid={`${testId}.title--text`}
                         className='title'
                     >
                         {this.props.title}
                     </div>
                     <div
-                        data-testid={this.props.id + 'Content'}
+                        data-testid={`${testId}.content`}
                         className='content'
                     >
                         {content}

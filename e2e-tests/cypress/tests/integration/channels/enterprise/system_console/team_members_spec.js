@@ -57,7 +57,7 @@ describe('Team members test', () => {
         cy.get('#teamMembers').scrollIntoView().should('be.visible');
 
         // # Click the sync group members switch
-        cy.findByTestId('syncGroupSwitch-button').
+        cy.findByTestId('admin.team.sync_groups--switch').
             scrollIntoView().
             click({force: true});
 

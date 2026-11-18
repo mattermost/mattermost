@@ -98,6 +98,7 @@ const AdminNavbarDropdown = (firstItemFocusProps: Menu.FirstMenuItemProps) => {
             <Menu.SubMenu
                 {...firstItemFocusProps}
                 id='adminConsoleSwitchTeams'
+                data-testid='admin.sidebar.header.menu.switch_teams--menuitem'
                 labels={
                     <FormattedMessage
                         id='admin.nav.switchTeams'
@@ -106,6 +107,7 @@ const AdminNavbarDropdown = (firstItemFocusProps: Menu.FirstMenuItemProps) => {
                 }
                 trailingElements={<ChevronRightIcon size={16}/>}
                 menuId='adminConsoleSwitchTeamsMenu'
+                testIdScope='admin.sidebar.header.menu.switch_teams_menu'
                 menuAriaLabel={formatMessage({id: 'admin.nav.switchTeams', defaultMessage: 'Switch teams'})}
             >
                 {sortedTeams.map((team) => (
@@ -166,6 +168,7 @@ const AdminNavbarDropdown = (firstItemFocusProps: Menu.FirstMenuItemProps) => {
             )}
             <Menu.Item
                 id='adminConsoleAbout'
+                data-testid='admin.sidebar.header.menu.about--menuitem'
                 onClick={handleAbout}
                 labels={
                     <FormattedMessage
@@ -178,6 +181,7 @@ const AdminNavbarDropdown = (firstItemFocusProps: Menu.FirstMenuItemProps) => {
             <Menu.Separator/>
             <Menu.Item
                 id='adminConsoleLogout'
+                data-testid='admin.sidebar.header.menu.log_out--menuitem'
                 onClick={handleLogout}
                 labels={
                     <FormattedMessage

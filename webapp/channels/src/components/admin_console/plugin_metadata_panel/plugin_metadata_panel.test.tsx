@@ -23,47 +23,51 @@ describe('PluginMetadataPanel', () => {
     test('should render plugin name, id, and version on one line', () => {
         renderWithContext(
             <PluginMetadataPanel
+                testId='test.metadata'
                 name='FL3XX'
                 id='com.mattermost.fl3xx'
                 version='0.7.4'
             />,
         );
 
-        expect(screen.getByTestId('plugin-metadata-panel')).toHaveTextContent('FL3XX (com.mattermost.fl3xx - v0.7.4)');
-        expect(screen.getByTestId('plugin-metadata-id')).toHaveTextContent('com.mattermost.fl3xx');
-        expect(screen.getByTestId('plugin-metadata-version')).toHaveTextContent('v0.7.4');
+        expect(screen.getByTestId('test.metadata')).toHaveTextContent('FL3XX (com.mattermost.fl3xx - v0.7.4)');
+        expect(screen.getByTestId('test.metadata.id--button')).toHaveTextContent('com.mattermost.fl3xx');
+        expect(screen.getByTestId('test.metadata.version--text')).toHaveTextContent('v0.7.4');
         expect(screen.getByRole('button', {name: 'Copy'})).toHaveTextContent('com.mattermost.fl3xx');
     });
 
     test('should fall back to plugin id when display name is missing', () => {
         renderWithContext(
             <PluginMetadataPanel
+                testId='test.metadata'
                 name='   '
                 id='com.mattermost.fl3xx'
                 version='0.7.4'
             />,
         );
 
-        expect(screen.getByTestId('plugin-metadata-panel')).toHaveTextContent('com.mattermost.fl3xx (com.mattermost.fl3xx - v0.7.4)');
+        expect(screen.getByTestId('test.metadata')).toHaveTextContent('com.mattermost.fl3xx (com.mattermost.fl3xx - v0.7.4)');
         expect(screen.getByText('com.mattermost.fl3xx', {selector: 'strong'})).toBeInTheDocument();
     });
 
     test('should omit version segment when version is missing', () => {
         renderWithContext(
             <PluginMetadataPanel
+                testId='test.metadata'
                 name='FL3XX'
                 id='com.mattermost.fl3xx'
                 version=''
             />,
         );
 
-        expect(screen.getByTestId('plugin-metadata-panel')).toHaveTextContent('FL3XX (com.mattermost.fl3xx)');
-        expect(screen.queryByTestId('plugin-metadata-version')).not.toBeInTheDocument();
+        expect(screen.getByTestId('test.metadata')).toHaveTextContent('FL3XX (com.mattermost.fl3xx)');
+        expect(screen.queryByTestId(/^test\.metadata\.version--/)).not.toBeInTheDocument();
     });
 
     test('should link display name to website and version to release notes when provided', () => {
         renderWithContext(
             <PluginMetadataPanel
+                testId='test.metadata'
                 name='Agents Plugin'
                 id='com.mattermost.ai'
                 version='1.2.3'
@@ -80,6 +84,7 @@ describe('PluginMetadataPanel', () => {
     test('should not render links when urls are not provided', () => {
         renderWithContext(
             <PluginMetadataPanel
+                testId='test.metadata'
                 name='Agents Plugin'
                 id='com.mattermost.ai'
                 version='1.2.3'
@@ -92,6 +97,7 @@ describe('PluginMetadataPanel', () => {
     test('should omit the display name when hideName is true', () => {
         renderWithContext(
             <PluginMetadataPanel
+                testId='test.metadata'
                 name='FL3XX'
                 id='com.mattermost.fl3xx'
                 version='0.7.4'
@@ -99,8 +105,8 @@ describe('PluginMetadataPanel', () => {
             />,
         );
 
-        expect(screen.getByTestId('plugin-metadata-panel')).toHaveTextContent('com.mattermost.fl3xx · v0.7.4');
-        expect(screen.getByTestId('plugin-metadata-panel')).not.toHaveTextContent('FL3XX (');
+        expect(screen.getByTestId('test.metadata')).toHaveTextContent('com.mattermost.fl3xx · v0.7.4');
+        expect(screen.getByTestId('test.metadata')).not.toHaveTextContent('FL3XX (');
         expect(screen.queryByText('FL3XX')).not.toBeInTheDocument();
     });
 });

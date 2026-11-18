@@ -27,7 +27,7 @@ function checkInputsShould(shouldString, section) {
     Cypress._.forEach(disabledInputs, ({path, selector}) => {
         if (path.length && selector.length) {
             cy.visit(path, {timeout: TIMEOUTS.HALF_MIN});
-            cy.findByTestId(selector, {timeout: TIMEOUTS.ONE_MIN}).should(shouldString);
+            cy.get(selector, {timeout: TIMEOUTS.ONE_MIN}).should(shouldString);
         }
     });
 }

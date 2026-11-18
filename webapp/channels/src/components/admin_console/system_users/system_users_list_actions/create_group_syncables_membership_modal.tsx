@@ -64,6 +64,7 @@ export default function CreateGroupSyncablesMembershipsModal({user, onExited, on
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.resync_modal'
             title={title}
             message={message}
             destructive={true}

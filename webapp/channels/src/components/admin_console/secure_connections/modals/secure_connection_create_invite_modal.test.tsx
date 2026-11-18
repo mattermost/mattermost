@@ -34,9 +34,9 @@ describe('SecureConnectionCreateInviteModal', () => {
         expect(onConfirm).toHaveBeenCalledTimes(1);
 
         await waitFor(() => {
-            expect(screen.getByTestId('invite-code')).toHaveValue('INVITE_CODE_XYZ');
+            expect(screen.getByTestId('admin.create_invite_modal.code--textbox')).toHaveValue('INVITE_CODE_XYZ');
         });
-        expect(screen.getByTestId('password')).toHaveValue('pa$$w0rd');
+        expect(screen.getByTestId('admin.create_invite_modal.password--textbox')).toHaveValue('pa$$w0rd');
     });
 
     it('shows the "Connection created" title when creating and resolved', async () => {

@@ -56,7 +56,7 @@ const MigrationsTable = ({
             <div className='migrations-table__table'>
                 <table
                     className='table'
-                    data-testid='migrationsTable'
+                    data-testid='admin.database.migrations'
                 >
                     <thead>
                         <tr>

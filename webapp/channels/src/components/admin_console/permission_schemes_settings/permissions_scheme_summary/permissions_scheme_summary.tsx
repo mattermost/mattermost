@@ -88,6 +88,7 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
 
         return (
             <ConfirmModal
+                testId='admin.permission_schemes.delete_modal'
                 show={this.state.showConfirmModal}
                 title={title}
                 message={message}
@@ -167,7 +168,7 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
         return (
             <div
                 className='permissions-scheme-summary'
-                data-testid='permissions-scheme-summary'
+                data-testid={`admin.permission_schemes.scheme:${scheme.id}`}
                 onClick={this.goToEdit}
             >
                 <div onClick={this.stopPropagation}>{confirmModal}</div>
@@ -179,7 +180,7 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
                     </div>
                     <div className='actions'>
                         <Link
-                            data-testid={`${scheme.display_name}-edit`}
+                            data-testid='admin.permission_schemes.scheme.edit--link'
                             className='edit-button'
                             to={'/admin_console/user_management/permissions/team_override_scheme/' + scheme.id}
                         >
@@ -190,9 +191,10 @@ export default class PermissionsSchemeSummary extends React.PureComponent<Props 
                         </Link>
                         {'-'}
                         <a
-                            data-testid={`${scheme.display_name}-delete`}
+                            data-testid='admin.permission_schemes.scheme.delete--button'
                             className={isDisabled ? 'delete-button disabled' : 'delete-button'}
                             onClick={this.delete}
+                            role='button'
                         >
                             <FormattedMessage
                                 id='admin.permissions.permissionsSchemeSummary.delete'

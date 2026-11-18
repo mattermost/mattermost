@@ -623,6 +623,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             })}
                         >
                             <input
+                                data-testid='admin.user.username--textbox'
                                 className='form-control'
                                 type='text'
                                 value={this.state.usernameField}
@@ -637,6 +638,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         </WithTooltip>
                     ) : (
                         <input
+                            data-testid='admin.user.username--textbox'
                             className={classNames('form-control', {
                                 error: this.state.usernameError,
                             })}
@@ -657,7 +659,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     <div
                         id='username-error'
                         className='field-error'
-                        data-testid='fieldError'
+                        data-testid='admin.user.username_error--alert'
                         role='alert'
                         aria-live='polite'
                     >
@@ -691,6 +693,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             })}
                         >
                             <input
+                                data-testid='admin.user.email--textbox'
                                 className='form-control'
                                 type='text'
                                 value={this.state.emailField}
@@ -701,6 +704,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         </WithTooltip>
                     ) : (
                         <input
+                            data-testid='admin.user.email--textbox'
                             className={classNames('form-control', {
                                 error: this.state.emailError,
                             })}
@@ -717,7 +721,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     <div
                         id='email-error'
                         className='field-error'
-                        data-testid='fieldError'
+                        data-testid='admin.user.email_error--alert'
                         role='alert'
                         aria-live='polite'
                     >
@@ -746,6 +750,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         })}
                     >
                         <input
+                            data-testid={fieldKey === 'firstNameField' ? 'admin.user.first_name--textbox' : 'admin.user.last_name--textbox'}
                             className='form-control'
                             type='text'
                             value={this.state[fieldKey]}
@@ -756,6 +761,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     </WithTooltip>
                 ) : (
                     <input
+                        data-testid={fieldKey === 'firstNameField' ? 'admin.user.first_name--textbox' : 'admin.user.last_name--textbox'}
                         className='form-control'
                         type='text'
                         value={this.state[fieldKey]}
@@ -806,7 +812,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 </span>
                 <div className='field-control field-control--text'>
                     <ShieldOutlineIcon/>
-                    <span data-testid='authenticationMethodValue'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
+                    <span data-testid='admin.user.auth_method--text'>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                 </div>
             </div>,
         );
@@ -823,6 +829,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                     <div className='field-control'>
                         <ShieldOutlineIcon/>
                         <input
+                            data-testid='admin.user.auth_data--textbox'
                             className={classNames('form-control', {
                                 error: this.state.authDataError,
                             })}
@@ -842,7 +849,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <div
                             id='authdata-error'
                             className='field-error'
-                            data-testid='fieldError'
+                            data-testid='admin.user.auth_data_error--alert'
                             role='alert'
                             aria-live='polite'
                         >
@@ -887,17 +894,17 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <div
                             key={`${keyPrefix}-row-${Math.trunc(index / 2)}`}
                             className='field-row'
-                            data-testid='fieldRow'
+                            data-testid={keyPrefix === 'cpa-field' ? `admin.user.custom_fields.row:${Math.trunc(index / 2)}` : `admin.user.standard_fields.row:${Math.trunc(index / 2)}`}
                         >
                             <div
                                 className='field-column left'
-                                data-testid='fieldColumn'
+                                data-testid='admin.user.fields.row.left'
                             >
                                 {field}
                             </div>
                             <div
                                 className='field-column right'
-                                data-testid='fieldColumn'
+                                data-testid='admin.user.fields.row.right'
                             >
                                 {fieldList[index + 1]}
                             </div>
@@ -911,7 +918,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return (
             <div
                 className='two-column-layout'
-                data-testid='twoColumnLayout'
+                data-testid='admin.user.fields'
             >
                 {renderFieldRows(fields, 'standard-field')}
                 {cpaFields.length > 0 && (
@@ -1064,7 +1071,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 />
                 <ul
                     className='changes-list'
-                    data-testid='changesList'
+                    data-testid='admin.user.save_modal.changes--list'
                 >
                     {fields.map((field, index) => {
                         return (
@@ -1082,6 +1089,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         />
                         <div className='password-input-wrapper'>
                             <input
+                                data-testid='admin.user.save_modal.password--textbox'
                                 type='password'
                                 className={classNames('form-control', {
                                     error: this.state.confirmPasswordError,
@@ -1101,7 +1109,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                 <div
                                     id='confirm-password-error'
                                     className='field-error'
-                                    data-testid='fieldError'
+                                    data-testid='admin.user.save_modal.password_error--alert'
                                     role='alert'
                                     aria-live='polite'
                                 >
@@ -1418,14 +1426,14 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         return (
             <div
                 className='SystemUserDetail wrapper--fixed'
-                data-testid='systemUserDetail'
+                data-testid='admin.user'
             >
                 <AdminHeader withBackButton={true}>
                     <div>
                         <BlockableLink
                             to='/admin_console/user_management/users'
                             className='fa fa-angle-left back'
-                            data-testid='adminHeader-backLink'
+                            data-testid='admin.user.back--link'
                         />
                         <FormattedMessage
                             id='admin.systemUserDetail.title'
@@ -1590,7 +1598,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         >
                             {this.state.isLoading && (
                                 <div className='teamlistLoading'>
-                                    <LoadingSpinner/>
+                                    <LoadingSpinner testId='admin.user_detail.loading_spinner'/>
                                 </div>
                             )}
                             {!this.state.isLoading && this.state.user?.id && (
@@ -1608,6 +1616,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 <div className='admin-console-save'>
                     <div className='admin-console-save-buttons'>
                         <SaveButton
+                            testId='admin.user.save'
                             saving={this.state.isSaving}
                             disabled={!this.hasUnsavedChanges() || this.state.isLoading || this.state.isSaving ||
                                 this.state.emailError !== null ||
@@ -1624,6 +1633,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                 onClick={this.handleCancel}
                                 disabled={this.state.isSaving}
                                 style={{marginLeft: '12px'}}
+                                data-testid='admin.user.cancel--button'
                             >
                                 <FormattedMessage
                                     id='admin.user_item.cancel'
@@ -1637,11 +1647,15 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         role='alert'
                         aria-live='polite'
                     >
-                        <FormError error={this.state.error}/>
+                        <FormError
+                            error={this.state.error}
+                            testId='admin.user.save_error'
+                        />
                     </div>
                 </div>
                 {/* mounting of Modals */}
                 <ConfirmModal
+                    testId='admin.user.deactivate_modal'
                     show={this.state.showDeactivateMemberModal}
                     title={
                         <FormattedMessage
@@ -1695,6 +1709,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                 <ConfirmModal
                     id='admin-userDetail-saveChangesModal'
+                    testId='admin.user.save_changes_modal'
                     show={this.state.showSaveConfirmationModal}
                     title={
                         <FormattedMessage

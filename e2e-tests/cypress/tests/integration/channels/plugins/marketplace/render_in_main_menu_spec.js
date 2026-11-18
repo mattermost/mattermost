@@ -37,8 +37,8 @@ describe('Plugin Marketplace', () => {
         });
         cy.visit(pluginManagementPage);
 
-        cy.wait(TIMEOUTS.HALF_SEC).get('input[data-testid="enablefalse"]').should('be.checked');
-        cy.get('input[data-testid="enabletrue"]').check();
+        cy.wait(TIMEOUTS.HALF_SEC).get('[data-testid="admin.setting:enable--group"] input[data-testid="admin.setting.false--radio"]').should('be.checked');
+        cy.get('[data-testid="admin.setting:enable--group"] input[data-testid="admin.setting.true--radio"]').check();
         cy.get('#saveSetting').click();
 
         // Verify that the Plugin Marketplace is available
@@ -58,8 +58,8 @@ describe('Plugin Marketplace', () => {
         });
         cy.visit(pluginManagementPage);
 
-        cy.wait(TIMEOUTS.HALF_SEC).get('input[data-testid="enableMarketplacefalse"]').should('be.checked');
-        cy.get('input[data-testid="enableMarketplacetrue"]').check();
+        cy.wait(TIMEOUTS.HALF_SEC).get('[data-testid="admin.setting:enableMarketplace--group"] input[data-testid="admin.setting.false--radio"]').should('be.checked');
+        cy.get('[data-testid="admin.setting:enableMarketplace--group"] input[data-testid="admin.setting.true--radio"]').check();
         cy.get('#saveSetting').click();
 
         // Verify that the Plugin Marketplace is available

@@ -48,7 +48,7 @@ describe('Feature discovery self hosted', () => {
         withTrialBefore('false');
         [...professionalPaidFeatures, ...enterprisePaidFeatures].forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='admin.feature_discovery.title--text']").should('contain', featureDiscoveryTitle);
             cy.get('#start_trial_btn').should('exist');
             cy.get('#start_trial_btn').contains('Start trial');
         });
@@ -58,7 +58,7 @@ describe('Feature discovery self hosted', () => {
         withTrialBefore('true');
         professionalPaidFeatures.forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='admin.feature_discovery.title--text']").should('contain', featureDiscoveryTitle);
             cy.get('#post_trial_purchase_license').should('contain', 'Purchase a license');
             cy.get('#post_trial_purchase_license').should('be.enabled');
         });
@@ -68,9 +68,9 @@ describe('Feature discovery self hosted', () => {
         withTrialBefore('true');
         enterprisePaidFeatures.forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
-            cy.get("button[data-testid='featureDiscovery_primaryCallToAction']").should('contain', 'Contact sales');
-            cy.get("button[data-testid='featureDiscovery_primaryCallToAction']").should('be.enabled');
+            cy.get("[data-testid='admin.feature_discovery.title--text']").should('contain', featureDiscoveryTitle);
+            cy.get("button[data-testid='admin.feature_discovery.contact_sales--button']").should('contain', 'Contact sales');
+            cy.get("button[data-testid='admin.feature_discovery.contact_sales--button']").should('be.enabled');
         });
     });
 });

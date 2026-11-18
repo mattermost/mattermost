@@ -12,31 +12,31 @@ describe('components/admin_console/permission_schemes_settings/permission_checkb
         renderWithContext(
             <PermissionCheckbox
                 value='checked'
-                id='uniqId-checked'
+                testId='admin.permissions.row.checkbox'
             />,
         );
-        expect(screen.getByTestId('uniqId-checked')).toHaveClass('checked');
+        expect(screen.getByTestId('admin.permissions.row.checkbox')).toHaveClass('checked');
     });
 
     test('should render on value "intermediate"', () => {
         renderWithContext(
             <PermissionCheckbox
                 value='intermediate'
-                id='uniqId-checked'
+                testId='admin.permissions.row.checkbox'
             />,
         );
-        expect(screen.getByTestId('uniqId-checked')).toHaveClass('intermediate');
+        expect(screen.getByTestId('admin.permissions.row.checkbox')).toHaveClass('intermediate');
     });
 
     test('should render on other value', () => {
         renderWithContext(
             <PermissionCheckbox
                 value='other'
-                id='uniqId-checked'
+                testId='admin.permissions.row.checkbox'
             />,
         );
-        expect(screen.getByTestId('uniqId-checked')).toHaveClass('permission-check');
-        expect(screen.getByTestId('uniqId-checked')).not.toHaveClass('checked');
-        expect(screen.getByTestId('uniqId-checked')).not.toHaveClass('intermediate');
+        expect(screen.getByTestId('admin.permissions.row.checkbox')).toHaveClass('permission-check');
+        expect(screen.getByTestId('admin.permissions.row.checkbox')).not.toHaveClass('checked');
+        expect(screen.getByTestId('admin.permissions.row.checkbox')).not.toHaveClass('intermediate');
     });
 });

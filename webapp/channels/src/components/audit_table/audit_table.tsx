@@ -84,7 +84,7 @@ export default class AuditTable extends React.PureComponent<Props> {
                         {sessionContent}
                     </tr>
                 </thead>
-                <tbody data-testid='auditTableBody'>
+                <tbody data-testid='audit_table.body'>
                     {audits.map((audit) => (
                         <FormatAudit
                             key={audit.id}

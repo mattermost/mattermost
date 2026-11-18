@@ -74,6 +74,7 @@ const RemoveConfirmModal = ({show, onConfirm, onCancel, inChannel, amount}: Prop
 
     return (
         <ConfirmModal
+            testId='admin.remove_members_modal'
             show={show}
             title={title}
             message={message}

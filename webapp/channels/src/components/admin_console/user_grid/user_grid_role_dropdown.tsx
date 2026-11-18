@@ -27,6 +27,9 @@ type Props = {
     scope: 'team' | 'channel';
     handleUpdateMembership: (membership: BaseMembership) => void;
     isDisabled?: boolean;
+
+    // The grid row: the dropdown is `.role--button`, its items under `.role_menu`.
+    testId?: string;
 };
 
 export type Role = 'system_admin' | 'team_admin' | 'team_user' | 'channel_admin' | 'channel_user' | 'shared_member' | 'guest';
@@ -123,7 +126,7 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
             return null;
         }
 
-        const {user, isDisabled} = this.props;
+        const {user, isDisabled, testId} = this.props;
 
         const {makeAdmin, makeMember} = this.getDropDownOptions();
         const currentRole = this.getCurrentRole();
@@ -164,6 +167,7 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
             >
                 <button
                     id={`userGridRoleDropdown_${user.username}`}
+                    data-testid={testId ? `${testId}.role--button` : undefined}
                     className='dropdown-toggle theme color--link style--none'
                     type='button'
                     aria-expanded='true'
@@ -171,13 +175,18 @@ export default class UserGridRoleDropdown extends React.PureComponent<Props> {
                     <span>{localizedRole} </span>
                     <DropdownIcon/>
                 </button>
-                <Menu ariaLabel={ariaLabel}>
+                <Menu
+                    ariaLabel={ariaLabel}
+                    testId={testId ? `${testId}.role_menu` : undefined}
+                >
                     <Menu.ItemAction
+                        testId={testId ? `${testId}.role_menu.make_admin` : undefined}
                         show={showMakeAdmin}
                         onClick={this.handleMakeAdmin}
                         text={makeAdmin}
                     />
                     <Menu.ItemAction
+                        testId={testId ? `${testId}.role_menu.make_member` : undefined}
                         show={showMakeMember}
                         onClick={this.handleMakeUser}
                         text={makeMember}

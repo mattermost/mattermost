@@ -4,7 +4,7 @@
 import type {Client4} from '@mattermost/client';
 import type {Locator, Page} from '@playwright/test';
 
-import {expect} from '@mattermost/playwright-lib';
+import {openSystemConsoleSection, expect, type App} from '@mattermost/playwright-lib';
 
 /**
  * Enable team-membership ABAC end to end: the umbrella attribute-based access
@@ -122,21 +122,23 @@ export async function assignTeamsToPolicy(client: Client4, policyId: string, tea
 /**
  * Navigate to a team's configuration page from the Teams list and wait for it to load.
  */
-export async function openTeamConfig(page: Page, teamDisplayName: string): Promise<void> {
-    await page.goto('/admin_console/user_management/teams');
+export async function openTeamConfig(app: App, teamDisplayName: string): Promise<void> {
+    await openSystemConsoleSection(app, 'user_management/teams');
 
     // Let the unfiltered first load land, so it can't overwrite the search results.
-    const rows = page.locator('.DataGrid_row');
-    await expect(rows.first()).toBeVisible({timeout: 15_000});
+    const teams = app.admin.teams;
+    await expect(await teams.rowList.first()).toBeVisible({timeout: 15_000});
 
-    await page.locator('input[placeholder*="Search" i]').first().fill(teamDisplayName);
+    await teams.searchTextbox.fill(teamDisplayName);
+    await expect(teams.searchTextbox).toHaveValue(teamDisplayName);
 
-    const row = rows.filter({hasText: teamDisplayName}).first();
+    const row = await teams.rowList.itemWith({text: teamDisplayName});
     await expect(row).toBeVisible({timeout: 15_000});
-    await row.getByText('Edit').click();
+    await row.editLink.click();
 
-    await page.waitForURL(/\/admin_console\/user_management\/teams\/[a-z0-9]+$/, {timeout: 15_000});
-    await expect(page.getByText('Team Management', {exact: true})).toBeVisible({timeout: 15_000});
+    await expect(app.page).toHaveURL(/\/admin_console\/user_management\/teams\/[a-z0-9]+$/, {timeout: 15_000});
+    // The generated header also holds actions; the heading has no separate member.
+    await expect(app.admin.header.locator.getByText('Team Management', {exact: true})).toBeVisible({timeout: 15_000});
 }
 
 /**
@@ -148,25 +150,29 @@ export async function openTeamConfig(page: Page, teamDisplayName: string): Promi
  */
 export async function findPolicyRow(scope: Page | Locator, policyName: string): Promise<Locator> {
     await scope
+        // The policy chooser has no generated grid parts; use the supplied dialog to bound its native rows and search.
         .locator('.DataGrid_row')
         .first()
         .waitFor({state: 'visible', timeout: 15000})
         .catch(() => {
             // Empty list is fine — the search below will populate it.
         });
+    // The policy chooser has no generated grid parts; use the supplied dialog to bound its native rows and search.
     await scope.locator('[data-testid="searchInput"]').fill(policyName);
+    // The policy chooser has no generated grid parts; use the supplied dialog to bound its native rows and search.
     const row = scope.locator('.DataGrid_row').filter({hasText: policyName}).first();
     await expect(row).toBeVisible({timeout: 15000});
     return row;
 }
 
-export async function setToggle(page: Page, on: boolean): Promise<void> {
-    const toggle = page.locator('[data-testid="policy-enforce-toggle-button"]');
-    await toggle.waitFor({state: 'visible', timeout: 10000});
+export async function setToggle(app: App, on: boolean): Promise<void> {
+    const toggle = app.admin.team.policyEnforce.container;
+    await expect(toggle).toBeVisible({timeout: 10000});
+    await toggle.set(on);
     if (on) {
-        await toggle.check({force: true});
+        await expect(toggle).toBeOn();
     } else {
-        await toggle.uncheck({force: true});
+        await expect(toggle).not.toBeOn();
     }
 }
 
@@ -205,20 +211,40 @@ export async function loginRaw(baseRoute: string, loginId: string, password: str
 }
 
 export async function switchTeamRulesMode(page: Page): Promise<void> {
+    // The rules mode toggle has no generated part; its DOM id identifies the control beside the Monaco editor.
     const toggle = page.getByTestId('team-rules-editor-mode-toggle');
+    // The Monaco/CEL rules editor is a third-party widget without declared parts: addressed by its own classes inside the team rules panel.
+    const editor = page.locator('#team_level_access_rules .monaco-editor');
+    const wasCel = await editor.isVisible();
     await expect(toggle).toBeEnabled({timeout: 60_000});
     await toggle.click();
+    if (wasCel) {
+        await expect(editor).not.toBeVisible();
+    } else {
+        await expect(editor).toBeVisible();
+    }
 }
 
 export async function typeTeamRulesCel(page: Page, expression: string): Promise<void> {
+    // The report exposes no Monaco editing surface for these existing policy rules.
     const panel = page.locator('#team_level_access_rules');
     await panel.locator('.monaco-editor').waitFor({state: 'visible', timeout: 10_000});
+    // Monaco exposes its editable textarea and rendered lines through native classes within the rules panel.
+    const input = panel.locator('.monaco-editor textarea.inputarea');
+    // Monaco exposes its editable textarea and rendered lines through native classes within the rules panel.
     await panel.locator('.monaco-editor .view-lines').click({force: true});
+    await expect(input).toBeFocused();
     await page.keyboard.press('ControlOrMeta+a');
+    await expect(input).toBeFocused();
     await page.keyboard.type(expression, {delay: 10});
+    // The Monaco/CEL rules editor is a third-party widget without declared parts: addressed by its own classes inside the team rules panel.
+    await expect
+        .poll(async () => (await panel.locator('.monaco-editor .view-lines').innerText()).replace(/\s/g, ''))
+        .toBe(expression.replace(/\s/g, ''));
 }
 
 export async function waitForTeamRulesValidation(page: Page, state: 'validated' | 'error'): Promise<void> {
+    // Validation lives in the undeclared Monaco status bar, so retain the existing scoped assertion.
     await expect(page.locator('#team_level_access_rules .cel-editor__status-bar')).toHaveAttribute(
         'data-validation-state',
         state,

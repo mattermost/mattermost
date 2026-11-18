@@ -9,3 +9,4 @@ export {removeChip} from './chips';
 export {openChannel} from './channels';
 export {lastPost, postsOf, postWith, type PostList} from './posts';
 export {closeTeamSettings, openChannelSettings, openTeamSettings} from './settings';
+export {openSystemConsoleSection, openSystemUsers, searchSystemUsers, systemConsolePath} from './system_console';

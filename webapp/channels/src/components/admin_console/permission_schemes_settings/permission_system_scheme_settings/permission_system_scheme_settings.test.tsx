@@ -232,7 +232,7 @@ describe('components/admin_console/permission_schemes_settings/permission_system
             />,
         );
         expect(ref.current!.state.showResetDefaultModal).toBe(false);
-        const resetButton = container.querySelector('[data-testid="resetPermissionsToDefault"]');
+        const resetButton = container.querySelector('[data-testid="admin.permissions.reset--button"]');
         expect(resetButton).not.toBeNull();
         act(() => {
             (resetButton as HTMLElement).click();

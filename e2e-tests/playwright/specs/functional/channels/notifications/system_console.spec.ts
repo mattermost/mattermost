@@ -4,8 +4,7 @@
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import type {TextInputSetting} from '@mattermost/playwright-lib';
-import {expect, test} from '@mattermost/playwright-lib';
+import {openSystemConsoleSection, settle, Api, expect, test, type App, duration, Msg} from '@mattermost/playwright-lib';
 
 /**
  * Patch the Notifications page required fields to known valid values so tests
@@ -37,7 +36,7 @@ async function waitForNotificationsServerPreconditions(adminClient: {getConfig: 
                 const feedbackName = c.EmailSettings?.FeedbackName?.trim();
                 return Boolean(support && feedbackEmail && feedbackName);
             },
-            {timeout: 90_000, intervals: [300, 800, 1500, 3000]},
+            {timeout: duration.two_min, intervals: [300, 800, 1500, 3000]},
         )
         .toBe(true);
 }
@@ -48,20 +47,26 @@ async function waitForNotificationsServerPreconditions(adminClient: {getConfig: 
  * these values may already be what the server holds (e.g. a reused server where this spec ran before).
  * Assert on Save at the call sites that actually changed something.
  */
-async function fillRequiredNotificationFields(notifications: {
-    notificationDisplayName: TextInputSetting;
-    notificationFromAddress: TextInputSetting;
-    supportEmailAddress: TextInputSetting;
-    notificationReplyToAddress: TextInputSetting;
-}) {
-    await notifications.notificationDisplayName.container.scrollIntoViewIfNeeded();
-    await notifications.notificationDisplayName.fill('Mattermost Notification');
-    await notifications.notificationFromAddress.container.scrollIntoViewIfNeeded();
-    await notifications.notificationFromAddress.fill('notification@mattertest.com');
-    await notifications.supportEmailAddress.container.scrollIntoViewIfNeeded();
-    await notifications.supportEmailAddress.fill('support@mattertest.com');
-    await notifications.notificationReplyToAddress.container.scrollIntoViewIfNeeded();
-    await notifications.notificationReplyToAddress.fill('notification@mattertest.com');
+async function fillRequiredNotificationFields(app: App) {
+    await app.admin.setting('EmailSettings.FeedbackName').valueTextbox.fill('Mattermost Notification');
+    await expect(app.admin.setting('EmailSettings.FeedbackName').valueTextbox).toHaveValue('Mattermost Notification');
+    await app.admin.setting('EmailSettings.FeedbackEmail').valueTextbox.fill('notification@mattertest.com');
+    await expect(app.admin.setting('EmailSettings.FeedbackEmail').valueTextbox).toHaveValue(
+        'notification@mattertest.com',
+    );
+    await app.admin.setting('SupportSettings.SupportEmail').valueTextbox.fill('support@mattertest.com');
+    await expect(app.admin.setting('SupportSettings.SupportEmail').valueTextbox).toHaveValue('support@mattertest.com');
+    await app.admin.setting('EmailSettings.ReplyToAddress').valueTextbox.fill('notification@mattertest.com');
+    await expect(app.admin.setting('EmailSettings.ReplyToAddress').valueTextbox).toHaveValue(
+        'notification@mattertest.com',
+    );
+}
+
+/** Opens System Console > Environment > Notifications (direct URL: the sidebar link can be off-screen in CI). */
+async function openNotifications(app: App) {
+    await openSystemConsoleSection(app, 'environment/notifications');
+    await expect(app.admin.screen('notifications')).toBeVisible();
+    await expect(app.admin.setting('SupportSettings.SupportEmail').valueTextbox).toBeVisible();
 }
 
 test.describe('System Console Notifications', () => {
@@ -72,7 +77,7 @@ test.describe('System Console Notifications', () => {
      */
     test('Push Notification Contents setting displays correctly and saves all options', async ({pw}) => {
         // Multiple reload/save/retry rounds — default 60 s CI timeout is too tight when shards contend on config.
-        test.setTimeout(240000);
+        test.setTimeout(duration.four_min);
 
         const {adminUser, adminClient} = await pw.getAdminClient();
 
@@ -100,16 +105,10 @@ test.describe('System Console Notifications', () => {
         await waitForNotificationsServerPreconditions(adminClient);
 
         // # Log in as admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
-        // # Visit Notifications admin console page (direct URL — sidebar link can be off-screen in CI)
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-        await systemConsolePage.gotoNotificationsSettings();
-
-        // # Wait for Notifications section to load
-        const notifications = systemConsolePage.notifications;
-        await notifications.toBeVisible();
+        // # Visit Notifications admin console page, and wait for its settings to load
+        await openNotifications(app);
 
         // Re-apply guard: a concurrent initSetup() may have cleared SupportEmail (a required
         // field) between the initial resetNotificationsConfig call and the page rendering here,
@@ -117,17 +116,15 @@ test.describe('System Console Notifications', () => {
         // renders with all required fields populated.
         await resetNotificationsConfig(adminClient);
         await waitForNotificationsServerPreconditions(adminClient);
-        await systemConsolePage.page.reload();
-        await systemConsolePage.gotoNotificationsSettings();
-        await notifications.toBeVisible();
-        await fillRequiredNotificationFields(notifications);
+        await openNotifications(app);
+        await fillRequiredNotificationFields(app);
 
         // * Verify that setting is visible and matches text content
-        await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
-        await notifications.pushNotificationContents.toBeVisible();
+        const pushNotificationContents = app.admin.setting('EmailSettings.PushNotificationContents');
+        await expect(pushNotificationContents.choiceCombobox).toBeVisible();
 
         // * Verify that the help text is visible and matches text content
-        const helpText = notifications.pushNotificationContents.helpText!;
+        const helpText = pushNotificationContents.helpText.locator;
         await expect(helpText).toBeVisible();
 
         const contents = [
@@ -144,15 +141,13 @@ test.describe('System Console Notifications', () => {
         ];
         await expect(helpText).toHaveText(contents.join(''));
 
-        const strongElements = helpText.locator('strong');
-        await expect(strongElements.nth(0)).toHaveText(contents[0]);
-        await expect(strongElements.nth(1)).toHaveText(contents[2]);
-        await expect(strongElements.nth(2)).toHaveText(contents[4]);
-        await expect(strongElements.nth(3)).toHaveText(contents[6]);
-        await expect(strongElements.nth(4)).toHaveText(contents[8]);
+        // Bold markup inside the rendered markdown help text has no generated part and cannot take a test id.
+        // eslint-disable-next-line test-surface/e2e-no-literal-locators -- bold chunks of rendered markdown cannot take a test id
+        const strongElements = helpText.getByRole('strong');
+        await expect(strongElements).toHaveText([contents[0], contents[2], contents[4], contents[6], contents[8]]);
 
         // * Verify that the option/dropdown is visible and has default value
-        const dropdown = notifications.pushNotificationContents.dropdown;
+        const dropdown = pushNotificationContents.choiceCombobox;
         await expect(dropdown).toBeVisible();
         await expect(dropdown).toHaveValue('full');
 
@@ -166,45 +161,30 @@ test.describe('System Console Notifications', () => {
         // # Select each value and save
         // * Verify that the config is correctly saved in the server
         for (const option of options) {
-            let saved = false;
-            for (let attempt = 0; attempt < 8 && !saved; attempt++) {
+            // Concurrent full-config resets can drop the save, so the whole attempt is retried.
+            await expect(async () => {
                 await resetNotificationsConfig(adminClient);
                 await waitForNotificationsServerPreconditions(adminClient);
-                await systemConsolePage.page.reload();
-                await systemConsolePage.gotoNotificationsSettings();
-                await notifications.toBeVisible();
-                await notifications.pushNotificationContents.container.scrollIntoViewIfNeeded();
-                await notifications.pushNotificationContents.toBeVisible();
+                await openNotifications(app);
 
-                const loopDropdown = notifications.pushNotificationContents.dropdown;
+                const loopDropdown = pushNotificationContents.choiceCombobox;
                 await expect(loopDropdown).toBeVisible();
-                await loopDropdown.selectOption({label: option.label});
+                await loopDropdown.choose(option.label);
                 await expect(loopDropdown).toHaveValue(option.value);
-                await fillRequiredNotificationFields(notifications);
+                await fillRequiredNotificationFields(app);
 
                 // The dropdown change above dirties the form, so Save must become enabled here.
-                await expect(notifications.saveButton).not.toBeDisabled({timeout: 25000});
-                await notifications.save();
+                await expect(app.admin.saveButton).not.toBeDisabled({timeout: duration.half_min});
+                await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
 
                 const {adminClient: pollClient} = await pw.getAdminClient();
-                try {
-                    await expect
-                        .poll(
-                            async () => {
-                                const config = await pollClient.getConfig();
-                                return config.EmailSettings?.PushNotificationContents;
-                            },
-                            {timeout: 45000, intervals: [500, 1000, 2000, 3000]},
-                        )
-                        .toBe(option.value);
-                    saved = true;
-                } catch {
-                    // Concurrent full-config resets can drop the save — reload and retry.
-                }
-            }
-            if (!saved) {
-                throw new Error(`Failed to save PushNotificationContents=${option.value} after retries`);
-            }
+                await expect
+                    .poll(async () => (await pollClient.getConfig()).EmailSettings?.PushNotificationContents, {
+                        timeout: duration.one_min,
+                        intervals: [500, 1000, 2000, 3000],
+                    })
+                    .toBe(option.value);
+            }).toPass({timeout: duration.ten_min});
         }
     });
 
@@ -224,40 +204,32 @@ test.describe('System Console Notifications', () => {
         await waitForNotificationsServerPreconditions(adminClient);
 
         // # Log in as admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
-        // # Visit Notifications admin console page (direct URL — sidebar link can be off-screen in CI)
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-        await systemConsolePage.gotoNotificationsSettings();
-
-        // # Wait for Notifications section to load
-        const notifications = systemConsolePage.notifications;
-        await notifications.toBeVisible();
+        // # Visit Notifications admin console page, and wait for its settings to load
+        await openNotifications(app);
 
         // # Scroll Support Email section into view and verify that it's visible
-        await notifications.supportEmailAddress.container.scrollIntoViewIfNeeded();
-        await notifications.supportEmailAddress.toBeVisible();
+        const supportEmail = app.admin.setting('SupportSettings.SupportEmail');
+        await expect(supportEmail.valueTextbox).toBeVisible();
 
         // * Verify that the help text is visible and matches text content
-        await expect(notifications.supportEmailAddress.helpText!).toBeVisible();
-        await expect(notifications.supportEmailAddress.helpText!).toHaveText(
-            'Email address displayed on support emails.',
-        );
+        await expect(supportEmail.helpText).toBeVisible();
+        await expect(supportEmail.helpText).toHaveMessage(Msg.admin.environment.notifications.supportEmail.help);
 
         // # Clear and type new email
         const newEmail = 'changed_for_test_support@example.com';
-        await notifications.supportEmailAddress.clear();
-        await notifications.supportEmailAddress.fill(newEmail);
+        await supportEmail.valueTextbox.clear();
+        await supportEmail.valueTextbox.fill(newEmail);
 
         // * Verify that set value is visible and matches text
-        await expect(notifications.supportEmailAddress.input).toHaveValue(newEmail);
+        await expect(supportEmail.valueTextbox).toHaveValue(newEmail);
 
         // # Wait for Save button to be enabled (React processes fill() events asynchronously)
-        await expect(notifications.saveButton).not.toBeDisabled();
+        await expect(app.admin.saveButton).not.toBeDisabled();
 
         // # Save setting
-        await notifications.save();
+        await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
 
         // * Verify that the config is correctly saved in the server
         await expect
@@ -284,43 +256,37 @@ test.describe('System Console Notifications', () => {
         await waitForNotificationsServerPreconditions(adminClient);
 
         // # Log in as admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
-        // # Visit Notifications admin console page (direct URL — sidebar link can be off-screen in CI)
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-        await systemConsolePage.gotoNotificationsSettings();
-
-        // # Wait for Notifications section to load
-        const notifications = systemConsolePage.notifications;
-        await notifications.toBeVisible();
+        // # Visit Notifications admin console page, and wait for its settings to load
+        await openNotifications(app);
 
         const tests = [
-            {name: 'Support Email Address', field: notifications.supportEmailAddress},
-            {name: 'Notification Display Name', field: notifications.notificationDisplayName},
-            {name: 'Notification From Address', field: notifications.notificationFromAddress},
+            {name: 'Support Email Address', field: app.admin.setting('SupportSettings.SupportEmail')},
+            {name: 'Notification Display Name', field: app.admin.setting('EmailSettings.FeedbackName')},
+            {name: 'Notification From Address', field: app.admin.setting('EmailSettings.FeedbackEmail')},
         ];
 
         for (const testCase of tests) {
             // # Clear the field
-            await testCase.field.toBeVisible();
-            await testCase.field.clear();
+            const input = testCase.field.valueTextbox.locator;
+            await expect(input).toBeVisible();
+            await input.clear();
 
-            // Scope error check to this field's container to avoid strict-mode failure
-            // when other fields on the page also have validation errors simultaneously.
-            const fieldError = testCase.field.container.locator('.has-error');
+            // The field's own error, so other fields' errors on the page don't interfere
+            const fieldError = testCase.field.validationErrorText.locator;
 
             // * Error message is shown and save button is disabled
             await expect(fieldError).toHaveText(`"${testCase.name}" is required`);
-            await expect(notifications.saveButton).toBeDisabled();
+            await expect(app.admin.saveButton).toBeDisabled();
 
             // # Restore the field with a valid value so format-validation errors from
             // this field don't interfere with the next iteration.
-            await testCase.field.fill('test@example.com');
+            await input.fill('test@example.com');
 
             // * Ensure error for this field is gone and save button is enabled
             await expect(fieldError).toHaveCount(0);
-            await expect(notifications.saveButton).not.toBeDisabled();
+            await expect(app.admin.saveButton).not.toBeDisabled();
         }
     });
 });

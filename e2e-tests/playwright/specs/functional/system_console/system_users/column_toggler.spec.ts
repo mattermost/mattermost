@@ -1,36 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {type App, expect, openSystemUsers, searchSystemUsers, test} from '@mattermost/playwright-lib';
+
+/** Shows (`checked`) or hides columns from the columns menu, from the opposite state, closing it after. */
+async function toggleColumns(app: App, checked: boolean, ...columns: string[]) {
+    const menu = app.admin.users.columnsMenu;
+    await app.admin.users.columnsButton.clickTo(menu.column(columns[0]));
+    for (const column of columns) {
+        const option = menu.column(column);
+        await expect(option).toHaveAttribute('aria-checked', String(!checked));
+        await option.click();
+        await expect(option).toHaveAttribute('aria-checked', String(checked));
+    }
+    await app.page.keyboard.press('Escape');
+    await expect(menu.column(columns[0])).not.toBeVisible();
+}
 
 test('MM-T5523-3 Should list the column names with checkboxes in the correct order', async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
+    // # Log in as admin, open System Console > Users and its columns menu
+    const app = await openSystemUsers(pw, adminUser);
+    await app.admin.users.columnsButton.click();
+    const menu = app.admin.users.columnsMenu;
 
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
-
-    // # Open the column toggle menu
-    const columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
-
-    // # Get all the menu items
-    const menuItems = columnToggleMenu.getAllMenuItems();
-    const menuItemsTexts = await menuItems.allInnerTexts();
-
-    // * Verify menu items exists in the correct order
-    expect(menuItemsTexts).toHaveLength(10);
-    expect(menuItemsTexts).toEqual([
+    // * Verify menu items exist in the correct order
+    await expect(menu.columnList).toHaveKeyCount(10);
+    expect(await menu.columnList.locator.allInnerTexts()).toEqual([
         'User details',
         'Email',
         'Member since',
@@ -47,83 +44,42 @@ test('MM-T5523-3 Should list the column names with checkboxes in the correct ord
 test('MM-T5523-4 Should allow certain columns to be checked and others to be disabled', async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
+    // # Log in as admin, open System Console > Users and its columns menu
+    const app = await openSystemUsers(pw, adminUser);
+    await app.admin.users.columnsButton.click();
+    const menu = app.admin.users.columnsMenu;
 
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
-
-    // # Open the column toggle menu
-    const columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
-
-    // * Verify that 'Display Name' is disabled
-    const displayNameMenuItem = await columnToggleMenu.getMenuItem('User details');
-    expect(displayNameMenuItem).toBeDisabled();
-
-    // * Verify that 'Actions' is disabled
-    const actionsMenuItem = await columnToggleMenu.getMenuItem('Actions');
-    expect(actionsMenuItem).toBeDisabled();
+    // * Verify that 'User details' and 'Actions' are disabled
+    await expect(menu.column('usernameColumn')).toBeDisabled();
+    await expect(menu.column('actionsColumn')).toBeDisabled();
 
     // * Verify that 'Email' however is enabled
-    const emailMenuItem = await columnToggleMenu.getMenuItem('Email');
-    expect(emailMenuItem).not.toBeDisabled();
+    await expect(menu.column('emailColumn')).toBeEnabled();
 });
 
 test('MM-T5523-5 Should show/hide the columns which are toggled on/off', async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
-
-    // # Open the column toggle menu
-    let columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
+    // # Log in as admin and open System Console > Users
+    const app = await openSystemUsers(pw, adminUser);
+    const {head} = app.admin.users.table;
+    await expect(head.column('emailColumn')).toBeVisible();
+    await expect(head.column('lastLoginColumn')).toBeVisible();
 
     // # Uncheck the Email and Last login columns to hide them
-    await columnToggleMenu.clickMenuItem('Email');
-    await columnToggleMenu.clickMenuItem('Last login');
-
-    // * Close the column toggle menu
-    await columnToggleMenu.close();
+    await toggleColumns(app, false, 'emailColumn', 'lastLoginColumn');
 
     // * Verify that Email column and Last login column are hidden
-    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Email'})).not.toBeVisible();
-    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Last login'})).not.toBeVisible();
+    await expect(head.column('usernameColumn')).toBeVisible();
+    await expect(head.column('emailColumn')).not.toBeVisible();
+    await expect(head.column('lastLoginColumn')).not.toBeVisible();
 
-    // # Now open the column toggle menu again
-    columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
+    // # Check the Email column to show it again
+    await toggleColumns(app, true, 'emailColumn');
 
-    // # Check the Email column to show it
-    await columnToggleMenu.clickMenuItem('Email');
-
-    // * Close the column toggle menu
-    await columnToggleMenu.close();
-
-    // * Verify that Email column is now shown
-    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Email'})).toBeVisible();
-
-    // * Verify that however Last login column is still hidden as we did not check it on
-    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Last login'})).not.toBeVisible();
+    // * Verify that Email column is visible again but Last login is still hidden
+    await expect(head.column('emailColumn')).toBeVisible();
+    await expect(head.column('lastLoginColumn')).not.toBeVisible();
 });
 
 /**
@@ -138,11 +94,7 @@ test(
     async ({pw}) => {
         const {adminUser, adminClient, team} = await pw.initSetup();
 
-        if (!adminUser) {
-            throw new Error('Failed to create admin user');
-        }
-
-        // # Create two channels
+        // # Create a guest in exactly two channels
         const ch1Name = `count-ch1-${pw.random.id()}`;
         const channel1 = await adminClient.createChannel({
             team_id: team.id,
@@ -150,7 +102,6 @@ test(
             display_name: ch1Name,
             type: 'O',
         });
-
         const ch2Name = `count-ch2-${pw.random.id()}`;
         const channel2 = await adminClient.createChannel({
             team_id: team.id,
@@ -159,42 +110,24 @@ test(
             type: 'O',
         });
 
-        // # Create a guest user and add to exactly two channels
         const guestUser = await adminClient.createUser(await pw.random.user(), '', '');
         await adminClient.updateUserRoles(guestUser.id, 'system_guest');
         await adminClient.addToTeam(team.id, guestUser.id);
         await adminClient.addToChannel(guestUser.id, channel1.id);
         await adminClient.addToChannel(guestUser.id, channel2.id);
 
-        // # Log in as admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        // # Log in as admin, open System Console > Users and show the Channel count column
+        const app = await openSystemUsers(pw, adminUser);
+        await toggleColumns(app, true, 'channelCountColumn');
 
-        // # Visit system console
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+        // * The column shows
+        await expect(app.admin.users.table.head.column('channelCountColumn')).toBeVisible();
 
-        // # Go to Users section
-        await systemConsolePage.sidebar.users.click();
-        await systemConsolePage.users.toBeVisible();
+        // # Search for the guest
+        await searchSystemUsers(app, guestUser.email, guestUser);
 
-        // # Enable Channel count column
-        const columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
-        await columnToggleMenu.clickMenuItem('Channel count');
-        await columnToggleMenu.close();
-
-        // * Verify Channel count column header is visible
-        await expect(
-            systemConsolePage.users.container.getByRole('columnheader', {name: 'Channel count'}),
-        ).toBeVisible();
-
-        // # Search for the guest user
-        await systemConsolePage.users.searchUsers(guestUser.email);
-        await systemConsolePage.users.isLoadingComplete();
-
-        // * Verify the Channel count cell displays the expected numeric value
-        const firstRow = systemConsolePage.users.container.locator('tbody tr').first();
-        const channelCountCell = firstRow.locator('.channelCountColumn');
-        await expect(channelCountCell).toHaveText('2');
+        // * Verify the guest's channel count is 2
+        await expect(app.admin.users.table.row(guestUser.id).cell('channelCountColumn')).toHaveText('2');
     },
 );
 
@@ -204,36 +137,20 @@ test(
 test('toggles Channel count column visibility on and off', {tag: '@system_users'}, async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
+    // # Log in as admin and open System Console > Users
+    const app = await openSystemUsers(pw, adminUser);
+    const column = app.admin.users.table.head.column('channelCountColumn');
 
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    // # Show the Channel count column
+    await toggleColumns(app, true, 'channelCountColumn');
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    // * Verify it is visible
+    await expect(column).toBeVisible();
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
+    // # Hide it again
+    await toggleColumns(app, false, 'channelCountColumn');
 
-    // # Open the column toggle menu and enable Channel count
-    let columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
-    await columnToggleMenu.clickMenuItem('Channel count');
-    await columnToggleMenu.close();
-
-    // * Verify Channel count column header is visible
-    await expect(systemConsolePage.users.container.getByRole('columnheader', {name: 'Channel count'})).toBeVisible();
-
-    // # Open column toggle menu again and disable Channel count
-    columnToggleMenu = await systemConsolePage.users.openColumnToggleMenu();
-    await columnToggleMenu.clickMenuItem('Channel count');
-    await columnToggleMenu.close();
-
-    // * Verify Channel count column header is hidden
-    await expect(
-        systemConsolePage.users.container.getByRole('columnheader', {name: 'Channel count'}),
-    ).not.toBeVisible();
+    // * Verify it is hidden, while the others show
+    await expect(app.admin.users.table.head.column('emailColumn')).toBeVisible();
+    await expect(column).not.toBeVisible();
 });

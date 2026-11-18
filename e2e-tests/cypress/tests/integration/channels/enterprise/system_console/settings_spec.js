@@ -21,9 +21,9 @@ describe('Settings', () => {
         cy.visit('/admin_console/compliance/monitoring');
 
         // # Enable compliance reporting
-        cy.findByTestId('ComplianceSettings.Enabletrue').click();
+        cy.get('[data-testid="admin.setting:ComplianceSettings.Enable--group"] [data-testid="admin.setting.true--radio"]').click();
 
-        cy.findByTestId('saveSetting').should('be.enabled').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.save--button').should('be.enabled').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Fill up the boxes
         cy.get('#desc').clear().type('sample report');

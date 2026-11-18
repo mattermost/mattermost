@@ -350,6 +350,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
         <Menu.Container
             menuButton={{
                 id: menuButtonId,
+                dataTestId: 'admin.users.table.row.actions--button',
                 class: buttonClassNames({emphasis: 'quaternary', size: 'sm'}, {
                     disabled: disableEditingOtherUsers,
                 }),
@@ -377,6 +378,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {user.delete_at > 0 && (
                 <Menu.Item
                     id={`${menuItemIdPrefix}-active`}
+                    data-testid='admin_user_actions_menu.activate--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.activate'
@@ -392,6 +394,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {isCurrentUserSystemAdmin && !isGuestUser &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-manageRoles`}
+                    data-testid='admin_user_actions_menu.manage_roles--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.manageRoles'
@@ -403,6 +406,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             }
             <Menu.Item
                 id={`${menuItemIdPrefix}-manageTeams`}
+                data-testid='admin_user_actions_menu.manage_teams--menuitem'
                 labels={
                     <FormattedMessage
                         id='admin.system_users.list.actions.menu.manageTeams'
@@ -414,6 +418,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {showManageUserSettings &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-manageTeams`}
+                    data-testid='admin_user_actions_menu.manage_user_settings--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.manageSettings'
@@ -426,6 +431,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {config.ServiceSettings?.EnableUserAccessTokens &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-manageTokens`}
+                    data-testid='admin_user_actions_menu.manage_tokens--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.manageTokens'
@@ -438,6 +444,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {!user.auth_service &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-resetPassword`}
+                    data-testid='admin_user_actions_menu.reset_password--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.resetPassword'
@@ -450,6 +457,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {showResetFailedAttempts() && (
                 <Menu.Item
                     id={`${menuItemIdPrefix}-resetAttempts`}
+                    data-testid='admin_user_actions_menu.reset_attempts--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.resetAttempts'
@@ -462,6 +470,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {user.mfa_active && config.ServiceSettings?.EnableMultifactorAuthentication &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-removeMFA`}
+                    data-testid='admin_user_actions_menu.remove_mfa--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.removeMFA'
@@ -474,6 +483,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {Boolean(user.auth_service) && config.ServiceSettings?.ExperimentalEnableAuthenticationTransfer &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-switchToEmailPassword`}
+                    data-testid='admin_user_actions_menu.switch_to_email_password--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.switchToEmailPassword'
@@ -486,6 +496,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {!user.auth_service &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-updateEmail`}
+                    data-testid='admin_user_actions_menu.update_email--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.updateEmail'
@@ -498,6 +509,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {isGuestUser &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-promoteToMember`}
+                    data-testid='admin_user_actions_menu.promote_to_member--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.promoteToMember'
@@ -510,6 +522,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {!isGuestUser && user.id !== currentUser.id && isLicensed && config.GuestAccountsSettings?.Enable &&
                 <Menu.Item
                     id={`${menuItemIdPrefix}-demoteToGuest`}
+                    data-testid='admin_user_actions_menu.demote_to_guest--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.list.actions.menu.demoteToGuest'
@@ -523,6 +536,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 {!user.delete_at &&
                     <Menu.Item
                         id={`${menuItemIdPrefix}-removeSessions`}
+                        data-testid='admin_user_actions_menu.revoke_sessions--menuitem'
                         labels={
                             <FormattedMessage
                                 id='admin.system_users.list.actions.menu.removeSessions'
@@ -537,6 +551,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 {(user.auth_service === Constants.LDAP_SERVICE || (user.auth_service === Constants.SAML_SERVICE && config.SamlSettings?.EnableSyncWithLdap)) &&
                     <Menu.Item
                         id={`${menuItemIdPrefix}-resyncUserViaLdapGroups`}
+                        data-testid='admin_user_actions_menu.resync_ldap_groups--menuitem'
                         labels={
                             <FormattedMessage
                                 id='admin.system_users.list.actions.menu.resyncUserViaLdapGroups'
@@ -550,6 +565,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
             {user.delete_at === 0 && (
                 <Menu.Item
                     id={`${menuItemIdPrefix}-deactivate`}
+                    data-testid='admin_user_actions_menu.deactivate--menuitem'
                     isDestructive={true}
                     labels={
                         <FormattedMessage

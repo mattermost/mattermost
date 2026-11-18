@@ -14,7 +14,7 @@ Cypress.Commands.add('uiEnableComplianceExport', (exportFormat = 'csv') => {
     cy.findByRole('radio', {name: /true/i}).click();
 
     // # Change export format
-    cy.findByTestId('exportFormatdropdown').should('be.visible').select(exportFormat);
+    cy.get('[data-testid="admin.setting:exportFormat--group"] [data-testid="admin.setting.choice--combobox"]').should('be.visible').select(exportFormat);
 
     // # Save settings
     cy.uiSaveConfig({confirm: true});

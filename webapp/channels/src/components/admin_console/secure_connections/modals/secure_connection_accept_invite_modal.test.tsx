@@ -57,10 +57,10 @@ describe('SecureConnectionAcceptInviteModal', () => {
         );
 
         expect(screen.getByText('Accept a connection invite')).toBeInTheDocument();
-        expect(screen.getByTestId('display-name')).toBeInTheDocument();
-        expect(screen.getByTestId('destination-team-input')).toBeInTheDocument();
-        expect(screen.getByTestId('invite-code')).toBeInTheDocument();
-        expect(screen.getByTestId('password')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.accept_invite_modal.name--textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.accept_invite_modal.destination_team')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.accept_invite_modal.code--textbox')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.accept_invite_modal.password--textbox')).toBeInTheDocument();
     });
 
     it('keeps the Accept button disabled when any single field is missing', async () => {
@@ -77,9 +77,9 @@ describe('SecureConnectionAcceptInviteModal', () => {
         );
 
         // Fill three of four — omit the password.
-        await user.type(screen.getByTestId('display-name'), 'Acme Org');
-        await user.type(screen.getByTestId('invite-code'), 'INVITE');
-        await user.click(screen.getByTestId('destination-team-input'));
+        await user.type(screen.getByTestId('admin.accept_invite_modal.name--textbox'), 'Acme Org');
+        await user.type(screen.getByTestId('admin.accept_invite_modal.code--textbox'), 'INVITE');
+        await user.click(screen.getByTestId('admin.accept_invite_modal.destination_team'));
 
         expect(screen.getByRole('button', {name: 'Accept'})).toBeDisabled();
     });
@@ -100,10 +100,10 @@ describe('SecureConnectionAcceptInviteModal', () => {
         const accept = screen.getByRole('button', {name: 'Accept'});
         expect(accept).toBeDisabled();
 
-        await user.type(screen.getByTestId('display-name'), 'Acme Org');
-        await user.type(screen.getByTestId('invite-code'), 'INVITE');
-        await user.type(screen.getByTestId('password'), 'PASSWORD');
-        await user.click(screen.getByTestId('destination-team-input'));
+        await user.type(screen.getByTestId('admin.accept_invite_modal.name--textbox'), 'Acme Org');
+        await user.type(screen.getByTestId('admin.accept_invite_modal.code--textbox'), 'INVITE');
+        await user.type(screen.getByTestId('admin.accept_invite_modal.password--textbox'), 'PASSWORD');
+        await user.click(screen.getByTestId('admin.accept_invite_modal.destination_team'));
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Accept'})).toBeEnabled();
@@ -125,10 +125,10 @@ describe('SecureConnectionAcceptInviteModal', () => {
             baseState,
         );
 
-        await user.type(screen.getByTestId('display-name'), 'Acme Org');
-        await user.type(screen.getByTestId('invite-code'), 'INVITE');
-        await user.type(screen.getByTestId('password'), 'PASSWORD');
-        await user.click(screen.getByTestId('destination-team-input'));
+        await user.type(screen.getByTestId('admin.accept_invite_modal.name--textbox'), 'Acme Org');
+        await user.type(screen.getByTestId('admin.accept_invite_modal.code--textbox'), 'INVITE');
+        await user.type(screen.getByTestId('admin.accept_invite_modal.password--textbox'), 'PASSWORD');
+        await user.click(screen.getByTestId('admin.accept_invite_modal.destination_team'));
 
         await user.click(screen.getByRole('button', {name: 'Accept'}));
 
@@ -159,10 +159,10 @@ describe('SecureConnectionAcceptInviteModal', () => {
             baseState,
         );
 
-        await user.type(screen.getByTestId('display-name'), 'Acme Org');
-        await user.type(screen.getByTestId('invite-code'), 'INVITE');
-        await user.type(screen.getByTestId('password'), 'PASSWORD');
-        await user.click(screen.getByTestId('destination-team-input'));
+        await user.type(screen.getByTestId('admin.accept_invite_modal.name--textbox'), 'Acme Org');
+        await user.type(screen.getByTestId('admin.accept_invite_modal.code--textbox'), 'INVITE');
+        await user.type(screen.getByTestId('admin.accept_invite_modal.password--textbox'), 'PASSWORD');
+        await user.click(screen.getByTestId('admin.accept_invite_modal.destination_team'));
 
         await user.click(screen.getByRole('button', {name: 'Accept'}));
 

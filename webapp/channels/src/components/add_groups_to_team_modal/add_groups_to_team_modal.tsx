@@ -304,7 +304,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body data-testid='add_groups_to_team_modal'>
                     {addError}
                     <MultiSelect
                         testId='add_groups_to_team_modal.groups'

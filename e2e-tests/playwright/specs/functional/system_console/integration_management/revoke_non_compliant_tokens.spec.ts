@@ -1,9 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from '@mattermost/client';
+import {Client4, ClientError} from '@mattermost/client';
 
-import {expect, test, testConfig} from '@mattermost/playwright-lib';
+import {
+    openSystemConsoleSection,
+    Api,
+    expect,
+    Msg,
+    settle,
+    systemConsolePath,
+    test,
+    testConfig,
+    type App,
+} from '@mattermost/playwright-lib';
 
 /**
  * E2E coverage for the "Revoke non-compliant tokens" admin console control added in
@@ -17,19 +27,14 @@ import {expect, test, testConfig} from '@mattermost/playwright-lib';
  * A bot created via the REST API is always owned by the creating user, so the plugin-owned
  * case is covered by the server-side tests rather than here.
  *
- * The non-compliant count and revoke operation are global (every user's tokens, not just
- * the test's own), and this server is shared across concurrently running tests/workers.
- * So assertions here check per-token outcomes (does this specific token still authenticate)
- * and UI state transitions (enabled/disabled, which banner mode) rather than exact global
- * counts, which would be flaky. See commit 56716c3616 for the same lesson learned in the
- * server-side store tests.
  */
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const TOKEN_ROLES = 'system_user system_user_access_token';
 
-// Returns whether the given personal access token can still authenticate. The token
-// secret is only present on the UserAccessToken returned at creation time.
+// Returns whether the given personal access token can still authenticate: a revoked or expired token is
+// refused with 401, any other failure is a real error. The token secret is only present on the
+// UserAccessToken returned at creation time.
 async function tokenIsUsable(token: string | undefined): Promise<boolean> {
     if (!token) {
         throw new Error('Expected a token secret, but none was returned by createUserAccessToken');
@@ -41,10 +46,24 @@ async function tokenIsUsable(token: string | undefined): Promise<boolean> {
     try {
         await client.getMe();
         return true;
-    } catch {
-        return false;
+    } catch (error) {
+        if (error instanceof ClientError && error.status_code === 401) {
+            return false;
+        }
+        throw error;
     }
 }
+
+/** Opens System Console > Integrations > Integration Management through the sidebar. */
+async function openIntegrationManagement(app: App) {
+    await openSystemConsoleSection(app);
+    await app.admin.sidebar.category('integrations').section('integration_management').titleLink.click();
+    await expect(app.page).toHavePath(systemConsolePath('integrations/integration_management'));
+    await expect(app.admin.screen('CustomIntegrationSettings')).toBeVisible();
+    return app.admin.revokeTokens;
+}
+
+const VIOLATION = /\d+ personal access tokens? currently violates? the maximum lifetime policy\./;
 
 test.describe('System Console > Integrations > Revoke non-compliant tokens @system_console', () => {
     test('disables the button and shows a compliant banner when no policy is configured', async ({pw}) => {
@@ -61,19 +80,14 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
         // # A never-expiring token is fine while there is no cap
         const token = await adminClient.createUserAccessToken(user.id, 'never expires token');
 
-        const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-        await systemConsolePage.sidebar.integrations.integrationManagement.click();
-        await page.waitForURL(/\/admin_console\/integrations\/integration_management/);
-
-        const section = page.getByTestId('sysconsole_section_CustomIntegrationSettings');
-        await expect(section).toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        const revoke = await openIntegrationManagement(app);
 
         // * With no policy configured the server-side count is always 0 (nothing is
         // "non-compliant" without a cap to violate), so the button is deterministically disabled
-        await expect(section.getByText('No personal access tokens currently need to be revoked.')).toBeVisible();
-        await expect(section.getByRole('button', {name: 'Revoke non-compliant tokens'})).toBeDisabled();
+        await expect(revoke.status).toContainMessage(Msg.admin.service.revokeNonCompliantTokens.none);
+        await expect(revoke.status).toBeVisible();
+        await expect(revoke.revokeButton).toBeDisabled();
         expect(await tokenIsUsable(token.token)).toBe(true);
     });
 
@@ -92,29 +106,23 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
             return cfg.ServiceSettings?.MaximumPersonalAccessTokenLifetimeDays === 30;
         });
 
-        const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-        await systemConsolePage.sidebar.integrations.integrationManagement.click();
-        await page.waitForURL(/\/admin_console\/integrations\/integration_management/);
-
-        const section = page.getByTestId('sysconsole_section_CustomIntegrationSettings');
-        await expect(section).toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        const revoke = await openIntegrationManagement(app);
 
         // * At least one violation is now shown (ours), and the button is enabled
-        await expect(
-            section.getByText(/\d+ personal access tokens? currently violates? the maximum lifetime policy\./),
-        ).toBeVisible();
-        const revokeButton = section.getByRole('button', {name: 'Revoke non-compliant tokens'});
-        await expect(revokeButton).toBeEnabled();
+        await expect(revoke.status).toContainText(VIOLATION);
+        await expect(revoke.status).toBeVisible();
+        await expect(revoke.revokeButton).toBeEnabled();
 
         // # Open the confirmation and cancel it
-        await revokeButton.click();
-        const confirmModal = page.locator('#confirmModal');
-        await expect(confirmModal.getByText('Revoke non-compliant personal access tokens?')).toBeVisible();
-        await expect(confirmModal.getByText(/This will permanently revoke \d+ personal access tokens?/)).toBeVisible();
-        await confirmModal.getByRole('button', {name: 'Cancel'}).click();
-        await expect(confirmModal).toBeHidden();
+        await revoke.revokeButton.click();
+        const confirmModal = app.admin.revokeNonCompliantTokensModal;
+        await expect(confirmModal).toContainMessage(Msg.admin.service.revokeNonCompliantTokens.confirmTitle);
+        await expect(confirmModal).toBeVisible();
+        await expect(confirmModal).toContainText(/This will permanently revoke \d+ personal access tokens?/);
+        await expect(confirmModal).toBeVisible();
+        await confirmModal.cancelButton.click();
+        await expect(confirmModal.cancelButton).toBeHidden();
 
         // * Cancelling did not revoke our token
         expect(await tokenIsUsable(token.token)).toBe(true);
@@ -153,24 +161,23 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
             return cfg.ServiceSettings?.MaximumPersonalAccessTokenLifetimeDays === 30;
         });
 
-        const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-        await systemConsolePage.sidebar.integrations.integrationManagement.click();
-        await page.waitForURL(/\/admin_console\/integrations\/integration_management/);
-
-        const section = page.getByTestId('sysconsole_section_CustomIntegrationSettings');
-        await expect(section).toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        const revoke = await openIntegrationManagement(app);
 
         // # Confirm the revoke
-        await section.getByRole('button', {name: 'Revoke non-compliant tokens'}).click();
-        const confirmModal = page.locator('#confirmModal');
-        await confirmModal.getByRole('button', {name: 'Revoke tokens'}).click();
+        await revoke.revokeButton.click();
+        const confirmModal = app.admin.revokeNonCompliantTokensModal;
+        await expect(confirmModal.confirmButton).toHaveMessage(
+            Msg.admin.service.revokeNonCompliantTokens.confirmButton,
+        );
+        await expect(confirmModal.confirmButton).toBeVisible();
+        await settle(confirmModal.confirmButton, {wait: Api.RevokeNonCompliantUserAccessTokens}).click();
 
         // * The success banner reports how many were revoked, and the button disables again
         // (nothing left to revoke, since a revoke sweeps every non-compliant token server-wide)
-        await expect(section.getByText(/Revoked \d+ non-compliant personal access tokens?\./)).toBeVisible();
-        await expect(section.getByRole('button', {name: 'Revoke non-compliant tokens'})).toBeDisabled();
+        await expect(revoke.revoked).toContainText(/Revoked \d+ non-compliant personal access tokens?\./);
+        await expect(revoke.revoked).toBeVisible();
+        await expect(revoke.revokeButton).toBeDisabled();
 
         // * The non-compliant token can no longer authenticate
         await expect(async () => {
@@ -196,25 +203,17 @@ test.describe('System Console > Integrations > Revoke non-compliant tokens @syst
         // # Seed a never-expiring token while there is no cap
         const token = await adminClient.createUserAccessToken(user.id, 'never expires token');
 
-        const {systemConsolePage, page} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
-        await systemConsolePage.sidebar.integrations.integrationManagement.click();
-        await page.waitForURL(/\/admin_console\/integrations\/integration_management/);
-
-        const section = page.getByTestId('sysconsole_section_CustomIntegrationSettings');
-        await expect(section).toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        const revoke = await openIntegrationManagement(app);
 
         // # Set a maximum lifetime and save, without leaving the page
-        const maxLifetimeInput = section.getByTestId('ServiceSettings.MaximumPersonalAccessTokenLifetimeDaysnumber');
-        await maxLifetimeInput.fill('30');
-        await section.getByRole('button', {name: 'Save'}).click();
+        await app.admin.setting('ServiceSettings.MaximumPersonalAccessTokenLifetimeDays').numberSpinButton.fill('30');
+        await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
 
         // * The banner refreshes to flag the newly non-compliant token, without a page reload
-        await expect(
-            section.getByText(/\d+ personal access tokens? currently violates? the maximum lifetime policy\./),
-        ).toBeVisible();
-        await expect(section.getByRole('button', {name: 'Revoke non-compliant tokens'})).toBeEnabled();
+        await expect(revoke.status).toContainText(VIOLATION);
+        await expect(revoke.status).toBeVisible();
+        await expect(revoke.revokeButton).toBeEnabled();
         expect(await tokenIsUsable(token.token)).toBe(true);
     });
 });

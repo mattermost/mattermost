@@ -18,8 +18,8 @@ type Props = {
     /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`, ...); without it the row keeps its input-id based ids. */
     testIdScope?: string;
 
-    /** The row's own testid when it isn't the scope (a keyed row: `admin.setting:<key>--region`). */
-    testId?: string;
+    /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
+    testKey?: string;
 };
 
 export function parseMatrixValue(entries: string[]): Map<string, Set<string>> {
@@ -60,7 +60,7 @@ const CheckboxMatrixSetting = ({
     value,
     disabled,
     testIdScope,
-    testId,
+    testKey,
 }: Props) => {
     const rows = matrixConfig.rows || [];
     const columns = matrixConfig.columns || [];
@@ -100,10 +100,16 @@ const CheckboxMatrixSetting = ({
 
     const handleChange = rowSelection === 'single' ? handleRadioChange : handleCheckboxChange;
 
+    let rootTestId = id;
+    if (testIdScope) {
+        rootTestId = testKey ? `${testIdScope}:${testKey}--group` : `${testIdScope}--group`;
+    }
+
     return (
         <div
             className='form-group'
-            data-testid={testIdScope ? testId ?? testIdScope : id}
+            role='group'
+            data-testid={rootTestId}
         >
             {label && (
                 <label

@@ -40,10 +40,10 @@ describe('Managing bot accounts', () => {
         cy.visit('/admin_console/integrations/bot_accounts');
 
         // # Click 'false' to disable
-        cy.findByTestId('ServiceSettings.EnableBotAccountCreationfalse', {timeout: TIMEOUTS.ONE_MIN}).click();
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableBotAccountCreation--group"] [data-testid="admin.setting.false--radio"]', {timeout: TIMEOUTS.ONE_MIN}).click();
 
         // # Save
-        cy.findByTestId('saveSetting').should('be.enabled').click();
+        cy.findByTestId('admin.save--button').should('be.enabled').click();
 
         // # Visit the integrations
         cy.visit(`/${newTeam.name}/integrations/bots`);
@@ -57,10 +57,10 @@ describe('Managing bot accounts', () => {
         cy.visit('/admin_console/integrations/bot_accounts');
 
         // # Click 'false' to disable
-        cy.findByTestId('ServiceSettings.EnableBotAccountCreationfalse', {timeout: TIMEOUTS.ONE_MIN}).click();
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableBotAccountCreation--group"] [data-testid="admin.setting.false--radio"]', {timeout: TIMEOUTS.ONE_MIN}).click();
 
         // # Save
-        cy.findByTestId('saveSetting').should('be.enabled').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.save--button').should('be.enabled').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Validate that creating bot fails
 
@@ -86,7 +86,7 @@ describe('Managing bot accounts', () => {
         cy.visit('/admin_console/integrations/bot_accounts');
 
         // * Check that creation is enabled
-        cy.findByTestId('ServiceSettings.EnableBotAccountCreationtrue', {timeout: TIMEOUTS.ONE_MIN}).should('be.checked');
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableBotAccountCreation--group"] [data-testid="admin.setting.true--radio"]', {timeout: TIMEOUTS.ONE_MIN}).should('be.checked');
 
         // # Visit the integrations
         cy.visit(`/${newTeam.name}/integrations/bots`);

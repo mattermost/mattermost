@@ -18,7 +18,7 @@ describe('Feature discovery', () => {
     });
 
     const testCallsToAction = () => {
-        cy.get("a[data-testid$='CallToAction']").each(($el) => {
+        cy.get('a[data-testid="admin.feature_discovery.secondary--link"]').each(($el) => {
             cy.wrap($el).should('have.attr', 'href').and('not.eq', '');
             cy.wrap($el).should('have.attr', 'target', '_blank');
         });
@@ -39,7 +39,7 @@ describe('Feature discovery', () => {
             {sidebarName: 'Guest Access', featureDiscoveryTitle: 'guest accounts'},
         ].forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='admin.feature_discovery.title--text']").should('contain', featureDiscoveryTitle);
             testCallsToAction();
         });
     });

@@ -56,11 +56,6 @@ interface Props extends FirstMenuItemProps {
     children: ReactNode;
 }
 
-// A data attribute on the popover's paper (the element that scrolls); spread in so it passes the paper's prop types.
-function paperTestIdProps(testIdScope?: string): Record<string, string> {
-    return testIdScope ? {'data-testid': `${testIdScope}.paper`} : {};
-}
-
 export function SubMenu(props: Props) {
     const {
         id,
@@ -187,7 +182,7 @@ export function SubMenu(props: Props) {
                     anchorOrigin={originOfAnchorAndTransform.anchorOrigin}
                     transformOrigin={originOfAnchorAndTransform.transformOrigin}
                     className='menu_menuStyled AsSubMenu'
-                    slotProps={{paper: paperTestIdProps(testIdScope)}}
+                    slotProps={{paper: testIdScope ? ({'data-testid': `${testIdScope}.paper`} as Record<string, string>) : undefined}}
                 >
                     {subMenuHeader}
                     <MuiMenuList

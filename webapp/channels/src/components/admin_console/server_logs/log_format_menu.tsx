@@ -25,11 +25,13 @@ export default function LogFormatMenu({isPlainLogs, onChange}: Props) {
         <Menu.Container
             menuButton={{
                 id: 'serverLogsFormatMenuButton',
+                testId: 'admin.server_logs.log_format',
                 class: 'inputWithMenu',
                 'aria-label': formatMessage({id: 'admin.logs.logFormat.menuButtonAriaLabel', defaultMessage: 'Open menu to select the log format'}),
                 as: 'div',
                 children: (
                     <Input
+                        testId='admin.server_logs.log_format_input'
                         label={formatMessage(messages.label)}
                         name='serverLogsFormat'
                         value={formatMessage(isPlainLogs ? messages.plain : messages.structured)}
@@ -40,11 +42,13 @@ export default function LogFormatMenu({isPlainLogs, onChange}: Props) {
             }}
             menu={{
                 id: 'serverLogsFormatMenu',
+                testId: 'admin.server_logs.log_format_menu',
                 'aria-label': formatMessage({id: 'admin.logs.logFormat.dropdownAriaLabel', defaultMessage: 'Log format menu'}),
             }}
         >
             <Menu.Item
                 id='serverLogsFormatStructured'
+                data-testid='admin.server_logs.log_format_menu.structured--menuitemradio'
                 role='menuitemradio'
                 aria-checked={!isPlainLogs}
                 forceCloseOnSelect={true}
@@ -54,6 +58,7 @@ export default function LogFormatMenu({isPlainLogs, onChange}: Props) {
             />
             <Menu.Item
                 id='serverLogsFormatPlain'
+                data-testid='admin.server_logs.log_format_menu.plain--menuitemradio'
                 role='menuitemradio'
                 aria-checked={isPlainLogs}
                 forceCloseOnSelect={true}

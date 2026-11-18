@@ -151,6 +151,7 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.deactivate_modal'
             title={title}
             message={message}
             destructive={true}

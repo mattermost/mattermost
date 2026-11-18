@@ -84,13 +84,14 @@ const renderReviewMessage = (conflict: PluginInstallConflict | null) => {
             id={conflict.plugin_id}
             version=''
             homepageUrl={conflict.homepage_url}
+            testId='admin.plugins.overwrite_modal.review.plugin'
         />
     ) : null;
 
     return (
         <div
             className={`PluginUploadOverwriteReview ${directionClassName}`}
-            data-testid='plugin-upload-overwrite-review'
+            data-testid='admin.plugins.overwrite_modal.review'
         >
             <p className='PluginUploadOverwriteReview__message'>
                 {warningCopy}
@@ -113,7 +114,7 @@ const renderReviewMessage = (conflict: PluginInstallConflict | null) => {
                         defaultMessage='Version change'
                     />
                 </dt>
-                <dd>
+                <dd data-testid='admin.plugins.overwrite_modal.review.version_change--text'>
                     {displayExistingVersion}
                     {' → '}
                     {displayUploadedVersion}
@@ -147,6 +148,7 @@ export default function PluginUploadOverwriteReviewModal({show, conflict, onConf
             confirmButtonText={overwriteButton}
             onConfirm={onConfirm}
             onCancel={onCancel}
+            testId='admin.plugins.overwrite_modal'
         />
     );
 }

@@ -40,6 +40,7 @@ export function RevokeSessionsButton() {
                 emphasis='tertiary'
                 destructive={true}
                 onClick={handleModalToggle}
+                data-testid='admin.users.revoke_all_sessions--button'
             >
                 <FormattedMessage
                     id='admin.system_users.revokeAllSessions'
@@ -69,6 +70,7 @@ export function RevokeSessionsButton() {
                 }
                 onConfirm={handleModalConfirm}
                 onCancel={handleModalToggle}
+                testId='admin.users.revoke_all_sessions_modal'
             />
         </SystemPermissionGate>
     );

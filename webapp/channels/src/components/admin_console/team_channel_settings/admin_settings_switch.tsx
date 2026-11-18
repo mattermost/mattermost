@@ -16,6 +16,8 @@ type Props = {
 
     /** Extra content rendered below the switch row (e.g. domain input). */
     footer?: ReactNode;
+
+    testId?: string;
 };
 
 /**
@@ -24,9 +26,6 @@ type Props = {
  *
  * Uses `size="medium"` + `semiBold` to match Channel Settings rows. The old
  * Toggle adapter defaulted to `btn-lg` → Compass `large` (16px label).
- *
- * Preserves both `data-testid={id}` (wrapper, for Cypress) and
- * `data-testid={`${id}-button`}` (on the switch input, for unit tests).
  */
 const AdminSettingsSwitch = ({
     id,
@@ -37,19 +36,20 @@ const AdminSettingsSwitch = ({
     last,
     disabled,
     footer,
+    testId,
 }: Props): JSX.Element => (
     <>
-        <div data-testid={id}>
+        <div data-testid={testId ? `${testId}.row--group` : undefined}>
             <Switch
                 id={id}
                 size='medium'
                 checked={checked}
                 disabled={disabled}
                 onChange={onChange}
-                data-testid={`${id}-button`}
+                data-testid={testId ? `${testId}--switch` : undefined}
                 tabIndex={0}
                 semiBold={true}
-                secondaryLabel={secondaryLabel}
+                secondaryLabel={<span data-testid={testId ? `${testId}.help--text` : undefined}>{secondaryLabel}</span>}
             >
                 {children}
             </Switch>

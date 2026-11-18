@@ -21,8 +21,8 @@ type Props = {
 
     testIdScope?: string;
 
-    /** The row's own testid when it isn't the scope (a keyed row). */
-    testId?: string;
+    /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
+    testKey?: string;
 };
 
 const BoolSetting = ({
@@ -38,7 +38,7 @@ const BoolSetting = ({
     autoFocus,
     labelPosition = 'after',
     testIdScope,
-    testId,
+    testKey,
 }: Props) => {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.checked);
@@ -57,7 +57,7 @@ const BoolSetting = ({
             helpText={helpText}
             inputId={id}
             testIdScope={testIdScope}
-            testId={testId}
+            testKey={testKey}
         >
             <div className='checkbox'>
                 <label>

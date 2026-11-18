@@ -102,6 +102,7 @@ export function SystemUsersExport(props: Props) {
     const button = (
         <Button
             onClick={handleExport}
+            data-testid='admin.users.export--button'
             emphasis='tertiary'
             size='medium'
             disabled={!props.usersLenght}

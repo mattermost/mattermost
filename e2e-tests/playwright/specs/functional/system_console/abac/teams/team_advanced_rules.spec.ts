@@ -22,7 +22,7 @@ import {
     test,
     verifyUserInChannel,
 } from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import type {App, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 import {
     addAttributeRule,
@@ -234,15 +234,16 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         return {adminClient, adminUser, team, users};
     }
 
-    async function openTeamRules(page: Page, team: Team) {
+    async function openTeamRules(app: App, team: Team) {
+        const {page} = app;
         const policyFetchDone = page
             .waitForResponse((resp) => resp.url().includes(`/teams/${team.id}/access_control/policy`), {
                 timeout: 20_000,
             })
             .catch(() => {});
-        await openTeamConfig(page, team.display_name);
+        await openTeamConfig(app, team.display_name);
         await policyFetchDone;
-        await setToggle(page, true);
+        await setToggle(app, true);
 
         const rulesPanel = page.locator('#team_level_access_rules');
         await expect(rulesPanel).toBeVisible({timeout: 15_000});
@@ -269,8 +270,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     test('MM-71104-T1 toggle defaults to Simple and carries the rule across modes', async ({pw}) => {
         const {adminUser, team} = await setupFixture(pw);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
 
         await addAttributeRule(rulesPanel, page, 'Engineering', DEPT);
 
@@ -291,8 +292,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     test('MM-71104-T2 saves a valid Advanced OR rule on a private team', async ({pw}) => {
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(app, team);
 
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, orRule());
@@ -320,8 +321,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         const {adminClient, adminUser, team} = await setupFixture(pw);
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
 
         await expect(rulesPanel.locator('.monaco-editor')).toBeVisible({timeout: 15_000});
         const toggle = page.getByTestId('team-rules-editor-mode-toggle');
@@ -332,8 +333,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     test('MM-71104-T4 a simple rule typed in Advanced can go back to Simple', async ({pw}) => {
         const {adminUser, team} = await setupFixture(pw);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
 
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, simpleRule());
@@ -353,8 +354,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         const parent = await createTeamMembershipParentPolicy(adminClient, parentName, engineeringRule());
         createdPolicyIds.push(parent.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(app, team);
 
         await page.locator('[data-testid="link-to-a-policy"]').click();
         const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
@@ -382,8 +383,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     test('MM-71104-T6 Save during the validation delay is still blocked', async ({pw}) => {
         const {adminClient, adminUser, team} = await setupFixture(pw);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(app, team);
 
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, invalidRule());
@@ -400,8 +401,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     test('MM-71104-T7 resource attribute references are rejected', async ({pw}) => {
         const {adminUser, team} = await setupFixture(pw);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
 
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, 'resource.attributes.Program == "x"');
@@ -416,8 +417,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     test('MM-71104-T8 session attribute references are rejected', async ({pw}) => {
         const {adminUser, team} = await setupFixture(pw);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
         const statusBar = rulesPanel.locator('.cel-editor__status-bar');
 
         await switchTeamRulesMode(page);
@@ -440,8 +441,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
     test('MM-71104-T9 Test access rule in Advanced previews workspace-wide matches', async ({pw}) => {
         const {adminUser, team, users} = await setupFixture(pw, {members: ['engUS', 'engAPAC']});
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(app, team);
 
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, orRule());
@@ -525,8 +526,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         const channel = await createPrivateChannel(adminClient, team.id);
         await adminClient.addToChannel(users.engAPAC.id, channel.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
 
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, orRule());
@@ -583,8 +584,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         expect((await addTeamMemberRaw(token, base, team.id, users.engAPAC.id)).status).toBe(403);
         expect((await addTeamMemberRaw(token, base, team.id, users.salesEU.id)).status).toBe(403);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(app, team);
         const parentRow = page
             .locator('#team_access_control_with_policy')
             .locator('.policy-name')
@@ -604,7 +605,7 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         await expect.poll(() => getMembershipExpression(adminClient, team.id), {timeout: 15_000}).toBe(editedRule);
 
         // A successful save returns to the teams list; reopen to check the link survived.
-        await openTeamConfig(page, team.display_name);
+        await openTeamConfig(app, team.display_name);
         await expect(parentRow).toBeVisible({timeout: 15_000});
         const saved: any = await getTeamAccessControlPolicy(adminClient, team.id);
         expect(saved.policy.imports).toContain(parent.id);
@@ -628,8 +629,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         const {adminClient, adminUser, team} = await setupFixture(pw);
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
         await expect(rulesPanel.locator('.monaco-editor')).toBeVisible({timeout: 15_000});
 
         await clearMonaco(page);
@@ -649,8 +650,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         createdPolicyIds.push(parent.id);
         await assignTeamsToPolicy(adminClient, parent.id, [team.id]);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
         await expect(rulesPanel.locator('.monaco-editor')).toBeVisible({timeout: 15_000});
 
         await clearMonaco(page);
@@ -677,10 +678,10 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         test('MM-71104-T15a the rules section is hidden while the team toggle is off', async ({pw}) => {
             const {adminUser, team} = await setupFixture(pw);
 
-            const {page} = await pw.testBrowser.login(adminUser);
-            await openTeamRules(page, team);
+            const {page, app} = await pw.testBrowser.login(adminUser);
+            await openTeamRules(app, team);
 
-            await setToggle(page, false);
+            await setToggle(app, false);
             await expect(page.locator('#team_level_access_rules')).toHaveCount(0);
         });
 
@@ -688,8 +689,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
             const {adminClient, adminUser, team} = await setupFixture(pw);
             await adminClient.patchConfig({AccessControlSettings: {EnableAttributeBasedAccessControl: false}} as any);
 
-            const {page} = await pw.testBrowser.login(adminUser);
-            await openTeamConfig(page, team.display_name);
+            const {page, app} = await pw.testBrowser.login(adminUser);
+            await openTeamConfig(app, team.display_name);
 
             await expect(page.locator('[data-testid="policy-enforce-toggle-button"]')).toHaveCount(0);
             await expect(page.locator('#team_level_access_rules')).toHaveCount(0);
@@ -822,8 +823,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         const {adminClient, adminUser, team} = await setupFixture(pw);
         await createTeamMembershipPolicy(adminClient, team.id, orRule(), false);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
         await expect(rulesPanel.locator('.monaco-editor')).toBeVisible({timeout: 15_000});
 
         await typeTeamRulesCel(page, simpleRule());
@@ -835,15 +836,15 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
 
         expect(await getMembershipExpression(adminClient, team.id)).toBe(orRule());
 
-        const reopened = await openTeamRules(page, team);
+        const reopened = await openTeamRules(app, team);
         await expect(reopened.locator('.cel-editor')).toContainText(orRule(), {timeout: 15_000});
     });
 
     test('MM-71104-T18 the toggle and Advanced editor are keyboard operable and accessible', async ({pw, axe}) => {
         const {adminUser, team} = await setupFixture(pw);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
 
         const toggle = page.getByTestId('team-rules-editor-mode-toggle');
         await expect(toggle).toBeEnabled({timeout: 60_000});
@@ -946,8 +947,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         );
 
         // # Type the same rule in the Advanced editor
-        const {page} = await pw.testBrowser.login(adminUser);
-        const rulesPanel = await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        const rulesPanel = await openTeamRules(app, team);
         await switchTeamRulesMode(page);
         await typeTeamRulesCel(page, ternaryRule());
 
@@ -977,8 +978,8 @@ test.describe('ABAC - Team Advanced membership rules', {tag: ['@abac', '@team_me
         const parent = await createTeamMembershipParentPolicy(adminClient, parentName, engineeringRule());
         createdPolicyIds.push(parent.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        await openTeamRules(page, team);
+        const {page, app} = await pw.testBrowser.login(adminUser);
+        await openTeamRules(app, team);
 
         await page.locator('[data-testid="link-to-a-policy"]').click();
         const modal = page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});

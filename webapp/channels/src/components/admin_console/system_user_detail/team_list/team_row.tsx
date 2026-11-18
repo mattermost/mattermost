@@ -81,19 +81,22 @@ export default class TeamRow extends React.PureComponent<Props> {
         return (
             <div
                 className={'TeamRow'}
-                data-testid='teamRow'
+                role='group'
+                aria-labelledby={`admin-user-team-${team.id}-name`}
+                data-testid={`admin.user.teams.team:${team.id}--group`}
             >
                 <div className='TeamRow__row'>
                     <div className='TeamRow__team-name'>
                         <div className='col-sm-auto'>
                             <TeamIcon
+                                testIdScope='admin.user.teams.team'
                                 size='sm'
                                 url={teamIconUrl}
                                 content={team.display_name}
                             />
                         </div>
                         <div className='col-md-auto'>
-                            <b>{team.display_name}</b>
+                            <b id={`admin-user-team-${team.id}-name`}>{team.display_name}</b>
                             {team.description && (
                                 <div className='overflow--ellipsis text-nowrap TeamRow__team-description'>
                                     {team.description}

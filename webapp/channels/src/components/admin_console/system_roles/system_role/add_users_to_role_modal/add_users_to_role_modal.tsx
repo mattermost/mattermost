@@ -121,6 +121,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
             <div
                 key={option.id}
                 className={'more-modal__row clickable ' + rowSelected}
+                data-testid={`add_users_to_role_modal.users.results.user:${option.id}`}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >
@@ -248,7 +249,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body data-testid='add_users_to_role_modal'>
                     {addError}
                     <MultiSelect
                         testId='add_users_to_role_modal.users'

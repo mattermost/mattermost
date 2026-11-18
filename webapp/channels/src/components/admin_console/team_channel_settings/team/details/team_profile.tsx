@@ -48,6 +48,7 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
                     leftActions={
                         <Button
                             type='button'
+                            data-testid='admin.team.archive--button'
                             disabled={isDisabled}
                             emphasis='secondary'
                             destructive={true}
@@ -67,6 +68,7 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
             <div className='d-flex'>
                 <div className='large-team-image-col'>
                     <TeamIcon
+                        testIdScope='admin.team.profile'
                         content={name || team.display_name}
                         size='lg'
                         url={teamIconUrl}
@@ -76,7 +78,7 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
                     <div className='row row-bottom-padding'>
                         <Input
                             id='teamName'
-                            data-testid='teamNameInput'
+                            testId='admin.team.name'
                             type='text'
                             maxLength={Constants.MAX_TEAMNAME_LENGTH}
                             value={name}
@@ -89,7 +91,7 @@ export function TeamProfile({team, name, description, onNameChange, onDescriptio
                     <div className='row'>
                         <Input
                             id='teamDescription'
-                            data-testid='teamDescriptionInput'
+                            testId='admin.team.description'
                             type='textarea'
                             maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
                             value={description}

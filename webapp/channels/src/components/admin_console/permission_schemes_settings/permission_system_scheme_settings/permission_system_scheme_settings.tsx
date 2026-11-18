@@ -384,7 +384,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
 
     render = () => {
         if (!this.state.loaded) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='admin.permissions.system_scheme.loading_screen'/>;
         }
 
         const isLicensed = this.props.license?.IsLicensed === 'true';
@@ -538,6 +538,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
 
                 <div className='admin-console-save'>
                     <SaveButton
+                        testId='admin.save'
                         saving={this.state.saving}
                         disabled={this.props.isDisabled || !this.state.saveNeeded}
                         onClick={this.handleSubmit}
@@ -546,9 +547,11 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                     <Button
                         asChild={true}
                         emphasis='tertiary'
-                        data-testid='permission-scheme-cancel-button'
                     >
-                        <BlockableLink to='/admin_console/user_management/permissions'>
+                        <BlockableLink
+                            to='/admin_console/user_management/permissions'
+                            data-testid='admin.permissions.system.cancel--link'
+                        >
                             <FormattedMessage
                                 id='admin.permissions.permissionSchemes.cancel'
                                 defaultMessage='Cancel'
@@ -556,7 +559,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                         </BlockableLink>
                     </Button>
                     <Button
-                        data-testid='resetPermissionsToDefault'
+                        data-testid='admin.permissions.reset--button'
                         onClick={() => this.setState({showResetDefaultModal: true})}
                         emphasis='quaternary'
                     >
@@ -571,6 +574,7 @@ export class PermissionSystemSchemeSettings extends React.PureComponent<Props, S
                 </div>
 
                 <ConfirmModal
+                    testId='admin.permissions.reset_defaults_modal'
                     show={this.state.showResetDefaultModal}
                     title={
                         <FormattedMessage
