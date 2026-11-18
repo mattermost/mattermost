@@ -153,6 +153,18 @@ describe('PostAttributesModalRow', () => {
         expect(screen.getByRole('button', {name: 'Clear Classification'})).toBeInTheDocument();
     });
 
+    test('the trash button is a destructive Compass icon button with its name as a tooltip', async () => {
+        renderRow();
+
+        const trash = screen.getByRole('button', {name: 'Clear Classification'});
+        expect(trash).toHaveClass('PostAttributesModalRow__clear');
+        expect(trash.className).toMatch(/icon-button--size-x-small/);
+        expect(trash.className).toMatch(/icon-button--destructive/);
+
+        await userEvent.hover(trash);
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('Clear Classification');
+    });
+
     test('the trash button clears by writing an empty value', async () => {
         const onChange = renderRow();
 

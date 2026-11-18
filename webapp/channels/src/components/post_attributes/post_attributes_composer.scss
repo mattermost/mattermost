@@ -8,9 +8,9 @@
 // win regardless of which sheet loads first.
 .PostAttributesChips.PostAttributesComposer {
     width: auto;
+    padding-bottom: var(--spacing-xs);
     gap: var(--spacing-xs);
     margin-block: 0;
-    padding-bottom: var(--spacing-xs);
 }
 
 .PostAttributesComposerChip {

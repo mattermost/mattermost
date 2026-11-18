@@ -329,4 +329,39 @@ describe('PostAttributesFieldPicker', () => {
         await userEvent.click(button);
         expect(screen.getByRole('menu', {name: 'Add an attribute'})).toBeInTheDocument();
     });
+
+    // Compass's class names carry a build hash, so they are matched by their
+    // readable part.
+    test('both "Add attribute" buttons are grey Compass buttons, the modal\'s the height of its rows', async () => {
+        renderWithContext(
+            <>
+                <PostAttributesFieldPicker
+                    fields={[makeField({id: 'f_a', name: 'alpha'})]}
+                    onSelect={jest.fn()}
+                />
+                <PostAttributesFieldPicker
+                    id='composerAdd'
+                    dataTestId='composer-add'
+                    compact={true}
+                    fields={[makeField({id: 'f_a', name: 'alpha'})]}
+                    onSelect={jest.fn()}
+                />
+            </>,
+        );
+
+        const modalAdd = screen.getByTestId('post-attributes-add');
+        expect(modalAdd).toHaveClass('PostAttributesModal__add');
+        expect(modalAdd.className).toMatch(/button--emphasis-dim/);
+        expect(modalAdd.className).not.toMatch(/button--emphasis-tertiary/);
+        expect(modalAdd.className).toMatch(/button--size-small/);
+        expect(modalAdd.className).toMatch(/button--compact/);
+
+        const composerAdd = screen.getByTestId('composer-add');
+        expect(composerAdd.className).toMatch(/button--emphasis-dim/);
+        expect(composerAdd.className).toMatch(/button--size-x-small/);
+        expect(composerAdd.className).not.toMatch(/button--compact/);
+
+        await userEvent.click(modalAdd);
+        expect(screen.getByRole('menu', {name: 'Add an attribute'})).toBeInTheDocument();
+    });
 });

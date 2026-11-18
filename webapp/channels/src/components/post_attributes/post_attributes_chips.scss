@@ -25,11 +25,11 @@
     display: inline-flex;
     height: 20px;
     align-items: center;
-    border-radius: 4px;
+    border-radius: var(--radius-s);
     background: rgba(var(--center-channel-color-rgb), 0.08);
     color: rgba(var(--center-channel-color-rgb), 0.64);
-    font-size: 11px;
-    font-weight: 600;
-    margin-block: 4px;
-    padding-inline: 8px;
+    font-size: var(--font-size-50);
+    font-weight: var(--font-weight-semibold);
+    margin-block: var(--spacing-xxxs);
+    padding-inline: var(--spacing-xs);
 }

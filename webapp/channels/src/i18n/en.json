@@ -28645,7 +28645,7 @@
   },
   "post_attributes.modal.clear": {
     "defaultMessage": "Clear {attribute}",
-    "description": "Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
+    "description": "Tooltip and accessible label of the trash button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
   },
   "post_attributes.modal.empty": {
     "defaultMessage": "There are no attributes on this post that you can view or add.",

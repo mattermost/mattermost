@@ -45,31 +45,36 @@ type Props = {
         label: string;
     };
 
-    // Draws the labelled `+ Add attribute` as a small Compass tertiary
-    // `Button`, for the composer's chip row. The modal keeps its own button.
+    // Draws the labelled `+ Add attribute` at the composer's chip row size
+    // (`x-small`, 24px) rather than the modal's (`small` compact, 28px).
     compact?: boolean;
 };
 
 const IconTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 /*
- * The composer's `+ Add attribute`: a Compass `Button` as the menu's trigger,
- * built the way `createMenuIconButtonTrigger` builds an `IconButton` one, and
- * at module scope so its identity is stable across renders.
+ * `+ Add attribute` as a Compass `Button` with a plus, passed to the menu as
+ * its trigger, built the way `createMenuIconButtonTrigger` builds an
+ * `IconButton` one. The triggers are made at module scope so their identity is
+ * stable across renders.
  */
-function CompactAddTrigger({children, className, ...props}: Menu.MenuButtonComponentProps) {
-    return (
-        <Button
-            {...props}
-            className={className || undefined}
-            emphasis='tertiary'
-            size='x-small'
-            leadingIcon={<Icon glyph={<PlusIcon/>}/>}
-        >
-            {children}
-        </Button>
-    );
+function createAddTrigger(look: Pick<React.ComponentProps<typeof Button>, 'emphasis' | 'size' | 'compact'>) {
+    return function AddTrigger({children, className, ...props}: Menu.MenuButtonComponentProps) {
+        return (
+            <Button
+                {...props}
+                {...look}
+                className={className || undefined}
+                leadingIcon={<Icon glyph={<PlusIcon/>}/>}
+            >
+                {children}
+            </Button>
+        );
+    };
 }
+
+const ComposerAddTrigger = createAddTrigger({emphasis: 'dim', size: 'x-small'});
+const ModalAddTrigger = createAddTrigger({emphasis: 'dim', size: 'small', compact: true});
 
 // From this many fields up, the menu gets a search box: below it, the whole
 // list fits without scrolling.
@@ -158,20 +163,16 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
         menuButton = {
             id,
             dataTestId,
-            as: CompactAddTrigger,
+            as: ComposerAddTrigger,
             children: addLabel,
         };
     } else {
         menuButton = {
             id,
             dataTestId,
+            as: ModalAddTrigger,
             class: 'PostAttributesModal__add',
-            children: (
-                <>
-                    <PlusIcon size={16}/>
-                    {addLabel}
-                </>
-            ),
+            children: addLabel,
         };
     }
 
