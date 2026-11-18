@@ -80,6 +80,9 @@
         - `create_ldap_sync_job` — `ldap_sync`
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` on the channel given in job `data`, or `manage_team_access_rules` on the team in job `data` (see server logic for scoped sync jobs)
+        - `manage_system` — `health_check`
+
+        Creating a `health_check` job runs the Health Dashboard check now. If a run is already pending or in progress, that run is returned instead.
       operationId: CreateJob
       requestBody:
         content:
@@ -111,6 +114,10 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   "/api/v4/jobs/{job_id}":
     get:
       tags:
@@ -197,6 +204,8 @@
         - `create_ldap_sync_job` — `ldap_sync`
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` / `manage_team_access_rules` for scoped jobs as when creating
+
+        `health_check` jobs can't be canceled. Canceling one returns 400.
       operationId: CancelJob
       parameters:
         - name: job_id
