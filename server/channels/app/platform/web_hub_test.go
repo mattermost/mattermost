@@ -1169,22 +1169,21 @@ func newChallengeWebConn(t *testing.T, th *TestHelper, addr net.Addr, session *m
 
 	c, _, err := websocket.DefaultDialer.Dial("ws://"+addr.String()+"/ws", nil)
 	require.NoError(t, err)
-	t.Cleanup(func() { c.Close() })
 
-	return th.Service.NewWebConn(&WebConnConfig{
+	wc := th.Service.NewWebConn(&WebConnConfig{
 		WebSocket:    c,
 		Session:      *session,
 		TFunc:        i18n.IdentityTfunc(),
 		Locale:       "en",
 		ConnectionID: model.NewId(),
 	}, th.Suite, &hookRunner{})
-}
 
-func startPump(t *testing.T, wc *WebConn) {
-	t.Helper()
-
-	go wc.Pump()
-	t.Cleanup(wc.Close)
+	t.Cleanup(func() {
+		c.Close()
+		go wc.Pump()
+		<-wc.pumpFinished
+	})
+	return wc
 }
 
 func serveChallenge(th *TestHelper, wc *WebConn, seq int64, token any) {
@@ -1198,22 +1197,12 @@ func serveChallenge(th *TestHelper, wc *WebConn, seq int64, token any) {
 func websocketClosed(t *testing.T, wc *WebConn) bool {
 	t.Helper()
 
-	err := wc.WebSocket.WriteControl(websocket.PingMessage, nil, time.Now().Add(5*time.Second))
+	err := wc.WebSocket.UnderlyingConn().SetWriteDeadline(time.Time{})
 	if err == nil {
 		return false
 	}
 	require.ErrorIs(t, err, net.ErrClosed)
 	return true
-}
-
-func pumpOnCleanup(t *testing.T, wc *WebConn) {
-	t.Helper()
-
-	t.Cleanup(func() {
-		wc.WebSocket.Close()
-		go wc.Pump()
-		<-wc.pumpFinished
-	})
 }
 
 func waitForClearedSessionToken(t *testing.T, th *TestHelper, wc *WebConn, session *model.Session) {
@@ -1249,7 +1238,6 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 		require.Empty(t, wc.UserId)
 
 		serveChallenge(th, wc, 1, session.Token)
-		startPump(t, wc)
 
 		assert.Equal(t, th.BasicUser.Id, wc.UserId)
 		assert.Equal(t, session.Token, wc.GetSessionToken())
@@ -1262,7 +1250,6 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 		other := createUserSession(t, th, th.BasicUser2.Id)
 		wc := newChallengeWebConn(t, th, s.Listener.Addr(), session)
 		require.NoError(t, th.Service.HubRegister(wc))
-		startPump(t, wc)
 		require.True(t, th.Service.SessionIsRegistered(*session))
 
 		serveChallenge(th, wc, 1, other.Token)
@@ -1279,10 +1266,10 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 		other := createUserSession(t, th, th.BasicUser2.Id)
 		wc := newChallengeWebConn(t, th, s.Listener.Addr(), session)
 		require.NoError(t, th.Service.HubRegister(wc))
-		startPump(t, wc)
 		require.True(t, th.Service.SessionIsRegistered(*session))
 
 		waitForClearedSessionToken(t, th, wc, session)
+		require.False(t, websocketClosed(t, wc))
 		serveChallenge(th, wc, 1, other.Token)
 
 		assert.True(t, websocketClosed(t, wc))
@@ -1324,13 +1311,13 @@ func TestServeWebSocketAuthenticationChallenge(t *testing.T) {
 			other := createUserSession(t, th, th.BasicUser2.Id)
 			wc := newChallengeWebConn(t, th, s.Listener.Addr(), &model.Session{})
 			serveChallenge(th, wc, 1, own.Token)
-			startPump(t, wc)
 			require.True(t, th.Service.SessionIsRegistered(*own))
 
 			if tc.revoke {
 				waitForClearedSessionToken(t, th, wc, own)
 			}
 
+			require.False(t, websocketClosed(t, wc))
 			serveChallenge(th, wc, 2, tc.token(own, other))
 
 			assert.True(t, websocketClosed(t, wc))
@@ -1350,12 +1337,10 @@ func TestHubKeepsConnectionsAfterChallengeOnClosedConn(t *testing.T) {
 	bystanderSession := createUserSession(t, th, th.BasicUser.Id)
 	bystander := newChallengeWebConn(t, th, s.Listener.Addr(), bystanderSession)
 	require.NoError(t, th.Service.HubRegister(bystander))
-	startPump(t, bystander)
 	require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
 
 	attackerSession := createUserSession(t, th, th.BasicUser.Id)
 	attacker := newChallengeWebConn(t, th, s.Listener.Addr(), &model.Session{})
-	pumpOnCleanup(t, attacker)
 	serveChallenge(th, attacker, 1, attackerSession.Token)
 	require.True(t, th.Service.SessionIsRegistered(*attackerSession))
 	require.Equal(t, 2, th.Service.WebConnCountForUser(th.BasicUser.Id))
@@ -1365,6 +1350,7 @@ func TestHubKeepsConnectionsAfterChallengeOnClosedConn(t *testing.T) {
 	require.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
 
 	secondSession := createUserSession(t, th, th.BasicUser.Id)
+	require.False(t, websocketClosed(t, attacker))
 	serveChallenge(th, attacker, 2, secondSession.Token)
 
 	assert.True(t, websocketClosed(t, attacker))
@@ -1383,11 +1369,9 @@ func TestHubRegisterIgnoresClosedConn(t *testing.T) {
 	bystanderSession := createUserSession(t, th, th.BasicUser.Id)
 	bystander := newChallengeWebConn(t, th, s.Listener.Addr(), bystanderSession)
 	require.NoError(t, th.Service.HubRegister(bystander))
-	startPump(t, bystander)
 
 	session := createUserSession(t, th, th.BasicUser.Id)
 	wc := newChallengeWebConn(t, th, s.Listener.Addr(), session)
-	pumpOnCleanup(t, wc)
 	require.NoError(t, th.Service.HubRegister(wc))
 	require.Equal(t, 2, th.Service.WebConnCountForUser(th.BasicUser.Id))
 
@@ -1400,4 +1384,29 @@ func TestHubRegisterIgnoresClosedConn(t *testing.T) {
 	assert.Equal(t, 1, th.Service.WebConnCountForUser(th.BasicUser.Id))
 	assert.True(t, th.Service.SessionIsRegistered(*bystanderSession))
 	assert.False(t, th.Service.SessionIsRegistered(*session))
+}
+
+func TestCloseAndRemoveConnClosesOnce(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	connIndex := newHubConnectionIndex(time.Second, true)
+	wc := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   th.BasicUser.Id,
+		send:     make(chan model.WebSocketMessage, 1),
+	}
+	wc.SetConnectionID(model.NewId())
+	wc.SetSession(&model.Session{})
+	connIndex.Add(wc, loadChannelIDs(t, th, wc.UserId))
+	require.True(t, connIndex.Has(wc))
+
+	closeAndRemoveConn(connIndex, wc)
+	require.NotPanics(t, func() { closeAndRemoveConn(connIndex, wc) })
+
+	assert.True(t, wc.sendClosed.Load())
+	assert.False(t, connIndex.Has(wc))
+	_, open := <-wc.send
+	assert.False(t, open)
 }
