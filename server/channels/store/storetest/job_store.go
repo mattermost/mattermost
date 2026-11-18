@@ -833,7 +833,7 @@ func testJobUpdateStatusUpdateStatusOptimistically(t *testing.T, rctx request.CT
 
 func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
 	since := model.GetMillis() - 30*24*time.Hour.Milliseconds()
-	stale, busy, neverSucceeded, warned, boundary := model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId()
+	stale, busy, neverSucceeded, warned, boundary, tied := model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId()
 
 	for _, job := range []*model.Job{
 		{Type: stale, CreateAt: since - 2000, Status: model.JobStatusSuccess},
@@ -853,8 +853,13 @@ func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		{Type: boundary, CreateAt: since - 1, Status: model.JobStatusError},
 		{Type: boundary, CreateAt: since, Status: model.JobStatusError},
+
+		{Id: "a" + model.NewId()[1:], Type: tied, CreateAt: since + 1000, Status: model.JobStatusSuccess},
+		{Id: "z" + model.NewId()[1:], Type: tied, CreateAt: since + 1000, Status: model.JobStatusError},
 	} {
-		job.Id = model.NewId()
+		if job.Id == "" {
+			job.Id = model.NewId()
+		}
 		_, err := ss.Job().Save(job)
 		require.NoError(t, err)
 		t.Cleanup(func() {
@@ -930,6 +935,11 @@ func testJobGetTypeSummaries(t *testing.T, rctx request.CTX, ss store.Store) {
 			RunsCreated:     1,
 			RunsFailed:      1,
 		}, lastRun(boundary))
+	})
+
+	t.Run("runs created in the same millisecond resolve to the highest id", func(t *testing.T) {
+		assert.Equal(t, model.JobStatusError, byType[tied].LastRunStatus)
+		assert.Equal(t, "z", byType[tied].LastRunID[:1])
 	})
 
 	t.Run("the last run id is the newest run's", func(t *testing.T) {

@@ -752,7 +752,7 @@ func TestSupportPacketJobSummary(t *testing.T) {
 		})
 	}
 
-	t.Run("jobs.yaml summarizes every job type with a masked, truncated error", func(t *testing.T) {
+	t.Run("jobs.yaml summarizes a type outside the job lists, with a masked, truncated error", func(t *testing.T) {
 		jobs, body, _ := readJobsFile(t)
 
 		assert.Contains(t, body, "\njob_summary:\n")

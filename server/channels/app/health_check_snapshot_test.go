@@ -217,7 +217,7 @@ func TestBuildHealthSnapshotJobSummary(t *testing.T) {
 		assert.Equal(t, "driver: bad connection", summary.LastRunError)
 		assert.Equal(t, int64(1), summary.RunsFailed)
 
-		summary, ok = snapshot.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		summary, ok = snapshot.JobSummaryFor(model.NewId())
 		assert.True(t, ok)
 		assert.Nil(t, summary, "a type that never ran has no summary")
 	})
