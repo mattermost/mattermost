@@ -377,8 +377,6 @@ def fake_bin(tmp, **scripts):
 
 class InfrastructureRetries(unittest.TestCase):
     """Waits and retries around infrastructure steps only: they never re-run tests or change what a lane's result is."""
-    TEMPLATES = ('cypress-template', 'playwright-template', 'playwright-rolling-upgrades-template')
-    WAIT_SCRIPT = GITHUB / 'actions' / 'wait-for-server-image' / 'wait.sh'
 
     def test_publication_is_retried_once_with_the_same_inputs(self):
         """A failed publication is retried once, with the same inputs, and the retry decides the job."""
@@ -436,99 +434,179 @@ class InfrastructureRetries(unittest.TestCase):
         self.assertEqual(self.run_api_wait('4000 1000300'), 60)
         self.assertEqual(self.run_api_wait(None), 60)
 
-    def test_fips_lanes_need_the_image_gate_outside_the_e2e_templates(self):
-        """Every FIPS lane caller needs its own image gate, under the same condition; the templates do not wait."""
-        gate_uses = './.github/workflows/wait-for-server-image.yml'
-        for caller, repo, tag in (('ci', 'mattermostdevelopment', '${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}'),
-                                  ('on-merge', 'mattermostdevelopment', '${{ inputs.server_image_tag }}'),
-                                  ('on-release', 'mattermost', '${{ inputs.server_image_tag }}')):
+class ServerImageCheck(unittest.TestCase):
+    """The server image gate: its own workflow, run once per edition before that edition's lanes, never in E2E itself."""
+    GATE = WORKFLOWS / 'server-image-check.yml'
+    GATE_USES = './.github/workflows/server-image-check.yml'
+    LANE_USES = ('./.github/workflows/e2e-tests-cypress.yml', './.github/workflows/e2e-tests-playwright.yml')
+    E2E = ('cypress', 'playwright', 'playwright-rolling-upgrades', 'cypress-template', 'playwright-template',
+           'playwright-rolling-upgrades-template', 'lane-result')
+    CALLERS = (('ci', 'mattermostdevelopment', '${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}', 'PR'),
+               ('on-merge', 'mattermostdevelopment', '${{ inputs.server_image_tag }}',
+                '${{ needs.generate-build-variables.outputs.report_type }}'),
+               ('on-release', 'mattermost', '${{ inputs.server_image_tag }}', 'RELEASE_CUT'))
+
+    def gate_job(self):
+        """The gate's only job."""
+        gate = yaml.safe_load(self.GATE.read_text())
+        self.assertEqual(list(gate[True]), ['workflow_call'])
+        self.assertEqual(list(gate['jobs']), ['check'])
+        return gate['jobs']['check']
+
+    def test_gate_is_its_own_self_contained_workflow_with_pinned_limits(self):
+        """It polls for 5 minutes, its job is cut off at 10, and nothing can lengthen either or let it fail softly."""
+        job = self.gate_job()
+        self.assertEqual(job['timeout-minutes'], 10)
+        self.assertEqual(job['permissions'], {'statuses': 'write'})
+        self.assertEqual([s['name'] for s in job['steps']], ['ci/check-server-image'])
+        check = job['steps'][0]
+        self.assertNotIn('continue-on-error', check)
+        self.assertNotIn('uses', check)
+        self.assertEqual((check['env']['POLL_MINUTES'], check['env']['INTERVAL_SECONDS']), ('5', '30'))
+        inputs = yaml.safe_load(self.GATE.read_text())[True]['workflow_call']['inputs']
+        self.assertEqual(sorted(inputs), ['commit_sha', 'report_type', 'server_edition', 'server_image_repo', 'server_image_tag'])
+
+    def test_every_lane_needs_its_editions_gate(self):
+        """Each caller checks every edition it tests, with the lane's own image inputs, and each lane needs that check."""
+        for caller, repo, tag, report_type in self.CALLERS:
             with self.subTest(caller=caller):
                 jobs = workflow(caller)['jobs']
-                gate = jobs['wait-for-fips-server-image']
-                self.assertEqual(gate['uses'], gate_uses)
-                self.assertEqual(gate['with'], {'server_image': f'{repo}/mattermost-enterprise-fips-edition:{tag}'})
-                lanes = {name: job for name, job in jobs.items() if job.get('with', {}).get('server_edition') == 'fips'}
-                self.assertEqual(sorted(lanes), ['e2e-cypress-fips', 'e2e-playwright-fips'])
+                gates = {name: job for name, job in jobs.items() if job.get('uses') == self.GATE_USES}
+                self.assertEqual(sorted(gates), ['server-image-enterprise', 'server-image-fips'])
+                for edition in ('enterprise', 'fips'):
+                    gate = gates[f'server-image-{edition}']
+                    self.assertEqual(gate['permissions'], {'statuses': 'write'})
+                    expected = {'commit_sha': '${{ inputs.commit_sha }}', 'server_edition': edition,
+                                'server_image_tag': tag, 'report_type': report_type}
+                    if caller == 'ci':
+                        expected['commit_sha'] = '${{ needs.resolve-pr.outputs.COMMIT_SHA }}'
+                    if repo != 'mattermostdevelopment':
+                        expected['server_image_repo'] = repo
+                    self.assertEqual(gate['with'], expected)
+                lanes = {name: job for name, job in jobs.items() if job.get('uses') in self.LANE_USES}
+                self.assertEqual(len(lanes), 5)
                 for name, lane in lanes.items():
-                    self.assertIn('wait-for-fips-server-image', lane['needs'])
-                    self.assertEqual(lane['if'], gate['if'], name)
-                    self.assertEqual(lane['with']['server_image_tag'], tag)
-                    self.assertEqual(lane['with'].get('server_image_repo', 'mattermostdevelopment'), repo)
-        for name in self.TEMPLATES:
-            with self.subTest(template=name):
-                self.assertNotIn('wait-for-server-image', (WORKFLOWS / f'e2e-tests-{name}.yml').read_text())
+                    edition = lane['with'].get('server_edition', 'enterprise')
+                    gate = gates[f'server-image-{edition}']
+                    self.assertIn(f'server-image-{edition}', lane['needs'], name)
+                    self.assertEqual(lane['with']['server_image_tag'], tag, name)
+                    self.assertEqual(lane['with'].get('server_image_repo', 'mattermostdevelopment'), repo, name)
+                    if edition == 'fips':
+                        self.assertEqual(lane['if'], gate['if'], name)
 
-    def test_image_gate_waits_five_minutes_within_a_ten_minute_limit(self):
-        """The gate polls for 5 minutes by default, and its job is cut off at 10."""
-        gate = yaml.safe_load((WORKFLOWS / 'wait-for-server-image.yml').read_text())['jobs']['wait-for-server-image']
-        self.assertEqual(gate['timeout-minutes'], 10)
-        wait = step(gate, 'ci/wait-for-server-image')
-        self.assertEqual(wait['uses'], './.github/actions/wait-for-server-image')
-        self.assertEqual(wait['with'], {'image': '${{ inputs.server_image }}'})
-        self.assertNotIn('continue-on-error', wait)
-        action = yaml.safe_load((GITHUB / 'actions' / 'wait-for-server-image' / 'action.yml').read_text())
-        self.assertEqual(action['inputs']['timeout-minutes']['default'], '5')
-        self.assertIn('TIMEOUT_MINUTES="${TIMEOUT_MINUTES:-5}"', self.WAIT_SCRIPT.read_text())
+    def test_e2e_workflows_do_not_check_the_image(self):
+        """The lane wrappers, templates and lane result neither wait for nor call the image check."""
+        for name in self.E2E:
+            with self.subTest(workflow=name):
+                text = (WORKFLOWS / f'e2e-tests-{name}.yml').read_text()
+                for marker in ('server-image-check', 'wait-for-server-image', '/manifests/'):
+                    self.assertNotIn(marker, text)
+        self.assertFalse((WORKFLOWS / 'wait-for-server-image.yml').exists())
+        self.assertFalse((GITHUB / 'actions' / 'wait-for-server-image').exists())
 
-    def run_image_wait(self, code, timeout_minutes='0'):
-        """Runs wait.sh with a fake registry that answers code for the manifest; returns the completed process."""
-        curl = ('case "$*" in *token\\?*) echo \'{"token":"t"}\';; '
-                f'*) [ "{code}" = 000 ] && {{ printf 000; exit 7; }}; printf "{code}";; esac')
-        with tempfile.TemporaryDirectory() as tmp:
-            summary = pathlib.Path(tmp) / 'summary'
-            result = subprocess.run(['bash', str(self.WAIT_SCRIPT)], capture_output=True, text=True, env={
-                'PATH': fake_bin(tmp, curl=curl, sleep=':'), 'IMAGE': 'mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678',
-                'TIMEOUT_MINUTES': timeout_minutes, 'INTERVAL_SECONDS': '1', 'GITHUB_STEP_SUMMARY': str(summary)})
-            result.summary = summary.read_text() if summary.exists() else ''
-        return result
-
-    def test_image_wait_fails_only_on_a_missing_image(self):
-        """Only a registry that keeps answering "not found" fails the wait; an unreachable one passes with a warning."""
-        published = self.run_image_wait('200')
-        self.assertEqual(published.returncode, 0, published.stdout)
-        missing = self.run_image_wait('404')
-        self.assertEqual(missing.returncode, 1)
-        self.assertIn('::error title=Server image not published::', missing.stdout)
-        self.assertIn('abc1234_def5678', missing.summary)
-        for code in ('000', '500', '429', '401'):
-            with self.subTest(code=code):
-                unknown = self.run_image_wait(code)
-                self.assertEqual(unknown.returncode, 0, unknown.stdout)
-                self.assertIn('::warning title=Server image not verified::', unknown.stdout)
-
-    def run_image_wait_sequence(self, *codes):
-        """Runs wait.sh for one probe per code (a one-minute deadline the fake clock passes on the last); returns its exit code."""
+    def run_check(self, *codes, edition='fips', repo='mattermostdevelopment', tag='abc1234_def5678',
+                  report_type='PR', gh='exit 0', commit='a' * 40):
+        """Runs the gate's step against a fake registry (one answer per poll) and a fake gh, on a clock that
+        reaches the 5-minute deadline at the last poll. Returns the process, its summary, the manifest URLs
+        it asked for and the gh calls it made."""
+        check = self.gate_job()['steps'][0]
         with tempfile.TemporaryDirectory() as tmp:
             state = pathlib.Path(tmp)
             (state / 'codes').write_text('\n'.join(codes) + '\n')
-            clock = ' '.join(['0'] + ['30'] * (len(codes) - 1) + ['90'])
-            (state / 'clock').write_text(clock.replace(' ', '\n') + '\n')
+            minutes = int(check['env']['POLL_MINUTES'])
+            clock = [0] + [30 * i for i in range(1, len(codes))] + [minutes * 60]
+            (state / 'clock').write_text('\n'.join(map(str, clock)) + '\n')
             pop = lambda name: f'v=$(head -n1 {state / name}); sed -i 1d {state / name}; '
             curl = ('case "$*" in *token\\?*) echo \'{"token":"t"}\';; '
-                    f'*) {pop("codes")}[ "$v" = 000 ] && {{ printf 000; exit 7; }}; printf "$v";; esac')
-            result = subprocess.run(['bash', str(self.WAIT_SCRIPT)], capture_output=True, text=True, env={
-                'PATH': fake_bin(tmp, curl=curl, sleep=':', date=f'{pop("clock")}echo "$v"'),
-                'IMAGE': 'mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678',
-                'TIMEOUT_MINUTES': '1', 'INTERVAL_SECONDS': '1'})
-        return result.returncode
+                    f'*) echo "${{@: -1}}" >> {state / "urls"}; {pop("codes")}'
+                    '[ "$v" = 000 ] && { printf 000; exit 7; }; printf "$v";; esac')
+            gh_script = f'printf "%s\\n" "$@" >> {state / "gh"}; echo --- >> {state / "gh"}; {gh}'
+            env = {k: v for k, v in check['env'].items() if '${{' not in v}
+            env.update({'PATH': fake_bin(tmp, curl=curl, gh=gh_script, sleep=':', date=f'{pop("clock")}echo "$v"'),
+                        'COMMIT_SHA': commit, 'SERVER_EDITION': edition, 'SERVER_IMAGE_REPO': repo,
+                        'SERVER_IMAGE_TAG': tag, 'REPORT_TYPE': report_type, 'GH_TOKEN': 't',
+                        'REPOSITORY': 'mattermost/mattermost', 'RUN_URL': 'https://example.test/run',
+                        'GITHUB_STEP_SUMMARY': str(state / 'summary')})
+            result = subprocess.run(['bash', '-c', check['run']], capture_output=True, text=True, env=env)
+            read = lambda name: (state / name).read_text() if (state / name).exists() else ''
+            calls = [c.strip().split('\n') for c in read('gh').split('---') if c.strip()]
+            return result, read('summary'), read('urls').split(), calls
 
-    def test_image_wait_judges_the_last_answer(self):
-        """The registry's last answer decides: an earlier "not found" does not fail a wait that then could not check."""
-        self.assertEqual(self.run_image_wait_sequence('404', '500'), 0)
-        self.assertEqual(self.run_image_wait_sequence('404', '000'), 0)
-        self.assertEqual(self.run_image_wait_sequence('500', '404'), 1)
-        self.assertEqual(self.run_image_wait_sequence('404', '404'), 1)
-        self.assertEqual(self.run_image_wait_sequence('404', '200'), 0)
+    @staticmethod
+    def posted(call):
+        """The fields of one gh status POST."""
+        return dict(arg.split('=', 1) for arg in call if '=' in arg)
 
-    def test_image_wait_rejects_a_malformed_reference(self):
-        """A reference that is not <namespace>/<name>:<tag> fails before any request."""
-        result = subprocess.run(['bash', str(self.WAIT_SCRIPT)], capture_output=True, text=True,
-                                env={'PATH': os.environ['PATH'], 'IMAGE': 'not an image'})
+    def test_gate_checks_exactly_the_image_each_lane_pulls(self):
+        """The image name comes from the same edition/namespace/tag mapping as the lane's own build step."""
+        for edition in ('enterprise', 'fips', 'team'):
+            for repo in ('mattermostdevelopment', 'mattermost'):
+                with self.subTest(edition=edition, repo=repo):
+                    result, _, urls, _ = self.run_check('200', edition=edition, repo=repo, tag='abc1234')
+                    self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                    for suite in ('cypress', 'playwright'):
+                        image = build_outputs(suite, edition, '', 'PR', repo=repo, tag='abc1234')['server_image']
+                        name, tag = image.split(':')
+                        self.assertEqual(urls, [f'https://registry-1.docker.io/v2/{name}/manifests/{tag}'])
+
+    def test_published_image_passes_and_says_so_on_its_own_status(self):
+        """A published image passes at once and publishes server-image/<edition>, suffixed as the lanes are."""
+        for report_type, suffix in (('PR', ''), ('MASTER', '/master'), ('RELEASE', '/release'), ('RELEASE_CUT', '/release-cut')):
+            with self.subTest(report_type=report_type):
+                result, _, urls, calls = self.run_check('404', '200', report_type=report_type)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertEqual(len(urls), 2)
+                self.assertEqual(len(calls), 1)
+                self.assertIn(f'repos/mattermost/mattermost/statuses/{"a" * 40}', calls[0])
+                self.assertEqual(self.posted(calls[0]), {
+                    'state': 'success', 'context': f'server-image/fips{suffix}', 'target_url': 'https://example.test/run',
+                    'description': 'mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678 is published'})
+
+    def test_missing_image_fails_loudly_after_five_minutes(self):
+        """Still missing at the deadline: the job fails, naming the image, the wait and where the fix belongs."""
+        result, summary, urls, calls = self.run_check('404', '404', '404')
         self.assertEqual(result.returncode, 1)
+        self.assertEqual(len(urls), 3)
+        image = 'mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678'
+        error = next(line for line in result.stdout.splitlines() if line.startswith('::error title=Server image not available::'))
+        for text in (image, 'still missing after 5m 0s', '3 checks', 'limit 5 min', 'No E2E lane for this edition started',
+                     'The pipeline that builds and pushes this image', 'E2E will not wait longer'):
+            self.assertIn(text, error)
+            self.assertIn(text, summary)
+        status = self.posted(calls[0])
+        self.assertEqual((status['state'], status['context']), ('failure', 'server-image/fips'))
+        self.assertIn(image, status['description'])
+        self.assertLessEqual(len(status['description']), 140)
+
+    def test_registry_outage_is_not_a_missing_image(self):
+        """An unreachable or erroring registry at the deadline warns and passes; the last answer decides."""
+        for codes in (('000',), ('500',), ('429',), ('401',), ('404', '500'), ('404', '000')):
+            with self.subTest(codes=codes):
+                result, _, _, calls = self.run_check(*codes)
+                self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+                self.assertIn('::warning title=Server image not verified::', result.stdout)
+                self.assertEqual(self.posted(calls[0])['state'], 'success')
+                self.assertIn('not verified', self.posted(calls[0])['description'])
+        self.assertEqual(self.run_check('500', '404')[0].returncode, 1)
+
+    def test_status_publication_never_decides_the_gate(self):
+        """A failed status write warns; the image alone decides whether the lanes start."""
+        published = self.run_check('200', gh='exit 1')[0]
+        self.assertEqual(published.returncode, 0, published.stdout + published.stderr)
+        self.assertIn('::warning::Could not publish the server-image/fips status', published.stdout)
+        self.assertEqual(self.run_check('404', gh='exit 1')[0].returncode, 1)
+
+    def test_invalid_inputs_fail_before_any_request(self):
+        """An unknown edition or a malformed namespace, tag or commit fails without polling or publishing."""
+        for kwargs in ({'edition': 'other'}, {'repo': 'Bad/Repo'}, {'tag': 'a tag'}, {'commit': 'main'}):
+            with self.subTest(**kwargs):
+                result, _, urls, calls = self.run_check('200', **kwargs)
+                self.assertEqual(result.returncode, 1)
+                self.assertEqual((urls, calls), ([], []))
 
 
-def build_context(suite, edition, deploy, report_type):
-    """Runs the lane's own build step, so the context is the one the workflow would publish."""
+def build_outputs(suite, edition, deploy, report_type, repo='mattermostdevelopment', tag='abc1234'):
+    """Runs the lane's own build step and returns its outputs (context, server image, ...)."""
     run = next(s['run'] for s in workflow(suite)['jobs']['generate-build-variables']['steps'] if s.get('id') == 'build-vars')
     if '${{' in run:
         raise RuntimeError(f'{suite} build step must not depend on expressions')
@@ -537,13 +615,17 @@ def build_context(suite, edition, deploy, report_type):
         output.touch()
         env = {'PATH': os.environ['PATH'], 'GITHUB_OUTPUT': str(output), 'COMMIT_SHA': 'a' * 40, 'RUN_ID': '1',
                'RUN_ATTEMPT': '1', 'PR_NUMBER': '1', 'INPUT_REF_BRANCH': '', 'INPUT_SERVER_IMAGE_ALIASES': '',
-               'INPUT_SERVER_IMAGE_REPO': 'mattermostdevelopment', 'INPUT_SERVER_IMAGE_TAG': 'abc1234',
+               'INPUT_SERVER_IMAGE_REPO': repo, 'INPUT_SERVER_IMAGE_TAG': tag,
                'INPUT_REPORT_TYPE': report_type, 'INPUT_SERVER_EDITION': edition, 'INPUT_SERVER_DEPLOY': deploy}
         result = subprocess.run(['bash', '-e', '-c', run], env=env, capture_output=True, text=True)
         if result.returncode:
             raise RuntimeError(result.stderr)
-        outputs = dict(line.split('=', 1) for line in output.read_text().splitlines() if '=' in line)
-    return outputs['context_name']
+        return dict(line.split('=', 1) for line in output.read_text().splitlines() if '=' in line)
+
+
+def build_context(suite, edition, deploy, report_type):
+    """The context the lane's own build step would publish."""
+    return build_outputs(suite, edition, deploy, report_type)['context_name']
 
 
 class PrLaneContexts(unittest.TestCase):

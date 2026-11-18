@@ -63,9 +63,38 @@ jobs:
 
           echo "ref_branch=${BRANCH}" >> $GITHUB_OUTPUT
 
+  # Each edition's lanes start only once its server image is on Docker Hub (server-image-check.yml).
+  server-image-enterprise:
+    needs: validate
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_edition: enterprise
+      server_image_repo: mattermost
+      server_image_tag: ${{ inputs.server_image_tag }}
+      report_type: RELEASE_CUT
+
+  # FIPS builds were introduced in release-11.0; skip for older branches.
+  server-image-fips:
+    needs: validate
+    if: needs.validate.outputs.fips_supported == 'true'
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: ${{ inputs.commit_sha }}
+      server_edition: fips
+      server_image_repo: mattermost
+      server_image_tag: ${{ inputs.server_image_tag }}
+      report_type: RELEASE_CUT
+
   # Enterprise Edition
   e2e-cypress:
-    needs: validate
+    needs:
+      - validate
+      - server-image-enterprise
     permissions:
       actions: read
       contents: read
@@ -92,7 +121,9 @@ jobs:
       CWS_EXTRA_HTTP_HEADERS: "${{ secrets.MM_E2E_CWS_EXTRA_HTTP_HEADERS }}"
 
   e2e-playwright:
-    needs: validate
+    needs:
+      - validate
+      - server-image-enterprise
     permissions:
       actions: read
       contents: read
@@ -117,7 +148,9 @@ jobs:
   # Full Playwright suite against a server booted under a subpath (PW_SERVER_DEPLOY=subpath).
   # Release-cut only — not run on PR or master/release merges.
   e2e-playwright-subpath:
-    needs: validate
+    needs:
+      - validate
+      - server-image-enterprise
     permissions:
       actions: read
       contents: read
@@ -142,20 +175,10 @@ jobs:
 
   # Enterprise FIPS Edition
   # FIPS builds were introduced in release-11.0; skip for older branches.
-  # A FIPS image can be pushed after this run is dispatched; its lanes start only once it is published.
-  wait-for-fips-server-image:
-    needs: validate
-    if: needs.validate.outputs.fips_supported == 'true'
-    permissions:
-      contents: read
-    uses: ./.github/workflows/wait-for-server-image.yml
-    with:
-      server_image: mattermost/mattermost-enterprise-fips-edition:${{ inputs.server_image_tag }}
-
   e2e-cypress-fips:
     needs:
       - validate
-      - wait-for-fips-server-image
+      - server-image-fips
     if: needs.validate.outputs.fips_supported == 'true'
     permissions:
       actions: read
@@ -186,7 +209,7 @@ jobs:
   e2e-playwright-fips:
     needs:
       - validate
-      - wait-for-fips-server-image
+      - server-image-fips
     if: needs.validate.outputs.fips_supported == 'true'
     permissions:
       actions: read

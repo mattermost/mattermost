@@ -267,10 +267,38 @@ jobs:
           echo "should_run_subpath=${SHOULD_RUN_SUBPATH}" >> $GITHUB_OUTPUT
           echo "Should run subpath E2E tests: ${SHOULD_RUN_SUBPATH}"
 
+  # Each edition's lanes start only once its server image is on Docker Hub (server-image-check.yml).
+  server-image-enterprise:
+    needs: resolve-pr
+    if: needs.resolve-pr.outputs.PR_NUMBER != ''
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server_edition: enterprise
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      report_type: "PR"
+
+  server-image-fips:
+    needs:
+      - resolve-pr
+      - check-changes
+    if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
+    permissions:
+      statuses: write
+    uses: ./.github/workflows/server-image-check.yml
+    with:
+      commit_sha: "${{ needs.resolve-pr.outputs.COMMIT_SHA }}"
+      server_edition: fips
+      server_image_tag: "${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
+      report_type: "PR"
+
   e2e-cypress:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-enterprise
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       actions: read
@@ -301,6 +329,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-enterprise
     if: needs.resolve-pr.outputs.PR_NUMBER != ''
     permissions:
       actions: read
@@ -329,6 +358,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
+      - server-image-enterprise
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_subpath == 'true'
     permissions:
       actions: read
@@ -352,23 +382,11 @@ jobs:
       ANTHROPIC_API_KEY: "${{ secrets.ANTHROPIC_API_KEY }}"
 
   # Enterprise FIPS Edition
-  # A FIPS image can be pushed after this run is dispatched; its lanes start only once it is published.
-  wait-for-fips-server-image:
-    needs:
-      - resolve-pr
-      - check-changes
-    if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
-    permissions:
-      contents: read
-    uses: ./.github/workflows/wait-for-server-image.yml
-    with:
-      server_image: "mattermostdevelopment/mattermost-enterprise-fips-edition:${{ needs.resolve-pr.outputs.SERVER_IMAGE_TAG }}"
-
   e2e-cypress-fips:
     needs:
       - resolve-pr
       - check-changes
-      - wait-for-fips-server-image
+      - server-image-fips
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
       actions: read
@@ -399,7 +417,7 @@ jobs:
     needs:
       - resolve-pr
       - check-changes
-      - wait-for-fips-server-image
+      - server-image-fips
     if: needs.resolve-pr.outputs.PR_NUMBER != '' && needs.check-changes.outputs.should_run_fips == 'true'
     permissions:
       actions: read

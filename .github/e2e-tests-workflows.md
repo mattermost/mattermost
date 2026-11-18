@@ -19,6 +19,7 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-ci.yml                       # PR orchestrator
 ├── e2e-tests-on-merge.yml                 # Merge orchestrator (master/release branches)
 ├── e2e-tests-on-release.yml               # Release cut orchestrator
+├── server-image-check.yml                 # Gate: one edition's server image is on Docker Hub (not part of E2E)
 ├── e2e-tests-cypress.yml                  # Shared wrapper: calls the cypress template
 ├── e2e-tests-playwright.yml               # Shared wrapper: calls the playwright template
 ├── e2e-tests-playwright-rolling-upgrades.yml           # resolves the from-version matrix, calls the template per version
@@ -40,6 +41,8 @@ e2e-tests-on-release.yml ─────────┘    e2e-tests-playwright.
 ```
 
 `e2e-tests-playwright-rolling-upgrades.yml` is also directly runnable from the Actions UI, so it has no caller in that case.
+
+Before any of this, each orchestrator runs `server-image-check.yml` once per edition it tests, as the jobs `server-image-enterprise` and `server-image-fips`, and every lane of an edition `needs` that edition's job (rolling-upgrade lanes through their Playwright lane). See [Server image check](#server-image-check).
 
 ---
 
@@ -121,7 +124,7 @@ The template splits into five jobs — `prepare-run`, `prep-deps`, `dispatch-beg
 - **Spec-level vs. job-level parallelism.** The matrix sizes the runner pool; Test System IO does the spec assignment. Slow specs don't block a worker — fast workers keep pulling the next spec from the queue.
 - **Cache-only workers.** `prep-deps` installs once per workflow run and saves to `actions/cache`. Every worker restores with `fail-on-cache-miss: true` and runs zero `npm ci`. Eliminates the 40-way `EEXIST/ENOENT` race in npm's shared cacache writer.
 - **dispatch-begin runs late.** It depends on `prep-deps` so the gap between Test System IO run registration and the first worker calling `dispatch-run` is just per-worker setup (~3–5 min). Registering earlier risks the run timing out before any worker checks in, bulk-failing every spec.
-- **FIPS lanes wait for their image, outside the template.** The FIPS image can be pushed after the run is dispatched, so the callers (`e2e-tests-ci.yml`, `e2e-tests-on-merge.yml`, `e2e-tests-on-release.yml`) run `wait-for-fips-server-image` (`.github/workflows/wait-for-server-image.yml`) before the FIPS lanes, which need it. It polls Docker Hub for 5 min (job limit 10 min). An image still missing fails that job and the FIPS lanes are skipped, so the failure is attributed to the image, not to E2E; a skipped lane is ignored by the triage summary. A registry that cannot be reached warns and lets the lanes pull as before.
+- **No image wait in the templates.** The templates assume the server image exists; the orchestrators check it first (see [Server image check](#server-image-check)).
 - **Playwright slim slice.** Playwright only consumes `@mattermost/client` and `@mattermost/types` from webapp, so prep-deps caches just those two packages' built `lib/` and `node_modules` (~10–30 MB) instead of the full `webapp/node_modules` tree (~1–2 GB).
 - **Browser/binary caches.** Cypress caches `~/.cache/Cypress` (cypress binary lives outside node_modules); playwright caches `~/.cache/ms-playwright` (chromium only). Both keyed on the framework's lockfile so they invalidate on version bumps.
 - **No retry plumbing in the template.** Test System IO handles per-spec retries; the workflow only sees aggregated results.
@@ -348,6 +351,24 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 2. **Full test fails**: Full commit status shows failure with pass rate
 3. **Both pass**: Both smoke and full commit statuses show success
 4. **No PR found** (PR pipeline only): Workflow fails immediately
+5. **Server image missing**: `server-image/<edition>` fails and that edition's lanes do not start (see below)
+
+### Server image check
+
+`server-image-check.yml` is its own workflow and has nothing to do with the E2E pipeline beyond gating it. Given an edition, a Docker Hub namespace and a tag, it builds the image name the lanes use (`<namespace>/mattermost-{enterprise,enterprise-fips,team}-edition:<tag>`) and sends a `HEAD` request for the manifest every 30 s, which doesn't count against pull limits.
+
+| Caller | Enterprise image | FIPS image (when FIPS runs) |
+|--------|------------------|-----------------------------|
+| `e2e-tests-ci.yml` | `mattermostdevelopment/mattermost-enterprise-edition:<SERVER_IMAGE_TAG>` | `mattermostdevelopment/mattermost-enterprise-fips-edition:<SERVER_IMAGE_TAG>` |
+| `e2e-tests-on-merge.yml` | `mattermostdevelopment/mattermost-enterprise-edition:<server_image_tag>` | `mattermostdevelopment/mattermost-enterprise-fips-edition:<server_image_tag>` |
+| `e2e-tests-on-release.yml` | `mattermost/mattermost-enterprise-edition:<server_image_tag>` | `mattermost/mattermost-enterprise-fips-edition:<server_image_tag>` |
+
+- **Limits:** it polls for at most 5 minutes, and the job is cut off at 10 (`timeout-minutes: 10`). Neither is an input.
+- **Image missing at the deadline:** the job fails with `Server image not available`, naming the image, how long it waited and how many checks it made. None of that edition's lanes start. A late image is a delivery problem: fix the pipeline that pushes the image, then re-run. E2E does not wait longer.
+- **Its own commit status:** on the tested commit it publishes `server-image/<edition>` (`/master`, `/release` or `/release-cut` appended as the lanes do), `success` or `failure`, linked to the run. It is outside the `e2e-test/` prefix, so the `e2e-test/triage` summary neither reads nor changes it. It never writes `pending`, so a cancelled check leaves nothing waiting.
+- **Registry unreachable** (5xx, 429, 401 or no answer at the deadline): it warns, publishes `success` with "not verified", and the lanes start and pull as before. A Docker Hub outage is not reported as a missing image.
+- **Effect on the lanes' statuses:** a lane that never started never claims its context, so nothing is left `pending`. The triage summary treats a lane with no status as one that did not run. If the enterprise image is missing, the required `e2e-test/cypress-full/enterprise` and `e2e-test/playwright-full/enterprise` stay unreported, and the red `server-image/enterprise` status beside them says why. A re-run after the image is pushed runs the check again and then the lanes.
+- **No automatic re-run:** `e2e-tests-rerun.yml` re-runs only when a lane's triage left a marker. A lane that never started never triages, so a failed check is never re-run automatically.
 
 ---
 
