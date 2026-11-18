@@ -19,6 +19,8 @@ import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/
 import {closeModal, openModal} from 'actions/views/modals';
 
 import NoResultsIndicator from 'components/no_results_indicator';
+import {CssVarKeyForResizable, ResizeDirection} from 'components/resizable_sidebar/constants';
+import ResizableDivider from 'components/resizable_sidebar/resizable_divider';
 import Header from 'components/widgets/header';
 
 import {A11yClassNames, Constants, ModalIdentifiers} from 'utils/constants';
@@ -40,6 +42,8 @@ export enum ThreadFilter {
 }
 
 export const FILTER_STORAGE_KEY = 'globalThreads_filter';
+
+const DEFAULT_THREADS_LIST_WIDTH = 400;
 
 type Props = {
     currentFilter: ThreadFilter;
@@ -187,6 +191,22 @@ const ThreadList = ({
         ],
     });
 
+    // The default width depends on the window width and layout, so it is read from the GlobalThreads CSS.
+    const getDefaultWidth = () => {
+        const globalThreads = ref.current?.parentElement;
+        const cssDefault = globalThreads ? parseInt(getComputedStyle(globalThreads).getPropertyValue('--list-default-width'), 10) : NaN;
+        return Number.isNaN(cssDefault) ? DEFAULT_THREADS_LIST_WIDTH : cssDefault;
+    };
+
+    // The list's column width is set on the GlobalThreads grid, so mirror the width there while dragging.
+    const handleResize = useCallback((_: number, cssVarProp: string, cssVarValue: string) => {
+        ref.current?.parentElement?.style.setProperty(cssVarProp, cssVarValue);
+    }, []);
+
+    const handleResizeEnd = useCallback((_: number, cssVarProp: string) => {
+        ref.current?.parentElement?.style.removeProperty(cssVarProp);
+    }, []);
+
     return (
         <div
             tabIndex={0}
@@ -286,6 +306,16 @@ const ThreadList = ({
                     />
                 ) : null}
             </div>
+            <ResizableDivider
+                className='ThreadList__resizeHandle'
+                name='threadsListResizeHandle'
+                globalCssVar={CssVarKeyForResizable.THREADS_LIST}
+                defaultWidth={getDefaultWidth()}
+                dir={ResizeDirection.LEFT}
+                containerRef={ref}
+                onResize={handleResize}
+                onResizeEnd={handleResizeEnd}
+            />
         </div>
     );
 };

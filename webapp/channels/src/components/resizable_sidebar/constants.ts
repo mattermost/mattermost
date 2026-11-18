@@ -16,6 +16,7 @@ export enum ResizeDirection {
 export enum CssVarKeyForResizable {
     LHS = 'overrideLhsWidth',
     RHS = 'overrideRhsWidth',
+    THREADS_LIST = 'overrideThreadsListWidth',
 }
 
 export const SIDEBAR_SNAP_SIZE = 16;

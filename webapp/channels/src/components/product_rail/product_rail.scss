@@ -345,8 +345,8 @@
     // Beside the thread list, the thread pane is rounded like the center channel beside the channel
     // sidebar, with the sidebar's colour showing behind its corners.
     body.app__body #root:has(.ProductRail) .GlobalThreads {
-        // A fixed-width thread list, like a sidebar, at every desktop width.
-        --list: 368px;
+        // The thread list starts at the sidebar's width at every desktop width, and can be resized from there.
+        --list-default-width: 368px;
 
         background: var(--sidebar-bg);
 
