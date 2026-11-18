@@ -73,7 +73,7 @@ var HealthRunCmd = &cobra.Command{
 func init() {
 	HealthCheckCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthCheckCmd.Flags().Bool("include-muted", false, "Include muted findings")
-	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate offline, without a server")
+	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate without a server")
 	HealthRunCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthRunCmd.Flags().Bool("include-muted", false, "Include muted findings")
 
