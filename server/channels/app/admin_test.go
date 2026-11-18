@@ -134,6 +134,24 @@ func TestGetLatestVersion(t *testing.T) {
 		assert.Nil(t, release)
 	})
 
+	t.Run("toggling security alerts clears a cached failure", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		badGateway := countingServer(t, http.StatusBadGateway)
+		_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
+		require.NotNil(t, appErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = model.NewPointer("http://other.example.com") })
+		_, appErr = th.App.GetLatestVersion(th.Context, ts.URL)
+		require.NotNil(t, appErr, "an unrelated config change keeps the cached failure")
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.Nil(t, appErr)
+		assert.Equal(t, version.TagName, release.TagName)
+	})
+
 	t.Run("a cancelled request is not cached", func(t *testing.T) {
 		require.NoError(t, th.App.clearLatestVersionCache())
 		ok := countingServer(t, http.StatusOK)

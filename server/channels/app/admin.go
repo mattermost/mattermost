@@ -327,3 +327,15 @@ func fetchLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.Githu
 func (a *App) clearLatestVersionCache() error {
 	return latestVersionCache.Purge()
 }
+
+// clearLatestVersionCacheOnFlip drops a cached release or failure when EnableSecurityFixAlert is
+// toggled, so an admin who fixed the server's network access can retry by toggling it.
+func (ch *Channels) clearLatestVersionCacheOnFlip(prevCfg, cfg *model.Config) {
+	if *prevCfg.ServiceSettings.EnableSecurityFixAlert == *cfg.ServiceSettings.EnableSecurityFixAlert {
+		return
+	}
+
+	if err := latestVersionCache.Purge(); err != nil {
+		ch.srv.Log().Warn("Failed to clear the latest version cache", mlog.Err(err))
+	}
+}
