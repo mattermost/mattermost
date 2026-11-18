@@ -98,6 +98,42 @@ func callsInstallStrategy(chosen, installed *model.Manifest, installedIsManual b
 	return installPluginLocallyAlways, true
 }
 
+// chooseCallsBundle picks which of the prepackaged Calls bundles to install and how. candidates
+// are the manifests of the prepackaged Calls bundles and installed is the Calls manifest that is
+// installed now, or nil. It returns the chosen manifest (nil if there are no candidates), the
+// installation strategy, and whether to install at all. The defaults are the ones every other
+// prepackaged plugin gets: install if new or an upgrade.
+func (ch *Channels) chooseCallsBundle(candidates []*model.Manifest, installed *model.Manifest, logger *mlog.Logger) (*model.Manifest, pluginInstallationStrategy, bool) {
+	strategy := installPluginLocallyOnlyIfNewOrUpgrade
+	install := true
+	if len(candidates) == 0 {
+		return nil, strategy, install
+	}
+
+	setting := *ch.cfgSvc.Config().PluginSettings.CallsVersion
+	wanted := effectiveCallsVersion(setting, candidates)
+	if setting == "" {
+		logger.Info("The Calls version setting is empty, using the default", mlog.String("calls_version", wanted))
+	}
+	chosen := selectCallsBundle(wanted, candidates, logger)
+
+	if installed != nil && chosen != nil {
+		// A Calls bundle uploaded by an admin lives in the file store; prepackaged ones don't.
+		manual, appErr := ch.srv.fileExists(getBundleStorePath(model.PluginIdCalls))
+		if appErr != nil {
+			// Fail closed: without knowing, don't overwrite what may be an admin's upload.
+			logger.Warn("Failed to check for a manually installed Calls plugin, assuming it is one", mlog.Err(appErr))
+			manual = true
+		}
+		strategy, install = callsInstallStrategy(chosen, installed, manual)
+		if !install {
+			logger.Info("Not switching Calls version: Calls was installed manually", mlog.String("calls_version", wanted))
+		}
+	}
+
+	return chosen, strategy, install
+}
+
 // callsEnabled reports whether the Calls plugin is enabled in the given config.
 func callsEnabled(cfg *model.Config) bool {
 	state := cfg.PluginSettings.PluginStates[model.PluginIdCalls]

@@ -1016,36 +1016,11 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	}
 
 	// Calls v1 and v2 share a plugin ID: install only the one chosen by the CallsVersion setting.
-	var chosenCalls *model.Manifest
-	callsStrategy := installPluginLocallyOnlyIfNewOrUpgrade
-	installCalls := true
-	if len(callsManifests) > 0 {
-		var installedCalls *model.Manifest
-		if bundleInfo := availablePluginsMap[model.PluginIdCalls]; bundleInfo != nil {
-			installedCalls = bundleInfo.Manifest
-		}
-
-		setting := *ch.cfgSvc.Config().PluginSettings.CallsVersion
-		wanted := effectiveCallsVersion(setting, callsManifests)
-		if setting == "" {
-			logger.Info("The Calls version setting is empty, using the default", mlog.String("calls_version", wanted))
-		}
-		chosenCalls = selectCallsBundle(wanted, callsManifests, logger)
-
-		if installedCalls != nil && chosenCalls != nil {
-			// A Calls bundle uploaded by an admin lives in the file store; prepackaged ones don't.
-			manual, appErr := ch.srv.fileExists(getBundleStorePath(model.PluginIdCalls))
-			if appErr != nil {
-				// Fail closed: without knowing, don't overwrite what may be an admin's upload.
-				logger.Warn("Failed to check for a manually installed Calls plugin, assuming it is one", mlog.Err(appErr))
-				manual = true
-			}
-			callsStrategy, installCalls = callsInstallStrategy(chosenCalls, installedCalls, manual)
-			if !installCalls {
-				logger.Info("Not switching Calls version: Calls was installed manually", mlog.String("calls_version", wanted))
-			}
-		}
+	var installedCalls *model.Manifest
+	if bundleInfo := availablePluginsMap[model.PluginIdCalls]; bundleInfo != nil {
+		installedCalls = bundleInfo.Manifest
 	}
+	chosenCalls, callsStrategy, installCalls := ch.chooseCallsBundle(callsManifests, installedCalls, logger)
 
 	plugins := make(chan *plugin.PrepackagedPlugin, len(allBuilds))
 	for _, b := range allBuilds {
