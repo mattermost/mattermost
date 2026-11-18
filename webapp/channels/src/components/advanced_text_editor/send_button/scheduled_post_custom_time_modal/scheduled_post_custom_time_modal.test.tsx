@@ -17,11 +17,14 @@ describe('ScheduledPostCustomTimeModal', () => {
 
     beforeEach(() => {
         onConfirm.mockClear();
+        onExited.mockClear();
     });
 
     afterEach(() => {
         jest.useRealTimers();
     });
+
+    const onExited = jest.fn();
 
     function renderModal({recurringEnabled = true, initialRepeatWeekly = false, repeatDisabledReason = undefined}: {
         recurringEnabled?: boolean;
@@ -31,7 +34,7 @@ describe('ScheduledPostCustomTimeModal', () => {
         return renderWithContext(
             <ScheduledPostCustomTimeModal
                 channelId='channel_id'
-                onExited={jest.fn()}
+                onExited={onExited}
                 onConfirm={onConfirm}
                 initialRepeatWeekly={initialRepeatWeekly}
                 repeatDisabledReason={repeatDisabledReason}
@@ -131,5 +134,51 @@ describe('ScheduledPostCustomTimeModal', () => {
 
         await waitFor(() => expect(onConfirm).toHaveBeenCalled());
         expect(onConfirm).toHaveBeenCalledWith(expect.objectContaining({repeat_type: 'weekly'}));
+    });
+
+    it('should clear the error message when the time changes', async () => {
+        onConfirm.mockResolvedValueOnce({error: 'Invalid scheduled at time.'});
+        renderModal();
+
+        await userEvent.click(screen.getByText('Schedule'));
+        expect(await screen.findByText('Invalid scheduled at time.')).toBeInTheDocument();
+        expect(onExited).not.toHaveBeenCalled();
+
+        await userEvent.click(screen.getByTestId('time_button'));
+        await userEvent.click(await screen.findByTestId('time_option_0'));
+
+        await waitFor(() => expect(screen.queryByText('Invalid scheduled at time.')).not.toBeInTheDocument());
+    });
+
+    it('should ignore repeated confirmations while a request is pending', async () => {
+        let resolveConfirm: (value: {error?: string}) => void = () => {};
+        onConfirm.mockReturnValueOnce(new Promise((resolve) => {
+            resolveConfirm = resolve;
+        }));
+        renderModal();
+
+        await userEvent.click(screen.getByText('Schedule'));
+        await userEvent.click(screen.getByText('Schedule'));
+
+        expect(onConfirm).toHaveBeenCalledTimes(1);
+
+        resolveConfirm({});
+        await waitFor(() => expect(onExited).toHaveBeenCalledTimes(1));
+    });
+
+    it('should not exit or show the error when dismissed while a request is pending', async () => {
+        let resolveConfirm: (value: {error?: string}) => void = () => {};
+        onConfirm.mockReturnValueOnce(new Promise((resolve) => {
+            resolveConfirm = resolve;
+        }));
+        const {unmount} = renderModal();
+
+        await userEvent.click(screen.getByText('Schedule'));
+        unmount();
+        resolveConfirm({});
+        await Promise.resolve();
+        await Promise.resolve();
+
+        expect(onExited).not.toHaveBeenCalled();
     });
 });

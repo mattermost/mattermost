@@ -275,13 +275,13 @@ describe('useSubmit', () => {
     describe('scheduling a message', () => {
         const schedulingInfo = {scheduled_at: Date.now() + 60000};
 
-        function renderSubmit() {
+        function renderSubmit(serverError: UseSubmitParams[4] = mockServerError) {
             const {result} = renderHookWithContext(() => useSubmit(
                 mockDraft,
                 mockPostError,
                 'channel_id',
                 'root_id',
-                mockServerError,
+                serverError,
                 mockLastBlurAt,
                 mockFocusTextbox,
                 mockSetServerError,
@@ -311,6 +311,43 @@ describe('useSubmit', () => {
             const response = await renderSubmit()(undefined, schedulingInfo);
 
             expect(response).toEqual({});
+            expect(onSubmit).toHaveBeenCalledWith('channel_id', 'root_id', expect.anything(), expect.anything(), schedulingInfo);
+        });
+
+        it('should not let a previous server error block a scheduling retry', async () => {
+            const previousError = {server_error_id: 'model.scheduled_post.is_valid.scheduled_at.app_error', message: 'Invalid scheduled at time.'};
+
+            const response = await renderSubmit(previousError)(undefined, schedulingInfo);
+
+            expect(response).toEqual({});
+            expect(onSubmit).toHaveBeenCalledWith('channel_id', 'root_id', expect.anything(), expect.anything(), schedulingInfo);
+        });
+
+        it('should still block a non-scheduling submit after a previous server error', async () => {
+            const previousError = {server_error_id: 'api.some.error', message: 'Some error'};
+
+            const response = await renderSubmit(previousError)();
+
+            expect(response).toEqual({});
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('should not report an error thrown by afterSubmit once the scheduled post is created', async () => {
+            const consoleError = jest.spyOn(console, 'error').mockImplementation(() => {});
+            jest.mocked(mockAfterSubmit).mockImplementationOnce(() => {
+                throw new Error('afterSubmit failed');
+            });
+            jest.mocked(onSubmit).mockImplementationOnce((...args) => async () => {
+                args[3].afterSubmit?.({created: true});
+                return {data: {created: true}};
+            });
+
+            const response = await renderSubmit()(undefined, schedulingInfo);
+
+            expect(response).toEqual({});
+            expect(mockAfterSubmit).toHaveBeenCalled();
+            expect(mockSetServerError).not.toHaveBeenCalledWith(expect.objectContaining({message: 'afterSubmit failed'}));
+            consoleError.mockRestore();
         });
     });
 });

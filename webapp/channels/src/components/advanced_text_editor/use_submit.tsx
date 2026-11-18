@@ -177,7 +177,7 @@ const useSubmit = (
             }
         }
 
-        if (serverError && !isErrorInvalidSlashCommand(serverError)) {
+        if (serverError && !schedulingInfo && !isErrorInvalidSlashCommand(serverError)) {
             isDraftSubmitting.current = false;
             return {};
         }
@@ -189,9 +189,19 @@ const useSubmit = (
         setServerError(null);
 
         const ignoreSlash = skipCommands || (isErrorInvalidSlashCommand(serverError) && serverError?.submittedMessage === submittingDraft.message);
+
+        // The scheduled post already exists once afterSubmit runs, so its failures must not be reported as scheduling errors.
+        const safeAfterSubmit = schedulingInfo && afterSubmit ? (submitResponse: SubmitPostReturnType) => {
+            try {
+                afterSubmit(submitResponse);
+            } catch (afterSubmitError) {
+                // eslint-disable-next-line no-console
+                console.error('Error in afterSubmit after scheduling a post', afterSubmitError);
+            }
+        } : afterSubmit;
         const options: OnSubmitOptions = {
             ignoreSlash,
-            afterSubmit,
+            afterSubmit: safeAfterSubmit,
             afterOptimisticSubmit,
             keepDraft: createPostOptions?.keepDraft,
         };
