@@ -37,6 +37,7 @@ type Props = {
         };
     };
     focusOnMount?: boolean;
+    testIdScope?: string;
 };
 
 export default function SearchableUserListContainer(props: Props) {

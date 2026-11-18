@@ -54,9 +54,12 @@ type Props = {
     index?: number;
     totalUsers?: number;
     userCount?: number;
+
+    // The row is `<testIdScope>:<user id>`, with `.name--text` and `.email--text`.
+    testIdScope?: string;
 };
 
-const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, actionUserProps = {}, index, totalUsers, userCount}: Props) => {
+const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, actionUserProps = {}, index, totalUsers, userCount, testIdScope}: Props) => {
     let buttons = null;
     if (actions) {
         buttons = actions.map((Action, actionIndex) => {
@@ -66,6 +69,7 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                     user={user}
                     index={index}
                     totalUsers={totalUsers}
+                    testIdScope={testIdScope ? `${testIdScope}.action` : undefined}
                     {...actionProps}
                     {...actionUserProps}
                 />
@@ -111,6 +115,7 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
         <div
             key={user.id}
             className='more-modal__row'
+            data-testid={testIdScope ? `${testIdScope}:${user.id}` : undefined}
         >
             <ProfilePicture
                 src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
@@ -121,12 +126,13 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
             />
             <div
                 className='more-modal__details'
-                data-testid='userListItemDetails'
+                data-testid='user_list_row.details'
             >
                 <div className='d-flex whitespace--nowrap'>
                     <div
                         id={userCountID}
                         className='more-modal__name'
+                        data-testid={testIdScope ? `${testIdScope}.name--text` : undefined}
                     >
                         <UserProfile
                             userId={user.id}
@@ -163,13 +169,14 @@ const UserListRow = ({user, status, extraInfo = [], actions = [], actionProps, a
                 <div
                     id={userCountEmail}
                     className={emailStyle}
+                    data-testid={testIdScope ? `${testIdScope}.email--text` : undefined}
                 >
                     <span>{emailProp}</span>
                 </div>
                 {extraInfo}
             </div>
             <div
-                data-testid='userListItemActions'
+                data-testid='user_list_row.actions'
                 className='more-modal__actions'
             >
                 {buttons}

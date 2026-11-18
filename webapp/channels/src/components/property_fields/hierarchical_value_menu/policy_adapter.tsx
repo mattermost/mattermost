@@ -62,7 +62,7 @@ export type PolicyHierarchicalValuesProps = {
     disabled?: boolean;
 } & Pick<
     HierarchicalValueMenuProps,
-'menuId' | 'buttonId' | 'buttonDataTestId' | 'placeholder' | 'ariaLabel' |
+'menuId' | 'buttonId' | 'buttonDataTestId' | 'testIdScope' | 'placeholder' | 'ariaLabel' |
 'className' | 'buttonClassName' | 'trailingChips' | 'extraMenuItems'
 >;
 

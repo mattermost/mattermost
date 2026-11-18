@@ -115,6 +115,9 @@ type Props = {
      * adjust the z-index of the parent modal's backdrop.
      */
     isStacked?: boolean;
+
+    /** The modal's testid, on the whole dialog (title and close button included); its buttons render `<testId>.confirm--button` and `<testId>.cancel--button`. Without it, the body takes the modal's id. */
+    testId?: string;
 };
 
 const ConfirmModal = ({
@@ -124,6 +127,7 @@ const ConfirmModal = ({
     confirmButtonText = '',
     modalClass = '',
     id,
+    testId,
     show,
     focusOriginElement,
     isStacked,
@@ -171,6 +175,7 @@ const ConfirmModal = ({
                 <label>
                     <input
                         type='checkbox'
+                        data-testid={testId ? `${testId}.dont_show_again--checkbox` : undefined}
                         onChange={handleCheckboxChange}
                         checked={checked}
                     />
@@ -197,7 +202,7 @@ const ConfirmModal = ({
         cancelButton = (
             <Button
                 type='button'
-                data-testid='cancel-button'
+                data-testid={testId ? `${testId}.cancel--button` : 'cancel-button'}
                 emphasis='tertiary'
                 onClick={handleCancel}
                 id='cancelModalButton'
@@ -217,9 +222,10 @@ const ConfirmModal = ({
             compassDesign={true}
             modalHeaderText={title}
             isStacked={isStacked}
+            testId={testId}
         >
             <div
-                data-testid={id}
+                data-testid={testId ? undefined : id}
             >
                 <div
                     className='ConfirmModal__body'
@@ -238,6 +244,7 @@ const ConfirmModal = ({
                             destructive={destructive}
                             onClick={handleConfirm}
                             id='confirmModalButton'
+                            data-testid={testId ? `${testId}.confirm--button` : undefined}
                             autoFocus={true}
                             disabled={confirmDisabled}
                         >

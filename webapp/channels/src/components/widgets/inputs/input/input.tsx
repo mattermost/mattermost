@@ -43,6 +43,9 @@ export interface InputProps extends Omit<React.InputHTMLAttributes<HTMLInputElem
     onClear?: () => void;
     rows?: number;
     validate?: (value: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement>['value']) => CustomMessageInputType | undefined;
+
+    /** The field's testid scope: the input renders `<testId>--textbox`, the wrapper `<testId>.field` and its validation message `<testId>.validation--alert` (an error or a warning) or its help text `<testId>.message--text`. */
+    testId?: string;
 }
 
 const Input = React.forwardRef((
@@ -76,6 +79,7 @@ const Input = React.forwardRef((
         onClear,
         rows,
         validate,
+        testId,
         ...otherProps
     }: InputProps,
     ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>,
@@ -148,6 +152,8 @@ const Input = React.forwardRef((
         }
     };
 
+    const inputTestIdProps = testId ? {'data-testid': `${testId}--textbox`} : {};
+
     const handleOnChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         // Clear custom messages when user types
         setCustomInputLabel(null);
@@ -207,6 +213,11 @@ const Input = React.forwardRef((
     const error = customInputLabel?.type === ItemStatus.ERROR;
     const warning = customInputLabel?.type === ItemStatus.WARNING;
 
+    let messageTestId;
+    if (testId) {
+        messageTestId = error || warning ? `${testId}.validation--alert` : `${testId}.message--text`;
+    }
+
     const clearButton = value && clearable ? (
         <WithTooltip
             title={clearableTooltipText || formatMessage({id: 'widget.input.clear', defaultMessage: 'Clear'})}
@@ -245,6 +256,7 @@ const Input = React.forwardRef((
                     disabled={disabled}
                     {...valueProps}
                     {...otherProps}
+                    {...inputTestIdProps}
                     maxLength={limit ? undefined : maxLength}
                     onFocus={handleOnFocus}
                     onBlur={handleOnBlur}
@@ -265,6 +277,7 @@ const Input = React.forwardRef((
                 disabled={disabled}
                 {...valueProps}
                 {...otherProps}
+                {...inputTestIdProps}
                 maxLength={limit ? undefined : maxLength}
                 onFocus={handleOnFocus}
                 onBlur={handleOnBlur}
@@ -280,7 +293,7 @@ const Input = React.forwardRef((
                     Input_fieldset___error: hasError || customInputLabel?.type === 'error',
                     Input_fieldset___legend: showLegend,
                 })}
-                data-testid='input-wrapper'
+                data-testid={testId ? `${testId}.field` : 'input-wrapper'}
             >
                 {useLegend && (
                     <label
@@ -304,6 +317,7 @@ const Input = React.forwardRef((
                     className={`Input___customMessage Input___${customInputLabel?.type || 'error'}`}
                     id={errorId}
                     role={error || warning ? 'alert' : undefined}
+                    data-testid={messageTestId}
                 >
                     <i
                         className={classNames(`icon ${customInputLabel?.type || 'error'}`, {

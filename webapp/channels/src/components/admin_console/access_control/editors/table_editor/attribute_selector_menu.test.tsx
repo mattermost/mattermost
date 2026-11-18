@@ -131,6 +131,9 @@ const nativeFields = [nativeEmail, nativeVerified, nativeIsBot, nativeCreateAt];
 
 const menuItem = (field: UserPropertyField) => document.getElementById(`attribute-${field.id}`);
 
+// The rule row's scope a TableEditor passes down; the button is `${ROW}.attribute--button`.
+const ROW = 'test.rules.row' as const;
+
 describe('AttributeSelectorMenu', () => {
     const baseProps = {
         currentAttribute: '',
@@ -139,6 +142,7 @@ describe('AttributeSelectorMenu', () => {
         menuId: 'attributeMenu',
         buttonId: 'attributeButton',
         enableUserManagedAttributes: false,
+        testId: ROW,
     };
 
     afterEach(() => {
@@ -153,7 +157,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         expect(screen.getByText('Session attributes')).toBeInTheDocument();
         expect(screen.getByText('Department')).toBeInTheDocument();
@@ -169,7 +173,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         const sessionItem = document.getElementById('attribute-f2');
         expect(sessionItem).toBeInTheDocument();
@@ -189,7 +193,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         const ownerItem = document.getElementById('attribute-f3');
         expect(ownerItem).toBeInTheDocument();
@@ -208,7 +212,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         expect(screen.queryByText('Session attributes')).not.toBeInTheDocument();
         expect(screen.getByText('Department')).toBeInTheDocument();
@@ -222,7 +226,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         const search = screen.getByRole('textbox');
         fireEvent.change(search, {target: {value: 'ip'}});
@@ -240,7 +244,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         const search = screen.getByRole('textbox');
         fireEvent.change(search, {target: {value: 'ip'}});
@@ -259,7 +263,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         expect(document.querySelector('.MuiDivider-root')).toBeInTheDocument();
     });
@@ -276,7 +280,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        const label = screen.getByTestId('attributeSelectorMenuButton').querySelector('.field-selector-menu-button__label');
+        const label = screen.getByTestId(`${ROW}.attribute--button`).querySelector('.field-selector-menu-button__label');
         expect(label).toBeInTheDocument();
         expect(label).toHaveTextContent('Department');
     });
@@ -289,7 +293,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         expect(screen.getByLabelText('Desktop')).toBeInTheDocument();
         expect(screen.getByLabelText('Mobile')).toBeInTheDocument();
@@ -304,7 +308,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         expect(screen.getByLabelText('Desktop')).toBeInTheDocument();
         expect(screen.getByLabelText('Mobile')).toBeInTheDocument();
@@ -330,7 +334,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         expect(screen.getByLabelText('Browser')).toBeInTheDocument();
 
@@ -350,7 +354,7 @@ describe('AttributeSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 
@@ -366,7 +370,7 @@ describe('AttributeSelectorMenu', () => {
     });
 
     describe('selectableAttributes', () => {
-        const openMenu = () => fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        const openMenu = () => fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
         test('lists only the selectable subset', () => {
             renderWithContext(
@@ -396,7 +400,7 @@ describe('AttributeSelectorMenu', () => {
                 />,
             );
 
-            const label = screen.getByTestId('attributeSelectorMenuButton').querySelector('.field-selector-menu-button__label');
+            const label = screen.getByTestId(`${ROW}.attribute--button`).querySelector('.field-selector-menu-button__label');
             expect(label).toHaveTextContent('Email');
 
             openMenu();

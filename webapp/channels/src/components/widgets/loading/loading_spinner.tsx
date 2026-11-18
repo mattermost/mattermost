@@ -18,6 +18,9 @@ type Props = {
 
     /** Renders the Font Awesome spinner. Used inside buttons until they move to the Compass Button. */
     legacy?: boolean;
+
+    /** Replaces the spinner's default testid. */
+    testId?: string;
 };
 
 const LoadingSpinner = ({
@@ -25,6 +28,7 @@ const LoadingSpinner = ({
     style,
     size = '16',
     legacy = false,
+    testId,
 }: Props) => {
     const {formatMessage} = useIntl();
     const ariaLabel = formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'});
@@ -34,7 +38,7 @@ const LoadingSpinner = ({
             id='loadingSpinner'
             className={classNames('LoadingSpinner', {'with-text': Boolean(text)})}
             style={style}
-            data-testid='loadingSpinner'
+            data-testid={testId ?? 'loadingSpinner'}
         >
             {legacy ? (
                 <span

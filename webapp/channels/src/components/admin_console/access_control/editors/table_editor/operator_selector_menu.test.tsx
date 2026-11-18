@@ -7,6 +7,9 @@ import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import OperatorSelectorMenu from './operator_selector_menu';
 
+// The rule row's scope a TableEditor passes down; the button is `${ROW}.operator--button`.
+const ROW = 'test.rules.row' as const;
+
 const openMenu = () => {
     const menu = document.getElementById('operator-selector-menu');
     if (!menu) {
@@ -47,6 +50,7 @@ describe('OperatorSelectorMenu', () => {
         currentOperator: 'is',
         disabled: false,
         onChange: jest.fn(),
+        testId: ROW,
     };
 
     afterEach(() => {
@@ -55,7 +59,7 @@ describe('OperatorSelectorMenu', () => {
 
     test('renders with current operator label', () => {
         renderWithContext(<OperatorSelectorMenu {...defaultProps}/>);
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('is');
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('is');
     });
 
     test('shows all 6 operators when attributeType is text', () => {
@@ -66,7 +70,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuItems = screen.getAllByRole('menuitemradio');
         expect(menuItems).toHaveLength(6);
@@ -80,7 +84,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuItems = screen.getAllByRole('menuitemradio');
         expect(menuItems).toHaveLength(6);
@@ -89,7 +93,7 @@ describe('OperatorSelectorMenu', () => {
     test('shows all 6 operators when attributeType is not provided', () => {
         renderWithContext(<OperatorSelectorMenu {...defaultProps}/>);
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuItems = screen.getAllByRole('menuitemradio');
         expect(menuItems).toHaveLength(6);
@@ -104,7 +108,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         // These two operators are also in the graph menu, under the same string
         // ids, where they carry help text. Only the graph menu describes them.
@@ -123,7 +127,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuItems = screen.getAllByRole('menuitemradio');
         const menuTexts = menuItems.map((item) => item.textContent);
@@ -142,7 +146,7 @@ describe('OperatorSelectorMenu', () => {
 
         test('groups the operators under three titles, each carrying its help text', () => {
             renderGraphMenu();
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
             // The wording is the point of the menu: "all" means every selected
             // value for the covers operators but every value the user holds for
@@ -180,7 +184,7 @@ describe('OperatorSelectorMenu', () => {
 
         test('sets the function name apart from the rest of the description', () => {
             renderGraphMenu();
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
             // It names a function rather than explaining the operator, so it is
             // de-emphasised — which needs it in an element of its own. The menu
@@ -200,7 +204,7 @@ describe('OperatorSelectorMenu', () => {
 
         test('names an operator by its label and its help text together', () => {
             renderGraphMenu();
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
             // The description is part of the item, so it is read out with the
             // label rather than left to sighted users — which is also why a
@@ -216,7 +220,7 @@ describe('OperatorSelectorMenu', () => {
 
             // Anchored: toHaveTextContent is a substring match, so the help text
             // leaking onto the trigger would otherwise still pass.
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent(/^has each of or a parent of$/);
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent(/^has each of or a parent of$/);
         });
 
         test('renders a stored operator identifier under the label it maps to', () => {
@@ -225,9 +229,9 @@ describe('OperatorSelectorMenu', () => {
             // maps to.
             renderGraphMenu('withinAll');
 
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('is entirely within');
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('is entirely within');
 
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
             const checked = screen.getAllByRole('menuitemradio').filter((item) => item.getAttribute('aria-checked') === 'true');
             expect(checked).toHaveLength(1);
@@ -236,7 +240,7 @@ describe('OperatorSelectorMenu', () => {
 
         test('emits the stored operator identifier, not the label, when one is picked', () => {
             renderGraphMenu();
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
             fireEvent.click(screen.getByText('is entirely within'));
 
@@ -250,7 +254,7 @@ describe('OperatorSelectorMenu', () => {
 
         test('drops a group title when the filter leaves it with no operators', () => {
             renderGraphMenu();
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
             filterBy('parent');
 
@@ -282,7 +286,7 @@ describe('OperatorSelectorMenu', () => {
 
         test('restores the whole grouped menu after an operator is picked', () => {
             renderGraphMenu();
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
             const unfiltered = menuLabels();
 
             filterBy('child');
@@ -290,13 +294,13 @@ describe('OperatorSelectorMenu', () => {
 
             // Reopening on the narrowed list would hide most of the menu, so
             // picking an operator clears the filter.
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
             expect(menuLabels()).toEqual(unfiltered);
         });
 
         test('steps over a group title when the operators are walked by keyboard', () => {
             renderGraphMenu();
-            fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+            fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
             // The titles are interleaved with the operators, so a title sits
             // between the last operator of one group and the first of the next.
@@ -319,7 +323,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuTexts = screen.getAllByRole('menuitemradio').map((item) => item.textContent);
         expect(menuTexts).not.toContain('has each of or a parent of');
@@ -341,7 +345,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         expect(menuOutline()).toEqual([
             {label: 'is exactly'},
@@ -363,7 +367,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         // An explicit operator set is the whole menu, so there is no group to
         // put an operator under and the help text goes with the groups.
@@ -383,7 +387,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuItems = screen.getAllByRole('menuitemradio');
         const menuTexts = menuItems.map((item) => item.textContent);
@@ -400,7 +404,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuItems = screen.getAllByRole('menuitemradio');
         const menuTexts = menuItems.map((item) => item.textContent);
@@ -417,7 +421,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuItems = screen.getAllByRole('menuitemradio');
         const menuTexts = menuItems.map((item) => item.textContent);
@@ -434,7 +438,7 @@ describe('OperatorSelectorMenu', () => {
             />,
         );
 
-        fireEvent.click(screen.getByTestId('operatorSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.operator--button`));
 
         const menuItems = screen.getAllByRole('menuitemradio');
         const menuTexts = menuItems.map((item) => item.textContent);

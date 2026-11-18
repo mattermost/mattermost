@@ -148,7 +148,10 @@ const PostMessagePreview = (props: Props) => {
             link={`${teamUrl}/pl/${metadata.post_id}`}
             preventClickAction={preventClickAction}
         >
-            <div className='post-preview'>
+            <div
+                className='post-preview'
+                data-testid={props.testIdScope}
+            >
                 <div className='post-preview__header'>
                     <div className='col col__name'>
                         <div className='post__img'>

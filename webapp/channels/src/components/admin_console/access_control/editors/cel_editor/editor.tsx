@@ -176,6 +176,8 @@ export interface CELEditorProps {
     testButtonLabel?: React.ReactNode;
     hasMaskedRows?: boolean;
     actions?: CELEditorActions;
+
+    testId?: string;
 }
 
 // TODO: this is just a sample schema for the editor, we need to get the actual schema from the server
@@ -186,6 +188,7 @@ function CELEditor({
     onValidate,
     placeholder = 'user.attributes.<attribute> == <value>',
     className = '',
+    testId,
     channelId,
     teamId,
     disabled = false,
@@ -459,6 +462,7 @@ function CELEditor({
                 <div
                     className='cel-editor__masked-banner'
                     role='alert'
+                    data-testid={testId ? `${testId}.masked--alert` : undefined}
                 >
                     <i className='icon icon-alert-outline'/>
                     <FormattedMessage
@@ -484,6 +488,7 @@ function CELEditor({
                 <div
                     ref={editorRef}
                     className='cel-editor__input'
+                    data-testid={testId ? `${testId}.input` : undefined}
                 />
                 <div
                     className='cel-editor__status-bar'
@@ -494,6 +499,7 @@ function CELEditor({
                         className='cel-editor__status-message'
                         role='status'
                         aria-live='polite'
+                        data-testid={testId ? `${testId}.status--text` : undefined}
                     >
                         {renderStatusMessage(getValidationState())}
                     </div>
@@ -528,6 +534,7 @@ function CELEditor({
                 </div>
                 <div className='access-control-test-controls'>
                     <TestButton
+                        testId={testId ? `${testId}.test` : undefined}
                         onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
                         label={testButtonLabel}
                         disabled={testButtonDisabled || disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}

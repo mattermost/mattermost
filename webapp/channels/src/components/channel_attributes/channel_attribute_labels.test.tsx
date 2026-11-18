@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {act, screen, waitFor} from '@testing-library/react';
+import {act, screen, waitFor, within} from '@testing-library/react';
 import React from 'react';
 
 import type {PropertyField, PropertyFieldOption, PropertyValue} from '@mattermost/types/properties';
@@ -20,6 +20,16 @@ import type {GlobalState} from 'types/store';
 
 import ChannelAttributeLabels from './channel_attribute_labels';
 import {setChannelAttributeValue} from './set_channel_attribute_value';
+
+const T = 'channel_header.attributes';
+
+// The row's own chips, not the ones repeated in the overflow popover.
+const CHIP = /^channel_header\.attributes\.chip:[^:]+$/;
+
+// The RHS thread header, and the Global Threads pane (where the chips are not interactive).
+const RHS_THREAD = 'rhs.thread.header.attributes';
+const RHS_THREAD_CHIP = /^rhs\.thread\.header\.attributes\.chip:[^:]+$/;
+const THREAD_PANE = 'threads.pane.attributes';
 
 jest.mock('mattermost-redux/actions/properties', () => ({
     fetchPropertyFields: jest.fn(() => () => Promise.resolve({data: []})),
@@ -141,13 +151,13 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='info'
             />,
             makeState([info]),
         );
 
-        expect(screen.getByTestId('channelAttributeLabels-info')).toBeInTheDocument();
-        expect(screen.queryByTestId('channelAttributeLabels-header')).not.toBeInTheDocument();
+        expect(screen.getByTestId(T)).toBeInTheDocument();
     });
 
     test('renders chips from every requested surface in one row', async () => {
@@ -158,14 +168,15 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface={['info', 'header']}
             />,
             makeState([info, field('classification')]),
         );
 
-        await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(2));
-        expect(screen.getByTestId('channelAttributeLabels-info-header')).toBeInTheDocument();
-        expect(screen.queryByTestId('channelAttributeLabelsOverflow-info-header')).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.getAllByTestId(CHIP)).toHaveLength(2));
+        expect(screen.getByTestId(T)).toBeInTheDocument();
+        expect(screen.queryByTestId(`${T}.overflow--button`)).not.toBeInTheDocument();
     });
 
     test('renders nothing when no attribute is designated for the header', () => {
@@ -175,24 +186,26 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([plain]),
         );
 
-        expect(screen.queryByTestId('channelAttributeLabels-header')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(T)).not.toBeInTheDocument();
     });
 
     test('renders nothing when the feature flag is off', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('program')], 'false'),
         );
 
-        expect(screen.queryByTestId('channelAttributeLabels-header')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(T)).not.toBeInTheDocument();
     });
 
     test('renders chips in sort_order, breaking ties on field name', () => {
@@ -201,6 +214,7 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([
@@ -210,7 +224,7 @@ describe('ChannelAttributeLabels', () => {
             ]),
         );
 
-        const chips = screen.getAllByTestId('attributeChip');
+        const chips = screen.getAllByTestId(CHIP);
         expect(chips.map((chip) => chip.textContent)).toEqual([
             'FIRST: FIRST',
             'ALPHA: ALPHA',
@@ -224,14 +238,15 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(3));
-        expect(screen.getAllByTestId('attributeChip')[0]).toHaveClass('AttributeChip--medium');
-        expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.getAllByTestId(CHIP)).toHaveLength(3));
+        expect(screen.getAllByTestId(CHIP)[0]).toHaveClass('AttributeChip--medium');
+        expect(screen.queryByTestId(`${T}.overflow--button`)).not.toBeInTheDocument();
     });
 
     test('collapses the remainder into +N at a narrow width', async () => {
@@ -241,14 +256,15 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        const overflow = await screen.findByTestId(`${T}.overflow--button`);
         expect(overflow).toHaveTextContent('+2');
-        expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
+        expect(screen.getAllByTestId(CHIP)).toHaveLength(1);
     });
 
     test('keeps at least one chip visible, so the header never shows only a count', async () => {
@@ -257,13 +273,14 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('a'), field('b')]),
         );
 
-        await waitFor(() => expect(screen.getByTestId('channelAttributeLabelsOverflow-header')).toHaveTextContent('+1'));
-        expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
+        await waitFor(() => expect(screen.getByTestId(`${T}.overflow--button`)).toHaveTextContent('+1'));
+        expect(screen.getAllByTestId(CHIP)).toHaveLength(1);
     });
 
     test('in the thread header, overflows every chip into +N when none fit', async () => {
@@ -272,15 +289,16 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={RHS_THREAD}
                 surface='header'
                 allowEmptyVisible={true}
             />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        const overflow = await screen.findByTestId(`${RHS_THREAD}.overflow--button`);
         expect(overflow).toHaveTextContent('+3');
-        expect(screen.queryByTestId('attributeChip')).not.toBeInTheDocument();
+        expect(screen.queryAllByTestId(RHS_THREAD_CHIP)).toHaveLength(0);
     });
 
     test('in the thread header, the channel name yields so chips are not squeezed out', async () => {
@@ -298,6 +316,7 @@ describe('ChannelAttributeLabels', () => {
                 </button>
                 <ChannelAttributeLabels
                     channelId={CHANNEL_ID}
+                    testId={RHS_THREAD}
                     surface='header'
                     allowEmptyVisible={true}
                 />
@@ -305,9 +324,9 @@ describe('ChannelAttributeLabels', () => {
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        const overflow = await screen.findByTestId(`${RHS_THREAD}.overflow--button`);
         expect(overflow).toHaveTextContent('+2');
-        expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
+        expect(screen.getAllByTestId(RHS_THREAD_CHIP)).toHaveLength(1);
     });
 
     test('lists the overflowed attributes in the popover', async () => {
@@ -316,20 +335,21 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        const overflow = await screen.findByTestId(`${T}.overflow--button`);
         await act(async () => {
             overflow.click();
         });
 
-        const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
+        const popover = await screen.findByTestId(`${T}.overflow_popover`);
         expect(popover).toHaveTextContent('B');
         expect(popover).toHaveTextContent('C');
-        expect(screen.getByTestId('channelAttributeLabelsViewAll-header')).toHaveTextContent('View all attributes');
+        expect(screen.getByTestId(`${T}.overflow_popover.view_all--button`)).toHaveTextContent('View all attributes');
     });
 
     // Regression: labels arrive after mount, so the split state starts life sized
@@ -343,13 +363,14 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('a')]),
         );
 
-        await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(1));
-        expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.getAllByTestId(CHIP)).toHaveLength(1));
+        expect(screen.queryByTestId(`${T}.overflow--button`)).not.toBeInTheDocument();
     });
 
     test('is deterministic: the same width yields the same split', async () => {
@@ -359,21 +380,23 @@ describe('ChannelAttributeLabels', () => {
         const first = renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             state,
         );
-        const firstCount = (await screen.findByTestId('channelAttributeLabelsOverflow-header')).textContent;
+        const firstCount = (await screen.findByTestId(`${T}.overflow--button`)).textContent;
         first.unmount();
 
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             state,
         );
-        expect((await screen.findByTestId('channelAttributeLabelsOverflow-header')).textContent).toBe(firstCount);
+        expect((await screen.findByTestId(`${T}.overflow--button`)).textContent).toBe(firstCount);
     });
 
     test('opens channel info when a chip is clicked', async () => {
@@ -383,12 +406,13 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('program')]),
         );
 
-        await userEvent.click(await screen.findByTestId('attributeChip'));
+        await userEvent.click(await screen.findByTestId(`${T}.chip:0`));
         expect(showChannelInfo).toHaveBeenCalledWith(CHANNEL_ID);
     });
 
@@ -399,18 +423,19 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        const overflow = await screen.findByTestId(`${T}.overflow--button`);
         await act(async () => {
             overflow.click();
         });
 
-        const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
-        await userEvent.click(popover.querySelector('[data-testid="attributeChip"]')!);
+        const popover = await screen.findByTestId(`${T}.overflow_popover`);
+        await userEvent.click(within(popover).getAllByTestId(/^channel_header\.attributes\.overflow_popover\.chip:[^:]+$/)[0]);
         expect(showChannelInfo).toHaveBeenCalledWith(CHANNEL_ID);
     });
 
@@ -437,6 +462,7 @@ describe('ChannelAttributeLabels', () => {
                 <div className='channel-header__icons'>
                     <ChannelAttributeLabels
                         channelId={CHANNEL_ID}
+                        testId={T}
                         surface='header'
                     />
                 </div>
@@ -447,8 +473,8 @@ describe('ChannelAttributeLabels', () => {
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        await waitFor(() => expect(screen.getAllByTestId('attributeChip')).toHaveLength(3));
-        expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
+        await waitFor(() => expect(screen.getAllByTestId(CHIP)).toHaveLength(3));
+        expect(screen.queryByTestId(`${T}.overflow--button`)).not.toBeInTheDocument();
     });
 
     // Regression: measuring the live (squeezed) channel-name width made chips
@@ -479,6 +505,7 @@ describe('ChannelAttributeLabels', () => {
                 <div className='channel-header__icons'>
                     <ChannelAttributeLabels
                         channelId={CHANNEL_ID}
+                        testId={T}
                         surface='header'
                     />
                 </div>
@@ -487,9 +514,9 @@ describe('ChannelAttributeLabels', () => {
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        const overflow = await screen.findByTestId(`${T}.overflow--button`);
         expect(overflow).toHaveTextContent('+2');
-        expect(screen.getAllByTestId('attributeChip')).toHaveLength(1);
+        expect(screen.getAllByTestId(CHIP)).toHaveLength(1);
     });
 
     // Regression: the row was hidden until re-measured whenever the chip id array
@@ -511,12 +538,13 @@ describe('ChannelAttributeLabels', () => {
             const {store} = renderWithContext(
                 <ChannelAttributeLabels
                     channelId={CHANNEL_ID}
+                    testId={T}
                     surface='header'
                 />,
                 makeState([classification, field('vegetables')]),
             );
 
-            const row = await screen.findByTestId('channelAttributeLabels-header');
+            const row = await screen.findByTestId(T);
             await waitFor(() => expect(row).toBeVisible());
 
             const raised = value('classification', 'opt_raised');
@@ -527,7 +555,7 @@ describe('ChannelAttributeLabels', () => {
             });
 
             expect(row).toBeVisible();
-            expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual([
+            expect(screen.getAllByTestId(CHIP).map((chip) => chip.textContent)).toEqual([
                 'CLASSIFICATION: PROTECTED B',
                 'VEGETABLES: VEGETABLES',
             ]);
@@ -544,14 +572,15 @@ describe('ChannelAttributeLabels', () => {
             renderWithContext(
                 <ChannelAttributeLabels
                     channelId={CHANNEL_ID}
+                    testId={T}
                     surface='header'
                 />,
                 makeState([graphField('programs'), field('vegetables')]),
             );
 
-            const row = await screen.findByTestId('channelAttributeLabels-header');
+            const row = await screen.findByTestId(T);
             await waitFor(() => expect(row).toBeVisible());
-            expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual([
+            expect(screen.getAllByTestId(CHIP).map((chip) => chip.textContent)).toEqual([
                 'PROGRAMS: opt_programs',
                 'VEGETABLES: VEGETABLES',
             ]);
@@ -561,7 +590,7 @@ describe('ChannelAttributeLabels', () => {
             });
 
             expect(row).toBeVisible();
-            expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual([
+            expect(screen.getAllByTestId(CHIP).map((chip) => chip.textContent)).toEqual([
                 'PROGRAMS: Apollo',
                 'VEGETABLES: VEGETABLES',
             ]);
@@ -579,14 +608,15 @@ describe('ChannelAttributeLabels', () => {
         const {store} = renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             state,
         );
 
-        const row = await screen.findByTestId('channelAttributeLabels-header');
+        const row = await screen.findByTestId(T);
         await waitFor(() => expect(row).toBeVisible());
-        expect(screen.getAllByTestId('attributeChip')).toHaveLength(3);
+        expect(screen.getAllByTestId(CHIP)).toHaveLength(3);
 
         jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([value('d')]);
 
@@ -597,13 +627,13 @@ describe('ChannelAttributeLabels', () => {
         expect(row).not.toBeVisible();
 
         await waitFor(() => expect(row).toBeVisible());
-        expect(screen.getAllByTestId('attributeChip').map((chip) => chip.textContent)).toEqual([
+        expect(screen.getAllByTestId(CHIP).map((chip) => chip.textContent)).toEqual([
             'A: A',
             'B: B',
             'C: C',
             'D: D',
         ]);
-        expect(screen.queryByTestId('channelAttributeLabelsOverflow-header')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(`${T}.overflow--button`)).not.toBeInTheDocument();
     });
 
     test('in the thread header, chips read as labels because Channel Info cannot open there', async () => {
@@ -613,27 +643,28 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={THREAD_PANE}
                 surface='header'
                 interactive={false}
             />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const chip = await screen.findByTestId('attributeChip');
+        const chip = await screen.findByTestId(`${THREAD_PANE}.chip:0`);
         expect(chip.closest('button')).toBeNull();
         await userEvent.click(chip);
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        const overflow = await screen.findByTestId(`${THREAD_PANE}.overflow--button`);
         await act(async () => {
             overflow.click();
         });
 
         // The overflowed values are still readable, but nothing in the popover
         // offers to open a panel that would never load.
-        const popover = await screen.findByTestId('channelAttributeLabelsPopover-header');
+        const popover = await screen.findByTestId(`${THREAD_PANE}.overflow_popover`);
         expect(popover).toHaveTextContent('B');
         expect(popover.querySelector('button')).toBeNull();
-        expect(screen.queryByTestId('channelAttributeLabelsViewAll-header')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(`${THREAD_PANE}.overflow_popover.view_all--button`)).not.toBeInTheDocument();
 
         expect(showChannelInfo).not.toHaveBeenCalled();
     });
@@ -645,17 +676,18 @@ describe('ChannelAttributeLabels', () => {
         renderWithContext(
             <ChannelAttributeLabels
                 channelId={CHANNEL_ID}
+                testId={T}
                 surface='header'
             />,
             makeState([field('a'), field('b'), field('c')]),
         );
 
-        const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-header');
+        const overflow = await screen.findByTestId(`${T}.overflow--button`);
         await act(async () => {
             overflow.click();
         });
 
-        await userEvent.click(await screen.findByTestId('channelAttributeLabelsViewAll-header'));
+        await userEvent.click(await screen.findByTestId(`${T}.overflow_popover.view_all--button`));
         expect(showChannelInfo).toHaveBeenCalledWith(CHANNEL_ID);
     });
 });

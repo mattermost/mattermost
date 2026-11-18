@@ -18,6 +18,11 @@ type Props = {
     onChange(name: string, value: any): void; // value is any since onChange is a common func for inputs and checkboxes
     autoFocus?: boolean;
     labelPosition?: 'before' | 'after';
+
+    testIdScope?: string;
+
+    /** The row's own testid when it isn't the scope (a keyed row). */
+    testId?: string;
 };
 
 const BoolSetting = ({
@@ -32,6 +37,8 @@ const BoolSetting = ({
     onChange,
     autoFocus,
     labelPosition = 'after',
+    testIdScope,
+    testId,
 }: Props) => {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.checked);
@@ -49,12 +56,15 @@ const BoolSetting = ({
             inputClassName={`inline-choice-setting ${inputClassName}`.trim()}
             helpText={helpText}
             inputId={id}
+            testIdScope={testIdScope}
+            testId={testId}
         >
             <div className='checkbox'>
                 <label>
                     {!isAfter && checkboxLabel}
                     <input
                         id={id}
+                        data-testid={testIdScope ? `${testIdScope}.checked--checkbox` : undefined}
                         disabled={disabled}
                         autoFocus={autoFocus}
                         type='checkbox'

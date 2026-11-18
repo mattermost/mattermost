@@ -98,15 +98,15 @@ describe('SimulateAccessModal — picker UX', () => {
 
         // Search bar is always visible (replaces the previous "+ Add users"
         // popover trigger). The scope toggle defaults to "All policies".
-        expect(screen.getByTestId('simulate-access-search')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.simulate_access.search--textbox')).toBeInTheDocument();
         expect(screen.queryByRole('button', {name: /Add users/i})).not.toBeInTheDocument();
-        expect(screen.getByTestId('simulate-access-scope-all')).toHaveAttribute('aria-pressed', 'true');
-        expect(screen.getByTestId('simulate-access-scope-this-rule')).toHaveAttribute('aria-pressed', 'false');
+        expect(screen.getByTestId('admin.simulate_access.range:all--togglebutton')).toHaveAttribute('aria-pressed', 'true');
+        expect(screen.getByTestId('admin.simulate_access.range:this_rule--togglebutton')).toHaveAttribute('aria-pressed', 'false');
 
         // Permission filter only renders for multi-action rules. With
         // a single action there's nothing to filter, so the dropdown
         // is intentionally hidden.
-        expect(screen.queryByTestId('simulate-access-permission-filter')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.permission_filter--button')).not.toBeInTheDocument();
     });
 
     it('does not call simulator when the initial user fetch returns no candidates', async () => {
@@ -148,7 +148,7 @@ describe('SimulateAccessModal — picker UX', () => {
     // for the row to mount in the table — no popover or click on a
     // result item is required.
     async function pickUser(user: any) {
-        const searchInput = await screen.findByTestId('simulate-access-search') as HTMLInputElement;
+        const searchInput = await screen.findByTestId('admin.simulate_access.search--textbox') as HTMLInputElement;
 
         // Allow the initial page-0 fetch (getProfiles / getProfilesInChannel)
         // to settle before the search dispatch lands so the assertion
@@ -241,8 +241,8 @@ describe('SimulateAccessModal — picker UX', () => {
 
         // Toggling the scope must immediately fire a fresh simulate
         // with the new scope param — no extra Re-run click needed.
-        await userEvent.click(screen.getByTestId('simulate-access-scope-this-rule'));
-        expect(screen.getByTestId('simulate-access-scope-this-rule')).toHaveAttribute('aria-pressed', 'true');
+        await userEvent.click(screen.getByTestId('admin.simulate_access.range:this_rule--togglebutton'));
+        expect(screen.getByTestId('admin.simulate_access.range:this_rule--togglebutton')).toHaveAttribute('aria-pressed', 'true');
 
         await waitFor(() => {
             expect(mockSimulatePolicyForUsers.mock.calls.length).toBeGreaterThan(initialCalls);
@@ -252,7 +252,7 @@ describe('SimulateAccessModal — picker UX', () => {
         // Toggling back to All policies fires another rerun with the
         // original scope, confirming both directions work.
         const afterFirstToggle = mockSimulatePolicyForUsers.mock.calls.length;
-        await userEvent.click(screen.getByTestId('simulate-access-scope-all'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.range:all--togglebutton'));
         await waitFor(() => {
             expect(mockSimulatePolicyForUsers.mock.calls.length).toBeGreaterThan(afterFirstToggle);
         });
@@ -271,8 +271,8 @@ describe('SimulateAccessModal — picker UX', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('simulate-access-scope-this-rule'));
-        expect(screen.getByTestId('simulate-access-scope-this-rule')).toHaveAttribute('aria-pressed', 'true');
+        await userEvent.click(screen.getByTestId('admin.simulate_access.range:this_rule--togglebutton'));
+        expect(screen.getByTestId('admin.simulate_access.range:this_rule--togglebutton')).toHaveAttribute('aria-pressed', 'true');
 
         // The toggle still updates UI state but skips the dispatch
         // when there's nothing to evaluate.
@@ -339,7 +339,7 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await userEvent.click(activityCell);
 
-        const sessionRows = await screen.findAllByTestId('simulate-access-session-row');
+        const sessionRows = await screen.findAllByTestId(/^admin\.simulate_access\.session:/);
         expect(sessionRows).toHaveLength(2);
         expect(screen.getByText(/MacBook Pro · WiFi/i)).toBeInTheDocument();
         expect(screen.getByText(/iPhone 14 · WiFi/i)).toBeInTheDocument();
@@ -387,7 +387,7 @@ describe('SimulateAccessModal — picker UX', () => {
 
         // Permission filter is rendered (multi-action rule). Default
         // label is "All permissions" → mixed aggregate chip.
-        const filterButton = await screen.findByTestId('simulate-access-permission-filter');
+        const filterButton = await screen.findByTestId('admin.simulate_access.permission_filter--button');
         expect(filterButton).toHaveTextContent(/All permissions/);
         await screen.findByText(/Mixed/i);
 
@@ -396,7 +396,7 @@ describe('SimulateAccessModal — picker UX', () => {
         // updates to reflect the active narrowing.
         await userEvent.click(filterButton);
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /Download files/i}));
-        await screen.findByTestId('simulate-access-row-chip-allow');
+        await screen.findByTestId('admin.simulate_access.user.decision:allow--text');
         expect(screen.queryByText(/Mixed/i)).not.toBeInTheDocument();
         expect(filterButton).toHaveTextContent(/Download files/);
 
@@ -404,7 +404,7 @@ describe('SimulateAccessModal — picker UX', () => {
         // flips to the upload action.
         await userEvent.click(filterButton);
         await userEvent.click(await screen.findByRole('menuitemradio', {name: /Upload files/i}));
-        await screen.findByTestId('simulate-access-row-chip-deny');
+        await screen.findByTestId('admin.simulate_access.user.decision:deny--text');
         expect(filterButton).toHaveTextContent(/Upload files/);
     });
 
@@ -426,10 +426,10 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const pencil = await screen.findByTestId(`simulate-access-row-edit-${user.id}`);
+        const pencil = within(await screen.findByTestId(`admin.simulate_access.user:${user.id}`)).getByTestId('admin.simulate_access.user.edit_session--button');
         await userEvent.click(pencil);
 
-        const editor = await screen.findByTestId('simulate-access-row-editor');
+        const editor = await screen.findByTestId('admin.simulate_access.session_editor');
         expect(editor).toBeInTheDocument();
 
         // The single configured field renders as a dropdown because
@@ -474,7 +474,7 @@ describe('SimulateAccessModal — picker UX', () => {
         // dropped the remove-user button when the modal moved to a
         // data-driven user list).
         await screen.findByText(`@${user.username}`);
-        expect(screen.queryByTestId(`simulate-access-row-edit-${user.id}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.user.edit_session--button')).not.toBeInTheDocument();
 
         // The "Recent activity" column header must not appear.
         expect(screen.queryByRole('columnheader', {name: /Recent activity/i})).not.toBeInTheDocument();
@@ -527,7 +527,7 @@ describe('SimulateAccessModal — picker UX', () => {
         const rowCells = screen.getAllByRole('row')[1].querySelectorAll('td');
         expect(rowCells).toHaveLength(2);
 
-        const denyChip = await screen.findByTestId('simulate-access-row-chip-deny');
+        const denyChip = await screen.findByTestId('admin.simulate_access.user.decision:deny--text');
         const denyCell = denyChip.closest('td');
         expect(denyCell).not.toBeNull();
         expect(denyCell?.classList.contains('SimulateAccessModal__rowResult')).toBe(true);
@@ -576,7 +576,7 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const allowChip = await screen.findByTestId('simulate-access-row-chip-allow');
+        const allowChip = await screen.findByTestId('admin.simulate_access.user.decision:allow--text');
         expect(allowChip).toBeInTheDocument();
 
         // The user row should not advertise an expandable role; click
@@ -588,7 +588,7 @@ describe('SimulateAccessModal — picker UX', () => {
         if (userRow) {
             await userEvent.click(userRow);
         }
-        expect(screen.queryByTestId('simulate-access-session-row')).not.toBeInTheDocument();
+        expect(screen.queryByTestId(/^admin\.simulate_access\.session:/)).not.toBeInTheDocument();
 
         // Recent activity column / device label / chevron must all stay
         // out of the DOM since the entire concept is gated on session
@@ -632,17 +632,17 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const stacked = await screen.findByTestId('simulate-access-row-chip-stacked-mixed');
+        const stacked = await screen.findByTestId('admin.simulate_access.user.stacked:mixed--button');
         expect(stacked).toHaveTextContent(/Mixed/i);
 
         await userEvent.click(stacked);
 
-        const uploadRow = await screen.findByTestId('simulate-access-details-upload_file_attachment');
+        const uploadRow = await screen.findByTestId('admin.simulate_access.details.action:0');
         expect(uploadRow).toHaveTextContent(/Upload/);
-        const downloadRow = screen.getByTestId('simulate-access-details-download_file_attachment');
+        const downloadRow = screen.getByTestId('admin.simulate_access.details.action:1');
         expect(downloadRow).toHaveTextContent(/Download/);
-        expect(screen.getByTestId('simulate-access-row-chip-allow')).toBeInTheDocument();
-        expect(screen.getByTestId('simulate-access-row-chip-deny')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.simulate_access.details.action.decision:allow--text')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.simulate_access.details.action.decision:deny--text')).toBeInTheDocument();
     });
 
     it('makes a single-action deny chip clickable and renders the failing rule + expression in the details modal', async () => {
@@ -696,24 +696,24 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
 
         // The rule details start collapsed behind a disclosure
         // toggle so the modal opens with a tight summary view; the
         // rule + expression block is only mounted once the toggle is
         // clicked.
-        expect(screen.queryByTestId('simulate-access-details-rule-upload_file_attachment')).not.toBeInTheDocument();
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        expect(screen.queryByTestId('admin.simulate_access.details.action.rule')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
-        const detailsRow = await screen.findByTestId('simulate-access-details-rule-upload_file_attachment');
+        const detailsRow = await screen.findByTestId('admin.simulate_access.details.action.rule');
         expect(detailsRow).toHaveTextContent(/rule1/);
         expect(detailsRow).toHaveTextContent('user.attributes.region == "us"');
 
         // Attribute snapshot block renders the user attributes the
         // simulator returned alongside the rule. The snapshot lives
         // OUTSIDE the disclosure so it's visible without expanding.
-        const userAttrs = screen.getByTestId('simulate-access-details-user-attributes');
+        const userAttrs = screen.getByTestId('admin.simulate_access.details.attributes.user');
         expect(userAttrs).toHaveTextContent(/region/);
         expect(userAttrs).toHaveTextContent(/eu/);
         expect(userAttrs).toHaveTextContent(/department/);
@@ -837,22 +837,22 @@ describe('SimulateAccessModal — picker UX', () => {
         // The row chip uses the SIBLING_SAVED source so the wording
         // surfaces the "another rule" save — that's how the user
         // knows the editing rule didn't carry the verdict on its own.
-        const allowChip = await screen.findByTestId('simulate-access-row-chip-allow-saved');
+        const allowChip = await screen.findByTestId('admin.simulate_access.user.decision:allow_saved--text');
         expect(allowChip).toHaveTextContent(/another rule/i);
 
-        const chipButton = screen.getByTestId('simulate-access-row-chip-button');
+        const chipButton = screen.getByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
         // Per-rule sections render: the editing rule's failing tree
         // sits alongside the sibling that actually allowed — without
         // this fix the author saw only the editing rule's failing
         // tree and couldn't tell which sibling carried the verdict.
-        const ruleOne = await screen.findByTestId('simulate-access-details-merged-rule-upload_file_attachment-1');
+        const ruleOne = await screen.findByTestId('admin.simulate_access.details.action.merged_rule:1');
         expect(ruleOne).toHaveTextContent(/Rule: Strict/);
         expect(ruleOne).toHaveTextContent(/Actual: \["Helios"\]/);
 
-        const ruleTwo = screen.getByTestId('simulate-access-details-merged-rule-upload_file_attachment-2');
+        const ruleTwo = screen.getByTestId('admin.simulate_access.details.action.merged_rule:2');
         expect(ruleTwo).toHaveTextContent(/Rule: Members/);
         expect(ruleTwo).toHaveTextContent('"Helios" in user.attributes.Program');
     });
@@ -931,10 +931,10 @@ describe('SimulateAccessModal — picker UX', () => {
         // The chip must read "this rule doesn't apply" and pick the
         // dedicated test id — NOT the allow-saved chip and NOT the
         // plain allow chip.
-        const chip = await screen.findByTestId('simulate-access-row-chip-not-applicable-rule');
+        const chip = await screen.findByTestId('admin.simulate_access.user.decision:not_applicable_rule--text');
         expect(chip).toHaveTextContent(/this rule doesn't apply/i);
-        expect(screen.queryByTestId('simulate-access-row-chip-allow-saved')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('simulate-access-row-chip-allow')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.user.decision:allow_saved--text')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.user.decision:allow--text')).not.toBeInTheDocument();
     });
 
     it('peer_policy blame surfaces the peer policy name on the chip and inside the details modal', async () => {
@@ -976,18 +976,18 @@ describe('SimulateAccessModal — picker UX', () => {
 
         // Chip names the peer policy directly instead of falling back
         // to the generic "another policy" label.
-        const chip = await screen.findByTestId('simulate-access-row-chip-deny');
+        const chip = await screen.findByTestId('admin.simulate_access.user.decision:deny--text');
         expect(chip).toHaveTextContent(/IL5 Block/);
         expect(chip).not.toHaveTextContent(/another policy/i);
         expect(chip).not.toHaveTextContent(/upper-scoped/i);
 
         // Details modal shows policy name + rule name + expression
         // — but only after expanding the per-row disclosure.
-        const chipButton = screen.getByTestId('simulate-access-row-chip-button');
+        const chipButton = screen.getByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
-        const detailsRow = await screen.findByTestId('simulate-access-details-rule-upload_file_attachment');
+        const detailsRow = await screen.findByTestId('admin.simulate_access.details.action.rule');
         expect(detailsRow).toHaveTextContent(/IL5 Block/);
         expect(detailsRow).toHaveTextContent(/r2/);
         expect(detailsRow).toHaveTextContent('user.attributes.clearance == "il5"');
@@ -1059,18 +1059,18 @@ describe('SimulateAccessModal — picker UX', () => {
         // entries must not influence the chip's primary-deny pick or
         // the row would confusingly say "your policy" for a
         // peer-policy deny.
-        const rowChip = await screen.findByTestId('simulate-access-row-chip-deny');
+        const rowChip = await screen.findByTestId('admin.simulate_access.user.decision:deny--text');
         expect(rowChip).toHaveTextContent(/Members back up/);
         expect(rowChip).not.toHaveTextContent(/your policy/i);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
         // Mixed explainer text spells out the deny-wins semantics so
         // authors don't read "1 policy denied, 1 allowed → why is it
         // an overall deny?" as a bug.
-        const policiesContainer = await screen.findByTestId('simulate-access-details-policies-upload_file_attachment');
+        const policiesContainer = await screen.findByTestId('admin.simulate_access.details.action.policies');
         expect(policiesContainer).toHaveTextContent(/1 policy denied/i);
         expect(policiesContainer).toHaveTextContent(/1 policy allowed/i);
         expect(policiesContainer).toHaveTextContent(/deny-wins/i);
@@ -1080,10 +1080,10 @@ describe('SimulateAccessModal — picker UX', () => {
         // denier second (deny outcome). The editing draft's chip uses
         // the "Your policy" wording so the author can tell their own
         // contribution apart from peer policies.
-        const policyOne = within(policiesContainer).getByTestId('simulate-access-details-policy-upload_file_attachment-1');
+        const policyOne = within(policiesContainer).getByTestId('admin.simulate_access.details.action.policy:1');
         expect(policyOne).toHaveTextContent(/Your policy: Allowed/i);
 
-        const policyTwo = within(policiesContainer).getByTestId('simulate-access-details-policy-upload_file_attachment-2');
+        const policyTwo = within(policiesContainer).getByTestId('admin.simulate_access.details.action.policy:2');
         expect(policyTwo).toHaveTextContent(/Members back up/);
         expect(policyTwo).toHaveTextContent(/Denied/);
     });
@@ -1150,18 +1150,18 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
         // Numbered policy sections render in priority order: the
         // editing draft (this_rule) takes slot 1, the peer policy
         // takes slot 2.
-        const policiesContainer = await screen.findByTestId('simulate-access-details-policies-upload_file_attachment');
+        const policiesContainer = await screen.findByTestId('admin.simulate_access.details.action.policies');
         expect(policiesContainer).toBeInTheDocument();
 
-        const policyOne = within(policiesContainer).getByTestId('simulate-access-details-policy-upload_file_attachment-1');
-        const policyTwo = within(policiesContainer).getByTestId('simulate-access-details-policy-upload_file_attachment-2');
+        const policyOne = within(policiesContainer).getByTestId('admin.simulate_access.details.action.policy:1');
+        const policyTwo = within(policiesContainer).getByTestId('admin.simulate_access.details.action.policy:2');
 
         // The editing draft renders without a Policy: line (the user
         // IS the policy) but still carries its own rule name.
@@ -1176,7 +1176,7 @@ describe('SimulateAccessModal — picker UX', () => {
         // multi-policy mode kicks in: each policy section nests its
         // own tree element instead.
         expect(
-            screen.queryByTestId('simulate-access-details-tree-upload_file_attachment'),
+            screen.queryByTestId('admin.simulate_access.details.action.tree'),
         ).not.toBeInTheDocument();
     });
 
@@ -1246,24 +1246,24 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
 
         // Tree starts behind the disclosure toggle — clicking it
         // mounts the rule + tree block.
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
         // Tree renders inside the rule details cell — and replaces
         // the flat <code> block.
-        const tree = await screen.findByTestId('simulate-access-details-tree-upload_file_attachment');
+        const tree = await screen.findByTestId('admin.simulate_access.details.action.tree');
         expect(tree).toBeInTheDocument();
 
         // Root AND with false outcome.
-        expect(within(tree).getByTestId('simulate-access-trace-node-and-false')).toBeInTheDocument();
+        expect(within(tree).getByTestId('admin.simulate_access.details.action.trace_node:and_false')).toBeInTheDocument();
 
         // Both children are walked: region leaf passes, clearance leaf fails.
-        expect(within(tree).getByTestId('simulate-access-trace-node-compare-true')).toBeInTheDocument();
-        expect(within(tree).getByTestId('simulate-access-trace-node-compare-false')).toBeInTheDocument();
+        expect(within(tree).getByTestId('admin.simulate_access.details.action.trace_node:compare_true')).toBeInTheDocument();
+        expect(within(tree).getByTestId('admin.simulate_access.details.action.trace_node:compare_false')).toBeInTheDocument();
 
         // Failing leaf surfaces the user's actual value as a single
         // compact "Actual: X" line. The expected literal is already
@@ -1384,16 +1384,16 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
 
         // Expand the disclosure so the header + trace mount.
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
         // Combined-evaluation header replaces the misleading "Rule: X"
         // line because the draft policy has more than one rule for
         // (channel_user, upload_file_attachment).
-        const header = await screen.findByTestId('simulate-access-details-origin-upload_file_attachment');
+        const header = await screen.findByTestId('admin.simulate_access.details.action.origin');
         expect(header).toHaveTextContent(/Combined evaluation for role channel_user/i);
 
         // The single editing-rule label MUST NOT render in this case
@@ -1403,7 +1403,7 @@ describe('SimulateAccessModal — picker UX', () => {
         // The help-icon button is wired up so authors can see which
         // rules merged into the trace below.
         expect(
-            screen.getByTestId('simulate-access-details-origin-help-upload_file_attachment'),
+            screen.getByTestId('admin.simulate_access.details.action.origin_help--button'),
         ).toBeInTheDocument();
 
         // Numbered per-rule sections replace the single merged tree
@@ -1411,18 +1411,18 @@ describe('SimulateAccessModal — picker UX', () => {
         // section is keyed by index (1, 2, ...) so the badge in the
         // UI maps to the same position in the help-icon tooltip's
         // ordered list above.
-        const mergedContainer = await screen.findByTestId('simulate-access-details-merged-upload_file_attachment');
+        const mergedContainer = await screen.findByTestId('admin.simulate_access.details.action.merged');
         expect(mergedContainer).toBeInTheDocument();
 
-        const ruleOne = within(mergedContainer).getByTestId('simulate-access-details-merged-rule-upload_file_attachment-1');
-        const ruleTwo = within(mergedContainer).getByTestId('simulate-access-details-merged-rule-upload_file_attachment-2');
+        const ruleOne = within(mergedContainer).getByTestId('admin.simulate_access.details.action.merged_rule:1');
+        const ruleTwo = within(mergedContainer).getByTestId('admin.simulate_access.details.action.merged_rule:2');
         expect(ruleOne).toHaveTextContent(/Rule: Security officer/);
         expect(ruleTwo).toHaveTextContent(/Rule: Engineers/);
 
         // The single merged tree is intentionally NOT rendered in
         // this branch — per-rule sections supersede it.
         expect(
-            screen.queryByTestId('simulate-access-details-tree-upload_file_attachment'),
+            screen.queryByTestId('admin.simulate_access.details.action.tree'),
         ).not.toBeInTheDocument();
     });
 
@@ -1466,21 +1466,21 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
-        const ruleBlock = await screen.findByTestId('simulate-access-details-rule-upload_file_attachment');
+        const ruleBlock = await screen.findByTestId('admin.simulate_access.details.action.rule');
         expect(ruleBlock).toHaveTextContent(/Rule: rule1/);
 
         // Combined-evaluation affordance is NOT shown when no merging
         // is happening: a single rule only would make the help icon
         // redundant and visually noisy.
         expect(
-            screen.queryByTestId('simulate-access-details-origin-upload_file_attachment'),
+            screen.queryByTestId('admin.simulate_access.details.action.origin'),
         ).not.toBeInTheDocument();
         expect(
-            screen.queryByTestId('simulate-access-details-origin-help-upload_file_attachment'),
+            screen.queryByTestId('admin.simulate_access.details.action.origin_help--button'),
         ).not.toBeInTheDocument();
     });
 
@@ -1524,18 +1524,18 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
 
         // Rule details start collapsed — expand the disclosure
         // toggle to expose the flat expression block.
-        await userEvent.click(screen.getByTestId('simulate-access-details-toggle-upload_file_attachment'));
+        await userEvent.click(screen.getByTestId('admin.simulate_access.details.action.toggle--button'));
 
         // Rule details render with the flat expression in monospace
         // and NO tree.
-        const ruleBlock = await screen.findByTestId('simulate-access-details-rule-upload_file_attachment');
+        const ruleBlock = await screen.findByTestId('admin.simulate_access.details.action.rule');
         expect(ruleBlock).toHaveTextContent('user.attributes.region == "us"');
-        expect(screen.queryByTestId('simulate-access-details-tree-upload_file_attachment')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.details.action.tree')).not.toBeInTheDocument();
     });
 
     it('does not render an evaluation tree for upper-scoped blame even when one is somehow attached', async () => {
@@ -1586,17 +1586,17 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
 
         // The action row is in the modal but the rule details block
         // (and therefore the tree) must not render — pickPrimaryBlame
         // refuses to surface upper-scoped sources, and the disclosure
         // toggle is gated on a non-null trace so it's also absent.
-        await screen.findByTestId('simulate-access-details-upload_file_attachment');
-        expect(screen.queryByTestId('simulate-access-details-toggle-upload_file_attachment')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('simulate-access-details-rule-upload_file_attachment')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('simulate-access-details-tree-upload_file_attachment')).not.toBeInTheDocument();
+        await screen.findByTestId('admin.simulate_access.details.action:0');
+        expect(screen.queryByTestId('admin.simulate_access.details.action.toggle--button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.details.action.rule')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.details.action.tree')).not.toBeInTheDocument();
     });
 
     it('system_permission blame keeps the chip opaque and never renders the expression in the details modal', async () => {
@@ -1640,7 +1640,7 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chip = await screen.findByTestId('simulate-access-row-chip-deny');
+        const chip = await screen.findByTestId('admin.simulate_access.user.decision:deny--text');
         expect(chip).toHaveTextContent(/system policy/i);
 
         // The system policy's name must NOT leak into the chip — the
@@ -1650,10 +1650,10 @@ describe('SimulateAccessModal — picker UX', () => {
 
         // The chip is still clickable (the modal can show the chip in
         // a one-row layout) but the expression block must not render.
-        const chipButton = screen.getByTestId('simulate-access-row-chip-button');
+        const chipButton = screen.getByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
-        await screen.findByTestId('simulate-access-details-upload_file_attachment');
-        expect(screen.queryByTestId('simulate-access-details-rule-upload_file_attachment')).not.toBeInTheDocument();
+        await screen.findByTestId('admin.simulate_access.details.action:0');
+        expect(screen.queryByTestId('admin.simulate_access.details.action.rule')).not.toBeInTheDocument();
     });
 
     it('starts the rule details collapsed and toggles open / closed on the disclosure click', async () => {
@@ -1691,22 +1691,22 @@ describe('SimulateAccessModal — picker UX', () => {
 
         await pickUser(user);
 
-        const chipButton = await screen.findByTestId('simulate-access-row-chip-button');
+        const chipButton = await screen.findByTestId('admin.simulate_access.user.details--button');
         await userEvent.click(chipButton);
 
         // 1. Modal opens with the disclosure toggle visible but the
         //    rule block hidden — that's the "doesn't expand
         //    immediately" contract.
-        const toggle = await screen.findByTestId('simulate-access-details-toggle-upload_file_attachment');
+        const toggle = await screen.findByTestId('admin.simulate_access.details.action.toggle--button');
         expect(toggle).toHaveAttribute('aria-expanded', 'false');
         expect(toggle).toHaveTextContent(/Show evaluation trace/i);
-        expect(screen.queryByTestId('simulate-access-details-rule-upload_file_attachment')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.details.action.rule')).not.toBeInTheDocument();
 
         // 2. Click → rule block mounts, toggle flips to "Hide".
         await userEvent.click(toggle);
         expect(toggle).toHaveAttribute('aria-expanded', 'true');
         expect(toggle).toHaveTextContent(/Hide evaluation trace/i);
-        expect(screen.getByTestId('simulate-access-details-rule-upload_file_attachment')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.simulate_access.details.action.rule')).toBeInTheDocument();
 
         // 3. Click again → rule block unmounts, toggle flips back to
         //    "Show". State is local to the row so closing one
@@ -1715,7 +1715,7 @@ describe('SimulateAccessModal — picker UX', () => {
         await userEvent.click(toggle);
         expect(toggle).toHaveAttribute('aria-expanded', 'false');
         expect(toggle).toHaveTextContent(/Show evaluation trace/i);
-        expect(screen.queryByTestId('simulate-access-details-rule-upload_file_attachment')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.details.action.rule')).not.toBeInTheDocument();
     });
 
     // The modal pre-populates page 0 on mount via getProfilesInChannel
@@ -1824,9 +1824,9 @@ describe('SimulateAccessModal — picker UX', () => {
 
         // Paginator lives in the modal footer; Prev disabled on page
         // 0, Next enabled because the over-fetch detected more rows.
-        const paginator = await screen.findByTestId('simulate-access-pagination');
-        const prev = within(paginator).getByTestId('simulate-access-pagination-prev');
-        const next = within(paginator).getByTestId('simulate-access-pagination-next');
+        const paginator = await screen.findByTestId('admin.simulate_access.pagination');
+        const prev = within(paginator).getByTestId('admin.simulate_access.pagination.prev--button');
+        const next = within(paginator).getByTestId('admin.simulate_access.pagination.next--button');
         expect(prev).toBeDisabled();
         expect(next).toBeEnabled();
 
@@ -1837,7 +1837,7 @@ describe('SimulateAccessModal — picker UX', () => {
             expect(mockGetProfiles).toHaveBeenCalledWith(1, expect.any(Number), expect.anything());
         });
         await screen.findByText('@pagetwo0', undefined, {timeout: 5000});
-        expect(within(paginator).getByTestId('simulate-access-pagination-prev')).toBeEnabled();
+        expect(within(paginator).getByTestId('admin.simulate_access.pagination.prev--button')).toBeEnabled();
     });
 
     // Typed search bypasses pagination — Mattermost's search API
@@ -1870,10 +1870,10 @@ describe('SimulateAccessModal — picker UX', () => {
         );
 
         // Wait for the paginator to mount on the un-searched view.
-        await screen.findByTestId('simulate-access-pagination');
+        await screen.findByTestId('admin.simulate_access.pagination');
 
         // Type a search term → debounced refetch via searchProfiles.
-        const searchInput = await screen.findByTestId('simulate-access-search') as HTMLInputElement;
+        const searchInput = await screen.findByTestId('admin.simulate_access.search--textbox') as HTMLInputElement;
         fireEvent.change(searchInput, {target: {value: 'searched'}});
         await act(async () => {
             await new Promise((resolve) => setTimeout(resolve, 350));
@@ -1882,7 +1882,7 @@ describe('SimulateAccessModal — picker UX', () => {
         await screen.findByText('@searched', undefined, {timeout: 5000});
 
         // Paginator is hidden during search.
-        expect(screen.queryByTestId('simulate-access-pagination')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.simulate_access.pagination')).not.toBeInTheDocument();
         expect(mockSearchProfiles).toHaveBeenCalledWith('searched', expect.objectContaining({limit: expect.any(Number)}));
     });
 });

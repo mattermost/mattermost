@@ -26,6 +26,9 @@ type Props = {
     customStyles?: CSSProperties;
     className?: string;
     listId?: string;
+
+    /** Renders on the menu's container (no role suffix: the list inside is `role=menu`). */
+    testId?: string;
 };
 
 /**
@@ -115,7 +118,7 @@ export default class Menu extends React.PureComponent<Props> {
     };
 
     public render() {
-        const {children, openUp, openLeft, id, listId, ariaLabel, customStyles} = this.props;
+        const {children, openUp, openLeft, id, listId, ariaLabel, customStyles, testId} = this.props;
         let styles: CSSProperties = {};
         if (customStyles) {
             styles = customStyles;
@@ -126,6 +129,7 @@ export default class Menu extends React.PureComponent<Props> {
                 aria-label={ariaLabel}
                 className='a11y__popup Menu'
                 id={id}
+                data-testid={testId}
             >
                 <ul
                     role='menu'

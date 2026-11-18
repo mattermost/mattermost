@@ -23,7 +23,7 @@
  * button additionally requires `MM_FEATUREFLAGS_POLICYSIMULATION=true`.
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, test, closeChannelSettings, openChannelSettingsInfoTab} from '@mattermost/playwright-lib';
 
 import {enableABACConfig, ensureDepartmentAttribute, createPrivateChannel} from '../team_settings/helpers';
 
@@ -52,7 +52,7 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
         await channelsPage.toBeVisible();
 
         const channelSettings = await channelsPage.openChannelSettings();
-        const permissionsTab = channelSettings.container.getByTestId('permissions_policy-tab-button');
+        const permissionsTab = channelSettings.tabs.tab('permissions_policy').locator;
 
         // Suite-level feature-flag guard already covers PermissionPolicies;
         // assert visibility unconditionally so a regression in the tab's
@@ -63,14 +63,14 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
         await permissionsTab.click();
 
         // * The list view renders: header, search, table, Add rule button.
-        await expect(channelSettings.container.locator('.ChannelSettingsModal__permissionsPolicyTab')).toBeVisible({
+        await expect(channelSettings.permissionsPolicy.overview).toBeVisible({
             timeout: 10000,
         });
-        await expect(channelSettings.container.getByTestId('permissions-policy-add-rule')).toBeVisible();
-        await expect(channelSettings.container.getByTestId('permissions-policy-search')).toBeVisible();
-        await expect(channelSettings.container.getByTestId('permissions-policy-rules-table')).toBeVisible();
+        await expect(channelSettings.permissionsPolicy.addRuleButton).toBeVisible();
+        await expect(channelSettings.permissionsPolicy.searchTextbox).toBeVisible();
+        await expect(channelSettings.permissionsPolicy.rules).toBeVisible();
 
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
     });
 
     test('MM-PP_v0_4_c2 Add rule opens the editor with sections in the expected order, Cancel returns to the list', async ({
@@ -88,38 +88,38 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
         await channelsPage.toBeVisible();
 
         const channelSettings = await channelsPage.openChannelSettings();
-        const permissionsTab = channelSettings.container.getByTestId('permissions_policy-tab-button');
+        const permissionsTab = channelSettings.tabs.tab('permissions_policy').locator;
         await expect(permissionsTab).toBeVisible();
         await permissionsTab.click();
 
-        const tab = channelSettings.container.locator('.ChannelSettingsModal__permissionsPolicyTab');
+        const tab = channelSettings.permissionsPolicy.overview;
         await expect(tab).toBeVisible({timeout: 10000});
 
         // # Click "Add rule" → editor view appears
-        await tab.getByTestId('permissions-policy-add-rule').click();
-        const editor = channelSettings.container.getByTestId('permissions-policy-editor');
+        await channelSettings.permissionsPolicy.addRuleButton.click();
+        const editor = channelSettings.permissionsPolicy.editor.container;
         await expect(editor).toBeVisible({timeout: 5000});
 
         // * Mirror system-console layout: name → role → user-attribute conditions → permissions list.
-        const expressionSection = editor.getByTestId('permissions-policy-editor-expression-section');
-        const permissionsSection = editor.getByTestId('permissions-policy-editor-permissions-section');
+        const expressionSection = channelSettings.permissionsPolicy.editor.expression;
+        const permissionsSection = channelSettings.permissionsPolicy.editor.permissions;
         await expect(expressionSection).toBeVisible();
         await expect(permissionsSection).toBeVisible();
 
         // Permissions list must render BELOW the user-attribute conditions
         // (TableEditor) so we match the System Console policy editor ordering.
-        const expressionBox = await expressionSection.boundingBox();
-        const permissionsBox = await permissionsSection.boundingBox();
+        const expressionBox = await expressionSection.locator.boundingBox();
+        const permissionsBox = await permissionsSection.locator.boundingBox();
         expect(expressionBox).not.toBeNull();
         expect(permissionsBox).not.toBeNull();
         expect(permissionsBox?.y ?? 0).toBeGreaterThan((expressionBox?.y ?? 0) + (expressionBox?.height ?? 0) - 1);
 
         // # Cancel → back to list view
-        await channelSettings.container.getByTestId('permissions-policy-editor-cancel').click();
+        await channelSettings.permissionsPolicy.editor.cancelButton.click();
         await expect(tab).toBeVisible({timeout: 5000});
-        await expect(channelSettings.container.getByTestId('permissions-policy-editor')).not.toBeVisible();
+        await expect(channelSettings.permissionsPolicy.editor).not.toBeVisible();
 
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
     });
 
     test('MM-PP_v0_4_c3 Editor validates: missing name surfaces an inline error', async ({pw}) => {
@@ -135,23 +135,24 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
         await channelsPage.toBeVisible();
 
         const channelSettings = await channelsPage.openChannelSettings();
-        const permissionsTab = channelSettings.container.getByTestId('permissions_policy-tab-button');
+        const permissionsTab = channelSettings.tabs.tab('permissions_policy').locator;
         await expect(permissionsTab).toBeVisible();
         await permissionsTab.click();
 
-        const tab = channelSettings.container.locator('.ChannelSettingsModal__permissionsPolicyTab');
+        const tab = channelSettings.permissionsPolicy.overview;
         await expect(tab).toBeVisible({timeout: 10000});
 
         // # Open the editor without filling the name
-        await tab.getByTestId('permissions-policy-add-rule').click();
-        await channelSettings.container.getByTestId('permissions-policy-editor-save').click();
+        await channelSettings.permissionsPolicy.addRuleButton.click();
+        await expect(channelSettings.permissionsPolicy.editor.saveButton).toBeVisible();
+        await channelSettings.permissionsPolicy.editor.saveButton.click();
 
         // * Inline error mentions name uniqueness/required.
-        await expect(channelSettings.container.getByTestId('permissions-policy-editor-error')).toBeVisible({
+        await expect(channelSettings.permissionsPolicy.editor.errorText).toBeVisible({
             timeout: 5000,
         });
 
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
     });
 
     /**
@@ -174,46 +175,46 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
             await channelsPage.toBeVisible();
 
             const channelSettings = await channelsPage.openChannelSettings();
-            const permissionsTab = channelSettings.container.getByTestId('permissions_policy-tab-button');
+            const permissionsTab = channelSettings.tabs.tab('permissions_policy').locator;
             await expect(permissionsTab).toBeVisible();
             await permissionsTab.click();
 
-            const tab = channelSettings.container.locator('.ChannelSettingsModal__permissionsPolicyTab');
+            const tab = channelSettings.permissionsPolicy.overview;
             await expect(tab).toBeVisible({timeout: 10000});
 
             // # Open the rule editor and start a draft
-            await tab.getByTestId('permissions-policy-add-rule').click();
-            const editor = channelSettings.container.getByTestId('permissions-policy-editor');
+            await channelSettings.permissionsPolicy.addRuleButton.click();
+            const editor = channelSettings.permissionsPolicy.editor.container;
             await expect(editor).toBeVisible({timeout: 5000});
-            await editor.getByTestId('permissions-policy-editor-name').fill('Block external uploads');
+            await channelSettings.permissionsPolicy.editor.nameTextbox.fill('Block external uploads');
 
             // # Try to leave the editor by selecting the Info section
-            await channelSettings.infoTab.click();
+            await channelSettings.tabs.tab('info').select();
 
             // * The blocked switch is reported through the modal's floating
             // footer in its error state, with saving from there disabled. The
             // modal withdraws it after 3s, so assert inside that window.
-            const savePanel = channelSettings.container.locator('.SaveChangesPanel');
+            const savePanel = channelSettings.container.locator.locator('.SaveChangesPanel');
             await expect(savePanel).toContainText('You have unsaved changes', {timeout: 2000});
             await expect(savePanel).toHaveClass(/error/);
-            await expect(channelSettings.saveButton).toBeDisabled();
+            await expect(channelSettings.savePanel.saveButton).toBeDisabled();
 
             // * The Permissions Policy section is still the selected one and the draft is intact
             await expect(permissionsTab).toHaveAttribute('aria-selected', 'true');
-            await expect(editor.getByTestId('permissions-policy-editor-name')).toHaveValue('Block external uploads');
-            await expect(channelSettings.infoSettings.container).not.toBeVisible();
+            expect(await channelSettings.permissionsPolicy.editor.nameTextbox.value()).toBe('Block external uploads');
+            await expect(channelSettings.info).not.toBeVisible();
 
             // # Take the way out the footer offers
-            await savePanel.getByTestId('SaveChangesPanel__cancel-btn').click();
+            await channelSettings.savePanel.cancelButton.click();
 
             // * The draft is dropped and the rules list is back
             await expect(editor).not.toBeVisible();
-            await expect(tab.getByTestId('permissions-policy-add-rule')).toBeVisible();
+            await expect(channelSettings.permissionsPolicy.addRuleButton).toBeVisible();
 
             // * Section switching works again once no rule is being edited
-            await channelSettings.openInfoTab();
+            await openChannelSettingsInfoTab(channelSettings);
 
-            await channelSettings.close();
+            await closeChannelSettings(channelSettings);
         },
     );
 });

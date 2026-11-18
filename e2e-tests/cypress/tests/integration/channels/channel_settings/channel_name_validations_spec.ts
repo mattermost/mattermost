@@ -50,7 +50,7 @@ describe('Channel routing', () => {
         cy.get('.url-input-error').should('contain', 'User IDs are not allowed in channel URLs.');
 
         // # Reset the changes so modal can be closed
-        cy.get('[data-testid="SaveChangesPanel__cancel-btn"]').click();
+        cy.get('[data-testid="channel_settings_modal.save_panel.cancel--button"]').click();
 
         // # Close the modal
         cy.get('.GenericModal .modal-header button[aria-label="Close"]').click();
@@ -121,7 +121,7 @@ describe('Channel routing', () => {
         cy.get('.url-input-container button.url-input-button').click();
 
         // # Save changes
-        cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+        cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
         // * Verify changes are saved
         cy.get('.SaveChangesPanel').should('contain', 'Settings saved');

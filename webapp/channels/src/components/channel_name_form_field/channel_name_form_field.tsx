@@ -39,6 +39,9 @@ export type Props = {
 
     // The server rejects URL changes on the default channel, so it is shown read-only.
     isDefaultChannel?: boolean;
+
+    /** The field's testid scope: the name input renders `<testIdScope>.name--textbox` and the URL editor `<testIdScope>.url`. */
+    testIdScope?: string;
 };
 
 import './channel_name_form_field.scss';
@@ -209,10 +212,12 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 onChange={handleOnDisplayNameChange}
                 onBlur={handleOnDisplayNameBlur}
                 disabled={props.readOnly}
+                testId={props.testIdScope ? `${props.testIdScope}.name` : undefined}
             />
             {
                 showURLEditor &&
                 <URLInput
+                    testIdScope={props.testIdScope ? `${props.testIdScope}.url` : undefined}
                     className='new-channel-modal__url'
                     base={getSiteURL()}
                     path={`${teamName}/channels`}

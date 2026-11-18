@@ -23,6 +23,12 @@ type Props = {
     // Renders the panel action in the danger colour, for panels whose button
     // removes something.
     destructive?: boolean;
+
+    // The panel's button is `<buttonTestId>--button`.
+    buttonTestId?: string;
+
+    // The panel's scope (see AdminPanel).
+    testId?: string;
 };
 
 const AdminPanelWithButton = ({
@@ -35,17 +41,19 @@ const AdminPanelWithButton = ({
     disabled,
     id,
     onButtonClick,
+    buttonTestId,
+    testId,
 }: Props) => {
     let button;
     if (onButtonClick && buttonText) {
-        const buttonId = (buttonText.defaultMessage as string || '').split(' ').join('-').toLowerCase();
+        const legacyButtonId = (buttonText.defaultMessage as string || '').split(' ').join('-').toLowerCase();
         button = (
             <Button
                 emphasis='primary'
                 destructive={destructive}
                 disabled={disabled}
                 onClick={onButtonClick}
-                data-testid={buttonId}
+                data-testid={buttonTestId ? `${buttonTestId}--button` : legacyButtonId}
             >
                 <FormattedMessage
                     {...buttonText}
@@ -61,6 +69,7 @@ const AdminPanelWithButton = ({
             title={title}
             subtitle={subtitle}
             button={button}
+            testId={testId}
         >
             {children}
         </AdminPanel>

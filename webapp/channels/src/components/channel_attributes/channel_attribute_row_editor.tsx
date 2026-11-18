@@ -41,16 +41,20 @@ type RemovableChipProps = {
     color?: string;
     disabled?: boolean;
     onRemove: () => void;
+    testId?: string;
+    testKey?: string | number;
 };
 
 // Real <button> remove inside AttributeChip. Safe because the Menu trigger is a
 // <div> (not a <button>), so we never nest interactive button elements.
-const RemovableChip = ({label, value, color, disabled, onRemove}: RemovableChipProps) => {
+const RemovableChip = ({label, value, color, disabled, onRemove, testId, testKey}: RemovableChipProps) => {
     const {formatMessage} = useIntl();
 
     return (
         <AttributeChip
             className='ChannelInfoAttributes__chip'
+            testId={testId}
+            testKey={testKey}
             label={label}
             value={value}
             color={color}
@@ -60,6 +64,7 @@ const RemovableChip = ({label, value, color, disabled, onRemove}: RemovableChipP
             {!disabled && (
                 <AttributeChipRemoveButton
                     className='ChannelInfoAttributes__chipRemove'
+                    testId={testId ? `${testId}.remove` : undefined}
                     onRemove={() => onRemove()}
                     removeLabel={formatMessage(
                         {id: 'channel_attributes.info.remove_value', defaultMessage: 'Remove {value}'},
@@ -79,6 +84,9 @@ type Props = {
     onSubmit: (value: ChannelAttributeValue) => void;
     onCancel: () => void;
     saving: boolean;
+
+    // The row's testid scope (`<scope>.attribute`): `.editor--textbox`, `.edit--button`, `.unset--text`, and `.chip:<position>`; its menu opens outside the row, so the options live in the top-level `channel_attribute_edit_menu` scope (`.option:<position>--menuitem`).
+    testId?: string;
 };
 
 /**
@@ -90,7 +98,7 @@ type Props = {
  * multiselect share the borderless inline chip chrome used by the graph
  * picker in Channel Info — no boxed input trigger, no Clear menu item.
  */
-const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubmit, onCancel, saving}: Props) => {
+const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubmit, onCancel, saving, testId}: Props) => {
     const {formatMessage} = useIntl();
 
     const label = getPropertyFieldLabel(field);
@@ -206,7 +214,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 disabled={saving}
                 autoFocus={true}
                 aria-label={label}
-                data-testid={`channelAttributeEdit-${field.name}`}
+                data-testid={testId ? `${testId}.editor--textbox` : `channelAttributeEdit-${field.name}`}
             />
         );
     }
@@ -219,7 +227,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 onIdsChange={handleGraphIdsChange}
                 menuId={`channelAttributeEdit-${field.name}`}
                 buttonId={`channelInfoAttributeEdit-${field.name}`}
-                buttonDataTestId={`channelInfoAttributeEdit-${field.name}`}
+                buttonDataTestId={testId ? `${testId}.edit--button` : `channelInfoAttributeEdit-${field.name}`}
                 placeholder={formatMessage({
                     id: 'channel_attributes.info.not_set',
                     defaultMessage: 'Not set',
@@ -234,7 +242,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
     const emptyPlaceholder = (
         <span
             className='ChannelInfoAttributes__empty'
-            data-testid={`channelInfoAttributeUnset-${field.name}`}
+            data-testid={testId ? `${testId}.unset--text` : `channelInfoAttributeUnset-${field.name}`}
         >
             <FormattedMessage
                 id='channel_attributes.info.not_set'
@@ -249,11 +257,13 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
     if (isMultiselect) {
         triggerChildren = chosen.length > 0 ? (
             <span className='ChannelInfoAttributes__chips'>
-                {chosen.map((optionId) => {
+                {chosen.map((optionId, index) => {
                     const option = optionById.get(optionId);
                     return (
                         <RemovableChip
                             key={optionId}
+                            testId={testId ? `${testId}.chip` : undefined}
+                            testKey={index}
                             label={label}
                             value={option?.label ?? optionId}
                             color={option?.color}
@@ -267,6 +277,8 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
     } else if (hasDisplay) {
         triggerChildren = clearable ? (
             <RemovableChip
+                testId={testId ? `${testId}.chip` : undefined}
+                testKey={0}
                 label={label}
                 value={displayValue!}
                 color={color}
@@ -276,6 +288,8 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
         ) : (
             <AttributeChip
                 className='ChannelInfoAttributes__chip'
+                testId={testId ? `${testId}.chip` : undefined}
+                testKey={0}
                 label={label}
                 value={displayValue!}
                 color={color}
@@ -292,7 +306,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
             <Menu.Container
                 menuButton={{
                     id: menuButtonId,
-                    dataTestId: menuButtonId,
+                    dataTestId: testId ? `${testId}.edit--button` : menuButtonId,
 
                     // div, not button: chip removes are real <button>s.
                     as: 'div',
@@ -315,13 +329,19 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                     onToggle: setMenuOpen,
                 }}
             >
-                {options.map((option) => {
+                {options.map((option, optionIndex) => {
                     const selected = chosen.includes(option.value);
+                    let optionTestId;
+                    if (testId) {
+                        optionTestId = `channel_attribute_edit_menu.option:${optionIndex}--menuitem`;
+                    } else if (option === options[0]) {
+                        optionTestId = `channelAttributeEdit-${field.name}`;
+                    }
                     return (
                         <Menu.Item
                             key={option.value}
                             id={`channelAttributeEdit-${field.name}-${option.value}`}
-                            data-testid={option === options[0] ? `channelAttributeEdit-${field.name}` : undefined}
+                            data-testid={optionTestId}
                             labels={
                                 <span className='ChannelInfoAttributes__optionLabel'>
                                     {option.color ? (

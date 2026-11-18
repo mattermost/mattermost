@@ -140,7 +140,7 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
     // Helper functions for UI interaction
     const saveChannelSettings = () => {
-        cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+        cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
     };
 
     const verifySettingsSaved = () => {

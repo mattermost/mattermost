@@ -12,14 +12,17 @@ import './data_grid.scss';
 type DataGridRowProps = {
     columns: Column[];
     row: Row;
+    testIdScope?: string;
+    testKey?: string;
 };
 
 type DataGridCellProps = {
+    testIdScope?: string;
     column: Column;
     row: Row;
 };
 
-const DataGridCell = ({row, column}: DataGridCellProps) => {
+const DataGridCell = ({row, column, testIdScope}: DataGridCellProps) => {
     const style: CSSProperties = {};
     if (column.width) {
         style.flexGrow = column.width;
@@ -37,7 +40,8 @@ const DataGridCell = ({row, column}: DataGridCellProps) => {
         <div
             key={column.field}
             className={classNames('DataGrid_cell', column.className)}
-            data-testid='dataGrid-cell'
+            role='cell'
+            data-testid={testIdScope ? `${testIdScope}.row.cell:${column.field}--text` : 'dataGrid-cell'}
             style={style}
         >
             {row.cells[column.field]}
@@ -45,18 +49,20 @@ const DataGridCell = ({row, column}: DataGridCellProps) => {
     );
 };
 
-const DataGridRow = ({row, columns}: DataGridRowProps) => {
+const DataGridRow = ({row, columns, testIdScope, testKey}: DataGridRowProps) => {
     const cells = columns.map((column, index) => (
         <DataGridCell
             key={index}
             row={row}
             column={column}
+            testIdScope={testIdScope}
         />
     ));
     return (
         <div
             className='DataGrid_row'
-            data-testid='dataGrid-row'
+            role='row'
+            data-testid={testIdScope ? (testKey && `${testIdScope}.row:${testKey}--row`) : 'dataGrid-row'}
             onClick={row.onClick}
         >
             {cells}
