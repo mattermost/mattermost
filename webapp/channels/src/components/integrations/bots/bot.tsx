@@ -338,6 +338,7 @@ export default class Bot extends React.PureComponent<Props, State> {
         customExpiryDate: string,
         onPresetChange: (e: ChangeEvent<HTMLSelectElement>) => void,
         onCustomDateChange: (e: ChangeEvent<HTMLInputElement>) => void,
+        testId: string,
     ): JSX.Element | null => {
         if (!this.isUserOwnedBot()) {
             return null;
@@ -364,6 +365,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                         onPresetChange={onPresetChange}
                         onCustomDateChange={onCustomDateChange}
                         selectClassName='form-control form-sm'
+                        testId={testId}
                     />
                 </div>
             </div>
@@ -399,6 +401,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                 activeLink = (
                     <a
                         id={token.id + '_deactivate'}
+                        data-testid='integrations.bots.bot.token.disable--link'
                         href='#'
                         onClick={(e) => {
                             e.preventDefault();
@@ -425,6 +428,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                 activeLink = (
                     <a
                         id={token.id + '_activate'}
+                        data-testid='integrations.bots.bot.token.enable--link'
                         href='#'
                         onClick={(e) => {
                             e.preventDefault();
@@ -442,7 +446,10 @@ export default class Bot extends React.PureComponent<Props, State> {
             if (isUserOwnedBot) {
                 const status = deriveTokenStatus(token);
                 statusBadge = (
-                    <span className={`bot-token__status bot-token__status--${status}`}>
+                    <span
+                        className={`bot-token__status bot-token__status--${status}`}
+                        data-testid='integrations.bots.bot.token.status--text'
+                    >
                         {status === 'active' && (
                             <FormattedMessage
                                 id='user.settings.tokens.status.active'
@@ -472,7 +479,10 @@ export default class Bot extends React.PureComponent<Props, State> {
                 const daysUntilExpiry = hasExpiry ? Math.max(0, Math.floor(((token.expires_at as number) - startOfToday.getTime()) / MS_PER_DAY)) : 0;
 
                 expiryRow = (
-                    <div className='bot-token__expiry whitespace--nowrap overflow--ellipsis'>
+                    <div
+                        className='bot-token__expiry whitespace--nowrap overflow--ellipsis'
+                        data-testid='integrations.bots.bot.token.expiry--text'
+                    >
                         <b>
                             <FormattedMessage
                                 id='user.settings.tokens.expiry'
@@ -516,6 +526,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                 <div
                     key={token.id}
                     className='bot-list__item'
+                    data-testid={`integrations.bots.bot.token:${token.id}`}
                 >
                     <div className='item-details__row d-flex justify-content-between'>
                         <div className={disableClass}>
@@ -549,6 +560,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                     {' - '}
                                     <a
                                         id={token.id + '_regenerate'}
+                                        data-testid='integrations.bots.bot.token.regenerate--link'
                                         href='#'
                                         onClick={(e) => {
                                             e.preventDefault();
@@ -565,6 +577,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                             {' - '}
                             <a
                                 id={token.id + '_delete'}
+                                data-testid='integrations.bots.bot.token.delete--link'
                                 href='#'
                                 onClick={(e) => {
                                     e.preventDefault();
@@ -591,6 +604,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                     <button
                         id='createToken'
                         className='style--none color--link'
+                        data-testid='integrations.bots.bot.create_token--button'
                         onClick={this.openCreateToken}
                     >
                         <FormattedMessage
@@ -601,7 +615,10 @@ export default class Bot extends React.PureComponent<Props, State> {
                     {!isProtectedBot && (
                         <>
                             {' - '}
-                            <Link to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}>
+                            <Link
+                                to={`/${this.props.team.name}/integrations/bots/edit?id=${this.props.bot.user_id}`}
+                                data-testid='integrations.bots.bot.edit--link'
+                            >
                                 <FormattedMessage
                                     id='bots.manage.edit'
                                     defaultMessage='Edit'
@@ -611,6 +628,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                             <button
                                 className='style--none color--link'
                                 onClick={this.disableBot}
+                                data-testid='integrations.bots.bot.disable--button'
                             >
                                 <FormattedMessage
                                     id='bot.manage.disable'
@@ -628,6 +646,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                     <button
                         className='style--none color--link'
                         onClick={this.enableBot}
+                        data-testid='integrations.bots.bot.enable--button'
                     >
                         <FormattedMessage
                             id='bot.manage.enable'
@@ -641,7 +660,7 @@ export default class Bot extends React.PureComponent<Props, State> {
         if (this.state.creatingTokenState === 'OPEN') {
             const expiryError = this.getExpiryValidationError();
             const descriptionEmpty = !this.state.token.description || this.state.token.description.trim() === '';
-            const expirySection = this.renderExpiryPicker('botToken', this.state.expiryPreset, this.state.customExpiryDate, this.handleExpiryPresetChange, this.handleCustomExpiryChange);
+            const expirySection = this.renderExpiryPicker('botToken', this.state.expiryPreset, this.state.customExpiryDate, this.handleExpiryPresetChange, this.handleCustomExpiryChange, 'integrations.bots.bot.new_token');
 
             tokenList.push(
                 <div
@@ -691,6 +710,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                 </label>
                                 <div className='mt-2'>
                                     <SaveButton
+                                        testId='integrations.bots.bot.new_token.save'
                                         emphasis='primary'
                                         size='small'
                                         savingMessage={
@@ -723,6 +743,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                 <div
                     key={'created'}
                     className='bot-list__item alert alert-warning'
+                    data-testid='integrations.bots.bot.new_token'
                 >
                     <div className='mb-2'>
                         <WarningIcon additionalClassName='mr-2'/>
@@ -755,6 +776,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                     <CopyText
                         label={copyTokenMessage}
                         value={this.state.token.token}
+                        testId='integrations.bots.bot.new_token.copy'
                     />
                     <div className='mt-2'>
                         <Button
@@ -823,7 +845,10 @@ export default class Bot extends React.PureComponent<Props, State> {
         const imageURL = Utils.imageURLForUser(this.props.user.id, this.props.user.last_picture_update);
 
         return (
-            <div className='backstage-list__item'>
+            <div
+                className='backstage-list__item'
+                data-testid={`integrations.bots.bot:${this.props.bot.user_id}`}
+            >
                 <div className={'bot-list-img-container'}>
                     <img
                         className={'bot-list-img'}
@@ -833,7 +858,10 @@ export default class Bot extends React.PureComponent<Props, State> {
                 </div>
                 <div className='item-details'>
                     <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
-                        <strong className='item-details__name'>
+                        <strong
+                            className='item-details__name'
+                            data-testid='integrations.bots.bot.name'
+                        >
                             {displayName + ' (@' + username + ')'}
                         </strong>
                         {options}
@@ -841,7 +869,10 @@ export default class Bot extends React.PureComponent<Props, State> {
                     <div className='bot-details__description'>
                         <Markdown message={description}/>
                     </div>
-                    <div className='light small'>
+                    <div
+                        className='light small'
+                        data-testid='integrations.bots.bot.managed_by'
+                    >
                         {managedBy}
                     </div>
                     {this.state.serverError && (
@@ -875,6 +906,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                     modalClass='integrations-backstage-modal'
                     show={this.state.confirmingId !== ''}
                     onConfirm={this.revokeTokenConfirmed}
+                    testId='bot_token_delete_modal'
                     onCancel={this.closeConfirm}
                 />
                 <ConfirmModal
@@ -892,7 +924,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                                     defaultMessage='The current secret for this token will stop working immediately. Any integrations using it will need to be updated with the new secret. You cannot undo this action.'
                                 />
                             </div>
-                            {this.renderExpiryPicker('regenerateBotToken', this.state.regenerateExpiryPreset, this.state.regenerateCustomExpiryDate, this.handleRegenerateExpiryPresetChange, this.handleRegenerateCustomExpiryChange)}
+                            {this.renderExpiryPicker('regenerateBotToken', this.state.regenerateExpiryPreset, this.state.regenerateCustomExpiryDate, this.handleRegenerateExpiryPresetChange, this.handleRegenerateCustomExpiryChange, 'bot_token_regenerate_modal')}
                             {regenerateExpiryError && (
                                 <div className='has-error mt-2'>
                                     {regenerateExpiryError}
@@ -919,6 +951,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                     modalClass='integrations-backstage-modal'
                     show={this.state.regeneratingTokenId !== ''}
                     onConfirm={this.regenerateTokenConfirmed}
+                    testId='bot_token_regenerate_modal'
                     onCancel={this.closeRegenerateToken}
                     confirmDisabled={Boolean(regenerateExpiryError) || this.state.saving}
                 />

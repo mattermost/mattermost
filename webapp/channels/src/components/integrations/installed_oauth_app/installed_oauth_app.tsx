@@ -197,6 +197,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             showHide = (
                 <button
                     id='showSecretButton'
+                    data-testid='integrations.oauth_apps.app.show_secret--button'
                     className='style--none color--link'
                     onClick={this.handleShowClientSecret}
                 >
@@ -219,6 +220,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             showHide = (
                 <button
                     id='hideSecretButton'
+                    data-testid='integrations.oauth_apps.app.hide_secret--button'
                     className='style--none color--link'
                     onClick={this.handleHideClientSecret}
                 >
@@ -238,6 +240,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                     <CopyText
                         label={messages.copyClientSecret}
                         value={this.state.clientSecret}
+                        testId='integrations.oauth_apps.app.client_secret.copy'
                     />
                 </span>
             );
@@ -248,6 +251,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
             regen = (
                 <button
                     id='regenerateSecretButton'
+                    data-testid='integrations.oauth_apps.app.regenerate_secret--button'
                     className='style--none color--link'
                     onClick={this.handleRegenerate}
                 >
@@ -285,6 +289,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                 <Link
                     key='edit'
                     to={`/${this.props.team?.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}
+                    data-testid='integrations.oauth_apps.app.edit--link'
                 >
                     <FormattedMessage
                         id='installed_integrations.edit'
@@ -303,6 +308,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                         />
                     }
                     onDelete={this.handleDelete}
+                    testId='integrations.oauth_apps.app.delete'
                 />,
             );
 
@@ -357,7 +363,10 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                         </div>
                     )}
                     <div className='item-details__row'>
-                        <span className='item-details__token'>
+                        <span
+                            className='item-details__token'
+                            data-testid='integrations.oauth_apps.app.client_id'
+                        >
                             <FormattedMessage
                                 id='installed_integrations.client_id'
                                 defaultMessage='Client ID: '
@@ -366,10 +375,14 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                             <CopyText
                                 label={messages.copyClientId}
                                 value={oauthApp.id}
+                                testId='integrations.oauth_apps.app.client_id.copy'
                             />
                         </span>
                     </div>
-                    <div className='item-details__row'>
+                    <div
+                        className='item-details__row'
+                        data-testid='integrations.oauth_apps.app.client_secret'
+                    >
                         {clientSecret}
                     </div>
                     {urls}
@@ -390,11 +403,17 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
         }
 
         return (
-            <div className='backstage-list__item'>
+            <div
+                className='backstage-list__item'
+                data-testid={`integrations.oauth_apps.app:${oauthApp.id}`}
+            >
                 {icon}
                 <div className='item-details'>
                     <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
-                        <strong className='item-details__name'>
+                        <strong
+                            className='item-details__name'
+                            data-testid='integrations.oauth_apps.app.name'
+                        >
                             {name}
                         </strong>
                         {actions}

@@ -48,7 +48,7 @@ export type Props = {
 
 export default function ResultTable(props: Props) {
     const intl = useIntl();
-    let wrapperDataTestId = 'invitation-not-sent-section';
+    let wrapperDataTestId = 'invitation_modal.result.not_sent';
     let wrapperClass = 'invitation-modal-confirm invitation-modal-confirm--not-sent';
     let header = (
         <h2>
@@ -59,7 +59,7 @@ export default function ResultTable(props: Props) {
         </h2>
     );
     if (props.sent) {
-        wrapperDataTestId = 'invitation-sent-section';
+        wrapperDataTestId = 'invitation_modal.result.sent';
         wrapperClass = 'invitation-modal-confirm invitation-modal-confirm--sent';
         header = (
             <h2>
@@ -184,7 +184,7 @@ export default function ResultTable(props: Props) {
                                 </td>
                                 <td
                                     className='reason'
-                                    data-testid='invitation-result-reason'
+                                    data-testid='invitation_modal.result.reason--text'
                                 >
                                     {reason}
                                 </td>

@@ -50,7 +50,7 @@ describe('Onboarding', () => {
         cy.uiOpenTeamMenu('Invite people');
 
         // # Copy invite link to clipboard
-        cy.findByTestId('InviteView__copyInviteLink').click();
+        cy.findByTestId('invitation_modal.invite.copy_link--button').click();
 
         cy.get('@clipboard').its('contents').then((val) => {
             const inviteLink = val;

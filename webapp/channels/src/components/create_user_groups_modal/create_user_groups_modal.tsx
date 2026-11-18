@@ -291,11 +291,11 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                     <div className='user-groups-modal__content'>
                         <div className='group-name-input-wrapper'>
                             <Input
+                                testId='create_user_groups_modal.name'
                                 type='text'
                                 placeholder={defineMessage({id: 'user_groups_modal.name', defaultMessage: 'Name'})}
                                 onChange={this.updateNameState}
                                 value={this.state.name}
-                                data-testid='nameInput'
                                 maxLength={64}
                                 autoFocus={true}
                                 required={true}
@@ -304,12 +304,12 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                         </div>
                         <div className='group-mention-input-wrapper'>
                             <Input
+                                testId='create_user_groups_modal.mention'
                                 type='text'
                                 placeholder={defineMessage({id: 'user_groups_modal.mention', defaultMessage: 'Mention'})}
                                 onChange={this.updateMentionState}
                                 value={this.state.mention}
                                 maxLength={64}
-                                data-testid='mentionInput'
                                 required={true}
                                 customMessage={{type: ItemStatus.ERROR, value: this.state.mentionInputErrorText}}
                             />
@@ -324,6 +324,7 @@ export class CreateUserGroupsModal extends React.PureComponent<Props, State> {
                             <div className='group-add-user'>
                                 <AddUserToGroupMultiSelect
                                     multilSelectKey={'addUsersToGroupKey'}
+                                    testId='create_user_groups_modal.users'
                                     onSubmitCallback={this.createGroup}
                                     focusOnLoad={false}
                                     savingEnabled={this.isSaveEnabled()}

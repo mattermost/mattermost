@@ -10,6 +10,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 describe('components/SaveButton', () => {
     const baseProps = {
         saving: false,
+        testId: 'test.save' as const,
     };
 
     test('should render on defaultMessage', () => {

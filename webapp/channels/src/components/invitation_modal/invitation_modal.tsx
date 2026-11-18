@@ -558,7 +558,7 @@ export default class InvitationModal extends React.PureComponent<Props, State> {
         return (
             <GenericModal
                 id='invitationModal'
-                dataTestId='invitationModal'
+                testId='invitation_modal'
                 className='InvitationModal a11y__modal modal--overflow'
                 show={this.state.show}
                 onHide={this.handleHide}

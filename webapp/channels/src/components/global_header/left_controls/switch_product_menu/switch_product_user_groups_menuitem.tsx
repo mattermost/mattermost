@@ -61,6 +61,7 @@ export default function ProductSwitcherUserGroupsMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.product_menu.user_groups--menuitem'
             disabled={isStarterFree}
             leadingElement={<AccountMultipleOutlineIcon size={18}/>}
             labels={

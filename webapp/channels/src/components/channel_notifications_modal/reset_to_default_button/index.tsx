@@ -87,7 +87,7 @@ export default function ResetToDefaultButton(props: Props) {
                 'ChannelNotificationModal__reset-btn--hidden': isHidden,
             })}
             onClick={handleOnClick}
-            data-testid={`resetToDefaultButton-${props.sectionName}`}
+            data-testid={`channel_notifications_modal.reset:${props.sectionName}--button`}
             disabled={isHidden}
             aria-hidden={isHidden || undefined}
             tabIndex={isHidden ? -1 : undefined}

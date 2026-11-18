@@ -20,11 +20,11 @@ const BackstageNavbar = ({team, siteName}: Props) => {
     return (
         <div
             className='backstage-navbar'
-            data-testid='backstage-navbar'
+            data-testid='backstage.navbar'
         >
             <BlockableLink
                 className='backstage-navbar__back'
-                data-testid='backstage-navbar-back'
+                data-testid='backstage.navbar.back--link'
                 to={`/${teamExists ? team?.name : ''}`}
             >
                 <BackIcon/>

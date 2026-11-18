@@ -387,7 +387,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 </Link>
                             </Button>
                             <SpinnerButton
-                                data-testid='save-button'
+                                data-testid='add_emoji.save--button'
                                 type='submit'
                                 spinning={this.state.saving}
                                 spinningText={defineMessage({id: 'add_emoji.saving', defaultMessage: 'Saving...'})}

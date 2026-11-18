@@ -121,6 +121,7 @@ export default function UserAccountSetCustomStatusMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.custom_status--menuitem'
             className={classNames('userAccountMenu_customStatusMenuItem', {
                 hasTrailingElement: Boolean(trailingElement),
             })}

@@ -1,7 +1,38 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {
+    type App,
+    expect,
+    formatMessage,
+    Msg,
+    openTeamSettings,
+    test,
+    duration,
+    Api,
+    settle,
+} from '@mattermost/playwright-lib';
+
+/**
+ * Types the email in the invite dialog's people input, takes its suggestion and sends the invite. The suggestion is
+ * the user's own when the email belongs to an account, and "Add email" otherwise.
+ */
+async function inviteByEmail(app: App, email: string, user?: Pick<UserProfile, 'id'>) {
+    const invite = app.invitationModal.invite;
+    const input = invite.users.inputCombobox;
+    await input.focus();
+    await input.type(email);
+
+    // the menu offers the suggestion once its search finishes; Enter takes it
+    const suggestion = user ? invite.users.user(user) : invite.users.emailOption;
+    await expect(suggestion).toBeVisible({timeout: duration.half_min});
+    await input.press('Enter');
+    await expect(input).toHaveValue('');
+    await expect(invite.sendButton).toBeEnabled();
+    await settle(invite.sendButton, {wait: user ? Api.AddTeamMembers : Api.InviteUsersToTeam}).click();
+}
 
 /**
  * @objective Verify that a user with a valid email domain can be invited to a closed team,
@@ -21,29 +52,34 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     // # Create a new user NOT on the team (default email is @sample.mattermost.com)
     const newUser = await adminClient.createUser(await pw.random.user(), '', '');
 
-    const {page} = await pw.testBrowser.login(adminUser);
-    const channelsPage = new ChannelsPage(page);
+    const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
+    const {app} = await pw.testBrowser.login(adminUser);
 
     // # Navigate to team
-    await channelsPage.goto(team.name);
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: townSquare});
 
     // # Open Team Settings Modal and go to Access tab
-    const teamSettings = await channelsPage.openTeamSettings();
-    const accessSettings = await teamSettings.openAccessTab();
+    const settings = await openTeamSettings(app, 'access');
 
     // # Enable "Allow only users with a specific email domain" and add the domain
-    await accessSettings.enableAllowedDomains();
-    await accessSettings.addDomain(emailDomain);
+    await settings.access.allowedDomainsCheckbox.check();
+    await expect(settings.access.allowedDomainsCheckbox).toBeChecked();
+    const domains = settings.access.allowedDomainsInput.inputCombobox;
+    await domains.fill(emailDomain);
+    await domains.press('Enter');
+    await expect(settings.access.allowedDomainsInput).toContainText(emailDomain);
 
     // # Save changes
-    await teamSettings.save();
-    await teamSettings.verifySavedMessage();
+    await settle(settings.savePanel.saveButton, {wait: Api.PatchTeam}).click();
+    await expect(settings.savePanel.messageText).toHaveText(formatMessage(Msg.saveChangesPanel.saved));
+    await expect(settings.savePanel.messageText).toBeVisible();
 
     // # Close the Team Settings modal and wait for it to disappear
-    await teamSettings.close();
-    await expect(teamSettings.container).not.toBeVisible();
+    await settings.closeButton.click();
+    await expect(settings).not.toBeVisible();
+    await expect(settings.closeButton).not.toBeVisible();
 
+    // Ensure email invitations are enabled before opening the invite modal.
     await adminClient.patchConfig({
         ServiceSettings: {EnableEmailInvitations: true},
     });
@@ -52,25 +88,15 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
         return cfg.ServiceSettings?.EnableEmailInvitations === true;
     });
 
-    // Re-apply email invitations immediately before opening the invite modal: a
-    // concurrent initSetup() → patchConfig(defaultConfig) resets
-    // ServiceSettings.EnableEmailInvitations: false between the initial patchConfig and here.
-
-    // # Open team menu and click 'Invite People'
-    await channelsPage.sidebarLeft.teamMenuButton.click();
-    await channelsPage.teamMenu.toBeVisible();
-    await channelsPage.teamMenu.clickInvitePeople();
-
-    // # Get the invite people modal and invite user with valid email domain
-    const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-    await inviteModal.toBeVisible();
-    await inviteModal.inviteByEmail(newUser.email);
+    // # Open team menu and click 'Invite People', and invite the user with a valid email domain
+    await app.lhs.header.openTeamMenuButton.clickTo(app.lhs.teamMenu);
+    await app.lhs.teamMenu.invitePeopleMenuItem.clickTo(app.invitationModal);
+    await inviteByEmail(app, newUser.email, newUser);
 
     // * Verify that the user has been successfully invited to the team
-    const membersInvitedModal = await channelsPage.getMembersInvitedModal(team.display_name);
-    await membersInvitedModal.toBeVisible();
-    const sentReason = await membersInvitedModal.getSentResultReason();
-    expect(sentReason).toBe('This member has been added to the team.');
+    const result = app.invitationModal.result;
+    await expect(result.sent).toBeVisible();
+    await expect(result.sent).toContainMessage(Msg.invite.members['added-to-team']);
 
     await adminClient.patchConfig({
         ServiceSettings: {EnableEmailInvitations: true},
@@ -81,17 +107,15 @@ test('MM-T388 Invite new user to closed team with email domain restriction', {ta
     });
 
     // # Click 'Invite More People' to return to the invite form
-    await membersInvitedModal.clickInviteMore();
+    await result.inviteMoreButton.clickTo(app.invitationModal.invite.users.inputCombobox);
 
     // # Invite a user with an invalid email domain (not sample.mattermost.com)
     const invalidEmail = `user.${pw.random.id()}@invalid.com`;
-    await inviteModal.inviteByEmail(invalidEmail);
+    await inviteByEmail(app, invalidEmail);
 
     // * Verify that the invite failed with the correct domain restriction error
-    const membersInvitedModal2 = await channelsPage.getMembersInvitedModal(team.display_name);
-    await membersInvitedModal2.toBeVisible();
-    const notSentReason = await membersInvitedModal2.getNotSentResultReason();
-    expect(notSentReason).toContain(
+    await expect(result.notSent).toBeVisible();
+    await expect(result.notSent).toContainText(
         `The following email addresses do not belong to an accepted domain: ${invalidEmail}.`,
     );
 });

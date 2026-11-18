@@ -33,6 +33,7 @@ const CUSTOM_INPUT_TEXT = 'Custom input';
 function getBaseProps(): Props {
     return {
         activeSection: '',
+        index: 0,
         pluginId: PLUGIN_ID,
         section: {
             settings: [

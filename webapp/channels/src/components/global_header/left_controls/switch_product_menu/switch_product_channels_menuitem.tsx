@@ -21,6 +21,7 @@ export default function ProductChannelsMenuItem({isChannelsProductActive, ...fir
 
     return (
         <Menu.Item
+            data-testid='global_header.product_menu.channels--menuitem'
             className='globalHeader-leftControls-productSwitcherMenu-productMenuItem'
             leadingElement={(
                 <ProductChannelsIcon

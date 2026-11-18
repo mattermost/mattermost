@@ -35,6 +35,7 @@ export default function ProductSwitcherDownloadMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.product_menu.download_apps--menuitem'
             leadingElement={<DownloadOutlineIcon size={18}/>}
             labels={
                 <FormattedMessage

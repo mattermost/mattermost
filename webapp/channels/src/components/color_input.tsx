@@ -16,7 +16,7 @@ export interface ColorInputProps {
     testIdScope?: string;
 
     /** Keys the root when the same scope repeats: `<testIdScope>:<testKey>--region` (unkeyed, `<testIdScope>--region`). */
-    testKey?: string;
+    testKey?: number;
 }
 
 const ColorInput = ({
@@ -29,7 +29,7 @@ const ColorInput = ({
 }: ColorInputProps) => {
     let rootTestId;
     if (testIdScope) {
-        rootTestId = testKey ? `${testIdScope}:${testKey}--region` : `${testIdScope}--region`;
+        rootTestId = testKey === undefined ? `${testIdScope}--region` : `${testIdScope}:${testKey}--region`;
     }
 
     const container = useRef<HTMLDivElement>(null);

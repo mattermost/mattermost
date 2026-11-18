@@ -242,7 +242,7 @@ export default class SettingPicture extends Component<Props, State> {
                             disabled={!title}
                         >
                             <IconButton
-                                data-testid='removeSettingPicture'
+                                data-testid='settings.general.section.picture.remove--button'
                                 size='x-small'
                                 padding='compact'
                                 rounded={true}
@@ -280,7 +280,7 @@ export default class SettingPicture extends Component<Props, State> {
             buttonRender = (
                 <>
                     <input
-                        data-testid='uploadPicture'
+                        data-testid='settings.general.section.picture.upload'
                         ref={this.selectInput}
                         className='hidden'
                         accept={Constants.ACCEPT_STATIC_IMAGE}
@@ -291,7 +291,7 @@ export default class SettingPicture extends Component<Props, State> {
                         tabIndex={-1}
                     />
                     <Button
-                        data-testid='inputSettingPictureButton'
+                        data-testid='settings.general.section.picture.select--button'
                         emphasis='primary'
                         disabled={this.props.loadingPicture}
                         onClick={this.handleInputFile}
@@ -304,7 +304,7 @@ export default class SettingPicture extends Component<Props, State> {
                     </Button>
                     <Button
                         tabIndex={disableSaveButtonFocus ? -1 : 0}
-                        data-testid='saveSettingPicture'
+                        data-testid='settings.general.section.picture.save--button'
                         disabled={disableSaveButtonFocus}
                         ref={this.confirmButton}
                         emphasis='primary'
@@ -358,7 +358,7 @@ export default class SettingPicture extends Component<Props, State> {
                             <div className='setting-list-item__buttons'>
                                 {buttonRender}
                                 <Button
-                                    data-testid='cancelSettingPicture'
+                                    data-testid='settings.general.section.picture.cancel--button'
                                     emphasis='tertiary'
                                     onClick={this.handleCancel}
                                     aria-label={localizeMessage({id: 'setting_picture.cancel', defaultMessage: 'Cancel'})}

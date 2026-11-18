@@ -49,7 +49,7 @@ type OwnProps = {
     active?: boolean;
     areAllSectionsInactive: boolean;
     updateSection: (section: string) => void;
-    userAccessTokens: {[tokenId: string]: {description: string; id: string; is_active: boolean; expires_at?: number}};
+    userAccessTokens: {[tokenId: string]: UserAccessToken};
     maxLifetimeDays: number;
     setRequireConfirm: (isRequiredConfirm: boolean, confirmCopyToken: (confirmAction: () => void) => void) => void;
     actions: {
@@ -183,6 +183,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                 <div className='col-sm-auto'>
                     <TokenExpiryPicker
                         idPrefix={idPrefix}
+                        testId={idPrefix === 'newToken' ? 'settings.access_tokens.new_token' : 'settings.access_tokens.regenerate'}
                         expiryPreset={expiryPreset}
                         customExpiryDate={customExpiryDate}
                         maxLifetimeDays={maxLifetimeDays}
@@ -321,6 +322,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                             <CopyText
                                 label={copyTokenMessage}
                                 value={state.newToken!.token!}
+                                testId='settings.access_tokens.confirm_copy.copy'
                             />
                         </>
                     )}
@@ -572,6 +574,8 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                     }
                     describe={describe}
                     section={SECTION_TOKENS}
+                    testId='settings.security.section'
+                    testKey={SECTION_TOKENS}
                     updateSection={this.props.updateSection}
                     ref={this.minRef}
                 />
@@ -588,7 +592,10 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             const status = deriveTokenStatus(token);
             const statusBadgeClass = `setting-box__token-status setting-box__token-status--${status}`;
             const statusBadge = (
-                <span className={statusBadgeClass}>
+                <span
+                    className={statusBadgeClass}
+                    data-testid='settings.access_tokens.token.status--text'
+                >
                     {status === 'active' && (
                         <FormattedMessage
                             id='user.settings.tokens.status.active'
@@ -614,6 +621,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                 activeLink = (
                     <a
                         id={token.id + '_deactivate'}
+                        data-testid='settings.access_tokens.token.deactivate--link'
                         href='#'
                         onClick={(e) => {
                             e.preventDefault();
@@ -629,6 +637,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                 activeLink = (
                     <a
                         id={token.id + '_activate'}
+                        data-testid='settings.access_tokens.token.activate--link'
                         href='#'
                         onClick={(e) => {
                             e.preventDefault();
@@ -662,7 +671,10 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             ) : undefined;
 
             const expiryRow = (
-                <div className='setting-box__token-expiry whitespace--nowrap overflow--ellipsis'>
+                <div
+                    className='setting-box__token-expiry whitespace--nowrap overflow--ellipsis'
+                    data-testid='settings.access_tokens.token.expiry--text'
+                >
                     <FormattedMessage
                         id='user.settings.tokens.expiry'
                         defaultMessage='Expires: '
@@ -702,6 +714,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                 <div
                     key={token.id}
                     className='setting-box__item'
+                    data-testid={`settings.access_tokens.token:${token.id}`}
                 >
                     <div className='whitespace--nowrap overflow--ellipsis'>
                         <FormattedMessage
@@ -727,6 +740,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                                 {' - '}
                                 <a
                                     id={token.id + '_regenerate'}
+                                    data-testid='settings.access_tokens.token.regenerate--link'
                                     href='#'
                                     onClick={(e) => {
                                         e.preventDefault();
@@ -743,6 +757,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                         {' - '}
                         <a
                             id={token.id + '_delete'}
+                            data-testid='settings.access_tokens.token.delete--link'
                             href='#'
                             onClick={(e) => {
                                 e.preventDefault();
@@ -860,6 +875,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                         <div className='col-sm-5'>
                             <input
                                 id='newTokenDescription'
+                                data-testid='settings.access_tokens.new_token.description--textbox'
                                 autoFocus={true}
                                 className='form-control'
                                 type='text'
@@ -881,12 +897,14 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                         <div>
                             <label
                                 id='clientError'
+                                data-testid='settings.access_tokens.new_token.error--text'
                                 className='has-error mt-2 mb-2'
                             >
                                 {this.state.tokenError || expiryError}
                             </label>
                         </div>
                         <SaveButton
+                            testId='settings.access_tokens.new_token.save'
                             savingMessage={
                                 <FormattedMessage
                                     id='user.settings.tokens.save'
@@ -899,6 +917,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                         />
                         <Button
                             emphasis='tertiary'
+                            data-testid='settings.access_tokens.new_token.cancel--button'
                             onClick={this.stopCreatingToken}
                         >
                             <FormattedMessage
@@ -932,14 +951,20 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                         />
                         {this.state.newToken!.description}
                     </div>
-                    <div className='whitespace--nowrap overflow--ellipsis'>
+                    <div
+                        className='whitespace--nowrap overflow--ellipsis'
+                        data-testid='settings.access_tokens.new_token.id--text'
+                    >
                         <FormattedMessage
                             id='user.settings.tokens.id'
                             defaultMessage='Token ID: '
                         />
                         {this.state.newToken!.id}
                     </div>
-                    <strong className='word-break--all'>
+                    <strong
+                        className='word-break--all'
+                        data-testid='settings.access_tokens.new_token.token--text'
+                    >
                         <FormattedMessage
                             id='user.settings.tokens.token'
                             defaultMessage='Access Token: '
@@ -949,6 +974,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                     <CopyText
                         label={copyTokenMessage}
                         value={this.state.newToken!.token!}
+                        testId='settings.access_tokens.new_token.copy'
                     />
                 </div>
             );
@@ -956,6 +982,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
             newTokenSection = (
                 <Button
                     emphasis='primary'
+                    data-testid='settings.access_tokens.create--button'
                     onClick={this.startCreatingToken}
                 >
                     <FormattedMessage
@@ -985,6 +1012,8 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
         return (
             <div>
                 <SettingItemMax
+                    testIdScope='settings.security.section'
+                    testKey={SECTION_TOKENS}
                     title={
                         <FormattedMessage
                             id='user.settings.tokens.title'
@@ -1006,6 +1035,7 @@ class UserAccessTokenSection extends React.PureComponent<Props, State> {
                     }
                 />
                 <ConfirmModal
+                    testId='settings.access_tokens.confirm_modal'
                     title={this.state.confirmTitle}
                     message={this.state.confirmMessage ? this.state.confirmMessage(this.state) : null}
                     confirmButtonText={this.state.confirmButton}

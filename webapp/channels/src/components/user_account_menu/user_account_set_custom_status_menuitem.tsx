@@ -15,6 +15,7 @@ interface Props {
 export default function UserAccountSetCustomStatusMenuItem(props: Props) {
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.set_custom_status--menuitem'
             className='userAccountMenu_setCustomStatusMenuItem'
             leadingElement={
                 <EmojiIcon

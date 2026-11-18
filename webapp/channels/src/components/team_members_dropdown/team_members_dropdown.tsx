@@ -29,6 +29,9 @@ type Props = WrappedComponentProps & {
     index: number;
     totalUsers: number;
     collapsedThreads: ReturnType<typeof isCollapsedThreadsEnabled>;
+
+    // The member's row: the dropdown is `.role--button`. Its items open outside the row, so they live in the top-level `team_members_role_menu` scope.
+    testIdScope?: string;
     actions: {
         getMyTeamMembers: () => void;
         getMyTeamUnreads: (collapsedThreads: boolean) => void;
@@ -134,7 +137,10 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
         let serverError = null;
         if (this.state.serverError) {
             serverError = (
-                <div className='has-error'>
+                <div
+                    className='has-error'
+                    data-testid={this.props.testIdScope ? `${this.props.testIdScope}.error--text` : undefined}
+                >
                     <label className='has-error control-label'>{this.state.serverError}</label>
                 </div>
             );
@@ -234,6 +240,7 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
                     confirmButtonText={confirmButton}
                     onConfirm={this.handleDemoteSubmit}
                     onCancel={this.handleDemoteCancel}
+                    testId='team_members_modal.demote_modal'
                 />
             );
         }
@@ -251,6 +258,7 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
         const menuRemove = (
             <Menu.Item
                 id='removeFromTeam'
+                data-testid={this.props.testIdScope ? 'team_members_role_menu.remove--menuitem' : undefined}
                 onClick={this.handleRemoveFromTeam}
                 labels={
                     <FormattedMessage
@@ -262,6 +270,7 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
         );
         const menuMakeAdmin = (
             <Menu.Item
+                data-testid={this.props.testIdScope ? 'team_members_role_menu.make_admin--menuitem' : undefined}
                 onClick={this.handleMakeAdmin}
                 labels={
                     <FormattedMessage
@@ -273,6 +282,7 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
         );
         const menuMakeMember = (
             <Menu.Item
+                data-testid={this.props.testIdScope ? 'team_members_role_menu.make_member--menuitem' : undefined}
                 onClick={this.handleMakeMember}
                 labels={
                     <FormattedMessage
@@ -287,6 +297,7 @@ class TeamMembersDropdown extends React.PureComponent<Props, State> {
                 <Menu.Container
                     menuButton={{
                         id: `teamMembersDropdown_${user.username}`,
+                        dataTestId: this.props.testIdScope ? `${this.props.testIdScope}.role--button` : undefined,
                         class: 'dropdown-toggle theme color--link style--none',
                         children: (
                             <>

@@ -202,6 +202,8 @@ export default class MfaSection extends React.PureComponent<Props, State> {
                     title={title}
                     describe={this.renderDescription()}
                     section={SECTION_MFA}
+                    testId='settings.security.section'
+                    testKey={SECTION_MFA}
                     updateSection={this.props.updateSection}
                     ref={this.minRef}
                 />
@@ -210,6 +212,8 @@ export default class MfaSection extends React.PureComponent<Props, State> {
 
         return (
             <SettingItemMax
+                testIdScope='settings.security.section'
+                testKey={SECTION_MFA}
                 title={title}
                 inputs={this.renderContent()}
                 extraInfo={this.renderHelpText()}

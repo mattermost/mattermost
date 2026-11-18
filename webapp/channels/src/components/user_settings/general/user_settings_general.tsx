@@ -609,6 +609,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 <Input
                                     autoFocus={true}
                                     id='primaryEmail'
+                                    testId='settings.general.section.new_email'
                                     name='primaryEmail'
                                     type='email'
                                     onChange={this.updateEmail}
@@ -645,6 +646,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             <div className='col-sm-7'>
                                 <Input
                                     id='confirmEmail'
+                                    testId='settings.general.section.confirm_email'
                                     name='confirmEmail'
                                     type='email'
                                     onChange={this.updateConfirmEmail}
@@ -681,6 +683,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             <div className='col-sm-7'>
                                 <Input
                                     id='currentPassword'
+                                    testId='settings.general.section.current_password'
                                     name='currentPassword'
                                     type='password'
                                     onChange={this.updateCurrentPassword}
@@ -814,6 +817,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
+                    testIdScope='settings.general.section'
+                    testKey='email'
                     title={
                         <FormattedMessage
                             id='user.settings.general.email'
@@ -897,6 +902,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         return (
             <SettingItem
+                testId='settings.general.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={
@@ -927,7 +933,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
     createFieldManagedByAdminMessage = () => {
         return (
-            <span>
+            <span data-testid='settings.general.section.managed_by_admin--text'>
                 <FormattedMessage
                     id='user.settings.general.field_locked_by_admin'
                     defaultMessage='This field is managed by your System Admin. Contact them to request a change.'
@@ -985,6 +991,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         <div className='col-sm-7'>
                             <Input
                                 id='firstName'
+                                testId='settings.general.section.first_name'
                                 name='firstName'
                                 autoFocus={true}
                                 type='text'
@@ -1016,6 +1023,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         <div className='col-sm-7'>
                             <Input
                                 id='lastName'
+                                testId='settings.general.section.last_name'
                                 name='lastName'
                                 type='text'
                                 onChange={this.updateLastName}
@@ -1064,6 +1072,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
+                    testIdScope='settings.general.section'
+                    testKey='name'
                     title={formatMessage(holders.fullName)}
                     inputs={inputs}
                     submit={submit}
@@ -1102,6 +1112,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         return (
             <SettingItem
+                testId='settings.general.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={formatMessage(holders.fullName)}
@@ -1154,6 +1165,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         <label className='col-sm-5 control-label'>{nicknameLabel}</label>
                         <div className='col-sm-7'>
                             <Input
+                                testId='settings.general.section.nickname'
                                 id='nickname'
                                 name='nickname'
                                 autoFocus={true}
@@ -1182,6 +1194,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
+                    testIdScope='settings.general.section'
+                    testKey='nickname'
                     title={formatMessage(holders.nickname)}
                     inputs={inputs}
                     submit={submit}
@@ -1215,6 +1229,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         return (
             <SettingItem
+                testId='settings.general.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={formatMessage(holders.nickname)}
@@ -1258,6 +1273,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         <div className='col-sm-7'>
                             <Input
                                 id='username'
+                                testId='settings.general.section.username'
                                 name='username'
                                 autoFocus={true}
                                 maxLength={Constants.MAX_USERNAME_LENGTH}
@@ -1311,6 +1327,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
+                    testIdScope='settings.general.section'
+                    testKey='username'
                     title={formatMessage(holders.username)}
                     inputs={inputs}
                     submit={submit}
@@ -1324,6 +1342,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         }
         return (
             <SettingItem
+                testId='settings.general.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={formatMessage(holders.username)}
@@ -1376,6 +1395,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         <label className='col-sm-5 control-label'>{positionLabel}</label>
                         <div className='col-sm-7'>
                             <Input
+                                testId='settings.general.section.position'
                                 id='position'
                                 name='position'
                                 autoFocus={true}
@@ -1405,6 +1425,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
+                    testIdScope='settings.general.section'
+                    testKey='position'
                     title={formatMessage(holders.position)}
                     inputs={inputs}
                     submit={submit}
@@ -1438,6 +1460,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
         return (
             <SettingItem
+                testId='settings.general.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={formatMessage(holders.position)}
@@ -1641,6 +1664,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                                 <div className='col-sm-7'>
                                     <Input
                                         id={sectionName}
+                                        testId='settings.custom_attribute.value'
                                         name={sectionName}
                                         autoFocus={true}
                                         type={inputType}
@@ -1673,6 +1697,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
 
                 max = (
                     <SettingItemMax
+                        testIdScope='settings.custom_attribute'
+                        testKey={attribute.id}
                         key={'settingItemMax_' + attribute.id}
                         title={getUserPropertyFieldLabel(attribute)}
                         inputs={inputs}
@@ -1713,6 +1739,8 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                         title={getUserPropertyFieldLabel(attribute)}
                         describe={describe}
                         section={sectionName}
+                        testId='settings.custom_attribute'
+                        testKey={attribute.id}
                         updateSection={this.updateSection}
                         max={max}
                     />
@@ -1806,6 +1834,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         return (
             <>
                 <SettingItem
+                    testId='settings.general.section'
                     active={active}
                     areAllSectionsInactive={this.props.activeSection === ''}
                     title={formatMessage(holders.profilePicture)}
@@ -1863,6 +1892,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
         return (
             <div
                 id='profileSettings'
+                data-testid='settings.panel:profile--tabpanel'
                 aria-labelledby='profileButton'
                 role='tabpanel'
             >

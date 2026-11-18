@@ -21,10 +21,15 @@ type Props = {
     handleSuggestionClick: (status: UserCustomStatus) => void;
     handleClear?: (status: UserCustomStatus) => void;
     status: UserCustomStatus;
+
+    testId?: string;
+
+    /** The row's key: a default suggestion's name (`in_a_meeting`), a recent status's position. */
+    testKey?: string | number;
 };
 
 const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
-    const {handleSuggestionClick, handleClear, status} = props;
+    const {handleSuggestionClick, handleClear, status, testId, testKey} = props;
     const {emoji, text, duration} = status;
     const [show, setShow] = useState(false);
 
@@ -53,6 +58,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
                 <button
                     className='style--none input-clear-x'
                     onClick={handleRecentCustomStatusClear}
+                    data-testid={testId ? `${testId}.clear--button` : undefined}
                 >
                     <i className='icon icon-close-circle'/>
                 </button>
@@ -67,6 +73,7 @@ const CustomStatusSuggestion: React.FC<Props> = (props: Props) => {
             onMouseLeave={hideClearButton}
             onClick={() => handleSuggestionClick(status)}
             tabIndex={0}
+            data-testid={testId && testKey !== undefined ? `${testId}:${testKey}--button` : undefined}
         >
             <div className='statusSuggestion__icon'>
                 <RenderEmoji

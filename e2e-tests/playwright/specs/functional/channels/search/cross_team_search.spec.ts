@@ -3,7 +3,7 @@
 
 import type {Team} from '@mattermost/types/teams';
 
-import {expect, test, type App} from '@mattermost/playwright-lib';
+import {expect, test, type App, Api, settle} from '@mattermost/playwright-lib';
 
 /** Opens the search box from the global header. */
 async function openSearch(app: App) {
@@ -24,13 +24,18 @@ test('MM-T5806 cross-team search works under the Onyx (dark) theme', {tag: '@sea
     const post = await adminClient.createPost({channel_id: channel.id, message});
 
     // # Log in and switch to the Onyx (dark) theme
-    const {app, channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
     await app.channelsPage.goto({team, channel});
-    // The settings controls declare no parts here, so they are found by their accessible names.
-    const settingsModal = await channelsPage.openSettings();
-    const displaySettings = await settingsModal.openDisplayTab();
-    await displaySettings.selectPremadeTheme('Onyx');
-    await settingsModal.close();
+    await app.globalHeader.settingsButton.clickTo(app.userSettingsModal);
+    await app.userSettingsModal.tabs.tab('display').select();
+    await expect(app.userSettingsModal.tabs.tab('display')).toBeSelected();
+    const theme = app.settings.display.section('theme');
+    await theme.editButton.clickTo(theme.premadeTheme('onyx'));
+    await theme.premadeTheme('onyx').click();
+    await expect(theme.premadeTheme('onyx')).toHaveClass(/active/);
+    await settle(theme.saveButton, {wait: Api.UpdatePreferences}).click();
+    await app.userSettingsModal.closeButton.click();
+    await expect(app.userSettingsModal).not.toBeVisible();
 
     // # Search for the message across teams
     const input = await openSearch(app);

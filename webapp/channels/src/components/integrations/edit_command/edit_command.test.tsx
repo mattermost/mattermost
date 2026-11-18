@@ -161,7 +161,7 @@ describe('components/integrations/EditCommand', () => {
         });
 
         // Dismiss the modal by clicking Cancel on the confirm modal
-        await userEvent.click(screen.getByTestId('cancel-button'));
+        await userEvent.click(screen.getByTestId('integrations.edit_command.confirm_modal.cancel--button'));
 
         // The confirm modal should be dismissed
         await waitFor(() => {

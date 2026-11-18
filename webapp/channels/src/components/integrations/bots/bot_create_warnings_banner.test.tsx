@@ -22,7 +22,7 @@ describe('components/integrations/bots/BotCreateWarningsBanner', () => {
                 onDismiss={jest.fn()}
             />,
         );
-        expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+        expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
 
         rerender(
             <BotCreateWarningsBanner
@@ -30,7 +30,7 @@ describe('components/integrations/bots/BotCreateWarningsBanner', () => {
                 onDismiss={jest.fn()}
             />,
         );
-        expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+        expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
 
         rerender(
             <BotCreateWarningsBanner
@@ -38,7 +38,7 @@ describe('components/integrations/bots/BotCreateWarningsBanner', () => {
                 onDismiss={jest.fn()}
             />,
         );
-        expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+        expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
     });
 
     test.each<[string, BotCreateWarnings, string[]]>([
@@ -57,7 +57,7 @@ describe('components/integrations/bots/BotCreateWarningsBanner', () => {
             />,
         );
 
-        const banner = screen.getByTestId('botCreateWarnings');
+        const banner = screen.getByTestId('integrations.bot_create_warnings');
         expect(banner).toHaveClass('warning');
         expect(within(banner).getByText(TITLE)).toBeInTheDocument();
         for (const line of ALL_LINES) {
@@ -77,7 +77,7 @@ describe('components/integrations/bots/BotCreateWarningsBanner', () => {
             />,
         );
 
-        const banner = screen.getByTestId('botCreateWarnings');
+        const banner = screen.getByTestId('integrations.bot_create_warnings');
         const lines = Array.from(banner.querySelectorAll('.AlertBanner__message > div')).map((div) => div.textContent);
         expect(lines).toEqual([TOKEN, ROLES, ATTRS]);
     });
@@ -91,7 +91,7 @@ describe('components/integrations/bots/BotCreateWarningsBanner', () => {
             />,
         );
 
-        const banner = screen.getByTestId('botCreateWarnings');
+        const banner = screen.getByTestId('integrations.bot_create_warnings');
         await userEvent.click(within(banner).getByRole('button', {name: 'Close'}));
         expect(onDismiss).toHaveBeenCalledTimes(1);
     });

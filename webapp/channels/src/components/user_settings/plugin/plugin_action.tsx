@@ -29,6 +29,7 @@ const PluginAction = ({
                 description={action.text ? <Markdown message={action.text}/> : undefined}
                 primaryButtonLabel={action.buttonText}
                 onPrimaryAction={action.onClick}
+                data-testid='settings.plugin_action'
             />
         </div>
     );

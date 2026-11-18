@@ -43,7 +43,7 @@ describe('components/SettingItemMin', () => {
         );
 
         // Click the remove button to set removeSrc state
-        const removeButton = screen.getByTestId('removeSettingPicture');
+        const removeButton = screen.getByTestId('settings.general.section.picture.remove--button');
         await userEvent.click(removeButton);
 
         expect(container.querySelector('.profile-img')).not.toBeInTheDocument();
@@ -57,11 +57,11 @@ describe('components/SettingItemMin', () => {
         );
 
         // First click remove to set removeSrc state
-        const removeButton = screen.getByTestId('removeSettingPicture');
+        const removeButton = screen.getByTestId('settings.general.section.picture.remove--button');
         await userEvent.click(removeButton);
 
         // Then click cancel
-        const cancelButton = screen.getByTestId('cancelSettingPicture');
+        const cancelButton = screen.getByTestId('settings.general.section.picture.cancel--button');
         await userEvent.click(cancelButton);
 
         expect(props.updateSection).toHaveBeenCalledTimes(1);
@@ -77,11 +77,11 @@ describe('components/SettingItemMin', () => {
         );
 
         // First click remove to set removeSrc state
-        const removeButton = screen.getByTestId('removeSettingPicture');
+        const removeButton = screen.getByTestId('settings.general.section.picture.remove--button');
         await userEvent.click(removeButton);
 
         // Then click save
-        const saveButton = screen.getByTestId('saveSettingPicture');
+        const saveButton = screen.getByTestId('settings.general.section.picture.save--button');
         await userEvent.click(saveButton);
 
         expect(props.onRemove).toHaveBeenCalledTimes(1);
@@ -94,11 +94,11 @@ describe('components/SettingItemMin', () => {
         );
 
         // First click remove/setDefault button to set setDefaultSrc state
-        const removeButton = screen.getByTestId('removeSettingPicture');
+        const removeButton = screen.getByTestId('settings.general.section.picture.remove--button');
         await userEvent.click(removeButton);
 
         // Then click save
-        const saveButton = screen.getByTestId('saveSettingPicture');
+        const saveButton = screen.getByTestId('settings.general.section.picture.save--button');
         await userEvent.click(saveButton);
 
         expect(props.onSetDefault).toHaveBeenCalledTimes(1);
@@ -110,7 +110,7 @@ describe('components/SettingItemMin', () => {
             <SettingPicture {...props}/>,
         );
 
-        const saveButton = screen.getByTestId('saveSettingPicture');
+        const saveButton = screen.getByTestId('settings.general.section.picture.save--button');
         await userEvent.click(saveButton);
 
         expect(props.onSubmit).toHaveBeenCalledTimes(1);
@@ -126,7 +126,7 @@ describe('components/SettingItemMin', () => {
         expect(container.querySelector('.profile-img')).toBeInTheDocument();
 
         // Click remove
-        const removeButton = screen.getByTestId('removeSettingPicture');
+        const removeButton = screen.getByTestId('settings.general.section.picture.remove--button');
         await userEvent.click(removeButton);
 
         // Image should be hidden (removeSrc is true)
@@ -140,14 +140,14 @@ describe('components/SettingItemMin', () => {
         );
 
         // First click remove to set removeSrc state
-        const removeButton = screen.getByTestId('removeSettingPicture');
+        const removeButton = screen.getByTestId('settings.general.section.picture.remove--button');
         await userEvent.click(removeButton);
 
         // Verify image is hidden
         expect(container.querySelector('.profile-img')).not.toBeInTheDocument();
 
         // Trigger file change
-        const fileInput = screen.getByTestId('uploadPicture');
+        const fileInput = screen.getByTestId('settings.general.section.picture.upload');
         await userEvent.upload(fileInput, mockFile);
 
         expect(props.onFileChange).toHaveBeenCalledTimes(1);

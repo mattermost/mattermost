@@ -179,6 +179,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                 ref={isSelected ? this.selectedItemRef : undefined}
                 className={'more-modal__row ' + (blocked ? 'more-modal__row--disabled' : 'clickable ') + rowSelected}
                 aria-disabled={blocked}
+                data-testid={`add_users_to_team_modal.users.results.user:${option.id}`}
                 onClick={blocked ? undefined : () => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >
@@ -196,6 +197,7 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                         <div
                             className='more-modal__error'
                             aria-live='polite'
+                            data-testid='add_users_to_team_modal.users.results.user.denied--text'
                         >
                             <FormattedMessage
                                 id='add_users_to_team.policy_denied'
@@ -316,9 +318,10 @@ export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body data-testid='add_users_to_team_modal'>
                     {addError}
                     <MultiSelect
+                        testId='add_users_to_team_modal.users'
                         key='addUsersToTeamKey'
                         options={options}
                         optionRenderer={this.renderOption}

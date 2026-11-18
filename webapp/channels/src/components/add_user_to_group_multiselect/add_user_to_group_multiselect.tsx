@@ -54,6 +54,9 @@ export type Props = {
     backButtonClick?: () => void;
     backButtonText?: string | MessageDescriptor;
 
+    // Passed to the MultiSelect; the rows are `<testId>.results.user:<id>`.
+    testId?: string;
+
     actions: {
         getProfiles: (page?: number, perPage?: number) => Promise<ActionResult>;
         getProfilesNotInGroup: (groupId: string, page?: number, perPage?: number) => Promise<ActionResult>;
@@ -187,6 +190,7 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
                 isSelected={isSelected}
                 onMouseMove={onMouseMove}
                 userStatuses={this.props.userStatuses}
+                testId={this.props.testId ? `${this.props.testId}.results` : undefined}
                 ref={isSelected ? this.selectedItemRef : undefined}
                 key={option.id}
             />
@@ -217,6 +221,7 @@ export class AddUserToGroupMultiSelect extends React.PureComponent<Props, State>
 
         return (
             <MultiSelect
+                testId={this.props.testId}
                 key={this.props.multilSelectKey}
                 options={users}
                 optionRenderer={this.renderOption}

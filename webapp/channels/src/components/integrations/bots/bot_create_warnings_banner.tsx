@@ -22,6 +22,7 @@ const BotCreateWarningsBanner = ({warnings, onDismiss}: Props) => {
     return (
         <AlertBanner
             id='botCreateWarnings'
+            testId='integrations.bot_create_warnings'
             mode='warning'
             title={
                 <FormattedMessage

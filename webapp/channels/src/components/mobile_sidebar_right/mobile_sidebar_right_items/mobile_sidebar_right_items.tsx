@@ -79,6 +79,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
             <Menu.ItemAction
                 id={item.id + '_pluginmenuitem'}
                 key={item.id + '_pluginmenuitem'}
+                slotTestId={`mobile_menu.plugin:${item.pluginId}--menuitem`}
                 onClick={() => {
                     if (item.action) {
                         item.action();
@@ -141,6 +142,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     {this.props.isCustomStatusEnabled && !isCustomStatusSet && (
                         <Menu.ItemAction
                             id='setCustomStatus'
+                            testId='mobile_menu.set_custom_status'
                             onClick={this.openCustomStatusModal}
                             icon={
                                 <i
@@ -162,6 +164,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                 <Menu.Group>
                     <Menu.ItemAction
                         id='recentMentions'
+                        testId='mobile_menu.recent_mentions'
                         onClick={this.onRecentMentionItemClick}
                         icon={
                             <i
@@ -173,6 +176,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     />
                     <Menu.ItemAction
                         id='flaggedPosts'
+                        testId='mobile_menu.saved_messages'
                         onClick={this.onShowFlaggedPostItemClick}
                         icon={
                             <i
@@ -186,6 +190,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                 <Menu.Group>
                     <Menu.ItemToggleModalRedux
                         id='profileSettings'
+                        testId='mobile_menu.profile_settings'
                         modalId={ModalIdentifiers.USER_SETTINGS}
                         dialogType={UserSettingsModal}
                         dialogProps={{isContentProductSettings: false}}
@@ -199,6 +204,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     />
                     <Menu.ItemToggleModalRedux
                         id='accountSettings'
+                        testId='mobile_menu.account_settings'
                         modalId={ModalIdentifiers.USER_SETTINGS}
                         dialogType={UserSettingsModal}
                         dialogProps={{isContentProductSettings: true}}
@@ -218,6 +224,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     >
                         <Menu.ItemToggleModalRedux
                             id='addGroupsToTeam'
+                            testId='mobile_menu.add_groups_to_team'
                             show={this.props.teamIsGroupConstrained && this.props.isLicensedForLDAPGroups}
                             modalId={ModalIdentifiers.ADD_GROUPS_TO_TEAM}
                             dialogType={AddGroupsToTeamModal}
@@ -237,6 +244,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                         >
                             <Menu.ItemToggleModalRedux
                                 id='invitePeople'
+                                testId='mobile_menu.invite_people'
                                 modalId={ModalIdentifiers.INVITATION}
                                 dialogType={InvitationModal}
                                 text={formatMessage({
@@ -264,6 +272,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     >
                         <Menu.ItemToggleModalRedux
                             id='teamSettings'
+                            testId='mobile_menu.team_settings'
                             modalId={ModalIdentifiers.TEAM_SETTINGS}
                             dialogType={TeamSettingsModal}
                             dialogProps={{
@@ -284,6 +293,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     >
                         <Menu.ItemToggleModalRedux
                             id='manageGroups'
+                            testId='mobile_menu.manage_groups'
                             show={this.props.teamIsGroupConstrained && this.props.isLicensedForLDAPGroups}
                             modalId={ModalIdentifiers.MANAGE_TEAM_GROUPS}
                             dialogProps={{
@@ -305,6 +315,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     >
                         <Menu.ItemToggleModalRedux
                             id='manageMembers'
+                            testId='mobile_menu.manage_members'
                             modalId={ModalIdentifiers.TEAM_MEMBERS}
                             dialogType={TeamMembersModal}
                             text={formatMessage({id: 'navbar_dropdown.manageMembers', defaultMessage: 'Manage Members'})}
@@ -323,6 +334,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     >
                         <Menu.ItemToggleModalRedux
                             id='viewMembers'
+                            testId='mobile_menu.view_members'
                             modalId={ModalIdentifiers.TEAM_MEMBERS}
                             dialogType={TeamMembersModal}
                             text={formatMessage({id: 'navbar_dropdown.viewMembers', defaultMessage: 'View Members'})}
@@ -339,6 +351,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     <SystemPermissionGate permissions={[Permissions.CREATE_TEAM]}>
                         <Menu.ItemLink
                             id='createTeam'
+                            testId='mobile_menu.create_team'
                             to='/create_team'
                             text={formatMessage({id: 'navbar_dropdown.create', defaultMessage: 'Create a Team'})}
                             icon={
@@ -351,6 +364,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     </SystemPermissionGate>
                     <Menu.ItemLink
                         id='joinTeam'
+                        testId='mobile_menu.join_team'
                         show={!this.props.experimentalPrimaryTeam && this.props.moreTeamsToJoin}
                         to='/select_team'
                         text={formatMessage({id: 'navbar_dropdown.join', defaultMessage: 'Join Another Team'})}
@@ -363,6 +377,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     />
                     <Menu.ItemToggleModalRedux
                         id='leaveTeam'
+                        testId='mobile_menu.leave_team'
                         show={!this.props.teamIsGroupConstrained && this.props.experimentalPrimaryTeam !== this.props.teamName}
                         modalId={ModalIdentifiers.LEAVE_TEAM}
                         dialogType={LeaveTeamModal}
@@ -381,6 +396,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                 <Menu.Group>
                     <Menu.ItemExternalLink
                         id='helpLink'
+                        testId='mobile_menu.help'
                         show={Boolean(this.props.helpLink)}
                         url={this.props.helpLink}
                         text={formatMessage({id: 'navbar_dropdown.help', defaultMessage: 'Help'})}
@@ -393,6 +409,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     />
                     <Menu.ItemExternalLink
                         id='reportLink'
+                        testId='mobile_menu.report_problem'
                         show={Boolean(this.props.reportAProblemLink)}
                         url={this.props.reportAProblemLink}
                         text={formatMessage({id: 'navbar_dropdown.report', defaultMessage: 'Report a Problem'})}
@@ -405,6 +422,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     />
                     <Menu.ItemExternalLink
                         id='nativeAppLink'
+                        testId='mobile_menu.native_app'
                         show={Boolean(this.props.appDownloadLink) && !isDesktopApp()}
                         url={safeAppDownloadLink}
                         text={formatMessage({id: 'navbar_dropdown.nativeApps', defaultMessage: 'Download Apps'})}
@@ -417,6 +435,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                     />
                     <Menu.ItemToggleModalRedux
                         id='about'
+                        testId='mobile_menu.about'
                         modalId={ModalIdentifiers.ABOUT}
                         dialogType={AboutBuildModal}
                         text={formatMessage({id: 'navbar_dropdown.about', defaultMessage: 'About {appTitle}'}, {appTitle: this.props.siteName || 'Mattermost'})}
@@ -431,6 +450,7 @@ export class MobileSidebarRightItems extends React.PureComponent<Props> {
                 <Menu.Group>
                     <Menu.ItemAction
                         id='logout'
+                        testId='mobile_menu.log_out'
                         onClick={this.onLogoutItemClick}
                         text={formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
                         icon={

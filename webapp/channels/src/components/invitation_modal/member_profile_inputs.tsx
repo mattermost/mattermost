@@ -43,12 +43,13 @@ function getUsernameErrorMessage(username: string, formatMessage: ReturnType<typ
 }
 
 type RowProps = {
+    index: number;
     email: string;
     profile: MemberInviteProfile;
     onProfileChange: (profile: MemberInviteProfile) => void;
 };
 
-function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
+function MemberProfileInputRow({index, email, profile, onProfileChange}: RowProps) {
     const {formatMessage} = useIntl();
     const [usernameError, setUsernameError] = useState<string | undefined>();
     const emailKey = email.toLowerCase();
@@ -72,12 +73,13 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
     return (
         <div
             className='MemberProfileInputs__row'
-            data-testid={`MemberProfileInputs__row-${emailKey}`}
+            data-testid={`invitation_modal.invite.member_profiles.member:${index}`}
         >
             <div className='MemberProfileInputs__email'>{email}</div>
             <div className='MemberProfileInputs__fields'>
                 <Input
                     name={`preset-first-name-${emailKey}`}
+                    testId='invitation_modal.invite.member_profiles.member.first_name'
                     type='text'
                     value={profile.first_name}
                     onChange={updateField('first_name')}
@@ -87,6 +89,7 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                 />
                 <Input
                     name={`preset-last-name-${emailKey}`}
+                    testId='invitation_modal.invite.member_profiles.member.last_name'
                     type='text'
                     value={profile.last_name}
                     onChange={updateField('last_name')}
@@ -96,6 +99,7 @@ function MemberProfileInputRow({email, profile, onProfileChange}: RowProps) {
                 />
                 <Input
                     name={`preset-username-${emailKey}`}
+                    testId='invitation_modal.invite.member_profiles.member.username'
                     type='text'
                     value={profile.username}
                     onChange={updateField('username')}
@@ -130,7 +134,7 @@ export default function MemberProfileInputs(props: Props) {
     return (
         <div
             className='MemberProfileInputs'
-            data-testid='MemberProfileInputs'
+            data-testid='invitation_modal.invite.member_profiles'
         >
             <div className='InviteView__sectionTitle'>
                 <FormattedMessage
@@ -144,11 +148,12 @@ export default function MemberProfileInputs(props: Props) {
                     defaultMessage='These fields are locked for members once they join, so double-check them before sending. Leave a row empty to let that person fill in their own details.'
                 />
             </div>
-            {emails.map((email) => {
+            {emails.map((email, index) => {
                 const profile = getProfileForEmail(props.profiles, email) ?? emptyMemberInviteProfile(email);
                 return (
                     <MemberProfileInputRow
                         key={email.toLowerCase()}
+                        index={index}
                         email={email}
                         profile={profile}
                         onProfileChange={props.onProfileChange}

@@ -16,28 +16,33 @@ describe('components/QuickInput', () => {
         ['when value empty', {value: '', clearable: true, onClear: () => {}}],
     ])('should not render clear button', (_description, props) => {
         renderWithContext(
-            <QuickInput {...props}/>,
+            <QuickInput
+                {...props}
+                clearTestId='quick.clear'
+            />,
         );
 
-        expect(screen.queryByTestId('input-clear')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('quick.clear--button')).not.toBeInTheDocument();
     });
 
     describe('should render clear button', () => {
         test('with default tooltip text', () => {
             renderWithContext(
                 <QuickInput
+                    clearTestId='quick.clear'
                     value='mock'
                     clearable={true}
                     onClear={() => {}}
                 />,
             );
 
-            expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
+            expect(screen.queryByTestId('quick.clear--button')).toBeInTheDocument();
         });
 
         test('with customized tooltip text', () => {
             renderWithContext(
                 <QuickInput
+                    clearTestId='quick.clear'
                     value='mock'
                     clearable={true}
                     clearableTooltipText='Custom'
@@ -45,12 +50,13 @@ describe('components/QuickInput', () => {
                 />,
             );
 
-            expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
+            expect(screen.queryByTestId('quick.clear--button')).toBeInTheDocument();
         });
 
         test('with customized tooltip component', () => {
             renderWithContext(
                 <QuickInput
+                    clearTestId='quick.clear'
                     value='mock'
                     clearable={true}
                     clearableTooltipText={
@@ -60,7 +66,7 @@ describe('components/QuickInput', () => {
                 />,
             );
 
-            expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
+            expect(screen.queryByTestId('quick.clear--button')).toBeInTheDocument();
         });
     });
 
@@ -74,6 +80,7 @@ describe('components/QuickInput', () => {
         }
         const {rerender} = renderWithContext(
             <QuickInput
+                clearTestId='quick.clear'
                 value='mock'
                 clearable={true}
                 onClear={() => {}}
@@ -81,12 +88,13 @@ describe('components/QuickInput', () => {
             />,
         );
 
-        expect(screen.queryByTestId('input-clear')).toBeInTheDocument();
+        expect(screen.queryByTestId('quick.clear--button')).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('input-clear'));
+        await userEvent.click(screen.getByTestId('quick.clear--button'));
 
         rerender(
             <QuickInput
+                clearTestId='quick.clear'
                 value=''
                 clearable={true}
                 onClear={() => {}}
@@ -94,7 +102,7 @@ describe('components/QuickInput', () => {
             />,
         );
 
-        expect(screen.queryByTestId('input-clear')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('quick.clear--button')).not.toBeInTheDocument();
         expect(focusFn).toHaveBeenCalled();
     });
 });

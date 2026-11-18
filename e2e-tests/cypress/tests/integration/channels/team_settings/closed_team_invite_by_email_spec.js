@@ -65,7 +65,7 @@ describe('Team Settings', () => {
 
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
                 // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
-                cy.findByTestId('allowedDomainsCheckbox').should('not.be.checked').click();
+                cy.findByTestId('team_settings_modal.access.allowed_domains--checkbox').should('not.be.checked').click();
             });
 
             // * Verify that the '#allowedDomains' input field is empty
@@ -87,7 +87,7 @@ describe('Team Settings', () => {
         }
 
         cy.findByRole('combobox', {name: 'Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});
-        cy.findByTestId('inviteButton').click();
+        cy.findByTestId('invitation_modal.invite.send--button').click();
 
         // # Wait for a while to ensure that email notification is sent and logout from sysadmin account
         cy.wait(TIMEOUTS.FIVE_SEC);

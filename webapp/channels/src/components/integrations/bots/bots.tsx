@@ -319,6 +319,7 @@ export default class Bots extends React.PureComponent<Props, State> {
     public render(): JSX.Element {
         return (
             <BackstageList
+                testId='integrations.bots'
                 header={
                     <FormattedMessage
                         id='bots.manage.header'

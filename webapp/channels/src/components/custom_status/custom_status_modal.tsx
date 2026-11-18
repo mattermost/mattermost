@@ -272,12 +272,14 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                 {formatMessage({id: 'custom_status.suggestions.recent_title', defaultMessage: 'RECENT'})}
             </div>
             {
-                recentCustomStatuses.map((status: UserCustomStatus) => (
+                recentCustomStatuses.map((status: UserCustomStatus, index: number) => (
                     <CustomStatusSuggestion
                         key={status.text}
                         handleSuggestionClick={handleSuggestionClick}
                         handleClear={handleRecentCustomStatusClear}
                         status={status}
+                        testId='custom_status_modal.recent'
+                        testKey={index}
                     />
                 ))
             }
@@ -298,6 +300,8 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                     key={index}
                     handleSuggestionClick={handleSuggestionClick}
                     status={status}
+                    testId='custom_status_modal.suggestion'
+                    testKey={index}
                 />
             ));
 
@@ -363,6 +367,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
             }
             isConfirmDisabled={disableSetStatus}
             id='custom_status_modal'
+            testId='custom_status_modal'
             className={'StatusModal'}
             handleConfirm={handleSetStatus}
             handleEnterKeyPress={handleEnterKeyPressed}
@@ -382,6 +387,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                             className={classNames('emoji-picker__container', 'StatusModal__emoji-button', {
                                 'StatusModal__emoji-button--active': showEmojiPicker,
                             })}
+                            data-testid='custom_status_modal.emoji--button'
                             {...getReferenceProps()}
                         >
                             {customStatusEmoji}
@@ -399,6 +405,8 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                         onChange={handleTextChange}
                         placeholder={formatMessage({id: 'custom_status.set_status', defaultMessage: 'Set a status'})}
                         autoFocus={true}
+                        data-testid='custom_status_modal.text--textbox'
+                        clearTestId='custom_status_modal.clear'
                     />
                 </div>
                 {isStatusSet && (
@@ -411,6 +419,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                 {showSuggestions && suggestion}
                 {showDateAndTimeField && (
                     <DateTimeInput
+                        testIdScope='custom_status_modal.expiry.custom'
                         time={customExpiryTime}
                         handleChange={(date) => date && setCustomExpiryTime(date)}
                         timezone={timezone}

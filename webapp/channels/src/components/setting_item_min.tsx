@@ -26,6 +26,10 @@ interface Props {
      */
     section: string;
 
+    /** The section's scope (a tab's `settings.<tab>.section`, or `settings.plugin_panel.section`) and its key: the root is `<testId>:<testKey>--group`. */
+    testId?: string;
+    testKey?: string | number;
+
     /**
      * Function to update section
      */
@@ -66,6 +70,17 @@ export default class SettingItemMin extends React.PureComponent<Props> {
     render() {
         let editButtonComponent: ReactNode;
 
+        let rootTestId;
+        let editTestId;
+        let titleTestId;
+        let describeTestId;
+        if (this.props.testId) {
+            rootTestId = `${this.props.testId}:${this.props.testKey}--group`;
+            editTestId = `${this.props.testId}.edit--button`;
+            titleTestId = `${this.props.testId}.title--text`;
+            describeTestId = `${this.props.testId}.describe--text`;
+        }
+
         if (this.props.isDisabled) {
             if (this.props.collapsedEditButtonWhenDisabled) {
                 editButtonComponent = this.props.collapsedEditButtonWhenDisabled;
@@ -78,6 +93,7 @@ export default class SettingItemMin extends React.PureComponent<Props> {
                     ref={this.getEdit}
                     id={this.props.section + 'Edit'}
                     className='color--link style--none section-min__edit'
+                    data-testid={editTestId}
                     onClick={this.handleClick}
                     aria-labelledby={this.props.section + 'Title ' + this.props.section + 'Edit'}
                     aria-expanded={false}
@@ -94,7 +110,8 @@ export default class SettingItemMin extends React.PureComponent<Props> {
         return (
             <div
                 className={classNames('section-min', {isDisabled: this.props.isDisabled})}
-                data-testid='section-min'
+                role='group'
+                data-testid={rootTestId}
                 onClick={this.handleClick}
             >
                 <div
@@ -102,6 +119,7 @@ export default class SettingItemMin extends React.PureComponent<Props> {
                 >
                     <h4
                         id={this.props.section + 'Title'}
+                        data-testid={titleTestId}
                         className={classNames('section-min__title', {isDisabled: this.props.isDisabled})}
                     >
                         {this.props.title}
@@ -110,6 +128,7 @@ export default class SettingItemMin extends React.PureComponent<Props> {
                 </div>
                 <div
                     id={this.props.section + 'Desc'}
+                    data-testid={describeTestId}
                     className={classNames('section-min__describe', {isDisabled: this.props.isDisabled})}
                 >
                     {this.props.describe}

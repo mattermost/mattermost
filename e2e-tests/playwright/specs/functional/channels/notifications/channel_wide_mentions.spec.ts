@@ -1,12 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, type App, expect, settle, test} from '@mattermost/playwright-lib';
 
 // The notify-all confirmation modal appears once a channel has more than this many members.
 const NOTIFY_ALL_THRESHOLD = 5;
 
-const NOTIFY_ALL_TITLE = 'Confirm sending notifications to entire channel';
+/** Waits for a post in the center channel whose text contains `text`, and returns it with its id. */
+async function postContaining(app: App, text: string) {
+    const {postList} = app.center;
+    const id = await postList.postList.keyWith({text});
+    const post = postList.post({id});
+    await expect(post.message.container).toContainText(text);
+    await expect(post.message.container).toBeVisible();
+    return {id, post};
+}
+
+/** The Markdown rendered in a post (its mention highlight). */
+function mentionHighlightIn(post: ReturnType<App['center']['postList']['post']>) {
+    return post.markdown.mentionHighlightText;
+}
+
+/** Sends a message that asks for the notify-all confirmation, and confirms it. */
+async function sendConfirmingNotifyAll(app: App, message: string) {
+    await app.center.postCreate.message.container.fill(message);
+    await app.center.postCreate.sendButton.click();
+
+    // * Verify the notify-all confirmation modal appears (the mention was recognized despite its casing)
+    await expect(app.notifyConfirmModal).toBeVisible();
+    await expect(app.notifyConfirmModal).toContainText('Confirm sending notifications to entire channel');
+    await expect(app.notifyConfirmModal.confirmButton).toBeVisible();
+
+    // # Confirm sending the notification
+    await settle(app.notifyConfirmModal.confirmButton, {wait: Api.CreatePost}).click();
+}
 
 /**
  * @objective Verify that channel-wide mentions with uppercase letters trigger notifications and are properly highlighted.
@@ -20,56 +47,55 @@ test(
     {tag: '@notifications'},
     async ({pw}) => {
         // # Initialize setup and get the required users and team
-        const {team, adminUser, user} = await pw.initSetup();
-
+        const {team, adminUser, user, offTopic, townSquare} = await pw.initSetup();
         // # Log in as the admin in one browser session and navigate to the "town-square" channel
-        const {page: adminPage, channelsPage: adminChannelsPage} = await pw.testBrowser.login(adminUser);
-        await adminChannelsPage.goto(team.name, 'town-square');
-        await adminChannelsPage.toBeVisible();
+        const {app: adminApp, page: adminPage} = await pw.testBrowser.login(adminUser);
+        await adminApp.channelsPage.goto({team, channel: townSquare});
+        await expect(adminApp.center.postCreate.message.container).toBeVisible();
 
         // # Stub the Notification in the admin's browser to capture notifications
         await pw.stubNotification(adminPage, 'granted');
 
         // # Log in as the regular user in a separate browser and navigate to the "off-topic" channel
-        const {channelsPage: otherChannelsPage} = await pw.testBrowser.login(user);
-        await otherChannelsPage.goto(team.name, 'off-topic');
-        await otherChannelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: offTopic});
 
         // # Post a channel-wide mention message "@ALL" in uppercase from the user's browser
         const message = `@ALL good morning, ${team.name}!`;
-        await otherChannelsPage.postMessage(message);
+        await app.center.postCreate.message.container.fill(message);
+        await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
 
         // * Verify notification is received in the admin's browser with correct content
         const notifications = await pw.waitForNotification(adminPage);
         expect(notifications.length).toBe(1);
 
         const notification = notifications[0];
-        expect(notification.title).toBe('Off-Topic');
+        expect(notification.title).toBe(offTopic.display_name);
         expect(notification.body).toBe(`@${user.username}: ${message}`);
 
         // The Notifications API tag must not leak the message body; the app uses the
         // opaque post ID as the tag so notifications coalesce per conversation.
-        const otherLastPost = await otherChannelsPage.getLastPost();
-        expect(notification.tag).toBe(await otherLastPost.getId());
+        const {id: userPostId, post: userPost} = await postContaining(app, message);
+        expect(notification.tag).toBe(userPostId);
         expect(notification.tag).not.toContain(message);
 
         expect(notification.icon).toContain('.png');
         expect(notification.requireInteraction).toBe(false);
         expect(notification.silent).toBe(false);
 
-        // * Verify the last post as viewed by the regular user in the "off-topic" channel contains the message and is highlighted
-        await otherLastPost.toContainText(message);
-        await expect(otherLastPost.container.locator('.mention--highlight')).toBeVisible();
-        await expect(otherLastPost.container.locator('.mention--highlight').getByText('@ALL')).toBeVisible();
+        // * Verify the last post as viewed by the regular user contains the message with @ALL highlighted
+        await expect(mentionHighlightIn(userPost)).toHaveText('@ALL');
+        await expect(userPost.message.container).toContainText(message);
+        await expect(mentionHighlightIn(userPost)).toBeVisible();
 
         // # Navigate admin to the "off-topic" channel
-        await adminChannelsPage.goto(team.name, 'off-topic');
+        await adminApp.channelsPage.goto({team, channel: offTopic});
 
         // * Verify the message is posted and highlighted correctly for the admin user
-        const adminLastPost = await adminChannelsPage.getLastPost();
-        await adminLastPost.toContainText(message);
-        await expect(adminLastPost.container.locator('.mention--highlight')).toBeVisible();
-        await expect(adminLastPost.container.locator('.mention--highlight').getByText('@ALL')).toBeVisible();
+        const {post: adminPost} = await postContaining(adminApp, message);
+        await expect(mentionHighlightIn(adminPost)).toHaveText('@ALL');
+        await expect(adminPost.message.container).toContainText(message);
+        await expect(mentionHighlightIn(adminPost)).toBeVisible();
     },
 );
 
@@ -81,7 +107,7 @@ test(
     'MM-T484 recognizes a mixed-case @channEL channel-wide mention and preserves its casing',
     {tag: '@notifications'},
     async ({pw}) => {
-        const {adminClient, team, user} = await pw.initSetup();
+        const {adminClient, team, user, townSquare} = await pw.initSetup();
 
         // # Add enough members so the channel exceeds the notify-all threshold
         for (let i = 0; i < NOTIFY_ALL_THRESHOLD; i++) {
@@ -89,25 +115,15 @@ test(
             await adminClient.addToTeam(team.id, extraUser.id);
         }
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        // # Type a mixed-case channel-wide mention and send it
+        // # Type a mixed-case channel-wide mention, send it and confirm the notify-all prompt
         const message = `@channEL mixed case mention ${pw.random.id()}`;
-        await channelsPage.centerView.postCreate.writeMessage(message);
-        await channelsPage.centerView.postCreate.sendMessage();
-
-        // * Verify the notify-all confirmation modal appears (mention was recognized despite casing)
-        const confirmModal = channelsPage.getConfirmModal(NOTIFY_ALL_TITLE);
-        await confirmModal.toBeVisible();
-
-        // # Confirm sending the notification
-        await confirmModal.confirm();
+        await sendConfirmingNotifyAll(app, message);
 
         // * Verify the posted message preserves the mixed-case mention
-        const lastPost = await channelsPage.getLastPost();
-        await lastPost.toContainText(message);
+        await postContaining(app, message);
     },
 );
 
@@ -119,47 +135,42 @@ test(
     'MM-T485 recognizes an uppercase @HERE channel-wide mention and preserves its casing',
     {tag: '@notifications'},
     async ({pw}) => {
-        const {adminClient, team, user} = await pw.initSetup();
-
+        const {adminClient, team, user, townSquare, offTopic} = await pw.initSetup();
         // # Add enough members so the channel exceeds the notify-all threshold
         for (let i = 0; i < NOTIFY_ALL_THRESHOLD; i++) {
             const extraUser = await pw.createNewUserProfile(adminClient, {prefix: 'channel-wide'});
             await adminClient.addToTeam(team.id, extraUser.id);
         }
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: offTopic});
 
         // * Verify the "Channel-wide mentions" keyword is enabled by default in notification settings
-        const settingsModal = await channelsPage.openSettings();
-        const notificationSettings = await settingsModal.openNotificationsTab();
-        await notificationSettings.keywordsTriggerNotificationsEditButton.click();
-        await expect(notificationSettings.channelWideMentionsCheckbox).toBeChecked();
-        await settingsModal.close();
+        await app.globalHeader.settingsButton.clickTo(app.userSettingsModal);
+        await app.userSettingsModal.tabs.tab('notifications').select();
+        await expect(app.userSettingsModal.tabs.tab('notifications')).toBeSelected();
+        const keywords = app.settings.notifications.section('keywordsAndMentions');
+        await keywords.editButton.click();
+        await expect(keywords.keyword('username')).toBeVisible();
+        await expect(keywords.keyword('channel_wide')).toBeChecked();
+        await app.userSettingsModal.closeButton.click();
+        await expect(app.userSettingsModal).not.toBeVisible();
+        await expect(app.userSettingsModal).not.toBeVisible();
 
-        // # Type an uppercase channel-wide mention and send it
+        // # Type an uppercase channel-wide mention, send it and confirm the notify-all prompt
         const message = `@HERE channel-wide mention ${pw.random.id()}`;
-        await channelsPage.centerView.postCreate.writeMessage(message);
-        await channelsPage.centerView.postCreate.sendMessage();
-
-        // * Verify the notify-all confirmation modal appears (mention was recognized despite uppercase)
-        const confirmModal = channelsPage.getConfirmModal(NOTIFY_ALL_TITLE);
-        await confirmModal.toBeVisible();
-
-        // # Confirm sending the notification
-        await confirmModal.confirm();
+        await sendConfirmingNotifyAll(app, message);
 
         // * Verify the posted message preserves the uppercase mention
-        const lastPost = await channelsPage.getLastPost();
-        await lastPost.toContainText(message);
+        await postContaining(app, message);
 
         // # Switch to another channel and back
-        await channelsPage.sidebarLeft.goToItem('town-square');
-        await channelsPage.sidebarLeft.goToItem('off-topic');
+        await app.lhs.channelList.channel(townSquare).container.click();
+        await expect(app.channelHeader.openMenuButton).toContainText(townSquare.display_name);
+        await app.lhs.channelList.channel(offTopic).container.click();
+        await expect(app.channelHeader.openMenuButton).toContainText(offTopic.display_name);
 
         // * Verify the uppercase mention is still shown after returning to the channel
-        const postAfterSwitch = await channelsPage.getLastPost();
-        await postAfterSwitch.toContainText(message);
+        await postContaining(app, message);
     },
 );

@@ -97,7 +97,7 @@ describe('Guest Account - Verify Guest Access UI', () => {
         cy.get('#confirmModalButton').should('be.visible').click().wait(TIMEOUTS.TWO_SEC);
 
         // # Return to the chat-facing application via BackstageNavbar
-        cy.findByTestId('backstage-navbar-back').should('be.visible').click();
+        cy.findByTestId('backstage.navbar.back--link').should('be.visible').click();
 
         // # Open team menu and click 'Invite People'
         cy.uiOpenTeamMenu('Invite people');

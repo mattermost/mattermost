@@ -537,6 +537,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
 
     const pluginOptions = useMemo<PluginOptionButtonProps[]>(() => availableOptions.map((o) => ({
         id: o.id,
+        pluginId: o.pluginId,
         label: o.label,
         description: o.description,
         icon: o.icon,
@@ -585,6 +586,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
     return (
         <GenericModal
             id='new-channel-modal'
+            testId='new_channel_modal'
             className='new-channel-modal'
             modalHeaderText={modalHeaderText ?? formatMessage({id: 'channel_modal.modalTitle', defaultMessage: 'Create a new channel'})}
             confirmButtonText={confirmButtonText}
@@ -603,6 +605,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                 <ChannelNameFormField
                     value={displayName}
                     name='new-channel-modal-name'
+                    testIdScope='new_channel_modal'
                     label={nameLabel}
                     placeholder={namePlaceholder ?? formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
                     onDisplayNameChange={setDisplayName}
@@ -626,18 +629,20 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                     pluginOptions={pluginOptions}
                     hideBuiltInOptions={Boolean(channelTypePluginId)}
                     onChange={handleOnTypeChange}
+                    testId='new_channel_modal.type'
+                    pluginTypesSlot={true}
                 />
                 {showDiscoverableOption && (
                     <div
                         className='new-channel-modal-discoverable'
-                        data-testid='new-channel-discoverable-section'
+                        data-testid='new_channel_modal.discoverable'
                     >
                         <Switch
                             id='newChannelDiscoverableToggle'
                             size='medium'
                             checked={discoverable}
                             onChange={() => setDiscoverable((v) => !v)}
-                            data-testid='newChannelDiscoverableToggle'
+                            data-testid='new_channel_modal.discoverable.enabled--switch'
                             tabIndex={0}
                             semiBold={true}
                             secondaryLabel={discoverableDescription}
@@ -650,6 +655,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                     <div className='new-channel-modal-managed-category'>
                         <CategorySelector
                             value={defaultCategoryName}
+                            testIdScope='new_channel_modal.default_category'
                             onChange={setDefaultCategoryName}
                             getOptions={getSidebarCategoryNamesForTeam.current}
                             menuPortalTargetId='new-channel-modal'
@@ -661,6 +667,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                     <div className='new-channel-modal-managed-category'>
                         <CategorySelector
                             value={managedCategoryName}
+                            testIdScope='new_channel_modal.managed_category'
                             onChange={setManagedCategoryName}
                             getOptions={getSidebarCategoryNamesForTeam.current}
                             label={formatMessage({id: 'managed_category.label', defaultMessage: 'Managed category (optional)'})}
@@ -721,7 +728,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                                 size='medium'
                                 checked={classificationEnabled}
                                 onChange={() => setClassificationEnabled(!classificationEnabled)}
-                                data-testid='channelClassificationToggle-button'
+                                data-testid='new_channel_modal.classification--switch'
                                 tabIndex={0}
                                 aria-label={formatMessage({id: 'channel_modal.classification.toggle_label', defaultMessage: 'Channel classification'})}
                             />
@@ -745,7 +752,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                                         <DropdownInput
                                             className='new-channel-modal-classification__level-dropdown'
                                             name='channelClassificationLevel'
-                                            testId='channelClassificationLevel'
+                                            testId='new_channel_modal.classification_level'
                                             options={classificationOptions}
                                             value={selectedClassificationOption}
                                             onChange={handleClassificationLevelChange}
@@ -768,6 +775,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                                         <div className='new-channel-modal-classification__field-input'>
                                             <AdvancedTextbox
                                                 id='channel_classification_banner_text'
+                                                testId='new_channel_modal.classification_banner_text'
                                                 value={bannerText}
                                                 channelId=''
                                                 onKeyPress={() => {}}
