@@ -37,6 +37,9 @@ interface FormattingIconProps {
     className?: string;
     disabled?: boolean;
     isActive?: boolean;
+
+    testId?: string;
+    testKey?: string;
 }
 
 const MAP_MARKDOWN_MODE_TO_ICON: Record<FormattingIconProps['mode'], React.FC<IconProps>> = {
@@ -76,7 +79,7 @@ const MAP_MARKDOWN_MODE_TO_KEYBOARD_SHORTCUTS: Record<FormattingIconProps['mode'
 };
 
 const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props, ref) => {
-    const {mode, onClick, isActive, className, ...otherProps} = props;
+    const {mode, onClick, isActive, className, testId, testKey, ...otherProps} = props;
     const handleMouseDown = React.useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.preventDefault();
     }, []);
@@ -110,6 +113,7 @@ const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props
                 toggled={isActive === true}
                 className={classNames(className)}
                 {...otherProps}
+                data-testid={testId && testKey ? `${testId}:${testKey}--togglebutton` : undefined}
             />
         </WithTooltip>
     );

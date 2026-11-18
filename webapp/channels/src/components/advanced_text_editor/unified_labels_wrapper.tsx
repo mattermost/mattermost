@@ -14,6 +14,8 @@ type Props = {
     burnOnReadLabels?: JSX.Element;
     onRemoveAll?: () => void;
     canRemove: boolean;
+
+    testIdScope?: string;
 };
 
 const UnifiedLabelsWrapper = ({
@@ -21,6 +23,7 @@ const UnifiedLabelsWrapper = ({
     burnOnReadLabels,
     onRemoveAll,
     canRemove,
+    testIdScope,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -52,6 +55,7 @@ const UnifiedLabelsWrapper = ({
                         className='UnifiedLabelsWrapper__close'
                         onClick={handleClick}
                         aria-label={removeAllLabel}
+                        data-testid={testIdScope ? `${testIdScope}.remove_all_labels--button` : undefined}
                     >
                         <CloseIcon size={14}/>
                     </button>

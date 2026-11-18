@@ -44,11 +44,11 @@ function verifyLineBreaksRemainIntact(display) {
 
     // # Send the message
     cy.intercept('POST', '**/api/v4/posts').as('createPost');
-    cy.findByTestId('SendMessageButton').should('be.enabled').click();
+    cy.findByTestId('center.post_create.send--button').should('be.enabled').click();
     cy.wait('@createPost').its('response.statusCode').should('eq', 201);
 
     // # Get last postId
-    cy.contains('[data-testid="postView"]', firstLine).should('be.visible').invoke('attr', 'id').then((rawId) => {
+    cy.contains('[data-testid^="center.post_list.post:"][id^="post_"]', firstLine).should('be.visible').invoke('attr', 'id').then((rawId) => {
         const postId = (rawId || '').replace(/^post_/, '');
         const postMessageTextId = `#postMessageText_${postId}`;
 
@@ -67,7 +67,7 @@ function verifyLineBreaksRemainIntact(display) {
         cy.get('#edit_textbox').should('contain.value', editMessage);
 
         // # finish editing
-        cy.get('[data-testid="post-edit-container"] button.save').should('be.visible').click();
+        cy.get('[data-testid="post_edit"] button.save').should('be.visible').click();
 
         // * Verify posted message includes newline, edit message and "Edited" indicator
         cy.get(postMessageTextId).should('have.text', `${firstLine}\n${secondLine}${editMessage} Edited`);

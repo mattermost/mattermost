@@ -243,7 +243,7 @@ describe('highlightSearchTerms', () => {
 
         const output = highlightSearchTerms(text, tokens, searchPatterns);
         expect(output).toBe('$MM_SEARCHTERM1$');
-        expect(tokens.get('$MM_SEARCHTERM1$')!.value).toBe('<span class="search-highlight" data-testid="search-highlight">$MM_HASHTAG0$</span>');
+        expect(tokens.get('$MM_SEARCHTERM1$')!.value).toBe('<span class="search-highlight" data-testid="markdown.search_highlight--text">$MM_HASHTAG0$</span>');
     });
 });
 
@@ -263,7 +263,7 @@ describe('autolink channel mentions', () => {
 
         const output = autolinkChannelMentions(text, tokens, channelNamesMap);
         expect(output).toBe(`${leadingText}$MM_CHANNELMENTION0$${trailingText}`);
-        expect(tokens.get('$MM_CHANNELMENTION0$').value).toBe('<a class="mention-link" href="/ad-1/channels/test-channel" data-channel-mention-team="ad-1" data-channel-mention="test-channel">~Test Channel</a>');
+        expect(tokens.get('$MM_CHANNELMENTION0$').value).toBe('<a data-testid="markdown.channel_mention--link" class="mention-link" href="/ad-1/channels/test-channel" data-channel-mention-team="ad-1" data-channel-mention="test-channel">~Test Channel</a>');
     });
 });
 
@@ -280,7 +280,7 @@ describe('handleUnicodeEmoji', () => {
         {
             description: 'should not replace unsupported emojis with an image',
             text: '😮‍💨', // Note, this test will fail as soon as this emoji gets a corresponding image
-            output: '<span class="emoticon emoticon--unicode" data-testid="channel-banner-unicode-emoji">😮‍💨</span>',
+            output: '<span class="emoticon emoticon--unicode" data-testid="markdown.unicode_emoji--text">😮‍💨</span>',
         },
         {
             description: 'should correctly match gendered emojis',
@@ -318,7 +318,7 @@ describe('handleUnicodeEmoji', () => {
 
     test('without emojiMap, should work as unsupported emoji', () => {
         const output = handleUnicodeEmoji('👍', undefined as unknown as EmojiMap, UNICODE_EMOJI_REGEX);
-        expect(output).toBe('<span class="emoticon emoticon--unicode" data-testid="channel-banner-unicode-emoji">👍</span>');
+        expect(output).toBe('<span class="emoticon emoticon--unicode" data-testid="markdown.unicode_emoji--text">👍</span>');
     });
 });
 
@@ -328,21 +328,21 @@ describe('linkOnlyMarkdown', () => {
         const text = 'Do you like https://www.mattermost.com?';
         const output = formatText(text, options, emptyEmojiMap);
         expect(output).toBe(
-            'Do you like <a class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
+            'Do you like <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
             'https://www.mattermost.com</a>?');
     });
     test('link with a title', () => {
         const text = 'Do you like [Mattermost](https://www.mattermost.com)?';
         const output = formatText(text, options, emptyEmojiMap);
         expect(output).toBe(
-            'Do you like <a class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
+            'Do you like <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
             'Mattermost</a>?');
     });
     test('link with header signs to skip', () => {
         const text = '#### Do you like [Mattermost](https://www.mattermost.com)?';
         const output = formatText(text, options, emptyEmojiMap);
         expect(output).toBe(
-            'Do you like <a class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
+            'Do you like <a data-testid="markdown.plain_link--link" class="theme markdown__link" href="https://www.mattermost.com" target="_blank">' +
             'Mattermost</a>?');
     });
 });
@@ -379,11 +379,11 @@ describe('highlightWithoutNotificationKeywords', () => {
         const expectedOutput = 'This is a $MM_HIGHLIGHTKEYWORD0$ with some $MM_HIGHLIGHTKEYWORD1$';
         const expectedTokens = new Map([
             ['$MM_HIGHLIGHTKEYWORD0$', {
-                value: '<span class="non-notification-highlight">test message</span>',
+                value: '<span class="non-notification-highlight" data-testid="markdown.keyword_highlight--text">test message</span>',
                 originalText: 'test message',
             }],
             ['$MM_HIGHLIGHTKEYWORD1$', {
-                value: '<span class="non-notification-highlight">keywords</span>',
+                value: '<span class="non-notification-highlight" data-testid="markdown.keyword_highlight--text">keywords</span>',
                 originalText: 'keywords',
             }],
         ]);
@@ -438,19 +438,19 @@ describe('highlightWithoutNotificationKeywords', () => {
         const expectedOutput = 'This is a test message with some keywords: $MM_HIGHLIGHTKEYWORD0$, $MM_HIGHLIGHTKEYWORD1$, $MM_HIGHLIGHTKEYWORD2$, $MM_HIGHLIGHTKEYWORD3$';
         const expectedTokens = new Map([
             ['$MM_HIGHLIGHTKEYWORD0$', {
-                value: '<span class="non-notification-highlight">привет</span>',
+                value: '<span class="non-notification-highlight" data-testid="markdown.keyword_highlight--text">привет</span>',
                 originalText: 'привет',
             }],
             ['$MM_HIGHLIGHTKEYWORD1$', {
-                value: '<span class="non-notification-highlight">こんにちは</span>',
+                value: '<span class="non-notification-highlight" data-testid="markdown.keyword_highlight--text">こんにちは</span>',
                 originalText: 'こんにちは',
             }],
             ['$MM_HIGHLIGHTKEYWORD2$', {
-                value: '<span class="non-notification-highlight">안녕하세요</span>',
+                value: '<span class="non-notification-highlight" data-testid="markdown.keyword_highlight--text">안녕하세요</span>',
                 originalText: '안녕하세요',
             }],
             ['$MM_HIGHLIGHTKEYWORD3$', {
-                value: '<span class="non-notification-highlight">你好</span>',
+                value: '<span class="non-notification-highlight" data-testid="markdown.keyword_highlight--text">你好</span>',
                 originalText: '你好',
             }],
         ]);

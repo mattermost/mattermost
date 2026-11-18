@@ -153,7 +153,7 @@ export default class Renderer extends marked.Renderer {
             return text;
         }
 
-        let output = '<a class="theme markdown__link';
+        let output = '<a data-testid="markdown.link--link" class="theme markdown__link';
 
         if (this.formattingOptions.searchPatterns) {
             for (const pattern of this.formattingOptions.searchPatterns) {

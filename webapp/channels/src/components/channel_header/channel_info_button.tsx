@@ -55,6 +55,7 @@ const ChannelInfoButton = ({channel}: Props) => {
             active={buttonActive}
             buttonClass='channel-header__icon channel-header__icon--small'
             buttonId='channel-info-btn'
+            testId='channel_header.info'
             onClick={toggleRHS}
             size='small'
             tooltip={tooltip}

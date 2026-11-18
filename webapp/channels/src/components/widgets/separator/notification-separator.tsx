@@ -2,18 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import './separator.scss';
 import './notification-separator.scss';
 
 type Props = {
     children?: React.ReactNode;
+    testId?: string;
 };
 
-const NotificationSeparator = ({children}: Props) => {
+const NotificationSeparator = ({children, testId}: Props) => {
     return (
         <div
             className='Separator NotificationSeparator'
-            data-testid='NotificationSeparator'
+            data-testid={testId ?? 'NotificationSeparator'}
         >
             <hr className='separator__hr'/>
             {children && (

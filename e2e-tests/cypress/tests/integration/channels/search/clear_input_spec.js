@@ -32,7 +32,7 @@ describe('Search', () => {
 
         // * The input should contain what we wrote
         cy.uiGetSearchBox().should('have.value', 'abc');
-        cy.get('[data-testid="searchBoxClose"]').click();
+        cy.get('[data-testid="search_box.close--button"]').click();
 
         // * The X should be visible
         // # Then click X to clear the input field

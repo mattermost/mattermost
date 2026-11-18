@@ -42,7 +42,7 @@ export default function PostAttributesFieldPicker({fields, onSelect}: Props) {
         <Menu.Container
             menuButton={{
                 id: 'postAttributesAdd',
-                dataTestId: 'post-attributes-add',
+                dataTestId: 'post_attributes_modal.add--button',
                 class: 'PostAttributesModal__add',
                 children: (
                     <>
@@ -57,6 +57,7 @@ export default function PostAttributesFieldPicker({fields, onSelect}: Props) {
             }}
             menu={{
                 id: 'postAttributesAddMenu',
+                testId: 'post_attributes_modal.add_menu',
                 'aria-label': formatMessage({
                     id: 'post_attributes.modal.picker.label',
                     defaultMessage: 'Add an attribute',
@@ -68,7 +69,7 @@ export default function PostAttributesFieldPicker({fields, onSelect}: Props) {
                 <Menu.Item
                     key={field.id}
                     id={`postAttributeAdd-${field.id}`}
-                    data-testid={`post-attribute-add-${field.name}`}
+                    data-testid={`post_attributes_modal.add_menu.field:${field.id}--menuitem`}
                     leadingElement={<FieldTypeIcon type={field.type}/>}
                     labels={<span>{getPropertyFieldLabel(field)}</span>}
                     onClick={() => onSelect(field.id)}

@@ -11,8 +11,8 @@ import UnreadBelowIcon from 'components/widgets/icons/unread_below_icon';
 
 import './scroll_to_bottom_toast.scss';
 
-export const SCROLL_TO_BOTTOM_TOAST_TESTID = 'scroll-to-bottom-toast';
-export const SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID = 'scroll-to-bottom-toast--dismiss-button';
+export const SCROLL_TO_BOTTOM_TOAST_TESTID = 'center.post_list.scroll_to_bottom--button';
+export const SCROLL_TO_BOTTOM_DISMISS_BUTTON_TESTID = 'center.post_list.scroll_to_bottom.dismiss--button';
 
 type ScrollToBottomToastProps = {
     onDismiss: () => void;

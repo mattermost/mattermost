@@ -21,6 +21,8 @@ type Props = {
     emojis: Emoji[];
     size: number;
     defaultEmojis: Emoji[];
+
+    testIdScope?: string;
     actions: {
         toggleReaction: (postId: string, emojiName: string) => void;
     };
@@ -91,6 +93,7 @@ export default class PostRecentReactions extends React.PureComponent<Props> {
                             emoji={emoji}
                             onItemClick={this.handleToggleEmoji}
                             order={n}
+                            testIdScope={this.props.testIdScope}
                         />
                     </WithTooltip>
                 </li>

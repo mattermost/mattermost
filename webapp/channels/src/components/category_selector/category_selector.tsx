@@ -60,11 +60,11 @@ const DropdownIndicator = () => (
     <i className='icon icon-chevron-down'/>
 );
 
-const makeControl = (testIdScope?: string) => (props: any) => (
+const makeControl = (controlTestId?: string) => (props: any) => (
     <div className='CategorySelector__controlContainer'>
         <components.Control
             {...props}
-            innerProps={{...props.innerProps, 'data-testid': testIdScope ? `${testIdScope}.control--button` : undefined}}
+            innerProps={{...props.innerProps, 'data-testid': controlTestId}}
         />
     </div>
 );
@@ -172,7 +172,7 @@ export default function CategorySelector({value, onChange, getOptions, label, pl
             />
         ),
         DropdownIndicator,
-        Control: makeControl(testIdScope),
+        Control: makeControl(testIdScope ? `${testIdScope}.control--button` : undefined),
         ValueContainer,
         Option: (props: OptionProps<Option, false, GroupBase<Option>>) => (
             <OptionComponent

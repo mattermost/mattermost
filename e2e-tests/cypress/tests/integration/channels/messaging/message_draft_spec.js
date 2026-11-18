@@ -23,7 +23,7 @@ describe('Message Draft', () => {
 
     it('MM-T130 Message Draft Pencil Icon- Text', () => {
         // * Validate if the draft icon is not visible on the sidebar before making a draft
-        cy.get('#sidebarItem_off-topic').findByTestId('draftIcon').should('not.exist');
+        cy.get('#sidebarItem_off-topic').findByTestId('lhs.channel_list.channel.draft--text').should('not.exist');
 
         // # Type in some text into the text area of the opened channel
         cy.uiGetPostTextBox().type('comm');
@@ -35,6 +35,6 @@ describe('Message Draft', () => {
         cy.url().should('include', `/${testTeam.name}/channels/town-square`);
 
         // * Validate if the draft icon is visible on side bar on the previous channel with a draft
-        cy.get('#sidebarItem_off-topic').findByTestId('draftIcon').should('be.visible');
+        cy.get('#sidebarItem_off-topic').findByTestId('lhs.channel_list.channel.draft--text').should('be.visible');
     });
 });

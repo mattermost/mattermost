@@ -28,9 +28,10 @@ const ProfilePopoverUrl = ({attribute, userProfile}: Props) => {
             <i
                 className='icon icon-url-outline'
                 aria-hidden='true'
-                data-testid='url-icon'
+                data-testid='profile_popover.url_icon'
             />
             <ExternalLink
+                data-testid={`profile_popover.attribute_link:${attribute.id}--link`}
                 location='profile_popover_url'
                 href={url}
             >

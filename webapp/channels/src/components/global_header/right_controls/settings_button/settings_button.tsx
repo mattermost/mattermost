@@ -35,6 +35,7 @@ const SettingsButton = (props: Props): JSX.Element | null => {
             forcedPlacement='bottom'
         >
             <IconButton
+                data-testid='global_header.settings--button'
                 style='inverted'
                 size='small'
                 padding='compact'

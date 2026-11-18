@@ -49,6 +49,7 @@ function GifPickerSearch(props: Props) {
                 <input
                     id='emojiPickerSearch'
                     className='emoji-picker__search'
+                    data-testid='gif_picker.search--textbox'
                     aria-label={formatMessage({id: 'gif_picker.input.label', defaultMessage: 'Search for GIFs'})}
                     placeholder={formatMessage({id: 'gif_picker.input.placeholder', defaultMessage: 'Search GIPHY'})}
                     type='text'

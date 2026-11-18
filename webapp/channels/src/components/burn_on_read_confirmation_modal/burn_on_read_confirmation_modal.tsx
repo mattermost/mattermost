@@ -68,6 +68,7 @@ const BurnOnReadConfirmationModal = ({show, onConfirm, onCancel, loading = false
     return (
         <ConfirmModal
             id='burnOnReadConfirmationModal'
+            testId='burn_on_read_confirmation_modal'
             show={show}
             title={title}
             message={message}

@@ -29,12 +29,13 @@ describe('components/post_view/message_attachments/ActionMenu', () => {
         autocompleteChannels: jest.fn(),
         autocompleteUsers: jest.fn(),
         selectAttachmentMenuAction: jest.fn(),
+        testIdScope: 'center.post_list.post' as const,
     };
 
     test('should start with nothing selected', async () => {
         renderWithContext(<ActionMenu {...baseProps}/>);
 
-        const autoCompleteSelector = screen.getByTestId('autoCompleteSelector');
+        const autoCompleteSelector = screen.getByTestId('center.post_list.post.action_select:id');
         const input = screen.getByPlaceholderText('action');
 
         expect(autoCompleteSelector).toBeInTheDocument();

@@ -6,7 +6,7 @@
  * @reference MM-67326 — public and private channels can carry ABAC membership policies
  */
 
-import {ChannelsPage, expect, test, closeChannelSettings, App, Api, settle, Msg} from '@mattermost/playwright-lib';
+import {expect, test, closeChannelSettings, App, Api, settle, Msg} from '@mattermost/playwright-lib';
 
 import {
     enableABACConfig,
@@ -36,12 +36,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // * Access Control tab is visible
         await expect(channelSettings.tabs.tab('access_rules').locator).toBeVisible();
@@ -63,16 +63,16 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
         // Disable ABAC once more right before the modal opens to shrink the race window.
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: false},
         });
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // * Access Control tab is NOT visible
         await expect(channelSettings.tabs.tab('access_rules').locator).not.toBeVisible();
@@ -87,12 +87,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await adminClient.createPublicChannel(team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // * Membership Policy tab is visible on public channels when ABAC is enabled (not group-constrained / not default)
         await expect(channelSettings.tabs.tab('access_rules').locator).toBeVisible();
@@ -107,12 +107,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await createGroupConstrainedPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // * Access Control tab is NOT visible for group-constrained channel
         await expect(channelSettings.tabs.tab('access_rules').locator).not.toBeVisible();
@@ -128,12 +128,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -160,12 +160,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         const policy = await createParentPolicy(adminClient, `Parent Policy ${Date.now()}`);
         await assignChannelsToPolicy(adminClient, policy.id, [channel.id]);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -190,12 +190,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -213,13 +213,6 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         // * SaveChangesPanel disappears — rules were saved
         await expect(saveBtn).not.toBeVisible({timeout: 15000});
-
-        // The dialog may auto-close after save or the Close button may take a moment to stabilise
-        // after the panel removal re-render. Only close if the dialog is still open.
-        const isOpen = await channelSettings.container.locator.isVisible({timeout: 2000}).catch(() => false);
-        if (isOpen) {
-            await closeChannelSettings(channelSettings);
-        }
     });
 
     test('MM-67326_c8 Auto-add checkbox becomes enabled after adding an attribute rule', async ({pw}) => {
@@ -230,12 +223,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -285,12 +278,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
             targetUser.id,
         ]);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -347,12 +340,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -387,12 +380,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -433,12 +426,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await adminClient.addToChannel(memberToRemove.id, channel.id);
         // memberToRemove has no Department set → will not match "Department == Engineering"
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -510,12 +503,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
             memberToAdd.id,
         ]);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -588,12 +581,12 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
             adminUser.id,
         ]);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // # Navigate to Access Control tab
         await channelSettings.tabs.tab('access_rules').select();
@@ -627,12 +620,8 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
         await expect
             .poll(
                 async () => {
-                    try {
-                        await adminClient.getChannelMember(channel.id, memberToRemove.id);
-                        return true;
-                    } catch {
-                        return false;
-                    }
+                    const members = await adminClient.getChannelMembers(channel.id);
+                    return members.some((member) => member.user_id === memberToRemove.id);
                 },
                 {
                     timeout: 15000,
@@ -644,19 +633,19 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
 
         await closeChannelSettings(channelSettings);
 
-        // * The ABAC removal system message is the last visible post in the channel
-        await channelsPage.centerView.waitUntilLastPostContains('was removed from the channel', 30000);
-        const lastPost = await channelsPage.getLastPost();
-        await expect(lastPost.container).toContainText(memberToRemove.username);
-        await expect(lastPost.container).toContainText('was removed from the channel');
+        // * The ABAC removal system message is posted in the channel
+        const removal = await app.center.postList.postList.itemWith(
+            {text: 'was removed from the channel'},
+            {timeout: 30000},
+        );
+        await expect(removal.container).toContainText(memberToRemove.username);
 
         // # Open channel members RHS from the affected channel
-        await channelsPage.centerView.header.openChannelMenu();
-        await page.locator('#channelMembers').click();
-        await expect(channelsPage.sidebarRight.container).toBeVisible();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.membersMenuItem);
+        await app.channelHeader.menu.membersMenuItem.clickTo(app.rhs.channelMembers);
 
         // * Admin remains in the RHS members list, and removed member is absent
-        await expect(page.getByTestId(`memberline-${adminUser.id}`)).toBeVisible({timeout: 10000});
-        await expect(page.getByTestId(`memberline-${memberToRemove.id}`)).not.toBeVisible();
+        await expect(app.rhs.channelMembers.member(adminUser).container).toBeVisible({timeout: 10000});
+        await expect(app.rhs.channelMembers.member(memberToRemove).container).not.toBeVisible();
     });
 });

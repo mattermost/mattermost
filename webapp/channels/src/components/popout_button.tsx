@@ -16,12 +16,15 @@ type Props = {
     onClick: React.MouseEventHandler<HTMLButtonElement>;
     className?: string;
     size?: React.ComponentProps<typeof IconButton>['size'];
+
+    testId?: string;
 };
 
 export default function PopoutButton({
     onClick,
     className,
     size = 'small',
+    testId,
 }: Props) {
     const intl = useIntl();
 
@@ -44,6 +47,7 @@ export default function PopoutButton({
                 icon={<Icon glyph={<DockWindowIcon/>}/>}
                 aria-label={intl.formatMessage({id: 'new_window_button.tooltip', defaultMessage: 'Open in new window'})}
                 onClick={onClick}
+                data-testid={testId ? `${testId}--button` : undefined}
             />
         </WithTooltip>
     );

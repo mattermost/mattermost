@@ -275,7 +275,7 @@ const PDFPreview = memo(({
         <div
             ref={container}
             className='post-code'
-            data-testid='pdf-container'
+            data-testid='file_preview_modal.pdf'
             onClick={handleBgClose}
         >
             {pdfCanvases}

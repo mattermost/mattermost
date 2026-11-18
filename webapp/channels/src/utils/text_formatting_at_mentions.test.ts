@@ -77,40 +77,40 @@ describe('TextFormatting.AtMentions', () => {
         expect(
             TextFormatting.formatText('@user', {atMentions: true, mentionKeys: [{key: '@user'}]}, emptyEmojiMap).trim(),
         ).toEqual(
-            '<p><span class="mention--highlight"><span data-mention="user">@user</span></span></p>',
+            '<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="user">@user</span></span></p>',
         );
         expect(
             TextFormatting.formatText('@channel', {atMentions: true, mentionKeys: [{key: '@channel'}]}, emptyEmojiMap).trim(),
         ).toEqual(
-            '<p><span class="mention--highlight"><span data-mention="channel">@channel</span></span></p>',
+            '<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="channel">@channel</span></span></p>',
         );
         expect(TextFormatting.formatText('@all', {atMentions: true, mentionKeys: [{key: '@all'}]}, emptyEmojiMap).trim(),
         ).toEqual(
-            '<p><span class="mention--highlight"><span data-mention="all">@all</span></span></p>',
+            '<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="all">@all</span></span></p>',
         );
         expect(TextFormatting.formatText('@USER', {atMentions: true, mentionKeys: [{key: '@user'}]}, emptyEmojiMap).trim(),
         ).toEqual(
-            '<p><span class="mention--highlight"><span data-mention="USER">@USER</span></span></p>',
+            '<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="USER">@USER</span></span></p>',
         );
         expect(TextFormatting.formatText('@CHanNEL', {atMentions: true, mentionKeys: [{key: '@channel'}]}, emptyEmojiMap).trim(),
 
-        ).toEqual('<p><span class="mention--highlight"><span data-mention="CHanNEL">@CHanNEL</span></span></p>',
+        ).toEqual('<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="CHanNEL">@CHanNEL</span></span></p>',
         );
         expect(TextFormatting.formatText('@ALL', {atMentions: true, mentionKeys: [{key: '@all'}]}, emptyEmojiMap).trim(),
 
-        ).toEqual('<p><span class="mention--highlight"><span data-mention="ALL">@ALL</span></span></p>',
+        ).toEqual('<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="ALL">@ALL</span></span></p>',
         );
         expect(TextFormatting.formatText('@foo.com', {atMentions: true, mentionKeys: [{key: '@foo.com'}]}, emptyEmojiMap).trim(),
         ).toEqual(
-            '<p><span class="mention--highlight"><span data-mention="foo.com">@foo.com</span></span></p>',
+            '<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="foo.com">@foo.com</span></span></p>',
         );
         expect(TextFormatting.formatText('@foo.com @bar.com', {atMentions: true, mentionKeys: [{key: '@foo.com'}, {key: '@bar.com'}]}, emptyEmojiMap).trim(),
 
-        ).toEqual('<p><span class="mention--highlight"><span data-mention="foo.com">@foo.com</span></span> <span class="mention--highlight"><span data-mention="bar.com">@bar.com</span></span></p>',
+        ).toEqual('<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="foo.com">@foo.com</span></span> <span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="bar.com">@bar.com</span></span></p>',
         );
         expect(TextFormatting.formatText('@foo.com@bar.com', {atMentions: true, mentionKeys: [{key: '@foo.com'}, {key: '@bar.com'}]}, emptyEmojiMap).trim(),
 
-        ).toEqual('<p><span class="mention--highlight"><span data-mention="foo.com">@foo.com</span></span><span class="mention--highlight"><span data-mention="bar.com">@bar.com</span></span></p>',
+        ).toEqual('<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="foo.com">@foo.com</span></span><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="bar.com">@bar.com</span></span></p>',
         );
     });
 
@@ -118,22 +118,22 @@ describe('TextFormatting.AtMentions', () => {
         const tests: StringsTest[] = [
             {
                 actual: TextFormatting.formatText('@foo.com @bar.com', {atMentions: true, mentionKeys: [{key: '@foo.com'}]}, emptyEmojiMap).trim(),
-                expected: '<p><span class="mention--highlight"><span data-mention="foo.com">@foo.com</span></span> <span data-mention="bar.com">@bar.com</span></p>',
+                expected: '<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="foo.com">@foo.com</span></span> <span data-mention="bar.com">@bar.com</span></p>',
                 label: 'should highlight first at mention, with space in between',
             },
             {
                 actual: TextFormatting.formatText('@foo.com @bar.com', {atMentions: true, mentionKeys: [{key: '@bar.com'}]}, emptyEmojiMap).trim(),
-                expected: '<p><span data-mention="foo.com">@foo.com</span> <span class="mention--highlight"><span data-mention="bar.com">@bar.com</span></span></p>',
+                expected: '<p><span data-mention="foo.com">@foo.com</span> <span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="bar.com">@bar.com</span></span></p>',
                 label: 'should highlight second at mention, with space in between',
             },
             {
                 actual: TextFormatting.formatText('@foo.com@bar.com', {atMentions: true, mentionKeys: [{key: '@foo.com'}]}, emptyEmojiMap).trim(),
-                expected: '<p><span class="mention--highlight"><span data-mention="foo.com">@foo.com</span></span><span data-mention="bar.com">@bar.com</span></p>',
+                expected: '<p><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="foo.com">@foo.com</span></span><span data-mention="bar.com">@bar.com</span></p>',
                 label: 'should highlight first at mention, without space in between',
             },
             {
                 actual: TextFormatting.formatText('@foo.com@bar.com', {atMentions: true, mentionKeys: [{key: '@bar.com'}]}, emptyEmojiMap).trim(),
-                expected: '<p><span data-mention="foo.com">@foo.com</span><span class="mention--highlight"><span data-mention="bar.com">@bar.com</span></span></p>',
+                expected: '<p><span data-mention="foo.com">@foo.com</span><span class="mention--highlight" data-testid="markdown.mention_highlight--text"><span data-mention="bar.com">@bar.com</span></span></p>',
                 label: 'should highlight second at mention, without space in between',
             },
             {

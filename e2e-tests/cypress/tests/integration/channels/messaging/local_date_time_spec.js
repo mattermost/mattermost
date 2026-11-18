@@ -91,7 +91,7 @@ describe('Messaging', () => {
                 cy.findByText(testCase.publicChannel).should('be.visible');
 
                 // * Verify that the local time of each post is rendered in 12-hour format based on locale
-                cy.findAllByTestId('postView').eq(index).find('.post__time', {timeout: 500}).should('have.text', localTime.standard);
+                cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).eq(index).find('.post__time', {timeout: 500}).should('have.text', localTime.standard);
             });
 
             // # Military time
@@ -106,7 +106,7 @@ describe('Messaging', () => {
                 cy.findByText(testCase.publicChannel).should('be.visible');
 
                 // * Verify that the local time of each post is rendered in 24-hour format based on locale
-                cy.findAllByTestId('postView').eq(index).find('.post__time', {timeout: 500}).should('have.text', localTime.military);
+                cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).eq(index).find('.post__time', {timeout: 500}).should('have.text', localTime.military);
             });
         });
     });

@@ -9,12 +9,13 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test('MM-T841 keeps a modal open when a drag is released outside it', {tag: '@channel_settings'}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'off-topic');
-    await channelsPage.toBeVisible();
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: 'off-topic'});
+    await expect(app.center.postCreate).toBeVisible();
 
     // # Open the Channel Settings modal
-    const channelSettings = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     const modal = channelSettings.container;
 
     // # Press the mouse down inside the modal, drag to outside the modal, then release
@@ -46,23 +47,23 @@ test(
     {tag: '@channel_settings'},
     async ({pw}) => {
         const {user, team} = await pw.initSetup();
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app, channelsPage} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: 'town-square'});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Create a new public channel via the modal
         const createdChannel = `Random ${pw.random.id()}`;
         await channelsPage.newChannel(createdChannel, 'O');
 
         // * Verify the new channel is opened
-        await expect(channelsPage.centerView.header.title).toContainText(createdChannel);
+        await expect(app.channelHeader.openMenuButton).toContainText(createdChannel);
 
         // # Leave the channel via the channel header menu
-        const channelMenu = await channelsPage.openChannelMenu();
-        await channelMenu.leaveChannel.click();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.leaveChannelMenuItem);
+        await app.channelHeader.menu.leaveChannelMenuItem.click();
 
         // * Verify the user is redirected to the default channel and the channel is no longer in the sidebar
-        await expect(channelsPage.centerView.header.title).toContainText('Town Square');
+        await expect(app.channelHeader.openMenuButton).toContainText('Town Square');
         await expect(channelsPage.sidebarLeft.container.getByText(createdChannel)).not.toBeVisible();
 
         // # Open the create-channel modal, enter a name, and cancel without creating

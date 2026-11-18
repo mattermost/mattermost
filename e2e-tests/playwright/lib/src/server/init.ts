@@ -8,6 +8,7 @@ import {makeClient} from './client';
 import {createNewTeam} from './team';
 import {createNewUserProfile} from './user';
 
+import {DefaultChannel} from '@/constant';
 import {getFileFromCommonAsset} from '@/file';
 import {testConfig} from '@/test_config';
 
@@ -49,14 +50,22 @@ export async function initSetup({
             await userClient.uploadProfileImage(user.id, file);
         }
 
+        // the team's default channels, which the user joined with the team
+        const [townSquare, offTopic] = await Promise.all([
+            adminClient.getChannelByName(team.id, DefaultChannel.TownSquare),
+            adminClient.getChannelByName(team.id, DefaultChannel.OffTopic),
+        ]);
+
         return {
             adminClient,
             adminUser,
             user,
             userClient,
             team,
-            offTopicUrl: getUrl(team.name, 'off-topic'),
-            townSquareUrl: getUrl(team.name, 'town-square'),
+            townSquare,
+            offTopic,
+            offTopicUrl: getUrl(team.name, DefaultChannel.OffTopic),
+            townSquareUrl: getUrl(team.name, DefaultChannel.TownSquare),
         };
     } catch (error) {
         expect(error, 'Should not throw an error').toBeFalsy();

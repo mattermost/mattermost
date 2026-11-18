@@ -151,20 +151,20 @@ function waitUntilPermanentPost() {
     // some operation which caused to prolong complete page loading.
     cy.wait(TIMEOUTS.HALF_SEC);
     cy.get('#postListContent', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
-    return cy.waitUntil(() => cy.findAllByTestId('postView').last().then((el) => !(el[0].id.includes(':'))));
+    return cy.waitUntil(() => cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).last().then((el) => !(el[0].id.includes(':'))));
 }
 
 function getLastPost(): ChainableT<JQuery> {
     waitUntilPermanentPost();
 
-    return cy.findAllByTestId('postView').last();
+    return cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).last();
 }
 Cypress.Commands.add('getLastPost', getLastPost);
 
 function getLastPostId(): ChainableT<string> {
     waitUntilPermanentPost();
 
-    return cy.findAllByTestId('postView').last().should('have.attr', 'id').and('not.include', ':').
+    return cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).last().should('have.attr', 'id').and('not.include', ':').
         invoke('replace', /^[^_]*_/, '');
 }
 Cypress.Commands.add('getLastPostId', getLastPostId);
@@ -191,7 +191,7 @@ Cypress.Commands.add('uiWaitUntilMessagePostedIncludes', uiWaitUntilMessagePoste
 function getNthPostId(index = 0): ChainableT<string> {
     waitUntilPermanentPost();
 
-    return cy.findAllByTestId('postView').eq(index).should('have.attr', 'id').and('not.include', ':').
+    return cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).eq(index).should('have.attr', 'id').and('not.include', ':').
         invoke('replace', /^[^_]*_/, '');
 }
 Cypress.Commands.add('getNthPostId', getNthPostId);
@@ -199,7 +199,7 @@ Cypress.Commands.add('getNthPostId', getNthPostId);
 function uiGetNthPost(index: number): ChainableT<JQuery> {
     waitUntilPermanentPost();
 
-    return cy.findAllByTestId('postView').eq(index);
+    return cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).eq(index);
 }
 Cypress.Commands.add('uiGetNthPost', uiGetNthPost);
 
@@ -568,13 +568,13 @@ function clickEmojiInEmojiPicker(emojiName: string) {
         // reset the cursor, and search results omit emoji_picker_preview until an
         // emoji is hovered. Cypress.$ so a missing node returns false for waitUntil.
         cy.waitUntil(() => {
-            const $emoji = Cypress.$('#emojiPicker').find(`[data-testid="${emojiName}"]:visible`);
+            const $emoji = Cypress.$('#emojiPicker').find(`[data-testid="emoji_picker.system_emoji:${emojiName}--button"]:visible, [data-testid="emoji_picker.custom_emoji:${emojiName}--button"]:visible`);
             if ($emoji.length === 0) {
                 return false;
             }
 
             return cy.wrap($emoji.eq(0)).trigger('mouseover', {force: true}).then(() => {
-                const previewText = Cypress.$('#emojiPicker').find('[data-testid="emoji_picker_preview"]').eq(0).text();
+                const previewText = Cypress.$('#emojiPicker').find('[data-testid="emoji_picker.preview"]').eq(0).text();
                 return previewText.toLowerCase().includes(emojiName.toLowerCase());
             });
         }, {
@@ -584,7 +584,7 @@ function clickEmojiInEmojiPicker(emojiName: string) {
         });
 
         // # Click on the visible searched emoji
-        cy.findAllByTestId(emojiName).filter(':visible').first().should('be.visible').click();
+        cy.get(`[data-testid="emoji_picker.system_emoji:${emojiName}--button"] img, [data-testid="emoji_picker.custom_emoji:${emojiName}--button"] img`).filter(':visible').first().should('be.visible').click();
     });
 }
 Cypress.Commands.add('clickEmojiInEmojiPicker', clickEmojiInEmojiPicker);

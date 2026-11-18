@@ -39,6 +39,6 @@ describe('ProfilePopoverController', () => {
         await userEvent.click(trigger);
 
         expect(handleSubmit).not.toHaveBeenCalled();
-        expect(screen.getByTestId('user-profile-popover')).toBeInTheDocument();
+        expect(screen.getByTestId('profile_popover')).toBeInTheDocument();
     });
 });

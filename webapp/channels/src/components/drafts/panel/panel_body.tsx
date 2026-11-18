@@ -26,6 +26,8 @@ import './panel_body.scss';
 
 type Props = {
     channelId?: string;
+
+    testIdScope?: string;
     displayName: string;
     fileInfos: PostDraft['fileInfos'];
     message: string;
@@ -55,6 +57,7 @@ function PanelBody({
     uploadsInProgress,
     userId,
     username,
+    testIdScope,
 }: Props) {
     const currentRelativeTeamUrl = useSelector(getCurrentRelativeTeamUrl);
     const isBorFeatureEnabled = useSelector(isBurnOnReadEnabled);
@@ -66,11 +69,11 @@ function PanelBody({
     return (
         <div
             className='DraftPanelBody post'
-            data-testid='draft-panel-body'
+            data-testid={testIdScope ? `${testIdScope}.body` : undefined}
         >
             <div
                 className='DraftPanelBody__left post__img'
-                data-testid='draft-post-img'
+                data-testid={testIdScope ? `${testIdScope}.avatar` : undefined}
             >
                 <ProfilePicture
                     status={status}
@@ -92,7 +95,7 @@ function PanelBody({
                         <div className='DraftPanelBody__right'>
                             <div
                                 className='post__header'
-                                data-testid='draft-post-header'
+                                data-testid={testIdScope ? `${testIdScope}.post_header` : undefined}
                             >
                                 <strong>{displayName}</strong>
                                 {priority && (
@@ -102,6 +105,7 @@ function PanelBody({
                                         persistentNotifications={priority.persistent_notifications}
                                         priority={priority.priority}
                                         requestedAck={priority.requested_ack}
+                                        testIdScope={testIdScope ? `${testIdScope}.priority_labels` : undefined}
                                     />
                                 )}
                                 {burnOnRead?.enabled && isBorFeatureEnabled && (
@@ -109,12 +113,13 @@ function PanelBody({
                                         canRemove={false}
                                         onRemove={() => {}}
                                         durationMinutes={burnOnReadDurationMinutes}
+                                        testId={testIdScope ? `${testIdScope}.burn_on_read_label` : undefined}
                                     />
                                 )}
                             </div>
                             <div
                                 className='post__body'
-                                data-testid='draft-post-body'
+                                data-testid={testIdScope ? `${testIdScope}.message` : undefined}
                             >
                                 <Markdown
                                     options={OPTIONS}

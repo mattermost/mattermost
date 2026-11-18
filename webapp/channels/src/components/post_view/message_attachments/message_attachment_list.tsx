@@ -31,6 +31,8 @@ type Props = {
      * Images object used for creating placeholders to prevent scroll popup
      */
     imagesMetadata?: Record<string, PostImage>;
+
+    testIdScope?: string;
 };
 
 const EMPTY_METADATA: Record<string, PostImage> = {};
@@ -40,6 +42,7 @@ const MessageAttachmentList = ({
     attachments,
     postId,
     options,
+    testIdScope,
 }: Props) => (
     <div
         id={`messageAttachmentList_${postId}`}
@@ -52,6 +55,7 @@ const MessageAttachmentList = ({
                 key={'att_' + i}
                 options={options}
                 imagesMetadata={imagesMetadata}
+                testIdScope={testIdScope}
             />
         ))}
     </div>

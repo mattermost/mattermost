@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Locator} from '@playwright/test';
+
 import {
+    type App,
     expect,
     test,
     closeChannelSettings,
@@ -9,6 +12,46 @@ import {
     Api,
     settle,
 } from '@mattermost/playwright-lib';
+
+type Banner = App['center']['channelBanner'];
+
+/** `77DD88` or `#77DD88` -> `rgb(119, 221, 136)`, as the browser reports a background colour. */
+function hexToRgb(hex: string): string {
+    const value = hex.replace(/^#/, '');
+    const [r, g, b] = [0, 2, 4].map((i) => parseInt(value.slice(i, i + 2), 16));
+    return `rgb(${r}, ${g}, ${b})`;
+}
+
+/** The banner shows exactly this text on this background colour. */
+async function expectBanner(banner: Banner, text: string, color: string) {
+    await expect(banner).toBeVisible();
+    await expect(banner).toHaveText(text);
+    await expect(banner).toHaveCSS('background-color', hexToRgb(color));
+}
+
+/**
+ * The element lies fully inside the banner's content area (its box minus its padding). Bounding boxes are not clipped
+ * by a parent's overflow, so an element that reaches into the padding would be cut off on screen.
+ */
+async function expectInsideBanner(banner: Banner, element: Locator) {
+    const EPSILON = 0.5;
+    await expect(element).toBeVisible();
+    const box = (await banner.locator.boundingBox())!;
+    const inner = (await element.boundingBox())!;
+    const padding = await banner.locator.evaluate((node) => {
+        const styles = window.getComputedStyle(node);
+        return {
+            top: parseFloat(styles.paddingTop),
+            bottom: parseFloat(styles.paddingBottom),
+            left: parseFloat(styles.paddingLeft),
+            right: parseFloat(styles.paddingRight),
+        };
+    });
+    expect(inner.y).toBeGreaterThanOrEqual(box.y + padding.top - EPSILON);
+    expect(inner.y + inner.height).toBeLessThanOrEqual(box.y + box.height - padding.bottom + EPSILON);
+    expect(inner.x).toBeGreaterThanOrEqual(box.x + padding.left - EPSILON);
+    expect(inner.x + inner.width).toBeLessThanOrEqual(box.x + box.width - padding.right + EPSILON);
+}
 
 const EMOJI_SIZE = 16;
 
@@ -21,13 +64,14 @@ test('Should show channel banner when configured', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    await app.page.goto('/');
+    await expect(app.center.postCreate).toBeVisible();
 
     await channelsPage.newChannel(pw.random.id(), 'O');
 
-    let channelSettingsModal = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    let channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     let configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
 
     await configurationTab.bannerSwitch.set(true);
@@ -38,10 +82,11 @@ test('Should show channel banner when configured', async ({pw}) => {
     await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
     await closeChannelSettings(channelSettingsModal);
 
-    await channelsPage.centerView.assertChannelBanner('Example channel banner text', '#77DD88');
+    await expectBanner(app.center.channelBanner, 'Example channel banner text', '#77DD88');
 
     // Now we'll disable the channel banner
-    channelSettingsModal = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
     await configurationTab.bannerSwitch.set(false);
     await expect(configurationTab.bannerSwitch).not.toBeOn();
@@ -49,11 +94,12 @@ test('Should show channel banner when configured', async ({pw}) => {
     await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
     await closeChannelSettings(channelSettingsModal);
 
-    await channelsPage.centerView.assertChannelBannerNotVisible();
+    await expect(app.center.channelBanner).not.toBeVisible();
 
     // re-enabling channel banner should already have
     // the previously configured text and color
-    channelSettingsModal = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
     await configurationTab.bannerSwitch.set(true);
     await expect(configurationTab.bannerSwitch).toBeOn();
@@ -61,7 +107,7 @@ test('Should show channel banner when configured', async ({pw}) => {
     await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
     await closeChannelSettings(channelSettingsModal);
 
-    await channelsPage.centerView.assertChannelBanner('Example channel banner text', '#77DD88');
+    await expectBanner(app.center.channelBanner, 'Example channel banner text', '#77DD88');
 });
 
 test('Should show channel banner in thread view', async ({pw}) => {
@@ -71,14 +117,15 @@ test('Should show channel banner in thread view', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    await app.page.goto('/');
+    await expect(app.center.postCreate).toBeVisible();
 
     await channelsPage.newChannel(pw.random.id(), 'O');
 
     // Configure the channel banner
-    const channelSettingsModal = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
 
     await configurationTab.bannerSwitch.set(true);
@@ -90,12 +137,14 @@ test('Should show channel banner in thread view', async ({pw}) => {
     await closeChannelSettings(channelSettingsModal);
 
     // Post a message and open the thread
-    await channelsPage.centerView.postMessage('Message to create a thread');
-    const post = await channelsPage.centerView.getLastPost();
-    await post.reply();
+    await app.center.postCreate.message.container.fill('Message to create a thread');
+    const created = await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    const post = app.center.postList.post(created);
+    await post.container.hover();
+    await post.menu.replyButton.click();
 
-    await expect(channelsPage.sidebarRight.container).toBeVisible();
-    await channelsPage.sidebarRight.assertChannelBanner('Thread banner text', '#AA33BB');
+    await expect(app.rhs.container).toBeVisible();
+    await expectBanner(app.rhs.thread.channelBanner, 'Thread banner text', '#AA33BB');
 });
 
 test('Should not show channel banner in thread view when disabled', async ({pw}) => {
@@ -105,23 +154,21 @@ test('Should not show channel banner in thread view when disabled', async ({pw})
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    await app.page.goto('/');
+    await expect(app.center.postCreate).toBeVisible();
 
     await channelsPage.newChannel(pw.random.id(), 'O');
-    await channelsPage.centerView.toBeVisible();
+    await expect(app.center.postCreate).toBeVisible();
 
-    // Focus and type character-by-character to avoid React clearing a programmatic fill()
-    await channelsPage.centerView.postCreate.input.click();
-    await expect(channelsPage.centerView.postCreate.input).toBeFocused();
-    await channelsPage.centerView.postCreate.input.pressSequentially('Message without banner');
-    await channelsPage.centerView.postCreate.sendMessage();
-    const post = await channelsPage.centerView.getLastPost();
-    await post.reply();
+    await app.center.postCreate.message.container.fill('Message without banner');
+    const created = await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    const post = app.center.postList.post(created);
+    await post.container.hover();
+    await post.menu.replyButton.click();
 
-    await expect(channelsPage.sidebarRight.container).toBeVisible();
-    await channelsPage.sidebarRight.assertChannelBannerNotVisible();
+    await expect(app.rhs.container).toBeVisible();
+    await expect(app.rhs.thread.channelBanner).not.toBeVisible();
 });
 
 test('Should render image emoticons without clipping', async ({pw}) => {
@@ -131,13 +178,14 @@ test('Should render image emoticons without clipping', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    await app.page.goto('/');
+    await expect(app.center.postCreate).toBeVisible();
 
     await channelsPage.newChannel(pw.random.id(), 'O');
 
-    const channelSettingsModal = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
 
     await configurationTab.bannerSwitch.set(true);
@@ -149,7 +197,10 @@ test('Should render image emoticons without clipping', async ({pw}) => {
     await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
     await closeChannelSettings(channelSettingsModal);
 
-    await channelsPage.centerView.assertChannelBannerImageEmojiSize(EMOJI_SIZE);
+    const emoji = app.center.channelBanner.markdown.emoji('dog').locator;
+    await expect(emoji).toHaveCSS('width', `${EMOJI_SIZE}px`);
+    await expect(emoji).toHaveCSS('height', `${EMOJI_SIZE}px`);
+    await expectInsideBanner(app.center.channelBanner, emoji);
 });
 
 test('Should render unsupported unicode emoji without clipping', async ({pw}) => {
@@ -159,13 +210,14 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    await app.page.goto('/');
+    await expect(app.center.postCreate).toBeVisible();
 
     await channelsPage.newChannel(pw.random.id(), 'O');
 
-    const channelSettingsModal = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
 
     await configurationTab.bannerSwitch.set(true);
@@ -177,7 +229,9 @@ test('Should render unsupported unicode emoji without clipping', async ({pw}) =>
     await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
     await closeChannelSettings(channelSettingsModal);
 
-    await channelsPage.centerView.assertChannelBannerUnicodeEmojiSize(EMOJI_SIZE);
+    const emoji = app.center.channelBanner.markdown.unicodeEmojiText.locator.first();
+    await expect(emoji).toHaveCSS('font-size', `${EMOJI_SIZE}px`);
+    await expectInsideBanner(app.center.channelBanner, emoji);
 });
 
 test('Should render text with descenders without clipping', async ({pw}) => {
@@ -187,13 +241,14 @@ test('Should render text with descenders without clipping', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    await app.page.goto('/');
+    await expect(app.center.postCreate).toBeVisible();
 
     await channelsPage.newChannel(pw.random.id(), 'O');
 
-    const channelSettingsModal = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
 
     await configurationTab.bannerSwitch.set(true);
@@ -206,7 +261,7 @@ test('Should render text with descenders without clipping', async ({pw}) => {
     await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
     await closeChannelSettings(channelSettingsModal);
 
-    await channelsPage.centerView.assertChannelBannerTextNotClipped();
+    await expectInsideBanner(app.center.channelBanner, app.center.channelBanner.textText.locator);
 });
 
 test('Should render markdown', async ({pw}) => {
@@ -216,13 +271,14 @@ test('Should render markdown', async ({pw}) => {
     const license = await adminClient.getClientLicenseOld();
     test.skip(license.SkuShortName !== 'advanced', 'Skipping test - server does not have Enterprise Advanced license');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
+    const {app, channelsPage} = await pw.testBrowser.login(adminUser);
+    await app.page.goto('/');
+    await expect(app.center.postCreate).toBeVisible();
 
     await channelsPage.newChannel(pw.random.id(), 'O');
 
-    const channelSettingsModal = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     const configurationTab = await openChannelSettingsConfigurationTab(channelSettingsModal);
 
     await configurationTab.bannerSwitch.set(true);
@@ -233,7 +289,10 @@ test('Should render markdown', async ({pw}) => {
     await settle(channelSettingsModal.savePanel.saveButton, {wait: Api.PatchChannel}).click();
     await closeChannelSettings(channelSettingsModal);
 
-    await channelsPage.centerView.assertChannelBannerHasBoldText('bold');
-    await channelsPage.centerView.assertChannelBannerHasItalicText('italic');
-    await channelsPage.centerView.assertChannelBannerHasStrikethroughText('strikethrough');
+    // markdown emphasis renders as plain <strong> inside the banner text, with no testid of its own
+    await expect(app.center.channelBanner.locator.locator('strong')).toHaveText('bold');
+    // markdown emphasis renders as plain <em> inside the banner text, with no testid of its own
+    await expect(app.center.channelBanner.locator.locator('em')).toHaveText('italic');
+    // markdown emphasis renders as plain <del> inside the banner text, with no testid of its own
+    await expect(app.center.channelBanner.locator.locator('del')).toHaveText('strikethrough');
 });

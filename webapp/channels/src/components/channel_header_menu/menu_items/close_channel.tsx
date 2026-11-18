@@ -21,6 +21,7 @@ interface Props extends Menu.FirstMenuItemProps {
 const CloseChannel = ({kind = 'channel', ...rest}: Props): JSX.Element => {
     return (
         <Menu.Item
+            data-testid='channel_header.menu.close_channel--menuitem'
             onClick={goToLastViewedChannel}
             labels={<FormattedMessage {...channelKindMessages.closeChannel[kind]}/>}
             {...rest}

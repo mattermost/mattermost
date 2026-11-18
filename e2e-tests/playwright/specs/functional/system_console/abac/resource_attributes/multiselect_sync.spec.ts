@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, verifyUserInChannel} from '@mattermost/playwright-lib';
+import {expect, runCleanups, test, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {
     createPrivateChannelForABAC,
@@ -48,10 +48,7 @@ test.describe('ABAC resource.attributes - multiselect targets', {tag: ['@abac', 
         // Reverse order, so a policy goes before the fields its rules reference: while
         // attribute-value masking is on, deleting a policy whose field is already gone
         // is refused outright and the policy can no longer be removed at all.
-        for (const cleanup of cleanups.reverse()) {
-            await cleanup().catch(() => {});
-        }
-        cleanups.length = 0;
+        await runCleanups(cleanups);
     });
 
     test('has any of syncs and enforces on list intersection', async ({pw}) => {

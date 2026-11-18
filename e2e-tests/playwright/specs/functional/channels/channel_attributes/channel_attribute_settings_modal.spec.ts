@@ -70,11 +70,14 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
                 `chanadmin-stage-${suffix}`,
             );
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(channelAdmin);
+            await app.channelsPage.goto({team, channel: channel.name});
+            await expect(app.center.postCreate).toBeVisible();
 
-            const channelSettings = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
+                app.channelSettingsModal,
+            );
             const infoSettings = await openChannelSettingsInfoTab(channelSettings);
 
             // # Add the unset attribute in the modal and commit with Enter, as the
@@ -138,11 +141,14 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
             );
             await setChannelValue(adminClient, channel.id, note, 'original');
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(channelAdmin);
+            await app.channelsPage.goto({team, channel: channel.name});
+            await expect(app.center.postCreate).toBeVisible();
 
-            const channelSettings = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
+                app.channelSettingsModal,
+            );
             const infoSettings = await openChannelSettingsInfoTab(channelSettings);
             await expect(infoSettings.attributes.attribute(note.id).editButton.locator).toHaveText('original');
 

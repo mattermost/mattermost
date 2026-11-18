@@ -66,6 +66,7 @@ const AtMention = (props: Props) => {
                     channelId={props.channelId}
                     returnFocus={returnFocus}
                     triggerComponentAs='button'
+                    triggerTestId={`markdown.mention:${user.id}--button`}
                 >
                     <span
                         ref={ref}

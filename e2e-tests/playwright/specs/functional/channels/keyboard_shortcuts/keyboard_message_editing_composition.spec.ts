@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, Api, lastPost, settle} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify pressing Up arrow in an empty message box opens the edit box for the last post in both
@@ -13,48 +13,50 @@ test(
     'MM-T1262 MM-T1263 opens and cancels the edit box with Up arrow and Escape',
     {tag: '@keyboard_shortcuts'},
     async ({pw}) => {
-        const {user, team} = await pw.initSetup();
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
-
-        // # Post a message and press Up arrow from the empty center message box
+        const {user, team, userClient, townSquare} = await pw.initSetup();
         const message = `edit shortcut ${pw.random.id()}`;
-        await channelsPage.postMessage(message);
-        await channelsPage.centerView.postCreate.input.focus();
-        await page.keyboard.press('ArrowUp');
+        const root = await userClient.createPost({channel_id: townSquare.id, message});
+
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
+        const editor = app.postEdit.editor.message.container;
+
+        // # Press Up arrow from the empty center message box
+        await app.center.postCreate.message.container.press('ArrowUp');
 
         // * Verify the edit box opens with the last message
-        await channelsPage.centerView.postEdit.toBeVisible();
-        await expect(channelsPage.centerView.postEdit.input).toHaveValue(message);
+        await expect(editor).toHaveValue(message);
 
         // # Close the edit box with Escape
-        await page.keyboard.press('Escape');
+        await editor.press('Escape');
 
         // * Verify the edit box closes and the post remains unchanged
-        await channelsPage.centerView.postEdit.toNotBeVisible();
-        await channelsPage.centerView.waitUntilLastPostContains(message);
+        await expect(editor).not.toBeVisible();
+        await expect(app.center.postList.post(root).message.container).toHaveText(message);
 
-        // # Open a thread on the last post and post a reply
-        const post = await channelsPage.getLastPost();
-        await post.reply();
-        await channelsPage.sidebarRight.toBeVisible();
+        // # Open a thread on the post and post a reply
+        const centerPost = app.center.postList.post(root);
+        await centerPost.container.hover();
+        await centerPost.menu.replyButton.click();
+        await expect(app.rhs.postCreate.message.container).toBeVisible();
         const reply = `reply shortcut ${pw.random.id()}`;
-        await channelsPage.sidebarRight.postMessage(reply);
-        await channelsPage.sidebarRight.toContainText(reply);
+        await app.rhs.postCreate.message.container.fill(reply);
+        await settle(app.rhs.postCreate.sendButton, {wait: Api.CreatePost}).click();
+        await expect.poll(async () => (await app.rhs.thread.postList.keys()).length).toBe(2);
+        const [, replyId] = await app.rhs.thread.postList.keys();
+        const replyPost = app.rhs.thread.post({id: replyId});
+        await expect(replyPost.message.container).toHaveText(reply);
 
         // # Press Up arrow from the empty thread reply box
-        await channelsPage.sidebarRight.postCreate.input.focus();
-        await page.keyboard.press('ArrowUp');
+        await app.rhs.postCreate.message.container.press('ArrowUp');
 
         // * Verify the thread edit box opens with the reply, then closes with Escape
-        await channelsPage.sidebarRight.postEdit.toBeVisible();
-        await expect(channelsPage.sidebarRight.postEdit.input).toHaveValue(reply);
-        await page.keyboard.press('Escape');
-        await channelsPage.sidebarRight.postEdit.toNotBeVisible();
+        await expect(editor).toHaveValue(reply);
+        await editor.press('Escape');
+        await expect(editor).not.toBeVisible();
 
         // * Verify the reply is still present after cancelling the edit
-        await channelsPage.sidebarRight.toContainText(reply);
+        await expect(replyPost.message.container).toHaveText(reply);
     },
 );
 
@@ -68,31 +70,33 @@ test(
     'MM-T1267 MM-T1268 composes and posts a code block using Shift+Enter for new lines',
     {tag: '@keyboard_shortcuts'},
     async ({pw}) => {
-        const {user, team} = await pw.initSetup();
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {user, team, townSquare} = await pw.initSetup();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
 
         // # Compose a fenced code block using Shift+Enter for new lines
         const code = `code ${pw.random.id()}`;
-        const input = channelsPage.centerView.postCreate.input;
+        const input = app.center.postCreate.message.container;
         await input.focus();
-        await input.pressSequentially('```');
-        await page.keyboard.press('Shift+Enter');
-        await input.pressSequentially(code);
-        await page.keyboard.press('Shift+Enter');
-        await input.pressSequentially('```');
+        await input.type('```');
+        await input.press('Shift+Enter');
+        await expect(input).toHaveValue('```\n');
+        await input.type(code);
+        await input.press('Shift+Enter');
+        await expect(input).toHaveValue(`\`\`\`\n${code}\n`);
+        await input.type('```');
 
         // * Verify Shift+Enter produced the multi-line fenced code block in the message box
         await expect(input).toHaveValue(`\`\`\`\n${code}\n\`\`\``);
 
         // # Post the code block (Enter inserts a newline inside a fenced block, so use the send button)
-        await channelsPage.centerView.postCreate.sendMessage();
+        await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+        await expect(input).toHaveValue('');
 
-        // * Verify the code block is posted with the code content and the fence markers consumed (rendered as a code block, not literal backticks)
-        await channelsPage.centerView.waitUntilLastPostContains(code);
-        const post = await channelsPage.getLastPost();
-        await post.toContainText(code);
-        await post.toNotContainText('```');
+        // * Verify the code block is posted with the code content and the fence markers consumed (rendered as a code
+        // block, not literal backticks)
+        const post = (await lastPost(app.center.postList)).message.container.locator;
+        await expect(post).toContainText(code);
+        await expect(post).not.toContainText('```');
     },
 );

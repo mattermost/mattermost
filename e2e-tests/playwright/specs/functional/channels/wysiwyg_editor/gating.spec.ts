@@ -3,7 +3,7 @@
 
 // These tests only toggle the per-user preference; the server flag is enabled below.
 
-import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost/playwright-lib';
+import {expect, setWysiwygUserPreference, test} from '@mattermost/playwright-lib';
 
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
@@ -12,37 +12,33 @@ test.beforeEach(async ({pw}) => {
 });
 
 test('MM-69305 WYSIWYG editor is not mounted when user preference is off', TAGS, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
+    const {user, team, offTopic} = await pw.initSetup();
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'off-topic');
-    await channelsPage.toBeVisible();
+    const {page, app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: offTopic});
 
-    await expect(channelsPage.centerView.postCreate.input).toHaveJSProperty('tagName', 'TEXTAREA');
+    await expect(app.center.postCreate.message.container).toHaveJSProperty('tagName', 'TEXTAREA');
     await expect(page.locator('.WysiwygEditor')).toHaveCount(0);
 });
 
 test('MM-69305 WYSIWYG editor mounts when the user preference is enabled', TAGS, async ({pw}) => {
-    const {user, userClient, team} = await pw.initSetup();
+    const {user, userClient, team, offTopic} = await pw.initSetup();
     await setWysiwygUserPreference(userClient, user.id, true);
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'off-topic');
-    await channelsPage.toBeVisible();
+    const {page, app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: offTopic});
 
-    const editor = new WysiwygEditor(page.getByTestId('post-create'));
-    await editor.toBeVisible();
+    await expect(app.center.postCreate.message.container).toBeVisible();
     await expect(page.locator('.WysiwygEditor .ProseMirror')).toHaveCount(1);
 });
 
 test('preference toggle in Advanced Settings switches between Markdown and Rich text', TAGS, async ({pw}) => {
-    const {user, team} = await pw.initSetup();
+    const {user, team, offTopic} = await pw.initSetup();
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'off-topic');
-    await channelsPage.toBeVisible();
+    const {channelsPage, page, app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: offTopic});
 
-    await expect(channelsPage.centerView.postCreate.input).toHaveJSProperty('tagName', 'TEXTAREA');
+    await expect(app.center.postCreate.message.container).toHaveJSProperty('tagName', 'TEXTAREA');
 
     const settings = await channelsPage.openSettings();
     await settings.advancedTab.click();

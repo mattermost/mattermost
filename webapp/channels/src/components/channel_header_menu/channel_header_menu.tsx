@@ -114,6 +114,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
             <Menu.Item
                 id={item.id + '_pluginmenuitem'}
                 key={item.id + '_pluginmenuitem'}
+                data-testid={`channel_header.menu.plugin:${item.pluginId}--menuitem`}
                 onClick={handlePluginItemClick}
                 labels={<span>{item.text}</span>}
             />
@@ -127,6 +128,7 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
             }}
             menuButton={{
                 id: 'channelHeaderDropdownButton',
+                testId: isMobile ? 'mobile_header.open_menu' : 'channel_header.open_menu',
                 class: classNames('channel-header__trigger style--none'),
                 children: (
                     <>
@@ -157,7 +159,10 @@ export default function ChannelHeaderMenu({dmUser, gmMembers, isMobile, archived
             }}
         >
             {canPopout() && !isChannelPopoutWindow() && (
-                <MenuItemOpenInNewWindow channel={channel}/>
+                <MenuItemOpenInNewWindow
+                    channel={channel}
+                    data-testid='channel_header.menu.open_in_new_window--menuitem'
+                />
             )}
             {isDirect && (
                 <ChannelDirectMenu

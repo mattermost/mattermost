@@ -52,6 +52,7 @@ const ChannelSettingsMenu = ({channel}: Props): JSX.Element | null => {
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.channel_settings--menuitem'
             id={'channelSettings'}
             labels={<FormattedMessage {...channelKindMessages.channelSettings[channelKind]}/>}
             onClick={handleOpenChannelSettings}

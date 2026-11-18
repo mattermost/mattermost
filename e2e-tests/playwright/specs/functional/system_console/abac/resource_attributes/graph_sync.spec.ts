@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, verifyUserInChannel} from '@mattermost/playwright-lib';
+import {expect, runCleanups, test, verifyUserInChannel} from '@mattermost/playwright-lib';
 
 import {
     createPrivateChannelForABAC,
@@ -23,7 +23,6 @@ import {
     setUserMultiselectValue as setUserOptionValue,
     skipIfNoGraphFields,
     triggerSyncJob,
-    type GraphHierarchy,
 } from './helpers';
 
 /**
@@ -57,6 +56,18 @@ import {
  * The editor half of the same feature is graph_operators.spec.ts.
  */
 test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac', '@abac_resource_attributes']}, () => {
+    // Fixtures this file created, torn down after each test. The access_control group
+    // allows at most 20 user-object fields, so a spec that leaks its fields eventually
+    // fails every later spec's setup rather than its own.
+    const cleanups: Array<() => Promise<void>> = [];
+
+    test.afterEach(async () => {
+        // Newest first, so a policy goes before the fields its rules reference: while
+        // attribute-value masking is on, deleting a policy whose field is already gone
+        // is refused outright and the policy can no longer be removed at all.
+        await runCleanups(cleanups);
+    });
+
     const airProgram = 'Air Program';
     const fighterJetProgram = 'Fighter Jet Program';
     const f18Program = 'F-18 Program';
@@ -81,81 +92,68 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         } as Parameters<typeof adminClient.patchConfig>[0]);
 
-        let hierarchy: GraphHierarchy | undefined;
-        let createdPolicyId: string | undefined;
-        let governedChannelId: string | undefined;
-        try {
-            hierarchy = await createLinkedGraphHierarchy(adminClient, `programs${pw.random.id()}`, programsHierarchy);
-            const optionIds = hierarchy.optionIds;
+        const hierarchy = await createLinkedGraphHierarchy(adminClient, `programs${pw.random.id()}`, programsHierarchy);
+        cleanups.push(() => deleteLinkedFieldTrio(adminClient, hierarchy));
+        const optionIds = hierarchy.optionIds;
 
-            // The channel discusses F-18. Each user below holds one program, or
-            // none, and coverage follows only from where that program sits.
-            const ancestorInChannel = await createUserForABAC(adminClient, {}, []); // {Air} — two levels above
-            const exactTeamOnly = await createUserForABAC(adminClient, {}, []); // {F-18} — the option itself
-            const siblingInChannel = await createUserForABAC(adminClient, {}, []); // {F-35} — same parent, no coverage
-            const untaggedInChannel = await createUserForABAC(adminClient, {}, []); // no value at all
-            await setUserOptionValue(adminClient, ancestorInChannel.id, hierarchy.userFieldId, [optionIds[airProgram]]);
-            await setUserOptionValue(adminClient, exactTeamOnly.id, hierarchy.userFieldId, [optionIds[f18Program]]);
-            await setUserOptionValue(adminClient, siblingInChannel.id, hierarchy.userFieldId, [optionIds[f35Program]]);
-            for (const u of [ancestorInChannel, exactTeamOnly, siblingInChannel, untaggedInChannel]) {
-                await adminClient.addToTeam(team.id, u.id);
-            }
-
-            const channel = await createPrivateChannelForABAC(adminClient, team.id);
-            await setChannelOptionValue(adminClient, channel.id, hierarchy.channelFieldId, [optionIds[f18Program]]);
-            await adminClient.addToChannel(ancestorInChannel.id, channel.id);
-            await adminClient.addToChannel(siblingInChannel.id, channel.id);
-            await adminClient.addToChannel(untaggedInChannel.id, channel.id);
-
-            const policyId = await createParentPolicyViaAPI(adminClient, {
-                name: `CoversAll ${pw.random.id()}`,
-                expression: `user.attributes.${hierarchy.userFieldName}.coversAll(resource.attributes.${hierarchy.channelFieldName})`,
-            });
-            createdPolicyId = policyId;
-            governedChannelId = channel.id;
-            await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
-
-            // Both lanes read attribute values from materialized views, and the
-            // sync job refreshes them itself before it reads anything, so a value
-            // written moments ago needs no settling time here.
-            await triggerSyncJob(adminClient, policyId);
-            await waitForPolicySyncJob(adminClient, policyId);
-
-            // SQL sync lane. The ancestor holder covers F-18 and stays; the
-            // sibling holder does not and is removed; the covering team-only user
-            // is auto-added, since an active private-channel policy pulls in
-            // matching team members.
-            expect(await verifyUserInChannel(adminClient, ancestorInChannel.id, channel.id)).toBe(true);
-            expect(await verifyUserInChannel(adminClient, siblingInChannel.id, channel.id)).toBe(false);
-            expect(await verifyUserInChannel(adminClient, exactTeamOnly.id, channel.id)).toBe(true);
-
-            // Holding nothing covers nothing. Removed either way — whether the
-            // engine reads it as an empty set of held options or as the referenced
-            // attribute being missing for that user, both fail closed.
-            expect(await verifyUserInChannel(adminClient, untaggedInChannel.id, channel.id)).toBe(false);
-
-            // Runtime PDP lane agrees with the sync verdict on the same fixtures. Remove
-            // the covering user first: adding someone who is already a member returns the
-            // existing membership without consulting the policy, so the add has to be a
-            // real join for the grant to be under test at all.
-            await adminClient.removeFromChannel(exactTeamOnly.id, channel.id);
-            await adminClient.addToChannel(exactTeamOnly.id, channel.id);
-            expect(await verifyUserInChannel(adminClient, exactTeamOnly.id, channel.id)).toBe(true);
-
-            try {
-                await adminClient.addToChannel(siblingInChannel.id, channel.id);
-            } catch {
-                // expected: the runtime PDP denies the user holding only a sibling
-            }
-            expect(await verifyUserInChannel(adminClient, siblingInChannel.id, channel.id)).toBe(false);
-        } finally {
-            if (createdPolicyId) {
-                await deleteParentPolicy(adminClient, createdPolicyId, governedChannelId ? [governedChannelId] : []);
-            }
-            if (hierarchy) {
-                await deleteLinkedFieldTrio(adminClient, hierarchy);
-            }
+        // The channel discusses F-18. Each user below holds one program, or
+        // none, and coverage follows only from where that program sits.
+        const ancestorInChannel = await createUserForABAC(adminClient, {}, []); // {Air} — two levels above
+        const exactTeamOnly = await createUserForABAC(adminClient, {}, []); // {F-18} — the option itself
+        const siblingInChannel = await createUserForABAC(adminClient, {}, []); // {F-35} — same parent, no coverage
+        const untaggedInChannel = await createUserForABAC(adminClient, {}, []); // no value at all
+        await setUserOptionValue(adminClient, ancestorInChannel.id, hierarchy.userFieldId, [optionIds[airProgram]]);
+        await setUserOptionValue(adminClient, exactTeamOnly.id, hierarchy.userFieldId, [optionIds[f18Program]]);
+        await setUserOptionValue(adminClient, siblingInChannel.id, hierarchy.userFieldId, [optionIds[f35Program]]);
+        for (const u of [ancestorInChannel, exactTeamOnly, siblingInChannel, untaggedInChannel]) {
+            await adminClient.addToTeam(team.id, u.id);
         }
+
+        const channel = await createPrivateChannelForABAC(adminClient, team.id);
+        await setChannelOptionValue(adminClient, channel.id, hierarchy.channelFieldId, [optionIds[f18Program]]);
+        await adminClient.addToChannel(ancestorInChannel.id, channel.id);
+        await adminClient.addToChannel(siblingInChannel.id, channel.id);
+        await adminClient.addToChannel(untaggedInChannel.id, channel.id);
+
+        const policyId = await createParentPolicyViaAPI(adminClient, {
+            name: `CoversAll ${pw.random.id()}`,
+            expression: `user.attributes.${hierarchy.userFieldName}.coversAll(resource.attributes.${hierarchy.channelFieldName})`,
+        });
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
+        await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
+
+        // Both lanes read attribute values from materialized views, and the
+        // sync job refreshes them itself before it reads anything, so a value
+        // written moments ago needs no settling time here.
+        await triggerSyncJob(adminClient, policyId);
+        await waitForPolicySyncJob(adminClient, policyId);
+
+        // SQL sync lane. The ancestor holder covers F-18 and stays; the
+        // sibling holder does not and is removed; the covering team-only user
+        // is auto-added, since an active private-channel policy pulls in
+        // matching team members.
+        expect(await verifyUserInChannel(adminClient, ancestorInChannel.id, channel.id)).toBe(true);
+        expect(await verifyUserInChannel(adminClient, siblingInChannel.id, channel.id)).toBe(false);
+        expect(await verifyUserInChannel(adminClient, exactTeamOnly.id, channel.id)).toBe(true);
+
+        // Holding nothing covers nothing. Removed either way — whether the
+        // engine reads it as an empty set of held options or as the referenced
+        // attribute being missing for that user, both fail closed.
+        expect(await verifyUserInChannel(adminClient, untaggedInChannel.id, channel.id)).toBe(false);
+
+        // Runtime PDP lane agrees with the sync verdict on the same fixtures. Remove
+        // the covering user first: adding someone who is already a member returns the
+        // existing membership without consulting the policy, so the add has to be a
+        // real join for the grant to be under test at all.
+        await adminClient.removeFromChannel(exactTeamOnly.id, channel.id);
+        await adminClient.addToChannel(exactTeamOnly.id, channel.id);
+        expect(await verifyUserInChannel(adminClient, exactTeamOnly.id, channel.id)).toBe(true);
+
+        // The runtime PDP denies the user holding only a sibling
+        await expect(adminClient.addToChannel(siblingInChannel.id, channel.id)).rejects.toMatchObject({
+            status_code: 403,
+        });
+        expect(await verifyUserInChannel(adminClient, siblingInChannel.id, channel.id)).toBe(false);
     });
 
     test('a member is removed once their value stops covering the channel', async ({pw}) => {
@@ -170,50 +168,38 @@ test.describe('ABAC resource.attributes - graph hierarchy sync', {tag: ['@abac',
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         } as Parameters<typeof adminClient.patchConfig>[0]);
 
-        let hierarchy: GraphHierarchy | undefined;
-        let createdPolicyId: string | undefined;
-        let governedChannelId: string | undefined;
-        try {
-            hierarchy = await createLinkedGraphHierarchy(adminClient, `programs${pw.random.id()}`, programsHierarchy);
-            const optionIds = hierarchy.optionIds;
+        const hierarchy = await createLinkedGraphHierarchy(adminClient, `programs${pw.random.id()}`, programsHierarchy);
+        cleanups.push(() => deleteLinkedFieldTrio(adminClient, hierarchy));
+        const optionIds = hierarchy.optionIds;
 
-            // Starts one level above the channel's program, so the member covers it.
-            const member = await createUserForABAC(adminClient, {}, []);
-            await setUserOptionValue(adminClient, member.id, hierarchy.userFieldId, [optionIds[fighterJetProgram]]);
-            await adminClient.addToTeam(team.id, member.id);
+        // Starts one level above the channel's program, so the member covers it.
+        const member = await createUserForABAC(adminClient, {}, []);
+        await setUserOptionValue(adminClient, member.id, hierarchy.userFieldId, [optionIds[fighterJetProgram]]);
+        await adminClient.addToTeam(team.id, member.id);
 
-            const channel = await createPrivateChannelForABAC(adminClient, team.id);
-            await setChannelOptionValue(adminClient, channel.id, hierarchy.channelFieldId, [optionIds[f18Program]]);
-            await adminClient.addToChannel(member.id, channel.id);
+        const channel = await createPrivateChannelForABAC(adminClient, team.id);
+        await setChannelOptionValue(adminClient, channel.id, hierarchy.channelFieldId, [optionIds[f18Program]]);
+        await adminClient.addToChannel(member.id, channel.id);
 
-            const policyId = await createParentPolicyViaAPI(adminClient, {
-                name: `CoversAll Regression ${pw.random.id()}`,
-                expression: `user.attributes.${hierarchy.userFieldName}.coversAll(resource.attributes.${hierarchy.channelFieldName})`,
-            });
-            createdPolicyId = policyId;
-            governedChannelId = channel.id;
-            await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
+        const policyId = await createParentPolicyViaAPI(adminClient, {
+            name: `CoversAll Regression ${pw.random.id()}`,
+            expression: `user.attributes.${hierarchy.userFieldName}.coversAll(resource.attributes.${hierarchy.channelFieldName})`,
+        });
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
+        await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
 
-            // A sync while the member still covers keeps them: the removal below
-            // then has to be the value change, not the policy merely existing.
-            await triggerSyncJob(adminClient, policyId);
-            await waitForPolicySyncJob(adminClient, policyId);
-            expect(await verifyUserInChannel(adminClient, member.id, channel.id)).toBe(true);
+        // A sync while the member still covers keeps them: the removal below
+        // then has to be the value change, not the policy merely existing.
+        await triggerSyncJob(adminClient, policyId);
+        await waitForPolicySyncJob(adminClient, policyId);
+        expect(await verifyUserInChannel(adminClient, member.id, channel.id)).toBe(true);
 
-            // Move them sideways in the hierarchy — still tagged, still in the same
-            // hierarchy, no longer at or above what the channel holds.
-            await setUserOptionValue(adminClient, member.id, hierarchy.userFieldId, [optionIds[f35Program]]);
+        // Move them sideways in the hierarchy — still tagged, still in the same
+        // hierarchy, no longer at or above what the channel holds.
+        await setUserOptionValue(adminClient, member.id, hierarchy.userFieldId, [optionIds[f35Program]]);
 
-            await triggerSyncJob(adminClient, policyId);
-            await waitForPolicySyncJob(adminClient, policyId);
-            expect(await verifyUserInChannel(adminClient, member.id, channel.id)).toBe(false);
-        } finally {
-            if (createdPolicyId) {
-                await deleteParentPolicy(adminClient, createdPolicyId, governedChannelId ? [governedChannelId] : []);
-            }
-            if (hierarchy) {
-                await deleteLinkedFieldTrio(adminClient, hierarchy);
-            }
-        }
+        await triggerSyncJob(adminClient, policyId);
+        await waitForPolicySyncJob(adminClient, policyId);
+        expect(await verifyUserInChannel(adminClient, member.id, channel.id)).toBe(false);
     });
 });

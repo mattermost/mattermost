@@ -55,7 +55,7 @@ describe('components/submenu_modal', () => {
         screen.getByText('Text B');
         screen.getByText('Text C');
 
-        await userEvent.click(view.getByTestId('SubMenuModalBody'));
+        await userEvent.click(view.getByTestId('submenu_modal'));
 
         await waitForElementToBeRemoved(() => screen.getByText('Text A'));
         expect(screen.queryAllByText('Text B').length).toBe(0);
@@ -87,7 +87,7 @@ describe('components/submenu_modal', () => {
         );
 
         // Trigger modal close by clicking the body
-        await userEvent.click(screen.getByTestId('SubMenuModalBody'));
+        await userEvent.click(screen.getByTestId('submenu_modal'));
 
         await waitFor(() => {
             expect(baseProps.onExited).toHaveBeenCalledTimes(1);

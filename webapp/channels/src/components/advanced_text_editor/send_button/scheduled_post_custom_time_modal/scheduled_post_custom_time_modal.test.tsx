@@ -144,8 +144,9 @@ describe('ScheduledPostCustomTimeModal', () => {
         expect(await screen.findByText('Invalid scheduled at time.')).toBeInTheDocument();
         expect(onExited).not.toHaveBeenCalled();
 
-        await userEvent.click(screen.getByTestId('time_button'));
-        await userEvent.click(await screen.findByTestId('time_option_0'));
+        await userEvent.click(screen.getByTestId('date_time_picker_modal.when.time--button'));
+        const [firstTime] = await screen.findAllByTestId(/^date_time_picker_modal\.when\.time_menu\.time:\d{4}--menuitem$/);
+        await userEvent.click(firstTime);
 
         await waitFor(() => expect(screen.queryByText('Invalid scheduled at time.')).not.toBeInTheDocument());
     });

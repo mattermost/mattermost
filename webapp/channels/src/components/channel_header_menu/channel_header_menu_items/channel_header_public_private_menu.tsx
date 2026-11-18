@@ -167,7 +167,10 @@ const ChannelHeaderPublicMenu = ({channel, user, isMuted, isDefault, isMobile, i
             )}
 
             <Menu.Separator/>
-            <ChannelMoveToSubMenu channel={channel}/>
+            <ChannelMoveToSubMenu
+                channel={channel}
+                testIdScope='channel_header.menu'
+            />
             {!isMobile && (
                 <MenuItemPluginItems pluginItems={pluginItems}/>
             )}

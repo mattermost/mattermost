@@ -121,9 +121,7 @@ function OptionMenu({field, value, disabled, onChange}: Props) {
          */
         const normalised = entries.map((entry) => resolveOption(field, entry)?.id ?? entry);
 
-        const next = isSelected(option) ?
-            normalised.filter((entry) => entry !== option.id) :
-            [...normalised, option.id];
+        const next = isSelected(option) ? normalised.filter((entry) => entry !== option.id) : [...normalised, option.id];
 
         onChange(field.id, next);
     };
@@ -143,7 +141,7 @@ function OptionMenu({field, value, disabled, onChange}: Props) {
         <Menu.Container
             menuButton={{
                 id: `postAttributeValueTrigger-${field.id}`,
-                dataTestId: `post-attribute-trigger-${field.name}`,
+                dataTestId: 'post_attributes_modal.attribute.value--button',
                 class: 'PostAttributesModalRow__trigger',
                 disabled,
                 'aria-label': label,
@@ -156,6 +154,7 @@ function OptionMenu({field, value, disabled, onChange}: Props) {
             }}
             menu={{
                 id: `postAttributeValueMenu-${field.id}`,
+                testId: 'post_attributes_modal.attribute.value_menu',
                 'aria-label': label,
             }}
         >
@@ -166,6 +165,7 @@ function OptionMenu({field, value, disabled, onChange}: Props) {
                     <Menu.Item
                         key={option.id}
                         id={`postAttributeOption-${field.id}-${option.id}`}
+                        data-testid={`post_attributes_modal.attribute.value_menu.option:${option.id}--menuitem`}
 
                         // `menuitemradio`/`menuitemcheckbox` rather than
                         // `menuitem`: the check mark is state, not decoration. The
@@ -221,7 +221,7 @@ function TextInput({field, value, disabled, onChange}: Props) {
         <input
             id={`postAttributeValueInput-${field.id}`}
             name={`postAttributeValueInput-${field.name}`}
-            data-testid={`post-attribute-input-${field.name}`}
+            data-testid='post_attributes_modal.attribute.value_input--textbox'
             type='text'
             className='PostAttributesModalRow__input'
             value={draft}
@@ -353,7 +353,7 @@ function UserPicker({field, value, disabled, onChange}: Props) {
     return (
         <div
             className='PostAttributesModalRow__users'
-            data-testid={`post-attribute-user-${field.name}`}
+            data-testid='post_attributes_modal.attribute.users'
             onKeyDownCapture={handleKeyDownCapture}
             onBlur={handleBlur}
         >

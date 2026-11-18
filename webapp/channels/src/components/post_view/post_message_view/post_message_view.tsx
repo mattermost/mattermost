@@ -36,6 +36,8 @@ type Props = {
     options?: TextFormattingOptions; /* Options specific to text formatting */
     compactDisplay?: boolean; /* Set to render post body compactly */
     isRHS?: boolean; /* Flags if the post_message_view is for the RHS (Reply). */
+    testId?: string; /* The message renders `${testId}--text`, and so does a deleted post's placeholder. */
+    testIdScope?: string; /* The post's testid scope: the "Edited" label and a report card render under it. */
     theme: Theme; /* Logged in user's theme */
     pluginPostTypes?: {
         [postType: string]: PostPluginComponent;
@@ -102,7 +104,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
 
     renderDeletedPost() {
         return (
-            <p>
+            <p data-testid={this.props.testId ? `${this.props.testId}--text` : undefined}>
                 <FormattedMessage
                     id='post_body.deleted'
                     defaultMessage='(message deleted)'
@@ -173,7 +175,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                 <div
                     id={id}
                     className='post-message__text'
-                    data-testid='post-message-text'
+                    data-testid={this.props.testId ? `${this.props.testId}--text` : undefined}
                     dir='auto'
                     onClick={this.handleFormattedTextClick}
                 >
@@ -184,6 +186,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                         post={post}
                         channelId={post.channel_id}
                         showPostEditedIndicator={this.props.showPostEditedIndicator}
+                        testIdScope={this.props.testIdScope}
                         isRHS={isRHS}
                         disableInteractions={disableInteractions}
                     />
@@ -211,6 +214,7 @@ export default class PostMessageView extends React.PureComponent<Props, State> {
                 text={message}
                 overflowType={overflowType}
                 maxHeight={maxHeight}
+                testId={this.props.testId}
             >
                 {body}
             </ShowMore>

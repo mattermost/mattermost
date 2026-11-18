@@ -24,6 +24,9 @@ export type SuggestionListContentsProps = {
     onItemClick: (term: string, matchedPretext: string) => void;
     onItemHover: (term: string) => void;
     onMouseDown?: () => void;
+
+    // The list's scope: each row is `<testId>.suggestion:<term>--option`, keyed by the term it inserts (`@jane.doe`, `~town-square`, `:smile:`, `/away`).
+    testId?: string;
 };
 
 const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListContentsProps>(({
@@ -39,10 +42,16 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
     onItemClick,
     onItemHover,
     onMouseDown,
+    testId,
 }, ref) => {
     function renderItem(item: unknown, term: string, Component: React.ElementType<any>) {
         if (!isItemLoaded(item)) {
-            return <LoadingSpinner key={term}/>;
+            return (
+                <LoadingSpinner
+                    key={term}
+                    testId={testId ? `${testId}.loading` : undefined}
+                />
+            );
         }
 
         const itemRef = setItemRef ? (ref: HTMLElement) => setItemRef(term, ref) : undefined;
@@ -57,6 +66,7 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
                 isSelection={selectedTerm === term}
                 onClick={onItemClick}
                 onMouseMove={onItemHover}
+                {...(testId ? {'data-testid': `${testId}.suggestion:${term}--option`} : {})}
             />
         );
     }
@@ -64,6 +74,7 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
     if ('groups' in results) {
         const contents = [];
 
+        let groupPosition = 0;
         for (const group of results.groups) {
             if (group.items.length === 0) {
                 continue;
@@ -77,7 +88,9 @@ const SuggestionListContents = React.forwardRef<HTMLElement, SuggestionListConte
                 <GroupedSuggestionsGroup
                     key={group.key}
                     groupKey={group.key}
+                    position={groupPosition++}
                     labelMessage={group.label}
+                    testId={testId}
                 >
                     {items}
                 </GroupedSuggestionsGroup>,
@@ -207,12 +220,18 @@ GroupedSuggestions.displayName = 'GroupedSuggestions';
 function GroupedSuggestionsGroup({
     children,
     groupKey,
+    position,
     labelMessage,
+    testId,
 }: {
     children: React.ReactNode;
     groupKey: string | undefined;
+    position: number;
     labelMessage?: MessageDescriptor | string;
+
+    testId?: string;
 }) {
+    const groupTestId = testId && groupKey ? `${testId}.group:${position}` : undefined;
     const labelId = `suggestionListGroup-${groupKey}`;
 
     // If no label is provided, render the group without a header
@@ -220,6 +239,7 @@ function GroupedSuggestionsGroup({
         return (
             <ul
                 role='group'
+                data-testid={groupTestId}
             >
                 {children}
             </ul>
@@ -230,6 +250,7 @@ function GroupedSuggestionsGroup({
         <ul
             role='group'
             aria-labelledby={labelId}
+            data-testid={groupTestId}
         >
             <li
                 id={labelId}

@@ -79,7 +79,7 @@ describe('Settings > Display > Channel Display Mode', () => {
         // * Validate if the post content in center channel is full width
         // by checking the exact class name.
         cy.get('#postListContent').should('be.visible');
-        cy.findAllByTestId('postContent').
+        cy.findAllByTestId('center.post_list.post.content').
             first().
             should('have.class', 'post__content').
             and('not.have.class', 'center');
@@ -122,7 +122,7 @@ describe('Settings > Display > Channel Display Mode', () => {
         // * Validate if the post content in center channel is fixed and centered
         // by checking the exact class name.
         cy.get('#postListContent').should('be.visible');
-        cy.findAllByTestId('postContent').
+        cy.findAllByTestId('center.post_list.post.content').
             first().
             should('have.class', 'post__content center');
     });

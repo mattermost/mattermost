@@ -204,7 +204,7 @@ describe('Guest Account - Guest User Experience', () => {
                 cy.findByText('Back').should('be.visible').click();
 
                 // * Verify if user is redirected to a valid channel
-                cy.findByTestId('post_textbox').should('be.visible');
+                cy.findByTestId('center.post_create.message--textbox').should('be.visible');
             });
         });
     });

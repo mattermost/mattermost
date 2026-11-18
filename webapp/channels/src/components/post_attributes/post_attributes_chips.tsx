@@ -39,9 +39,11 @@ const MAX_VISIBLE_CHIPS = 2;
 type Props = {
     post: Post;
     channel?: Channel;
+
+    testIdScope?: string;
 };
 
-function PostAttributesChips({post, channel}: Props) {
+function PostAttributesChips({post, channel, testIdScope}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const fields = usePostAttributeFields(channel);
@@ -107,11 +109,11 @@ function PostAttributesChips({post, channel}: Props) {
         return (
             <div
                 className='PostAttributesChips'
-                data-testid='post-attributes-chips-unavailable'
+                data-testid={testIdScope ? `${testIdScope}.attributes_unavailable` : undefined}
             >
                 <span
                     className='PostAttributesChips__unavailable'
-                    data-testid='post-attributes-unavailable'
+                    data-testid={testIdScope ? `${testIdScope}.attributes_unavailable.message--text` : undefined}
                 >
                     <FormattedMessage
                         id='post_attributes.chips.unavailable'
@@ -131,7 +133,7 @@ function PostAttributesChips({post, channel}: Props) {
         <>
             <div
                 className='PostAttributesChips'
-                data-testid='post-attributes-chips'
+                data-testid={testIdScope ? `${testIdScope}.attributes` : undefined}
                 ref={refs.setReference}
                 {...getReferenceProps()}
             >
@@ -141,6 +143,7 @@ function PostAttributesChips({post, channel}: Props) {
                         field={field}
                         value={value}
                         maxItems={maxItems}
+                        testIdScope={testIdScope ? `${testIdScope}.attributes.value` : undefined}
                     />
                 ))}
                 {overflow > 0 && (
@@ -154,7 +157,7 @@ function PostAttributesChips({post, channel}: Props) {
                      */
                     <span
                         className='PostAttributesChips__overflow'
-                        data-testid='post-attributes-overflow'
+                        data-testid={testIdScope ? `${testIdScope}.attributes.overflow--img` : undefined}
                         role='img'
                         aria-label={formatMessage(
                             {
@@ -180,7 +183,7 @@ function PostAttributesChips({post, channel}: Props) {
                         ref={refs.setFloating}
                         className='PostAttributesHoverCard__anchor'
                         style={floatingStyles}
-                        data-testid='post-attributes-card'
+                        data-testid='post_attributes_card'
                         {...getFloatingProps()}
                     >
                         <PostAttributesHoverCard
@@ -202,7 +205,7 @@ function PostAttributesChips({post, channel}: Props) {
  * length changes. The hover card resolves it through the same hook, so the two
  * surfaces cannot name the same channel differently.
  */
-function PostAttributeChip({field, value, maxItems}: {field: PropertyField; value: PropertyValue<unknown>; maxItems?: number}) {
+function PostAttributeChip({field, value, maxItems, testIdScope}: {field: PropertyField; value: PropertyValue<unknown>; maxItems?: number; testIdScope?: string}) {
     const metadata = usePropertyValueMetadata(field, value);
 
     return (
@@ -211,6 +214,7 @@ function PostAttributeChip({field, value, maxItems}: {field: PropertyField; valu
             value={value}
             metadata={metadata}
             maxItems={maxItems}
+            testIdScope={testIdScope}
         />
     );
 }

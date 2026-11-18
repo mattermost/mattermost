@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PropertyField} from '@mattermost/types/properties';
-
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
@@ -190,9 +188,8 @@ export function insertToken(template: string, at: number, token: string): {templ
 }
 
 // Token name plus the label to show for it. Callers decide which attributes to offer.
-export function tokenSuggestions(attributes: ResolvedChannelAttribute[]): Array<{field: PropertyField; name: string; label: string; value: string}> {
+export function tokenSuggestions(attributes: ResolvedChannelAttribute[]): Array<{name: string; label: string; value: string}> {
     return attributes.map((attribute) => ({
-        field: attribute.field,
         name: attribute.field.name,
         label: getPropertyFieldLabel(attribute.field),
 

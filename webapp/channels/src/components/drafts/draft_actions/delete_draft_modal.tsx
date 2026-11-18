@@ -43,6 +43,7 @@ function DeleteDraftModal({
 
     return (
         <GenericModal
+            testId='delete_draft_modal'
             confirmButtonText={confirmButtonText}
             destructive={true}
             handleCancel={noop}

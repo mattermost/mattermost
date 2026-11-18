@@ -32,6 +32,7 @@ const ConvertGMtoPrivate = ({channel}: Props): JSX.Element => {
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.convert_to_channel--menuitem'
             id='convertGMPrivateChannel'
             onClick={handleConvertToPrivate}
             labels={

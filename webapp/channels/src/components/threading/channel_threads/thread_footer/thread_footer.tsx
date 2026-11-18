@@ -32,11 +32,14 @@ import './thread_footer.scss';
 type Props = {
     threadId: UserThread['id'];
     replyClick?: React.EventHandler<React.MouseEvent>;
+
+    testIdScope?: string;
 };
 
 function ThreadFooter({
     threadId,
     replyClick,
+    testIdScope,
 }: Props) {
     const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
@@ -85,7 +88,7 @@ function ThreadFooter({
     return (
         <div
             className='ThreadFooter'
-            data-testid='thread-footer'
+            data-testid={testIdScope}
         >
             {!isFollowing || threadIsSynthetic(thread) || !thread.unread_replies ? (
                 <div className='indicator'/>
@@ -112,6 +115,7 @@ function ThreadFooter({
                 <Avatars
                     userIds={participantIds}
                     size='sm'
+                    testIdScope={testIdScope ? `${testIdScope}.participants` : undefined}
                 />
             ) : null}
 
@@ -119,7 +123,7 @@ function ThreadFooter({
                 <Button
                     onClick={handleReply}
                     className='ReplyButton separated'
-                    data-testid='thread-footer-reply-button'
+                    data-testid={testIdScope ? `${testIdScope}.reply--button` : undefined}
                     prepend={
                         <span className='icon'>
                             <i className='icon-reply-outline'/>
@@ -138,6 +142,7 @@ function ThreadFooter({
                 isFollowing={isFollowing}
                 className='separated'
                 onClick={handleFollowing}
+                testId={testIdScope ? `${testIdScope}.follow` : undefined}
             />
 
             {Boolean(lastReplyAt) && (

@@ -102,7 +102,7 @@ describe('components/drafts/drafts_link', () => {
         renderWithRouter(state);
 
         expect(screen.getByText('Drafts')).toBeInTheDocument();
-        expect(screen.getByTestId('draftIcon')).toBeInTheDocument();
+        expect(screen.getByTestId('lhs.drafts.draft_badge--text')).toBeInTheDocument();
     });
 
     it('should render when scheduled posts exist', () => {
@@ -121,7 +121,7 @@ describe('components/drafts/drafts_link', () => {
         renderWithRouter(state);
 
         expect(screen.getByText('Drafts')).toBeInTheDocument();
-        expect(screen.getByTestId('scheduledPostIcon')).toBeInTheDocument();
+        expect(screen.getByTestId('lhs.drafts.scheduled_post_badge--text')).toBeInTheDocument();
     });
 
     it('should not show scheduled posts badge when scheduled posts are disabled', () => {
@@ -144,7 +144,7 @@ describe('components/drafts/drafts_link', () => {
 
         renderWithRouter(state);
 
-        expect(screen.queryByTestId('scheduledPostIcon')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('lhs.drafts.scheduled_post_badge--text')).not.toBeInTheDocument();
     });
 
     it('should not show scheduled posts badge when not licensed', () => {
@@ -167,7 +167,7 @@ describe('components/drafts/drafts_link', () => {
 
         renderWithRouter(state);
 
-        expect(screen.queryByTestId('scheduledPostIcon')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('lhs.drafts.scheduled_post_badge--text')).not.toBeInTheDocument();
     });
 
     it('should show error indicator when scheduled posts have errors', () => {
@@ -188,7 +188,7 @@ describe('components/drafts/drafts_link', () => {
 
         renderWithRouter(state);
 
-        const badge = screen.getByTestId('scheduledPostIcon').closest('.scheduledPostBadge');
+        const badge = screen.getByTestId('lhs.drafts.scheduled_post_badge--text');
         expect(badge).toHaveClass('persistent');
     });
 

@@ -15,7 +15,7 @@ import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
 
 import type {Props} from './index';
 
-const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
+const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, postOwner, post, canEdit, actions, testId}: Props): JSX.Element | null => {
     const {formatMessage, formatDate, formatTime} = useIntl();
 
     if (!postId || editedAt === 0) {
@@ -77,21 +77,24 @@ const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, po
         }
     };
 
+    const opensHistory = Boolean(postOwner && canEdit);
     const editedIndicatorContent = (
         <span
             id={`postEdited_${postId}`}
             className='post-edited__indicator'
             data-post-id={postId}
             data-edited-at={editedAt}
+            data-testid={testId && !opensHistory ? `${testId}--text` : undefined}
         >
             <PencilOutlineIcon size={12}/>
             {editedText}
         </span>
     );
 
-    const editedIndicator = (postOwner && canEdit) ? (
+    const editedIndicator = opensHistory ? (
         <button
             className={'style--none'}
+            data-testid={testId ? `${testId}_history--button` : undefined}
             tabIndex={0}
             onClick={showPostEditHistory}
             onKeyUp={handleKeyPress}

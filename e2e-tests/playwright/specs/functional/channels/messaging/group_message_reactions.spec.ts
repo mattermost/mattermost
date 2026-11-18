@@ -7,43 +7,48 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @objective Verify a reaction can be added to a group message post and its action visibility adapts between desktop and mobile layouts.
  */
 test('MM-T471 add a reaction to a message in a GM', {tag: '@messaging'}, async ({pw}) => {
-    const {adminClient, team, user} = await pw.initSetup();
+    const {adminClient, team, user, userClient} = await pw.initSetup();
     const members = await adminClient.createUsers(team.id, 2, 'gm-reaction');
-    const groupChannel = await adminClient.createGroupChannel([user.id, ...members.map((member) => member.id)]);
+    const groupChannel = await userClient.createGroupChannel([user.id, ...members.map((member) => member.id)]);
+    const post = await userClient.createPost({channel_id: groupChannel.id, message: 'This is a post'});
 
-    // # Open the group message and post a message
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.gotoMessage(team.name, groupChannel.name);
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage('This is a post');
-    const post = await channelsPage.getLastPost();
+    // # Open the group message
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, path: 'messages', channel: groupChannel});
+    const item = app.center.postList.post(post);
+    // the "+" beside the post's reactions (the post menu has its own)
+    const addReaction = item.reactions.addButton;
 
-    // # Open the post reaction picker and choose slightly frowning face
-    await post.openReactionPicker();
-    await channelsPage.reactionEmojiPicker.clickEmoji('slightly frowning face');
+    // # Open the post's reaction picker and choose slightly frowning face
+    await item.container.hover();
+    await item.menu.addReactionButton.clickTo(app.emojiPicker.searchTextbox);
+    await app.emojiPicker.searchTextbox.fill('slightly_frowning');
+    await app.emojiPicker.systemEmoji('slightly_frowning_face').click();
 
-    // * Verify the reaction is visible with a count of one
-    await post.toHaveReaction('slightly_frowning_face', 1);
-    const {addReactionButton} = post;
+    // * The reaction shows with a count of one, and the server has it
+    await expect(item.reactions.reaction(0)).toContainText('1');
+    await expect
+        .poll(async () => (await userClient.getReactionsForPost(post.id)).map((r) => r.emoji_name))
+        .toEqual(['slightly_frowning_face']);
 
-    // # Click the channel intro, then focus the message input to clear post focus
-    await channelsPage.centerView.channelIntro.click();
-    await channelsPage.centerView.postCreate.input.click();
+    // # Click the channel intro, then the message box, to move focus off the post
+    await app.channelHeader.openMenuButton.hover();
+    await app.center.postCreate.message.container.focus();
 
-    // * Verify the Add Reaction action is hidden when the desktop post is not hovered
-    await expect(addReactionButton).not.toBeVisible();
+    // * The Add Reaction action is hidden while the post isn't hovered
+    await expect(addReaction).not.toBeVisible();
 
-    // # Hover the post, then focus the message input again
-    await post.hover();
-    await expect(addReactionButton).toBeVisible();
-    await channelsPage.centerView.postCreate.input.click();
+    // # Hover the post, then focus the message box again
+    await item.container.hover();
+    await expect(addReaction).toBeVisible();
+    await app.center.postCreate.message.container.focus();
 
-    // * Verify the Add Reaction action is hidden again
-    await expect(addReactionButton).not.toBeVisible();
+    // * The Add Reaction action is hidden again
+    await expect(addReaction).not.toBeVisible();
 
     // # Resize the window to a mobile viewport
     await page.setViewportSize({width: 375, height: 667});
 
-    // * Verify the Add Reaction action is visible in the mobile layout
-    await expect(addReactionButton).toBeVisible();
+    // * The Add Reaction action is visible in the mobile layout
+    await expect(addReaction).toBeVisible();
 });

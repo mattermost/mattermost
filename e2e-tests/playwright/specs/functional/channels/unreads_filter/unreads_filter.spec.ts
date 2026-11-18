@@ -8,7 +8,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test('unreads filter will show and hide unread channels', {tag: ['@smoke', '@filters']}, async ({pw}) => {
     // # Create a user with only one team
-    const {adminClient, user, team} = await pw.initSetup();
+    const {adminClient, user, team, townSquare} = await pw.initSetup();
 
     // # Create 10 channels in the team
     const channelPromises = [];
@@ -45,37 +45,37 @@ test('unreads filter will show and hide unread channels', {tag: ['@smoke', '@fil
     await Promise.all(postPromises);
 
     // # Log in as the user
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: townSquare});
 
-    // # Visit a default channel page
-    await channelsPage.goto(team.name);
-    await channelsPage.toBeVisible();
+    // The sidebar link's accessible name ends in "unread", or "N mention(s)" (being added to a channel mentions
+    // you), while the channel has unread messages
+    const unread = / (unread|\d+ mentions?)$/;
+    const link = (channel: (typeof channels)[number]) => app.lhs.channelList.channel(channel).container.locator;
 
-    // * Verify the unreads filter is OFF initially
-    expect(await channelsPage.sidebarLeft.isUnreadsFilterActive()).toBe(false);
-
-    // * Verify all 10 test channels are initially unread
-    const initialUnreadChannels = channelsPage.sidebarLeft.getUnreadChannels();
-    await expect(initialUnreadChannels).toHaveCount(10);
-
-    // # Visit 5 channels to mark them as read
-    for (let i = 0; i < 5; i++) {
-        await channelsPage.sidebarLeft.goToItem(channels[i].name);
+    // * Verify the filter is off: all ten channels are listed, and all are unread
+    for (const channel of channels) {
+        await expect(link(channel)).toHaveAccessibleName(unread);
     }
 
-    // # Enable the unreads filter
-    await channelsPage.sidebarLeft.toggleUnreadsFilter();
-
-    // Verify the filter is now active
-    expect(await channelsPage.sidebarLeft.isUnreadsFilterActive()).toBe(true);
-
-    // * Verify 5 channels remain unread
-    const unreadChannels = channelsPage.sidebarLeft.getUnreadChannels();
-    await expect(unreadChannels).toHaveCount(5);
-
-    // * Verify the read channels are NOT visible in sidebar when filter is active (expect the currently open channel)
-    for (let i = 0; i < 4; i++) {
-        const channelLink = channelsPage.sidebarLeft.container.locator(`#sidebarItem_${channels[i].name}`);
-        await expect(channelLink).not.toBeVisible();
+    // # Visit the first five channels
+    for (const channel of channels.slice(0, 5)) {
+        await app.lhs.channelList.channel(channel).container.click();
+        await expect(app.channelHeader.openMenuButton).toContainText(channel.display_name);
+        await expect(app.channelHeader.openMenuButton).toContainText(channel.display_name);
     }
+
+    // # Turn on the unreads filter
+    await app.lhs.header.unreadsFilterToggleButton.setPressed();
+
+    // * Verify the five unread channels are still listed
+    for (const channel of channels.slice(5)) {
+        await expect(link(channel)).toHaveAccessibleName(unread);
+    }
+
+    // * Verify the read channels are hidden, except the one being viewed
+    for (const channel of channels.slice(0, 4)) {
+        await expect(link(channel)).not.toBeVisible();
+    }
+    await expect(link(channels[4])).toBeVisible();
 });

@@ -21,6 +21,8 @@ type Props = {
     persistentNotifications?: PostPriorityMetadata['persistent_notifications'];
     priority?: PostPriorityMetadata['priority'];
     requestedAck?: PostPriorityMetadata['requested_ack'];
+
+    testIdScope?: string;
 };
 
 function PriorityLabels({
@@ -31,15 +33,20 @@ function PriorityLabels({
     persistentNotifications,
     priority,
     requestedAck,
+    testIdScope,
 }: Props) {
     const intl = useIntl();
 
     return (
-        <div className='priorityLabelsContainer'>
+        <div
+            className='priorityLabelsContainer'
+            data-testid={testIdScope}
+        >
             {priority && (
                 <PriorityLabel
                     size='xs'
                     priority={priority}
+                    testId={testIdScope ? `${testIdScope}.priority` : undefined}
                 />
             )}
             {persistentNotifications && (
@@ -49,11 +56,17 @@ function PriorityLabels({
                         defaultMessage: 'Persistent notifications will be sent',
                     })}
                 >
-                    <span className='icon icon-bell-ring-outline'/>
+                    <span
+                        className='icon icon-bell-ring-outline'
+                        data-testid={testIdScope ? `${testIdScope}.persistent_notifications` : undefined}
+                    />
                 </WithTooltip>
             )}
             {requestedAck && (
-                <div className={classNames('priorityLabelsAcknowledgements', {hasError})}>
+                <div
+                    className={classNames('priorityLabelsAcknowledgements', {hasError})}
+                    data-testid={testIdScope ? `${testIdScope}.acknowledgement` : undefined}
+                >
                     <WithTooltip
                         title={intl.formatMessage({
                             id: 'post_priority.request_acknowledgement.tooltip',
@@ -85,6 +98,7 @@ function PriorityLabels({
                     <button
                         className='priorityLabelsClose close'
                         onClick={onRemove}
+                        data-testid={testIdScope ? `${testIdScope}.remove--button` : undefined}
                     >
                         <span aria-hidden='true'>{'×'}</span>
                         <span className='sr-only'>

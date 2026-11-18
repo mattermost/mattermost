@@ -55,7 +55,7 @@ describe('MM-13064 - Emoji picker keyboard usability', () => {
             should('have.value', 'smil');
 
         cy.get('.emoji-picker__item.selected').should('exist').within(() => {
-            cy.findByTestId('smile').should('exist');
+            cy.root().filter('[data-testid="emoji_picker.system_emoji:smile--button"]').find('img').should('exist');
         });
         cy.get('.emoji-picker__preview').should('have.text', ':smile:');
 
@@ -66,7 +66,7 @@ describe('MM-13064 - Emoji picker keyboard usability', () => {
             type('{rightarrow}').
             should('have.value', 'smil');
         cy.get('.emoji-picker__item.selected').should('exist').within(() => {
-            cy.findByTestId('smile_cat').should('exist');
+            cy.root().filter('[data-testid="emoji_picker.system_emoji:smile_cat--button"]').find('img').should('exist');
         });
         cy.get('.emoji-picker__preview').should('have.text', ':smile_cat:');
     });

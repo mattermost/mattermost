@@ -179,6 +179,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                 variant={'info'}
                 text={notificationText}
                 id={'forward_post'}
+                testId='forward_post_modal.notification'
             />
         );
     }
@@ -261,6 +262,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
         <GenericModal
             className='a11y__modal forward-post'
             id='forward-post-modal'
+            testId='forward_post_modal'
             show={true}
             autoCloseOnConfirmButton={false}
             compassDesign={true}
@@ -313,6 +315,7 @@ const ForwardPostModal = ({onExited, post}: Props) => {
                         onClick={preventActionOnPreview}
                     >
                         <PostMessagePreview
+                            testIdScope='forward_post_modal.preview'
                             metadata={previewMetaData}
                             handleFileDropdownOpened={noop}
                             preventClickAction={true}

@@ -294,6 +294,7 @@ function Row({index, style, data: {scheduledPosts, userDisplayName, currentUser,
             >
                 <DraftRow
                     key={scheduledPost.id}
+                    position={index}
                     item={scheduledPost}
                     displayName={userDisplayName}
                     user={currentUser}

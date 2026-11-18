@@ -28,13 +28,17 @@ const Header = ({channel, isMobile, onClose}: Props) => {
     const {formatMessage} = useIntl();
 
     return (
-        <div className='sidebar--right__header'>
+        <div
+            className='sidebar--right__header'
+            data-testid='rhs.channel_info.header'
+        >
             <span className='sidebar--right__title'>
                 {isMobile && (
                     <WithTooltip title={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}>
                         <IconButton
                             size='small'
                             className='sidebar--right__back'
+                            data-testid='rhs.channel_info.header.back--button'
                             icon={<Icon glyph={<ArrowBackIosIcon/>}/>}
                             onClick={onClose}
                             aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
@@ -53,6 +57,7 @@ const Header = ({channel, isMobile, onClose}: Props) => {
                     {channel.display_name &&
                     <span
                         className='style--none sidebar--right__title__subtitle'
+                        data-testid='rhs.channel_info.header.channel_name'
                     >
                         {channel.display_name}
                     </span>
@@ -70,6 +75,7 @@ const Header = ({channel, isMobile, onClose}: Props) => {
             >
                 <IconButton
                     id='rhsCloseButton'
+                    data-testid='rhs.channel_info.header.close--button'
                     size='small'
                     className='sidebar--right__close'
                     icon={<Icon glyph={<CloseIcon/>}/>}

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {AlreadyExistsError, Attribute, Change, Client} from 'ldapts';
+import {AlreadyExistsError, Attribute, Change, Client, NoSuchObjectError} from 'ldapts';
 import {test} from '@playwright/test';
 import type {AdminConfig} from '@mattermost/types/config';
 
@@ -106,6 +106,17 @@ export async function deleteLdapUser(username: string): Promise<void> {
     await withAdminClient(async (client) => {
         await client.del(`uid=${username},${ORG_UNIT_DN}`);
     });
+}
+
+/** Deletes the user; one that is already gone is fine, any other failure is not. */
+export async function deleteLdapUserIfPresent(username: string): Promise<void> {
+    try {
+        await deleteLdapUser(username);
+    } catch (error) {
+        if (!(error instanceof NoSuchObjectError)) {
+            throw error;
+        }
+    }
 }
 
 // In `testcontainers` mode the Mattermost server is itself a container on the Testcontainers network, so it

@@ -85,4 +85,26 @@ describe('components/widgets/menu/menu_items/submenu_item', () => {
         instance.handleKeyDown({keyCode: Constants.KeyCodes.RIGHT[1]} as any);
         expect(instance.show).toHaveBeenCalled();
     });
+
+    test('a slot id names the menuitem while its existing control keeps keyboard behavior', async () => {
+        const action = jest.fn();
+        renderWithContext(
+            <ul role='menu'>
+                <SubMenuItem
+                    id='plugin'
+                    text='Plugin action'
+                    slotTestId='host.plugin:p--menuitem'
+                    action={action}
+                />
+            </ul>,
+        );
+        const item = screen.getByTestId('host.plugin:p--menuitem');
+        expect(item).toHaveAttribute('role', 'menuitem');
+        expect(item).not.toHaveAttribute('tabindex');
+        const control = screen.getByRole('button', {name: 'Plugin action submenu icon'});
+        expect(item).toContainElement(control);
+        control.focus();
+        await userEvent.keyboard('{Enter}');
+        expect(action).toHaveBeenCalledTimes(1);
+    });
 });

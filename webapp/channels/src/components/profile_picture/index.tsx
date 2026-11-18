@@ -27,6 +27,9 @@ type Props = {
     overwriteName?: string;
     newStatusIcon?: boolean;
     statusClass?: string;
+
+    // The avatar's wrapper; without it, no testid.
+    testId?: string;
 };
 
 function ProfilePicture(props: Props) {
@@ -60,7 +63,7 @@ function ProfilePicture(props: Props) {
                 <>
                     <span
                         className={profileIconClass}
-                        data-testid='profile-icon'
+                        data-testid={props.testId}
                     >
                         <Avatar
                             username={props.username}
@@ -68,7 +71,10 @@ function ProfilePicture(props: Props) {
                             url={props.src}
                         />
                     </span>
-                    <StatusIcon status={props.status}/>
+                    <StatusIcon
+                        status={props.status}
+                        testId={props.testId ? `${props.testId}.status` : undefined}
+                    />
                 </>
             </ProfilePopover>
         );
@@ -80,7 +86,7 @@ function ProfilePicture(props: Props) {
         >
             <span
                 className={profileIconClass}
-                data-testid='profile-icon'
+                data-testid={props.testId}
             >
                 <Avatar
                     size={props?.size ?? 'md'}
@@ -93,7 +99,10 @@ function ProfilePicture(props: Props) {
                     status={props.status}
                 />
             ) : (
-                <StatusIcon status={props.status}/>
+                <StatusIcon
+                    status={props.status}
+                    testId={props.testId ? `${props.testId}.status` : undefined}
+                />
             )}
         </span>
     );

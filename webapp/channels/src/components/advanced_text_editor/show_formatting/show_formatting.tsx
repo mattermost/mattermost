@@ -14,11 +14,13 @@ import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_
 interface ShowFormatProps {
     onClick: (event: React.MouseEvent) => void;
     active: boolean;
+
+    testId?: string;
 }
 
 const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
     const {formatMessage} = useIntl();
-    const {onClick, active} = props;
+    const {onClick, active, testId} = props;
     const buttonAriaLabel = formatMessage({id: 'accessibility.button.preview', defaultMessage: 'preview'});
     const iconAriaLabel = formatMessage({id: 'generic_icons.preview', defaultMessage: 'Eye Icon'});
 
@@ -34,6 +36,7 @@ const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
         >
             <IconButton
                 id='PreviewInputTextButton'
+                data-testid={testId ? `${testId}--button` : undefined}
                 size='small'
                 onClick={onClick}
                 aria-label={buttonAriaLabel}

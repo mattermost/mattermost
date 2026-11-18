@@ -27,12 +27,14 @@ type Props = {
      */
     options?: Partial<TextFormattingOptions>;
 
+    testIdScope?: string;
 };
 
 const EmbeddedBindings = ({
     embeds,
     post,
     options,
+    testIdScope,
 }: Props) => (
     <div
         id={`messageAttachmentList_${post.id}`}
@@ -44,6 +46,7 @@ const EmbeddedBindings = ({
                 post={post}
                 key={'att_' + i}
                 options={options}
+                testIdScope={testIdScope}
             />
         ))}
     </div>

@@ -355,6 +355,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
     it('should render selected fields when not in RHS', async () => {
         renderWithContext(
             <DataSpillageReport
+                testIdScope='rhs.thread.post.spillage_report'
                 post={post}
                 isRHS={false}
             />,
@@ -364,34 +365,35 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
         await act(async () => {});
 
         // validate title
-        const title = screen.queryByTestId('property-card-title');
+        const title = screen.queryByTestId('rhs.thread.post.spillage_report.card.title--text');
         expect(title).toBeVisible();
         expect(title).toHaveTextContent('@reporting_user submitted a message for review');
 
-        expect(screen.queryAllByTestId('property-card-row')).toHaveLength(4);
+        expect(screen.queryAllByTestId(/^rhs\.thread\.post\.spillage_report\.card\.field:/)).toHaveLength(4);
 
-        expect(screen.queryAllByTestId('select-property')).toHaveLength(2);
+        expect(screen.queryAllByTestId('rhs.thread.post.spillage_report.card.field.value.select--text')).toHaveLength(2);
 
-        const statusFieldValue = screen.queryAllByTestId('select-property')[0];
+        const statusFieldValue = screen.queryAllByTestId('rhs.thread.post.spillage_report.card.field.value.select--text')[0];
         expect(statusFieldValue).toHaveTextContent('Pending');
 
-        const reasonFieldValue = screen.queryAllByTestId('select-property')[1];
+        const reasonFieldValue = screen.queryAllByTestId('rhs.thread.post.spillage_report.card.field.value.select--text')[1];
         expect(reasonFieldValue).toHaveTextContent('Classification mismatch');
 
-        const postPreview = screen.queryByTestId('post-preview-property');
+        const postPreview = screen.queryByTestId('rhs.thread.post.spillage_report.card.field.value.post_preview');
         expect(postPreview).toBeVisible();
         expect(postPreview).toHaveTextContent('Hello, world!');
 
-        const assignee = screen.queryByTestId('selectable-user-property');
+        const assignee = screen.queryByTestId('rhs.thread.post.spillage_report.card.field.value.selectable_user');
         expect(assignee).toBeVisible();
 
         // actions are not visible when not in RHS
-        expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('rhs.thread.post.spillage_report.actions')).not.toBeInTheDocument();
     });
 
     it('should render all fields when in RHS', async () => {
         renderWithContext(
             <DataSpillageReport
+                testIdScope='rhs.thread.post.spillage_report'
                 post={post}
                 isRHS={true}
             />,
@@ -400,36 +402,36 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
         await act(async () => {});
 
-        const flaggedBy = screen.queryAllByTestId('user-property')[0];
+        const flaggedBy = screen.queryAllByTestId('rhs.thread.post.spillage_report.card.field.value.user')[0];
         expect(flaggedBy).toBeVisible();
         expect(flaggedBy).toHaveTextContent('reporting_user');
 
-        const postId = screen.queryAllByTestId('text-property')[0];
+        const postId = screen.queryAllByTestId('rhs.thread.post.spillage_report.card.field.value.text--text')[0];
         expect(postId).toBeVisible();
         expect(postId).toHaveTextContent(reportedPost.id);
 
-        const comment = screen.queryAllByTestId('text-property')[1];
+        const comment = screen.queryAllByTestId('rhs.thread.post.spillage_report.card.field.value.text--text')[1];
         expect(comment).toBeVisible();
         expect(comment).toHaveTextContent('Please review this post for potential violations');
 
-        const channel = screen.queryByTestId('channel-property');
+        const channel = screen.queryByTestId('rhs.thread.post.spillage_report.card.field.value.channel');
         expect(channel).toBeVisible();
         expect(channel).toHaveTextContent('reported-post-channel');
 
-        const team = screen.queryByTestId('team-property');
+        const team = screen.queryByTestId('rhs.thread.post.spillage_report.card.field.value.team');
         expect(team).toBeVisible();
         expect(team).toHaveTextContent('Reported Post Team');
 
-        const reportedAt = screen.queryAllByTestId('timestamp-property')[0];
+        const reportedAt = screen.queryAllByTestId('rhs.thread.post.spillage_report.card.field.value.timestamp--text')[0];
         expect(reportedAt).toBeVisible();
 
-        const postedAt = screen.queryAllByTestId('timestamp-property')[1];
+        const postedAt = screen.queryAllByTestId('rhs.thread.post.spillage_report.card.field.value.timestamp--text')[1];
         expect(postedAt).toBeVisible();
 
         // actions are visible when in RHS
-        expect(screen.queryByTestId('data-spillage-action')).toBeVisible();
-        expect(screen.queryByTestId('data-spillage-action-remove-message')).toBeVisible();
-        expect(screen.queryByTestId('data-spillage-action-keep-message')).toBeVisible();
+        expect(screen.queryByTestId('rhs.thread.post.spillage_report.actions')).toBeVisible();
+        expect(screen.queryByTestId('rhs.thread.post.spillage_report.actions.remove--button')).toBeVisible();
+        expect(screen.queryByTestId('rhs.thread.post.spillage_report.actions.keep--button')).toBeVisible();
     });
 
     it('should render in short mode in the global threads view even when isRHS is true', async () => {
@@ -437,6 +439,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
         renderWithContext(
             <DataSpillageReport
+                testIdScope='rhs.thread.post.spillage_report'
                 post={post}
                 isRHS={true}
             />,
@@ -446,22 +449,23 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
         await act(async () => {});
 
-        const card = screen.getByTestId('data-spillage-report');
+        const card = screen.getByTestId('rhs.thread.post.spillage_report');
         expect(card).toHaveClass('mode_short');
         expect(card).not.toHaveClass('mode_full');
 
         // short mode renders only the short field set
-        expect(screen.queryAllByTestId('property-card-row')).toHaveLength(4);
+        expect(screen.queryAllByTestId(/^rhs\.thread\.post\.spillage_report\.card\.field:/)).toHaveLength(4);
 
         // action rows are gated on mode === 'full', so they must not render here
-        expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('data-spillage-action-download-report')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('data-spillage-exposure-report')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('rhs.thread.post.spillage_report.actions')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('rhs.thread.post.spillage_report.download_report.download--button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('rhs.thread.post.spillage_report.exposure_report')).not.toBeInTheDocument();
     });
 
     it('renders the exposure report row above the report row in RHS mode', async () => {
         renderWithContext(
             <DataSpillageReport
+                testIdScope='rhs.thread.post.spillage_report'
                 post={post}
                 isRHS={true}
             />,
@@ -470,15 +474,14 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
         await act(async () => {});
 
-        const exposureRow = screen.getByTestId('data-spillage-exposure-report-row');
+        const exposureRow = screen.getByTestId('rhs.thread.post.spillage_report.card.action:exposure_report');
         expect(exposureRow).toBeVisible();
         expect(exposureRow).toHaveTextContent('Exposure report');
 
-        const exposureButton = screen.getByTestId('data-spillage-action-download-exposure-report');
+        const exposureButton = screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button');
         expect(exposureButton).toHaveTextContent('Download exposure report');
 
-        // eslint-disable-next-line no-bitwise
-        const reportFollowsExposure = exposureButton.compareDocumentPosition(screen.getByTestId('data-spillage-action-download-report')) & Node.DOCUMENT_POSITION_FOLLOWING;
+        const reportFollowsExposure = exposureButton.compareDocumentPosition(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button')) & Node.DOCUMENT_POSITION_FOLLOWING;
         expect(reportFollowsExposure).toBeTruthy();
     });
 
@@ -497,6 +500,7 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
             renderWithContext(
                 <DataSpillageReport
+                    testIdScope='rhs.thread.post.spillage_report'
                     post={post}
                     isRHS={true}
                 />,
@@ -505,19 +509,19 @@ describe('components/post_view/data_spillage_report/DataSpillageReport', () => {
 
             await act(async () => {});
 
-            expect(screen.getByTestId('data-spillage-action-download-report')).toBeVisible();
-            expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Download Report');
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button')).toBeVisible();
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button')).toHaveTextContent('Download Report');
 
             // the exposure report is downloadable in every status, including once the review is closed
-            expect(screen.getByTestId('data-spillage-exposure-report-row')).toBeVisible();
-            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toBeVisible();
-            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toHaveTextContent('Download exposure report');
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.card.action:exposure_report')).toBeVisible();
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button')).toBeVisible();
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button')).toHaveTextContent('Download exposure report');
 
             // the Remove/Keep actions, in contrast, are only offered while the review is open
             if (reviewIsOpen) {
-                expect(screen.queryByTestId('data-spillage-action')).toBeVisible();
+                expect(screen.queryByTestId('rhs.thread.post.spillage_report.actions')).toBeVisible();
             } else {
-                expect(screen.queryByTestId('data-spillage-action')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('rhs.thread.post.spillage_report.actions')).not.toBeInTheDocument();
             }
         });
     });

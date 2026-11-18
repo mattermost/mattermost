@@ -308,6 +308,8 @@ export interface RewriteSubMenuHeaderProps {
     onCustomPromptKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => void;
     onCancelProcessing: () => void;
     customPromptRef: React.RefObject<HTMLInputElement | null>;
+
+    testIdScope?: string;
 }
 
 export function RewriteSubMenuHeader({
@@ -322,6 +324,7 @@ export function RewriteSubMenuHeader({
     onCustomPromptKeyDown,
     onCancelProcessing,
     customPromptRef,
+    testIdScope,
 }: RewriteSubMenuHeaderProps) {
     const {formatMessage} = useIntl();
     const defaultAgent = useSelector(getDefaultAgent);
@@ -362,6 +365,7 @@ export function RewriteSubMenuHeader({
                     defaultBotId={defaultAgent?.id}
                     disabled={isProcessing}
                     showLabel={true}
+                    testIdScope={testIdScope ? `${testIdScope}.agent` : undefined}
                 />
             )}
             {isProcessing &&
@@ -392,6 +396,7 @@ export function RewriteSubMenuHeader({
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
                     onKeyDown={onCustomPromptKeyDown}
+                    testId={testIdScope ? `${testIdScope}.prompt` : undefined}
                 />
             }
         </div>

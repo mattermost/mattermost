@@ -17,12 +17,13 @@ describe('components/post_view/new_message_separator', () => {
     test('should render new_message_separator', () => {
         renderWithContext(
             <NewMessageSeparator
+                testId='test.new_messages'
                 {...baseProps}
             />,
         );
 
         const newMessage = screen.getByText('New Messages');
-        const separator = screen.getByTestId('NotificationSeparator');
+        const separator = screen.getByTestId('test.new_messages');
 
         expect(newMessage).toBeInTheDocument();
         expect(newMessage).toHaveClass('separator__text');
@@ -34,6 +35,7 @@ describe('components/post_view/new_message_separator', () => {
     testPluginComponentErrorHandling((pluginComponent) => {
         renderWithContext(
             <NewMessageSeparator
+                testId='test.new_messages'
                 {...baseProps}
                 newMessagesSeparatorActions={[pluginComponent]}
             />,

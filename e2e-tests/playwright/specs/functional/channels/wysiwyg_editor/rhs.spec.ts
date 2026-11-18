@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost/playwright-lib';
+import {expect, postWith, test} from '@mattermost/playwright-lib';
+
+import {expectDocument, expectRich, lastPostText, openRichComposer, pasteRich, sendRich, typeRich} from './support';
 
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
@@ -10,31 +12,32 @@ test.describe('WYSIWYG editor - RHS reply composer', TAGS, () => {
         await pw.ensureFeatureFlag('WysiwygEditor', true);
     });
 
+    /**
+     * @objective Verify the thread's reply composer is the rich-text editor too.
+     */
     test('WYSIWYG replaces the classic composer in the RHS thread', async ({pw}) => {
-        const {user, userClient, team} = await pw.initSetup();
-        await setWysiwygUserPreference(userClient, user.id, true);
+        const app = await openRichComposer(pw, await pw.initSetup());
+        const composer = app.center.postCreate;
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
-        await channelsPage.toBeVisible();
+        // # Post a root message and open its thread
+        const rootText = `thread-root ${pw.random.id()}`;
+        await typeRich(composer, rootText);
+        await sendRich(composer);
+        const root = await postWith(app.center.postList, {text: rootText});
+        await root.container.hover();
+        await root.menu.replyButton.clickTo(app.rhs.postCreate);
 
-        const rootEditor = new WysiwygEditor(page.getByTestId('post-create'));
-        await rootEditor.postMessage(`thread-root ${pw.random.id()}`);
-        const root = await channelsPage.getLastPost();
-        await root.reply();
-        await channelsPage.sidebarRight.toBeVisible();
+        // * Verify the reply composer is the rich-text editor
+        const reply = app.rhs.postCreate;
+        await expectRich(reply);
 
-        const rhsEditor = new WysiwygEditor(page.locator('#sidebar-right').getByTestId('comment-create'), true);
-        await rhsEditor.toBeVisible();
+        // # Reply with markdown. Paste, not type: opening a thread briefly re-focuses the center composer, which
+        // would split a slow per-keystroke type between the two.
+        await pasteRich(reply, 'wysiwyg reply **bold**');
+        await expectDocument(reply, /<strong>bold<\/strong>/);
+        await sendRich(reply);
 
-        // pasteText, not type(): opening a thread briefly re-focuses the
-        // center composer, splitting a slow per-keystroke type between panes.
-        await rhsEditor.pasteText('wysiwyg reply **bold**');
-        await expect(rhsEditor.input.locator('strong')).toHaveText('bold');
-
-        await rhsEditor.sendByButton();
-        const lastReply = await channelsPage.sidebarRight.getLastPost();
-        await lastReply.toContainText('wysiwyg reply');
-        await lastReply.toContainText('bold');
+        // * Verify the reply posted in the thread
+        await expect.poll(() => lastPostText(app.rhs.thread)).toMatch(/wysiwyg reply.*bold/);
     });
 });

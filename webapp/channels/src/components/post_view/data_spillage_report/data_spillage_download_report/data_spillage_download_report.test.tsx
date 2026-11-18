@@ -27,7 +27,6 @@ describe('DataSpillageDownloadReport', () => {
         URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-url');
         URL.revokeObjectURL = jest.fn();
 
-        // eslint-disable-next-line no-console
         console.error = jest.fn();
     });
 
@@ -37,18 +36,28 @@ describe('DataSpillageDownloadReport', () => {
     });
 
     test('renders idle Download Report button', () => {
-        renderWithContext(<DataSpillageDownloadReport flaggedPostId={flaggedPostId}/>);
+        renderWithContext((
+            <DataSpillageDownloadReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.download_report'
+            />
+        ));
 
-        const button = screen.getByTestId('data-spillage-action-download-report');
+        const button = screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button');
         expect(button).toBeVisible();
         expect(button).toHaveTextContent('Download Report');
         expect(button).not.toBeDisabled();
     });
 
     test('click triggers download and returns to idle on success', async () => {
-        renderWithContext(<DataSpillageDownloadReport flaggedPostId={flaggedPostId}/>);
+        renderWithContext((
+            <DataSpillageDownloadReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.download_report'
+            />
+        ));
 
-        await userEvent.click(screen.getByTestId('data-spillage-action-download-report'));
+        await userEvent.click(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button'));
 
         await waitFor(() => {
             expect(Client4.generateFlaggedPostReport).toHaveBeenCalledWith(
@@ -65,19 +74,24 @@ describe('DataSpillageDownloadReport', () => {
 
         // Returns to idle state
         await waitFor(() => {
-            expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Download Report');
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button')).toHaveTextContent('Download Report');
         });
     });
 
     test('shows error state when request rejects', async () => {
         Client4.generateFlaggedPostReport = jest.fn().mockRejectedValue(new Error('boom'));
 
-        renderWithContext(<DataSpillageDownloadReport flaggedPostId={flaggedPostId}/>);
+        renderWithContext((
+            <DataSpillageDownloadReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.download_report'
+            />
+        ));
 
-        await userEvent.click(screen.getByTestId('data-spillage-action-download-report'));
+        await userEvent.click(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button'));
 
         await waitFor(() => {
-            expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Generation failed. Try again.');
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button')).toHaveTextContent('Generation failed. Try again.');
         });
         expect(URL.createObjectURL).not.toHaveBeenCalled();
     });
@@ -90,15 +104,20 @@ describe('DataSpillageDownloadReport', () => {
         });
         Client4.generateFlaggedPostReport = jest.fn().mockReturnValue(requestPromise);
 
-        const {unmount} = renderWithContext(<DataSpillageDownloadReport flaggedPostId={flaggedPostId}/>);
+        const {unmount} = renderWithContext((
+            <DataSpillageDownloadReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.download_report'
+            />
+        ));
 
-        await userEvent.click(screen.getByTestId('data-spillage-action-download-report'));
+        await userEvent.click(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button'));
 
         // While generating, button is disabled and shows generating label
         await waitFor(() => {
-            expect(screen.getByTestId('data-spillage-action-download-report')).toHaveTextContent('Generating report…');
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button')).toHaveTextContent('Generating report…');
         });
-        expect(screen.getByTestId('data-spillage-action-download-report')).toBeDisabled();
+        expect(screen.getByTestId('rhs.thread.post.spillage_report.download_report.download--button')).toBeDisabled();
 
         unmount();
 

@@ -17,6 +17,8 @@ type Props = {
 
     /** Called with the new value whenever the selection changes. */
     onChange: (value: string) => void;
+
+    testIdScope?: string;
 };
 
 const markdownOptions = {mentionHighlight: false};
@@ -25,11 +27,13 @@ const Radio = ({
     setting,
     value,
     onChange,
+    testIdScope,
 }: Props) => {
     return (
         <fieldset
             key={setting.name}
             className='radio-option-list'
+            data-testid={testIdScope ? `${testIdScope}.setting:${setting.name}` : undefined}
         >
             <legend className='form-legend hidden-label'>
                 {setting.title || setting.name}
@@ -42,6 +46,7 @@ const Radio = ({
                         option={option}
                         selectedValue={value}
                         onSelected={onChange}
+                        testIdScope={testIdScope ? `${testIdScope}.setting` : undefined}
                     />
                 ))}
             </div>

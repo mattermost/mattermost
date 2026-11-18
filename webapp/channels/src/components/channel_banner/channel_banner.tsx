@@ -33,9 +33,11 @@ const markdownRenderingOptions: Partial<TextFormattingOptions> = {
 
 type Props = {
     channelId: string;
+
+    testIdScope?: string;
 };
 
-export default function ChannelBanner({channelId}: Props) {
+export default function ChannelBanner({channelId, testIdScope}: Props) {
     const channelBannerInfo = useSelector((state: GlobalState) => getChannelBanner(state, channelId));
     const license = useSelector(getLicense);
     const licenseEnabled = isMinimumEnterpriseAdvancedLicense(license);
@@ -47,9 +49,7 @@ export default function ChannelBanner({channelId}: Props) {
     const classificationBanner = useChannelClassificationBanner(channelId);
 
     // Classification property value takes priority over native banner_info
-    const effectiveBanner: ChannelBanner | undefined = classificationBanner.hasClassification ?
-        classificationBanner.classificationBanner :
-        channelBannerInfo;
+    const effectiveBanner: ChannelBanner | undefined = classificationBanner.hasClassification ? classificationBanner.classificationBanner : channelBannerInfo;
 
     const showBanner = classificationBanner.hasClassification || showNativeBanner;
 
@@ -128,11 +128,11 @@ export default function ChannelBanner({channelId}: Props) {
         >
             <div
                 className='channel_banner'
-                data-testid='channel_banner_container'
+                data-testid={testIdScope}
                 style={channelBannerStyle}
             >
                 <span
-                    data-testid='channel_banner_text'
+                    data-testid={testIdScope ? `${testIdScope}.text--text` : undefined}
                     className='channel_banner_text'
                     aria-label={channelBannerTextAriaLabel}
                     style={channelBannerTextStyle}

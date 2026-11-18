@@ -16,9 +16,8 @@ test('MM-T568 Channel Notifications turn off Ignore mentions for @channel, @here
     await adminClient.addToChannel(sender.id, channelA.id);
 
     // # Open channel notification preferences and turn off ignore mentions
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channelA.name);
-    await channelsPage.toBeVisible();
+    const {app, channelsPage} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channelA.name});
     const notificationPreferences = await channelsPage.openChannelNotificationPreferences();
     if (await notificationPreferences.ignoreMentionsCheckbox.isChecked()) {
         await notificationPreferences.ignoreMentionsCheckbox.uncheck();
@@ -31,11 +30,15 @@ test('MM-T568 Channel Notifications turn off Ignore mentions for @channel, @here
     await adminClient.updateStatus({user_id: user.id, status: 'online'});
     await channelsPage.sidebarLeft.goToItem(channelB.name);
     await channelsPage.centerView.header.toHaveTitle(channelB.display_name);
-    await adminClient.createPost({channel_id: channelA.id, user_id: sender.id, message: '@all test'});
-    await adminClient.createPost({channel_id: channelA.id, user_id: sender.id, message: '@channel test'});
-    await adminClient.createPost({channel_id: channelA.id, user_id: sender.id, message: '@here test'});
+    const mentionCount = async () => (await adminClient.getChannelMember(channelA.id, user.id)).mention_count;
+    const messages = ['@all test', '@channel test', '@here test'];
+    for (const [i, message] of messages.entries()) {
+        await pw.postAs(sender, {channel_id: channelA.id, message});
+        await expect
+            .poll(mentionCount, {message: `the server counts "${message}" as a mention before the next post`})
+            .toBe(i + 1);
+    }
 
-    // * Verify the channel is unread and counts all 3 channel-wide mentions exactly
-    await channelsPage.sidebarLeft.assertItemUnread(channelA.name);
-    await expect(channelsPage.sidebarLeft.unreadMentionsBadge(channelA.name)).toHaveText('3');
+    // * Verify the channel's mention badge counts all 3 channel-wide mentions exactly
+    await expect(app.lhs.channelList.channel(channelA).mentionBadgeText.locator).toHaveText('3');
 });

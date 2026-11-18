@@ -30,13 +30,13 @@ describe('DataSpillageFooter', () => {
         renderWithContext(
             <DataSpillageFooter
                 post={post}
-                flaggedPostID='flaggedPostID'
+                testIdScope='rhs.thread.post.spillage_report.footer'
             />,
         );
 
-        expect(screen.getByTestId('data-spillage-footer')).toBeVisible();
+        expect(screen.getByTestId('rhs.thread.post.spillage_report.footer')).toBeVisible();
         expect(
-            screen.getByTestId('data-spillage-action-view-details_flaggedPostID'),
+            screen.getByTestId('rhs.thread.post.spillage_report.footer.view_details--button'),
         ).toBeVisible();
         expect(screen.getByText('View details')).toBeVisible();
     });
@@ -50,11 +50,11 @@ describe('DataSpillageFooter', () => {
         renderWithContext(
             <DataSpillageFooter
                 post={post}
-                flaggedPostID='flaggedPostID'
+                testIdScope='rhs.thread.post.spillage_report.footer'
             />,
         );
 
-        const viewDetailsButton = screen.getByTestId('data-spillage-action-view-details_flaggedPostID');
+        const viewDetailsButton = screen.getByTestId('rhs.thread.post.spillage_report.footer.view_details--button');
         await userEvent.click(viewDetailsButton);
 
         expect(mockedSelectPostFromRightHandSideSearch).toHaveBeenCalledTimes(1);

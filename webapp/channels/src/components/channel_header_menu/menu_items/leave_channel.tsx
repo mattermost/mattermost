@@ -49,6 +49,7 @@ const LeaveChannel = ({
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.leave_channel--menuitem'
             id={id}
             leadingElement={<LogoutVariantIcon size='18px'/>}
             onClick={handleLeave}

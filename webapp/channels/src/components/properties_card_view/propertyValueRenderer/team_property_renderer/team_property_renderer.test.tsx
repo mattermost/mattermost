@@ -35,21 +35,36 @@ describe('TeamPropertyRenderer', () => {
         const props = cloneDeep(defaultProps);
         props.metadata.team = mockTeam;
 
-        renderWithContext(<TeamPropertyRenderer {...props}/>, state);
+        renderWithContext(
 
-        expect(screen.getByTestId('team-property')).toBeVisible();
+            <TeamPropertyRenderer
+
+                {...props}
+
+                testIdScope='x.card.field.value'
+
+            />,
+
+            state,
+
+        );
+
+        expect(screen.getByTestId('x.card.field.value.team')).toBeVisible();
         expect(screen.getByText('Test Team')).toBeVisible();
 
-        expect(screen.queryByTestId('teamIconInitial')).toBeVisible();
+        expect(screen.queryByTestId('x.card.field.value.team.initials--img')).toBeVisible();
     });
 
     test('should render deleted team message when team does not exist', () => {
         renderWithContext(
-            <TeamPropertyRenderer {...defaultProps}/>,
+            <TeamPropertyRenderer
+                {...defaultProps}
+                testIdScope='x.card.field.value'
+            />,
             state,
         );
 
-        expect(screen.getByTestId('team-property')).toBeVisible();
+        expect(screen.getByTestId('x.card.field.value.team')).toBeVisible();
         expect(screen.getByText(/Deleted team ID: team-id-123/)).toBeInTheDocument();
         expect(screen.queryByText('Test Team')).not.toBeInTheDocument();
     });
@@ -70,11 +85,14 @@ describe('TeamPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TeamPropertyRenderer {...propsWithEmptyId}/>,
+            <TeamPropertyRenderer
+                {...propsWithEmptyId}
+                testIdScope='x.card.field.value'
+            />,
             state,
         );
 
-        expect(screen.getByTestId('team-property')).toBeVisible();
+        expect(screen.getByTestId('x.card.field.value.team')).toBeVisible();
         expect(screen.getByText(/Deleted team ID:/)).toBeInTheDocument();
     });
 
@@ -94,11 +112,14 @@ describe('TeamPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TeamPropertyRenderer {...propsWithNullId}/>,
+            <TeamPropertyRenderer
+                {...propsWithNullId}
+                testIdScope='x.card.field.value'
+            />,
             state,
         );
 
-        expect(screen.getByTestId('team-property')).toBeVisible();
+        expect(screen.getByTestId('x.card.field.value.team')).toBeVisible();
         expect(screen.getByText(/Deleted team ID:/)).toBeInTheDocument();
     });
 });

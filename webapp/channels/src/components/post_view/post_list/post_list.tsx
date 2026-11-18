@@ -414,7 +414,10 @@ export default class PostList extends React.PureComponent<Props, State> {
     render() {
         if (!this.props.postListIds || isWaitingForTotalUsersStats(this.props.needsTotalUsersStats, this.state)) {
             return (
-                <LoadingScreen centered={true}/>
+                <LoadingScreen
+                    centered={true}
+                    testId='center.post_list.loading'
+                />
             );
         }
 

@@ -38,6 +38,13 @@ type Props = {
     toggleFocus?: ((focus: boolean) => void) | null;
     listComponent: typeof SuggestionList | typeof ModalSuggestionList;
     listPosition?: AutocompleteListPosition;
+
+    /**
+     * The selector's testid scope: its input is `<testIdScope>.value--textbox`, its suggestion list
+     * `<testIdScope>.suggestions`; with `testKey` the root is `<testIdScope>:<testKey>`. Without it, none.
+     */
+    testIdScope?: string;
+    testKey?: string;
 };
 
 type State = {
@@ -132,11 +139,11 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
             disabled,
             listComponent,
             listPosition: listPositionProp,
+            testIdScope,
+            testKey,
         } = this.props;
 
-        const listPosition = listPositionProp === 'auto' ?
-            this.state.computedListPosition :
-            listPositionProp;
+        const listPosition = listPositionProp === 'auto' ? this.state.computedListPosition : listPositionProp;
 
         const {focused} = this.state;
         let {input} = this.state;
@@ -167,7 +174,7 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
 
         return (
             <div
-                data-testid='autoCompleteSelector'
+                data-testid={testIdScope ? `${testIdScope}:${testKey}` : undefined}
                 className='form-group'
             >
                 {labelContent}
@@ -193,6 +200,8 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
                         replaceAllInputOnSelect={true}
                         disabled={disabled}
                         listPosition={listPosition}
+                        data-testid={testIdScope ? `${testIdScope}.value--textbox` : undefined}
+                        testIdScope={testIdScope ? `${testIdScope}.suggestions` : undefined}
                     />
                     {helpTextContent}
                 </div>

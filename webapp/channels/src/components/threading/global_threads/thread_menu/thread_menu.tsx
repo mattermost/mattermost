@@ -41,6 +41,9 @@ type Props = {
     isFollowing?: boolean;
     hasUnreads: boolean;
     unreadTimestamp: number;
+
+    /** The trigger renders `${testId}--button`; the menu's items are `thread_menu.<item>--menuitem`. */
+    testId?: string;
 };
 
 function ThreadMenu({
@@ -49,6 +52,7 @@ function ThreadMenu({
     isFollowing = false,
     unreadTimestamp,
     hasUnreads,
+    testId,
 }: Props) {
     const intl = useIntl();
     const {formatMessage} = intl;
@@ -106,6 +110,7 @@ function ThreadMenu({
         <Menu.Container
             menuButton={{
                 id: `${idPrefix}-${threadId}`,
+                testId,
                 as: ThreadMenuTrigger,
                 'aria-label': formatMessage({
                     id: 'threading.threadHeader.menu',
@@ -123,8 +128,14 @@ function ThreadMenu({
                 id: `${idPrefix}-dropdown-${threadId}`,
             }}
         >
-            {!isThreadPopoutWindow(team, threadId) && <PopoutMenuItem onClick={popout}/>}
+            {!isThreadPopoutWindow(team, threadId) && (
+                <PopoutMenuItem
+                    onClick={popout}
+                    data-testid='thread_menu.open_in_new_window--menuitem'
+                />
+            )}
             <Menu.Item
+                data-testid='thread_menu.follow_thread--menuitem'
                 labels={isFollowing ? (
                     <>
                         <FormattedMessage
@@ -162,6 +173,7 @@ function ThreadMenu({
                 }, [currentUserId, currentTeamId, threadId, isFollowing, setThreadFollow, readAloud, formatMessage])}
             />
             <Menu.Item
+                data-testid='thread_menu.open_in_channel--menuitem'
                 labels={
                     <FormattedMessage
                         id='threading.threadMenu.openInChannel'
@@ -179,6 +191,7 @@ function ThreadMenu({
                 }, [threadId, readAloud, formatMessage])}
             />
             <Menu.Item
+                data-testid='thread_menu.toggle_read--menuitem'
                 labels={hasUnreads ? (
                     <FormattedMessage
                         id='threading.threadMenu.markRead'
@@ -193,6 +206,7 @@ function ThreadMenu({
                 onClick={handleReadUnread}
             />
             <Menu.Item
+                data-testid='thread_menu.save--menuitem'
                 labels={isSaved ? (
                     <FormattedMessage
                         id='threading.threadMenu.unsave'
@@ -218,6 +232,7 @@ function ThreadMenu({
                 }, [threadId, isSaved])}
             />
             <Menu.Item
+                data-testid='thread_menu.copy_link--menuitem'
                 labels={
                     <FormattedMessage
                         id='threading.threadMenu.copy'

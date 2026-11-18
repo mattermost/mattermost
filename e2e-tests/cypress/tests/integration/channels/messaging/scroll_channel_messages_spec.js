@@ -48,26 +48,26 @@ describe('Scroll channel`s messages in mobile view', () => {
         cy.reload();
 
         // * check date on scroll and save it
-        cy.findAllByTestId('postView').eq(19).scrollIntoView();
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).eq(19).scrollIntoView();
 
         // * check date on scroll is today
-        cy.findByTestId('floatingTimestamp').should('be.visible').and('have.text', 'Today');
+        cy.findByTestId('center.post_list.floating_timestamp--text').should('be.visible').and('have.text', 'Today');
 
         // * check date on scroll and save it
-        cy.findAllByTestId('postView').eq(14).scrollIntoView();
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).eq(14).scrollIntoView();
 
         // * check date on scroll is yesterday
-        cy.findByTestId('floatingTimestamp').should('be.visible').and('have.text', 'Yesterday');
+        cy.findByTestId('center.post_list.floating_timestamp--text').should('be.visible').and('have.text', 'Yesterday');
 
         // * check date on scroll and save it
-        cy.findAllByTestId('postView').eq(9).scrollIntoView();
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).eq(9).scrollIntoView();
 
         // * check date on scroll is two days ago as dddd
-        cy.findByTestId('floatingTimestamp').should('be.visible').and('have.text', Cypress.dayjs().subtract(2, 'days').format('dddd'));
+        cy.findByTestId('center.post_list.floating_timestamp--text').should('be.visible').and('have.text', Cypress.dayjs().subtract(2, 'days').format('dddd'));
 
-        cy.findAllByTestId('postView').eq(0).scrollIntoView();
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).eq(0).scrollIntoView();
 
         // * check date on scroll is 1 year ago as MMMM DD, YYYY
-        cy.findByTestId('floatingTimestamp').should('be.visible').and('have.text', Cypress.dayjs().subtract(1, 'year').format('MMMM DD, YYYY'));
+        cy.findByTestId('center.post_list.floating_timestamp--text').should('be.visible').and('have.text', Cypress.dayjs().subtract(1, 'year').format('MMMM DD, YYYY'));
     });
 });

@@ -188,7 +188,7 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
             );
             await setChannelValue(adminClient, channel.id, caveats, [optionId(caveats, 'NOFORN')]);
 
-            const {channelsPage} = await pw.testBrowser.login(channelAdmin);
+            const {channelsPage, app} = await pw.testBrowser.login(channelAdmin);
             await channelsPage.goto(team.name, channel.name);
             await channelsPage.toBeVisible();
 
@@ -213,8 +213,9 @@ test.describe('Channel attribute editing', {tag: ['@channel_attributes']}, () =>
                     return valueFor(await readChannelValues(adminClient, channel.id), caveats);
                 })
                 .toEqual([optionId(caveats, 'ORCON')]);
-            await expect(channelsPage.centerView.header.attributes.chip('ORCON')).toBeVisible();
-            await expect(channelsPage.centerView.header.attributes.chip('NOFORN')).toHaveCount(0);
+            const headerChips = app.channelHeader.attributes;
+            await expect(await headerChips.chipList.itemWith({text: 'ORCON'})).toBeVisible();
+            await expect(headerChips.container).not.toContainText('NOFORN');
         } finally {
             await deleteAttributes(adminClient, created);
         }

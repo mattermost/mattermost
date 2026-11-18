@@ -31,6 +31,7 @@ const usePriority = (
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
     showIndividualCloseButton = true,
+    labelsTestIdScope?: string,
 ) => {
     const dispatch = useDispatch();
     const rootId = draft.rootId;
@@ -149,9 +150,10 @@ const usePriority = (
                 persistentNotifications={draft!.metadata!.priority?.persistent_notifications}
                 priority={draft!.metadata!.priority?.priority}
                 requestedAck={draft!.metadata!.priority?.requested_ack}
+                testIdScope={labelsTestIdScope}
             />
         ) : undefined
-    ), [hasPrioritySet, rootId, showIndividualCloseButton, shouldShowPreview, isValidPersistentNotifications, specialMentions, handleRemovePriority, draft]);
+    ), [hasPrioritySet, rootId, showIndividualCloseButton, shouldShowPreview, isValidPersistentNotifications, specialMentions, handleRemovePriority, draft, labelsTestIdScope]);
 
     const additionalControl = useMemo(() =>
         !rootId && isPostPriorityEnabled && (

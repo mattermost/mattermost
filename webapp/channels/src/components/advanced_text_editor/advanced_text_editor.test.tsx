@@ -228,7 +228,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     },
                 }),
             );
-            const textbox = screen.getByTestId('post_textbox');
+            const textbox = screen.getByTestId('center.post_create.message--textbox');
 
             await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
 
@@ -256,7 +256,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     },
                 }),
             );
-            const textbox = screen.getByTestId('edit_textbox');
+            const textbox = screen.getByTestId('post_edit.editor.message--textbox');
             await userEvent.type(textbox, 'something{escape}', {advanceTimers: jest.advanceTimersByTime});
             expect(textbox).not.toHaveFocus();
 
@@ -325,14 +325,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        const textbox = screen.getByTestId('post_textbox');
+        const textbox = screen.getByTestId('center.post_create.message--textbox');
 
         // SuggestionBox listens to onInput, not onChange.
         fireEvent.input(textbox, {target: {value: message}});
         expect(textbox).toHaveValue(message);
 
         await act(async () => {
-            fireEvent.click(screen.getByTestId('SendMessageButton'));
+            fireEvent.click(screen.getByTestId('center.post_create.send--button'));
         });
 
         expect(mockedOnSubmit).toHaveBeenCalledWith(
@@ -386,7 +386,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     return;
                 }
 
-                screen.getByTestId('SendMessageButton').click();
+                screen.getByTestId('center.post_create.send--button').click();
             }, [sendDestinationMessage]);
 
             return (
@@ -720,7 +720,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
 
         await userEvent.type(screen.getByPlaceholderText('Write to Test Channel'), 'first message');
-        await userEvent.click(screen.getByTestId('SendMessageButton'));
+        await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
         // The channel switches while that submit is still in flight, exactly as
         // /msg does when redirecting to a DM that already exists in the store.
@@ -774,7 +774,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         );
 
         await userEvent.type(screen.getByPlaceholderText('Reply to this thread...'), 'first reply');
-        await userEvent.click(screen.getByTestId('SendMessageButton'));
+        await userEvent.click(screen.getByTestId('center.post_create.send--button'));
 
         rerender(
             <AdvancedTextEditor
@@ -901,7 +901,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             }),
         );
 
-        await userEvent.type(screen.getByTestId('edit_textbox'), ' edited');
+        await userEvent.type(screen.getByTestId('post_edit.editor.message--textbox'), ' edited');
 
         expect(mockedUpdateDraft).not.toHaveBeenCalled();
 
@@ -1338,7 +1338,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 initialState,
             );
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(/\.post_attributes--button$/)).not.toBeInTheDocument();
         });
 
         it('is present in the centre channel composer with the flag on', () => {
@@ -1349,7 +1349,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            expect(screen.getByTestId(/\.post_attributes--button$/)).toBeInTheDocument();
         });
 
         it('is present in the RHS reply composer with the flag on', () => {
@@ -1362,7 +1362,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            expect(screen.getByTestId(/\.post_attributes--button$/)).toBeInTheDocument();
         });
 
         it('is absent when editing an existing post', () => {
@@ -1374,7 +1374,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(/\.post_attributes--button$/)).not.toBeInTheDocument();
         });
 
         it('sits before the formatting toggle in the action row', () => {
@@ -1424,7 +1424,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 store.dispatch(quoteTextInDraft(channelId, '', 'Diam sapien\npellentesque'));
             });
 
-            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft\n\n> Diam sapien\n> pellentesque\n\n');
+            expect(screen.getByTestId('center.post_create.message--textbox')).toHaveValue('original draft\n\n> Diam sapien\n> pellentesque\n\n');
             expect(store.getState().views.drafts.pendingQuote).toBeNull();
         });
 
@@ -1440,14 +1440,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 store.dispatch(quoteTextInDraft(channelId, 'some_root_id', 'Diam sapien'));
             });
 
-            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft');
+            expect(screen.getByTestId('center.post_create.message--textbox')).toHaveValue('original draft');
             expect(store.getState().views.drafts.pendingQuote).not.toBeNull();
 
             act(() => {
                 store.dispatch(quoteTextInDraft(otherChannelId, '', 'Diam sapien'));
             });
 
-            expect(screen.getByTestId('post_textbox')).toHaveValue('original draft');
+            expect(screen.getByTestId('center.post_create.message--textbox')).toHaveValue('original draft');
         });
 
         it('should not quote into a message being edited', () => {
@@ -1458,7 +1458,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 />,
                 stateWithDraft,
             );
-            const textbox = screen.getByTestId('edit_textbox');
+            const textbox = screen.getByTestId('post_edit.editor.message--textbox');
             const valueBefore = (textbox as HTMLTextAreaElement).value;
 
             act(() => {

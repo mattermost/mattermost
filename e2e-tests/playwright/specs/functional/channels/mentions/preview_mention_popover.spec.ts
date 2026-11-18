@@ -9,52 +9,55 @@ import {expect, setWysiwygUserPreference, test} from '@mattermost/playwright-lib
  *
  * @precondition Two users on the same team. The markdown composer preview is available
  * (WYSIWYG editor preference is off).
+ *
+ * The composer, its suggestions (by username), its preview toggle, the mention (by user id) and the popover are
+ * the generated page objects.
  */
 test(
     'MM-67123 clicking a user mention in composer preview opens the profile popover',
     {tag: '@mentions'},
     async ({pw}) => {
         // # Create two users on the same team and disable the WYSIWYG editor so preview is available
-        const {adminClient, user, userClient, team} = await pw.initSetup();
+        const {adminClient, user, userClient, team, townSquare} = await pw.initSetup();
         await setWysiwygUserPreference(userClient, user.id, false);
 
         const mentionedUser = await adminClient.createUser(await pw.random.user('mentioned'), '', '');
         await adminClient.addToTeam(team.id, mentionedUser.id);
-        const townSquare = await adminClient.getChannelByName(team.id, 'town-square');
         await adminClient.addToChannel(mentionedUser.id, townSquare.id);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
 
         const unique = `preview-mention-${pw.random.id()}`;
-        const {postCreate} = channelsPage.centerView;
+        const composer = app.center.postCreate;
+        const input = composer.message.container;
+        const previewArea = composer.message.preview;
 
-        // # Type a draft that mentions the other user via autocomplete so the mention resolves
-        await postCreate.writeMessage(`@${mentionedUser.username}`);
-        await expect(postCreate.suggestionList).toBeVisible();
-        await postCreate.suggestionOptions.first().click();
-        await postCreate.input.pressSequentially(` ${unique}`);
-        const draft = await postCreate.getInputValue();
+        // # Type a draft that mentions the other user, picking them from the autocomplete so the mention resolves
+        await input.type(`@${mentionedUser.username}`);
+        await composer.message.suggestions.suggestion(`@${mentionedUser.username}`).select();
+        await expect(input).toHaveValue(`@${mentionedUser.username} `);
+        await input.type(` ${unique}`);
+        await expect(input).toHaveValue(new RegExp(unique));
+        const draft = await input.value();
 
         // # Show the composer markdown preview
-        await postCreate.togglePreview();
-        await expect(postCreate.previewArea).toBeVisible();
-        await expect(postCreate.previewArea).toContainText(`@${mentionedUser.username}`);
-        await expect(postCreate.previewArea).toContainText(unique);
+        await composer.previewButton.click();
+        await expect(previewArea).toBeVisible();
+        await expect(previewArea).toContainText(`@${mentionedUser.username}`);
+        await expect(previewArea).toContainText(unique);
 
         // # Click the rendered mention in the preview
-        await postCreate.clickMentionInPreview();
+        await app.markdown.mention(mentionedUser).click();
 
         // * The mentioned user's profile popover opens
-        await expect(channelsPage.userProfilePopover.container).toBeVisible();
-        await expect(channelsPage.userProfilePopover.container).toContainText(`@${mentionedUser.username}`);
+        await expect(app.profilePopover).toBeVisible();
+        await expect(app.profilePopover).toContainText(`@${mentionedUser.username}`);
 
         // * The draft remains in the composer and is not posted
-        await expect(postCreate.input).toHaveValue(draft);
-        await expect(postCreate.previewArea).toContainText(unique);
+        await expect(input).toHaveValue(draft);
+        await expect(previewArea).toContainText(unique);
 
-        const lastPost = await channelsPage.getLastPost();
-        await expect(lastPost.container).not.toContainText(unique);
+        await expect(app.center.postList).not.toContainText(unique);
     },
 );

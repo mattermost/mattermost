@@ -22,6 +22,8 @@ interface Props {
     rootId: Post['id'];
     noArgumentHandleSubmit: () => void;
     isInEditMode: boolean;
+
+    testIdScope?: string;
 }
 
 export default function Footer({
@@ -32,6 +34,7 @@ export default function Footer({
     rootId,
     noArgumentHandleSubmit,
     isInEditMode,
+    testIdScope,
 }: Props) {
     return (
         <div
@@ -40,7 +43,10 @@ export default function Footer({
             className='AdvancedTextEditor__footer'
         >
             {postError && (
-                <div className={classNames('post-error', {errorClass})}>
+                <div
+                    className={classNames('post-error', {errorClass})}
+                    data-testid={testIdScope ? `${testIdScope}.error--text` : undefined}
+                >
                     {postError}
                 </div>
             )}

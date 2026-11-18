@@ -72,6 +72,7 @@ export default function CloseMessage(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.close_message--menuitem'
             id={id}
             leadingElement={<CloseIcon size='18px'/>}
             onClick={handleClose}

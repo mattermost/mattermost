@@ -61,14 +61,14 @@ describe('MentionFilterChips', () => {
     });
 
     test('renders nothing when no filter is applied', () => {
-        renderWithContext(<MentionFilterChips/>, baseState(defaultMentionFilters, null));
+        renderWithContext(<MentionFilterChips testIdScope='search.mention_filters'/>, baseState(defaultMentionFilters, null));
 
-        expect(screen.queryByTestId('mentionFilterChips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('search.mention_filters.chips')).not.toBeInTheDocument();
     });
 
     test('shows a chip per applied filter', () => {
         renderWithContext(
-            <MentionFilterChips/>,
+            <MentionFilterChips testIdScope='search.mention_filters'/>,
             baseState({channelIds: ['channel1'], mentionTypes: ['direct'], date: 'today'}, 'team1'),
         );
 
@@ -80,7 +80,7 @@ describe('MentionFilterChips', () => {
 
     test('names the channel\'s team when the search spans every team', async () => {
         renderWithContext(
-            <MentionFilterChips/>,
+            <MentionFilterChips testIdScope='search.mention_filters'/>,
             baseState({...defaultMentionFilters, channelIds: ['channel1']}, null),
         );
 
@@ -97,7 +97,7 @@ describe('MentionFilterChips', () => {
 
     test('removing a chip re-runs the search without that one filter', async () => {
         renderWithContext(
-            <MentionFilterChips/>,
+            <MentionFilterChips testIdScope='search.mention_filters'/>,
             baseState({channelIds: ['channel1'], mentionTypes: ['direct'], date: 'today'}, 'team1'),
         );
 
@@ -111,7 +111,7 @@ describe('MentionFilterChips', () => {
     });
 
     test('removing the team chip widens the search back out to every team', async () => {
-        renderWithContext(<MentionFilterChips/>, baseState(defaultMentionFilters, 'team1'));
+        renderWithContext(<MentionFilterChips testIdScope='search.mention_filters'/>, baseState(defaultMentionFilters, 'team1'));
 
         await removeChip('Remove Product filter');
 
@@ -124,7 +124,7 @@ describe('MentionFilterChips', () => {
 
     test('removing the team chip drops the channels picked on that team with it', async () => {
         renderWithContext(
-            <MentionFilterChips/>,
+            <MentionFilterChips testIdScope='search.mention_filters'/>,
             baseState({channelIds: ['channel1'], mentionTypes: ['direct'], date: 'any'}, 'team1'),
         );
 

@@ -61,7 +61,7 @@ describe('Verify Guest User Identification in different screens', () => {
         // # Open Channel Members RHS
         cy.get('#channelHeaderTitle').click();
         cy.get('#channelMembers').click().wait(TIMEOUTS.HALF_SEC);
-        cy.uiGetRHS().findByTestId(`memberline-${guestUser.id}`).within(($el) => {
+        cy.uiGetRHS().findByTestId(`rhs.channel_members.member:${guestUser.id}`).within(($el) => {
             cy.wrap($el).get('.Tag').should('be.visible').should('have.text', 'GUEST');
         });
     });
@@ -207,7 +207,7 @@ describe('Verify Guest User Identification in different screens', () => {
 
         // * Verify Guest Badge is displayed at mention auto-complete
         cy.get('#suggestionList').should('be.visible');
-        cy.findByTestId(`mentionSuggestion_${guestUser.username}`).within(($el) => {
+        cy.findByTestId(`center.post_create.message.suggestions.suggestion:@${guestUser.username}--option`).within(($el) => {
             cy.wrap($el).find('.Tag').should('be.visible').and('have.text', 'GUEST');
         });
     });
@@ -223,6 +223,6 @@ describe('Verify Guest User Identification in different screens', () => {
         });
 
         // # Close and Clear the Search Autocomplete
-        cy.findByTestId('searchBoxClose').click({force: true});
+        cy.findByTestId('search_box.close--button').click({force: true});
     });
 });

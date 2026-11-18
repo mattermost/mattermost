@@ -103,6 +103,8 @@ export type Props = WrappedComponentProps & {
     * Indicates whether the file has been rejected and should not show preview
     */
     isFileRejected?: boolean;
+
+    testId?: string;
 };
 
 type State = {
@@ -204,6 +206,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 <div style={{position: 'absolute', top: '50%', transform: 'translate(-50%, -50%)', left: '50%'}}>
                     <LoadingImagePreview
                         containerClass={'file__image-loading'}
+                        testId={this.props.testId ? `${this.props.testId}.loading` : undefined}
                     />
                 </div>
             );
@@ -220,6 +223,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             enablePublicLink,
             intl,
             renderPlaceholderOnly,
+            testId,
             ...props
         } = this.props;
         Reflect.deleteProperty(props, 'showLoader');
@@ -263,6 +267,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
             <img
                 {...props}
                 aria-label={ariaLabelImage}
+                data-testid={testId ? `${testId}--img` : undefined}
                 tabIndex={0}
                 onClick={this.handleImageClick}
                 onKeyDown={this.onEnterKeyDown}
@@ -432,6 +437,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                     {this.renderImageLoaderIfNeeded()}
                     <img
                         role='presentation'
+                        data-testid={this.props.testId ? `${this.props.testId}.placeholder` : undefined}
                         className={classNames('image-loading__placeholder', this.props.className, {
                             'small-image--inside-container': this.props.handleSmallImageContainer && this.state.isSmallImage,
                         })}
@@ -484,6 +490,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 <figure
                     className={containerClass}
                     style={containerStyle}
+                    data-testid={this.props.testId ? `${this.props.testId}.frame` : undefined}
                 >
                     {children}
                 </figure>

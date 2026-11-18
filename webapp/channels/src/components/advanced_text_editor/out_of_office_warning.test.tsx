@@ -10,10 +10,13 @@ import OutOfOfficeWarning from './out_of_office_warning';
 describe('OutOfOfficeWarning', () => {
     test('should render display name and out of office label', () => {
         renderWithContext(
-            <OutOfOfficeWarning displayName='Norma Fletcher'/>,
+            <OutOfOfficeWarning
+                displayName='Norma Fletcher'
+                testId='center.post_create.out_of_office_warning'
+            />,
         );
 
-        expect(screen.getByTestId('outOfOfficeWarning')).toBeInTheDocument();
+        expect(screen.getByTestId('center.post_create.out_of_office_warning--text')).toBeInTheDocument();
         expect(screen.getByText('Norma Fletcher is Out of Office.')).toBeInTheDocument();
     });
 });

@@ -4,7 +4,13 @@
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {PlaywrightClient4, PlaywrightExtended} from '@mattermost/playwright-lib';
+import {
+    expect,
+    type App,
+    type generated,
+    type PlaywrightClient4,
+    type PlaywrightExtended,
+} from '@mattermost/playwright-lib';
 
 export const BOR_TAG = '@burn_on_read';
 
@@ -92,11 +98,97 @@ export function parseRecipientCount(tooltipText: string): {revealed: number; tot
  * @returns Seconds remaining
  */
 export function parseTimeRemaining(timerText: string): number {
-    const parts = timerText.split(':');
-    if (parts.length !== 2) {
+    const match = timerText.match(/(\d+):(\d{2})/);
+    if (!match) {
         throw new Error(`Invalid timer format: ${timerText}`);
     }
-    const minutes = parseInt(parts[0], 10);
-    const seconds = parseInt(parts[1], 10);
-    return minutes * 60 + seconds;
+    return parseInt(match[1], 10) * 60 + parseInt(match[2], 10);
+}
+
+// Helpers on the generated page objects: the composer (burn-on-read toggle, send), the posts by id with their
+// burn-on-read badge (a button whose accessible name carries the read count), timer chip and reveal button.
+
+export type CenterPost = ReturnType<App['center']['postList']['post']>;
+
+/** Logs the user in and opens their DM with `other`. */
+export async function openDm(pw: PlaywrightExtended, user: UserProfile, team: Team, other: {username: string}) {
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, path: 'messages', channel: `@${other.username}`});
+    return app;
+}
+
+/** The center channel's last post id (waits for there to be one). */
+export async function lastPostId(app: App): Promise<string> {
+    let id = '';
+    await expect
+        .poll(async () => {
+            id = (await app.center.postList.postList.keys()).at(-1) ?? '';
+            return id;
+        })
+        .not.toBe('');
+    return id;
+}
+
+/** The center channel's last post and its id. */
+export async function lastPost(app: App): Promise<{id: string; post: CenterPost}> {
+    const id = await lastPostId(app);
+    return {id, post: app.center.postList.post({id})};
+}
+
+/** Sends a message from the composer and returns the new post once it shows. */
+export async function sendMessage(app: App, message: string): Promise<{id: string; post: CenterPost}> {
+    const before = (await app.center.postList.postList.keys()).at(-1);
+    await app.center.postCreate.message.container.fill(message);
+    await app.center.postCreate.sendButton.click();
+    await expect.poll(async () => (await app.center.postList.postList.keys()).at(-1)).not.toBe(before);
+    return lastPost(app);
+}
+
+/** Turns burn-on-read on in the composer and sends the message. */
+export async function sendBorMessage(app: App, message: string) {
+    await app.center.postCreate.burnOnReadButton.click();
+    await expect(app.center.postCreate.burnOnReadLabel).toBeVisible();
+    return sendMessage(app, message);
+}
+
+/** The most recent post that is still concealed (shows its reveal button), and its id. */
+export async function concealedPost(app: App): Promise<{id: string; post: CenterPost}> {
+    let id = '';
+    await expect
+        .poll(async () => {
+            const keys = (await app.center.postList.postList.keys()).reverse();
+            const revealCounts = await Promise.all(
+                keys.map((key) => app.center.postList.post({id: key}).revealButton.locator.count()),
+            );
+            id = keys.find((_, i) => revealCounts[i] > 0) ?? '';
+            return id;
+        })
+        .not.toBe('');
+    return {id, post: app.center.postList.post({id})};
+}
+
+/** Reveals a concealed post and waits for the placeholder to go. */
+export async function reveal(post: CenterPost) {
+    await post.revealButton.click();
+    await expect(post.revealButton).not.toBeVisible();
+}
+
+/** The sender's read count, from the burn-on-read badge's accessible name ("… Read by 1 of 2 recipients"). */
+export async function recipientCount(post: CenterPost) {
+    const label = (await post.burnOnReadButton.locator.getAttribute('aria-label')) ?? '';
+    return parseRecipientCount(label);
+}
+
+/** The time left on a revealed post's timer chip, in seconds. */
+export async function timeRemaining(post: CenterPost) {
+    return parseTimeRemaining((await post.burnOnReadTimerButton.locator.textContent()) ?? '');
+}
+
+/** Opens a post's dot menu (hovering it first). */
+export async function openDotMenu(
+    app: App,
+    post: CenterPost,
+): Promise<generated.PostDotMenu<generated.PostDotMenuMount>> {
+    await post.locator.hover();
+    return post.menu.dotMenuButton.clickTo(app.postDotMenu);
 }

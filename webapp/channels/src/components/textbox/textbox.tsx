@@ -319,7 +319,7 @@ export default class Textbox extends React.PureComponent<Props> {
                 <SuggestionBox
                     ref={this.message}
                     id={this.props.id}
-                    {...(this.props.testId ? {'data-testid': `${this.props.testId}--textbox`} : {})}
+                    {...(this.props.testId ? {'data-testid': `${this.props.testId}--textbox`, testIdScope: `${this.props.testId}.suggestions`} : {})}
                     className={textboxClassName}
                     spellCheck='true'
                     placeholder={this.props.createMessage}

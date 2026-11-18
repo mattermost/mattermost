@@ -11,11 +11,11 @@ import CommentedOnFilesMessage from './commented_on_files_message';
 describe('components/CommentedOnFilesMessage', () => {
     test('component state when no files', () => {
         render(
-            <CommentedOnFilesMessage/>,
+            <CommentedOnFilesMessage testId='rhs.thread.post.commented_on.files'/>,
         );
 
         //no file is given in props
-        expect(screen.queryByTestId('fileInfo')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('rhs.thread.post.commented_on.files--text')).not.toBeInTheDocument();
     });
 
     test('should match component state for single file', () => {
@@ -24,9 +24,12 @@ describe('components/CommentedOnFilesMessage', () => {
         ];
 
         render(
-            <CommentedOnFilesMessage fileInfos={fileInfos}/>,
+            <CommentedOnFilesMessage
+                fileInfos={fileInfos}
+                testId='rhs.thread.post.commented_on.files'
+            />,
         );
-        expect(screen.getByTestId('fileInfo')).toHaveTextContent('image_1.png');
+        expect(screen.getByTestId('rhs.thread.post.commented_on.files--text')).toHaveTextContent('image_1.png');
     });
 
     test('should match component state for multiple files', () => {
@@ -37,10 +40,13 @@ describe('components/CommentedOnFilesMessage', () => {
         ];
 
         renderWithContext(
-            <CommentedOnFilesMessage fileInfos={fileInfos}/>,
+            <CommentedOnFilesMessage
+                fileInfos={fileInfos}
+                testId='rhs.thread.post.commented_on.files'
+            />,
         );
 
         // total files = 3
-        expect(screen.getByTestId('fileInfo')).toHaveTextContent('image_3.png plus 2 other files');
+        expect(screen.getByTestId('rhs.thread.post.commented_on.files--text')).toHaveTextContent('image_3.png plus 2 other files');
     });
 });

@@ -97,6 +97,7 @@ const ProfilePopoverOtherUserRow = ({
                 <>
                     {isLoading ? (
                         <Button
+                            data-testid='profile_popover.actions.message--button'
                             type='button'
                             emphasis='primary'
                             size='small'
@@ -113,6 +114,7 @@ const ProfilePopoverOtherUserRow = ({
                         <>
                             {canMessage ? (
                                 <Button
+                                    data-testid='profile_popover.actions.message--button'
                                     type='button'
                                     emphasis='primary'
                                     size='small'
@@ -130,6 +132,7 @@ const ProfilePopoverOtherUserRow = ({
                                 </Button>
                             ) : (
                                 <Button
+                                    data-testid='profile_popover.actions.message--button'
                                     type='button'
                                     emphasis='primary'
                                     size='small'

@@ -34,37 +34,42 @@ test.fixme(
         await pw.ensureFeatureFlag('DiscoverableChannels', true);
 
         // # Initialize setup and create a discoverable private channel the user is not a member of
-        const {team, user, adminClient} = await pw.initSetup();
+        const {team, user, adminClient, townSquare} = await pw.initSetup();
         const channel = await createDiscoverableChannel(adminClient, team.id);
 
         // # Log in as the non-member user and open Browse Channels
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        const dialog = await channelsPage.openBrowseChannelsModal();
-        await dialog.toBeVisible();
+        await app.lhs.header.openBrowseOrAddMenuButton.click();
+
+        await expect(app.lhs.browseOrAddMenu.browseChannelsMenuItem).toBeVisible();
+        await app.lhs.browseOrAddMenu.browseChannelsMenuItem.click();
+        // Browse Channels has no declared scope in this area; keep its accessible dialog and scoped rows.
+        const dialog = app.page.getByRole('dialog', {name: 'Browse Channels'});
+        await expect(dialog).toBeVisible();
 
         // # Find the discoverable channel
-        await dialog.fillSearchInput(channel.display_name);
-        await dialog.toBeDoneLoading();
+        await dialog.getByRole('textbox', {name: 'Search channels'}).fill(channel.display_name);
+        await expect(dialog.getByTestId('loading-screen')).toHaveCount(0);
+        const row = dialog.getByRole('search').locator('.more-modal__row').filter({hasText: channel.display_name});
 
         // * The row offers "Request to join" rather than a Join button
-        await dialog.toHaveRequestToJoinButton(channel.display_name);
+        await expect(row.getByText('Request to join')).toBeVisible();
 
         // # Request to join and confirm in the modal
-        await dialog.clickRequestToJoin(channel.display_name);
-        await expect(channelsPage.page.getByRole('button', {name: 'Send Request'})).toBeVisible();
-        await channelsPage.page.getByRole('button', {name: 'Send Request'}).click();
+        await row.getByText('Request to join').click();
+        await expect(page.getByRole('button', {name: 'Send Request'})).toBeVisible();
+        await page.getByRole('button', {name: 'Send Request'}).click();
 
         // * The row flips to the pending "Withdraw" state
-        await dialog.toHaveWithdrawButton(channel.display_name);
+        await expect(row.getByText('Withdraw', {exact: true})).toBeVisible();
 
         // # Withdraw the request
-        await dialog.clickWithdraw(channel.display_name);
+        await row.getByText('Withdraw', {exact: true}).click();
 
         // * The row returns to the "Request to join" state
-        await dialog.toHaveRequestToJoinButton(channel.display_name);
+        await expect(row.getByText('Request to join')).toBeVisible();
     },
 );
 
@@ -75,28 +80,26 @@ test(
         await pw.ensureFeatureFlag('DiscoverableChannels', true);
 
         // # Initialize setup and create a discoverable private channel the user is not a member of
-        const {team, user, adminClient} = await pw.initSetup();
+        const {team, user, adminClient, townSquare} = await pw.initSetup();
         const channel = await createDiscoverableChannel(adminClient, team.id);
 
         // # Log in as the non-member user
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
 
         // # Open Find Channels (Cmd/Ctrl+K) and locate the discoverable channel
-        await channelsPage.sidebarLeft.findChannelButton.click();
-        await channelsPage.findChannelsModal.toBeVisible();
-        await channelsPage.findChannelsModal.input.fill(channel.display_name);
+        await app.center.postCreate.message.container.pressTo('ControlOrMeta+K', app.quickSwitchModal);
+        await app.quickSwitchModal.searchTextbox.fill(channel.display_name);
 
-        const result = channelsPage.findChannelsModal.getResult(channel.name);
+        const result = app.quickSwitchModal.suggestions.suggestion(channel.id);
         await expect(result).toBeVisible();
 
         // # Select the discoverable channel
-        await channelsPage.findChannelsModal.selectChannel(channel.name);
+        await result.select();
 
         // * The Request to Join modal opens instead of the legacy private-channel join
         // confirmation, and no "Join private channel" dialog is shown.
-        await expect(channelsPage.page.getByRole('button', {name: 'Send Request'})).toBeVisible();
-        await expect(channelsPage.page.getByText('Are you sure you wish to join')).toHaveCount(0);
+        await expect(page.getByRole('button', {name: 'Send Request'})).toBeVisible();
+        await expect(page.getByText('Are you sure you wish to join')).toHaveCount(0);
     },
 );

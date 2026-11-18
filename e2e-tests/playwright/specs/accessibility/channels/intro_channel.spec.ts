@@ -1,19 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, type App} from '@mattermost/playwright-lib';
+
+/** Posts a message from the center composer and returns its post once it shows. */
+async function postMessage(app: App, message: string) {
+    const {postCreate, postList} = app.center;
+    const before = (await postList.postList.keys()).at(-1);
+    await postCreate.message.container.fill(message);
+    await postCreate.sendButton.click();
+    await expect.poll(async () => (await postList.postList.keys()).at(-1)).not.toBe(before);
+    const ids = await postList.postList.keys();
+    return postList.post({id: ids[ids.length - 1]});
+}
 
 test.fixme('Base channel accessibility', async ({pw, axe}) => {
     // # Create and sign in a new user
-    const {user} = await pw.initSetup();
+    const {user, team} = await pw.initSetup();
 
     // # Log in a user in new browser context
-    const {page, channelsPage} = await pw.testBrowser.login(user);
+    const {app, page} = await pw.testBrowser.login(user);
 
     // # Visit a default channel page
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage('hello');
+    await app.teamPage.goto({team});
+    await expect(app.center.composer).toBeVisible();
+    await postMessage(app, 'hello');
 
     // # Analyze the page
     // Disable 'color-contrast' to be addressed by MM-53814
@@ -25,151 +36,144 @@ test.fixme('Base channel accessibility', async ({pw, axe}) => {
 
 test('Post actions tab support', async ({pw, axe}) => {
     // # Create and sign in a new user
-    const {user, adminClient} = await pw.initSetup();
+    const {user, adminClient, team} = await pw.initSetup();
     const config = await adminClient.getConfig();
     const license = await adminClient.getClientLicenseOld();
 
     // # Log in a user in new browser context
-    const {page, channelsPage} = await pw.testBrowser.login(user);
+    const {app, page} = await pw.testBrowser.login(user);
 
     // # Visit a default channel page
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-    await channelsPage.postMessage('hello');
-
-    const post = await channelsPage.getLastPost();
-    await post.hover();
-    await post.postMenu.toBeVisible();
+    await app.teamPage.goto({team});
+    await expect(app.center.composer).toBeVisible();
+    const post = await postMessage(app, 'hello');
+    await post.locator.hover();
+    await expect(post.menu.dotMenuButton).toBeVisible();
 
     // # Open the dot menu
-    await post.postMenu.dotMenuButton.press('Enter');
+    await post.menu.dotMenuButton.press('Enter');
 
     // * Dot menu should be visible and have focused
-    await channelsPage.postDotMenu.toBeVisible();
-    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
+    const dotMenu = app.postDotMenu;
+    await expect(dotMenu).toBeVisible();
+    await expect(dotMenu.replyMenuItem.locator).toBeFocused();
 
     // # Analyze the page
-    const accessibilityScanResults = await axe
-        .builder(page, {disableColorContrast: true})
-        .include('.MuiList-root.MuiList-padding')
-        .analyze();
+    const accessibilityScanResults = await axe.builder(page, {disableColorContrast: true, within: dotMenu}).analyze();
 
     // * Should have no violation
     expect(accessibilityScanResults.violations).toHaveLength(0);
 
     // * Should move focus to Quote after arrow down
-    await channelsPage.postDotMenu.replyMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.quoteMenuItem).toBeFocused();
+    await dotMenu.replyMenuItem.press('ArrowDown');
+    await expect(dotMenu.quoteMenuItem.locator).toBeFocused();
 
     // * Should move focus to Forward after arrow down
-    await channelsPage.postDotMenu.quoteMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.forwardMenuItem).toBeFocused();
+    await dotMenu.quoteMenuItem.press('ArrowDown');
+    await expect(dotMenu.forwardMenuItem.locator).toBeFocused();
 
     // * Should move focus to Follow message after arrow down
-    await channelsPage.postDotMenu.forwardMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.followMessageMenuItem).toBeFocused();
+    await dotMenu.forwardMenuItem.press('ArrowDown');
+    await expect(dotMenu.followThreadMenuItem.locator).toBeFocused();
 
     // * Should move focus to Mark as Unread after arrow down
-    await channelsPage.postDotMenu.followMessageMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.markAsUnreadMenuItem).toBeFocused();
+    await dotMenu.followThreadMenuItem.press('ArrowDown');
+    await expect(dotMenu.markAsUnreadMenuItem.locator).toBeFocused();
 
     // * Should move focus to Save after arrow down
-    await channelsPage.postDotMenu.markAsUnreadMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.saveMenuItem).toBeFocused();
+    await dotMenu.markAsUnreadMenuItem.press('ArrowDown');
+    await expect(dotMenu.saveMenuItem.locator).toBeFocused();
 
     // * Should move focus to Remind after arrow down
-    await channelsPage.postDotMenu.saveMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.remindMenuItem).toBeFocused();
+    await dotMenu.saveMenuItem.press('ArrowDown');
+    await expect(dotMenu.remindMenuItem.locator).toBeFocused();
 
     // * Should move focus to Pin to Channel after arrow down
-    await channelsPage.postDotMenu.remindMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.pinToChannelMenuItem).toBeFocused();
+    await dotMenu.remindMenuItem.press('ArrowDown');
+    await expect(dotMenu.pinMenuItem.locator).toBeFocused();
 
     if (config.FeatureFlags.MoveThreadsEnabled && license.IsLicensed === 'true') {
         // * Should move focus to Move Thread after arrow down
-        await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
-        await expect(channelsPage.postDotMenu.moveThreadMenuItem).toBeFocused();
+        await dotMenu.pinMenuItem.press('ArrowDown');
+        await expect(dotMenu.moveThreadMenuItem.locator).toBeFocused();
 
         // * Should move focus to Copy Text after arrow down
-        await channelsPage.postDotMenu.moveThreadMenuItem.press('ArrowDown');
-        await expect(channelsPage.postDotMenu.copyTextMenuItem).toBeFocused();
+        await dotMenu.moveThreadMenuItem.press('ArrowDown');
+        await expect(dotMenu.copyTextMenuItem.locator).toBeFocused();
     } else {
         // * Should move focus to Copy Text after arrow down
-        await channelsPage.postDotMenu.pinToChannelMenuItem.press('ArrowDown');
-        await expect(channelsPage.postDotMenu.copyTextMenuItem).toBeFocused();
+        await dotMenu.pinMenuItem.press('ArrowDown');
+        await expect(dotMenu.copyTextMenuItem.locator).toBeFocused();
     }
 
     // * Should move focus to Copy Link after arrow down
-    await channelsPage.postDotMenu.copyTextMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.copyLinkMenuItem).toBeFocused();
+    await dotMenu.copyTextMenuItem.press('ArrowDown');
+    await expect(dotMenu.copyLinkMenuItem.locator).toBeFocused();
 
     // * Should move focus to Edit after arrow down
-    await channelsPage.postDotMenu.copyLinkMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.editMenuItem).toBeFocused();
+    await dotMenu.copyLinkMenuItem.press('ArrowDown');
+    await expect(dotMenu.editMenuItem.locator).toBeFocused();
 
     // * Should move focus to Delete after arrow down
     // "Quarantine for Review" is inserted between Edit and Delete when content flagging is on.
-    await channelsPage.postDotMenu.editMenuItem.press('ArrowDown');
+    await dotMenu.editMenuItem.press('ArrowDown');
     if (config.ContentFlaggingSettings?.EnableContentFlagging) {
-        const quarantineMenuItem = page
-            .getByRole('menu', {name: 'Post extra options'})
-            .getByRole('menuitem')
-            .filter({hasText: 'Quarantine for Review'});
-        await expect(quarantineMenuItem).toBeFocused();
+        await expect(dotMenu.flagMenuItem.locator).toBeFocused();
         await page.keyboard.press('ArrowDown');
     }
-    await expect(channelsPage.postDotMenu.deleteMenuItem).toBeFocused();
+    await expect(dotMenu.deleteMenuItem.locator).toBeFocused();
 
     // * Then, should move focus back to Reply after arrow down
-    await channelsPage.postDotMenu.deleteMenuItem.press('ArrowDown');
-    await expect(channelsPage.postDotMenu.replyMenuItem).toBeFocused();
+    await dotMenu.deleteMenuItem.press('ArrowDown');
+    await expect(dotMenu.replyMenuItem.locator).toBeFocused();
 
     // * Should move focus to Delete after arrow uo
-    await channelsPage.postDotMenu.container.press('ArrowUp');
-    expect(await channelsPage.postDotMenu.deleteMenuItem).toBeFocused();
+    await dotMenu.locator.press('ArrowUp');
+    await expect(dotMenu.deleteMenuItem.locator).toBeFocused();
 
     // # Set focus to Remind
-    await channelsPage.postDotMenu.remindMenuItem.focus();
-    await expect(channelsPage.postDotMenu.remindMenuItem).toBeFocused();
+    await dotMenu.remindMenuItem.focus();
+    await expect(dotMenu.remindMenuItem.locator).toBeFocused();
 
     // * Reminder menu should still be hidden
-    await expect(channelsPage.postReminderMenu.container).toBeHidden();
+    const reminderMenu = dotMenu.remindMenu;
+    await expect(reminderMenu.locator).toBeHidden();
 
     // # Press arrow right
-    await channelsPage.postDotMenu.remindMenuItem.press('ArrowRight');
+    await dotMenu.remindMenuItem.press('ArrowRight');
 
     // * Reminder menu should be visible
-    expect(channelsPage.postReminderMenu.container).toBeVisible();
+    await expect(reminderMenu).toBeVisible();
 
     // * Should have focus on 30 mins after submenu opens
-    expect(await channelsPage.postReminderMenu.thirtyMinsMenuItem).toBeFocused();
+    await expect(reminderMenu.option('thirty_minutes').locator).toBeFocused();
 
     // * Should move focus to 1 hour after arrow down
-    await channelsPage.postReminderMenu.thirtyMinsMenuItem.press('ArrowDown');
-    expect(await channelsPage.postReminderMenu.oneHourMenuItem).toBeFocused();
+    await reminderMenu.option('thirty_minutes').press('ArrowDown');
+    await expect(reminderMenu.option('one_hour').locator).toBeFocused();
 
     // * Should move focus to 2 hours after arrow down
-    await channelsPage.postReminderMenu.oneHourMenuItem.press('ArrowDown');
-    expect(await channelsPage.postReminderMenu.twoHoursMenuItem).toBeFocused();
+    await reminderMenu.option('one_hour').press('ArrowDown');
+    await expect(reminderMenu.option('two_hours').locator).toBeFocused();
 
     // * Should move focus to Tomorrow after arrow down
-    await channelsPage.postReminderMenu.twoHoursMenuItem.press('ArrowDown');
-    expect(await channelsPage.postReminderMenu.tomorrowMenuItem).toBeFocused();
+    await reminderMenu.option('two_hours').press('ArrowDown');
+    await expect(reminderMenu.option('tomorrow').locator).toBeFocused();
 
     // * Should move focus to Custom after arrow down
-    await channelsPage.postReminderMenu.tomorrowMenuItem.press('ArrowDown');
-    expect(await channelsPage.postReminderMenu.customMenuItem).toBeFocused();
+    await reminderMenu.option('tomorrow').press('ArrowDown');
+    await expect(reminderMenu.option('custom').locator).toBeFocused();
 
     // * Then, should move focus back to 30 mins after arrow down
-    await channelsPage.postReminderMenu.customMenuItem.press('ArrowDown');
-    expect(await channelsPage.postReminderMenu.thirtyMinsMenuItem).toBeFocused();
+    await reminderMenu.option('custom').press('ArrowDown');
+    await expect(reminderMenu.option('thirty_minutes').locator).toBeFocused();
 
     // * Should hide Reminder menu and focus to Remind menu after arrow left
-    await channelsPage.postReminderMenu.container.press('ArrowLeft');
-    await expect(channelsPage.postReminderMenu.container).toBeHidden();
-    await expect(channelsPage.postDotMenu.remindMenuItem).toBeFocused();
+    await reminderMenu.locator.press('ArrowLeft');
+    await expect(reminderMenu.locator).toBeHidden();
+    await expect(dotMenu.remindMenuItem.locator).toBeFocused();
 
     // * Should hide Dot menu of Escape
-    await channelsPage.postDotMenu.container.press('Escape');
-    await expect(channelsPage.postDotMenu.container).toBeHidden();
+    await dotMenu.locator.press('Escape');
+    await expect(dotMenu.locator).toBeHidden();
 });

@@ -59,7 +59,7 @@ describe('System Console > User Management > Deactivation', () => {
                 cy.uiSearchPosts(message);
 
                 // * Verify GM message is returned in RHS
-                cy.findAllByTestId('search-item-container').
+                cy.findAllByTestId(/^search\.results\.(post|file):[^.]+$/).
                     should('be.visible').and('have.length', 1).
                     eq(0).should('contain', message);
             });

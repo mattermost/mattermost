@@ -14,8 +14,10 @@ type Props = {
     emoji: Emoji;
     onItemClick: (emoji: Emoji) => void;
     order?: number;
+
+    testIdScope?: string;
 };
-const EmojiItem = ({emoji, onItemClick, order}: Props) => {
+const EmojiItem = ({emoji, onItemClick, order, testIdScope}: Props) => {
     const {formatMessage} = useIntl();
 
     const handleClick = (e: React.MouseEvent) => {
@@ -37,7 +39,7 @@ const EmojiItem = ({emoji, onItemClick, order}: Props) => {
     return (
         <IconButton
             id={`recent_reaction_${order}`}
-            data-testid='post-menu__item_emoji'
+            data-testid={testIdScope ? `${testIdScope}.emoji:${order}--button` : undefined}
             size='small'
             padding='compact'
             className={classNames('post-menu__item', 'post-menu__emoticon')}

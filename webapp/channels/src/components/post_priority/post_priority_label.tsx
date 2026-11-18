@@ -13,10 +13,14 @@ type Props = {
     priority?: PostPriority | '';
     size?: TagSize;
     uppercase?: boolean;
+
+    /** The label's testid; without it the label is `post_priority.label--text`. */
+    testId?: string;
 };
 
 export default function PriorityLabel({
     priority,
+    testId,
     ...rest
 }: Props) {
     const {formatMessage} = useIntl();
@@ -29,7 +33,7 @@ export default function PriorityLabel({
                 icon={'alert-outline'}
                 text={formatMessage({id: 'post_priority.priority.urgent', defaultMessage: 'Urgent'})}
                 uppercase={true}
-                data-testid='post-priority-label'
+                data-testid={testId ?? 'post_priority.label--text'}
             />
         );
     }
@@ -42,7 +46,7 @@ export default function PriorityLabel({
                 icon={'alert-circle-outline'}
                 text={formatMessage({id: 'post_priority.priority.important', defaultMessage: 'Important'})}
                 uppercase={true}
-                data-testid='post-priority-label'
+                data-testid={testId ?? 'post_priority.label--text'}
             />
         );
     }

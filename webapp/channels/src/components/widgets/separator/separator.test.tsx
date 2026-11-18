@@ -11,13 +11,13 @@ describe('components/widgets/separator', () => {
     describe('BasicSeparator', () => {
         test('should render separator with text', () => {
             render(
-                <BasicSeparator>
+                <BasicSeparator testId='test.basic_separator'>
                     {'Some text'}
                 </BasicSeparator>,
             );
 
             // Verify container exists
-            const separator = screen.getByTestId('basicSeparator');
+            const separator = screen.getByTestId('test.basic_separator');
             expect(separator).toBeInTheDocument();
             expect(separator).toHaveClass('Separator', 'BasicSeparator');
 
@@ -32,10 +32,10 @@ describe('components/widgets/separator', () => {
         });
 
         test('should render separator without text', () => {
-            render(<BasicSeparator/>);
+            render(<BasicSeparator testId='test.basic_separator'/>);
 
             // Verify container exists
-            const separator = screen.getByTestId('basicSeparator');
+            const separator = screen.getByTestId('test.basic_separator');
             expect(separator).toBeInTheDocument();
 
             // Verify horizontal line renders (hr has implicit role="separator")
@@ -49,10 +49,10 @@ describe('components/widgets/separator', () => {
 
     describe('NotificationSeparator', () => {
         test('should render separator without text', () => {
-            render(<NotificationSeparator/>);
+            render(<NotificationSeparator testId='test.notification_separator'/>);
 
             // Verify container exists
-            const separator = screen.getByTestId('NotificationSeparator');
+            const separator = screen.getByTestId('test.notification_separator');
             expect(separator).toBeInTheDocument();
             expect(separator).toHaveClass('Separator', 'NotificationSeparator');
 
@@ -68,13 +68,13 @@ describe('components/widgets/separator', () => {
 
         test('should render separator with text', () => {
             render(
-                <NotificationSeparator>
+                <NotificationSeparator testId='test.notification_separator'>
                     {'Some text'}
                 </NotificationSeparator>,
             );
 
             // Verify container exists
-            const separator = screen.getByTestId('NotificationSeparator');
+            const separator = screen.getByTestId('test.notification_separator');
             expect(separator).toBeInTheDocument();
 
             // Verify text appears

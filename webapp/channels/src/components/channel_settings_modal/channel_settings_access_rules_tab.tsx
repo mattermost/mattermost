@@ -761,6 +761,7 @@ function ChannelSettingsAccessRulesTab({
                     <div
                         className='ChannelSettingsModal__lockedNotice'
                         role='status'
+                        data-testid='channel_settings_modal.access_rules.locked_rules.notice--status'
                     >
                         <i className='icon icon-information-outline'/>
                         <span>
@@ -777,7 +778,12 @@ function ChannelSettingsAccessRulesTab({
                             )}
                         </span>
                     </div>
-                    <code className='ChannelSettingsModal__lockedExpression'>{originalExpression}</code>
+                    <code
+                        className='ChannelSettingsModal__lockedExpression'
+                        data-testid='channel_settings_modal.access_rules.locked_rules.expression--text'
+                    >
+                        {originalExpression}
+                    </code>
                 </div>
             )}
 

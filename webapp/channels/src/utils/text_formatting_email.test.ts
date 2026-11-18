@@ -78,7 +78,7 @@ describe('TextFormatting.Emails', () => {
         );
 
         expect(TextFormatting.formatText('Joe Smith <email@domain.com>', {}, emojiMap).trim()).toBe(
-            '<p>Joe Smith <a class="theme markdown__link" href="mailto:email@domain.com" rel="noreferrer" target="_blank">email@domain.com</a></p>',
+            '<p>Joe Smith <a data-testid="markdown.link--link" class="theme markdown__link" href="mailto:email@domain.com" rel="noreferrer" target="_blank">email@domain.com</a></p>',
         );
 
         expect(TextFormatting.formatText('email.domain.com', {}, emojiMap).trim()).toBe(

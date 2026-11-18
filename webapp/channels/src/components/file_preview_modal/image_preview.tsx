@@ -120,7 +120,7 @@ export default function ImagePreview({fileInfo, canDownloadFiles, scale, transla
             <img
                 className={imgClassName}
                 loading='lazy'
-                data-testid='imagePreview'
+                data-testid='file_preview_modal.image--img'
                 alt={'preview url image'}
                 src={previewUrl}
                 style={imgStyle}

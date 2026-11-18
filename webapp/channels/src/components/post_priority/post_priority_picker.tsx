@@ -103,6 +103,7 @@ function PostPriorityPicker({
         <MenuItem
             key='menu-item-priority-standard'
             id='menu-item-priority-standard'
+            data-testid='post_priority_picker.menu.priority:standard--menuitemradio'
             role='menuitemradio'
             aria-checked={!priority}
             onClick={makeOnSelectPriority()}
@@ -118,6 +119,7 @@ function PostPriorityPicker({
         <MenuItem
             key='menu-item-priority-important'
             id='menu-item-priority-important'
+            data-testid='post_priority_picker.menu.priority:important--menuitemradio'
             role='menuitemradio'
             aria-checked={priority === PostPriority.IMPORTANT}
             onClick={makeOnSelectPriority(PostPriority.IMPORTANT)}
@@ -133,6 +135,7 @@ function PostPriorityPicker({
         <MenuItem
             key='menu-item-priority-urgent'
             id='menu-item-priority-urgent'
+            data-testid='post_priority_picker.menu.priority:urgent--menuitemradio'
             role='menuitemradio'
             aria-checked={priority === PostPriority.URGENT}
             onClick={makeOnSelectPriority(PostPriority.URGENT)}
@@ -155,6 +158,7 @@ function PostPriorityPicker({
         postAcknowledgementsEnabled ? (
             <ToggleItem
                 key='post_priority.requested_ack.item'
+                testId='post_priority_picker.menu.acknowledgement'
                 ariaLabel={formatMessage({
                     id: 'post_priority.requested_ack.text',
                     defaultMessage: 'Request acknowledgement',
@@ -175,6 +179,7 @@ function PostPriorityPicker({
         priority === PostPriority.URGENT && persistentNotificationsEnabled ? (
             <ToggleItem
                 key='post_priority.persistent_notifications.item'
+                testId='post_priority_picker.menu.persistent_notifications'
                 ariaLabel={formatMessage({
                     id: 'post_priority.persistent_notifications.text',
                     defaultMessage: 'Send persistent notifications',
@@ -205,6 +210,7 @@ function PostPriorityPicker({
                 <button
                     type='submit'
                     className='PostPriorityPicker__cancel'
+                    data-testid='post_priority_picker.menu.cancel--button'
                     onClick={handleClose}
                     onKeyDown={(e) => handleFooterButtonAction(e, handleClose)}
                 >
@@ -216,6 +222,7 @@ function PostPriorityPicker({
                 <button
                     type='submit'
                     className='PostPriorityPicker__apply'
+                    data-testid='post_priority_picker.menu.apply--button'
                     onClick={handleApply}
                     onKeyDown={(e) => handleFooterButtonAction(e, handleApply)}
                 >
@@ -239,6 +246,7 @@ function PostPriorityPicker({
         <Menu.Container
             menuButton={{
                 id: 'messagePriority',
+                testId: 'post_priority_picker.open',
                 as: PostPriorityMenuTrigger,
                 class: 'control',
                 disabled,

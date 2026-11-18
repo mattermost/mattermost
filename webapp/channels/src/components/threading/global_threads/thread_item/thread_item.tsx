@@ -45,6 +45,9 @@ import './thread_item.scss';
 export type OwnProps = {
     isSelected: boolean;
     threadId: UserThread['id'];
+
+    /** The thread's position in the list: it renders `threads.feed.thread:<position>--link`. */
+    position?: number;
     style?: React.CSSProperties;
     isFirstThreadInList: boolean;
 };
@@ -76,6 +79,7 @@ function ThreadItem({
     style,
     thread,
     threadId,
+    position,
     isFirstThreadInList,
     isPostPriorityEnabled,
     isChannelAutotranslated,
@@ -218,6 +222,7 @@ function ThreadItem({
                 )}
                 aria-describedby={`ThreadItem__timestamp_${threadId}`}
                 id={isFirstThreadInList ? 'tutorial-threads-mobile-list' : ''}
+                data-testid={position === undefined ? undefined : `threads.feed.thread:${position}--link`}
                 onClick={selectHandler}
                 onKeyDown={selectHandler}
                 ref={ref}
@@ -235,12 +240,18 @@ function ThreadItem({
                             )}
                         </div>
                     )}
-                    <div className='ThreadItem__author'>{postAuthor}</div>
+                    <div
+                        className='ThreadItem__author'
+                        data-testid='threads.feed.thread.author--text'
+                    >
+                        {postAuthor}
+                    </div>
                     <div className='ThreadItem__tags'>
                         {channel && postAuthor !== channel?.display_name && (
                             <Tag
                                 onClick={goToInChannelHandler}
                                 text={channel?.display_name}
+                                data-testid='threads.feed.thread.channel--button'
                             />
                         )}
                         {isPostPriorityEnabled && (
@@ -269,6 +280,7 @@ function ThreadItem({
                     <ThreadMenu
                         idPrefix='thread-list-menu'
                         threadId={threadId}
+                        testId='threads.feed.thread.open_menu'
                         isFollowing={isFollowing ?? false}
                         hasUnreads={Boolean(newReplies)}
                         unreadTimestamp={unreadTimestamp ?? 0}
@@ -280,6 +292,7 @@ function ThreadItem({
                 <div
                     className='preview'
                     dir='auto'
+                    data-testid='threads.feed.thread.preview'
                     onClick={handleFormattedTextClick}
                     onKeyDown={handleFormattedTextClick}
                 >
@@ -295,7 +308,10 @@ function ThreadItem({
                         <Attachment post={post}/>
                     )}
                 </div>
-                <div className='activity'>
+                <div
+                    className='activity'
+                    data-testid='threads.feed.thread.activity'
+                >
                     {participantIds?.length ? (
                         <Avatars
                             userIds={participantIds}

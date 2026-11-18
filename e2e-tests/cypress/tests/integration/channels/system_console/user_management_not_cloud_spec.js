@@ -144,7 +144,7 @@ describe('User Management', () => {
         cy.uiGetLhsSection('DIRECT MESSAGES').findByText(displayName).click().wait(TIMEOUTS.HALF_SEC);
 
         // * GM still has message box (is not archived)
-        cy.findByTestId('post_textbox').should('be.visible');
+        cy.findByTestId('center.post_create.message--textbox').should('be.visible');
 
         // # Restore the user.
         cy.apiLogout().apiAdminLogin();

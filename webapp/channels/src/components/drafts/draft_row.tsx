@@ -62,6 +62,9 @@ type Props = {
     isRemote?: boolean;
     highlight?: boolean;
     containerClassName?: string;
+
+    /** The row's position in the list: it renders `<scope>:<position>--link`. */
+    position?: number;
 };
 
 const mockLastBlurAt = {current: 0};
@@ -74,6 +77,7 @@ function DraftRow({
     isRemote,
     highlight,
     containerClassName,
+    position,
 }: Props) {
     const [isEditing, setIsEditing] = useState(false);
 
@@ -250,6 +254,7 @@ function DraftRow({
                 onSend={handleOnSend}
                 canEdit={canEdit}
                 canSend={canSend}
+                testIdScope='drafts.saved.draft'
                 onSchedule={onScheduleDraft}
                 repeatDisabledReason={getDraftRepeatDisabledReason(item)}
             />
@@ -324,6 +329,7 @@ function DraftRow({
                 onSend={handleScheduledPostOnSend}
                 onEdit={handleSchedulePostEdit}
                 onCopyText={handleCopyText}
+                testIdScope='drafts.scheduled.post'
             />
         );
     }, [
@@ -386,9 +392,13 @@ function DraftRow({
 
     const kind = isScheduledPost ? 'scheduledPost' : 'draft';
 
+    // an item of its list: a draft keyed by its thread or channel, a scheduled post by its id
+    const testIdScope: string = isScheduledPost ? 'drafts.scheduled.post' : 'drafts.saved.draft';
+
     return (
         <Panel
-            dataTestId={`${kind}View`}
+            testId={testIdScope}
+            testKey={position}
             dataPostId={(item as ScheduledPost).id}
             onClick={goToMessage}
             hasError={Boolean(postError)}
@@ -408,6 +418,7 @@ function DraftRow({
         >
             <Header
                 kind={kind}
+                testIdScope={testIdScope}
                 actions={actions}
                 title={title}
                 timestamp={timestamp}
@@ -421,10 +432,12 @@ function DraftRow({
                     onCancel={handleCancelEdit}
                     afterSave={handleCancelEdit}
                     onDeleteScheduledPost={handleSchedulePostOnDelete}
+                    testId='drafts.scheduled.post.editor'
                 />
             )}
             {!isEditing && (
                 <PanelBody
+                    testIdScope={testIdScope}
                     channelId={channel?.id}
                     displayName={displayName}
                     fileInfos={fileInfos}

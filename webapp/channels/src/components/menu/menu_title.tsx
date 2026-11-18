@@ -11,7 +11,10 @@ export interface Props {
     children: ReactNode;
     role?: string;
 
-    /** The title's testid path: it renders `<testId>--separator` with `role="separator"`, else `<testId>`. */
+    /** The testid of a title that is a separator (`role="separator"`): it renders `<separatorTestId>--separator`. */
+    separatorTestId?: string;
+
+    /** The testid of any other title. */
     testId?: string;
 }
 
@@ -19,13 +22,19 @@ export function MenuTitle(props: Props) {
     const {
         children,
         role,
+        separatorTestId,
         testId,
     } = props;
+
+    let titleTestId = testId;
+    if (separatorTestId) {
+        titleTestId = `${separatorTestId}--separator`;
+    }
 
     return (
         <Title
             role={role}
-            data-testid={testId && role === 'separator' ? `${testId}--separator` : testId}
+            data-testid={titleTestId}
         >
             {children}
         </Title>

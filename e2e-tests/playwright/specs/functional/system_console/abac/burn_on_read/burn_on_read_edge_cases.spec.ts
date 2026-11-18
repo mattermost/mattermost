@@ -67,7 +67,7 @@ test.afterEach(async () => {
 test('shows only the remove-all control on a burn-on-read draft label', {tag: '@abac_burn_on_read'}, async ({pw}) => {
     test.setTimeout(pw.duration.four_min);
 
-    const {adminUser, adminClient, team} = await pw.initSetup();
+    const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
     savedAdminClient = adminClient;
     await ensureBurnOnReadEnabled(adminClient);
     await ensureABACEnabled(adminClient);
@@ -78,9 +78,8 @@ test('shows only the remove-all control on a burn-on-read draft label', {tag: '@
     await ensureABACEnabled(adminClient);
 
     // # Mark a draft as burn-on-read
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
+    await app.channelsPage.goto({team, channel: townSquare});
     await channelsPage.centerView.postCreate.writeMessage(`draft ${getRandomId()}`);
     await channelsPage.centerView.postCreate.toggleBurnOnRead();
     await channelsPage.centerView.postCreate.toHaveBurnOnReadLabel();
@@ -93,8 +92,8 @@ test('shows only the remove-all control on a burn-on-read draft label', {tag: '@
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     policyName = await revokeBurnOnRead(systemConsolePage.page, adminClient);
     await ensureABACEnabled(adminClient);
-    await channelsPage.page.reload();
-    await channelsPage.toBeVisible();
+    await page.reload();
+    await expect(app.center.composer.locator).toBeVisible();
 
     // * Verify revocation does not add a second remove control
     await expect(channelsPage.centerView.postCreate.removeAllLabelsButton).toBeVisible();
@@ -117,7 +116,7 @@ test(
     async ({pw}) => {
         test.setTimeout(pw.duration.four_min);
 
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
         savedAdminClient = adminClient;
         await ensureBurnOnReadEnabled(adminClient);
         await ensureABACEnabled(adminClient);
@@ -130,9 +129,8 @@ test(
         await ensureABACEnabled(adminClient);
 
         // # Mark a draft as burn-on-read while still allowed
-        const {channelsPage, draftsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {channelsPage, draftsPage, app, page} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: townSquare});
         await channelsPage.centerView.postCreate.writeMessage(message);
         await channelsPage.centerView.postCreate.toggleBurnOnRead();
         await channelsPage.centerView.postCreate.toHaveBurnOnReadLabel();
@@ -141,8 +139,8 @@ test(
         const {systemConsolePage} = await pw.testBrowser.login(adminUser);
         policyName = await revokeBurnOnRead(systemConsolePage.page, adminClient);
         await ensureABACEnabled(adminClient);
-        await channelsPage.page.reload();
-        await channelsPage.toBeVisible();
+        await page.reload();
+        await expect(app.center.composer.locator).toBeVisible();
 
         // * Verify the control is gone, the label remains, and sending is blocked
         await channelsPage.centerView.postCreate.toHaveBurnOnReadHidden();
@@ -167,8 +165,7 @@ test(
         await expect(draft.deleteButton).toBeVisible();
 
         // # Back to the composer, and clear the burn-on-read label
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel: townSquare});
         await channelsPage.centerView.postCreate.removeAllLabelsButton.click();
 
         // * Verify sending is offered again once the draft is no longer burn-on-read
@@ -187,8 +184,8 @@ test(
             {timeout: pw.duration.one_min},
         );
         const posted = await channelsPage.getLastPost();
-        await expect(posted.container.getByTestId(/^burn-on-read-badge-/)).toHaveCount(0);
-        await expect(posted.container.getByTestId(/^burn-on-read-concealed-/)).toHaveCount(0);
+        await expect(posted.container.getByTestId(/\.burn_on_read--button$/)).toHaveCount(0);
+        await expect(posted.container.getByTestId(/\.reveal--button$/)).toHaveCount(0);
     },
 );
 
@@ -210,7 +207,7 @@ test(
     async ({pw}) => {
         test.setTimeout(pw.duration.four_min);
 
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
         savedAdminClient = adminClient;
         await ensureBurnOnReadEnabled(adminClient);
         await ensureABACEnabled(adminClient);
@@ -223,9 +220,8 @@ test(
         await ensureABACEnabled(adminClient);
 
         // # Schedule a burn-on-read post two days out so it cannot fire mid-test
-        const {channelsPage, scheduledPostsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {channelsPage, scheduledPostsPage, app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: townSquare});
         await channelsPage.centerView.postCreate.toggleBurnOnRead();
         await channelsPage.scheduleMessage(original, 2, 0);
 
@@ -272,7 +268,7 @@ test(
     async ({pw}) => {
         test.setTimeout(pw.duration.four_min);
 
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
         savedAdminClient = adminClient;
         await ensureBurnOnReadEnabled(adminClient);
         await ensureABACEnabled(adminClient);
@@ -285,9 +281,8 @@ test(
         await ensureABACEnabled(adminClient);
 
         // # Schedule a burn-on-read post two days out so it cannot fire mid-test
-        const {channelsPage, scheduledPostsPage} = await pw.testBrowser.login(adminUser);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {channelsPage, scheduledPostsPage, app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: townSquare});
         await channelsPage.centerView.postCreate.toggleBurnOnRead();
         await channelsPage.scheduleMessage(message, 2, 0);
 

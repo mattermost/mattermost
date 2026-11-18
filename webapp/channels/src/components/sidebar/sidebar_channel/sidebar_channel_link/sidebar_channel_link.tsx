@@ -271,6 +271,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 </div>
                 <ChannelPencilIcon id={channel.id}/>
                 <ChannelMentionBadge
+                    data-testid='lhs.channel_list.channel.mention_badge--text'
                     unreadMentions={unreadMentions}
                     hasUrgent={hasUrgent}
                     tooltip={hasUrgent ? messages.urgentMentionTooltip : undefined}
@@ -321,7 +322,7 @@ export class SidebarChannelLink extends React.PureComponent<Props, State> {
                 to={link}
                 onClick={this.handleChannelClick}
                 tabIndex={0}
-                data-testid={this.props.isUnread ? 'sidebar-unread-channel' : undefined}
+                data-testid={`lhs.channel_list.channel:${channel.name}--link`}
             >
                 {content}
                 {channelsTutorialTip}
