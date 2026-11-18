@@ -429,11 +429,15 @@ export default function LogList({
 
     // The menu item reads this rather than props, since on mobile the menu shows a copy made when it opened.
     // Search and plugin filters were applied by the server
-    const partialExport = truncated || scanLimited.length > 0;
+    // A node that couldn't be reached is left out of the file too
+    const partialExport = truncated || scanLimited.length > 0 || scopedLogs.some((log) => log.failed_node === true);
     const [downloadStore] = useState(() => createFilteredDownloadStore({rows: exportLogs, partial: partialExport, ready: filteredDownloadReady}));
     useLayoutEffect(() => {
         downloadStore.set({rows: exportLogs, partial: partialExport, ready: filteredDownloadReady});
     }, [downloadStore, exportLogs, partialExport, filteredDownloadReady]);
+
+    // A mobile menu modal can outlive this list (Logs remounts it with viewKey), so it must see nothing to download
+    useEffect(() => () => downloadStore.set({rows: [], partial: false, ready: false}), [downloadStore]);
 
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;

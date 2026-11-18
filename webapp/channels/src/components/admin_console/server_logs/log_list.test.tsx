@@ -1472,6 +1472,41 @@ describe('components/admin_console/server_logs/LogList plugin filter', () => {
             expect(text.split('\n').map((line) => JSON.parse(line).msg)).toEqual(['first', 'second', 'later']);
         });
 
+        test('should say only the loaded entries are included when a node failed', () => {
+            renderListWith({logs: [...makeLogs(2), makeFailedNodeLog('node-b')]});
+            openDownloadMenu();
+
+            expect(screen.getByText('Only the loaded entries are included')).toBeInTheDocument();
+        });
+
+        test('should download the rows shown when the item was activated, not ones that arrive as the menu closes', async () => {
+            const setLogsRef: {current?: (logs: LogObjectWithAdditionalInfo[]) => void} = {};
+            function Harness() {
+                const [logs, set] = useState(makeLogs(2));
+                setLogsRef.current = set;
+                return (
+                    <StatefulLogList
+                        {...baseProps}
+                        logs={logs}
+                    />
+                );
+            }
+            renderWithContext(<Harness/>);
+            openDownloadMenu();
+            fireEvent.click(screen.getByRole('menuitem', {name: /^Filtered entries \(2\)/}));
+
+            // A poll lands while the menu is closing
+            act(() => setLogsRef.current?.([makeLog('older', '2026-03-12T09:00:00.000Z'), ...makeLogs(2)]));
+
+            await waitFor(() => expect(createObjectURL).toHaveBeenCalledTimes(1));
+            const text = await new Promise<string>((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result as string);
+                reader.readAsText(createObjectURL.mock.calls[0][0] as Blob);
+            });
+            expect(text.split('\n').map((line) => JSON.parse(line).msg)).toEqual(['msg 1', 'msg 2']);
+        });
+
         test('should not count failed-node entries', () => {
             renderListWith({logs: [...makeLogs(2), makeFailedNodeLog('node-b')]});
             openDownloadMenu();
@@ -1515,6 +1550,32 @@ describe('components/admin_console/server_logs/LogList plugin filter', () => {
             // An older entry arrives while the modal is open (a newer one would be held back behind the new-entries notice)
             act(() => setLogsRef.current?.([makeLog('older', '2026-03-12T09:00:00.000Z'), ...makeLogs(2)]));
             expect(await screen.findByRole('menuitem', {name: /^Filtered entries \(3\)/})).toBeInTheDocument();
+        });
+
+        test('should disable the item in a mobile menu that outlives the list', async () => {
+            const mobileState = {views: {browser: {windowSize: WindowSizes.MOBILE_VIEW}}};
+            const setShownRef: {current?: (shown: boolean) => void} = {};
+            function Harness() {
+                const [shown, set] = useState(true);
+                setShownRef.current = set;
+                return (
+                    <>
+                        {shown && (
+                            <StatefulLogList
+                                {...baseProps}
+                                logs={makeLogs(2)}
+                            />
+                        )}
+                        <ModalController/>
+                    </>
+                );
+            }
+            renderWithContext(<Harness/>, mobileState);
+            openDownloadMenu();
+            expect(await screen.findByRole('menuitem', {name: /^Filtered entries \(2\)/})).not.toHaveAttribute('aria-disabled', 'true');
+
+            act(() => setShownRef.current?.(false));
+            await waitFor(() => expect(screen.getByRole('menuitem', {name: /^Filtered entries \(0\)/})).toHaveAttribute('aria-disabled', 'true'));
         });
     });
 });

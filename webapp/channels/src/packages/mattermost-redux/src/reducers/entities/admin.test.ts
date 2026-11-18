@@ -1115,7 +1115,7 @@ describe('reducers.entities.admin', () => {
             expect(recovered['node-a']).toEqual([a1]);
         });
 
-        it('RECEIVED_NEW_LOGS keeps the loaded scan limit entry at the end and drops a poll\'s own', () => {
+        it('RECEIVED_NEW_LOGS keeps the loaded scan limit entry at the end and ignores a poll\'s own', () => {
             const limited = (timestamp: string) => makeLog('Log scan stopped at its limit', timestamp, {scan_limited: true, scanned_back_to: t1});
             const a1 = makeLog('a1', t1);
             const a2 = makeLog('a2', t2);
@@ -1133,6 +1133,21 @@ describe('reducers.entities.admin', () => {
             const capped = receiveNewLogs({'node-a': [...full, limited(t2)]}, {'node-a': [a3]});
             expect(capped['node-a']).toHaveLength(10001);
             expect(capped['node-a'].slice(-2)).toEqual([a3, limited(t2)]);
+        });
+
+        it('RECEIVED_NEW_LOGS keeps the first scan limit entry a poll brings when none is loaded', () => {
+            const limited = (timestamp: string, scannedBackTo: string) => makeLog('Log scan stopped at its limit', timestamp, {scan_limited: true, scanned_back_to: scannedBackTo});
+            const a1 = makeLog('a1', t1);
+            const a2 = makeLog('a2', t2);
+
+            // With no new entries, and with some
+            expect(receiveNewLogs({'node-a': [a1]}, {'node-a': [limited(t2, t1)]})['node-a']).toEqual([a1, limited(t2, t1)]);
+            expect(receiveNewLogs({'node-a': [a1]}, {'node-a': [a2, limited(t3, t2)]})['node-a']).toEqual([a1, a2, limited(t3, t2)]);
+
+            // Only the first, and it stays through a later quiet poll
+            const first = receiveNewLogs({'node-a': [a1]}, {'node-a': [limited(t2, t1), limited(t3, t2)]});
+            expect(first['node-a']).toEqual([a1, limited(t2, t1)]);
+            expect(receiveNewLogs(first, {'node-a': []})).toBe(first);
         });
 
         it('RECEIVED_NEW_LOGS keeps only the newest 10,000 entries per node', () => {

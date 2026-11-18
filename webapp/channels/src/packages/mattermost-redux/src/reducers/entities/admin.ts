@@ -25,13 +25,14 @@ import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
 // from that millisecond, and older nodes that ignore the date filter repeat everything
 function mergeLogEntries(existing: LogObject[], allIncoming: LogObject[]): LogObject[] {
     // The entry standing in for a node that could not be reached only describes the latest response.
-    // A scan limit entry describes how far back the full load reached, which a poll doesn't change,
-    // so the loaded one is kept at the end and a poll's own is dropped
+    // A scan limit entry says older entries may be missing. A poll can hit a limit too, and that gap
+    // stays after the next poll, so the loaded one is kept at the end, or else the first a poll brought
     const kept = existing.filter((entry) => !entry.failed_node && !entry.scan_limited);
-    const scanLimits = existing.filter((entry) => entry.scan_limited);
+    const loadedScanLimits = existing.filter((entry) => entry.scan_limited);
+    const scanLimits = loadedScanLimits.length > 0 ? loadedScanLimits : allIncoming.filter((entry) => entry.scan_limited).slice(0, 1);
     const incoming = allIncoming.filter((entry) => !entry.scan_limited);
     if (incoming.length === 0) {
-        return kept.length + scanLimits.length === existing.length ? existing : kept.concat(scanLimits);
+        return kept.length + loadedScanLimits.length === existing.length && scanLimits.length === loadedScanLimits.length ? existing : kept.concat(scanLimits);
     }
 
     // Only entries from the oldest incoming timestamp onwards can be repeats
@@ -54,7 +55,7 @@ function mergeLogEntries(existing: LogObject[], allIncoming: LogObject[]): LogOb
         repeats.set(key, count - 1);
         return false;
     });
-    if (added.length === 0 && kept.length + scanLimits.length === existing.length) {
+    if (added.length === 0 && kept.length + loadedScanLimits.length === existing.length && scanLimits.length === loadedScanLimits.length) {
         return existing;
     }
 

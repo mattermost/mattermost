@@ -55,13 +55,12 @@ type Props = {
 const FilteredDownloadItem = forwardRef<HTMLLIElement, Props>(({store, ...otherProps}, ref) => {
     const {rows, partial, ready} = useSyncExternalStore(store.subscribe, store.get);
 
-    const handleClick = () => {
-        // The click can land after the state moved on, and MUI's disabled doesn't stop every way of activating an item
-        const current = store.get();
-        if (!current.ready || current.rows.length === 0) {
-            return;
-        }
-        downloadTextFile(filteredLogsFilename(), logsToJsonLines(current.rows));
+    // Menu.Item runs onClick once the menu has closed, so this exports the rows shown when the item was
+    // activated rather than reading the store then, after a poll may have changed them.
+    // MUI's disabled doesn't stop every way of activating an item, so a disabled item gets no handler
+    const disabled = !ready || rows.length === 0;
+    const handleClick = disabled ? undefined : () => {
+        downloadTextFile(filteredLogsFilename(), logsToJsonLines(rows));
     };
 
     return (
@@ -69,7 +68,7 @@ const FilteredDownloadItem = forwardRef<HTMLLIElement, Props>(({store, ...otherP
             {...otherProps}
             ref={ref}
             id='serverLogsDownloadFiltered'
-            disabled={!ready || rows.length === 0}
+            disabled={disabled}
             forceCloseOnSelect={true}
             labels={
                 <>

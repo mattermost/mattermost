@@ -140,16 +140,25 @@ describe('components/admin_console/server_logs/utils', () => {
             expect(lines.map((line) => JSON.parse(line).msg)).toEqual(['early', 'late', 'bad1', 'bad2']);
         });
 
-        test('should add a node field only when the entry has a node', () => {
+        test('should add a server_node field only when the entry has a node', () => {
             const lines = logsToJsonLines([
                 {...entry('a', '2026-03-12T10:00:01.000Z'), [LogNodeKey]: 'node-a'},
                 {...entry('b', '2026-03-12T10:00:02.000Z'), [LogNodeKey]: ''},
                 entry('c', '2026-03-12T10:00:03.000Z'),
             ]).split('\n').map((line) => JSON.parse(line));
 
-            expect(lines[0].node).toBe('node-a');
-            expect(lines[1]).not.toHaveProperty('node');
-            expect(lines[2]).not.toHaveProperty('node');
+            expect(lines[0].server_node).toBe('node-a');
+            expect(lines[1]).not.toHaveProperty('server_node');
+            expect(lines[2]).not.toHaveProperty('server_node');
+        });
+
+        test('should not overwrite the entry\'s own node field', () => {
+            const [line] = logsToJsonLines([
+                {...entry('a', '2026-03-12T10:00:01.000Z', {node: 'logged-node'}), [LogNodeKey]: 'node-a'},
+            ]).split('\n').map((l) => JSON.parse(l));
+
+            expect(line.node).toBe('logged-node');
+            expect(line.server_node).toBe('node-a');
         });
 
         test('should skip failed-node entries', () => {

@@ -529,10 +529,16 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         });
 
         test('should stay disabled after a failed reload', async () => {
-            renderWithEntries(jest.fn().mockResolvedValue({error: {message: 'failed'}}));
+            const pending = deferred();
+            renderWithEntries(jest.fn().mockReturnValue(pending.promise.then(() => ({error: {message: 'failed'}}))));
             await openDownloadMenu();
 
-            await waitFor(() => expect(screen.queryByText('Loading')).not.toBeInTheDocument());
+            // The fixture has a row, so the viewer shows it refreshing rather than loading
+            expect(screen.getByText('Refreshing…')).toBeInTheDocument();
+            await act(async () => {
+                pending.resolve();
+            });
+            await waitFor(() => expect(screen.queryByText('Refreshing…')).not.toBeInTheDocument());
             expect(filteredItem()).toHaveAttribute('aria-disabled', 'true');
         });
     });
