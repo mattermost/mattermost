@@ -63,6 +63,12 @@ export type Posted = BaseWebSocketMessage<WebSocketEvents.Posted, {
     followers?: JsonEncodedValue<string[]>;
 
     should_ack?: boolean;
+
+    /**
+     * Set when the event only notifies the current user about a post that was already posted to the channel, so
+     * it adds a mention but not a new message.
+     */
+    notification_only?: boolean;
 }>;
 
 export type PostEdited = BaseWebSocketMessage<WebSocketEvents.PostEdited, {

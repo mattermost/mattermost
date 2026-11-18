@@ -2234,6 +2234,106 @@ func TestPluginCreatePostSilentNotification(t *testing.T) {
 	require.True(t, actualPost.HasSilentNotification())
 }
 
+func TestPluginDeliverPostNotifications(t *testing.T) {
+	mainHelper.Parallel(t)
+	dt := setupDeferredNotificationsTest(t)
+	th := dt.th
+
+	// The plugin defers a placeholder, finalizes it, notifies one user early, then releases it.
+	pluginCode := `
+	package main
+
+	import (
+		"strings"
+
+		"github.com/mattermost/mattermost/server/public/model"
+		"github.com/mattermost/mattermost/server/public/plugin"
+	)
+
+	type TestPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func (p *TestPlugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+		scopedUserID, finalMessage, _ := strings.Cut(args.Command, "|")
+
+		post, appErr := p.API.CreatePost(&model.Post{
+			UserId:    args.UserId,
+			ChannelId: args.ChannelId,
+			Message:   "thinking...",
+			Props:     model.StringInterface{model.PostPropsDeferredNotification: true},
+		})
+		if appErr != nil {
+			return nil, appErr
+		}
+		if !post.HasDeferredNotification() || !post.HasSilentNotification() {
+			return nil, model.NewAppError("ExecuteCommand", "created post is not deferred", nil, "", 500)
+		}
+
+		post.Message = finalMessage
+		if _, appErr = p.API.UpdatePost(post); appErr != nil {
+			return nil, appErr
+		}
+
+		if appErr = p.API.DeliverPostNotifications(post.Id, &model.DeliverPostNotificationsOptions{UserIDs: []string{scopedUserID}}); appErr != nil {
+			return nil, appErr
+		}
+		if post, appErr = p.API.GetPost(post.Id); appErr != nil {
+			return nil, appErr
+		}
+		if !post.HasDeferredNotification() {
+			return nil, model.NewAppError("ExecuteCommand", "scoped delivery released the post", nil, "", 500)
+		}
+
+		if appErr = p.API.DeliverPostNotifications(post.Id, nil); appErr != nil {
+			return nil, appErr
+		}
+		if post, appErr = p.API.GetPost(post.Id); appErr != nil {
+			return nil, appErr
+		}
+		if post.HasDeferredNotification() || post.HasSilentNotification() {
+			return nil, model.NewAppError("ExecuteCommand", "delivery did not release the post", nil, "", 500)
+		}
+
+		if appErr = p.API.DeliverPostNotifications(model.NewId(), nil); appErr == nil || appErr.StatusCode != 404 {
+			return nil, model.NewAppError("ExecuteCommand", "expected not found for a missing post", nil, "", 500)
+		}
+
+		return &model.CommandResponse{Text: post.Id}, nil
+	}
+
+	func main() {
+		plugin.ClientMain(&TestPlugin{})
+	}
+	`
+	pluginID := "testplugindeliverpostnotifications"
+	setupPluginAPITest(t, pluginCode, `{"id": "testplugindeliverpostnotifications", "server": {"executable": "backend.exe"}}`, pluginID, th.App, th.Context)
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginID)
+	require.NoError(t, err)
+
+	totalBefore := dt.totalMsgCount(t, th.BasicChannel.Id)
+	finalMessage := "done, @" + th.BasicUser2.Username
+	resp, appErr := hooks.ExecuteCommand(&plugin.Context{}, &model.CommandArgs{
+		UserId:    dt.bot.Id,
+		ChannelId: th.BasicChannel.Id,
+		TeamId:    th.BasicTeam.Id,
+		Command:   th.BasicUser.Id + "|" + finalMessage,
+	})
+	require.Nil(t, appErr)
+	postID := resp.Text
+
+	scopedPushes := dt.requirePushes(t, postID, th.BasicUser.Id, 1)
+	assert.Equal(t, "@"+dt.bot.Username+": "+finalMessage, scopedPushes[0].Message)
+	releasedPushes := dt.requirePushes(t, postID, th.BasicUser2.Id, 1)
+	assert.Equal(t, "@"+dt.bot.Username+": "+finalMessage, releasedPushes[0].Message)
+
+	assert.Equal(t, totalBefore+1, dt.totalMsgCount(t, th.BasicChannel.Id))
+	stored := dt.getPost(t, postID)
+	assert.Equal(t, finalMessage, stored.Message)
+	assert.False(t, stored.HasDeferredNotification())
+	assert.False(t, stored.HasSilentNotification())
+}
+
 func TestPluginAPIGetConfig(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
