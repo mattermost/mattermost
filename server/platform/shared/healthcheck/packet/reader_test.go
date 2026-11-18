@@ -153,6 +153,7 @@ func TestReadGoldenPackets(t *testing.T) {
 				{Code: "SEATS_LIMIT_REACHED", State: healthcheck.StateUnknown, Subject: seatsSubject},
 				{Code: "SESSION_EXTEND_OFF", State: healthcheck.StateFiring, Subject: "ServiceSettings.ExtendSessionLengthWithActivity"},
 				{Code: "SITE_URL_HTTP", State: healthcheck.StateFiring, Subject: siteURLSubject},
+				{Code: "TESTING_MODE_ON", State: healthcheck.StateFiring, Subject: "ServiceSettings.EnableTesting"},
 				{Code: "VERSION_EOL", State: healthcheck.StateFiring, Subject: versionSubject},
 			},
 		},

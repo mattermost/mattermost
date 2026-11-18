@@ -8,70 +8,60 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDeveloperModeOn(t *testing.T) {
 	t.Parallel()
 
-	const (
-		developerSubject = "ServiceSettings.EnableDeveloper"
-		testingSubject   = "ServiceSettings.EnableTesting"
-	)
-	developerFiring := healthcheck.FiringSubject(developerSubject, "health.rule.developer_mode_on.message.enable_developer")
-	testingFiring := healthcheck.FiringSubject(testingSubject, "health.rule.developer_mode_on.message.enable_testing")
-
-	modes := func(developerMode, testingMode *bool) func(*model.Config) {
+	developerMode := func(enabled *bool) func(*model.Config) {
 		return func(cfg *model.Config) {
-			cfg.ServiceSettings.EnableDeveloper = developerMode
-			cfg.ServiceSettings.EnableTesting = testingMode
+			cfg.ServiceSettings.EnableDeveloper = enabled
 		}
 	}
 
 	testCases := []struct {
 		name     string
 		snapshot *healthcheck.Snapshot
-		want     []healthcheck.Result
+		want     want
 	}{
-		{
-			name:     "config section absent",
-			snapshot: &healthcheck.Snapshot{},
-			want: []healthcheck.Result{
-				healthcheck.UnknownSubject(developerSubject, healthcheck.ReasonConfigUnavailable),
-				healthcheck.UnknownSubject(testingSubject, healthcheck.ReasonConfigUnavailable),
-			},
-		},
-		{
-			name:     "defaults",
-			snapshot: configSnapshot(nil),
-			want:     []healthcheck.Result{healthcheck.ResolvedSubject(developerSubject), healthcheck.ResolvedSubject(testingSubject)},
-		},
-		{
-			name:     "developer mode on",
-			snapshot: configSnapshot(modes(new(true), new(false))),
-			want:     []healthcheck.Result{developerFiring, healthcheck.ResolvedSubject(testingSubject)},
-		},
-		{
-			name:     "testing mode on",
-			snapshot: configSnapshot(modes(new(false), new(true))),
-			want:     []healthcheck.Result{healthcheck.ResolvedSubject(developerSubject), testingFiring},
-		},
-		{
-			name:     "both on",
-			snapshot: configSnapshot(modes(new(true), new(true))),
-			want:     []healthcheck.Result{developerFiring, testingFiring},
-		},
-		{
-			name:     "developer flag unreadable",
-			snapshot: configSnapshot(modes(nil, new(true))),
-			want:     []healthcheck.Result{healthcheck.UnknownSubject(developerSubject, healthcheck.ReasonConfigUnavailable), testingFiring},
-		},
+		{"config section absent", &healthcheck.Snapshot{}, configUnknown},
+		{"defaults", configSnapshot(nil), resolved},
+		{"developer mode on", configSnapshot(developerMode(new(true))), firing("health.rule.developer_mode_on.message", nil)},
+		{"developer mode flag unreadable", configSnapshot(developerMode(nil)), configUnknown},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
-			assert.Equal(t, tc.want, developerModeOn.Eval(tc.snapshot))
+			assertResult(t, tc.want, developerModeOn.Eval(tc.snapshot))
+		})
+	}
+}
+
+func TestTestingModeOn(t *testing.T) {
+	t.Parallel()
+
+	testingMode := func(enabled *bool) func(*model.Config) {
+		return func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableTesting = enabled
+		}
+	}
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     want
+	}{
+		{"config section absent", &healthcheck.Snapshot{}, configUnknown},
+		{"defaults", configSnapshot(nil), resolved},
+		{"testing mode on", configSnapshot(testingMode(new(true))), firing("health.rule.testing_mode_on.message", nil)},
+		{"testing mode flag unreadable", configSnapshot(testingMode(nil)), configUnknown},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertResult(t, tc.want, testingModeOn.Eval(tc.snapshot))
 		})
 	}
 }

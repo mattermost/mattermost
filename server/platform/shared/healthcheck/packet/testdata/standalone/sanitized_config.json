@@ -13,7 +13,7 @@
         "EnableOutgoingWebhooks": true,
         "ExtendSessionLengthWithActivity": false,
         "EnableDeveloper": true,
-        "EnableTesting": false
+        "EnableTesting": true
     },
     "TeamSettings": {
         "MaxNotificationsPerChannel": 1000

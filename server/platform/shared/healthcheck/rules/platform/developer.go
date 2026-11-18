@@ -9,53 +9,61 @@ import (
 )
 
 func init() {
-	healthcheck.Register(developerModeOn)
+	healthcheck.Register(developerModeOn, testingModeOn)
 }
+
+const developerConsolePath = "/admin_console/environment/developer"
 
 var developerModeOn = healthcheck.Rule{
 	Code:     "DEVELOPER_MODE_ON",
 	Area:     model.AreaPlatform,
-	Severity: healthcheck.SeverityInfo,
+	Severity: healthcheck.SeverityWarning,
 	RuleText: model.RuleText{
 		TitleID:       healthcheck.TranslationId("health.rule.developer_mode_on.title"),
 		RemediationID: healthcheck.TranslationId("health.rule.developer_mode_on.remediation"),
-		ConsolePath:   "/admin_console/environment/developer",
+		ConsolePath:   developerConsolePath,
 	},
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityStable,
-	Eval:       evalDeveloperModeOn,
+	Subject:    "ServiceSettings.EnableDeveloper",
+	Eval:       healthcheck.Single(evalDeveloperModeOn),
 }
 
-var developerSettings = []struct {
-	subject   string
-	messageID string
-	setting   func(*model.Config) *bool
-}{
-	{
-		subject:   "ServiceSettings.EnableDeveloper",
-		messageID: healthcheck.TranslationId("health.rule.developer_mode_on.message.enable_developer"),
-		setting:   func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableDeveloper },
+var testingModeOn = healthcheck.Rule{
+	Code:     "TESTING_MODE_ON",
+	Area:     model.AreaPlatform,
+	Severity: healthcheck.SeverityCritical,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.testing_mode_on.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.testing_mode_on.remediation"),
+		ConsolePath:   developerConsolePath,
 	},
-	{
-		subject:   "ServiceSettings.EnableTesting",
-		messageID: healthcheck.TranslationId("health.rule.developer_mode_on.message.enable_testing"),
-		setting:   func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableTesting },
-	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Subject:    "ServiceSettings.EnableTesting",
+	Eval:       healthcheck.Single(evalTestingModeOn),
 }
 
-// evalDeveloperModeOn yields one result per setting so muting one does not hide the other.
-func evalDeveloperModeOn(s *healthcheck.Snapshot) []healthcheck.Result {
-	results := make([]healthcheck.Result, 0, len(developerSettings))
-	for _, ds := range developerSettings {
-		enabled, ok := s.ConfigBool(ds.setting)
-		switch {
-		case !ok:
-			results = append(results, healthcheck.UnknownSubject(ds.subject, healthcheck.ReasonConfigUnavailable))
-		case enabled:
-			results = append(results, healthcheck.FiringSubject(ds.subject, ds.messageID))
-		default:
-			results = append(results, healthcheck.ResolvedSubject(ds.subject))
-		}
+func evalDeveloperModeOn(s *healthcheck.Snapshot) healthcheck.Result {
+	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableDeveloper })
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case enabled:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.developer_mode_on.message"))
+	default:
+		return healthcheck.Resolved()
 	}
-	return results
+}
+
+func evalTestingModeOn(s *healthcheck.Snapshot) healthcheck.Result {
+	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableTesting })
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case enabled:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.testing_mode_on.message"))
+	default:
+		return healthcheck.Resolved()
+	}
 }
