@@ -118,6 +118,21 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self.assertTrue(result.has_findings())
         self.assertTrue(any("/api/v4/foo" in item for item in result.additions))
 
+    def test_new_and_removed_api_test_files_are_not_reported(self):
+        _write(self.tmpdir, "server/channels/api4/old_test.go", "package api4\n")
+        base = self._commit("base")
+
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _git(self.tmpdir, "rm", "-q", "server/channels/api4/old_test.go")
+        _write(self.tmpdir, "server/channels/api4/new_test.go", "package api4\n")
+        _write(self.tmpdir, "server/channels/api4/new.go", "package api4\n")
+        head = self._commit("add and remove API files")
+
+        self._point_checker(base, head)
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+
+        self.assertEqual(result.changes, ["🆕 New API file: `new.go`"])
+
     def test_cherry_pick_onto_release_branch_is_still_reported(self):
         _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
         _write(self.tmpdir, "README", "start\n")
