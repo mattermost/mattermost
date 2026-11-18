@@ -4,7 +4,7 @@
 package app
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
 	"io"
 	"maps"
@@ -25,9 +25,6 @@ import (
 var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
 	Size: 1,
 })
-
-// LatestVersionURL is the GitHub endpoint for the latest server release.
-const LatestVersionURL = "https://api.github.com/repos/mattermost/mattermost-server/releases/latest"
 
 func (s *Server) GetLogs(rctx request.CTX, page, perPage int) ([]string, *model.AppError) {
 	var lines []string
@@ -248,32 +245,11 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 		return cachedLatestVersion, nil
 	}
 
-	req, err := http.NewRequestWithContext(rctx.Context(), http.MethodGet, latestVersionUrl, nil)
+	ctx, cancel := context.WithTimeout(rctx.Context(), 10*time.Second)
+	defer cancel()
+	releaseInfoResponse, err := model.FetchLatestVersion(ctx, latestVersionUrl)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	client := &http.Client{Timeout: 10 * time.Second}
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	defer res.Body.Close()
-
-	responseData, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	var releaseInfoResponse *model.GithubReleaseInfo
-	err = json.Unmarshal(responseData, &releaseInfoResponse)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if validErr := releaseInfoResponse.IsValid(); validErr != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(validErr)
 	}
 
 	err = latestVersionCache.SetWithExpiry("latest_version_cache", releaseInfoResponse, 24*time.Hour)

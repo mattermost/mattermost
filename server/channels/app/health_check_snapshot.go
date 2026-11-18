@@ -22,7 +22,7 @@ const healthCollectTimeout = 3 * time.Minute
 // node's diagnostics. A failed workspace collector is recorded in Snapshot.Sections rather than
 // failing the call; the error return is for a snapshot that cannot be built at all.
 func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, error) {
-	return a.buildHealthSnapshotWithLatestVersionURL(rctx, LatestVersionURL)
+	return a.buildHealthSnapshotWithLatestVersionURL(rctx, model.LatestVersionURL)
 }
 
 func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVersionURL string) (*healthcheck.Snapshot, error) {
