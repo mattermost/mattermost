@@ -57,11 +57,7 @@ export default class NewChannelModal {
     }
 
     getAttributeCombobox(fieldName: string): Locator {
-        // The test id is on the combobox, or on the element that wraps it.
-        const testId = `channelAttribute-${fieldName}`;
-        return this.getAttributeRow(fieldName).locator(
-            `[data-testid="${testId}"][role="combobox"], [data-testid="${testId}"] [role="combobox"]`,
-        );
+        return this.getAttributeRow(fieldName).getByTestId(`channelAttribute-${fieldName}`);
     }
 
     // The menu is portaled out of the modal, so it is reached through the input's aria-controls.
