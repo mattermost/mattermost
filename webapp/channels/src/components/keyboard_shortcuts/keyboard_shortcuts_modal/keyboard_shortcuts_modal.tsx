@@ -119,6 +119,7 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
             onExited={onExited}
             role='none'
             aria-labelledby='shortcutsModalLabel'
+            data-testid='keyboard_shortcuts_modal'
         >
             <div className='shortcuts-content'>
                 <Modal.Header
@@ -132,7 +133,10 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                         <strong><KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.mainHeader}/></strong>
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body tabIndex={0}>
+                <Modal.Body
+                    tabIndex={0}
+                    data-testid='keyboard_shortcuts_modal.body'
+                >
                     <div
                         tabIndex={-1}
                         ref={contentRef}
@@ -166,7 +170,10 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                                 <div>
                                     <h3 className='section-title'><strong>{formatMessage(modalMessages.msgHeader)}</strong></h3>
                                     {enableMarkAllReadShortcut && <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.markAllRead}/>}
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.message_input'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.msgInputHeader)}</h4>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgEdit}/>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgReply}/>
@@ -174,23 +181,35 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgReprintPrev}/>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgReprintNext}/>
                                     </div>
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.message_compose'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.msgCompHeader)}</h4>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgCompUsername}/>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgCompChannel}/>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgCompEmoji}/>
                                     </div>
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.message_formatting'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.msgMarkdownHeader)}</h4>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgMarkdownBold}/>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgMarkdownItalic}/>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgMarkdownLink}/>
                                     </div>
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.message_search'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.msgSearchHeader)}</h4>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.msgSearchChannel}/>
                                     </div>
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.files'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.filesHeader)}</h4>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.filesUpload}/>
                                     </div>
@@ -205,7 +224,10 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.browserChannelNext}/>
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.browserFontIncrease}/>
                                     <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.browserFontDecrease}/>
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.browser_input'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.browserInputHeader)}</h4>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.browserHighlightPrev}/>
                                         <KeyboardShortcutSequence shortcut={KEYBOARD_SHORTCUTS.browserHighlightNext}/>
@@ -217,16 +239,25 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
                             <div className='section'>
                                 <div>
                                     <h3 className='section-title'><strong>{formatMessage(modalMessages.callsHeader)}</strong></h3>
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.calls_global'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.callsGlobalHeader)}</h4>
                                         {renderShortcutSequences(KEYBOARD_SHORTCUTS.calls.global)}
                                     </div>
 
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.calls_widget'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.callsWidgetHeader)}</h4>
                                         {renderShortcutSequences(KEYBOARD_SHORTCUTS.calls.widget)}
                                     </div>
-                                    <div className='subsection'>
+                                    <div
+                                        className='subsection'
+                                        data-testid='keyboard_shortcuts_modal.calls_expanded'
+                                    >
                                         <h4 className='subsection-title'>{formatMessage(modalMessages.callsExpandedHeader)}</h4>
                                         {renderShortcutSequences(KEYBOARD_SHORTCUTS.calls.popout)}
                                     </div>

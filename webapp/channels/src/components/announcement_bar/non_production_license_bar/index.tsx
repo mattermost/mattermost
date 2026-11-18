@@ -22,6 +22,7 @@ const NonProductionLicenseAnnouncementBar: React.FC = () => {
 
     return (
         <AnnouncementBar
+            testId='announcement_bars.non_production_license'
             type={AnnouncementBarTypes.ADVISOR}
             showCloseButton={false}
             message={

@@ -165,7 +165,10 @@ const ViewUserGroupModal: React.FC<Props> = ({
             aria-labelledby='viewUserGroupModalLabel'
             enforceFocus={false}
         >
-            <div ref={modalRef}>
+            <div
+                ref={modalRef}
+                data-testid='view_user_group_modal'
+            >
                 <ViewUserGroupModalHeader
                     onExited={onExited}
                     groupId={groupId}
@@ -187,7 +190,7 @@ const ViewUserGroupModal: React.FC<Props> = ({
                                     placeholder={defineMessage({id: 'search_bar.searchGroupMembers', defaultMessage: 'Search group members'})}
                                     onChange={handleSearch}
                                     value={searchTerm}
-                                    data-testid='searchInput'
+                                    testId='view_user_group_modal.search'
                                     className={'user-group-search-input'}
                                     inputPrefix={<i className={'icon icon-magnify'}/>}
                                 />
@@ -224,7 +227,7 @@ const ViewUserGroupModal: React.FC<Props> = ({
                                 ))}
                                 {
                                     loading &&
-                                    <LoadingScreen/>
+                                    <LoadingScreen testId='view_user_group_modal.loading'/>
                                 }
                             </div>
                         </>

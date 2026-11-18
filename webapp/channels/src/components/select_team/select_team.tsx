@@ -346,9 +346,14 @@ export default class SelectTeam extends React.PureComponent<Props, State> {
 
         let headerButton;
         if (this.state.error) {
-            headerButton = <BackButton onClick={this.clearError}/>;
+            headerButton = (
+                <BackButton
+                    onClick={this.clearError}
+                    testId='select_team.back'
+                />
+            );
         } else if (isMemberOfTeam) {
-            headerButton = <BackButton/>;
+            headerButton = <BackButton testId='select_team.back'/>;
         } else {
             headerButton = (
                 <div className='signup-header'>

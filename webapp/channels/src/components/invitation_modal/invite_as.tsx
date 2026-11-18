@@ -164,7 +164,7 @@ export default function InviteAs(props: Props) {
                                 />
                             ),
                             value: InviteType.MEMBER,
-                            testId: 'inviteMembersLink',
+                            testId: 'invitation_modal.invite.as_member',
                         },
                         {
                             key: (
@@ -183,7 +183,7 @@ export default function InviteAs(props: Props) {
                                 </span>
                             ),
                             value: InviteType.GUEST,
-                            testId: 'inviteGuestLink',
+                            testId: 'invitation_modal.invite.as_guest',
                         },
                     ]}
                     isDisabled={guestDisabled}

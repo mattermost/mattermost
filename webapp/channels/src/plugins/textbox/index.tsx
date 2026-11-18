@@ -6,7 +6,9 @@ import React from 'react';
 import Textbox from 'components/textbox';
 import type BaseTextbox from 'components/textbox/textbox';
 
-type Props = Omit<React.ComponentPropsWithRef<typeof Textbox>, 'suggestionListPosition'> & {
+// Without `testId`: a plugin's ids would be runtime values the webapp's testid grammar can't check (plugins name
+// their own under `plugins.<plugin key>`).
+type Props = Omit<React.ComponentPropsWithRef<typeof Textbox>, 'suggestionListPosition' | 'testId'> & {
     suggestionListStyle?: React.ComponentPropsWithRef<typeof Textbox>['suggestionListPosition'];
 };
 
@@ -21,6 +23,7 @@ const PluginTextbox = React.forwardRef((props: Props, ref?: React.Ref<BaseTextbo
             ref={ref}
             suggestionListPosition={suggestionListStyle}
             {...otherProps}
+            testId={undefined}
         />
     );
 });

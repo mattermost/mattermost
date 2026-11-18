@@ -30,6 +30,7 @@ export default function UnsupportedNotificationAnnouncementBar() {
 
     return (
         <AnnouncementBar
+            testId='announcement_bars.notifications_unsupported'
             showCloseButton={true}
             type={AnnouncementBarTypes.ANNOUNCEMENT}
             handleClose={handleClose}

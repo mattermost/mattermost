@@ -64,7 +64,7 @@ describe('Channel Bookmarks', () => {
             });
 
             // * Verify bookmarks bar not present
-            cy.findByTestId('channel-bookmarks-container').should('not.exist');
+            cy.findByTestId('channel_bookmarks').should('not.exist');
         });
 
         it('create link bookmark from channel menu', () => {
@@ -72,7 +72,7 @@ describe('Channel Bookmarks', () => {
             const {link, realLink} = createLinkBookmark({fromChannelMenu: true});
 
             // * Verify bar now visible
-            cy.findByTestId('channel-bookmarks-container').within(() => {
+            cy.findByTestId('channel_bookmarks').within(() => {
             // * Verify href
                 cy.findByRole('link', {name: link}).should('have.attr', 'href', realLink);
             });
@@ -82,7 +82,7 @@ describe('Channel Bookmarks', () => {
         // # Create link
             const {link, realLink} = createLinkBookmark();
 
-            cy.findByTestId('channel-bookmarks-container').within(() => {
+            cy.findByTestId('channel_bookmarks').within(() => {
             // * Verify href
                 cy.findByRole('link', {name: link}).should('have.attr', 'href', realLink);
             });
@@ -91,7 +91,7 @@ describe('Channel Bookmarks', () => {
         it('create link bookmark, with emoji and custom title', () => {
             const {realLink, displayName, emojiName} = createLinkBookmark({displayName: 'custom display name', emojiName: 'smiling_face_with_3_hearts'});
 
-            cy.findByTestId('channel-bookmarks-container').within(() => {
+            cy.findByTestId('channel_bookmarks').within(() => {
             // * Verify emoji, displayname, and href
                 cy.findByRole('link', {name: `:${emojiName}: ${displayName}`}).should('have.attr', 'href', realLink);
             });
@@ -110,7 +110,7 @@ describe('Channel Bookmarks', () => {
             const {file} = createFileBookmark({file: 'small-image.png'});
 
             // # Open the bookmark — may be in overflow menu
-            cy.findByTestId('channel-bookmarks-container').then(($container) => {
+            cy.findByTestId('channel_bookmarks').then(($container) => {
                 const barLink = findVisibleBarLink($container, file);
                 if (barLink.length) {
                     // Bookmark visible in bar — click directly
@@ -160,7 +160,7 @@ describe('Channel Bookmarks', () => {
             cy.get('#bookmark-create-file-input-in-modal').attachFile(file);
 
             // * Verify uploaded
-            cy.findByTestId('titleInput').should('have.value', file);
+            cy.findByTestId('bookmark_modal.title--textbox').should('have.value', file);
             cy.findByRole('link', {name: `file thumbnail ${file}`});
 
             // # Save
@@ -175,7 +175,7 @@ describe('Channel Bookmarks', () => {
             const {file, displayName} = createFileBookmark({file: 'm4a-audio-file.m4a', displayName: 'custom displayname small-image', emojiName: 'smiling_face_with_3_hearts'});
 
             // * Verify emoji and custom display name, then open preview — may be in bar or overflow
-            cy.findByTestId('channel-bookmarks-container').then(($container) => {
+            cy.findByTestId('channel_bookmarks').then(($container) => {
                 const barLink = findVisibleBarLink($container, displayName);
                 if (barLink.length) {
                     cy.wrap(barLink).first().click();
@@ -203,8 +203,8 @@ describe('Channel Bookmarks', () => {
             openEditModal(displayName);
 
             // # Change link, displayname, emoji
-            editTextInput('linkInput', nextLink);
-            editTextInput('titleInput', nextDisplayName);
+            editTextInput('bookmark_modal.link--textbox', nextLink);
+            editTextInput('bookmark_modal.title--textbox', nextDisplayName);
             selectEmoji(nextEmojiName);
 
             // # Save
@@ -212,7 +212,7 @@ describe('Channel Bookmarks', () => {
             cy.get('.modal').should('not.exist');
 
             // * Verify changes — bookmark may be in bar or overflow
-            cy.findByTestId('channel-bookmarks-container').then(($container) => {
+            cy.findByTestId('channel_bookmarks').then(($container) => {
                 const barLink = findVisibleBarLink($container, nextDisplayName);
                 if (barLink.length) {
                     cy.wrap(barLink).first().should('have.attr', 'href', realNextLink);
@@ -242,7 +242,7 @@ describe('Channel Bookmarks', () => {
             openEditModal(displayName);
 
             // # Change link, displayname, emoji
-            editTextInput('titleInput', nextDisplayName);
+            editTextInput('bookmark_modal.title--textbox', nextDisplayName);
             selectEmoji(nextEmojiName);
 
             // # Save
@@ -250,7 +250,7 @@ describe('Channel Bookmarks', () => {
             cy.get('.modal').should('not.exist');
 
             // * Verify changes — bookmark may be in bar or overflow
-            cy.findByTestId('channel-bookmarks-container').then(($container) => {
+            cy.findByTestId('channel_bookmarks').then(($container) => {
                 const barLink = findVisibleBarLink($container, nextDisplayName);
                 if (barLink.length) {
                     cy.wrap(barLink).first().should('have.attr', 'href', realLink);
@@ -288,7 +288,7 @@ describe('Channel Bookmarks', () => {
             });
 
             // * Verify bookmark deleted (not in bar)
-            cy.findByTestId('channel-bookmarks-container').then(($container) => {
+            cy.findByTestId('channel_bookmarks').then(($container) => {
                 const barLink = findVisibleBarLink($container, displayName);
                 expect(barLink.length).to.eq(0);
             });
@@ -309,7 +309,7 @@ describe('Channel Bookmarks', () => {
                 const {displayName: name1} = createLinkBookmark({displayName: 'Reorder Item A', fromChannelMenu: true});
                 const {displayName: name2} = createLinkBookmark({displayName: 'Reorder Item B'});
 
-                cy.findByTestId('channel-bookmarks-container').within(() => {
+                cy.findByTestId('channel_bookmarks').within(() => {
                     cy.findAllByRole('link').should('have.length', 2).as('bookmarks');
                     cy.get('@bookmarks').eq(0).should('contain', name1);
                     cy.get('@bookmarks').eq(1).should('contain', name2);
@@ -329,7 +329,7 @@ describe('Channel Bookmarks', () => {
                 cy.wait(TIMEOUTS.ONE_SEC);
 
                 // * Verify order swapped
-                cy.findByTestId('channel-bookmarks-container').within(() => {
+                cy.findByTestId('channel_bookmarks').within(() => {
                     cy.findAllByRole('link').should('have.length', 2).as('after');
                     cy.get('@after').eq(0).should('contain', name2);
                     cy.get('@after').eq(1).should('contain', name1);
@@ -348,18 +348,18 @@ describe('Channel Bookmarks', () => {
                 const {displayName} = createLinkBookmark({displayName: 'Solo Bookmark', fromChannelMenu: true});
 
                 // # Press Space on the only bookmark
-                cy.findByTestId('channel-bookmarks-container').findByRole('link', {name: displayName}).focus().
+                cy.findByTestId('channel_bookmarks').findByRole('link', {name: displayName}).focus().
                     trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
 
                 cy.wait(TIMEOUTS.HALF_SEC);
 
                 // * Reorder visual state did not engage (no 3px reorder outline)
-                cy.findByTestId('channel-bookmarks-container').
+                cy.findByTestId('channel_bookmarks').
                     find('[data-bookmark-id] > div').first().
                     should('not.have.css', 'outline-width', '3px');
 
                 // * Bookmark count and identity unchanged
-                cy.findByTestId('channel-bookmarks-container').findAllByRole('link').
+                cy.findByTestId('channel_bookmarks').findAllByRole('link').
                     should('have.length', 1).first().should('contain', displayName);
 
                 // # Return to original channel for subsequent tests
@@ -479,7 +479,7 @@ describe('Channel Bookmarks', () => {
                 });
 
                 cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-                cy.findByTestId('channel-bookmarks-container').should('be.visible');
+                cy.findByTestId('channel_bookmarks').should('be.visible');
             });
         });
 
@@ -592,7 +592,7 @@ describe('Channel Bookmarks', () => {
 
         it('edit from overflow dot menu', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             const newName = `Edited OvBm ${getRandomId(4)}`;
 
@@ -604,7 +604,7 @@ describe('Channel Bookmarks', () => {
             cy.findByRole('menuitem', {name: 'Edit'}).click();
 
             // # Change display name
-            editTextInput('titleInput', newName);
+            editTextInput('bookmark_modal.title--textbox', newName);
             editModalSave();
             cy.get('.modal').should('not.exist');
 
@@ -614,7 +614,7 @@ describe('Channel Bookmarks', () => {
 
         it('copy link from overflow dot menu', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Stub clipboard to intercept the copy
             stubClipboard().as('clipboard');
@@ -642,7 +642,7 @@ describe('Channel Bookmarks', () => {
 
         it('delete from overflow dot menu', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Open overflow menu and get first item name
             cy.get('#channelBookmarksBarMenuButton').click();
@@ -668,7 +668,7 @@ describe('Channel Bookmarks', () => {
 
         it('overflow recalculates on viewport resize', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Record initial overflow count
             cy.get('#channelBookmarksBarMenuButton').invoke('text').then((text) => {
@@ -691,7 +691,7 @@ describe('Channel Bookmarks', () => {
 
         it('ArrowDown on open menu panel focuses first overflow item', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Open overflow menu — MUI focuses the Paper (menu panel), not the button
             cy.get('#channelBookmarksBarMenuButton').click();
@@ -710,10 +710,10 @@ describe('Channel Bookmarks', () => {
 
         it('keyboard reorder: ArrowRight moves last bar item into overflow', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Capture the last visible bar item's name (scoped to bar to exclude overflow)
-            cy.findByTestId('channel-bookmarks-container').findAllByRole('link').last().invoke('text').then((text) => {
+            cy.findByTestId('channel_bookmarks').findAllByRole('link').last().invoke('text').then((text) => {
                 const lastName = text.trim();
 
                 // # Start reorder, move right to cross into overflow, confirm
@@ -741,7 +741,7 @@ describe('Channel Bookmarks', () => {
                 cy.get('#channelBookmarksBarMenuDropdown').should('not.exist');
 
                 // * Verify DOM: item is no longer rendered in the visible bar
-                cy.findByTestId('channel-bookmarks-container').findAllByRole('link').then(($links) => {
+                cy.findByTestId('channel_bookmarks').findAllByRole('link').then(($links) => {
                     const barNames = [...$links].map((el) => el.textContent?.trim());
                     expect(barNames).to.not.include(lastName);
                 });
@@ -750,7 +750,7 @@ describe('Channel Bookmarks', () => {
 
         it('keyboard reorder: ArrowUp moves first overflow item into bar', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Open overflow and start reorder on first item, move up to bar
             cy.get('#channelBookmarksBarMenuButton').click();
@@ -771,7 +771,7 @@ describe('Channel Bookmarks', () => {
                 cy.focused().trigger('keydown', {key: ' ', code: 'Space', bubbles: true});
 
                 // * Verify the moved item is now visible in the bar
-                cy.findByTestId('channel-bookmarks-container').within(() => {
+                cy.findByTestId('channel_bookmarks').within(() => {
                     cy.findByRole('link', {name: firstOverflowName}).should('exist');
                 });
             });
@@ -779,7 +779,7 @@ describe('Channel Bookmarks', () => {
 
         it('ArrowRight opens dot menu from overflow item', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Open overflow and focus first item
             cy.get('#channelBookmarksBarMenuButton').click();
@@ -801,7 +801,7 @@ describe('Channel Bookmarks', () => {
 
         it('keyboard reorder Space confirm does not activate link', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             const initialUrl = `/${testTeam.name}/channels/${overflowChannel.name}`;
 
@@ -830,7 +830,7 @@ describe('Channel Bookmarks', () => {
         it('overflow menu button aria-label reflects count', () => {
             // # Overflow channel — button should mention count
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
             cy.get('#channelBookmarksBarMenuButton').should(($btn) => {
                 const label = $btn.attr('aria-label') ?? '';
                 expect(label).to.match(/more bookmark/i);
@@ -839,7 +839,7 @@ describe('Channel Bookmarks', () => {
 
         it('overflow recalculates when a bookmark is renamed to a much longer name', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Capture initial overflow count
             cy.get('#channelBookmarksBarMenuButton').invoke('text').then((text) => {
@@ -864,7 +864,7 @@ describe('Channel Bookmarks', () => {
 
         it('channel switch preserves overflow detection', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
             cy.get('#channelBookmarksBarMenuButton').should('be.visible');
 
             // # Switch to publicChannel (few/no bookmarks — overflow button should not show count)
@@ -872,7 +872,7 @@ describe('Channel Bookmarks', () => {
 
             // # Back to overflow channel — detection still works
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
             cy.get('#channelBookmarksBarMenuButton').should(($btn) => {
                 const count = parseInt($btn.text().replace(/\D/g, ''), 10);
                 expect(count).to.be.greaterThan(0);
@@ -881,7 +881,7 @@ describe('Channel Bookmarks', () => {
 
         it('dot menu "Open" action fires exactly once', () => {
             cy.visit(`/${testTeam.name}/channels/${overflowChannel.name}`);
-            cy.findByTestId('channel-bookmarks-container').should('be.visible');
+            cy.findByTestId('channel_bookmarks').should('be.visible');
 
             // # Stub window.open so we can count external-tab opens from "Open" action
             cy.window().then((win) => {
@@ -973,7 +973,7 @@ function openDotMenu(name: string) {
     // Wait for any stale modal to close (e.g. file preview from previous test)
     cy.get('.modal').should('not.exist');
 
-    cy.findByTestId('channel-bookmarks-container').then(($container) => {
+    cy.findByTestId('channel_bookmarks').then(($container) => {
         const barLink = findVisibleBarLink($container, name);
         if (barLink.length) {
             // Bar item — dot menu hidden via opacity:0 until :hover (CSS),
@@ -995,7 +995,7 @@ function openDotMenu(name: string) {
  * Finds a bookmark anywhere — bar or overflow — and asserts it exists.
  */
 function findBookmarkAnywhere(name: string) {
-    cy.findByTestId('channel-bookmarks-container').then(($container) => {
+    cy.findByTestId('channel_bookmarks').then(($container) => {
         const barLink = findVisibleBarLink($container, name);
         if (barLink.length) {
             cy.wrap(barLink).first().should('be.visible');
@@ -1029,13 +1029,13 @@ function createLinkBookmark({
     promptAddLink(fromChannelMenu);
 
     // # Enter link
-    editTextInput('linkInput', link);
+    editTextInput('bookmark_modal.link--textbox', link);
 
     cy.wait(TIMEOUTS.HALF_SEC);
 
     if (displayName) {
         // # Enter displayname
-        editTextInput('titleInput', displayName);
+        editTextInput('bookmark_modal.title--textbox', displayName);
     }
 
     if (emojiName) {
@@ -1063,8 +1063,8 @@ function createFileBookmark({
 
     if (displayName) {
         // # Enter displayname
-        cy.findByTestId('titleInput').should('have.value', file);
-        editTextInput('titleInput', displayName);
+        cy.findByTestId('bookmark_modal.title--textbox').should('have.value', file);
+        editTextInput('bookmark_modal.title--textbox', displayName);
     }
 
     if (emojiName) {

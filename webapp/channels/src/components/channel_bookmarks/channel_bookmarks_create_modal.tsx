@@ -381,6 +381,7 @@ function ChannelBookmarkCreateModal({
             enforceFocus={!showEmojiPicker}
             keyboardEscape={false}
             className='channel-bookmarks-create-modal'
+            testId='bookmark_modal'
             modalHeaderText={formatMessage(bookmark ? msg.editHeading : msg.heading)}
             confirmButtonText={formatMessage(bookmark ? msg.saveText : msg.addBookmarkText)}
             handleCancel={cancel}
@@ -404,7 +405,7 @@ function ChannelBookmarkCreateModal({
                             onChange={handleLinkChange}
                             hasError={Boolean(linkError)}
                             value={link}
-                            data-testid='linkInput'
+                            testId='bookmark_modal.link'
                             autoFocus={true}
                             addon={linkStatusIndicator}
                             customMessage={linkCustomMessage}
@@ -421,6 +422,7 @@ function ChannelBookmarkCreateModal({
                         <FileInputContainer
                             tabIndex={0}
                             role='button'
+                            data-testid='bookmark_modal.file--button'
                             disabled={!canUploadFiles}
                             onClick={(canUploadFiles && handleEditFileClick) || undefined}
                         >

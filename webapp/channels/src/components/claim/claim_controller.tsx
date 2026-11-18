@@ -49,7 +49,7 @@ export default class ClaimController extends React.PureComponent<Props> {
 
         return (
             <div>
-                <BackButton/>
+                <BackButton testId='claim.back'/>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>
                         <img

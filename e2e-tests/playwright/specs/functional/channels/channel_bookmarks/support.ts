@@ -7,7 +7,7 @@ import type {Client4} from '@mattermost/client';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {Page} from '@playwright/test';
 
-import type {ChannelsPage} from '@mattermost/playwright-lib';
+import {Api, expect, settle, type App} from '@mattermost/playwright-lib';
 
 export async function createLinkBookmark(
     client: Client4,
@@ -44,13 +44,21 @@ export async function createLinkBookmarks(client: Client4, channelId: string, co
     return bookmarks;
 }
 
-export async function addFileBookmark(page: Page, channelsPage: ChannelsPage, fileName = 'sample_text_file.txt') {
-    const channelMenu = await channelsPage.openChannelMenu();
-    await channelMenu.openBookmarksSubmenu();
-    const fileChooserPromise = page.waitForEvent('filechooser');
-    await channelMenu.addBookmarkFile.click();
-    const fileChooser = await fileChooserPromise;
+export async function addFileBookmark(
+    page: Page,
+    app: App,
+    fileName = 'sample_text_file.txt',
+): Promise<{bookmark: ChannelBookmark; fileId: string}> {
+    const bookmarks = app.channelHeader.menu.bookmarks;
+    await app.channelHeader.openMenuButton.clickTo(bookmarks.container);
+    await bookmarks.container.hover();
+    await expect(bookmarks.attachFileMenuItem).toBeVisible();
+    const [fileChooser] = await Promise.all([page.waitForEvent('filechooser'), bookmarks.attachFileMenuItem.click()]);
     await fileChooser.setFiles(path.resolve('asset', fileName));
-    await channelsPage.bookmarkCreateModal.toBeVisible();
-    await channelsPage.bookmarkCreateModal.addButton.click();
+    await expect(app.bookmarkModal).toBeVisible();
+    const bookmark = await settle(app.bookmarkModal.confirmButton, {wait: Api.CreateChannelBookmark}).click();
+    if (!bookmark.file_id) {
+        throw new Error(`file bookmark ${bookmark.id} has no file_id`);
+    }
+    return {bookmark, fileId: bookmark.file_id};
 }

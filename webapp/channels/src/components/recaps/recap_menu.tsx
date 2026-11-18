@@ -24,12 +24,20 @@ interface RecapMenuProps {
     actions: RecapMenuAction[];
     buttonClassName?: string;
     ariaLabel?: string;
+
+    /** The scope of the trigger button, `<testIdScope>.open--button` (it sits inside its recap). */
+    testIdScope?: string;
+
+    /** The scope of the open menu's items, `<menuTestIdScope>.action:<id>--menuitem` (the menu opens outside its recap, so this is a top-level scope). */
+    menuTestIdScope?: string;
 }
 
 export const RecapMenu: React.FC<RecapMenuProps> = ({
     actions,
     buttonClassName,
     ariaLabel = 'Recap options',
+    testIdScope,
+    menuTestIdScope,
 }) => {
     const menuId = `recap-menu-${Math.random().toString(36).substr(2, 9)}`;
     const buttonId = `${menuId}-button`;
@@ -38,6 +46,7 @@ export const RecapMenu: React.FC<RecapMenuProps> = ({
         <Menu.Container
             menuButton={{
                 id: buttonId,
+                dataTestId: testIdScope ? `${testIdScope}.open--button` : undefined,
                 as: RecapMenuTrigger,
                 class: buttonClassName,
                 'aria-label': ariaLabel,
@@ -62,6 +71,7 @@ export const RecapMenu: React.FC<RecapMenuProps> = ({
             {actions.map((action) => (
                 <Menu.Item
                     key={action.id}
+                    data-testid={menuTestIdScope ? `${menuTestIdScope}.action:${action.id}--menuitem` : undefined}
                     leadingElement={action.icon}
                     labels={<span>{action.label}</span>}
                     onClick={action.onClick}

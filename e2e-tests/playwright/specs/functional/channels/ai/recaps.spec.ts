@@ -1,13 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {Api, settle} from '@mattermost/playwright-lib';
+
 import {expect, test} from './ai_bridge_fixture';
 import {
     createChannelWithManyPosts,
     createRecapAndWaitForStatus,
     createUnreadChannelFixture,
+    expandRecap,
+    expectCaughtUp,
+    expectCreateRecapDisabled,
+    expectRecapProcessing,
+    fillRecapBasics,
     markAllCurrentChannelsRead,
+    openCreateRecap,
+    openRecaps,
+    selectRecapChannel,
     setupRecapBridge,
+    startRecap,
+    switchRecapsTab,
     waitForRecapStatus,
     waitForRecordedRequestCount,
 } from './recaps_helpers';
@@ -48,26 +60,20 @@ test('creates selected-channels recap and auto-renders mocked summary', {tag: '@
     );
 
     // # Login as the end user, create the recap through the selected-channels modal flow, and submit it.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
-    const createRecapModal = await recapsPage.openCreateRecap();
-    await createRecapModal.fillTitle(recapTitle);
-    await createRecapModal.selectSelectedChannels();
-    await createRecapModal.enableRunOnce();
-    await createRecapModal.clickNext();
-    await createRecapModal.expectChannelSelectorVisible();
-    await createRecapModal.searchChannel(channel.display_name);
-    await createRecapModal.selectChannel(channel.display_name);
-    await createRecapModal.clickNext();
-    await createRecapModal.expectSummaryChannels([channel.display_name]);
-    await createRecapModal.startRecap();
+    const createRecapModal = await openCreateRecap(app);
+    await fillRecapBasics(app, {title: recapTitle, type: 'selected', runOnce: true});
+    await createRecapModal.confirmButton.clickTo(createRecapModal.channelSearch.container);
+    await selectRecapChannel(app, channel);
+    await createRecapModal.confirmButton.clickTo(createRecapModal.summary.channel(channel));
+    const seeded = await startRecap(app);
 
     // * Verify the recap first appears in its pending state.
-    const recap = recapsPage.getRecap(recapTitle);
-    await recap.toBeVisible();
-    await recap.expectProcessing();
+    await expect(app.recaps.processing(seeded)).toBeVisible();
+    await expectRecapProcessing(app, seeded);
+    const recap = app.recaps.recap(seeded);
 
     // * Verify the recap completes and renders the mocked summary content without a manual page reload.
     await waitForRecapStatus(pw, userClient, recapTitle, 'completed');
@@ -135,24 +141,21 @@ test('creates all-unreads recap for only unread channels', {tag: '@ai_recaps'}, 
     );
 
     // # Open the all-unreads modal flow and advance directly to the summary step.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
-    const createRecapModal = await recapsPage.openCreateRecap();
-    await createRecapModal.fillTitle(recapTitle);
-    await createRecapModal.selectAgent(agent.displayName);
-    await createRecapModal.selectAllUnreads();
-    await createRecapModal.enableRunOnce();
-    await createRecapModal.clickNext();
+    const createRecapModal = await openCreateRecap(app);
+    await fillRecapBasics(app, {title: recapTitle, type: 'all_unreads', agent, runOnce: true});
+    await createRecapModal.confirmButton.clickTo(createRecapModal.summary.channel(firstChannel));
 
     // * Verify the all-unreads flow skips the channel selector and includes only the unread channels in the summary.
-    await createRecapModal.expectChannelSelectorHidden();
-    await createRecapModal.expectSummaryChannels([firstChannel.display_name, secondChannel.display_name]);
-    await createRecapModal.startRecap();
+    await expect(createRecapModal.channelSearch.container).not.toBeVisible();
+    await expect(createRecapModal.summary.channel(firstChannel)).toBeVisible();
+    await expect(createRecapModal.summary.channel(secondChannel)).toBeVisible();
+    const seeded = await startRecap(app);
 
     // * Verify the completed recap renders summaries for both unread channels.
-    const recap = recapsPage.getRecap(recapTitle);
+    const recap = app.recaps.recap(seeded);
     await expect(recap.container).toContainText(highlightOne, {timeout: pw.duration.one_min});
     await expect(recap.container).toContainText(highlightTwo, {timeout: pw.duration.one_min});
     await expect(recap.container).toContainText(firstChannel.display_name);
@@ -184,13 +187,12 @@ test('disables recap creation when the bridge is unavailable', {tag: '@ai_recaps
     });
 
     // # Open the recaps page as the end user.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
     // * Verify the page shows the caught-up empty state and disables the Add a recap button with the expected reason.
-    await recapsPage.expectCaughtUpEmptyState();
-    await recapsPage.expectAddRecapDisabled('Agents Bridge is not enabled');
+    await expectCaughtUp(app);
+    await expectCreateRecapDisabled(app, 'Agents Bridge is not enabled');
 });
 
 /**
@@ -225,25 +227,24 @@ test('moves a recap from unread to read when marked read', {tag: '@ai_recaps'}, 
         'Read state channel',
         sourceMessage,
     );
-    await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
+    const seeded = await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
 
     // # Open the unread recap and mark it as read from the recap card.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
-    const unreadRecap = recapsPage.getRecap(recapTitle);
-    await unreadRecap.toBeVisible();
-    await unreadRecap.clickMarkRead();
+    const unreadRecap = app.recaps.recap(seeded);
+    await expect(unreadRecap).toBeVisible();
+    await settle(unreadRecap.markReadButton, {wait: Api.MarkRecapAsRead}).click();
 
     // * Verify the recap disappears from the Unread tab and appears in the Read tab with the inline Mark read button removed.
-    await recapsPage.expectRecapNotVisible(recapTitle);
-    await recapsPage.switchToRead();
+    await expect(app.recaps.recap(seeded)).not.toBeVisible();
+    await switchRecapsTab(app, 'read');
 
-    const readRecap = recapsPage.getRecap(recapTitle);
-    await readRecap.toBeVisible();
+    const readRecap = app.recaps.recap(seeded);
+    await expect(readRecap).toBeVisible();
     await expect(readRecap.markReadButton).not.toBeVisible();
-    await expect(readRecap.menuButton).toBeVisible();
+    await expect(readRecap.menu.openButton).toBeVisible();
 });
 
 /**
@@ -278,21 +279,21 @@ test('deletes a recap from the recaps page', {tag: '@ai_recaps'}, async ({pw}) =
         'Delete recap channel',
         sourceMessage,
     );
-    await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
+    const seeded = await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
 
     // # Open the recap, trigger the delete action, and confirm the delete modal.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
-    const recap = recapsPage.getRecap(recapTitle);
-    await recap.toBeVisible();
-    await recap.clickDelete();
-    await recapsPage.confirmDelete();
+    const recap = app.recaps.recap(seeded);
+    await expect(recap).toBeVisible();
+    await recap.deleteButton.clickTo(recap.deleteModal);
+    await settle(recap.deleteModal.confirmButton, {wait: Api.DeleteRecap}).click();
+    await expect(recap.deleteModal).not.toBeVisible();
 
     // * Verify the recap disappears from the list and the page returns to the caught-up empty state.
-    await recapsPage.expectRecapNotVisible(recapTitle);
-    await recapsPage.expectCaughtUpEmptyState();
+    await expect(app.recaps.recap(seeded)).not.toBeVisible();
+    await expectCaughtUp(app);
 });
 
 /**
@@ -340,17 +341,24 @@ test('regenerates a recap with a new mocked summary', {tag: '@ai_recaps'}, async
             'Regenerate recap channel',
             sourceMessage,
         );
-        await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
+        const seeded = await createRecapAndWaitForStatus(
+            pw,
+            userClient,
+            recapTitle,
+            [channel.id],
+            agent.id,
+            'completed',
+        );
 
         // # Open the recap, confirm the original summary is visible, and trigger regeneration from the recap menu.
-        const {recapsPage} = await pw.testBrowser.login(user);
-        await recapsPage.goto(team.name);
-        await recapsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await openRecaps(app, team.name);
 
-        const recap = recapsPage.getRecap(recapTitle);
-        await recap.expand();
-        await recap.expectText(firstHighlight);
-        await recap.openMenuAction('Regenerate this recap');
+        const recap = app.recaps.recap(seeded);
+        await expandRecap(app, seeded);
+        await expect(recap).toContainText(firstHighlight);
+        await recap.menu.openButton.clickTo(app.recapOptionsMenu.action('regenerate-recap'));
+        await settle(app.recapOptionsMenu.action('regenerate-recap'), {wait: Api.RegenerateRecap}).click();
 
         // * Verify the regeneration request is recorded and then renders the regenerated summary.
         await waitForRecordedRequestCount(pw, adminClient, 2);
@@ -399,25 +407,25 @@ test('recovers a failed recap through regeneration', {tag: '@ai_recaps'}, async 
         'Failed recap channel',
         sourceMessage,
     );
-    await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'failed');
+    const seeded = await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'failed');
 
     // # Open the failed recap and trigger regeneration from the recap menu.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
-    const failedRecap = recapsPage.getRecap(recapTitle);
-    await failedRecap.toBeVisible();
-    await failedRecap.expectFailed();
+    const failedRecap = app.recaps.recap(seeded);
+    await expect(failedRecap).toBeVisible();
+    await expect(failedRecap).toContainText('Failed');
     await expect(failedRecap.markReadButton).not.toBeVisible();
-    await failedRecap.openMenuAction('Regenerate this recap');
+    await failedRecap.menu.openButton.clickTo(app.recapOptionsMenu.action('regenerate-recap'));
+    await settle(app.recapOptionsMenu.action('regenerate-recap'), {wait: Api.RegenerateRecap}).click();
 
     // * Verify the failed recap returns to processing and then recovers into a completed recap.
-    await failedRecap.expectProcessing();
+    await expectRecapProcessing(app, seeded);
     await waitForRecapStatus(pw, userClient, recapTitle, 'completed');
-    await recapsPage.page.reload();
-    await recapsPage.toBeVisible();
-    await failedRecap.expand();
+    await app.page.reload();
+    await expect(app.recaps.title).toContainText('Recaps', {timeout: pw.duration.one_min});
+    await expandRecap(app, seeded);
     await expect(failedRecap.container).toContainText(recoveredHighlight, {timeout: pw.duration.one_min});
 });
 
@@ -453,19 +461,21 @@ test('executes recap channel card actions', {tag: '@ai_recaps'}, async ({pw}) =>
         'Channel action recap',
         sourceMessage,
     );
-    await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
+    const seeded = await createRecapAndWaitForStatus(pw, userClient, recapTitle, [channel.id], agent.id, 'completed');
 
     // # Open the recap, mark the recap channel as read from the channel card, and then navigate back into the source channel.
-    const {page, recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
-    const recap = recapsPage.getRecap(recapTitle);
-    await recap.expand();
+    const recap = app.recaps.recap(seeded);
+    await expandRecap(app, seeded);
 
-    const recapChannelCard = recap.getChannelCard(channel.display_name);
-    await recapChannelCard.toBeVisible();
-    await recapChannelCard.openMenuAction('Mark this channel as read');
+    const recapChannelCard = recap.channel(channel.id);
+    await expect(recapChannelCard).toBeVisible();
+    const markRead = app.recapChannelMenu.action('mark-channel-read');
+    await recapChannelCard.menu.openButton.clickTo(markRead);
+    await markRead.click();
+    await expect(markRead).not.toBeVisible();
 
     // * Verify the recap channel read action clears the unread count for the summarized channel.
     await pw.waitUntil(
@@ -477,10 +487,11 @@ test('executes recap channel card actions', {tag: '@ai_recaps'}, async ({pw}) =>
     );
 
     // # Use the channel card to navigate back into the original channel.
-    await recapChannelCard.clickChannelName();
+    await recapChannelCard.openButton.click();
 
     // * Verify the user lands back in the source channel route.
-    await expect(page).toHaveURL(new RegExp(`/${team.name}/channels/${channel.name}$`));
+    await expect(app.page).toHavePath(app.channelsPage.pathFor({team, channel}));
+    await expect(app.channelsPage.ready[0]).toBeVisible();
 });
 
 /**

@@ -42,6 +42,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         if (this.props.config?.EnableBanner === 'true' && this.props.config.BannerText?.trim()) {
             adminConfiguredAnnouncementBar = (
                 <TextDismissableBar
+                    testId='announcement_bars.admin'
                     className='admin-announcement'
                     color={this.props.config.BannerColor}
                     textColor={this.props.config.BannerTextColor}
@@ -55,6 +56,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         if (this.props.latestError) {
             errorBar = (
                 <AnnouncementBar
+                    testId='announcement_bars.error'
                     type={this.props.latestError.error.type}
                     message={this.props.latestError.error.message}
                     showCloseButton={true}

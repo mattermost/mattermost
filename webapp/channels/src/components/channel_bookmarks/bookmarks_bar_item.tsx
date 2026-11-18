@@ -47,7 +47,6 @@ function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReo
             <BarItemWrapper
                 ref={ref}
                 data-bookmark-id={id}
-                data-testid={`bookmark-item-${id}`}
                 aria-hidden='true'
                 className='bookmarkMeasureItem'
             >
@@ -67,7 +66,7 @@ function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReo
         <BarItemWrapper
             ref={ref}
             data-bookmark-id={id}
-            data-testid={`bookmark-item-${id}`}
+            data-testid={`channel_bookmarks.bookmark:${bookmark.id}`}
         >
             <BarChip
                 $isDragging={isDragSelf}
@@ -75,6 +74,7 @@ function BookmarksBarItem({id, bookmark, disabled, isDraggingGlobal, keyboardReo
             >
                 <BookmarkItemContent
                     bookmark={bookmark}
+                    testIdScope='channel_bookmarks.bookmark'
                     disableInteractions={disableInteractions}
                     keyboardReorderProps={keyboardReorderProps}
                 />

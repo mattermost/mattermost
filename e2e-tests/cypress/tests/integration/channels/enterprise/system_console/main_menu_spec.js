@@ -36,7 +36,7 @@ describe('Main menu', () => {
         verifyLink('mobile', 'https://github.com/mattermost/mattermost-mobile/blob/master/NOTICE.txt');
 
         // * Verify version exists in modal
-        cy.get('[data-testid="aboutModalVersionInfo"]').should('contain.text', 'Server Version:');
+        cy.get('[data-testid="about_build_modal.version--text"]').should('contain.text', 'Server Version:');
 
         // * Verify licensed to exists in modal
         cy.findByText('Licensed to:').should('be.visible');

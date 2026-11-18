@@ -149,6 +149,7 @@ const Recaps = () => {
     } else if (hasNoRecaps) {
         recapsContent = (
             <RecapsEmptyState
+                testId='recaps.placeholder'
                 onCreateClick={handleAddRecap}
                 disabled={!agentsBridgeEnabled.available}
             />
@@ -163,7 +164,10 @@ const Recaps = () => {
                 <div className='recaps-header-left'>
                     <div className='recaps-title-container'>
                         <i className='icon icon-robot-outline'/>
-                        <h1 className='recaps-title'>
+                        <h1
+                            className='recaps-title'
+                            data-testid='recaps.title'
+                        >
                             {formatMessage({id: 'recaps.title', defaultMessage: 'Recaps'})}
                         </h1>
                         <RecapUsageBadge/>
@@ -171,18 +175,21 @@ const Recaps = () => {
                     <div className='recaps-tabs'>
                         <button
                             className={`recaps-tab ${activeTab === 'unread' ? 'active' : ''}`}
+                            data-testid='recaps.tab:unread--button'
                             onClick={() => handleTabChange('unread')}
                         >
                             {formatMessage({id: 'recaps.unreadTab', defaultMessage: 'Unread'})}
                         </button>
                         <button
                             className={`recaps-tab ${activeTab === 'read' ? 'active' : ''}`}
+                            data-testid='recaps.tab:read--button'
                             onClick={() => handleTabChange('read')}
                         >
                             {formatMessage({id: 'recaps.readTab', defaultMessage: 'Read'})}
                         </button>
                         <button
                             className={`recaps-tab ${activeTab === 'scheduled' ? 'active' : ''}`}
+                            data-testid='recaps.tab:scheduled--button'
                             onClick={() => handleTabChange('scheduled')}
                         >
                             {formatMessage({id: 'recaps.scheduled.tab', defaultMessage: 'Scheduled'})}
@@ -193,6 +200,7 @@ const Recaps = () => {
                     <Button
                         emphasis='tertiary'
                         size='small'
+                        data-testid='recaps.add--button'
                         onClick={handleAddRecap}
                         disabled={!agentsBridgeEnabled.available}
                         title={agentsBridgeEnabled.available ? undefined : formatMessage({id: 'recaps.addRecap.disabled', defaultMessage: 'Agents Bridge is not enabled'})}

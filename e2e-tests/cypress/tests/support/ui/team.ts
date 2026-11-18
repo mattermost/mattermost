@@ -11,7 +11,7 @@ function uiInviteMemberToCurrentTeam(username: string) {
 
     // # Open members section if licensed for guest accounts
     cy.findByTestId('invitation_modal').
-        then((container) => container.find('[data-testid="inviteMembersLink"]')).
+        then((container) => container.find('[data-testid="invitation_modal.invite.as_member"]')).
         then((link) => link?.click());
 
     // # Enter bot username and submit

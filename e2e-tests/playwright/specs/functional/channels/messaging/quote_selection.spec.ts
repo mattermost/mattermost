@@ -43,7 +43,7 @@ test('quotes text selected in a post into the channel message box', TAGS, async 
 
     const app = await openTownSquare(pw, user, team);
     const post = app.center.postList.post(created);
-    const quoteButton = app.page.getByRole('button', {name: 'Quote selection'});
+    const quoteButton = app.quoteSelection.quoteButton;
     const {postCreate} = app.center;
 
     // * Verify the quote button isn't shown without a selection
@@ -55,7 +55,7 @@ test('quotes text selected in a post into the channel message box', TAGS, async 
 
     // # Quote the selection
     await expect(quoteButton).toBeVisible();
-    await app.page.getByRole('button', {name: 'Quote selection'}).click();
+    await app.quoteSelection.quoteButton.click();
 
     // * Verify the quote is in the message box followed by an empty line, and the button is gone
     await expect(postCreate.message.container).toHaveValue('> Diam sapien pellentesque\n\n');
@@ -68,8 +68,9 @@ test('quotes text selected in a post into the channel message box', TAGS, async 
 
     // * Verify the posted message contains the quote followed by the reply
     const sent = await lastPostWith(userClient, townSquare.id, 'What do you mean?');
-    const reply = app.center.postList.post(sent).message.container.locator;
-    await expect(reply.getByRole('blockquote')).toHaveText('Diam sapien pellentesque');
+    const reply = app.center.postList.post(sent).message.container;
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the blockquote is rendered markdown, which cannot take a test id; its role is what is under test
+    await expect(reply.locator.getByRole('blockquote')).toHaveText('Diam sapien pellentesque');
     await expect(reply).toContainText('What do you mean?');
 });
 
@@ -91,7 +92,7 @@ test('adds a quote of a right to left selection after the existing draft', TAGS,
 
     // # Select part of the message from right to left and quote it
     await selectTextWithMouse(post.message.container.locator, 'Senectus ultrices', {backward: true});
-    await app.page.getByRole('button', {name: 'Quote selection'}).click();
+    await app.quoteSelection.quoteButton.click();
 
     // * Verify the quote was added on its own after the draft
     await expect(postCreate.message.container).toHaveValue('About this:\n\n> Senectus ultrices\n\n');
@@ -121,7 +122,7 @@ test('quotes text selected in the RHS into the thread reply box', TAGS, async ({
     // # Select text in the reply and quote it
     const replyPost = app.rhs.thread.post(created);
     await selectTextWithMouse(replyPost.message.container.locator, 'pretium eget massa');
-    await app.page.getByRole('button', {name: 'Quote selection'}).click();
+    await app.quoteSelection.quoteButton.click();
 
     // * Verify the quote went into the thread reply box and not the channel message box
     await expect(app.rhs.postCreate.message.container).toHaveValue('> pretium eget massa\n\n');
@@ -157,7 +158,7 @@ test('keeps the Markdown formatting of the quoted text', TAGS, async ({pw}) => {
     // # Select the whole message and quote it
     const post = app.center.postList.post(created);
     await selectTextWithMouse(post.message.container.locator, 'Project Update', {untilPhrase: 'dashboard'});
-    await app.page.getByRole('button', {name: 'Quote selection'}).click();
+    await app.quoteSelection.quoteButton.click();
 
     // * Verify the quote keeps the heading, emphasis, list, code block and link
     await expect(app.center.postCreate.message.container).toHaveValue(
@@ -192,7 +193,7 @@ test('quotes the selection with the keyboard', TAGS, async ({pw}) => {
     // # Select part of the message
     const post = app.center.postList.post(created);
     await selectTextWithMouse(post.message.container.locator, 'Diam sapien pellentesque');
-    const quoteButton = app.page.getByRole('button', {name: 'Quote selection'});
+    const quoteButton = app.quoteSelection.quoteButton;
     await expect(quoteButton).toBeVisible();
 
     // # Move to the quote button with Tab and press Enter
@@ -230,12 +231,12 @@ test('does not offer to quote in an archived channel', TAGS, async ({pw}) => {
         .poll(() => app.page.evaluate(() => window.getSelection()?.toString()))
         .toBe('Diam sapien pellentesque');
 
-    // The button decides whether to show in a zero-delay timer after mouseup: let the page run a timer tick
-    // and then a frame, so that decision has been made and rendered before checking the button stays hidden.
+    // The button decides whether to show in a zero-delay timer after mouseup: let the page render two
+    // frames, so that decision has been made and rendered before checking the button stays hidden.
     await app.page.evaluate(
-        () => new Promise((resolve) => setTimeout(() => requestAnimationFrame(() => resolve(null)))),
+        () => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve(null)))),
     );
-    await expect(app.page.getByRole('button', {name: 'Quote selection'})).not.toBeVisible();
+    await expect(app.quoteSelection.quoteButton).not.toBeVisible();
 });
 
 /**
@@ -255,7 +256,7 @@ test('quotes text selected in a channel pop-out window', TAGS, async ({pw}) => {
 
     // # Select part of the message and quote it
     await selectTextWithMouse(message, 'Diam sapien pellentesque');
-    await popout.page.getByRole('button', {name: 'Quote selection'}).click();
+    await popout.quoteSelection.quoteButton.click();
 
     // * Verify the quote is in the pop-out's message box
     await expect(popout.center.postCreate.message.container).toHaveValue('> Diam sapien pellentesque\n\n');

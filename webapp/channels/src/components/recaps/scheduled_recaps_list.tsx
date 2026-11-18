@@ -22,6 +22,7 @@ const ScheduledRecapsList = ({scheduledRecaps, onEdit, onCreateClick, createDisa
     if (scheduledRecaps.length === 0) {
         return (
             <RecapsEmptyState
+                testId='recaps.scheduled.empty'
                 className='scheduled-recaps-empty-state'
                 title={formatMessage({id: 'recaps.scheduled.emptyState.title', defaultMessage: 'Set up your first recap'})}
                 onCreateClick={onCreateClick}

@@ -11,6 +11,7 @@ import {renderWithContext} from 'tests/react_testing_utils';
 
 describe('components/AnnouncementBar', () => {
     const baseProps = {
+        testId: 'announcement_bars.test' as const,
         isLoggedIn: true,
         canViewSystemErrors: false,
         canViewAPIv3Banner: false,

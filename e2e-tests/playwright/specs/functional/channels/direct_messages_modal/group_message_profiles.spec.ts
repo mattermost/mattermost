@@ -5,7 +5,9 @@ import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 import type {Page} from '@playwright/test';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
+
+import {goToChannel, openDirectMessages, selectUser} from './dm_dialog';
 
 /**
  * @objective Verify that a group message whose channel has fallen out of the sidebar (because the user
@@ -41,9 +43,9 @@ test(
         }
 
         // # Log the user in and open the channels page
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: 'town-square'});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Create 11 GMs using the Direct Channels modal
         const gmChannels = [];
@@ -52,15 +54,16 @@ test(
             const memberB = users[i * 2 + 1];
 
             // # Open the modal
-            const dialog = await channelsPage.openDirectChannelsModal();
+            await openDirectMessages(app);
 
             // # Select the users and create the channel
-            await dialog.selectUser(memberA);
-            await dialog.selectUser(memberB);
-            await dialog.goToChannel();
+            await selectUser(app, memberA);
+            await selectUser(app, memberB);
+            await goToChannel(app);
 
             // # Make a post in the channel to ensure that it has a last_post_at value
-            await channelsPage.postMessage(`gm message ${i}`);
+            await app.center.postCreate.message.container.fill(`gm message ${i}`);
+            await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
 
             // # Save the channel's information for later
             gmChannels.push({
@@ -73,14 +76,14 @@ test(
         const otherGms = gmChannels.slice(1);
 
         // # Refresh the app and go back to Town Square
-        await channelsPage.goto(team.name, 'town-square');
+        await app.channelsPage.goto({team, channel: 'town-square'});
 
         // * Verify the target GM is not present in the sidebar to ensure that the sidebar hasn't loaded it
-        await expect(page.locator(`#sidebarItem_${targetGm.channel.name}`)).toHaveCount(0);
+        await expect(app.lhs.channelList.channel(targetGm.channel)).toHaveCount(0);
 
         // * Wait until the other GMs are loaded and present in the sidebar
         for (const otherGm of otherGms) {
-            const otherGmEntry = page.locator(`#sidebarItem_${otherGm.channel.name}`);
+            const otherGmEntry = app.lhs.channelList.channel(otherGm.channel);
 
             await expect(otherGmEntry).toHaveCount(1);
             await expect(otherGmEntry).toContainText(gmChannelDisplayName(otherGm.members));
@@ -93,31 +96,27 @@ test(
         }
 
         // # Open the Direct Messages modal again
-        const dialog = await channelsPage.openDirectChannelsModal();
+        const dialog = await openDirectMessages(app);
 
         // # Wait for the list to populate
-        const rows = dialog.container.locator('#multiSelectList .more-modal__row');
-        await expect.poll(async () => rows.count()).toBeGreaterThanOrEqual(totalGms);
+        await expect.poll(async () => (await dialog.options.groupList.keys()).length).toBeGreaterThanOrEqual(totalGms);
 
         // * Verify the modal contains an entry for every GM the user has, including the one that fell
         // * out of the sidebar
         for (const {channel, members} of gmChannels) {
-            // Each GM row renders the member usernames joined by ', '. We use the second member's
-            // username (which is unique per GM) to locate the corresponding row.
-            const usernameMarker = `@${members[1].username}`;
-            const gmRow = rows.filter({hasText: usernameMarker});
+            const gmRow = dialog.options.group(channel);
 
             // * Verify the row is rendered
             await expect(gmRow, `expected to find a row in the DM modal for GM ${channel.id}`).toHaveCount(1);
 
             // * Verify the GM icon shows the correct member count (channel members minus current user)
             await expect(
-                gmRow.locator('.more-modal__gm-icon'),
+                gmRow.memberCountText,
                 `expected GM ${channel.id} to show a member count of ${members.length}`,
             ).toHaveText(members.length.toString());
 
             // * Verify the row's name section includes every participant's username
-            const nameContainer = gmRow.locator('.more-modal__name');
+            const nameContainer = gmRow.nameText;
             for (const participant of members) {
                 await expect(
                     nameContainer,
@@ -152,12 +151,12 @@ async function assertChannelUsersLoaded(page: Page, channelId: string, expectedU
         `Array.from(store.getState().entities.users.profilesInChannel['${channelId}'])`,
     );
 
-    await expect(loadedIds).toHaveLength(expectedUsers.length);
-    await expect(loadedIds).toEqual(expect.arrayContaining(expectedUsers.map((user) => user.id)));
+    expect(loadedIds).toHaveLength(expectedUsers.length);
+    expect(loadedIds).toEqual(expect.arrayContaining(expectedUsers.map((user) => user.id)));
 }
 
 async function assertChannelUsersNotLoaded(page: Page, channelId: string) {
     const loadedIds = await page.evaluate(`store.getState().entities.users.profilesInChannel['${channelId}']`);
 
-    await expect(loadedIds).toBeUndefined();
+    expect(loadedIds).toBeUndefined();
 }

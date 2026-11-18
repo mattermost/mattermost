@@ -1,8 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DaysOfWeek} from '@mattermost/types/recaps';
+
+import {Api, settle, type App} from '@mattermost/playwright-lib';
+
 import {expect, test} from './ai_bridge_fixture';
-import {createUnreadChannelFixture, setupRecapBridge} from './recaps_helpers';
+import {
+    createUnreadChannelFixture,
+    fillRecapBasics,
+    openCreateRecap,
+    openRecaps,
+    selectRecapChannel,
+    setupRecapBridge,
+    switchRecapsTab,
+} from './recaps_helpers';
+
+/** Verifies the dialog is on its schedule step. */
+async function expectScheduleStep(app: App) {
+    // The step's submit button reads "Create schedule" when creating and "Save changes" when editing, so the
+    // stable step heading is asserted instead.
+    await expect(app.createRecapModal).toContainText('On which days should your recap run?');
+}
+
+/** Turns a schedule day on by its DaysOfWeek bit. */
+async function selectScheduleDay(app: App, day: number) {
+    const toggle = app.createRecapModal.schedule.day(day);
+    await toggle.setPressed(true);
+    await expect(toggle).toHaveAttribute('aria-pressed', 'true');
+}
+
+/** Verifies the Scheduled tab's empty state. */
+async function expectScheduledEmpty(app: App) {
+    const empty = app.recaps.scheduled.empty;
+    await expect(empty).toContainText('Set up your first recap');
+    await expect(empty).toContainText(
+        'Recaps help you get caught up quickly on discussions that are most important to you with a summarized report.',
+    );
+    await expect(empty.createButton).toBeVisible();
+}
 
 const MONDAY = 1 << 1;
 const WEDNESDAY = 1 << 3;
@@ -35,35 +71,38 @@ test('creates and manages a scheduled recap', {tag: '@ai_recaps'}, async ({pw}) 
     );
 
     // # Create a selected-channel scheduled recap through the modal flow.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
-    const createRecapModal = await recapsPage.openCreateRecap();
-    await createRecapModal.fillTitle(recapTitle);
-    await createRecapModal.selectSelectedChannels();
-    await createRecapModal.clickNext();
-    await createRecapModal.expectChannelSelectorVisible();
-    await createRecapModal.searchChannel(channel.display_name);
-    await createRecapModal.selectChannel(channel.display_name);
-    await createRecapModal.clickNext();
-    await createRecapModal.expectScheduleConfigurationVisible();
-    await createRecapModal.selectScheduleDay('M');
-    await createRecapModal.createSchedule();
+    const createRecapModal = await openCreateRecap(app);
+    await fillRecapBasics(app, {title: recapTitle, type: 'selected'});
+    await createRecapModal.confirmButton.clickTo(createRecapModal.channelSearch.container);
+    await selectRecapChannel(app, channel);
+    await createRecapModal.confirmButton.clickTo(createRecapModal.schedule.day(DaysOfWeek.Monday));
+    await expectScheduleStep(app);
+    await selectScheduleDay(app, DaysOfWeek.Monday);
+    const created = await settle(createRecapModal.confirmButton, {wait: Api.CreateScheduledRecap}).click();
+    await expect(createRecapModal).not.toBeVisible({timeout: pw.duration.ten_sec});
 
     // * Verify the scheduled recap is listed with stable schedule structure and active state.
-    await recapsPage.toBeVisible();
-    await recapsPage.switchToScheduled();
+    await expect(app.recaps.title).toContainText('Recaps', {timeout: pw.duration.one_min});
+    await switchRecapsTab(app, 'scheduled');
 
-    const scheduledRecap = recapsPage.getScheduledRecap(recapTitle);
-    await scheduledRecap.toBeVisible();
-    await scheduledRecap.expectSchedulePattern(/Mon|Monday/);
-    await scheduledRecap.expectSchedulePattern(/ at /);
-    await scheduledRecap.expectActive();
+    const scheduledRecap = app.recaps.scheduled.recap(created);
+    await expect(scheduledRecap).toBeVisible();
+    await expect(scheduledRecap.scheduleText).toContainText(/Mon|Monday/);
+    await expect(scheduledRecap.scheduleText).toContainText(/ at /);
+    await expect(scheduledRecap.enableSwitch).toBeChecked();
+    await expect(scheduledRecap.enableSwitch).toHaveAccessibleName('Active - click to pause');
 
     // * Verify pause and resume update both the UI and the stored scheduled recap.
-    await scheduledRecap.pause();
-    await scheduledRecap.resume();
+    // The switch follows async store updates, so it is toggled and its state polled rather than checked.
+    await settle(scheduledRecap.enableSwitch, {wait: Api.PauseScheduledRecap}).toggle();
+    await expect(scheduledRecap.enableSwitch).not.toBeChecked();
+    await expect(scheduledRecap.enableSwitch).toHaveAccessibleName('Paused - click to resume');
+    await settle(scheduledRecap.enableSwitch, {wait: Api.ResumeScheduledRecap}).toggle();
+    await expect(scheduledRecap.enableSwitch).toBeChecked();
+    await expect(scheduledRecap.enableSwitch).toHaveAccessibleName('Active - click to pause');
 
     const scheduledRecaps = await userClient.getScheduledRecaps(0, 60);
     const createdRecap = scheduledRecaps.find((recap) => recap.title === recapTitle);
@@ -191,32 +230,33 @@ test('edits a scheduled recap through the options menu', {tag: '@ai_recaps'}, as
     });
 
     // # Open the Scheduled tab and launch the edit modal from the recap's Options menu.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
-    await recapsPage.switchToScheduled();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
+    await switchRecapsTab(app, 'scheduled');
 
-    const scheduledRecap = recapsPage.getScheduledRecap(originalTitle);
-    await scheduledRecap.toBeVisible();
-    await scheduledRecap.editViaMenu();
+    const scheduledRecap = app.recaps.scheduled.recap(createdRecap);
+    await expect(scheduledRecap).toBeVisible();
+    await scheduledRecap.openMenuButton.clickTo(app.scheduledRecapMenu.editMenuItem);
 
     // # Update the title on the first step and add Wednesday on the schedule step of the pre-filled modal.
-    const editModal = recapsPage.createRecapModal;
-    await editModal.toBeVisible();
-    await editModal.fillTitle(updatedTitle);
-    await editModal.clickNext();
-    await editModal.expectChannelSelectorVisible();
-    await editModal.clickNext();
-    await editModal.expectScheduleConfigurationVisible();
-    await editModal.selectScheduleDay('W');
-    await editModal.saveChanges();
+    const editModal = await app.scheduledRecapMenu.editMenuItem.clickTo(app.createRecapModal);
+    await editModal.nameTextbox.fill(updatedTitle);
+    await expect(editModal.nameTextbox).toHaveValue(updatedTitle);
+    await editModal.confirmButton.clickTo(editModal.channelSearch.container);
+    await editModal.confirmButton.clickTo(editModal.schedule.day(DaysOfWeek.Wednesday));
+    await expectScheduleStep(app);
+    await selectScheduleDay(app, DaysOfWeek.Wednesday);
+    await settle(editModal.confirmButton, {wait: Api.UpdateScheduledRecap}).click();
+    await expect(editModal).not.toBeVisible({timeout: pw.duration.ten_sec});
 
     // * Verify the list reflects the new title and the dropped original title, and shows the added day.
-    await recapsPage.toBeVisible();
-    const updatedRecap = recapsPage.getScheduledRecap(updatedTitle);
-    await updatedRecap.toBeVisible();
-    await updatedRecap.expectSchedulePattern(/Wed|Wednesday/);
-    await recapsPage.expectScheduledRecapNotVisible(originalTitle);
+    await expect(app.recaps.title).toContainText('Recaps', {timeout: pw.duration.one_min});
+    const updatedRecap = app.recaps.scheduled.recap(createdRecap);
+    await expect(updatedRecap.title).toHaveText(updatedTitle);
+    await expect(updatedRecap.scheduleText).toBeVisible();
+    await expect(updatedRecap.scheduleText).toContainText(/Wed|Wednesday/);
+    await expect(app.recaps.scheduled.recapList).toHaveKeys([createdRecap.id]);
+    await expect(updatedRecap.title).not.toContainText(originalTitle);
 
     // * Verify the persisted scheduled recap carries the updated title and the Monday+Wednesday schedule.
     await pw.waitUntil(
@@ -282,19 +322,20 @@ test('deletes a scheduled recap through the options menu', {tag: '@ai_recaps'}, 
     });
 
     // # Open the Scheduled tab, trigger Delete from the Options menu, and confirm the dialog.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
-    await recapsPage.switchToScheduled();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
+    await switchRecapsTab(app, 'scheduled');
 
-    const scheduledRecap = recapsPage.getScheduledRecap(recapTitle);
-    await scheduledRecap.toBeVisible();
-    await scheduledRecap.deleteViaMenu();
-    await recapsPage.confirmDelete();
+    const scheduledRecap = app.recaps.scheduled.recap(createdRecap);
+    await expect(scheduledRecap).toBeVisible();
+    await scheduledRecap.openMenuButton.clickTo(app.scheduledRecapMenu.deleteMenuItem);
+    const deleteModal = await app.scheduledRecapMenu.deleteMenuItem.clickTo(app.recaps.scheduled.deleteModal);
+    await settle(deleteModal.confirmButton, {wait: Api.DeleteScheduledRecap}).click();
+    await expect(deleteModal).not.toBeVisible({timeout: pw.duration.ten_sec});
 
     // * Verify the recap disappears from the list and the empty state returns.
-    await recapsPage.expectScheduledRecapNotVisible(recapTitle);
-    await recapsPage.expectScheduledEmptyState();
+    await expect(scheduledRecap).not.toBeVisible();
+    await expectScheduledEmpty(app);
 
     // * Verify the scheduled recap is no longer returned by the API.
     await pw.waitUntil(
@@ -317,17 +358,16 @@ test('shows the scheduled empty state for a user with no scheduled recaps', {tag
     });
 
     // # Open the recaps page and switch to the Scheduled tab.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
-    await recapsPage.switchToScheduled();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
+    await switchRecapsTab(app, 'scheduled');
 
     // * Verify the scheduled empty state heading, description, and create CTA are shown.
-    await recapsPage.expectScheduledEmptyState();
+    await expectScheduledEmpty(app);
 
     // * Verify the empty-state CTA is wired up: clicking it opens the create recap modal.
-    const createRecapModal = await recapsPage.openCreateRecapFromScheduledEmptyState();
-    await createRecapModal.toBeVisible();
+    const createRecapModal = await app.recaps.scheduled.empty.createButton.clickTo(app.createRecapModal);
+    await expect(createRecapModal).toBeVisible();
 });
 
 /**
@@ -358,25 +398,24 @@ test('creates an all-unreads scheduled recap through the modal', {tag: '@ai_reca
     );
 
     // # Open the modal, choose all-unreads mode, and advance directly to the schedule step.
-    const {recapsPage} = await pw.testBrowser.login(user);
-    await recapsPage.goto(team.name);
-    await recapsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await openRecaps(app, team.name);
 
-    const createRecapModal = await recapsPage.openCreateRecap();
-    await createRecapModal.fillTitle(recapTitle);
-    await createRecapModal.selectAllUnreads();
-    await createRecapModal.clickNext();
+    const createRecapModal = await openCreateRecap(app);
+    await fillRecapBasics(app, {title: recapTitle, type: 'all_unreads'});
+    await createRecapModal.confirmButton.clickTo(createRecapModal.schedule.day(DaysOfWeek.Monday));
 
     // * Verify the all-unreads flow skips the channel selector and lands on schedule configuration.
-    await createRecapModal.expectChannelSelectorHidden();
-    await createRecapModal.expectScheduleConfigurationVisible();
-    await createRecapModal.selectScheduleDay('M');
-    await createRecapModal.createSchedule();
+    await expect(createRecapModal.channelSearch.container).not.toBeVisible();
+    await expectScheduleStep(app);
+    await selectScheduleDay(app, DaysOfWeek.Monday);
+    const created = await settle(createRecapModal.confirmButton, {wait: Api.CreateScheduledRecap}).click();
+    await expect(createRecapModal).not.toBeVisible({timeout: pw.duration.ten_sec});
 
     // * Verify the scheduled recap is listed.
-    await recapsPage.toBeVisible();
-    await recapsPage.switchToScheduled();
-    await recapsPage.getScheduledRecap(recapTitle).toBeVisible();
+    await expect(app.recaps.title).toContainText('Recaps', {timeout: pw.duration.one_min});
+    await switchRecapsTab(app, 'scheduled');
+    await expect(app.recaps.scheduled.recap(created)).toBeVisible();
 
     // * Verify the persisted scheduled recap uses the all_unreads channel mode and is active.
     await pw.waitUntil(

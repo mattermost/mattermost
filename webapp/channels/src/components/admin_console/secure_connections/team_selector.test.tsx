@@ -49,7 +49,7 @@ describe('TeamSelector', () => {
                 value=''
                 teamsById={teamsById}
                 onChange={jest.fn()}
-                testId='destination-team'
+                testId='admin.secure_connection.destination_team'
             />,
         );
 
@@ -66,7 +66,7 @@ describe('TeamSelector', () => {
                 value={teamA.id}
                 teamsById={teamsById}
                 onChange={jest.fn()}
-                testId='destination-team'
+                testId='admin.secure_connection.destination_team'
             />,
         );
 
@@ -79,7 +79,7 @@ describe('TeamSelector', () => {
                 value='unknown-team-id'
                 teamsById={teamsById}
                 onChange={jest.fn()}
-                testId='destination-team'
+                testId='admin.secure_connection.destination_team'
             />,
         );
 
@@ -92,12 +92,12 @@ describe('TeamSelector', () => {
                 value=''
                 teamsById={teamsById}
                 onChange={jest.fn()}
-                testId='destination-team'
+                testId='admin.secure_connection.destination_team'
                 legend='Pick a team'
             />,
         );
 
-        expect(mockLastDropdownProps.testId).toBe('destination-team');
+        expect(mockLastDropdownProps.testId).toBe('admin.secure_connection.destination_team');
         expect(mockLastDropdownProps.legend).toBe('Pick a team');
         expect(mockLastDropdownProps.required).toBe(true);
         expect(mockLastDropdownProps.name).toBe('team_selector');
@@ -111,7 +111,7 @@ describe('TeamSelector', () => {
                 value=''
                 teamsById={teamsById}
                 onChange={onChange}
-                testId='destination-team'
+                testId='admin.secure_connection.destination_team'
             />,
         );
 

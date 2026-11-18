@@ -150,6 +150,7 @@ const ViewUserGroupModalHeader = ({
                     size='small'
                     className='mr-2'
                     onClick={goToAddPeopleModal}
+                    data-testid='view_user_group_modal.add_people--button'
                 >
                     <FormattedMessage
                         id='user_groups_modal.addPeople'
@@ -168,6 +169,7 @@ const ViewUserGroupModalHeader = ({
                     emphasis='tertiary'
                     size='small'
                     onClick={restoreGroup}
+                    data-testid='view_user_group_modal.restore--button'
                 >
                     <FormattedMessage
                         id='user_groups_modal.button.restoreGroup'
@@ -211,6 +213,7 @@ const ViewUserGroupModalHeader = ({
                 <IconButton
                     size='medium'
                     className='modal-header-back-button'
+                    data-testid='view_user_group_modal.back--button'
                     icon={<Icon glyph={<ArrowLeftIcon/>}/>}
                     aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                     onClick={goBack}
@@ -224,6 +227,7 @@ const ViewUserGroupModalHeader = ({
                 <WithTooltip title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}>
                     <IconButton
                         className='user-groups-modal__header-close'
+                        data-testid='view_user_group_modal.close--button'
                         size='medium'
                         icon={<Icon glyph={<CloseIcon/>}/>}
                         onClick={onExited}
