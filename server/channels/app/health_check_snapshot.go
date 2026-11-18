@@ -54,12 +54,15 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 	// The Makefile stamps BuildDate with `date -u`; dev builds leave the zero time.
 	snapshot.Version.BuildDate, _ = time.Parse(time.UnixDate, model.BuildDate)
 
-	release, appErr := a.GetLatestVersion(rctx, latestVersionURL)
-	if appErr != nil {
-		sections[model.SectionVersion] = appErr
-	} else {
-		sections[model.SectionVersion] = nil
-		snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+	// With the check off, Latest stays empty and the version rules read the reason from the config.
+	sections[model.SectionVersion] = nil
+	if *a.Config().ServiceSettings.EnableSecurityFixAlert {
+		release, appErr := a.GetLatestVersion(rctx, latestVersionURL)
+		if appErr != nil {
+			sections[model.SectionVersion] = appErr
+		} else {
+			snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+		}
 	}
 
 	return snapshot, nil
