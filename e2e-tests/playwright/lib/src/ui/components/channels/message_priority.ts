@@ -110,16 +110,17 @@ export default class MessagePriority {
     }
 
     async closePriorityMenu() {
-        // The priority list is a submenu with no backdrop of its own, so Escape on that
-        // list does not dismiss it. Escape on the + menu closes the parent, and the
-        // priority panel closes with it.
+        // Escape inside the priority list closes that panel. The + menu stays open
+        // behind it, and its backdrop would cover Send, so close that next.
+        if (await this.priorityMenu.isVisible()) {
+            await this.priorityMenu.press('Escape');
+            await expect(this.priorityMenu).not.toBeVisible();
+        }
         const parentMenu = this.container.page().getByRole('menu', {name: 'Message options'});
         if (await parentMenu.isVisible()) {
             await parentMenu.press('Escape');
-        } else {
-            await this.container.page().keyboard.press('Escape');
+            await expect(parentMenu).not.toBeVisible();
         }
-        await expect(this.priorityMenu).not.toBeVisible();
     }
 
     async verifyNoPriorityLabel(postText: string) {

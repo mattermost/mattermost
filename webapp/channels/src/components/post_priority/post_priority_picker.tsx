@@ -372,6 +372,7 @@ function PostPriorityPicker({
                     disableRestoreFocus={true}
                     hideBackdrop={true}
                     transitionDuration={0}
+                    onClose={closeItemPanel}
                     slotProps={{
                         paper: {
                             ref: panelRef,
