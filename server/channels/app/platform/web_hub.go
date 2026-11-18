@@ -738,9 +738,7 @@ func (h *Hub) Start() {
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
 			case webConnReg := <-h.register:
-				// The send channel is already closed, so do not enqueue the hello message.
 				if webConnReg.conn.sendClosed.Load() {
-					webConnReg.err <- fmt.Errorf("websocket connection is closed")
 					continue
 				}
 
@@ -979,7 +977,6 @@ func areAllInactive(conns iter.Seq[*WebConn]) bool {
 
 // closeAndRemoveConn closes the send channel which will close the
 // websocket connection, and then it removes the webConn from the conn index.
-// A later call is a no-op so the send channel is closed only once.
 func closeAndRemoveConn(connIndex *hubConnectionIndex, conn *WebConn) {
 	if !conn.sendClosed.CompareAndSwap(false, true) {
 		return
