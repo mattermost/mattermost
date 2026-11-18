@@ -166,14 +166,26 @@ jobs:
           TAG: ${{ steps.set_tag.outputs.TAG }}
         run: |
           cd server/build
-          docker buildx build --no-cache --platform linux/amd64 --load --build-arg MM_PACKAGE=${MM_PACKAGE} -t mattermostdevelopment/mm-te-test:${TAG} -t mattermostdevelopment/mattermost-team-edition:${TAG} .
-          # Document extraction tools must start in the image; a failure here blocks the push.
+          # Push untagged (by digest) with provenance, check that exact image, then publish the tags from it.
+          docker buildx build --no-cache --platform linux/amd64 --provenance=mode=min \
+            --build-arg MM_PACKAGE=${MM_PACKAGE} \
+            --output type=image,name=mattermostdevelopment/mattermost-team-edition,push-by-digest=true,push=true \
+            --metadata-file "${RUNNER_TEMP}/build-metadata.json" .
+          IMAGE="mattermostdevelopment/mattermost-team-edition@$(jq -r '."containerimage.digest"' "${RUNNER_TEMP}/build-metadata.json")"
+
+          # Document extraction tools must start in the image; a failure here blocks publishing the tags.
           for check in "pdfinfo -v" "pdftotext -v" "unrtf --version" "tidy -v"; do
             read -r bin flag <<< "${check}"
-            docker run --rm --entrypoint "/usr/bin/${bin}" "mattermostdevelopment/mattermost-team-edition:${TAG}" "${flag}"
+            docker run --rm --entrypoint "/usr/bin/${bin}" "${IMAGE}" "${flag}"
           done
-          docker push mattermostdevelopment/mm-te-test:${TAG}
-          docker push mattermostdevelopment/mattermost-team-edition:${TAG}
+          # CJK PDF text only extracts with poppler-data CMaps.
+          docker run --rm -v "${PWD}/testdata:/testdata:ro" --entrypoint /usr/bin/pdftotext "${IMAGE}" \
+            -q /testdata/pdf-cmap-canary.pdf - | grep -q popplercmapcanary
+
+          docker buildx imagetools create \
+            -t mattermostdevelopment/mm-te-test:${TAG} \
+            -t mattermostdevelopment/mattermost-team-edition:${TAG} \
+            "${IMAGE}"
           echo "DOCKERHUB_IMAGE_DIGEST=$(cosign triangulate mattermostdevelopment/mattermost-team-edition:${TAG} | cut -d: -f2 | sed 's/\.sig$//' | tr '-' ':')" >> "${GITHUB_OUTPUT}"
 
       - name: cd/generate-summary

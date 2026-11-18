@@ -22,8 +22,11 @@ test(
     'finds a PDF in Files search by text only poppler can extract',
     {tag: ['@search', '@file_attachments']},
     async ({pw}) => {
+        const {user, team, adminClient} = await pw.initSetup();
+        const isFips = (await adminClient.getClientConfig()).IsFipsEnabled === 'true';
+        test.skip(isFips, 'The FIPS image (Dockerfile.fips) does not ship pdfinfo or poppler-data');
+
         // # Log in and post the PDF (message must not contain the search term)
-        const {user, team} = await pw.initSetup();
         const {channelsPage} = await pw.testBrowser.login(user);
         await channelsPage.goto(team.name, 'off-topic');
         await channelsPage.toBeVisible();

@@ -45,9 +45,12 @@ RUN curl -fsSL "https://poppler.freedesktop.org/poppler-data-${POPPLER_DATA_VERS
       -o /tmp/poppler-data.tar.gz \
   && echo "${POPPLER_DATA_SHA256}  /tmp/poppler-data.tar.gz" | sha256sum -c - \
   && tar -xzf /tmp/poppler-data.tar.gz -C /tmp --no-same-owner \
-  && mkdir -p /base-chroot/usr/share/poppler \
+  && mkdir -p /base-chroot/usr/share/poppler /base-chroot/usr/share/licenses/poppler-data \
   && cp -a "/tmp/poppler-data-${POPPLER_DATA_VERSION}/cMap" \
            "/tmp/poppler-data-${POPPLER_DATA_VERSION}/cidToUnicode" /base-chroot/usr/share/poppler/ \
+  && cp "/tmp/poppler-data-${POPPLER_DATA_VERSION}/COPYING" \
+        "/tmp/poppler-data-${POPPLER_DATA_VERSION}/COPYING.adobe" \
+        "/tmp/poppler-data-${POPPLER_DATA_VERSION}/COPYING.gpl2" /base-chroot/usr/share/licenses/poppler-data/ \
   && rm -rf /tmp/poppler-data.tar.gz "/tmp/poppler-data-${POPPLER_DATA_VERSION}"
 
 RUN chown -R "${PUID}:${PGID}" /base-chroot/etc/ssl/certs \
