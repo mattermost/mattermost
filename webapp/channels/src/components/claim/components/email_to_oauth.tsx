@@ -86,7 +86,7 @@ const EmailToOAuth = (props: Props) => {
     }
     return (
         <>
-            <h3>
+            <h3 data-testid='claim.email_to_oauth.title--text'>
                 <FormattedMessage
                     id='claim.email_to_oauth.title'
                     defaultMessage='Switch Email/Password Account to {uiType}'
@@ -120,14 +120,19 @@ const EmailToOAuth = (props: Props) => {
                         type='password'
                         className='form-control'
                         name='password'
+                        data-testid='claim.email_to_oauth.password--textbox'
                         ref={passwordInput}
                         placeholder={formatMessage({id: 'claim.email_to_oauth.pwd', defaultMessage: 'Password'})}
                         spellCheck='false'
                     />
                 </div>
-                <ErrorLabel errorText={serverError}/>
+                <ErrorLabel
+                    testId='claim.email_to_oauth.server_error'
+                    errorText={serverError}
+                />
                 <Button
                     type='submit'
+                    data-testid='claim.email_to_oauth.submit--button'
                     emphasis='primary'
                 >
                     <FormattedMessage

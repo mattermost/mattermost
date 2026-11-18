@@ -1,91 +1,126 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test, testConfig} from '@mattermost/playwright-lib';
+import {
+    Api,
+    duration,
+    expect,
+    openSystemUsers,
+    searchSystemUsers,
+    settle,
+    test,
+    testConfig,
+} from '@mattermost/playwright-lib';
+
+import {expectOnSelectTeam, logIn, openAdminConsole, openLogin} from './support';
 
 /**
- * @objective Verify an unenrolled user is sent to MFA setup when MFA is enabled and enforced.
+ * @objective Verify enforced MFA sends an unenrolled user to MFA setup after login.
  *
  * @precondition
- * A licensed server with MFA available.
+ * A licensed server running in testcontainers.
  */
-test('MM-T1778 sends an unenrolled user to MFA setup when MFA is enforced', {tag: '@authentication'}, async ({pw}) => {
+test(
+    'MM-T1778 sends an unenrolled user to MFA setup when MFA is enforced',
+    {tag: '@authentication'},
+    async ({pw, page}) => {
+        await pw.ensureLicense();
+        await pw.skipIfNoLicense();
+        test.skip(!testConfig.mattermostContainerId, 'Skipping test - requires PW_USE_TESTCONTAINERS=true');
+
+        const {adminUser, adminClient} = await pw.initSetup();
+        const user = await pw.createNewUserProfile(adminClient);
+        const {app: adminApp} = await pw.testBrowser.login(adminUser);
+
+        try {
+            // # Enable and enforce MFA in the System Console
+            await openAdminConsole(adminApp, '/authentication/mfa');
+            await adminApp.admin.setting('ServiceSettings.EnableMultifactorAuthentication').trueRadio.check();
+            await expect(
+                adminApp.admin.setting('ServiceSettings.EnableMultifactorAuthentication').trueRadio,
+            ).toBeChecked();
+            await adminApp.admin.setting('ServiceSettings.EnforceMultifactorAuthentication').trueRadio.check();
+            await expect(
+                adminApp.admin.setting('ServiceSettings.EnforceMultifactorAuthentication').trueRadio,
+            ).toBeChecked();
+            await settle(adminApp.admin.saveButton, {wait: Api.PatchConfig}).click();
+
+            // the admin has no MFA either, so once enforcement is saved its API calls are refused: wait on the page
+            await expect(adminApp.admin.saveButton).toBeSaved();
+
+            // # Log in as an unenrolled user
+            const app = await openLogin(pw, page);
+            await logIn(app, user.username, user.password);
+
+            // * Verify MFA setup is shown
+            await expect(page).toHavePath(`${app.mfaPage.pathFor()}/setup`);
+            await expect(app.mfa.titleText).toBeVisible();
+            await expect(app.mfa.titleText).toHaveRole('heading');
+            await expect(app.mfa.titleText).toHaveAccessibleName('Multi-factor Authentication Setup');
+        } finally {
+            await pw.resetConfig(adminClient);
+        }
+    },
+);
+
+/**
+ * @objective Verify an admin can remove MFA from an enrolled user, who then logs in without it.
+ *
+ * @precondition
+ * A licensed server.
+ */
+test('MM-T1781 lets an admin remove MFA from an enrolled user', {tag: '@authentication'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
-    // Cleanup needs mmctl --local to disable enforced MFA for an unenrolled admin session.
-    test.skip(!testConfig.mattermostContainerId, 'Skipping test - requires PW_USE_TESTCONTAINERS=true');
-
-    const {adminUser, adminClient} = await pw.initSetup();
-    const user = await pw.createNewUserProfile(adminClient);
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
-    try {
-        // # Enable and enforce MFA in the System Console
-        await systemConsolePage.gotoMfaSettings();
-        await systemConsolePage.mfaSettings.enableTrue.check();
-        await systemConsolePage.mfaSettings.enforceTrue.check();
-        await systemConsolePage.mfaSettings.save();
-
-        // # Log in as a user who has not enrolled in MFA
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.submitCredentials(user.username, user.password);
-
-        // * Verify the MFA setup page is shown
-        await pw.mfaSetupPage.toBeVisible();
-    } finally {
-        await pw.resetConfig(adminClient);
-    }
-});
-
-/**
- * @objective Verify a system admin can remove MFA from a user who has enrolled.
- *
- * @precondition
- * A licensed server with MFA available.
- */
-test('MM-T1781 lets an admin remove MFA from an enrolled user', {tag: '@authentication'}, async ({pw}) => {
-    await pw.ensureLicense();
-    await pw.skipIfNoLicense();
-
     const {adminUser, adminClient} = await pw.initSetup();
     const user = await pw.createNewUserProfile(adminClient);
 
-    // # Enable MFA and enroll the user
     const {restore} = await adminClient.patchConfig({
         ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
     });
+
     try {
         await pw.enableUserMfa(adminClient, user.id);
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        // # Remove MFA from the user in System Console > Users
+        const adminApp = await openSystemUsers(pw, adminUser);
+        await searchSystemUsers(adminApp, user.username, user);
+        // the table can re-render under an open menu as its search settles, detaching the item: reopen and retry
+        await expect(async () => {
+            const row = adminApp.admin.users.table.row(user.id);
+            await row.actionsButton.click();
+            const menu = adminApp.adminUserActionsMenu;
+            await expect(menu.removeMfaMenuItem).toBeVisible();
+            await settle(menu.removeMfaMenuItem, {
+                wait: Api.UpdateUserMfa,
+                params: {user_id: user.id},
+                timeout: duration.ten_sec,
+            }).click();
+            await expect(menu.removeMfaMenuItem).not.toBeVisible();
+        }).toPass({timeout: duration.half_min});
+        await expect.poll(async () => (await adminClient.getUser(user.id)).mfa_active ?? false).toBe(false);
 
-        // # Open the user's action menu and remove MFA
-        await systemConsolePage.gotoUsers();
-        const actions = await systemConsolePage.users.openUserActions(user.username);
-        await actions.clickRemoveMfa();
+        // # Log in as the user
+        const app = await openLogin(pw, page);
+        await logIn(app, user.username, user.password);
 
-        // # Log in as that user after MFA is removed
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.login(user);
-
-        // * Verify login succeeds without the MFA setup page
-        await pw.mfaSetupPage.toBeHidden();
-        await pw.selectTeamPage.toBeVisible();
+        // * Verify login goes straight to the team-join page, without MFA
+        await expectOnSelectTeam(page);
+        await expect(app.mfa.titleText).toBeHidden();
+        await expect(app.selectTeam.titleText).toBeVisible();
+        await expect(app.selectTeam.titleText).toHaveRole('heading');
+        await expect(app.selectTeam.titleText).toHaveAccessibleName('Teams you can join:');
     } finally {
         await restore();
     }
 });
 
 /**
- * @objective Verify Remove MFA is hidden for a user who has not enrolled in MFA.
+ * @objective Verify Remove MFA isn't offered for a user who never enrolled.
  *
  * @precondition
- * A licensed server with MFA available.
+ * A licensed server.
  */
 test('MM-T1782 hides Remove MFA for a user who has not enrolled', {tag: '@authentication'}, async ({pw}) => {
     await pw.ensureLicense();
@@ -94,19 +129,21 @@ test('MM-T1782 hides Remove MFA for a user who has not enrolled', {tag: '@authen
     const {adminUser, adminClient} = await pw.initSetup();
     const user = await pw.createNewUserProfile(adminClient);
 
-    // # Enable MFA without enrolling the user
     const {restore} = await adminClient.patchConfig({
         ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
     });
+
     try {
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        // # Open the user's actions in System Console > Users
+        const app = await openSystemUsers(pw, adminUser);
+        await searchSystemUsers(app, user.username, user);
+        const row = app.admin.users.table.row(user.id);
+        await row.actionsButton.click();
+        const actions = app.adminUserActionsMenu;
 
-        // # Open the user's action menu
-        await systemConsolePage.gotoUsers();
-        const actions = await systemConsolePage.users.openUserActions(user.username);
-
-        // * Verify Remove MFA is not offered
-        await actions.expectRemoveMfaHidden();
+        // * Verify Remove MFA isn't offered
+        await expect(actions.deactivateMenuItem).toBeVisible();
+        await expect(actions.removeMfaMenuItem).toHaveCount(0);
     } finally {
         await restore();
     }

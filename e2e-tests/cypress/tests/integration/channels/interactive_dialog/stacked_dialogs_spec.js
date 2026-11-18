@@ -278,7 +278,7 @@ describe('Interactive Dialog - Stacked dialogs', () => {
         openCargoDialog();
 
         // # Tick a readiness check in S-103, which this test completes, and one in S-101
-        topDialog().find('[data-testid="readiness_checks"]').within(() => {
+        topDialog().find('[data-testid="apps_form.field:readiness_checks--group"]').within(() => {
             cy.get('input[aria-label="S-103, Fuel"]').check();
             cy.get('input[aria-label="S-101, Customs"]').check();
         });
@@ -296,7 +296,7 @@ describe('Interactive Dialog - Stacked dialogs', () => {
 
         // * The refreshed matrix no longer has an S-103 row, and the S-101 selection is kept
         expectTopDialog(CARGO_TITLE);
-        topDialog().find('[data-testid="readiness_checks"]').within(() => {
+        topDialog().find('[data-testid="apps_form.field:readiness_checks--group"]').within(() => {
             cy.get('tbody th[scope="row"]').should('have.length', 2).and('not.contain', 'S-103');
             cy.get('input[aria-label="S-101, Customs"]').should('be.checked');
         });

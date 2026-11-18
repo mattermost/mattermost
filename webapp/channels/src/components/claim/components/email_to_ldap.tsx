@@ -139,7 +139,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
     }
     return (
         <>
-            <h3>
+            <h3 data-testid='claim.email_to_ldap.title--text'>
                 <FormattedMessage
                     id='claim.email_to_ldap.title'
                     defaultMessage='Switch Email/Password Account to AD/LDAP'
@@ -178,13 +178,17 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
                         type='password'
                         className='form-control'
                         name='emailPassword'
+                        data-testid='claim.email_to_ldap.password--textbox'
                         ref={emailPasswordInput}
                         autoComplete='off'
                         placeholder={formatMessage({id: 'claim.email_to_ldap.pwd', defaultMessage: 'Password'})}
                         spellCheck='false'
                     />
                 </div>
-                <ErrorLabel errorText={passwordError}/>
+                <ErrorLabel
+                    testId='claim.email_to_ldap.password_error'
+                    errorText={passwordError}
+                />
                 <p>
                     <FormattedMessage
                         id='claim.email_to_ldap.enterLdapPwd'
@@ -196,27 +200,36 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
                         type='text'
                         className='form-control'
                         name='ldapId'
+                        data-testid='claim.email_to_ldap.ldap_id--textbox'
                         ref={ldapIdInput}
                         autoComplete='off'
                         placeholder={loginPlaceholder}
                         spellCheck='false'
                     />
                 </div>
-                <ErrorLabel errorText={ldapError}/>
+                <ErrorLabel
+                    testId='claim.email_to_ldap.ldap_id_error'
+                    errorText={ldapError}
+                />
                 <div className={classNames('form-group', {'has-error': ldapPasswordError})}>
                     <input
                         type='password'
                         className='form-control'
                         name='ldapPassword'
+                        data-testid='claim.email_to_ldap.ldap_password--textbox'
                         ref={ldapPasswordInput}
                         autoComplete='off'
                         placeholder={formatMessage({id: 'claim.email_to_ldap.ldapPwd', defaultMessage: 'AD/LDAP Password'})}
                         spellCheck='false'
                     />
                 </div>
-                <ErrorLabel errorText={ldapPasswordError}/>
+                <ErrorLabel
+                    testId='claim.email_to_ldap.ldap_password_error'
+                    errorText={ldapPasswordError}
+                />
                 <Button
                     type='submit'
+                    data-testid='claim.email_to_ldap.submit--button'
                     emphasis='primary'
                 >
                     <FormattedMessage
@@ -224,7 +237,10 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
                         defaultMessage='Switch Account to AD/LDAP'
                     />
                 </Button>
-                <ErrorLabel errorText={serverError}/>
+                <ErrorLabel
+                    testId='claim.email_to_ldap.server_error'
+                    errorText={serverError}
+                />
             </form>
         </>
     );

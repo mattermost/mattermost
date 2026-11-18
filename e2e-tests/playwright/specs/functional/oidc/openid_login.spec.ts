@@ -1,7 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, testConfig} from '@mattermost/playwright-lib';
+import {
+    Api,
+    DefaultChannel,
+    expect,
+    expectSignedIn,
+    logInWithKeycloak,
+    openSignedOut,
+    settle,
+    test,
+    testConfig,
+} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a user who only exists in Keycloak is provisioned via OpenID SSO on first
@@ -10,7 +20,7 @@ import {expect, test, testConfig} from '@mattermost/playwright-lib';
  * @precondition
  * A Keycloak realm with the mattermost-openid client, reachable at OpenIdSettings endpoints.
  */
-test('logs in a directory-only user through Keycloak OpenID SSO', {tag: '@openid'}, async ({pw}) => {
+test('logs in a directory-only user through Keycloak OpenID SSO', {tag: '@openid'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
     await pw.ensureKeycloakOpenId();
@@ -22,25 +32,20 @@ test('logs in a directory-only user through Keycloak OpenID SSO', {tag: '@openid
     await pw.createKeycloakUser(keycloakUser);
 
     // # Log in through the OpenID SSO button
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await expect(pw.loginPage.openIdLoginButton).toBeVisible();
-    await pw.loginPage.openIdLoginButton.click();
-    await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+    const app = await logInWithKeycloak(pw, page, 'openid', keycloakUser);
 
     // * Verify the server provisioned the account via OpenID
-    await pw.loginPage.expectNotOnLoginPage();
+    await expectSignedIn(page);
     const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
     expect(provisionedUser.auth_service).toBe('openid');
     expect(provisionedUser.email).toBe(keycloakUser.email);
 
     // # Grant team membership and open a channel
     await adminClient.addToTeam(team.id, provisionedUser.id);
-    await pw.channelsPage.goto(team.name);
+    await app.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
 
     // * Verify the user lands on a real channel
-    await pw.channelsPage.toBeVisible();
+    await expect(app.center.postCreate.message.container).toBeVisible();
 });
 
 /**
@@ -52,7 +57,7 @@ test('logs in a directory-only user through Keycloak OpenID SSO', {tag: '@openid
 test(
     'OpenID login is rejected when the email already belongs to a basic-auth account',
     {tag: '@openid'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         test.skip(
             testConfig.subpathMode,
             'Known product bug: the server signs the error page URL with the subpath but the webapp verifies it without, so the error message is never shown under a subpath.',
@@ -68,7 +73,7 @@ test(
         await pw.createKeycloakUser(keycloakUser);
 
         // # Create a basic-auth account with the same email
-        await adminClient.createUser(
+        const existing = await adminClient.createUser(
             {
                 email: keycloakUser.email,
                 username: `mmuser${keycloakUser.username}`,
@@ -79,14 +84,15 @@ test(
         );
 
         // # Attempt OpenID login for that email
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.openIdLoginButton.click();
-        await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+        const app = await logInWithKeycloak(pw, page, 'openid', keycloakUser);
 
-        // * Verify the login is rejected rather than linked
-        await expect(pw.loginPage.alreadyAssociatedError).toBeVisible();
+        // * Verify the login is rejected rather than linked: the error page names the other sign-in method
+        await expect(app.errorView.messageText).toBeVisible();
+        await expect(app.errorView.messageText).toContainText(
+            'There is already an account associated with that email address using a sign in method other than',
+        );
+        expect((await adminClient.getUser(existing.id)).auth_service).toBe('');
+        await expect(adminClient.getUserByUsername(keycloakUser.username)).rejects.toThrow();
     },
 );
 
@@ -96,7 +102,7 @@ test(
  * @precondition
  * A Keycloak realm with the mattermost-openid client, reachable at OpenIdSettings endpoints.
  */
-test('logout invalidates a session created via OpenID', {tag: '@openid'}, async ({pw}) => {
+test('logout invalidates a session created via OpenID', {tag: '@openid'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
     await pw.ensureKeycloakOpenId();
@@ -108,27 +114,21 @@ test('logout invalidates a session created via OpenID', {tag: '@openid'}, async 
     await pw.createKeycloakUser(keycloakUser);
 
     // # Log in through OpenID and open the team's channel
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.openIdLoginButton.click();
-    await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
-
+    const app = await logInWithKeycloak(pw, page, 'openid', keycloakUser);
+    await expectSignedIn(page);
     const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
     await adminClient.addToTeam(team.id, provisionedUser.id);
 
     // # Dismiss the first-time onboarding tour so it doesn't cover the header
     await pw.setDefaultOnboardingPreferences(adminClient, provisionedUser.id);
+    await app.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
 
-    await pw.channelsPage.goto(team.name);
-    await pw.channelsPage.toBeVisible();
+    // # Log out from the account menu
+    await app.globalHeader.openAccountMenuButton.clickTo(app.globalHeader.accountMenu.logOutMenuItem);
+    await settle(app.globalHeader.accountMenu.logOutMenuItem, {wait: Api.Logout}).click();
 
-    // # Log out via the user account menu
-    await pw.channelsPage.logout();
-
-    // * Verify the session is cleared
-    await pw.loginPage.expectOnLoginPage();
-
-    // * Verify revisiting the team's channel redirects back to login
-    await pw.loginPage.expectLoginRedirectFrom(`/${team.name}`);
+    // * Verify the session is cleared, and revisiting the team's channel redirects back to login
+    await expect(page).toHavePath(app.loginPage.pathFor());
+    await openSignedOut(page, `/${team.name}`);
+    await expect(page).toHavePath(app.loginPage.pathFor());
 });

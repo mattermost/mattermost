@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, signedInUrl, test} from '@mattermost/playwright-lib';
+
+import {expectSignedIn, logIn} from '../support';
+
+import {logInToTeam, switchSignInTo} from './support';
 
 /**
  * @objective Verify an email account can switch to OpenID and back to email in one session.
@@ -9,12 +13,12 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @precondition
  * A licensed server with Keycloak OpenID configured and authentication transfer enabled.
  */
-test('round-trips an email account through OpenID and back to email', {tag: '@authentication'}, async ({pw}) => {
+test('round-trips an email account through OpenID and back to email', {tag: '@authentication'}, async ({pw, page}) => {
     test.setTimeout(pw.duration.two_min);
 
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
-    const {adminClient, user, team} = await pw.initSetup();
+    const {adminClient, user, team, townSquare} = await pw.initSetup();
     await pw.ensureSiteUrl();
     await pw.ensureKeycloakOpenId();
     const keycloakUser = {
@@ -28,41 +32,38 @@ test('round-trips an email account through OpenID and back to email', {tag: '@au
     const newPassword = pw.newTestPassword();
 
     // # Log in as the email user and switch to OpenID
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.login(user);
-    await pw.channelsPage.goto(team.name);
-    await pw.channelsPage.toBeVisible();
-
-    let profileModal = await pw.channelsPage.openProfileModal();
-    await profileModal.openSecurityTab();
-    await profileModal.securityTab.clickSwitchToOpenId();
-    await pw.emailToOAuthPage.toBeVisible();
-    await pw.emailToOAuthPage.submit(user.password);
+    const app = await logInToTeam(pw, page, user.username, user.password, team);
+    await switchSignInTo(app, 'openid');
+    await app.claim.emailToOauth.passwordTextbox.fill(user.password);
+    // The switch navigates away at once (to the identity provider or the login page), so its response body can't be read: the next line observes the result.
+    await app.claim.emailToOauth.submitButton.click();
+    // Keycloak hosts this native form outside the generated webapp surface.
+    await expect(pw.keycloakLoginPage.usernameInput).toBeVisible();
     await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
-    await pw.loginPage.expectOnLoginPage();
+    await expect(page).toHavePath(app.loginPage.pathFor());
 
-    const afterOpenId = await adminClient.getUser(user.id);
-    expect(afterOpenId.auth_service).toBe('openid');
+    // * The account authenticates through OpenID
+    expect((await adminClient.getUser(user.id)).auth_service).toBe('openid');
 
-    // # Log in through OpenID and switch back to email
-    await pw.loginPage.openIdLoginButton.click();
+    // # Log in through OpenID (Keycloak may reuse its session) and switch back to email
+    await app.login.external('openid').click();
+    // A reused IdP session can return directly to Mattermost instead of displaying the hosted form.
+    await expect
+        .poll(async () => (await pw.keycloakLoginPage.usernameInput.isVisible()) || signedInUrl(new URL(page.url())))
+        .toBe(true);
     await pw.keycloakLoginPage.loginIfFormShown(keycloakUser.username, keycloakUser.password);
-    await pw.loginPage.expectNotOnLoginPage();
-    await pw.channelsPage.goto(team.name);
-    await pw.channelsPage.toBeVisible();
-
-    profileModal = await pw.channelsPage.openProfileModal();
-    await profileModal.openSecurityTab();
-    await profileModal.securityTab.clickSwitchToEmail();
-    await pw.oauthToEmailPage.toBeVisible();
-    await pw.oauthToEmailPage.submit(newPassword);
-    await pw.loginPage.expectOnLoginPage();
+    await expectSignedIn(page);
+    await app.channelsPage.goto({team, channel: townSquare});
+    await switchSignInTo(app, 'email', 'openid');
+    const claim = app.claim.oauthToEmail;
+    await claim.passwordTextbox.fill(newPassword);
+    await claim.confirmTextbox.fill(newPassword);
+    // The switch navigates away at once (to the identity provider or the login page), so its response body can't be read: the next line observes the result.
+    await claim.submitButton.click();
+    await expect(page).toHavePath(app.loginPage.pathFor());
 
     // * Verify the account authenticates with the new email password
-    const afterEmail = await adminClient.getUser(user.id);
-    expect(afterEmail.auth_service).toBe('');
-    await pw.loginPage.submitCredentials(user.email, newPassword);
-    await pw.loginPage.expectNotOnLoginPage();
+    expect((await adminClient.getUser(user.id)).auth_service).toBe('');
+    await logIn(app, user.email, newPassword);
+    await expectSignedIn(page);
 });

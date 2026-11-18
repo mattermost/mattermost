@@ -3,13 +3,15 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {openLogin} from './support';
+
 /**
  * @objective Verify the login placeholder is Email when only email sign-in is enabled.
  */
 test(
     'MM-T1769 login placeholder is Email when username sign-in is disabled',
     {tag: '@authentication'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         const {adminClient} = await pw.getAdminClient();
 
         // # Allow only email sign-in
@@ -19,12 +21,11 @@ test(
         });
 
         try {
-            await pw.hasSeenLandingPage();
-            await pw.loginPage.goto();
-            await pw.loginPage.toBeVisible();
+            const app = await openLogin(pw, page);
 
-            // * Verify the placeholder is Email
-            await expect(pw.loginPage.emailOnlyPlaceholder).toBeVisible();
+            // * Verify the field is named Email
+            await expect(app.login.loginId.container).toBeVisible();
+            await expect(app.login.loginId.container).toHaveAccessibleName('Email');
         } finally {
             // Admin logs in by username.
             await restore();
@@ -38,7 +39,7 @@ test(
 test(
     'MM-T1767 login placeholder is Username when email sign-in is disabled',
     {tag: '@authentication'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         const {adminClient} = await pw.getAdminClient();
 
         // # Allow only username sign-in
@@ -47,12 +48,11 @@ test(
             LdapSettings: {Enable: false},
         });
 
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
+        const app = await openLogin(pw, page);
 
-        // * Verify the placeholder is Username
-        await expect(pw.loginPage.usernameOnlyPlaceholder).toBeVisible();
+        // * Verify the field is named Username
+        await expect(app.login.loginId.container).toBeVisible();
+        await expect(app.login.loginId.container).toHaveAccessibleName('Username');
     },
 );
 
@@ -62,7 +62,7 @@ test(
 test(
     'MM-T1768 login placeholder is Email or Username when both sign-in methods are enabled',
     {tag: '@authentication'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         const {adminClient} = await pw.getAdminClient();
 
         // # Allow both email and username sign-in
@@ -71,11 +71,10 @@ test(
             LdapSettings: {Enable: false},
         });
 
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
+        const app = await openLogin(pw, page);
 
-        // * Verify the placeholder is Email or Username
-        await expect(pw.loginPage.loginPlaceholder).toBeVisible();
+        // * Verify the field is named Email or Username
+        await expect(app.login.loginId.container).toBeVisible();
+        await expect(app.login.loginId.container).toHaveAccessibleName('Email or Username');
     },
 );

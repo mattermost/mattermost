@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, expectSignedIn, logIn, openLogin, test} from '@mattermost/playwright-lib';
 
 /**
- * @objective Verify a directory user matching LdapSettings.AdminFilter is provisioned as a
- * system admin on first LDAP login.
+ * @objective Verify the LDAP admin filter grants the system admin role on first login.
  *
  * @precondition
- * An LDAP directory reachable at the configured LdapSettings.LdapServer/LdapPort.
+ * A licensed server with OpenLDAP.
  */
-test('MM-T2821 LDAP admin filter grants the system admin role', {tag: '@ldap'}, async ({pw}) => {
+test('MM-T2821 LDAP admin filter grants the system admin role', {tag: '@ldap'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+
     const {adminClient} = await pw.initSetup();
     await pw.ensureOpenldap();
 
@@ -26,59 +26,60 @@ test('MM-T2821 LDAP admin filter grants the system admin role', {tag: '@ldap'}, 
         },
     });
 
-    // # Log in with the admin-filter-matching user's credentials
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+    // # Log in as the LDAP user that matches the admin filter
+    const app = await openLogin(pw, page);
+    await logIn(app, ldapUser.username, ldapUser.password);
+    await expectSignedIn(page);
 
-    // * Verify the user was granted the system admin role
-    await pw.loginPage.expectNotOnLoginPage();
+    // * Verify the provisioned user is a system admin
     const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
     expect(provisionedUser.roles.split(' ')).toContain('system_admin');
 });
 
 /**
- * @objective Verify a directory user matching neither UserFilter nor GuestFilter is rejected at
- * login instead of being provisioned.
+ * @objective Verify login is rejected when the user matches neither the user nor the guest filter.
  *
  * @precondition
- * An LDAP directory reachable at the configured LdapSettings.LdapServer/LdapPort.
+ * A licensed server with OpenLDAP.
  */
-test('login is rejected when the user matches neither the user nor guest filter', {tag: '@ldap'}, async ({pw}) => {
-    await pw.ensureLicense();
-    await pw.skipIfNoLicense();
-    const {adminClient} = await pw.initSetup();
-    await pw.ensureOpenldap();
+test(
+    'login is rejected when the user matches neither the user nor guest filter',
+    {tag: '@ldap'},
+    async ({pw, page}) => {
+        await pw.ensureLicense();
+        await pw.skipIfNoLicense();
 
-    const ldapUser = pw.generateLdapUser('ldapnomatch');
-    await pw.createLdapUser(ldapUser);
+        const {adminClient} = await pw.initSetup();
+        await pw.ensureOpenldap();
 
-    await adminClient.patchConfig({
-        LdapSettings: {UserFilter: '(cn=no_such_user)', GuestFilter: '(cn=no_such_guest)'},
-    });
+        const ldapUser = pw.generateLdapUser('ldapnomatch');
+        await pw.createLdapUser(ldapUser);
 
-    // # Attempt to log in with a user that matches neither filter
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+        await adminClient.patchConfig({
+            LdapSettings: {UserFilter: '(cn=no_such_user)', GuestFilter: '(cn=no_such_guest)'},
+        });
 
-    // * Verify the login is rejected and no account was provisioned
-    await expect(pw.loginPage.errorBanner).toBeVisible();
-    await expect(adminClient.getUserByUsername(ldapUser.username)).rejects.toThrow();
-});
+        // # Log in as an LDAP user that matches no filter
+        const app = await openLogin(pw, page);
+        await logIn(app, ldapUser.username, ldapUser.password, {status: 401});
+
+        // * Verify the login is rejected and no user is provisioned
+        await expect(app.login.banner).toBeVisible();
+        await expect(page).toHavePath(app.loginPage.pathFor());
+        await expect(adminClient.getUserByUsername(ldapUser.username)).rejects.toThrow();
+    },
+);
 
 /**
- * @objective Verify a directory user matching GuestFilter (but not UserFilter) is provisioned as
- * a guest on first LDAP login.
+ * @objective Verify the LDAP guest filter provisions the user as a guest.
  *
  * @precondition
- * An LDAP directory reachable at the configured LdapSettings.LdapServer/LdapPort.
+ * A licensed server with OpenLDAP.
  */
-test('MM-T1422 LDAP guest filter provisions the user as a guest', {tag: '@ldap'}, async ({pw}) => {
+test('MM-T1422 LDAP guest filter provisions the user as a guest', {tag: '@ldap'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+
     const {adminClient} = await pw.initSetup();
     await pw.ensureOpenldap();
 
@@ -90,14 +91,12 @@ test('MM-T1422 LDAP guest filter provisions the user as a guest', {tag: '@ldap'}
         LdapSettings: {UserFilter: '(cn=no_such_user)', GuestFilter: `(cn=${ldapUser.firstname})`},
     });
 
-    // # Log in with the guest-filter-matching user's credentials
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
+    // # Log in as the LDAP user that matches the guest filter
+    const app = await openLogin(pw, page);
+    await logIn(app, ldapUser.username, ldapUser.password);
+    await expectSignedIn(page);
 
-    // * Verify the user was provisioned as a guest
-    await pw.loginPage.expectNotOnLoginPage();
+    // * Verify the provisioned user is a guest
     const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
     expect(provisionedUser.roles.split(' ')).toContain('system_guest');
 });

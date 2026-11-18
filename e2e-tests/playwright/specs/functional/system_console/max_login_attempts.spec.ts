@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expectLoginHeading, expectSignedIn, App, expect, logIn, test} from '@mattermost/playwright-lib';
 
-test('should lock account after exceeding max login attempts and unlock via admin API', async ({pw}) => {
+test('should lock account after exceeding max login attempts and unlock via admin API', async ({pw, page}) => {
     // 1. Setup — create a test user and get admin client
     const {adminClient, user} = await pw.initSetup();
 
@@ -14,32 +14,34 @@ test('should lock account after exceeding max login attempts and unlock via admi
 
     // 3. Navigate to the login page — set localStorage first to skip the native app landing page
     await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
+    const app = new App(page);
+    await app.loginPage.goto();
+    await expect(app.login.loginId.container).toBeVisible();
+
+    await expectLoginHeading(app);
+    await expect(app.login.password.container).toBeVisible();
 
     // 4. Attempt login with wrong password 3 times
     for (let i = 0; i < 3; i++) {
-        await pw.loginPage.loginInput.fill(user.username);
-        await pw.loginPage.passwordInput.fill('WrongPassword!');
-        await pw.loginPage.signInButton.click();
-        await expect(pw.loginPage.invalidCredentialsError).toBeVisible();
+        await logIn(app, user.username, 'WrongPassword!', {status: 401});
+        await expect(app.login.banner).toBeVisible();
+        await expect(app.login.banner).toContainText(
+            /The email\/username or password is invalid\.|Enter a valid email or username and\/or password/,
+        );
     }
 
     // 5. Correct password should now be rejected — account is locked
-    await pw.loginPage.loginInput.fill(user.username);
-    await pw.loginPage.passwordInput.fill(user.password);
-    await pw.loginPage.signInButton.click();
-    await expect(
-        pw.loginPage.page.getByText(/Your account is locked because of too many failed password attempts\./),
-    ).toBeVisible();
-    await expect(pw.loginPage.page).toHaveURL(/\/login/);
+    await logIn(app, user.username, user.password, {status: 401});
+    await expect(app.login.banner).toBeVisible();
+    await expect(app.login.banner).toContainText(
+        /Your account is locked because of too many failed password attempts\./,
+    );
+    await expect(page).toHavePath(app.loginPage.pathFor());
 
     // 6. Admin unlocks the account via API
     await adminClient.resetFailedAttempts(user.id);
 
     // 7. User can now log in with correct password
-    await pw.loginPage.loginInput.fill(user.username);
-    await pw.loginPage.passwordInput.fill(user.password);
-    await pw.loginPage.signInButton.click();
-    await expect(pw.loginPage.page).not.toHaveURL(/\/login/);
+    await logIn(app, user.username, user.password);
+    await expectSignedIn(page);
 });

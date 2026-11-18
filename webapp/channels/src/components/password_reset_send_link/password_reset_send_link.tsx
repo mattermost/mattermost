@@ -116,7 +116,7 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
 
         return (
             <div>
-                <BackButton/>
+                <BackButton testId='password_reset.back'/>
                 <div className='col-sm-12'>
                     <div className='signup-team__container'>
                         <FormattedMessage
@@ -138,6 +138,7 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
                             <div className={formClass}>
                                 <Input
                                     id='passwordResetEmailInput'
+                                    testId='password_reset.email'
                                     type='email'
                                     name='email'
                                     label={defineMessage({
@@ -156,6 +157,7 @@ export class PasswordResetSendLink extends React.PureComponent<Props, State> {
                             {error}
                             <Button
                                 id='passwordResetButton'
+                                data-testid='password_reset.send--button'
                                 type='submit'
                                 emphasis='primary'
                             >

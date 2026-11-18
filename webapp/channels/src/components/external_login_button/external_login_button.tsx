@@ -14,6 +14,10 @@ export type ExternalLoginButtonType = {
     style?: React.CSSProperties;
     direction?: 'row' | 'column';
     onClick: (event: React.MouseEvent<HTMLAnchorElement>) => void;
+
+    // The button's scope and its key: the button is `<testId>:<testKey>--link`.
+    testId?: string;
+    testKey?: string;
 };
 
 const ExternalLoginButton = ({
@@ -24,9 +28,12 @@ const ExternalLoginButton = ({
     style,
     direction = 'row',
     onClick,
+    testId,
+    testKey,
 }: ExternalLoginButtonType) => (
     <a
         id={id}
+        data-testid={testId ? `${testId}${testKey ? `:${testKey}` : ''}--link` : undefined}
         className={classNames('external-login-button', {'direction-column': direction === 'column'}, id)}
         href={url}
         style={style}

@@ -1,13 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, type PlaywrightExtended, DefaultChannel} from '@mattermost/playwright-lib';
+
+import {expectOnSelectTeam, logIn, openLogin} from './support';
+
+type Setup = Awaited<ReturnType<PlaywrightExtended['initSetup']>>;
+
+/** Logs the user in and opens Profile > Security. */
+async function openSecurity(pw: PlaywrightExtended, {user, team}: Pick<Setup, 'user' | 'team'>) {
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
+    await app.globalHeader.openAccountMenuButton.clickTo(app.globalHeader.accountMenu.profileMenuItem);
+    await app.globalHeader.accountMenu.profileMenuItem.clickTo(app.userSettingsModal);
+    await app.userSettingsModal.tabs.tab('security').select();
+    await expect(app.settings.security.section('password')).toBeVisible();
+    return app;
+}
 
 /**
- * @objective Verify Multi-factor Authentication is hidden in Profile when MFA is disabled.
+ * @objective Verify the MFA section is hidden in Profile when MFA is disabled.
  *
  * @precondition
- * A licensed server with MFA available.
+ * A licensed server.
  */
 test(
     'MM-T1777 hides MFA in Profile when multifactor authentication is disabled',
@@ -18,23 +33,19 @@ test(
 
         const {user, team} = await pw.initSetup();
 
-        // # Open Profile -> Security
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-        const profileModal = await channelsPage.openProfileModal();
-        await profileModal.openSecurityTab();
+        // # Open Profile > Security
+        const app = await openSecurity(pw, {user, team});
 
-        // * Verify the MFA section is not shown
-        await expect(profileModal.securityTab.mfaHeading).toBeHidden();
+        // * Verify the MFA section is hidden
+        await expect(app.settings.security.section('mfa')).toBeHidden();
     },
 );
 
 /**
- * @objective Verify Multi-factor Authentication appears in Profile when MFA is enabled.
+ * @objective Verify the MFA section is shown in Profile when MFA is enabled.
  *
  * @precondition
- * A licensed server with MFA available.
+ * A licensed server.
  */
 test(
     'MM-T1779 shows MFA in Profile when multifactor authentication is enabled',
@@ -45,19 +56,16 @@ test(
 
         const {user, adminClient, team} = await pw.initSetup();
 
-        // # Enable MFA and open Profile -> Security
         const {restore} = await adminClient.patchConfig({
             ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
         });
+
         try {
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
-            const profileModal = await channelsPage.openProfileModal();
-            await profileModal.openSecurityTab();
+            // # Open Profile > Security
+            const app = await openSecurity(pw, {user, team});
 
             // * Verify the MFA section is shown
-            await expect(profileModal.securityTab.mfaHeading).toBeVisible();
+            await expect(app.settings.security.section('mfa')).toBeVisible();
         } finally {
             await restore();
         }
@@ -65,33 +73,34 @@ test(
 );
 
 /**
- * @objective Verify a user can log in without an MFA prompt when MFA is enabled but not enforced.
+ * @objective Verify login skips MFA when it is enabled but not enforced.
  *
  * @precondition
- * A licensed server with MFA available.
+ * A licensed server.
  */
-test('MM-T1780 logs in without an MFA prompt when MFA is not enforced', {tag: '@authentication'}, async ({pw}) => {
-    await pw.ensureLicense();
-    await pw.skipIfNoLicense();
+test(
+    'MM-T1780 logs in without an MFA prompt when MFA is not enforced',
+    {tag: '@authentication'},
+    async ({pw, page}) => {
+        await pw.ensureLicense();
+        await pw.skipIfNoLicense();
 
-    const {adminClient} = await pw.initSetup();
-    const user = await pw.createNewUserProfile(adminClient);
+        const {adminClient} = await pw.initSetup();
+        const user = await pw.createNewUserProfile(adminClient);
 
-    // # Enable MFA without enforcing it
-    const {restore} = await adminClient.patchConfig({
-        ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
-    });
-    try {
-        // # Log in as a user who has not enrolled in MFA
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.login(user);
+        const {restore} = await adminClient.patchConfig({
+            ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
+        });
 
-        // * Verify login succeeds without the MFA setup page
-        await pw.mfaSetupPage.toBeHidden();
-        await pw.selectTeamPage.toBeVisible();
-    } finally {
-        await restore();
-    }
-});
+        try {
+            // # Log in as a user without MFA
+            const app = await openLogin(pw, page);
+            await logIn(app, user.username, user.password);
+
+            // * Verify login goes straight to the team-join page, without MFA
+            await expectOnSelectTeam(page);
+        } finally {
+            await restore();
+        }
+    },
+);

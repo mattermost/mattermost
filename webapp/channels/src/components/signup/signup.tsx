@@ -279,6 +279,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const getAlternateLink = useCallback(() => (
         <AlternateLinkLayout
             className='signup-body-alternate-link'
+            testId='signup.alternate'
             alternateMessage={formatMessage({
                 id: 'signup_user_completed.haveAccount',
                 defaultMessage: 'Already have an account?',
@@ -375,7 +376,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     }, [parsedEmail, parsedUsername]);
 
     if (loading) {
-        return (<LoadingScreen/>);
+        return (<LoadingScreen testId='signup.loading'/>);
     }
 
     const handleBrandImageError = () => {
@@ -622,6 +623,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         if (!enableSignUpWithEmail && !enableExternalSignup) {
             return (
                 <ColumnLayout
+                    testId='signup.no_methods'
                     title={formatMessage({id: 'login.noMethods.title', defaultMessage: 'This server doesn’t have any sign-in methods enabled'})}
                     message={formatMessage({id: 'login.noMethods.subtitle', defaultMessage: 'Please contact your System Administrator to resolve this.'})}
                 />
@@ -704,7 +706,10 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             onError={handleBrandImageError}
                         />
                     ) : (
-                        <h1 className='signup-body-message-title'>
+                        <h1
+                            className='signup-body-message-title'
+                            data-testid='signup.title--text'
+                        >
                             {formatMessage({id: 'signup_user_completed.title', defaultMessage: 'Let’s get started'})}
                         </h1>
                     )}
@@ -714,16 +719,19 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                     {!isMobileView && getAlternateLink()}
                     <div className={classNames('signup-body-card', {'custom-branding': enableCustomBrand, 'with-error': hasError})}>
                         <div
-                            data-testid='signup-body-card'
+                            data-testid='signup.card'
                             className='signup-body-card-content'
                         >
-                            <h2 className='signup-body-card-title'>
+                            <h2
+                                className='signup-body-card-title'
+                                data-testid='signup.card.title--text'
+                            >
                                 {getCardTitle()}
                             </h2>
                             {(parsedFirstName || parsedLastName) && (
                                 <p
                                     className='signup-body-card-preset-name'
-                                    data-testid='signup-body-card-preset-name'
+                                    data-testid='signup.card.preset_name--text'
                                 >
                                     {formatMessage(
                                         {id: 'signup_user_completed.presetName', defaultMessage: "You'll join as {fullName}."},
@@ -734,6 +742,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                             {enableCustomBrand && getMessageSubtitle()}
                             {alertBanner && (
                                 <AlertBanner
+                                    testId='signup.banner'
                                     className='login-body-card-banner'
                                     mode={alertBanner.mode}
                                     title={alertBanner.title}
@@ -745,6 +754,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     <Input
                                         ref={emailInput}
                                         name='email'
+                                        testId='signup.card.email'
                                         className='signup-body-card-form-email-input'
                                         type='text'
                                         inputSize={SIZE.LARGE}
@@ -761,6 +771,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     <Input
                                         ref={nameInput}
                                         name='name'
+                                        testId='signup.card.username'
                                         className='signup-body-card-form-name-input'
                                         type='text'
                                         inputSize={SIZE.LARGE}
@@ -776,6 +787,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     />
                                     <PasswordInput
                                         ref={passwordInput}
+                                        testId='signup.card.password'
                                         className='signup-body-card-form-password-input'
                                         value={password}
                                         inputSize={SIZE.LARGE}
@@ -787,6 +799,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                     />
                                     <CheckInput
                                         id='signup-body-card-form-check-terms-and-privacy'
+                                        testId='signup.card.terms'
                                         ariaLabel={formatMessage({id: 'signup.terms_and_privacy.checkmark.box', defaultMessage: 'Terms and privacy policy checkbox'})}
                                         name='terms'
                                         onChange={() => setAcceptedTerms(!acceptedTerms)}
@@ -798,6 +811,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                         <ExternalLink
                                                             href={PrivacyPolicyLink as string}
                                                             location='signup-privacy-policy'
+                                                            data-testid='signup.card.privacy_policy--link'
                                                         >
                                                             {chunks}
                                                         </ExternalLink>
@@ -806,6 +820,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                                         <ExternalLink
                                                             href={TermsOfServiceLink as string}
                                                             location='signup-terms-of-use'
+                                                            data-testid='signup.card.acceptable_use_policy--link'
                                                         >
                                                             {chunks}
                                                         </ExternalLink>
@@ -815,6 +830,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                         checked={acceptedTerms}
                                     />
                                     <SaveButton
+                                        testId='signup.card.create_account'
                                         extraClasses='signup-body-card-form-button-submit large'
                                         saving={isWaiting}
                                         disabled={!canSubmit}
@@ -838,6 +854,8 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                                             key={option.id}
                                             direction={enableSignUpWithEmail ? undefined : 'column'}
                                             {...option}
+                                            testId='signup.external'
+                                            testKey={option.id}
                                         />
                                     ))}
                                 </div>

@@ -59,6 +59,7 @@ const ShouldVerifyEmail = () => {
         <div className='should-verify-body'>
             <div className='should-verify-body-content'>
                 <ColumnLayout
+                    testId='should_verify_email'
                     title={formatMessage({id: 'email_verify.almost', defaultMessage: 'You’re almost done!'})}
                     message={formatMessage({id: 'email_verify.notVerifiedBody', defaultMessage: 'Please verify your email address. Check your inbox for an email.'})}
                     SVGElement={<EmailInboxSVG width={284}/>}
@@ -66,6 +67,7 @@ const ShouldVerifyEmail = () => {
                         <div className='should-verify-body-content-extra'>
                             <div className='should-verify-body-content-buttons'>
                                 <SaveButton
+                                    testId='should_verify_email.resend'
                                     extraClasses='should-verify-body-content-button-resend large'
                                     saving={isWaiting}
                                     disabled={!email}
@@ -75,6 +77,7 @@ const ShouldVerifyEmail = () => {
                                 />
                                 <button
                                     className='should-verify-body-content-button-return'
+                                    data-testid='should_verify_email.return--button'
                                     onClick={handleReturnButtonOnClick}
                                 >
                                     {formatMessage({id: 'email_verify.return', defaultMessage: 'Return to log in'})}
@@ -92,7 +95,10 @@ const ShouldVerifyEmail = () => {
                                         },
                                     )}
                                 />
-                                <span className='should-verify-body-content-message-label'>
+                                <span
+                                    className='should-verify-body-content-message-label'
+                                    data-testid='should_verify_email.status--text'
+                                >
                                     {resendStatus === ResendStatus.SUCCESS ? (
                                         formatMessage({id: 'email_verify.sent', defaultMessage: 'Verification email sent'})
                                     ) : (
