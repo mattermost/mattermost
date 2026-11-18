@@ -198,7 +198,7 @@ export class ChannelInfoAttributes {
 
 /**
  * The indicators a channel shows its admins while a required attribute has no
- * value: the notice under the header, the dot on the Info button and the
+ * value: the notice over the message list, the dot on the Info button and the
  * "Set <attribute>" chips in the header.
  */
 export class MissingRequiredAttributes {
@@ -216,8 +216,10 @@ export class MissingRequiredAttributes {
         return this.container.getByTestId('missingRequiredAttributesNoticeAddValues');
     }
 
-    get infoButtonMissingIcon() {
-        return this.container.locator('#channel-info-btn .channelInfoButton__icon--missingValues');
+    get infoButtonMissingBadge() {
+        return this.container.locator(
+            '#channel-info-btn.channelInfoButton--missingValues [class*="icon-button__unread-badge"]',
+        );
     }
 
     headerChip(name: string) {
@@ -228,13 +230,13 @@ export class MissingRequiredAttributes {
         await expect(this.notice).toBeVisible();
         await expect(this.notice).toContainText('Channel attribute values are missing');
         await expect(this.addValuesButton).toHaveText('Add values');
-        await expect(this.infoButtonMissingIcon).toBeVisible();
+        await expect(this.infoButtonMissingBadge).toBeVisible();
         await expect(this.headerChip(name)).toBeVisible();
     }
 
     async toBeHidden(name: string) {
         await expect(this.notice).toHaveCount(0);
-        await expect(this.infoButtonMissingIcon).toHaveCount(0);
+        await expect(this.infoButtonMissingBadge).toHaveCount(0);
         await expect(this.headerChip(name)).toHaveCount(0);
     }
 }

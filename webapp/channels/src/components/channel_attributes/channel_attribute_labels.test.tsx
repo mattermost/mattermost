@@ -693,6 +693,30 @@ describe('ChannelAttributeLabels', () => {
             expect(chip).toHaveTextContent('Set PROGRAM');
         });
 
+        test('a Set chip keeps its field\'s place in sort_order instead of jumping ahead', async () => {
+            stubWidths(1000);
+            const classification = field('classification', {sortOrder: 0});
+            const base = requiredField('program');
+            const program = {...base, attrs: {...base.attrs, sort_order: 1}};
+            const state = missingState([classification, program]) as {entities: {properties: {values: {byTargetId: Record<string, unknown>}}}};
+            state.entities.properties.values.byTargetId = {[CHANNEL_ID]: {classification: value('classification')}};
+
+            renderWithContext(
+                <ChannelAttributeLabels
+                    channelId={CHANNEL_ID}
+                    surface='header'
+                    showMissingPlaceholders={true}
+                />,
+                state as DeepPartial<GlobalState>,
+            );
+
+            await screen.findByTestId('channelHeaderMissingAttributeChip-program');
+            const texts = screen.getAllByTestId('attributeChip').map((chip) => chip.textContent ?? '');
+            expect(texts).toHaveLength(2);
+            expect(texts[0]).toContain('CLASSIFICATION');
+            expect(texts[1]).toContain('Set PROGRAM');
+        });
+
         test('shows no placeholder without the prop', () => {
             stubWidths(1000);
 

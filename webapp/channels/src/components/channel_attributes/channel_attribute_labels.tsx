@@ -21,10 +21,11 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
+import type {PropertyField} from '@mattermost/types/properties';
 
 import {DISPLAY_LABEL_HEADER} from 'mattermost-redux/constants/properties';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
-import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+import {comparePropertyFieldOrder, getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
 import {openChannelAttributeEditor, showChannelInfo} from 'actions/views/rhs';
 
@@ -100,21 +101,23 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, 
     const surfaceId = Array.isArray(surface) ? surface.join('-') : surface;
 
     // Expand each attribute into one ChipSpec per value (multiselect → N chips).
+    // "Set {label}" prompts take their field's place in the configured order, so a
+    // missing value never pushes a set one into the overflow.
     const chipSpecs = useMemo((): ChipSpec[] => {
-        const specs: ChipSpec[] = [];
+        const entries: Array<{field: PropertyField; specs: ChipSpec[]}> = [];
         for (const missingField of fixableMissingFields) {
             const actions = missingField.attrs?.actions;
             if (!Array.isArray(actions) || !actions.includes(DISPLAY_LABEL_HEADER)) {
                 continue;
             }
             const fieldLabel = getPropertyFieldLabel(missingField);
-            specs.push({
+            entries.push({field: missingField, specs: [{
                 chipId: `missing:${missingField.id}`,
                 fieldLabel,
                 value: formatMessage({id: 'channel_attributes.labels.set_value', defaultMessage: 'Set {label}'}, {label: fieldLabel}),
                 missingFieldId: missingField.id,
                 missingFieldName: missingField.name,
-            });
+            }]});
         }
         for (const attribute of labels) {
             if (!attribute.displayValue) {
@@ -123,14 +126,15 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, 
             const fieldLabel = getPropertyFieldLabel(attribute.field);
             const values = attribute.displayValues.length > 0 ? attribute.displayValues : [attribute.displayValue];
             if (values.length === 1) {
-                specs.push({chipId: attribute.field.id, fieldLabel, value: values[0], color: optionColor(attribute)});
+                entries.push({field: attribute.field, specs: [{chipId: attribute.field.id, fieldLabel, value: values[0], color: optionColor(attribute)}]});
             } else {
-                for (let i = 0; i < values.length; i++) {
-                    specs.push({chipId: `${attribute.field.id}:${i}`, fieldLabel, value: values[i]});
-                }
+                entries.push({field: attribute.field, specs: values.map((value, i) => ({chipId: `${attribute.field.id}:${i}`, fieldLabel, value}))});
             }
         }
-        return specs;
+        if (fixableMissingFields.length > 0) {
+            entries.sort((a, b) => comparePropertyFieldOrder(a.field, b.field));
+        }
+        return entries.flatMap((entry) => entry.specs);
     }, [labels, fixableMissingFields, formatMessage]);
 
     const ids = useMemo(() => chipSpecs.map((s) => s.chipId), [chipSpecs]);

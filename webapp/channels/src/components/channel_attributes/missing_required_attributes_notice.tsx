@@ -19,7 +19,9 @@ type Props = {
 
 /**
  * Tells people who can fix it that this channel lacks a required attribute value.
- * Not dismissible: it goes away when the value is set.
+ * Not dismissible: it goes away when the value is set. It floats over the top of
+ * the message list, beneath the list's own toasts (new messages, calls), which
+ * are more urgent and come and go.
  */
 export default function MissingRequiredAttributesNotice({channelId}: Props) {
     const dispatch = useDispatch();
@@ -43,7 +45,7 @@ export default function MissingRequiredAttributesNotice({channelId}: Props) {
                 data-testid='missingRequiredAttributesNotice'
             >
                 <AlertCircleOutlineIcon
-                    size={16}
+                    size={12}
                     aria-hidden={true}
                 />
                 <span className='MissingRequiredAttributesNotice__text'>

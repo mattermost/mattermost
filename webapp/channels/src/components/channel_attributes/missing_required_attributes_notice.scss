@@ -1,21 +1,27 @@
 .MissingRequiredAttributesNotice {
-    display: flex;
-    justify-content: center;
-    padding: 8px 24px 0;
+    position: absolute;
+
+    // Below the message list's toasts, which sit at z-index 2 in the same spot.
+    z-index: 1;
+    top: 8px;
+    left: 50%;
+    max-width: calc(100% - 32px);
+    pointer-events: none;
+    transform: translateX(-50%);
 
     &__pill {
-        display: inline-flex;
-        max-width: 100%;
+        display: flex;
+        height: 32px;
+        box-sizing: border-box;
         align-items: center;
-        padding: 4px 4px 4px 12px;
-        border-radius: 16px;
+        padding: 0 16px;
+        border-radius: 4px;
         background: var(--error-text);
+        box-shadow: 0 2px 8px rgba(var(--center-channel-color-rgb), 0.16);
         color: var(--button-color);
         font-family: 'Open Sans', sans-serif;
-        font-size: 12px;
-        font-weight: 600;
         gap: 8px;
-        line-height: 16px;
+        pointer-events: auto;
 
         svg {
             flex-shrink: 0;
@@ -26,6 +32,9 @@
     &__text {
         overflow: hidden;
         min-width: 0;
+        font-size: 13px;
+        font-weight: 600;
+        line-height: 16px;
         text-overflow: ellipsis;
         white-space: nowrap;
     }
@@ -34,8 +43,8 @@
         flex-shrink: 0;
         padding: 2px 8px;
         border: none;
-        border-radius: 12px;
-        background: rgba(var(--button-color-rgb), 0.16);
+        border-radius: 4px;
+        background: rgba(var(--button-color-rgb), 0.22);
         color: var(--button-color);
         cursor: pointer;
         font-family: inherit;
@@ -44,12 +53,12 @@
         line-height: 16px;
 
         &:hover {
-            background: rgba(var(--button-color-rgb), 0.24);
+            background: rgba(var(--button-color-rgb), 0.32);
         }
 
         &:focus-visible {
             outline: 2px solid var(--button-color);
-            outline-offset: 1px;
+            outline-offset: 2px;
         }
     }
 }
