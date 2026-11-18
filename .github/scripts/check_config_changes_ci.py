@@ -392,7 +392,7 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # without having to enumerate every possible wrapper signature.
 _HANDLE_RE = re.compile(
     r'([\w.]*)\.Handle\("([^"]*)"'   # receiver and path
-    r',\s*[^)]*\((\w+)\)\)'        # wrapper(...handlerFunc))
+    r',\s*[^)]*\((\w+)(?:,\s*[\w.]+)*\)\)'  # wrapper(...handlerFunc, option...))
     r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
 
