@@ -48,7 +48,7 @@ func (tl TokenLocation) String() string {
 	}
 }
 
-func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError {
+func (a *App) IsPasswordValid(rctx request.CTX, password string) error {
 	if err := users.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings); err != nil {
 		if invErr, ok := errors.AsType[*users.ErrInvalidPassword](err); ok {
 			return model.NewAppError("User.IsValid", invErr.Id(), map[string]any{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest).Wrap(err)
@@ -154,7 +154,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 			}
 		}
 
-		return err
+		return model.AsAppError(err)
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
@@ -273,7 +273,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		return nil, err
 	}
 
-	if err = a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
+	if err := a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
 		// For existing LDAP users we pre-claimed a slot, so it already
 		// counts as a failed attempt. The only special case is when no
 		// mfaToken was provided, which is treated as a pre-flight
@@ -294,7 +294,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 				rctx.Logger().Warn("failed to refund LDAP MFA probe slot", mlog.String("user_id", ldapUser.Id), mlog.Err(passErr))
 			}
 		}
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	if err := checkUserNotDisabled(ldapUser); err != nil {
@@ -353,7 +353,7 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *
 	return nil
 }
 
-func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError {
+func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) error {
 	if !user.MfaActive || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}
