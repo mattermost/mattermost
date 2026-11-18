@@ -204,11 +204,9 @@ describe('Verify Accessibility Support in different input fields', () => {
             // * Verify if the focus is on the numbered list button
             cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list');
 
-            // # Attach, emoji, priority, and burn-on-read are inside the + menu, so they are not in this tab order.
-            cy.get('#toggleFormattingBarButton').focus();
-
-            // * Verify if the focus is on the formatting options button
-            cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();
+            // # Attach, emoji, priority, burn-on-read, and formatting are rows in the + menu.
+            // # The old formatting toggle is not in this tab order.
+            cy.get('#agentComposerMenuButton').focus();
 
             // * Verify if the focus is on the + button
             cy.get('#agentComposerMenuButton').should('be.focused').and('have.attr', 'aria-label', 'Message options').tab();
@@ -254,12 +252,9 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#FormattingControl_ul').should('exist').and('have.attr', 'aria-label', 'bulleted list');
             cy.get('#FormattingControl_ol').should('exist').and('have.attr', 'aria-label', 'numbered list');
 
-            // # Close the overflow popover. Attach, emoji, and burn-on-read are inside the + menu.
+            // # Close the overflow popover. Attach, emoji, burn-on-read, and formatting are rows in the + menu.
             cy.get('#HiddenControlsButtonRHS_COMMENT').focus().type('{esc}');
-            cy.get('#toggleFormattingBarButton').focus();
-
-            // * Verify if the focus is on the formatting options button
-            cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();
+            cy.get('#agentComposerMenuButton').focus();
 
             // * Verify if the focus is on the + button
             cy.get('#agentComposerMenuButton').should('be.focused').and('have.attr', 'aria-label', 'Message options').tab();
