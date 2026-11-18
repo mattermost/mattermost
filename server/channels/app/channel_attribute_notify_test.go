@@ -281,8 +281,8 @@ func TestNotifyChannelAdminsOfMissingAttribute(t *testing.T) {
 		require.ErrorAs(t, err, &throttled)
 		assert.Equal(t, http.StatusTooManyRequests, throttled.StatusCode)
 		assert.Equal(t, "api.property_field.notify_missing_values.throttled.app_error", throttled.Id)
-		appErr.Translate(i18n.GetUserTranslations("en"))
-		assert.Contains(t, appErr.Message, "You can send another notification in 60 minutes.")
+		throttled.Translate(i18n.GetUserTranslations("en"))
+		assert.Contains(t, throttled.Message, "You can send another notification in 60 minutes.")
 
 		posts := dmPostsFromBotToUser(t, th, bot.UserId, admin.Id)
 		assert.Len(t, posts, 1, "the throttled call must not send a second DM")
