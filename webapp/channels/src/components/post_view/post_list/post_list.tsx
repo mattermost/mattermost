@@ -118,6 +118,8 @@ export interface Props {
 
     isChannelAutotranslated: boolean;
 
+    isTotalUsersCountUnknown?: boolean;
+
     /*
      * Whether the channel intro will be shown before the total user count it depends on is known
      */
@@ -183,7 +185,6 @@ export default class PostList extends React.PureComponent<Props, State> {
         toggleShouldStartFromBottomWhenUnread: () => void;
     };
     private mounted: boolean | undefined;
-    private loadingTotalUsersStats = false;
     private totalUsersStatsTimeout: NodeJS.Timeout | undefined;
 
     // public for testing purposes only
@@ -228,15 +229,17 @@ export default class PostList extends React.PureComponent<Props, State> {
                 markAndMeasureChannelSwitchEnd();
             }
         }
-        this.loadTotalUsersStatsIfNeeded();
+
+        // Fetched alongside the posts since the intro may need it as soon as they arrive
+        if (this.props.isTotalUsersCountUnknown) {
+            this.loadTotalUsersStats();
+        }
     }
 
     componentDidUpdate(prevProps: Props) {
         if (this.props.channelId !== prevProps.channelId || this.props.focusedPostId !== prevProps.focusedPostId) {
             this.postsOnLoad(this.props.channelId);
         }
-
-        this.loadTotalUsersStatsIfNeeded();
 
         if (this.props.postListIds != null && prevProps.postListIds == null) {
             markAndMeasureChannelSwitchEnd(true);
@@ -248,18 +251,12 @@ export default class PostList extends React.PureComponent<Props, State> {
         clearTimeout(this.totalUsersStatsTimeout);
     }
 
-    loadTotalUsersStatsIfNeeded = async () => {
-        if (this.loadingTotalUsersStats || !isWaitingForTotalUsersStats(this.props.needsTotalUsersStats, this.state)) {
-            return;
-        }
-
-        this.loadingTotalUsersStats = true;
+    loadTotalUsersStats = async () => {
         this.totalUsersStatsTimeout = setTimeout(this.stopWaitingForTotalUsersStats, TOTAL_USERS_STATS_TIMEOUT);
 
         const {error} = await this.props.actions.getTotalUsersStats();
 
         clearTimeout(this.totalUsersStatsTimeout);
-        this.loadingTotalUsersStats = false;
 
         if (error) {
             this.stopWaitingForTotalUsersStats();

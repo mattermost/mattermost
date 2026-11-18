@@ -68,6 +68,7 @@ function makeMapStateToProps() {
         const isPrefetchingInProcess = channelViewState.channelPrefetchStatus[channelId] === RequestStatus.STARTED;
         const limitedViews = getLimitedViews(state);
         const hasInaccessiblePosts = Boolean(limitedViews.channels[channelId]) || limitedViews.channels[channelId] === 0;
+        const isTotalUsersCountUnknown = getTotalUsersStatsSelector(state).total_users_count === undefined;
 
         const focusedPost = getPost(state, focusedPostId || '');
 
@@ -112,7 +113,8 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             hasInaccessiblePosts,
             isChannelAutotranslated: isMyChannelAutotranslated(state, channelId),
-            needsTotalUsersStats: atOldestPost && getTotalUsersStatsSelector(state).total_users_count === undefined && isChannelIntroUsingTotalUsers(state, channelId),
+            isTotalUsersCountUnknown,
+            needsTotalUsersStats: atOldestPost && isTotalUsersCountUnknown && isChannelIntroUsingTotalUsers(state, channelId),
         };
     };
 }

@@ -41,10 +41,12 @@ for (const {name, totalUsersCount, expectedButton} of testCases) {
             // # Hold back the total user count
             const usersStats = await holdBackUsersStats(page, totalUsersCount);
 
-            // # Open the channel and wait for the total user count to be requested, which only happens once the
-            // # channel posts have loaded
+            // # Open the channel and wait for both the total user count request and the channel posts
+            const postsLoaded = page.waitForResponse(
+                (response) => response.url().includes(`/channels/${channel.id}/posts`) && response.ok(),
+            );
             await channelsPage.goto(team.name, channel.name);
-            await usersStats.requested;
+            await Promise.all([usersStats.requested, postsLoaded]);
 
             // # Let the total user count load
             usersStats.release();
