@@ -66,7 +66,14 @@ const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, hi
     }, [sendOnCtrlEnter]);
 
     return (
-        <div className={classNames('splitSendButton', {disabled, scheduledPost: isScheduledPostEnabled, 'splitSendButton--round': round})}>
+        <div
+            className={classNames('splitSendButton', {
+                disabled,
+                scheduledPost: isScheduledPostEnabled,
+                'splitSendButton--round': round,
+                'splitSendButton--pill': !round,
+            })}
+        >
             <WithTooltip
                 title={formatMessage({id: 'create_post_button.option.send_now', defaultMessage: 'Send Now'})}
                 shortcut={sendNowKeyboardShortcutDescriptor}

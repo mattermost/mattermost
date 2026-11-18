@@ -712,10 +712,6 @@ const AdvancedTextEditor = ({
     const message = draft?.message ?? '';
 
     const handleWidthChange = useCallback(() => {
-        if (agentMode) {
-            return;
-        }
-
         const body = editorBodyRef.current;
         const actions = editorActionsRef.current;
         if (!body || !actions) {
@@ -731,7 +727,7 @@ const AdvancedTextEditor = ({
         const longest = measureLongestLine(message, fontSource);
         const roomBesideButtons = body.offsetWidth - actions.offsetWidth - (showPlus ? PLUS_ROW_CLEARANCE : 0);
         setIsMessageLong(messageUsesFullWidth(longest, message.split('\n').length, roomBesideButtons));
-    }, [agentMode, hasDraftMessage, message, showPlus]);
+    }, [hasDraftMessage, message, showPlus]);
 
     useEffect(() => {
         handleWidthChange();
@@ -925,10 +921,15 @@ const AdvancedTextEditor = ({
         );
     }, [agentMode, dropOverlayId, isInEditMode, isRHS]);
 
-    // Channel composers reserve a row under long, previewed, RHS, and thread
-    // messages so the overlaid controls clear the text. Agent mode keeps a
-    // real row under the text for the +, formatting, and send.
-    const showFormattingSpacer = !agentMode && (isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView);
+    // A hidden formatting bar starts as one line: the + and send overlay the
+    // text. Wrapped text, a preview, or attachments take the row under it.
+    // An RHS or thread pins an open formatting bar to the bottom of the cell,
+    // so that bar still gets a spacer. Agent mode uses the same one-line
+    // class and collapses its control row instead of a spacer.
+    const oneLine = !showFormattingBar && !isMessageLong && !showPreview && !attachmentPreview;
+    const showFormattingSpacer = !agentMode && (
+        isMessageLong || showPreview || attachmentPreview || ((isRHS || isThreadView) && !oneLine)
+    );
 
     const messageEditor = wysiwygEnabled ? (
         <WysiwygEditor
@@ -1057,7 +1058,7 @@ const AdvancedTextEditor = ({
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     'AdvancedTextEditor--agent': agentMode,
                     'AdvancedTextEditor--plus': showPlus,
-                    'AdvancedTextEditor--plus-overlay': showPlus && !agentMode && !showFormattingBar && !showFormattingSpacer,
+                    'AdvancedTextEditor--plus-overlay': showPlus && oneLine,
                     scroll: renderScrollbar,
                     'formatting-bar': showFormattingBar,
                 })}

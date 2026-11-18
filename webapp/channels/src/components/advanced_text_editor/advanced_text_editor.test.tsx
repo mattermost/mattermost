@@ -1329,6 +1329,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(plus).toContainElement(menu);
             expect(menu).toHaveClass('agent-composer-menu-button');
+            expect(menu.className).toEqual(expect.stringContaining('rounded'));
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus');
             expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
@@ -1460,7 +1461,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
-            expect(screen.getByTestId('SendMessageButton').closest('.splitSendButton')).not.toHaveClass('splitSendButton--round');
+            const channelSend = screen.getByTestId('SendMessageButton').closest('.splitSendButton');
+            expect(channelSend).not.toHaveClass('splitSendButton--round');
+            expect(channelSend).toHaveClass('splitSendButton--pill');
+            expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--plus-overlay');
             expect(document.getElementById('createPostFileDropOverlay')).not.toHaveClass('file-overlay--pill');
             expect(screen.getByText('Drop a file to upload it.')).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
@@ -1526,13 +1530,57 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             const send = screen.getByTestId('SendMessageButton');
             expect(send.closest('.splitSendButton')).toHaveClass('splitSendButton--round');
+            expect(send.closest('.splitSendButton')).not.toHaveClass('splitSendButton--pill');
             expect(send.querySelector('.SendMessageButton__icon')).toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus-overlay');
             expect(document.querySelector('.AdvancedTextEditor__send')).toContainElement(send);
 
             const overlay = document.getElementById('agentComposerFileDropOverlay_CENTER_new');
             expect(overlay).toHaveClass('file-overlay--pill');
             expect(overlay).toHaveTextContent('Drop file to attach');
             expect(screen.queryByText('Drop a file to upload it.')).not.toBeInTheDocument();
+        });
+
+        it('starts as one line while the formatting bar is hidden', () => {
+            const hiddenBar = {
+                [`${Preferences.ADVANCED_TEXT_EDITOR}--post`]: {
+                    category: Preferences.ADVANCED_TEXT_EDITOR,
+                    name: 'post',
+                    user_id: currentUserId,
+                    value: 'true',
+                },
+                [`${Preferences.ADVANCED_TEXT_EDITOR}--comment`]: {
+                    category: Preferences.ADVANCED_TEXT_EDITOR,
+                    name: 'comment',
+                    user_id: currentUserId,
+                    value: 'true',
+                },
+            };
+
+            const center = renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                mergeObjects(chromeState, {
+                    entities: {preferences: {myPreferences: hiddenBar}},
+                }),
+            );
+
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus-overlay');
+            center.unmount();
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    location={Locations.RHS_COMMENT}
+                    rootId='root-post-id'
+                />,
+                mergeObjects(chromeState, {
+                    entities: {preferences: {myPreferences: hiddenBar}},
+                }),
+            );
+
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus-overlay');
         });
 
         it('puts the + on the left of the composer and send at the end', () => {
@@ -1550,6 +1598,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(plus).toContainElement(menu);
             expect(menu).toHaveClass('agent-composer-menu-button');
+            expect(menu.className).toEqual(expect.stringContaining('rounded'));
             expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--agent');
             const controls = document.querySelector('.AdvancedTextEditor__agent-controls');
@@ -1624,6 +1673,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await waitFor(() => {
                 expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
             });
+            expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--plus-overlay');
 
             await openMenu();
             expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
