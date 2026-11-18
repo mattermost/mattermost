@@ -8,11 +8,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/spf13/cobra"
@@ -20,6 +24,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func healthTestFindings(lastSeen time.Time) []*model.HealthFinding {
@@ -418,7 +423,61 @@ func healthPacketTestCommand(path string, includeResolved, includeMuted bool) *c
 	return cmd
 }
 
+func healthTestRelease(tag string) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = fmt.Fprintf(w, `{"id": 1, "tag_name": %q}`, tag)
+	}
+}
+
+// serveLatestRelease points the --packet latest release fetch at handler until the test ends,
+// and counts the requests that reach it.
+func (s *MmctlUnitTestSuite) serveLatestRelease(handler http.HandlerFunc) *atomic.Int32 {
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests.Add(1)
+		handler(w, r)
+	}))
+	originalURL := healthLatestVersionURL
+	healthLatestVersionURL = server.URL
+	s.T().Cleanup(func() {
+		healthLatestVersionURL = originalURL
+		server.Close()
+	})
+	return &requests
+}
+
+// healthTestBehindVersions returns a supported regular release and a latest release two minors
+// past the newest line in the table, so VERSION_BEHIND fires whatever today's date.
+func (s *MmctlUnitTestSuite) healthTestBehindVersions() (running, latest string) {
+	table := model.ReleaseLifecycles()
+	i := slices.IndexFunc(table, func(l model.ReleaseLifecycle) bool { return !l.ESR && time.Now().Before(l.EOLDate) })
+	s.Require().NotEqual(-1, i, "model.ReleaseLifecycles has no supported regular release")
+	major, minor, _ := model.SplitVersion(table[0].MajorMinor)
+	return table[i].MajorMinor + ".0", fmt.Sprintf("%d.%d.0", major, minor+2)
+}
+
+func (s *MmctlUnitTestSuite) runHealthPacketJSON(packetPath string) []*model.HealthFinding {
+	printer.Clean()
+	printer.SetFormat(printer.FormatJSON)
+	cmd := newTestCmd(s.T(), HealthCheckCmd)
+	s.Require().NoError(cmd.Flags().Set("packet", packetPath))
+	s.Require().NoError(healthCheckRunE(cmd, []string{}))
+	s.Require().Len(printer.GetLines(), 1)
+	list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+	s.Require().True(ok)
+	return list.Findings
+}
+
+func healthTestFinding(findings []*model.HealthFinding, code string) *model.HealthFinding {
+	if i := slices.IndexFunc(findings, func(f *model.HealthFinding) bool { return f.Code == code }); i >= 0 {
+		return findings[i]
+	}
+	return nil
+}
+
 func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
+	s.serveLatestRelease(healthTestRelease("v12.4.0"))
+	latestReleaseNote := "Latest release 12.4.0, fetched from GitHub when this ran."
 	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
 	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04")
 	packetWithFilestoreDisk := func(totalMB, availableMB uint64) string {
@@ -458,6 +517,8 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 		s.Require().NoError(err)
 
 		s.Equal(healthPacketDisclaimer+`
+
+`+latestReleaseNote+`
 
 Last evaluated `+evaluatedAt+` (0 minutes ago)
 
@@ -565,7 +626,74 @@ Could not evaluate
 		s.Require().NotEqual(-1, pushIndex)
 		s.Equal("PushNotificationServer does not use https://", findings[pushIndex].Title)
 		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[pushIndex].FirstSeenAt)
-		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+		s.Equal([]string{healthPacketDisclaimer, latestReleaseNote}, printer.GetErrorLines())
+	})
+
+	running, latest := s.healthTestBehindVersions()
+	supportedFiles := healthTestPacketFiles()
+	supportedFiles[model.PacketMetadataFileName] = strings.Replace(supportedFiles[model.PacketMetadataFileName], "server_version: 11.0.4", "server_version: "+running, 1)
+	supportedPacket := s.writeHealthTestPacket(supportedFiles)
+
+	s.Run("fetches the latest release the packet doesn't record", func() {
+		requests := s.serveLatestRelease(healthTestRelease("v" + latest))
+
+		findings := s.runHealthPacketJSON(supportedPacket)
+
+		s.Equal(int32(1), requests.Load())
+		s.Equal([]string{healthPacketDisclaimer, "Latest release " + latest + ", fetched from GitHub when this ran."}, printer.GetErrorLines())
+		behind := healthTestFinding(findings, "VERSION_BEHIND")
+		s.Require().NotNil(behind)
+		s.Equal("firing", behind.State)
+		s.Equal("Running "+running+". Latest is "+latest+", two or more releases newer.", behind.Message)
+	})
+
+	requireVersionBehindUnknown := func(findings []*model.HealthFinding) {
+		for _, code := range []string{"VERSION_BEHIND", "VERSION_BEHIND_ONE"} {
+			finding := healthTestFinding(findings, code)
+			s.Require().NotNil(finding, code)
+			s.Equal("unknown", finding.State, code)
+			s.Equal("Latest release unknown: it could not be fetched, or the packet does not record it.", finding.Message, code)
+		}
+	}
+
+	s.Run("a failed fetch leaves version-behind findings unknown", func() {
+		s.serveLatestRelease(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusBadGateway)
+		})
+
+		findings := s.runHealthPacketJSON(supportedPacket)
+
+		s.Equal([]string{healthPacketDisclaimer, "Could not fetch the latest release (unexpected status code 502): version-behind findings are unknown."}, printer.GetErrorLines())
+		requireVersionBehindUnknown(findings)
+	})
+
+	s.Run("a timed out fetch leaves version-behind findings unknown", func() {
+		s.serveLatestRelease(func(_ http.ResponseWriter, r *http.Request) {
+			select {
+			case <-r.Context().Done():
+			case <-time.After(5 * time.Second):
+			}
+		})
+		originalTimeout := healthLatestVersionTimeout
+		healthLatestVersionTimeout = 50 * time.Millisecond
+		s.T().Cleanup(func() { healthLatestVersionTimeout = originalTimeout })
+
+		findings := s.runHealthPacketJSON(supportedPacket)
+
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.True(strings.HasPrefix(printer.GetErrorLines()[1], "Could not fetch the latest release ("))
+		s.Contains(printer.GetErrorLines()[1], "context deadline exceeded")
+		requireVersionBehindUnknown(findings)
+	})
+
+	s.Run("a latest release the snapshot already records is not fetched", func() {
+		requests := s.serveLatestRelease(healthTestRelease("v99.0.0"))
+		snapshot := &healthcheck.Snapshot{}
+		snapshot.Version.Latest = "12.1.0"
+
+		s.Empty(fillLatestVersion(snapshot))
+		s.Equal("12.1.0", snapshot.Version.Latest)
+		s.Zero(requests.Load())
 	})
 
 	s.Run("renders a Posts dead tuples finding after a stale vacuum", func() {

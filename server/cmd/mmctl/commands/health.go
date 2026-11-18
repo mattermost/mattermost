@@ -34,11 +34,19 @@ var HealthCmd = &cobra.Command{
 
 const healthPacketDisclaimer = "Evaluated offline from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state. Version support is judged as of today."
 
+// Packets don't record the latest release, so --packet fetches it. Variables so tests can
+// point them at a local server.
+var (
+	healthLatestVersionURL     = model.LatestVersionURL
+	healthLatestVersionTimeout = 5 * time.Second
+)
+
 var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Report current health findings",
 	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
-		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.",
+		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included. " +
+		"One outbound request to GitHub fetches the latest Mattermost release, which the version-behind findings compare against.",
 	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip",
 	Args:    cobra.NoArgs,
 	RunE:    healthCheckRunE,
@@ -94,6 +102,12 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to read Support Packet: %w", err)
 	}
 
+	notes := []string{healthPacketDisclaimer}
+	if note := fillLatestVersion(p.Snapshot); note != "" {
+		notes = append(notes, note)
+	}
+	notes = append(notes, p.Warnings...)
+
 	// Findings are stamped with when the packet was generated, not when mmctl ran.
 	evaluatedAt := p.Snapshot.CollectedAt
 	if evaluatedAt.IsZero() {
@@ -125,8 +139,28 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, append([]string{healthPacketDisclaimer}, p.Warnings...)...)
+	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, notes...)
 	return nil
+}
+
+// fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one,
+// and returns a note saying where it came from. A failed fetch is not an error: the
+// version-behind rules report unknown and the note says why.
+func fillLatestVersion(snapshot *healthcheck.Snapshot) string {
+	if snapshot.Version.Latest != "" {
+		return ""
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), healthLatestVersionTimeout)
+	defer cancel()
+
+	release, err := model.FetchLatestVersion(ctx, healthLatestVersionURL)
+	if err != nil {
+		return fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err)
+	}
+
+	snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+	return fmt.Sprintf("Latest release %s, fetched from GitHub when this ran.", snapshot.Version.Latest)
 }
 
 // printHealthFindings prints already-rendered findings, leaving out resolved ones unless
