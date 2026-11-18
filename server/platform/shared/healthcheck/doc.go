@@ -18,8 +18,8 @@
 // field the rules read breaks the build instead of silently turning a rule off.
 //
 // This package, the rules and the packet reader import nothing else from the server, so a rule
-// cannot reach the store, the network or the app layer, and mmctl can link them to evaluate
-// packets offline. The one exception is the config package: AUDIT_LOG_OFF falls back to
+// cannot reach the store or the app layer, and mmctl can link them to evaluate packets offline.
+// The one exception is the config package: AUDIT_LOG_OFF falls back to
 // config.IsAuditLoggingActive for packets from servers that do not record their audit logging
 // state. TestImportsStayOutOfTheServer enforces this.
 //
