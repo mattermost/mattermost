@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {createElement} from 'react';
+
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
@@ -275,10 +277,13 @@ describe('useSubmit', () => {
     describe('scheduling a message', () => {
         const schedulingInfo = {scheduled_at: Date.now() + 60000};
 
-        function renderSubmit(serverError: UseSubmitParams[4] = mockServerError) {
+        function renderSubmit(
+            serverError: UseSubmitParams[4] = mockServerError,
+            {draft = mockDraft, postError = mockPostError, state = getBaseState()}: {draft?: PostDraft; postError?: UseSubmitParams[1]; state?: DeepPartial<GlobalState>} = {},
+        ) {
             const {result} = renderHookWithContext(() => useSubmit(
-                mockDraft,
-                mockPostError,
+                draft,
+                postError,
                 'channel_id',
                 'root_id',
                 serverError,
@@ -293,7 +298,7 @@ describe('useSubmit', () => {
                 false,
                 false,
                 'post_id',
-            ), getBaseState());
+            ), state);
             return result.current[0];
         }
 
@@ -311,7 +316,50 @@ describe('useSubmit', () => {
             const response = await renderSubmit()(undefined, schedulingInfo);
 
             expect(response).toEqual({});
+            expect(response.skipped).toBeUndefined();
             expect(onSubmit).toHaveBeenCalledWith('channel_id', 'root_id', expect.anything(), expect.anything(), schedulingInfo);
+        });
+
+        it('should return an error and not schedule when a post error blocks the submit', async () => {
+            const response = await renderSubmit(null, {postError: createElement('span', null, 'Too long')})(undefined, schedulingInfo);
+
+            expect(response.error).toBeTruthy();
+            expect(response.skipped).toBeUndefined();
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('should use a string post error as the scheduling error', async () => {
+            const response = await renderSubmit(null, {postError: 'Message too long'})(undefined, schedulingInfo);
+
+            expect(response).toEqual({error: 'Message too long'});
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('should return skipped when a post error blocks a non-scheduling submit', async () => {
+            const response = await renderSubmit(null, {postError: 'Message too long'})();
+
+            expect(response).toEqual({skipped: true});
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('should return skipped when uploads are in progress', async () => {
+            const draft = {...mockDraft, uploadsInProgress: ['upload_id']};
+
+            const response = await renderSubmit(null, {draft})(undefined, schedulingInfo);
+
+            expect(response).toEqual({skipped: true});
+            expect(onSubmit).not.toHaveBeenCalled();
+        });
+
+        it('should return skipped when handing off to the notify all confirmation', async () => {
+            const state = getBaseState();
+            state.entities!.channels!.stats!.channel_id!.member_count = 10;
+
+            const response = await renderSubmit(null, {draft: {...mockDraft, message: '@all'}, state})(undefined, schedulingInfo);
+
+            expect(response).toEqual({skipped: true});
+            expect(openModal).toHaveBeenCalledWith(expect.objectContaining({modalId: ModalIdentifiers.NOTIFY_CONFIRM_MODAL}));
+            expect(onSubmit).not.toHaveBeenCalled();
         });
 
         it('should not let a previous server error block a scheduling retry', async () => {
@@ -328,7 +376,7 @@ describe('useSubmit', () => {
 
             const response = await renderSubmit(previousError)();
 
-            expect(response).toEqual({});
+            expect(response).toEqual({skipped: true});
             expect(onSubmit).not.toHaveBeenCalled();
         });
 

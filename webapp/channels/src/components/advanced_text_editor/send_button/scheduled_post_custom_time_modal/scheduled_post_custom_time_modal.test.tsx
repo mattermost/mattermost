@@ -166,6 +166,24 @@ describe('ScheduledPostCustomTimeModal', () => {
         await waitFor(() => expect(onExited).toHaveBeenCalledTimes(1));
     });
 
+    it('should disable the Schedule button while a request is pending and re-enable it after an error', async () => {
+        let resolveConfirm: (value: {error?: string}) => void = () => {};
+        onConfirm.mockReturnValueOnce(new Promise((resolve) => {
+            resolveConfirm = resolve;
+        }));
+        renderModal();
+
+        const scheduleButton = screen.getByRole('button', {name: 'Schedule'});
+        expect(scheduleButton).toBeEnabled();
+
+        await userEvent.click(scheduleButton);
+        expect(scheduleButton).toBeDisabled();
+
+        resolveConfirm({error: 'Invalid scheduled at time.'});
+        expect(await screen.findByText('Invalid scheduled at time.')).toBeInTheDocument();
+        expect(scheduleButton).toBeEnabled();
+    });
+
     it('should not exit or show the error when dismissed while a request is pending', async () => {
         let resolveConfirm: (value: {error?: string}) => void = () => {};
         onConfirm.mockReturnValueOnce(new Promise((resolve) => {

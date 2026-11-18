@@ -3,6 +3,7 @@
 
 import type React from 'react';
 import {useCallback, useMemo, useRef, useState} from 'react';
+import {defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -33,6 +34,7 @@ import PostDeletedModal from 'components/post_deleted_modal';
 import ResetStatusModal from 'components/reset_status_modal';
 
 import Constants, {ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {getIntl} from 'utils/i18n';
 import {isErrorInvalidSlashCommand, isServerError, specialMentionsInText} from 'utils/post_utils';
 
 import type {GlobalState} from 'types/store';
@@ -54,6 +56,14 @@ function getStatusFromSlashCommand(message: string) {
 
     return '';
 }
+
+const postErrorBlocksSchedulingMessage = defineMessage({
+    id: 'create_post.scheduling_blocked_by_error',
+    defaultMessage: 'Fix the error with your message before scheduling it.',
+    description: 'Error shown in the schedule custom time dialog when the message has a validation error (for example, it is too long) that prevents it from being scheduled.',
+});
+
+export type SubmitResult = {error?: string; skipped?: boolean};
 
 const useSubmit = (
     draft: PostDraft,
@@ -149,10 +159,10 @@ const useSubmit = (
         }
     }, [dispatch, postFileIds, postId]);
 
-    const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo, createPostOptions?: CreatePostOptions): Promise<{error?: string}> => {
+    const doSubmit = useCallback(async (submittingDraft: PostDraft = draft, schedulingInfo?: SchedulingInfo, createPostOptions?: CreatePostOptions): Promise<SubmitResult> => {
         if (submittingDraft.uploadsInProgress.length > 0) {
             isDraftSubmitting.current = false;
-            return {};
+            return {skipped: true};
         }
 
         if (postError && !createPostOptions?.ignorePostError) {
@@ -161,25 +171,28 @@ const useSubmit = (
                 setErrorClass(null);
             }, Constants.ANIMATION_TIMEOUT);
             isDraftSubmitting.current = false;
-            return {};
+            if (schedulingInfo) {
+                return {error: typeof postError === 'string' ? postError : getIntl().formatMessage(postErrorBlocksSchedulingMessage)};
+            }
+            return {skipped: true};
         }
 
         if (isPostDraftEmpty(draft)) {
             isDraftSubmitting.current = false;
-            return {};
+            return {skipped: true};
         }
 
         if (!schedulingInfo) {
             if (isRootDeleted) {
                 showPostDeletedModal();
                 isDraftSubmitting.current = false;
-                return {};
+                return {skipped: true};
             }
         }
 
         if (serverError && !schedulingInfo && !isErrorInvalidSlashCommand(serverError)) {
             isDraftSubmitting.current = false;
-            return {};
+            return {skipped: true};
         }
 
         const fasterThanHumanWillClick = 150;
@@ -306,13 +319,13 @@ const useSubmit = (
         }));
     }, [dispatch]);
 
-    const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions): Promise<{error?: string}> => {
+    const handleSubmit = useCallback(async (submittingDraftParam = draft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions): Promise<SubmitResult> => {
         if (!channel) {
-            return {};
+            return {skipped: true};
         }
 
         if (isDraftSubmitting.current) {
-            return {};
+            return {skipped: true};
         }
 
         const submittingDraft = setUpdatedFileIds(submittingDraftParam);
@@ -347,13 +360,13 @@ const useSubmit = (
         const onConfirm = () => doSubmit(submittingDraft, schedulingInfo);
         if (!isInEditMode && prioritySubmitCheck(onConfirm)) {
             isDraftSubmitting.current = false;
-            return {};
+            return {skipped: true};
         }
 
         if (!isInEditMode && memberNotifyCount > 0) {
             showNotifyAllModal(mentions, channelTimezoneCount, memberNotifyCount, onConfirm);
             isDraftSubmitting.current = false;
-            return {};
+            return {skipped: true};
         }
 
         if (!isInEditMode && !skipCommands && !schedulingInfo) {
@@ -372,7 +385,7 @@ const useSubmit = (
                     message: '',
                 });
                 isDraftSubmitting.current = false;
-                return {};
+                return {skipped: true};
             }
 
             if (submittingDraft.message.trimEnd() === '/header') {
@@ -389,7 +402,7 @@ const useSubmit = (
                     message: '',
                 });
                 isDraftSubmitting.current = false;
-                return {};
+                return {skipped: true};
             }
 
             if (!isDirectOrGroup && submittingDraft.message.trimEnd() === '/purpose') {
@@ -406,7 +419,7 @@ const useSubmit = (
                     message: '',
                 });
                 isDraftSubmitting.current = false;
-                return {};
+                return {skipped: true};
             }
         }
 

@@ -409,11 +409,16 @@ const DateTimeInputContainer: React.FC<Props> = ({
                     base = candidate;
                 }
             }
-            result = getRoundedTime(base, timePickerInterval);
+            if (manualTimeEntry) {
+                // Typed times are exact, so a future one is kept as is; only "now" falls back to the current minute
+                result = base === now ? now.clone().second(0).millisecond(0) : base;
+            } else {
+                result = getRoundedTime(base, timePickerInterval);
 
-            // Rounding up crossed midnight, so there is no valid time left today
-            if (!result.isSame(now, 'day')) {
-                return;
+                // Rounding up crossed midnight, so there is no valid time left today
+                if (!result.isSame(now, 'day')) {
+                    return;
+                }
             }
         } else if (timezone) {
             const effectiveTime = getEffectiveTime();

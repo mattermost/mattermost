@@ -83,6 +83,7 @@ export default function ScheduledPostCustomTimeModal({
 
     const isMounted = useRef(true);
     const isPending = useRef(false);
+    const [isConfirming, setIsConfirming] = useState(false);
     useEffect(() => {
         isMounted.current = true;
         return () => {
@@ -107,11 +108,15 @@ export default function ScheduledPostCustomTimeModal({
             repeat_timezone: repeatWeekly ? userTimezone : '',
         };
         isPending.current = true;
+        setIsConfirming(true);
         let response: {error?: string};
         try {
             response = await onConfirm(schedulingInfo);
         } finally {
             isPending.current = false;
+            if (isMounted.current) {
+                setIsConfirming(false);
+            }
         }
 
         dispatch(
@@ -211,6 +216,7 @@ export default function ScheduledPostCustomTimeModal({
             onCancel={onExited}
             errorText={errorMessage}
             timePickerInterval={timePickerInterval}
+            isConfirmDisabled={isConfirming}
         />
     );
 }

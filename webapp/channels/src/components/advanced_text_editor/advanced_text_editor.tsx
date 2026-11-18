@@ -501,7 +501,7 @@ const AdvancedTextEditor = ({
         }
 
         return result.then((response) => {
-            if (!response?.error) {
+            if (!response?.error && !response?.skipped) {
                 announceMessageSent();
             }
             return response;
