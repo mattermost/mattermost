@@ -31,6 +31,7 @@ import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator
 import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
+import BurnOnReadTourTip from 'components/burn_on_read/burn_on_read_tour_tip';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -71,7 +72,6 @@ import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
 import AgentComposerMenu from './agent_composer_menu';
-import AIActionsMenu from './ai_actions_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
@@ -492,7 +492,9 @@ const AdvancedTextEditor = ({
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
     const {
         labels: burnOnReadLabels,
-        additionalControl: burnOnReadAdditionalControl,
+        canSetBurnOnRead,
+        hasBurnOnReadSet,
+        handleBurnOnReadApply,
         isBurnOnReadSendable: burnOnReadSendable,
     } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
@@ -848,34 +850,8 @@ const AdvancedTextEditor = ({
     const agentLinkEditor = agentLinkPopoverOpen ? wysiwygRef.current?.getEditor() ?? null : null;
 
     const additionalControls = useMemo(() => {
-        if (agentMode) {
-            return (pluginItems || []).filter(Boolean);
-        }
-
-        return [
-            !isInEditMode && priorityAdditionalControl,
-            !isInEditMode && burnOnReadAdditionalControl,
-            ...(pluginItems || []),
-        ].filter(Boolean);
-    }, [agentMode, pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
-
-    const aiActionsMenu = useMemo(() => {
-        if (agentMode || !hasAIActionsMenu) {
-            return null;
-        }
-
-        return (
-            <AIActionsMenu
-                draft={draft}
-                getSelectedText={getSelectedText}
-                updateText={updateText}
-                channelId={channelId}
-                isRHS={location === Locations.RHS_COMMENT}
-                rewriteMenuProps={rewriteMenuProps}
-                aiRewriteEnabled={aiRewriteEnabled}
-            />
-        );
-    }, [agentMode, draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu]);
+        return (pluginItems || []).filter(Boolean);
+    }, [pluginItems]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -887,7 +863,6 @@ const AdvancedTextEditor = ({
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
-                    aiActionsMenu={aiActionsMenu}
                     getEditor={wysiwygEnabled ? () => wysiwygRef.current?.getEditor() ?? null : undefined}
                 />
             )}
@@ -979,6 +954,12 @@ const AdvancedTextEditor = ({
                 className='AdvancedTextEditor__plus'
                 data-testid='composer-plus'
             >
+                {!isInEditMode && canSetBurnOnRead && (
+                    <BurnOnReadTourTip
+                        anchorId='agentComposerMenuButton'
+                        onTryItOut={() => handleBurnOnReadApply(true)}
+                    />
+                )}
                 <AgentComposerMenu
                     canAttach={canUploadFiles}
                     attachDisabled={uploadDisabledByPolicy}
@@ -990,6 +971,21 @@ const AdvancedTextEditor = ({
                     formattingDisabled={showPreview}
                     onToggleFormatting={toggleAdvanceTextEditor}
                     emojiAnchorRef={setEmojiReference}
+                    priorityItem={isInEditMode ? null : priorityAdditionalControl}
+                    burnOnRead={!isInEditMode && canSetBurnOnRead ? {
+                        on: hasBurnOnReadSet,
+                        disabled: showPreview,
+                        onToggle: () => handleBurnOnReadApply(!hasBurnOnReadSet),
+                    } : null}
+                    aiActions={hasAIActionsMenu ? {
+                        draft,
+                        getSelectedText,
+                        updateText,
+                        channelId,
+                        isRHS: location === Locations.RHS_COMMENT,
+                        rewriteMenuProps,
+                        aiRewriteEnabled,
+                    } : null}
                 />
             </div>
             {emojiPickerPortal}
@@ -1058,7 +1054,7 @@ const AdvancedTextEditor = ({
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
-                        {!agentMode && !isInEditMode && (priorityLabels || burnOnReadLabels) && (
+                        {!isInEditMode && (priorityLabels || burnOnReadLabels) && (
                             <div className='AdvancedTextEditor__labels'>
                                 <UnifiedLabelsWrapper
                                     priorityLabels={priorityLabels}

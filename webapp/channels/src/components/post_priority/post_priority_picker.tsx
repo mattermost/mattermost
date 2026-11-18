@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState, memo, useMemo, useEffect} from 'react';
+import MuiMenuList from '@mui/material/MenuList';
+import MuiPopover from '@mui/material/Popover';
+import React, {useCallback, useContext, useState, memo, useMemo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {AlertCircleOutlineIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
@@ -15,6 +17,7 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
+import {MenuContext} from 'components/menu/menu_context';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -30,6 +33,9 @@ type Props = {
     onClose: () => void;
     onApply: (props: PostPriorityMetadata) => void;
     disabled: boolean;
+
+    // `button` is the formatting-bar control. `item` is a row in the composer + menu.
+    presentation?: 'button' | 'item';
 };
 
 function PostPriorityPicker({
@@ -37,10 +43,13 @@ function PostPriorityPicker({
     onClose,
     settings,
     disabled,
+    presentation = 'button',
 }: Props) {
     const {formatMessage} = useIntl();
+    const menu = useContext(MenuContext);
 
     const [pickerOpen, setPickerOpen] = useState(false);
+    const [itemAnchor, setItemAnchor] = useState<HTMLElement | null>(null);
     const [priority, setPriority] = useState<PostPriority | ''>(settings?.priority || '');
     const [requestedAck, setRequestedAck] = useState<boolean>(settings?.requested_ack || false);
     const [persistentNotifications, setPersistentNotifications] = useState<boolean>(settings?.persistent_notifications || false);
@@ -54,8 +63,12 @@ function PostPriorityPicker({
 
     const handleClose = useCallback(() => {
         setPickerOpen(false);
+        setItemAnchor(null);
         onClose();
-    }, [onClose]);
+        if (presentation === 'item') {
+            menu.close?.();
+        }
+    }, [menu, onClose, presentation]);
 
     const makeOnSelectPriority = useCallback((type?: PostPriority) => (e: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
         e.stopPropagation();
@@ -228,12 +241,101 @@ function PostPriorityPicker({
         </div>, [handleApply, handleClose, handleFooterButtonAction, postAcknowledgementsEnabled]);
 
     useEffect(() => {
-        if (pickerOpen) {
+        if (presentation === 'button' && pickerOpen) {
             setPriority(settings?.priority || '');
             setPersistentNotifications(settings?.persistent_notifications || false);
             setRequestedAck(settings?.requested_ack || false);
         }
-    }, [pickerOpen, settings]);
+    }, [pickerOpen, presentation, settings]);
+
+    // Snapshot the saved priority when the + menu row opens its panel, and
+    // leave that snapshot alone while the panel stays open.
+    useEffect(() => {
+        if (presentation === 'item' && itemAnchor) {
+            setPriority(settings?.priority || '');
+            setPersistentNotifications(settings?.persistent_notifications || false);
+            setRequestedAck(settings?.requested_ack || false);
+        }
+
+        // settings is read when the panel opens.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [itemAnchor, presentation]);
+
+    const openItem = useCallback((event: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
+        setItemAnchor(event.currentTarget);
+    }, []);
+
+    const pickerBody = (
+        <div className='PostPriorityPicker'>
+            <div>
+                <Header className='modal-title'>
+                    <FormattedMessage
+                        id='post_priority.picker.header'
+                        defaultMessage='Message priority'
+                    />
+                </Header>
+                <Menu.Separator/>
+            </div>
+            <MuiMenuList
+                id='post.priority.dropdown'
+                aria-label={formatMessage({
+                    id: 'post_priority.picker.header',
+                    defaultMessage: 'Message priority',
+                })}
+                sx={{py: 0}}
+            >
+                {menuItems}
+                {menuCheckboxItems}
+            </MuiMenuList>
+            {footer}
+        </div>
+    );
+
+    if (presentation === 'item') {
+        return (
+            <CompassDesignProvider theme={theme}>
+                <Menu.Item
+                    id='messagePriority'
+                    aria-haspopup='menu'
+                    aria-expanded={Boolean(itemAnchor)}
+                    disabled={disabled}
+                    disableCloseOnSelect={true}
+                    leadingElement={<AlertCircleOutlineIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='shortcuts.msgs.formatting_bar.post_priority'
+                            defaultMessage='Message priority'
+                        />
+                    )}
+                    trailingElements={<ChevronRightIcon size={18}/>}
+                    onMouseEnter={openItem}
+                    onKeyDown={(event) => {
+                        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER) ||
+                            Keyboard.isKeyPressed(event, Constants.KeyCodes.SPACE) ||
+                            Keyboard.isKeyPressed(event, Constants.KeyCodes.RIGHT)) {
+                            event.preventDefault();
+                            openItem(event);
+                        }
+                    }}
+                />
+                <MuiPopover
+                    open={Boolean(itemAnchor)}
+                    anchorEl={itemAnchor}
+                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+                    transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
+                    className='menu_menuStyled AsSubMenu'
+                    disableAutoFocus={true}
+                    disableEnforceFocus={true}
+                    disableRestoreFocus={true}
+                    hideBackdrop={true}
+                >
+                    <div style={{pointerEvents: 'auto'}}>
+                        {pickerBody}
+                    </div>
+                </MuiPopover>
+            </CompassDesignProvider>
+        );
+    }
 
     return (<CompassDesignProvider theme={theme}>
         <Menu.Container

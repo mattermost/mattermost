@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useContext, type Ref} from 'react';
+import React, {memo, useContext, useState, type ReactNode, type Ref} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import {EmoticonHappyOutlineIcon, FormatLetterCaseIcon, PaperclipIcon, PlusIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon, EmoticonHappyOutlineIcon, FireIcon, FormatLetterCaseIcon, PaperclipIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {closeModal} from 'actions/views/modals';
@@ -13,6 +13,8 @@ import {closeModal} from 'actions/views/modals';
 import * as Menu from 'components/menu';
 import type {FirstMenuItemProps} from 'components/menu';
 import {MenuContext} from 'components/menu/menu_context';
+
+import AIActionsMenu from './ai_actions_menu';
 
 const AGENT_COMPOSER_MENU_ID = 'agent-composer-menu';
 
@@ -32,6 +34,13 @@ type Props = {
     formattingDisabled: boolean;
     onToggleFormatting: () => void;
     emojiAnchorRef?: Ref<HTMLSpanElement>;
+    priorityItem?: ReactNode;
+    burnOnRead?: {
+        on: boolean;
+        disabled: boolean;
+        onToggle: () => void;
+    } | null;
+    aiActions?: Omit<React.ComponentProps<typeof AIActionsMenu>, 'embedded' | 'parentOpen'> | null;
 };
 
 const attachLabel = (
@@ -47,6 +56,13 @@ const emojiLabel = (
         id='textbox.agent_menu.emoji'
         defaultMessage='Emoji'
         description='Menu item in the agent composer that opens the emoji picker.'
+    />
+);
+
+const burnOnReadLabel = (
+    <FormattedMessage
+        id='burn_on_read.button.tooltip.title'
+        defaultMessage='Burn-on-read'
     />
 );
 
@@ -119,9 +135,8 @@ const AttachFilesItem = ({disabled, onAttach, ...otherProps}: AttachFilesItemPro
 
 /**
  * The one + on the host composer. It sits on the left. Attach, emoji,
- * formatting, and Add attributes are items in this menu. Add attributes is
- * shown only when that feature is on, and stays disabled until messages can
- * carry attributes.
+ * attributes, priority, burn-on-read, skills, rewrite, and formatting are
+ * items in this menu.
  */
 const AgentComposerMenu = ({
     canAttach,
@@ -134,12 +149,16 @@ const AgentComposerMenu = ({
     formattingDisabled,
     onToggleFormatting,
     emojiAnchorRef,
+    priorityItem,
+    burnOnRead,
+    aiActions,
 }: Props) => {
     const {formatMessage} = useIntl();
+    const [menuOpen, setMenuOpen] = useState(false);
     const label = formatMessage({
         id: 'textbox.agent_menu',
         defaultMessage: 'Message options',
-        description: 'Accessible name of the + button on the agent composer. Opens a menu of attach, emoji, attributes, and formatting.',
+        description: 'Accessible name of the + button on the composer. Opens a menu of attach, emoji, attributes, priority, burn-on-read, skills, rewrite, and formatting.',
     });
 
     return (
@@ -156,6 +175,7 @@ const AgentComposerMenu = ({
                 menu={{
                     id: AGENT_COMPOSER_MENU_ID,
                     'aria-label': label,
+                    onToggle: setMenuOpen,
                 }}
                 anchorOrigin={{vertical: 'top', horizontal: 'left'}}
                 transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
@@ -179,6 +199,23 @@ const AgentComposerMenu = ({
                         labels={attributesLabel}
                         leadingElement={<TagOutlineIcon size={18}/>}
                         disabled={true}
+                    />
+                )}
+                {priorityItem}
+                {burnOnRead && (
+                    <Menu.Item
+                        labels={burnOnReadLabel}
+                        leadingElement={<FireIcon size={18}/>}
+                        trailingElements={burnOnRead.on ? <CheckIcon size={18}/> : undefined}
+                        disabled={burnOnRead.disabled}
+                        onClick={burnOnRead.onToggle}
+                    />
+                )}
+                {aiActions && (
+                    <AIActionsMenu
+                        {...aiActions}
+                        embedded={true}
+                        parentOpen={menuOpen}
                     />
                 )}
                 <Menu.Item

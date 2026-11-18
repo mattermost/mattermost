@@ -157,6 +157,7 @@ const usePriority = (
         !rootId && isPostPriorityEnabled && (
             <PostPriorityPicker
                 key='post-priority-picker-key'
+                presentation='item'
                 settings={draft.metadata?.priority}
                 onApply={handlePostPriorityApply}
                 onClose={handlePostPriorityHide}

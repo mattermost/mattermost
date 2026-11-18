@@ -1421,8 +1421,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                         id: 'ai-item',
                         pluginId: 'agents',
                         icon: null,
-                        text: 'Rewrite',
+                        text: 'Use a skill',
                         sortOrder: 0,
+                        action: () => {},
                     }],
                 },
             },
@@ -1432,16 +1433,17 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
         };
 
-        it('puts attach, emoji, attributes, and formatting in the left plus', () => {
+        it('puts attach, emoji, attributes, priority, burn-on-read, skills, and formatting in the left plus', async () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 chromeState,
             );
 
             expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'Message priority'})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Schedule message'})).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'AI Actions'})).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
@@ -1449,7 +1451,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByRole('button', {name: 'select an emoji'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'formatting'})).not.toBeInTheDocument();
             expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--agent');
-            expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeInTheDocument();
+
+            await openMenu();
+            expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
         });
 
         it('hides channel chrome and keeps send', () => {
@@ -1529,8 +1536,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await openMenu();
 
             expect(screen.getByRole('menuitem', {name: 'Attach files'})).toHaveFocus();
-            expect(screen.getByRole('menuitem', {name: 'Attach files'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Emoji'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
 
             const attributes = screen.getByRole('menuitem', {name: 'Add attributes'});
