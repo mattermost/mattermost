@@ -339,7 +339,11 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 }
 
 func (api *PluginAPI) CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError) {
-	return api.app.CreateScopedSession(api.ctx, api.id, userID, scope, expiresAt)
+	session, err := api.app.CreateScopedSession(api.ctx, api.id, userID, scope, expiresAt)
+	if err != nil {
+		return nil, model.AsAppError(err)
+	}
+	return session, nil
 }
 
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {

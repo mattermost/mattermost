@@ -31,10 +31,14 @@ func (a *App) CreateSession(rctx request.CTX, session *model.Session) (*model.Se
 		return nil, model.NewAppError("CreateSession", "app.session.create.scope_prop.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return a.createSession(rctx, session)
+	session, err := a.createSession(rctx, session)
+	if err != nil {
+		return nil, model.AsAppError(err)
+	}
+	return session, nil
 }
 
-func (a *App) createSession(rctx request.CTX, session *model.Session) (*model.Session, *model.AppError) {
+func (a *App) createSession(rctx request.CTX, session *model.Session) (*model.Session, error) {
 	if appErr := a.limitNumberOfSessions(rctx, session.UserId); appErr != nil {
 		return nil, appErr
 	}

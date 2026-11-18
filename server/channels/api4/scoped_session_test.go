@@ -99,7 +99,7 @@ func setupScopedAPIFixture(t *testing.T, th *TestHelper) *scopedAPIFixture {
 	f.dmPost, _, err = th.Client.CreatePost(context.Background(), &model.Post{ChannelId: f.botDM.Id, Message: "dmsecret" + model.NewId()})
 	require.NoError(t, err)
 
-	f.session, appErr = th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+	f.session, err = th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
 		Permissions: model.ScopeReadPermissions,
 		Resources: model.SessionScopeResources{
 			ChannelIDs:             []string{f.triggering.Id},
@@ -107,7 +107,7 @@ func setupScopedAPIFixture(t *testing.T, th *TestHelper) *scopedAPIFixture {
 		},
 		OnBehalfOfUserID: th.BasicUser.Id,
 	}, model.GetMillis()+30*60*1000)
-	require.Nil(t, appErr)
+	require.NoError(t, err)
 
 	f.client = th.CreateClient()
 	f.client.SetToken(f.session.Token)
@@ -493,7 +493,7 @@ func TestScopedSessionPublicChannelsOnListedTeam(t *testing.T) {
 	_, resp, err := f.client.GetChannel(ctx, publicClosed.Id)
 	requireScopeError(t, resp, err)
 
-	session, appErr := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+	session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
 		Permissions: model.ScopeReadPermissions,
 		Resources: model.SessionScopeResources{
 			ChannelIDs:             []string{f.triggering.Id},
@@ -501,7 +501,7 @@ func TestScopedSessionPublicChannelsOnListedTeam(t *testing.T) {
 			PublicChannelTeamIDs:   []string{f.closedTeam.Id},
 		},
 	}, model.GetMillis()+30*60*1000)
-	require.Nil(t, appErr)
+	require.NoError(t, err)
 	client := th.CreateClient()
 	client.SetToken(session.Token)
 
