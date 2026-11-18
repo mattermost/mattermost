@@ -2240,4 +2240,50 @@ func TestMaskingRankOrder(t *testing.T) {
 		assert.ElementsMatch(t, []string{values[0].ID, values[1].ID, values[2].ID, values[3].ID}, readIDs)
 		assert.Equal(t, 3, counter.rankReads, "each distinct option is asked about once (Secret, Internal, Top Secret), not once per value")
 	})
+
+	t.Run("an option with no rank is asked about once and never becomes visible", func(t *testing.T) {
+		f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "RankOrder-Unranked")
+		caller := model.NewId()
+		writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		gone := model.NewId() // an option the field does not list, as a deleted one is
+		var values []*model.PropertyValue
+		for range 3 {
+			values = append(values, writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), gone))
+		}
+		visible := writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value("Secret"))
+		values = append(values, visible)
+
+		counter.rankReads = 0
+		read, err := h.PostGetPropertyValues(RequestContextWithCallerID(th.Context, caller), values)
+		require.NoError(t, err)
+		require.Len(t, read, 1)
+		assert.Equal(t, visible.ID, read[0].ID)
+		assert.Equal(t, 1, counter.rankReads, "the unranked option is remembered after its first lookup")
+	})
+
+	t.Run("an empty option list reads no ranks", func(t *testing.T) {
+		f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "RankOrder-EmptyList")
+		caller := model.NewId()
+		writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		field := *f.linked
+		field.Attrs = model.StringInterface{model.PropertyFieldAttributeOptions: []any{}}
+		counter.rankReads = 0
+		masked := h.applyFieldReadAccessControl(RequestContextWithCallerID(th.Context, caller), newMaskingContext(), &field, caller)
+		assert.Empty(t, inlineOptionNames(t, masked))
+		assert.Zero(t, counter.rankReads, "no candidate options, nothing to rank")
+	})
 }

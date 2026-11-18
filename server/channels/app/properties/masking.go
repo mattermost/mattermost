@@ -456,6 +456,9 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 
 	heldIDs := slices.Collect(maps.Keys(callerOptionIDs))
 	if field.Type == model.PropertyFieldTypeRank {
+		if len(candidateOptionIDs) == 0 {
+			return map[string]bool{}, nil
+		}
 		ranks, err := c.ranksFor(h, field, slices.Concat(candidateOptionIDs, heldIDs))
 		if err != nil {
 			return nil, err
