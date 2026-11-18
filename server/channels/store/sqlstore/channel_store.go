@@ -4690,7 +4690,10 @@ func (s SqlChannelStore) AutocompleteInSessionScope(teamID string, term string, 
 		query = query.Where(sq.Eq{"c.TeamId": teamID})
 	}
 	if opts != nil && opts.Private {
-		query = query.Where(sq.Eq{"c.Type": model.ChannelTypePrivate})
+		// Like the team picker, which is what Private is for: shared channels can't
+		// have team-scoped access control policies.
+		query = query.Where(sq.Eq{"c.Type": model.ChannelTypePrivate}).
+			Where(sq.Or{sq.Eq{"c.Shared": nil}, sq.Eq{"c.Shared": false}})
 	}
 	if opts != nil && opts.ExcludeGroupConstrained {
 		query = query.Where(sq.Or{

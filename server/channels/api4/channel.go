@@ -5,6 +5,7 @@ package api4
 
 import (
 	"encoding/json"
+	"math"
 	"net/http"
 	"strconv"
 	"strings"
@@ -1408,8 +1409,13 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 	var channels model.ChannelList
 	var err *model.AppError
 	if scope, scoped := c.AppContext.Session().Scope(); scoped {
+		// A page too large to multiply is past the end of any list.
+		offset := math.MaxInt
+		if c.Params.PerPage == 0 || c.Params.Page <= math.MaxInt/c.Params.PerPage {
+			offset = c.Params.Page * c.Params.PerPage
+		}
 		var scopedErr error
-		channels, scopedErr = c.App.GetPublicChannelsForTeamInSessionScope(c.AppContext, scope, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		channels, scopedErr = c.App.GetPublicChannelsForTeamInSessionScope(c.AppContext, scope, c.Params.TeamId, offset, c.Params.PerPage)
 		err = model.AsAppError(scopedErr)
 	} else {
 		channels, err = c.App.GetPublicChannelsForTeam(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)

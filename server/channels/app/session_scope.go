@@ -99,15 +99,26 @@ func (a *App) sessionScopeLimits(rctx request.CTX) model.SessionScopeLimits {
 // scopeListedChannels returns the channels the scope lists by ID that are in
 // scope.
 func (a *App) scopeListedChannels(rctx request.CTX, scope *model.SessionScope) []*model.Channel {
-	if len(scope.Resources.ChannelIDs) == 0 {
+	listed, err := a.getScopeListedChannels(rctx, scope)
+	if err != nil {
+		rctx.Logger().Warn("Failed to get the channels listed by a session scope", mlog.Err(err))
 		return nil
+	}
+	return listed
+}
+
+// getScopeListedChannels is scopeListedChannels for callers that need to tell a
+// failed lookup from an empty list. Channels that don't exist are not an error.
+func (a *App) getScopeListedChannels(rctx request.CTX, scope *model.SessionScope) ([]*model.Channel, error) {
+	if len(scope.Resources.ChannelIDs) == 0 {
+		return nil, nil
 	}
 	channels, appErr := a.GetChannels(rctx, scope.Resources.ChannelIDs)
 	if appErr != nil {
-		if appErr.StatusCode != http.StatusNotFound {
-			rctx.Logger().Warn("Failed to get the channels listed by a session scope", mlog.Err(appErr))
+		if appErr.StatusCode == http.StatusNotFound {
+			return nil, nil
 		}
-		return nil
+		return nil, appErr
 	}
 	listed := make([]*model.Channel, 0, len(channels))
 	for _, channel := range channels {
@@ -115,7 +126,7 @@ func (a *App) scopeListedChannels(rctx request.CTX, scope *model.SessionScope) [
 			listed = append(listed, channel)
 		}
 	}
-	return listed
+	return listed, nil
 }
 
 // scopeListsChannelOnTeam reports whether the scope lists, by ID, an in-scope
@@ -403,7 +414,7 @@ func (a *App) GetPublicChannelsForTeamInSessionScope(rctx request.CTX, scope *mo
 	if err != nil {
 		return nil, model.NewAppError("GetPublicChannelsForTeamInSessionScope", "app.channel.get_public_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if offset >= len(ids) || limit <= 0 {
+	if offset < 0 || offset >= len(ids) || limit <= 0 {
 		return model.ChannelList{}, nil
 	}
 	ids = ids[offset:min(offset+limit, len(ids))]
@@ -440,19 +451,29 @@ func (a *App) SearchAllChannelsInSessionScope(rctx request.CTX, scope *model.Ses
 	return channels, nil
 }
 
-// SearchTeamsInSessionScope returns the teams matching term that the scope can
-// view.
-func (a *App) SearchTeamsInSessionScope(rctx request.CTX, scope *model.SessionScope, term string) ([]*model.Team, error) {
+// SearchTeamsInSessionScope returns the teams matching the search that the scope
+// can view. Of the search it uses the term and the open invite and group
+// constraint filters; paging is left to the caller.
+func (a *App) SearchTeamsInSessionScope(rctx request.CTX, scope *model.SessionScope, search *model.TeamSearch) ([]*model.Team, error) {
 	if !scope.HasPermission(model.PermissionViewTeam.Id) {
 		return []*model.Team{}, nil
 	}
-	teams, err := a.Srv().Store().Team().SearchAll(&model.TeamSearch{Term: term})
+	teams, err := a.Srv().Store().Team().SearchAll(&model.TeamSearch{
+		Term:                    search.Term,
+		AllowOpenInvite:         search.AllowOpenInvite,
+		GroupConstrained:        search.GroupConstrained,
+		IncludeGroupConstrained: search.IncludeGroupConstrained,
+	})
 	if err != nil {
 		return nil, model.NewAppError("SearchTeamsInSessionScope", "app.team.search_all_team.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
+	listed, err := a.getScopeListedChannels(rctx, scope)
+	if err != nil {
+		return nil, err
+	}
 	listedTeamIDs := map[string]bool{}
-	for _, channel := range a.scopeListedChannels(rctx, scope) {
+	for _, channel := range listed {
 		listedTeamIDs[channel.TeamId] = true
 	}
 	limits := a.sessionScopeLimits(rctx)

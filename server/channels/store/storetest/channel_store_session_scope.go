@@ -190,11 +190,20 @@ func testChannelStoreAutocompleteInSessionScopeFilters(t *testing.T, rctx reques
 		saveChannel(fmt.Sprintf("aaa filler %03d", i), model.ChannelTypeOpen, false)
 	}
 	private := saveChannel("zzz private", model.ChannelTypePrivate, false)
+	shared, err := ss.Channel().Save(rctx, &model.Channel{
+		TeamId:      team.Id,
+		DisplayName: "zzz shared private",
+		Name:        NewTestID(),
+		Type:        model.ChannelTypePrivate,
+		Shared:      model.NewPointer(true),
+	}, -1)
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = ss.Channel().PermanentDelete(rctx, shared.Id) })
 	constrained := saveChannel("zzz constrained", model.ChannelTypeOpen, true)
 	unconstrained := saveChannel("zzz unconstrained", model.ChannelTypeOpen, false)
 
 	resources := &model.SessionScopeResources{
-		ChannelIDs:             []string{private.Id},
+		ChannelIDs:             []string{private.Id, shared.Id},
 		OpenTeamPublicChannels: true,
 	}
 	ids := func(channels model.ChannelListWithTeamData) []string {
@@ -207,11 +216,11 @@ func testChannelStoreAutocompleteInSessionScopeFilters(t *testing.T, rctx reques
 
 	found, err := ss.Channel().AutocompleteInSessionScope(team.Id, "", resources, &model.ChannelSearchOpts{Private: true})
 	require.NoError(t, err)
-	assert.Equal(t, []string{private.Id}, ids(found))
+	assert.Equal(t, []string{private.Id}, ids(found), "shared channels can't be picked for team-scoped policies")
 
 	found, err = ss.Channel().AutocompleteInSessionScope(team.Id, "zzz", resources, &model.ChannelSearchOpts{ExcludeGroupConstrained: true})
 	require.NoError(t, err)
-	assert.ElementsMatch(t, []string{private.Id, unconstrained.Id}, ids(found))
+	assert.ElementsMatch(t, []string{private.Id, shared.Id, unconstrained.Id}, ids(found))
 	assert.NotContains(t, ids(found), constrained.Id)
 
 	found, err = ss.Channel().AutocompleteInSessionScope(team.Id, "", resources, &model.ChannelSearchOpts{ExcludeGroupConstrained: true})

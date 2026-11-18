@@ -926,6 +926,12 @@ func TestScopedSessionSearch(t *testing.T) {
 		}
 		assert.ElementsMatch(t, listed, paged)
 
+		for name, page := range map[string]int{"a page offset that overflows": 1 << 60, "the largest page": math.MaxInt} {
+			empty, _, pageErr := client.GetPublicChannelsForTeam(ctx, team.Id, page, 100, "")
+			require.NoError(t, pageErr, name)
+			assert.Empty(t, empty, name)
+		}
+
 		searched, _, err := client.SearchChannels(ctx, team.Id, &model.ChannelSearch{Term: ""})
 		require.NoError(t, err)
 		var ids []string
@@ -1046,6 +1052,15 @@ func TestScopedSessionChannelAndTeamSearch(t *testing.T) {
 				assert.Empty(t, found, team.Name)
 			}
 		}
+
+		openOnly, _, err := f.client.SearchTeams(ctx, &model.TeamSearch{AllowOpenInvite: model.NewPointer(true)})
+		require.NoError(t, err)
+		assert.Contains(t, teamIDs(openOnly), f.openTeam.Id)
+		assert.NotContains(t, teamIDs(openOnly), f.closedTeam.Id, "invite-only teams don't match the open invite filter")
+		closedOnly, _, err := f.client.SearchTeams(ctx, &model.TeamSearch{AllowOpenInvite: model.NewPointer(false)})
+		require.NoError(t, err)
+		assert.Contains(t, teamIDs(closedOnly), f.closedTeam.Id)
+		assert.NotContains(t, teamIDs(closedOnly), f.openTeam.Id)
 
 		paged, total, _, err := f.client.SearchTeamsPaged(ctx, &model.TeamSearch{Term: f.openTeam.Name, Page: model.NewPointer(0), PerPage: model.NewPointer(10)})
 		require.NoError(t, err)

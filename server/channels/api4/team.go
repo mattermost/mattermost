@@ -1491,7 +1491,7 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 // searchTeamsInSessionScope is searchTeams for a scoped session: it searches
 // only the teams the scope can view.
 func searchTeamsInSessionScope(c *Context, w http.ResponseWriter, props *model.TeamSearch, scope *model.SessionScope) {
-	teams, err := c.App.SearchTeamsInSessionScope(c.AppContext, scope, props.Term)
+	teams, err := c.App.SearchTeamsInSessionScope(c.AppContext, scope, props)
 	if err != nil {
 		c.Err = model.AsAppError(err)
 		return
