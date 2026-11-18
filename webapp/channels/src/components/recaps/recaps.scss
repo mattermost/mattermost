@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+@use 'utils/mixins';
+
 .recaps-container {
     display: flex;
     height: 100%;
@@ -484,4 +486,10 @@
 // Nested so it wins over the Compass module class regardless of stylesheet order.
 .recaps-container .recaps-empty-state {
     background: transparent;
+}
+
+// Center the empty state in the pane. `.recaps-content` is a plain block, so make it a
+// height-filling column when the empty state is its child.
+.recaps-container .recaps-content:has(> .recaps-empty-state) {
+    @include mixins.fill-empty-state;
 }
