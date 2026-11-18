@@ -420,6 +420,7 @@ func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) stri
 func healthPacketTestCommand(path string, includeResolved, includeMuted bool) *cobra.Command {
 	cmd := healthTestCommand(includeResolved, includeMuted)
 	cmd.Flags().String("packet", path, "")
+	cmd.SetContext(context.Background())
 	return cmd
 }
 
@@ -460,6 +461,7 @@ func (s *MmctlUnitTestSuite) runHealthPacketJSON(packetPath string) []*model.Hea
 	printer.Clean()
 	printer.SetFormat(printer.FormatJSON)
 	cmd := newTestCmd(s.T(), HealthCheckCmd)
+	cmd.SetContext(context.Background())
 	s.Require().NoError(cmd.Flags().Set("packet", packetPath))
 	s.Require().NoError(healthCheckRunE(cmd, []string{}))
 	s.Require().Len(printer.GetLines(), 1)
@@ -683,12 +685,28 @@ Could not evaluate
 		requireVersionBehindUnknown(findings)
 	})
 
+	s.Run("an interrupted command stops the fetch", func() {
+		requests := s.serveLatestRelease(healthTestRelease("v" + latest))
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+		cmd := healthPacketTestCommand(supportedPacket, false, false)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		cmd.SetContext(ctx)
+
+		s.Require().NoError(healthCheckPacketCmdF(cmd, []string{}))
+
+		s.Zero(requests.Load())
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.Contains(printer.GetErrorLines()[1], "context canceled")
+	})
+
 	s.Run("a latest release the snapshot already records is not fetched", func() {
 		requests := s.serveLatestRelease(healthTestRelease("v99.0.0"))
 		snapshot := &healthcheck.Snapshot{}
 		snapshot.Version.Latest = "12.1.0"
 
-		s.Empty(fillLatestVersion(snapshot))
+		s.Empty(fillLatestVersion(context.Background(), snapshot))
 		s.Equal("12.1.0", snapshot.Version.Latest)
 		s.Zero(requests.Load())
 	})
@@ -717,6 +735,7 @@ Could not evaluate
 		)
 
 		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		cmd.SetContext(context.Background())
 		s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
 		s.Require().NoError(healthCheckRunE(cmd, []string{}))
 		s.Require().Len(printer.GetLines(), 1)
@@ -751,6 +770,7 @@ Could not evaluate
 		)
 
 		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		cmd.SetContext(context.Background())
 		s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
 		s.Require().NoError(healthCheckRunE(cmd, []string{}))
 		s.Require().Len(printer.GetLines(), 1)
@@ -782,6 +802,7 @@ Could not evaluate
 			printer.Clean()
 			printer.SetFormat(printer.FormatJSON)
 			cmd := newTestCmd(s.T(), HealthCheckCmd)
+			cmd.SetContext(context.Background())
 			s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
 			s.Require().NoError(healthCheckRunE(cmd, []string{}))
 			s.Require().Len(printer.GetLines(), 1)
