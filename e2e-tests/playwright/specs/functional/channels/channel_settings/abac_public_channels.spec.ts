@@ -53,12 +53,12 @@ test.describe('ABAC - Public channels', () => {
         await enableABACConfig(adminClient);
 
         // # Open Channel Settings on the default (town-square) channel
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: 'town-square'});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
 
         // * Membership Policy tab is NOT rendered for the default channel —
         // ValidateChannelEligibilityForAccessControl rejects default channels
@@ -74,10 +74,10 @@ test.describe('ABAC - Public channels', () => {
         await enableABACConfig(adminClient);
 
         // # Navigate to Team Settings → Membership Policies → New policy editor
-        const {page} = await pw.testBrowser.login(adminUser);
+        const {app, page} = await pw.testBrowser.login(adminUser);
         const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.postCreate).toBeVisible();
 
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
@@ -150,10 +150,10 @@ test.describe('ABAC - Public channels', () => {
             'matching user must not be auto-joined when auto-add is OFF (advisory recommendation only)',
         ).not.toContain(matchingUser.id);
 
-        const {page} = await pw.testBrowser.login(matchingUser);
+        const {app, page} = await pw.testBrowser.login(matchingUser);
         const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Open Browse Channels and switch the type filter to "Recommended channels"
         const browse = await channelsPage.openBrowseChannelsModal();

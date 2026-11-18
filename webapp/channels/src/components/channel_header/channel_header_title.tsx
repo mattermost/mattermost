@@ -54,7 +54,7 @@ const ChannelHeaderTitle = ({
         archivedIcon = (
             <IconComponent
                 className={OverrideIcon ? 'svg-text-color' : 'icon icon__archive channel-header-archived-icon svg-text-color'}
-                data-testid='channel-header-archive-icon'
+                data-testid='channel_header.archived_icon--text'
             />
         );
     }

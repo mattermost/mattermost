@@ -34,6 +34,8 @@ type Props = {
     isEmbedVisible?: boolean;
     onItemClick: (index: number) => void;
     onToggleCollapse?: (postId: string) => void;
+
+    testIdScope?: string;
 };
 
 function tileKindFor(fileInfo: FileInfo): TileKind | null {
@@ -47,7 +49,7 @@ function tileKindFor(fileInfo: FileInfo): TileKind | null {
     return null;
 }
 
-const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true, onItemClick, onToggleCollapse}: Props) => {
+const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true, onItemClick, onToggleCollapse, testIdScope}: Props) => {
     const {formatMessage} = useIntl();
     const enablePublicLink = useSelector((state: GlobalState) => getConfig(state).EnablePublicLink === 'true');
     const channelDisplayName = useSelector((state: GlobalState) => getChannel(state, fileInfos[0]?.channel_id)?.display_name);
@@ -164,7 +166,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                 'MediaGallery--single': isSingle,
                 'MediaGallery--collapsed': !isEmbedVisible,
             })}
-            data-testid='fileAttachmentList'
+            data-testid={testIdScope}
             data-post-id={postId}
         >
             {showHeader && (
@@ -235,6 +237,7 @@ const MediaGallery = ({fileInfos, postId, compactDisplay, isEmbedVisible = true,
                         return (
                             <Tile
                                 key={tile.file.id}
+                                testIdScope={testIdScope}
                                 fileInfo={tile.file}
                                 index={idx}
                                 total={tiles.length}

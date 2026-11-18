@@ -14,7 +14,7 @@ export function visitTownSquareAndWaitForPageToLoad() {
     // # Click town-square at LHS and wait for post list to load
     cy.get('#sidebarItem_town-square').should('be.visible').click();
     cy.get('#channelHeaderTitle').should('be.visible').and('have.text', 'Town Square');
-    cy.findAllByTestId('postView').should('be.visible');
+    cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('be.visible');
 }
 
 export function scrollUpAndPostAMessage(sender, channelId, nTimes = 1) {

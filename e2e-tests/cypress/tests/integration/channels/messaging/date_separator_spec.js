@@ -32,7 +32,7 @@ describe('Messaging', () => {
 
     it('MM-21482 Date separators should translate correctly', () => {
         function verifyDateSeparator(index, match) {
-            cy.findAllByTestId('basicSeparator').eq(index).within(() => {
+            cy.findAllByTestId('center.post_list.date_separator').eq(index).within(() => {
                 cy.findByText(match);
             });
         }

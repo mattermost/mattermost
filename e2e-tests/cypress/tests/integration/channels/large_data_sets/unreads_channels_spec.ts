@@ -72,7 +72,7 @@ describe('unreads channels', () => {
             });
 
             // # Verify the channel is not read only
-            cy.findByTestId('post_textbox').should('not.be.disabled');
+            cy.findByTestId('center.post_create.message--textbox').should('not.be.disabled');
         });
     });
 });

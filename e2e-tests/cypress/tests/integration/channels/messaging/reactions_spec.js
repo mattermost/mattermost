@@ -76,8 +76,8 @@ describe('Messaging', () => {
 
             // * Reaction appears in recently used section of emoji picker
             cy.uiOpenEmojiPicker().then(() => {
-                cy.findAllByTestId('emojiItem').first().within(($el) => {
-                    cy.wrap($el).findByTestId('upside_down_face').should('exist');
+                cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).first().within(($el) => {
+                    cy.wrap($el).filter('[data-testid="emoji_picker.system_emoji:upside_down_face--button"]').find('img').should('exist');
                 });
             });
         });

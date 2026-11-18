@@ -29,9 +29,10 @@ type BlockSwitchProps = {
     block: MmBlock;
     postId: string;
     onAction: ActionHandler;
+    testIdScope?: string;
 };
 
-export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
+export const BlockSwitch = ({block, postId, onAction, testIdScope}: BlockSwitchProps) => {
     switch (block.type) {
     case 'text':
         return (
@@ -45,6 +46,7 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             <ImageBlock
                 block={block}
                 postId={postId}
+                testIdScope={testIdScope}
             />
         );
     case 'divider':
@@ -55,6 +57,7 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
                 block={block}
                 postId={postId}
                 onAction={onAction}
+                testIdScope={testIdScope}
             />
         );
     case 'container':
@@ -63,6 +66,7 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
                 block={block}
                 postId={postId}
                 onAction={onAction}
+                testIdScope={testIdScope}
             />
         );
     case 'collapsible':
@@ -71,6 +75,7 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
                 block={block}
                 postId={postId}
                 onAction={onAction}
+                testIdScope={testIdScope}
             />
         );
     case 'button':
@@ -78,6 +83,7 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
             <ButtonElement
                 element={block}
                 onAction={onAction}
+                testIdScope={testIdScope}
             />
         );
     case 'static_select':
@@ -86,6 +92,7 @@ export const BlockSwitch = ({block, postId, onAction}: BlockSwitchProps) => {
                 element={block}
                 postId={postId}
                 onAction={onAction}
+                testIdScope={testIdScope}
             />
         );
     default:
@@ -97,6 +104,7 @@ type ColumnSetBlockProps = {
     block: MmColumnSetBlock;
     postId: string;
     onAction: ActionHandler;
+    testIdScope?: string;
 };
 
 function mmColumnSetClassName(block: MmColumnSetBlock): string {
@@ -110,7 +118,7 @@ function mmColumnSetClassName(block: MmColumnSetBlock): string {
     });
 }
 
-const ColumnSetBlock = ({block, postId, onAction}: ColumnSetBlockProps) => {
+const ColumnSetBlock = ({block, postId, onAction, testIdScope}: ColumnSetBlockProps) => {
     if (!block.columns || block.columns.length === 0) {
         return null;
     }
@@ -128,6 +136,7 @@ const ColumnSetBlock = ({block, postId, onAction}: ColumnSetBlockProps) => {
                     block={column}
                     postId={postId}
                     onAction={onAction}
+                    testIdScope={testIdScope}
                 />
             ))}
         </div>
@@ -138,9 +147,10 @@ type ColumnBlockProps = {
     block: MmColumnBlock;
     postId: string;
     onAction: ActionHandler;
+    testIdScope?: string;
 };
 
-const ColumnBlock = ({block, postId, onAction}: ColumnBlockProps) => {
+const ColumnBlock = ({block, postId, onAction, testIdScope}: ColumnBlockProps) => {
     const innerBlock = useMemo(() => ({
         type: 'container' as const,
         content: block.items,
@@ -162,6 +172,7 @@ const ColumnBlock = ({block, postId, onAction}: ColumnBlockProps) => {
                 block={innerBlock}
                 postId={postId}
                 onAction={onAction}
+                testIdScope={testIdScope}
             />
         </div>
     );
@@ -171,6 +182,7 @@ type ContainerBlockProps = {
     block: MmContainerBlock;
     postId: string;
     onAction: ActionHandler;
+    testIdScope?: string;
 };
 
 const MM_CONTAINER_ACCENT_SEMANTIC = new Set<MmContainerAccentSemantic>([
@@ -233,7 +245,7 @@ function mmContainerStyle(block: MmContainerBlock): CSSProperties | undefined {
     return {'--mm-blocks-accent-color': accent} as CSSProperties;
 }
 
-export const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) => {
+export const ContainerBlock = ({block, postId, onAction, testIdScope}: ContainerBlockProps) => {
     if (!block.content || block.content.length === 0) {
         return null;
     }
@@ -256,6 +268,7 @@ export const ContainerBlock = ({block, postId, onAction}: ContainerBlockProps) =
                         block={item}
                         postId={postId}
                         onAction={onAction}
+                        testIdScope={testIdScope}
                     />
                 ))}
             </MmBlocksChildLayoutContext.Provider>
@@ -267,6 +280,7 @@ type CollapsibleBlockProps = {
     block: MmCollapsibleBlock;
     postId: string;
     onAction: ActionHandler;
+    testIdScope?: string;
 };
 
 const MM_BLOCKS_COLLAPSIBLE_HEADER_INTERACTIVE_SELECTOR = [
@@ -279,7 +293,7 @@ const MM_BLOCKS_COLLAPSIBLE_HEADER_INTERACTIVE_SELECTOR = [
 
 const isCollapsibleHeaderToggleClick = makeIsEligibleForClick(MM_BLOCKS_COLLAPSIBLE_HEADER_INTERACTIVE_SELECTOR);
 
-const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
+const CollapsibleBlock = ({block, postId, onAction, testIdScope}: CollapsibleBlockProps) => {
     const initiallyCollapsed = block.collapsed !== false;
     const [collapsed, setCollapsed] = useState<boolean>(initiallyCollapsed);
 
@@ -341,11 +355,15 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
     const contentStyle: CSSProperties | undefined = contentMaxHeight === null ? undefined : {maxHeight: contentMaxHeight};
 
     return (
-        <div className={classNames('mm-blocks-collapsible', {'mm-blocks-collapsible--expanded': !collapsed})}>
+        <div
+            className={classNames('mm-blocks-collapsible', {'mm-blocks-collapsible--expanded': !collapsed})}
+            data-testid={testIdScope ? `${testIdScope}.collapsible` : undefined}
+        >
             <div className='mm-blocks-collapsible-header'>
                 <button
                     type='button'
                     className='mm-blocks-collapsible-header__toggle style--none'
+                    data-testid={testIdScope ? `${testIdScope}.collapsible.toggle--button` : undefined}
                     onClick={toggleCollapsed}
                     aria-expanded={!collapsed}
                     aria-controls={contentId}
@@ -367,12 +385,14 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
                         block={innerHeaderBlock}
                         postId={postId}
                         onAction={onAction}
+                        testIdScope={testIdScope}
                     />
                 </div>
             </div>
             <div
                 id={contentId}
                 className='mm-blocks-collapsible-content'
+                data-testid={testIdScope ? `${testIdScope}.collapsible.content` : undefined}
                 aria-hidden={collapsed}
                 style={contentStyle}
                 onTransitionEnd={handleContentTransitionEnd}
@@ -385,6 +405,7 @@ const CollapsibleBlock = ({block, postId, onAction}: CollapsibleBlockProps) => {
                         block={innerContentBlock}
                         postId={postId}
                         onAction={onAction}
+                        testIdScope={testIdScope}
                     />
                 </div>
             </div>

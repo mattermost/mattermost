@@ -116,7 +116,8 @@ const fieldNameMessages = defineMessages({
 export type ActionRow = {
     label: React.ReactNode;
     content: React.ReactNode;
-    testId?: string;
+
+    testKey?: string;
 };
 
 type Props = {
@@ -129,9 +130,11 @@ type Props = {
     actionRows?: ActionRow[];
     metadata?: PropertiesCardViewMetadata;
     footer?: React.ReactNode;
+
+    testIdScope?: string;
 };
 
-export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionRows, metadata, footer}: Props) {
+export default function PropertiesCardView({title, propertyFields, fieldOrder, shortModeFieldOrder, propertyValues, mode, actionRows, metadata, footer, testIdScope}: Props) {
     const orderedRows = useMemo<OrderedRow[]>(() => {
         const hasRequiredData =
             Object.keys(propertyFields).length > 0 &&
@@ -164,29 +167,29 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
     }, [fieldOrder, mode, propertyFields, propertyValues, shortModeFieldOrder]);
 
     const actionRowsMemo = useMemo(() => {
-        return actionRows?.map(({label, content, testId}, idx) => (
+        return actionRows?.map(({label, content, testKey}, idx) => (
             content ? (
                 <div
                     // eslint-disable-next-line react/no-array-index-key
                     key={idx}
                     className='row'
-                    data-testid={testId}
+                    data-testid={testIdScope && testKey ? `${testIdScope}.action:${testKey}` : undefined}
                 >
                     <div className='field'>{label}</div>
                     <div className='value'>{content}</div>
                 </div>
             ) : null
         ));
-    }, [actionRows]);
+    }, [actionRows, testIdScope]);
 
     return (
         <div
             className='PropertyCardView'
-            data-testid='property-card-view'
+            data-testid={testIdScope}
         >
             <div
                 className='PropertyCardView_title'
-                data-testid='property-card-title'
+                data-testid={testIdScope ? `${testIdScope}.title--text` : undefined}
             >
                 {title}
             </div>
@@ -200,24 +203,25 @@ export default function PropertiesCardView({title, propertyFields, fieldOrder, s
                             <div
                                 key={field.id}
                                 className='row'
-                                data-testid='property-card-row'
+                                data-testid={testIdScope ? `${testIdScope}.field:${field.name}` : undefined}
                                 data-field-name={field.name}
                             >
                                 <div
                                     className='field'
-                                    data-testid='property-card-field-label'
+                                    data-testid={testIdScope ? `${testIdScope}.field.label--text` : undefined}
                                 >
                                     {translation ? <FormattedMessage {...translation}/> : field.name}
                                 </div>
 
                                 <div
                                     className='value'
-                                    data-testid='property-card-field-value'
+                                    data-testid={testIdScope ? `${testIdScope}.field.value` : undefined}
                                 >
                                     <PropertyValueRenderer
                                         field={field}
                                         value={value}
                                         metadata={metadata ? metadata[field.name] : undefined}
+                                        testIdScope={testIdScope ? `${testIdScope}.field.value` : undefined}
                                     />
                                 </div>
                             </div>

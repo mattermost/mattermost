@@ -80,6 +80,7 @@ const ProfilePopoverCustomAttributes = ({
                 <div
                     key={'customAttribute_' + attribute.id}
                     className='user-popover__custom_attributes'
+                    data-testid={`profile_popover.attribute:${attribute.id}`}
                 >
                     <strong
                         id={`user-popover__custom_attributes-title-${attribute.id}`}

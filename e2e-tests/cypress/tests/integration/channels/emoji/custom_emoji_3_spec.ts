@@ -93,7 +93,7 @@ describe('Custom emojis', () => {
             cy.findByPlaceholderText('Search emojis').should('be.visible').type(builtinEmojiUppercaseWithColons, {delay: TIMEOUTS.ONE_SEC}).wait(TIMEOUTS.ONE_SEC);
 
             // * Get list of emojis based on the search text
-            cy.findAllByTestId('emojiItem').children().should('have.length', 1);
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children().should('have.length', 1);
 
             // # Select the builtin emoji
             cy.clickEmojiInEmojiPicker(builtinEmoji);
@@ -105,11 +105,11 @@ describe('Custom emojis', () => {
             cy.findByPlaceholderText('Search emojis').should('be.visible').type(customEmoji.substring(0, 10), {delay: TIMEOUTS.HALF_SEC});
 
             // * Get list of emojis based on the search text
-            cy.findAllByTestId('emojiItem').children().should('have.length', 1);
-            cy.findAllByTestId('emojiItem').children('img').first().should('have.class', 'emoji-category--custom');
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children().should('have.length', 1);
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children('img').first().should('have.class', 'emoji-category--custom');
 
             // * Select the custom emoji
-            cy.findAllByTestId('emojiItem').children().click();
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children().click();
         });
         cy.uiGetPostTextBox().type('+' + builtinEmojiWithColons).wait(TIMEOUTS.HALF_SEC).type('{enter}').type('{enter}');
 
@@ -159,11 +159,11 @@ describe('Custom emojis', () => {
             cy.findByPlaceholderText('Search emojis').should('be.visible').type(customEmoji, {delay: TIMEOUTS.HALF_SEC});
 
             // * Get list of emojis based on the search text
-            cy.findAllByTestId('emojiItem').children().should('have.length', 1);
-            cy.findAllByTestId('emojiItem').children('img').first().should('have.class', 'emoji-category--custom');
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children().should('have.length', 1);
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children('img').first().should('have.class', 'emoji-category--custom');
 
             // # Select the custom emoji
-            cy.findAllByTestId('emojiItem').children().click();
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children().click();
         });
     });
 
@@ -263,11 +263,11 @@ describe('Custom emojis', () => {
             cy.findByPlaceholderText('Search emojis').type(customEmojiWithColons, {delay: TIMEOUTS.HALF_SEC}).wait(TIMEOUTS.HALF_SEC);
 
             // * Since we are searching exactly for that custom emoji, we should get only one result
-            cy.findAllByTestId('emojiItem').children().should('have.length', 1);
-            cy.findAllByTestId('emojiItem').children('img').first().should('have.class', 'emoji-category--custom');
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children().should('have.length', 1);
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children('img').first().should('have.class', 'emoji-category--custom');
 
             // # Select the custom emoji to add as the reaction to the last post
-            cy.findAllByTestId('emojiItem').children().click();
+            cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children().click();
         });
 
         // * Verify that the custom emoji is added as a reaction to the last post

@@ -54,7 +54,6 @@ export const SearchUserSuggestion = React.forwardRef<HTMLLIElement, SuggestionPr
             />
             <div className='suggestion-list__ellipsis'>
                 <span
-                    data-testid='suggestion-list__main'
                     className='suggestion-list__main'
                 >
                     {'@'}{username}

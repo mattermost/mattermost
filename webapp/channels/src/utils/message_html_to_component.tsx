@@ -73,7 +73,7 @@ type ProcessingInstruction = {
  * - hasPluginTooltips - If specified, the LinkTooltip component is placed inside links. Defaults to false.
  * - channelId = If specified, to be passed along to ProfilePopover via AtMention
  */
-export default function messageHtmlToComponent(html: string, options: Options = {}) {
+export default function messageHtmlToComponent(html: string, options: Options = {}, testIdScope?: string) {
     if (!html) {
         return null;
     }
@@ -108,6 +108,7 @@ export default function messageHtmlToComponent(html: string, options: Options = 
                         <PostEditedIndicator
                             postId={options.postId}
                             editedAt={options.editedAt}
+                            testId={testIdScope}
                         />
                     </React.Fragment>
                 ) : null;

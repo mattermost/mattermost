@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, testConfig} from '@mattermost/playwright-lib';
 
 // GET /api/v4/users/me/channels and GET /api/v4/users/me/teams/{team_id}/channels, the two requests
 // that populate the sidebar's channels. Anchored so the sibling /channels/members and
@@ -17,7 +17,8 @@ const CHANNEL_MEMBERS_PATH = /^\/api\/v4\/users\/[^/]+\/channel_members$/;
 // GET /api/v4/users, the paged "load some profiles" request.
 const USER_PAGE_PATH = /^\/api\/v4\/users$/;
 
-const REQUEST_DELAY_MS = 4000;
+// GET /api/v4/users/me/teams/{team_id}/channels/categories, the sidebar categories.
+const CATEGORIES_PATH = /^\/api\/v4\/users\/[^/]+\/teams\/[^/]+\/channels\/categories$/;
 
 type Scenario = Awaited<ReturnType<typeof setupSidebarProfiles>>;
 
@@ -62,7 +63,7 @@ async function setupSidebarProfiles(pw: PlaywrightExtended) {
         },
     ]);
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
+    const {app, page} = await pw.testBrowser.login(user);
 
     // # Empty the first page of users, which on a server this small would otherwise return
     // every teammate and load the DM profile by accident.
@@ -71,17 +72,21 @@ async function setupSidebarProfiles(pw: PlaywrightExtended) {
         (route) => route.fulfill({status: 200, contentType: 'application/json', body: '[]'}),
     );
 
-    return {channelsPage, page, team, landingChannel, dmUser, dmChannel, gmChannel};
+    return {app, page, team, landingChannel, dmUser, dmChannel, gmChannel};
 }
 
 /**
- * Delays the requests matching the given path so the sidebar categories always win the race.
+ * Holds the requests matching the given path until the sidebar categories have arrived, so the categories always
+ * win the race.
  */
 async function delayRequests({page}: Scenario, path: RegExp) {
+    const categoriesLoaded = page.waitForResponse((response) =>
+        CATEGORIES_PATH.test(testConfig.withoutSubpath(new URL(response.url()).pathname)),
+    );
     await page.route(
         (url) => path.test(url.pathname),
         async (route) => {
-            await new Promise((resolve) => setTimeout(resolve, REQUEST_DELAY_MS));
+            await categoriesLoaded;
             await route.continue();
         },
     );
@@ -91,9 +96,8 @@ async function delayRequests({page}: Scenario, path: RegExp) {
  * Loads the landing channel. Nothing in the sidebar is clicked afterwards, because navigating to a
  * channel reloads these profiles and would hide the bug.
  */
-async function gotoLandingChannel({channelsPage, team, landingChannel}: Scenario) {
-    await channelsPage.goto(team.name, landingChannel.name);
-    await channelsPage.toBeVisible();
+async function gotoLandingChannel({app, team, landingChannel}: Scenario) {
+    await app.channelsPage.goto({team, channel: landingChannel});
 }
 
 /**
@@ -122,13 +126,13 @@ test(
 
         await gotoLandingChannel(scenario);
 
-        const {sidebarLeft} = scenario.channelsPage;
+        const {channelList} = scenario.app.lhs;
 
         // * Verify the group message shows how many other members it has instead of 0
-        await expect(sidebarLeft.memberCountBadge(scenario.gmChannel.name)).toHaveText('2');
+        await expect(channelList.channel(scenario.gmChannel).memberCountText.locator).toHaveText('2');
 
         // * Verify the favorited DM shows the teammate's username instead of rendering an empty row
-        await expect(sidebarLeft.item(scenario.dmChannel.name)).toContainText(scenario.dmUser.username);
+        await expect(channelList.channel(scenario.dmChannel).container.locator).toContainText(scenario.dmUser.username);
     },
 );
 
@@ -152,12 +156,12 @@ test(
 
         await gotoLandingChannel(scenario);
 
-        const {sidebarLeft} = scenario.channelsPage;
+        const {channelList} = scenario.app.lhs;
 
         // * Verify the group message shows how many other members it has instead of 0
-        await expect(sidebarLeft.memberCountBadge(scenario.gmChannel.name)).toHaveText('2');
+        await expect(channelList.channel(scenario.gmChannel).memberCountText.locator).toHaveText('2');
 
         // * Verify the favorited DM shows the teammate's username instead of rendering an empty row
-        await expect(sidebarLeft.item(scenario.dmChannel.name)).toContainText(scenario.dmUser.username);
+        await expect(channelList.channel(scenario.dmChannel).container.locator).toContainText(scenario.dmUser.username);
     },
 );

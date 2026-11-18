@@ -27,6 +27,7 @@ describe('components/multiselect/multiselect', () => {
     } as any;
 
     const baseProps = {
+        testId: 'test_multiselect.results' as const,
         ariaLabelRenderer: (() => <div/>) as any,
         loading: false,
         onAdd: jest.fn(),

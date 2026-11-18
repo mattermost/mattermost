@@ -155,6 +155,7 @@ const SearchBar: React.FunctionComponent<Props> = (props: Props): JSX.Element =>
                     // @ts-ignore
                     ref={getSearch}
                     id={props.isSideBarRight ? 'sbrSearchBox' : 'searchBox'}
+                    data-testid='search.mobile_bar.input--textbox'
                     tabIndex={0}
                     className={'search-bar form-control a11y__region'}
                     containerClass='w-full'

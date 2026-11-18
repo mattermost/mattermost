@@ -11,6 +11,7 @@ describe('BurnOnReadTimerChip', () => {
     const baseProps = {
         expireAt: Date.now() + (10 * 60 * 1000),
         onClick: jest.fn(),
+        testIdScope: 'center.post_list.post' as const,
     };
 
     beforeEach(() => {

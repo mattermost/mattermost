@@ -38,6 +38,7 @@ function setup(props: Partial<React.ComponentProps<typeof MentionFiltersPopover>
 
     renderWithContext(
         <MentionFiltersPopover
+            testIdScope='search.mention_filters.popover'
             filters={defaultMentionFilters}
             teamId={null}
             showTeamSelector={true}
@@ -129,7 +130,7 @@ describe('MentionFiltersPopover', () => {
     test('hides the team selector when cross team search is unavailable', () => {
         setup({showTeamSelector: false});
 
-        expect(screen.queryByTestId('mentionFiltersTeamSelector')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('search.mention_filters.popover.team--combobox')).not.toBeInTheDocument();
         expect(screen.getByRole('combobox', {name: 'Channel or Direct Messages'})).toBeInTheDocument();
     });
 

@@ -156,7 +156,7 @@ describe('Channel members RHS', () => {
                 openChannelMembersRhs(testTeam, channel);
 
                 // # Search for first user
-                cy.uiGetRHS().findByTestId('channel-member-rhs-search').should('be.visible').type(users[0].username);
+                cy.uiGetRHS().findByTestId('rhs.channel_members.search--textbox').should('be.visible').type(users[0].username);
 
                 // * we should see them, but nobody else
                 cy.uiGetRHS().contains(`${users[0].username}`).should('be.visible');
@@ -234,7 +234,7 @@ describe('Channel members RHS', () => {
             cy.wait(500);
 
             // * Can see user with their roles, and change it
-            cy.uiGetRHS().findByTestId(`memberline-${user.id}`).should('be.visible').within(() => {
+            cy.uiGetRHS().findByTestId(`rhs.channel_members.member:${user.id}`).should('be.visible').within(() => {
                 cy.contains(`${user.username}`).should('be.visible');
                 cy.findByText('Member').should('be.visible').click();
                 cy.findByText('Make Channel Admin').should('be.visible').click();
@@ -246,7 +246,7 @@ describe('Channel members RHS', () => {
             cy.wait(500);
 
             // * Can see the user with his new admin role, and change it back
-            cy.uiGetRHS().findByTestId(`memberline-${user.id}`).should('be.visible').within(() => {
+            cy.uiGetRHS().findByTestId(`rhs.channel_members.member:${user.id}`).should('be.visible').within(() => {
                 cy.findByText('Admin').should('be.visible').click();
                 cy.findByText('Make Channel Member').should('be.visible').click();
             });
@@ -313,7 +313,7 @@ describe('Channel members RHS', () => {
             cy.uiGetRHS().findByText(`${lastUser.username}`).should('not.exist');
 
             // # Search for the user user
-            cy.uiGetRHS().findByTestId('channel-member-rhs-search').should('be.visible').type(lastUser.username);
+            cy.uiGetRHS().findByTestId('rhs.channel_members.search--textbox').should('be.visible').type(lastUser.username);
 
             // * the user is now existing
             cy.uiGetRHS().contains(`${lastUser.username}`).should('be.visible');

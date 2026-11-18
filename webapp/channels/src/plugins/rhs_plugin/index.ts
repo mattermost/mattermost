@@ -21,6 +21,7 @@ function mapStateToProps(state: GlobalState) {
         pluggableId,
         title: pluginTitle,
         pluginId,
+        pluginComponent,
         showPopout: pluginComponent?.showPopout ?? true,
     };
 }

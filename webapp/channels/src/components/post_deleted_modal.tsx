@@ -26,7 +26,7 @@ const PostDeletedModal = ({
             onExited={onExited}
             role='none'
             aria-labelledby='postDeletedModalLabel'
-            data-testid='postDeletedModal'
+            data-testid='post_deleted_modal'
         >
             <Modal.Header closeButton={true}>
                 <Modal.Title
@@ -53,7 +53,7 @@ const PostDeletedModal = ({
                     emphasis='primary'
                     autoFocus={true}
                     onClick={handleHide}
-                    data-testid='postDeletedModalOkButton'
+                    data-testid='post_deleted_modal.ok--button'
                 >
                     <FormattedMessage
                         id='post_delete.okay'

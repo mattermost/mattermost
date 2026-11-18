@@ -10,6 +10,9 @@ type NotificationVariant = 'general' | 'info' | 'success' | 'warning' | 'danger'
 
 type NotificationProps = {
     id?: string;
+
+    /** The box's testid; its text is `<testId>.text`. Without it the box renders `notification[_<id>]` and `notification-text`. */
+    testId?: string;
     dismissable?: boolean;
     title?: JSX.Element | string;
     text: JSX.Element | string;
@@ -75,7 +78,7 @@ const NotificationText = styled.p(({noTitle}: {noTitle: boolean}) => {
     `;
 });
 
-const NotificationBox = ({variant, title, text, id = ''}: NotificationProps) => {
+const NotificationBox = ({variant, title, text, id = '', testId}: NotificationProps) => {
     const color = variantColorMap[variant];
 
     const iconProps = {
@@ -103,7 +106,7 @@ const NotificationBox = ({variant, title, text, id = ''}: NotificationProps) => 
     return (
         <NotificationWrapper
             color={color}
-            data-testid={`notification${id ? `_${id}` : ''}`}
+            data-testid={testId ?? `notification${id ? `_${id}` : ''}`}
         >
             <NotificationIcon>
                 {icon}
@@ -112,7 +115,7 @@ const NotificationBox = ({variant, title, text, id = ''}: NotificationProps) => 
             {text && (
                 <NotificationText
                     noTitle={!title}
-                    data-testid={'notification-text'}
+                    data-testid={testId ? `${testId}.text` : 'notification-text'}
                 >
                     {text}
                 </NotificationText>

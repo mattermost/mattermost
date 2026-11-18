@@ -108,6 +108,7 @@ const ActionBar = ({className, channelType, membersCount, canManageMembers, edit
                         <Button
                             onClick={actions.stopEditing}
                             className='manage-members-done'
+                            data-testid='rhs.channel_members.done--button'
                         >
                             <FormattedMessage
                                 id='channel_members_rhs.action_bar.done_button'
@@ -119,6 +120,7 @@ const ActionBar = ({className, channelType, membersCount, canManageMembers, edit
                             {showManageButton && (
                                 <Button
                                     className='manage-members'
+                                    data-testid='rhs.channel_members.manage--button'
                                     onClick={actions.startEditing}
                                 >
                                     <FormattedMessage
@@ -130,6 +132,7 @@ const ActionBar = ({className, channelType, membersCount, canManageMembers, edit
                             <Button
                                 onClick={actions.inviteMembers}
                                 className='add-members'
+                                data-testid='rhs.channel_members.add--button'
                             >
                                 <ButtonIcon
                                     className='icon-account-plus-outline'

@@ -24,6 +24,7 @@ import {MM_IMAGE_ALIGN_JUSTIFY, resolveMmImageCaps} from './utils/image';
 type ImageBlockProps = {
     block: MmImageBlock;
     postId: string;
+    testIdScope?: string;
 };
 
 function extensionFromImageURL(src: string): string {
@@ -37,7 +38,7 @@ function extensionFromImageURL(src: string): string {
     return index > 0 ? pathForExt.substring(index + 1) : '';
 }
 
-export const ImageBlock = ({block, postId}: ImageBlockProps) => {
+export const ImageBlock = ({block, postId, testIdScope}: ImageBlockProps) => {
     const dispatch = useDispatch();
     const imagesMetadata = useContext(MmBlocksImagesMetadataContext);
     const url = block.url.trim();
@@ -104,6 +105,7 @@ export const ImageBlock = ({block, postId}: ImageBlockProps) => {
         >
             <div
                 className='mm-blocks-image__frame'
+                data-testid={testIdScope ? `${testIdScope}.block_image_frame` : undefined}
                 style={{
                     maxWidth: caps.maxWidth,
                     maxHeight: caps.maxHeight,
@@ -124,6 +126,7 @@ export const ImageBlock = ({block, postId}: ImageBlockProps) => {
                             onClick={showModal}
                             showLoader={true}
                             hideUtilities={true}
+                            testId={testIdScope ? `${testIdScope}.block_image` : undefined}
                         />
                     )}
                 </ExternalImage>

@@ -25,6 +25,7 @@ describe('FileAttachmentList', () => {
     ];
     const baseProps = {
         post,
+        testIdScope: 'center.post_list.post.attachments' as const,
         fileCount: 3,
         fileInfos,
         compactDisplay: false,
@@ -69,13 +70,13 @@ describe('FileAttachmentList', () => {
 
         renderWithContext(<FileAttachmentList {...props}/>, defaultState);
 
-        expect(screen.getByTestId('fileAttachmentList').querySelectorAll('[data-testid="media-gallery-tile"]').length).toBe(3);
+        expect(screen.getByTestId('center.post_list.post.attachments').querySelectorAll('[data-testid*=".attachments.file:"]').length).toBe(3);
     });
 
     test('should render multiple, sorted MediaGallery tiles for multiple files', () => {
         renderWithContext(<FileAttachmentList {...baseProps}/>, defaultState);
 
-        const tiles = Array.from(screen.getByTestId('fileAttachmentList').querySelectorAll('[data-testid="media-gallery-tile"]'));
+        const tiles = Array.from(screen.getByTestId('center.post_list.post.attachments').querySelectorAll('[data-testid*=".attachments.file:"]'));
         expect(tiles.length).toBe(3);
         expect(tiles[0]?.getAttribute('data-file-name')).toBe('image_1.png');
         expect(tiles[1]?.getAttribute('data-file-name')).toBe('image_2.png');
@@ -166,8 +167,8 @@ describe('FileAttachmentList', () => {
 
         renderWithContext(<FileAttachmentList {...props}/>, state);
 
-        expect(screen.getByTestId('fileAttachmentList').querySelector('.file-view--single')).not.toBeInTheDocument();
-        expect(screen.getByTestId('fileAttachmentList').querySelector('.post-image__column')).toBeInTheDocument();
+        expect(screen.getByTestId('center.post_list.post.attachments').querySelector('.file-view--single')).not.toBeInTheDocument();
+        expect(screen.getByTestId('center.post_list.post.attachments').querySelector('.post-image__column')).toBeInTheDocument();
     });
 
     test('should render deleted files', () => {
@@ -192,7 +193,7 @@ describe('FileAttachmentList', () => {
         };
         renderWithContext(<FileAttachmentList {...props}/>, state);
 
-        const fileAttachments = screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column');
+        const fileAttachments = screen.getByTestId('center.post_list.post.attachments').querySelectorAll('.post-image__column');
         expect(fileAttachments.length).toBe(3);
         expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
         expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);
@@ -245,7 +246,7 @@ describe('FileAttachmentList', () => {
         };
         renderWithContext(<FileAttachmentList {...props}/>, state);
 
-        const fileAttachments = screen.getByTestId('fileAttachmentList').querySelectorAll('.post-image__column');
+        const fileAttachments = screen.getByTestId('center.post_list.post.attachments').querySelectorAll('.post-image__column');
         expect(fileAttachments.length).toBe(3);
         expect(fileAttachments[0]?.textContent?.includes('image_1.png')).toBe(true);
         expect(fileAttachments[1]?.textContent?.includes('image_2.png')).toBe(true);

@@ -11,15 +11,19 @@ type Props = {
     text?: MessageDescriptor | React.ReactNode;
     children?: React.ReactNode;
     legacy?: boolean;
+
+    /** The spinner's test id. */
+    testId?: string;
 };
 
-const LoadingWrapper = ({loading = true, text, children, legacy}: Props) => {
+const LoadingWrapper = ({loading = true, text, children, legacy, testId}: Props) => {
     return (
         <>
             {loading ? (
                 <LoadingSpinner
                     text={text}
                     legacy={legacy}
+                    testId={testId}
                 />
             ) : children}
         </>

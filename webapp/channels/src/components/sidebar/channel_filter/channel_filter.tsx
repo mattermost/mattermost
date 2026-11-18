@@ -134,7 +134,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
                     menuButton={{
                         id: 'sidebarChannelFilterMenuButton',
                         class: classNames('SidebarFilters_filterButton', {active: unreadFilterEnabled}),
-                        dataTestId: 'sidebar-unread-filter-button',
+                        testId: 'lhs.header.filter_menu',
                         'aria-label': label,
                         children: <i className='icon icon-filter-variant'/>,
                     }}
@@ -187,7 +187,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
                         className={classNames('SidebarFilters_filterButton', {active: unreadFilterEnabled})}
                         icon={<Icon glyph={<FilterVariantIcon/>}/>}
                         toggled={unreadFilterEnabled}
-                        data-testid='sidebar-unread-filter-button'
+                        data-testid='lhs.header.unreads_filter--togglebutton'
                         onClick={this.handleUnreadFilterClick}
                         aria-label={unreadsAriaLabel}
                     />

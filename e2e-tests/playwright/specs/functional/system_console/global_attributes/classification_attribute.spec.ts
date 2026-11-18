@@ -98,9 +98,8 @@ test.describe(
                 {field_id: channelField!.id, value: levels[0].id},
             ] as Parameters<typeof adminClient.patchPropertyValues>[3]);
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {channelsPage, app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: channel.name});
 
             // * The header carries the chip the console asked for
             await expect(channelsPage.centerView.header.attributes.chip(levels[0].name)).toBeVisible();
@@ -121,14 +120,14 @@ test.describe(
             await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();
 
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
+            const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
+            await app.teamPage.goto({team});
+            await expect(app.center.composer.locator).toBeVisible();
 
             // * Optional attributes are not asked for at creation, so Create is free
             const modal = await channelsPage.openNewChannelModal();
             await modal.fillDisplayName(`Optional Classification ${pw.random.id()}`);
-            await expect(channelsPage.page.getByTestId('channelAttribute-classification')).toHaveCount(0);
+            await expect(page.getByTestId('channelAttribute-classification')).toHaveCount(0);
             await expect(modal.createButton).toBeEnabled();
             await modal.cancel();
         });
@@ -213,14 +212,13 @@ test.describe(
             await globalAttributes.appliesToChannels.setDisplayLocations(['display_label_header']);
             await globalAttributes.saveInPlace();
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {page, channelsPage, app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: channel.name});
 
             // * The Header location took effect, and there is no banner even though
             // * the channel has a classification
             await expect(channelsPage.centerView.header.attributes.chip(levels[0].name)).toBeVisible();
-            await expect(page.getByTestId('channel_banner_container')).toHaveCount(0);
+            await expect(page.getByTestId('center.channel_banner')).toHaveCount(0);
         });
 
         /**

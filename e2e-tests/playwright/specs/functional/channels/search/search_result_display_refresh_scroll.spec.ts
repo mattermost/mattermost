@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test, type ChannelsPage} from '@mattermost/playwright-lib';
+import type {Post} from '@mattermost/types/posts';
+
+import {duration, expect, test, type App, Msg} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify message search displays matching results in the right-hand side, rendering markdown
  * content correctly, and that jumping to the conversation and clearing the query keep results intact.
  */
 test('MM-T350 Searching displays results in the RHS', async ({pw}) => {
-    const {adminClient, team, user} = await pw.initSetup();
-    const channel = await adminClient.getChannelByName(team.id, 'off-topic');
+    const {team, user, offTopic: channel} = await pw.initSetup();
     const identifier = pw.random.id();
     const message = [
         `Basic word search: Hello world! #hello ${identifier}`,
@@ -22,59 +23,68 @@ test('MM-T350 Searching displays results in the RHS', async ({pw}) => {
     ].join('\n');
 
     // # Create and search for a message with markdown content: a heading, a code block, and a hashtag
-    await adminClient.createPost({channel_id: channel.id, user_id: user.id, message});
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const post = await pw.postAs(user, {channel_id: channel.id, message});
+
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel});
+
     const query = `hello ${identifier}`;
-    await submitSearch(channelsPage, query);
+    await submitSearch(app, query);
 
     // * Verify the matching result appears in the RHS with each markdown element rendered distinctly
-    await expectSearchResult(channelsPage, 'Hello world', query);
-    const result = channelsPage.getSearchResultItem('Hello world');
-    await expect(result.locator('h5.markdown__heading')).toContainText('Hello');
-    await expect(result.locator('.post-code.post-code--wrap code')).toContainText('Hello');
-    await expect(result).toContainText('#hello');
+    await expectSearchResult(app, post, query);
+    const result = app.search.results.post(post);
+    // Rendered markdown has no generated parts; the element's role is what the test checks.
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- markdown renders the heading, which cannot take a test id
+    await expect(result.message.container.locator.getByRole('heading', {level: 5})).toContainMessage(
+        Msg.user.settings.notifications.desktopNotificationSound.soundHello,
+    );
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- markdown renders the code block, which cannot take a test id
+    await expect(result.message.container.locator.getByRole('code')).toContainMessage(
+        Msg.user.settings.notifications.desktopNotificationSound.soundHello,
+    );
+    await expect(result.markdown.hashtagLink).toHaveText('#hello');
 
     // # Jump to the conversation from the search result
-    await result.getByRole('link', {name: 'Jump'}).click();
+    await result.container.hover();
+    await result.menu.jumpLink.click();
+    await expect(app.center.postList.post(post).message.container).toBeVisible();
 
     // # Reopen search and clear the query text
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.clearIfPossible();
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    await app.searchBox.inputSearchbox.fill('');
 
     // * Verify the search results remain visible after clearing the query text
-    await expect(channelsPage.searchResultsContainer).toBeVisible();
+    await expect(result).toBeVisible();
 });
 
 /**
  * @objective Verify that a new search replaces the previous results instead of combining them.
  */
 test('MM-T355 replaces old search results with new results', {tag: '@search'}, async ({pw}) => {
-    // # Create and log in as a test user
-    const {user, team} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
+    // # Create a message in Town Square and one in Off-Topic
+    const {user, team, userClient, townSquare, offTopic} = await pw.initSetup();
     const helloToken = `hello${pw.random.id()}`;
     const writingToken = `writing${pw.random.id()}`;
+    const hello = await userClient.createPost({channel_id: townSquare.id, message: `${helloToken} there everyone`});
+    const writing = await userClient.createPost({channel_id: offTopic.id, message: `${writingToken} to you here`});
 
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: townSquare});
 
-    // # Post a message in Town Square and search for it
-    await channelsPage.postMessage(`${helloToken} there everyone`);
-    await channelsPage.searchFor(helloToken);
+    // # Search for the first message
+    await submitSearch(app, helloToken);
 
     // * Verify the first message is shown in the results
-    await channelsPage.searchResultsPanel.toContainText(helloToken);
+    await expect(app.search.results.postList).toHaveKeys([hello.id]);
 
-    // # Post a different message in another channel and run a new search for it
-    await channelsPage.sidebarLeft.goToItem('off-topic');
-    await channelsPage.postMessage(`${writingToken} to you here`);
-    await channelsPage.searchFor(writingToken);
+    // # Run a new search for the second message from another channel
+    await app.lhs.channelList.channel(offTopic).container.click();
+    await expect(app.channelHeader.openMenuButton).toContainText(offTopic.display_name);
+    await submitSearch(app, writingToken);
 
     // * Verify the new results are shown and the old results are gone
-    await channelsPage.searchResultsPanel.toContainText(writingToken);
-    await expect(channelsPage.searchResultsPanel.getResultByText(helloToken)).toHaveCount(0);
+    await expect(app.search.results.postList).toHaveKeys([writing.id]);
 });
 
 /**
@@ -85,64 +95,45 @@ test('MM-T382 keeps search results unchanged while scrolling the center channel'
     const {user, team, adminClient} = await pw.initSetup();
     const channel = await adminClient.createPublicChannel(team.id, 'Search Scroll', 'search-scroll');
     await adminClient.addToChannel(user.id, channel.id);
-
     const token = `searchfun${pw.random.id()}`;
     const messageCount = 30;
-    for (let i = 0; i < messageCount; i++) {
+    const first = await adminClient.createPost({channel_id: channel.id, message: `${token} 0`});
+    for (let i = 1; i < messageCount; i++) {
         await adminClient.createPost({channel_id: channel.id, message: `${token} ${i}`});
     }
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel});
 
     // # Search for the matching posts
-    await channelsPage.searchFor(token);
-    await channelsPage.searchResultsPanel.toBeVisible();
-    const resultCountBefore = await channelsPage.searchResultsPanel.getResultItems().count();
-    expect(resultCountBefore).toBeGreaterThan(0);
+    await submitSearch(app, token);
+    await expect.poll(async () => (await app.search.results.postList.keys()).length).toBeGreaterThan(0);
+    const resultsBefore = await app.search.results.postList.keys();
 
     // # Scroll the center channel up to load older messages
-    const box = await channelsPage.centerView.container.boundingBox();
-    expect(box).not.toBeNull();
-    await page.mouse.move(box!.x + box!.width / 2, box!.y + box!.height / 2);
-    for (let i = 0; i < 6; i++) {
+    await app.center.postList.scroller.hover();
+    await expect(async () => {
         await page.mouse.wheel(0, -1500);
-        await pw.wait(pw.duration.half_sec);
-    }
+        await expect(app.center.postList.post(first)).toBeInViewport({timeout: duration.one_sec});
+    }, 'the center channel scrolls up to its first matching post').toPass();
 
     // * Verify the search results panel is still open and its results are unchanged
-    await channelsPage.searchResultsPanel.toBeVisible();
-    await channelsPage.searchResultsPanel.toContainText(token);
-    expect(await channelsPage.searchResultsPanel.getResultItems().count()).toBe(resultCountBefore);
+    await expect(app.search.results.postList).toHaveKeys(resultsBefore);
+    await expect(app.search.results.post({id: resultsBefore[0]}).message.container).toContainText(token);
 });
 
-async function submitSearch(channelsPage: ChannelsPage, query: string) {
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.clearIfPossible();
-    await channelsPage.searchBox.searchInput.fill(query);
-    await channelsPage.searchBox.searchInput.press('Enter');
-    await expect(channelsPage.searchResultsContainer).toBeVisible();
+async function submitSearch(app: App, query: string) {
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    await app.searchBox.inputSearchbox.fill(query);
+    await app.searchBox.inputSearchbox.press('Enter');
+    await expect(app.globalHeader.search.openButton).toContainText(query);
 }
 
-async function expectSearchResult(
-    channelsPage: ChannelsPage,
-    text: string,
-    query?: string,
-    timeout = duration.half_min,
-) {
-    const result = channelsPage.getSearchResultItem(text);
-
+/** The post shows in the results; the search is retried while the server indexes it. */
+async function expectSearchResult(app: App, post: Post, query: string, timeout = duration.half_min) {
+    const result = app.search.results.post(post).locator;
     await expect(async () => {
-        if (await result.isVisible({timeout: duration.one_sec}).catch(() => false)) {
-            return;
-        }
-
-        if (query) {
-            await submitSearch(channelsPage, query);
-        } else {
-            await channelsPage.searchBox.searchInput.press('Enter');
-        }
+        await submitSearch(app, query);
         await expect(result).toBeVisible({timeout: duration.one_sec * 5});
     }).toPass({timeout});
 }

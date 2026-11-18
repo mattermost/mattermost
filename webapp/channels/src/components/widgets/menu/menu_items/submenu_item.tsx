@@ -60,6 +60,15 @@ export type Props = WrappedComponentProps & {
     rightDecorator?: React.ReactNode;
     isHeader?: boolean;
     tabIndex?: number;
+
+    /** Renders `<testId>--button` on the item that opens the submenu. */
+    testId?: string;
+
+    /**
+     * A plugin slot's whole testid (`the slot id`), in place of `testId`: the slot's contract ends in the
+     * role menu items have (`--menuitem`), not this control's.
+     */
+    slotTestId?: string;
 };
 
 type State = {
@@ -150,7 +159,7 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
     };
 
     public render() {
-        const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex, intl} = this.props;
+        const {id, postId, text, selectedValueText, subMenu, icon, filter, ariaLabel, direction, styleSelectableItem, extraText, renderSelected, rightDecorator, tabIndex, intl, testId, slotTestId} = this.props;
         const isMobile = isMobileViewHack();
 
         if (filter && !filter(id || '')) {
@@ -231,6 +240,7 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
             <li
                 className={classNames(['SubMenuItem MenuItem', {styleSelectableItem}])}
                 role='menuitem'
+                data-testid={slotTestId}
                 id={id + '_menuitem'}
                 ref={this.node}
                 onClick={this.onClick}
@@ -239,6 +249,7 @@ export class SubMenuItem extends React.PureComponent<Props, State> {
                 <div
                     className={classNames([{styleSelectableItemDiv: styleSelectableItem}])}
                     id={id}
+                    data-testid={testId ? `${testId}--button` : undefined}
                     aria-label={ariaLabel}
                     onMouseEnter={this.show}
                     role='button'

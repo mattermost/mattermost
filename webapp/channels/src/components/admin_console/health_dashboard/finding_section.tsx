@@ -40,6 +40,7 @@ const FindingSection = ({section, findings, now, expanded, onToggle, onMute, onU
         <section
             className={`HealthDashboard__section HealthDashboard__section--${section}`}
             aria-labelledby={headingId}
+            data-testid={`admin.health.section:${section}--region`}
         >
             <h3
                 id={headingId}
@@ -52,7 +53,12 @@ const FindingSection = ({section, findings, now, expanded, onToggle, onMute, onU
                     />
                 </span>
                 <FormattedMessage {...sectionMessages[section]}/>
-                <span className='HealthDashboard__sectionCount'>{findings.length}</span>
+                <span
+                    className='HealthDashboard__sectionCount'
+                    data-testid='admin.health.section.count--text'
+                >
+                    {findings.length}
+                </span>
                 <span
                     className='HealthDashboard__sectionRule'
                     aria-hidden={true}

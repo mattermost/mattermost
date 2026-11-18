@@ -55,7 +55,10 @@ export default function EmojiPickerTabs(props: Props) {
                     <Tab
                         eventKey={1}
                         title={
-                            <div className={'custom-emoji-tab__icon__text'}>
+                            <div
+                                className={'custom-emoji-tab__icon__text'}
+                                data-testid='emoji_gif_picker.tab:emojis'
+                            >
                                 <EmojiIcon
                                     className='custom-emoji-tab__icon'
                                     aria-hidden={true}
@@ -79,7 +82,10 @@ export default function EmojiPickerTabs(props: Props) {
                     <Tab
                         eventKey={2}
                         title={
-                            <div className={'custom-emoji-tab__icon__text'}>
+                            <div
+                                className={'custom-emoji-tab__icon__text'}
+                                data-testid='emoji_gif_picker.tab:gifs'
+                            >
                                 <GifIcon
                                     className='custom-emoji-tab__icon'
                                     aria-hidden={true}

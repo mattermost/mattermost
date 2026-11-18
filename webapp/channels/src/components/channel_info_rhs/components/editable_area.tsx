@@ -52,20 +52,26 @@ interface EditableAreaProps {
     onEdit: () => void;
     className?: string;
     editTooltip?: string;
+
+    testId?: string;
 }
 
-const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className, editTooltip}: EditableAreaProps) => {
+const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className, editTooltip, testId}: EditableAreaProps) => {
     const {formatMessage} = useIntl();
 
     const allowEditArea = editable && content;
 
     return (
-        <div className={className}>
+        <div
+            className={className}
+            data-testid={testId}
+        >
             <div className='EditableArea__content'>
                 {content}
                 {!content && editable && (
                     <EmptyPlace
                         onClick={onEdit}
+                        data-testid={testId ? `${testId}.add--button` : undefined}
                         aria-label={formatMessage({id: 'channel_info_rhs.edit_link', defaultMessage: 'Edit'})}
                     >
                         {emptyLabel}
@@ -78,6 +84,7 @@ const EditableAreaBase = ({editable, content, emptyLabel, onEdit, className, edi
                     <WithTooltip title={editTooltip || formatMessage({id: 'channel_info_rhs.edit_link', defaultMessage: 'Edit'})}>
                         <EditButton
                             onClick={onEdit}
+                            data-testid={testId ? `${testId}.edit--button` : undefined}
                             aria-label={formatMessage({id: 'channel_info_rhs.edit_link', defaultMessage: 'Edit'})}
                         >
                             <i className='icon icon-pencil-outline'/>

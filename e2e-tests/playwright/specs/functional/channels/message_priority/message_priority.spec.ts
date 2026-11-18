@@ -1,75 +1,90 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
-import type {ChannelsPage, PlaywrightExtended, PriorityOption} from '@mattermost/playwright-lib';
+import {expect, test, type App, type PlaywrightExtended, Msg, Api, settle} from '@mattermost/playwright-lib';
 
-async function verifyPostedMessage(channelsPage: ChannelsPage, message: string) {
-    const lastPost = await channelsPage.getLastPost();
-    await lastPost.toBeVisible();
-    await lastPost.toContainText(message);
-    return lastPost;
+type Priority = 'important' | 'urgent';
+
+/** The priority picker the composers' priority button opens (one picker at a time). */
+function pickerOf(app: App) {
+    return app.postPriorityPicker;
 }
 
-async function openThreadAndGetRootPost(channelsPage: ChannelsPage, postId: string) {
-    const lastPost = await channelsPage.getLastPost();
-    await lastPost.reply();
-    await channelsPage.sidebarRight.toBeVisible();
-    return channelsPage.sidebarRight.getPostById(postId);
+/** Sends a message from the center composer, and returns the new post once it shows. */
+async function send(app: App, message: string) {
+    const {postList} = app.center;
+    await app.center.postCreate.message.container.fill(message);
+    const sent = await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    const post = postList.post(sent);
+    await expect(post).toContainText(message);
+    return {id: sent.id, post};
 }
 
-async function postWithPriorityAndVerify(pw: PlaywrightExtended, priority: Exclude<PriorityOption, 'Standard'>) {
+/** Opens a post's thread, and returns the thread's copy of the root post. */
+async function openThread(app: App, post: ReturnType<App['center']['postList']['post']>, id: string) {
+    await post.container.hover();
+    await post.menu.replyButton.click();
+    await expect(app.rhs.postCreate.message.container).toBeVisible();
+    const root = app.rhs.thread.post({id});
+    await expect(root).toBeVisible();
+    return root;
+}
+
+async function postWithPriorityAndVerify(pw: PlaywrightExtended, priority: Priority) {
     // # Setup test environment
-    const {user, team} = await pw.initSetup();
+    const {user, team, townSquare} = await pw.initSetup();
 
     // # Log in as a user in new browser context
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
 
     // # Visit default channel page
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    await app.channelsPage.goto({team, channel: townSquare});
 
     // # Open priority menu
-    await channelsPage.centerView.postCreate.openPriorityMenu();
+    const composer = app.center.postCreate;
+    const picker = pickerOf(app);
+    await picker.openButton.click();
 
     // * Verify priority dialog appears
-    await channelsPage.messagePriority.verifyPriorityDialog();
+    const {menu} = app.postPriorityPicker;
+    await expect(menu.priority('standard')).toBeVisible();
 
     // # Select the requested priority
-    await channelsPage.messagePriority.selectPriority(priority);
+    const option = menu.priority(priority);
+    await option.click();
+    await expect(option).toHaveAttribute('aria-checked', 'true');
 
-    if (priority === 'Urgent') {
+    if (priority === 'urgent') {
         // * Verify persistent notifications are offered only for urgent messages
-        await expect(channelsPage.messagePriority.persistentNotificationsToggle).toBeVisible();
+        await expect(menu.persistentNotificationsMenuItemCheckbox).toBeVisible();
     } else {
-        await expect(channelsPage.messagePriority.persistentNotificationsToggle).not.toBeVisible();
+        await expect(menu.persistentNotificationsMenuItemCheckbox).not.toBeVisible();
     }
 
     // # Apply the selected priority
-    await channelsPage.messagePriority.apply();
+    await menu.applyButton.click();
+    await expect(menu.priority('standard')).not.toBeVisible();
 
     // * Verify the composer shows the selected priority label
-    await channelsPage.messagePriority.verifyPriorityLabel(channelsPage.centerView.postCreate.container, priority);
+    await expect(composer.priorityLabels.priority).toHaveText(new RegExp(priority, 'i'));
 
     // # Post a message with the selected priority
     const testMessage = `${priority} priority ${pw.random.id()}`;
-    await channelsPage.postMessage(testMessage);
+    const {id, post} = await send(app, testMessage);
 
     // * Verify the posted message shows the priority label
-    const lastPost = await verifyPostedMessage(channelsPage, testMessage);
-    await channelsPage.messagePriority.verifyPriorityLabel(lastPost.container, priority);
+    await expect(post.priorityLabel).toHaveText(new RegExp(priority, 'i'));
 
     // # Open post in right-hand sidebar
-    const postId = await lastPost.getId();
-    const rhsPost = await openThreadAndGetRootPost(channelsPage, postId);
+    const rhsPost = await openThread(app, post, id);
 
     // * Verify the priority label also appears in the thread view
-    await rhsPost.toBeVisible();
-    await rhsPost.toContainText(testMessage);
-    await channelsPage.messagePriority.verifyPriorityLabel(rhsPost.container, priority);
+    await expect(rhsPost).toContainText(testMessage);
+    await expect(rhsPost.priorityLabel).toHaveText(new RegExp(priority, 'i'));
 
-    // * Verify RHS formatting bar doesn't include priority button
-    await expect(channelsPage.sidebarRight.postCreate.priorityButton).not.toBeVisible();
+    // * Verify RHS formatting bar doesn't include priority button: the page keeps only the center composer's
+    // (a driver cannot count its matches, so this one check reads the locator)
+    await expect(pickerOf(app).openButton.locator).toHaveCount(1);
 }
 
 /**
@@ -81,47 +96,46 @@ test(
     {tag: ['@smoke', '@message_priority']},
     async ({pw}) => {
         // # Setup test environment
-        const {user, team} = await pw.initSetup();
+        const {user, team, townSquare} = await pw.initSetup();
 
         // # Log in as a user in new browser context
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
 
         // # Visit default channel page
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel: townSquare});
 
         // * Verify the priority control is available while the system setting is enabled
-        await expect(channelsPage.centerView.postCreate.priorityButton).toBeVisible();
+        const picker = pickerOf(app);
+        await expect(picker.openButton).toBeVisible();
 
         // # Open priority menu
-        await channelsPage.centerView.postCreate.openPriorityMenu();
+        await picker.openButton.click();
 
         // * Verify priority dialog appears with standard option selected
-        await channelsPage.messagePriority.verifyPriorityDialog();
-        await channelsPage.messagePriority.verifyStandardPrioritySelected();
+        const {menu} = app.postPriorityPicker;
+        await expect(menu.priority('standard')).toHaveAttribute('aria-checked', 'true');
 
         // # Close priority menu
-        await channelsPage.messagePriority.closePriorityMenu();
+        await app.page.keyboard.press('Escape');
+        await expect(menu.priority('standard')).not.toBeVisible();
 
         // # Post a message with standard priority
         const testMessage = `Standard priority ${pw.random.id()}`;
-        await channelsPage.postMessage(testMessage);
+        const {id, post} = await send(app, testMessage);
 
         // * Verify message posts correctly with no priority label
-        const lastPost = await verifyPostedMessage(channelsPage, testMessage);
-        await channelsPage.messagePriority.verifyNoPriorityLabelIn(lastPost.container);
+        await expect(post.priorityLabel).toHaveCount(0);
 
         // # Open post in right-hand sidebar
-        const postId = await lastPost.getId();
-        const rhsPost = await openThreadAndGetRootPost(channelsPage, postId);
+        const rhsPost = await openThread(app, post, id);
 
         // * Verify post content appears correctly in RHS without a priority label
-        await rhsPost.toBeVisible();
-        await rhsPost.toContainText(testMessage);
-        await channelsPage.messagePriority.verifyNoPriorityLabelIn(rhsPost.container);
+        await expect(rhsPost).toContainText(testMessage);
+        await expect(rhsPost.priorityLabel).toHaveCount(0);
 
-        // * Verify RHS formatting bar doesn't include priority button
-        await expect(channelsPage.sidebarRight.postCreate.priorityButton).not.toBeVisible();
+        // * Verify RHS formatting bar doesn't include priority button: the page keeps only the center composer's
+        // (a driver cannot count its matches, so this one check reads the locator)
+        await expect(pickerOf(app).openButton.locator).toHaveCount(1);
     },
 );
 
@@ -133,7 +147,7 @@ test(
     {tag: '@message_priority'},
     async ({pw}) => {
         // # Setup test environment
-        const {user, team, adminClient} = await pw.initSetup();
+        const {user, team, adminClient, townSquare} = await pw.initSetup();
         const originalPostPriority = (await adminClient.getConfig()).ServiceSettings.PostPriority;
 
         try {
@@ -141,12 +155,12 @@ test(
             await adminClient.patchConfig({ServiceSettings: {PostPriority: false}});
 
             // # Log in as a user after the setting is disabled
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: townSquare});
 
             // * Verify the priority control is hidden
-            await expect(channelsPage.centerView.postCreate.priorityButton).not.toBeVisible();
+            await expect(app.center.postCreate.message.container).toBeVisible();
+            await expect(pickerOf(app).openButton).not.toBeVisible();
         } finally {
             await adminClient.patchConfig({ServiceSettings: {PostPriority: originalPostPriority}});
         }
@@ -163,7 +177,7 @@ test(
     async ({pw}) => {
         // # Select Important priority, post a message, and verify the label
         // * Verify the Important label appears in the composer, center channel, and RHS
-        await postWithPriorityAndVerify(pw, 'Important');
+        await postWithPriorityAndVerify(pw, 'important');
     },
 );
 
@@ -177,7 +191,7 @@ test(
     async ({pw}) => {
         // # Select Urgent priority, post a message, and verify the label
         // * Verify the Urgent label appears in the composer, center channel, and RHS
-        await postWithPriorityAndVerify(pw, 'Urgent');
+        await postWithPriorityAndVerify(pw, 'urgent');
     },
 );
 
@@ -191,33 +205,40 @@ test(
     {tag: ['@message_priority', '@accessibility']},
     async ({pw, isMobile}) => {
         // # Setup test environment
-        const {user, team} = await pw.initSetup();
+        const {user, team, townSquare} = await pw.initSetup();
 
         // # Log in as a user in new browser context
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
 
         // # Visit default channel page
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        const {postCreate} = channelsPage.centerView;
-        const {removeLabelsButton, removeLabelsTooltip} = postCreate;
+        const composer = app.center.postCreate;
+        const input = composer.message.container;
+        const removeLabelsButton = composer.removeAllLabelsButton;
+        // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the tooltip comes from the shared WithTooltip, which takes no test id and renders outside the composer; it is read by its ARIA role
+        const removeLabelsTooltip = app.page.getByRole('tooltip');
 
         // # Apply Important priority so the composer renders its labels row
-        await postCreate.openPriorityMenu();
-        await channelsPage.messagePriority.selectAndApply('Important');
+        await pickerOf(app).openButton.click();
+        await expect(app.postPriorityPicker.menu.priority('important')).toBeVisible();
+        const {menu} = app.postPriorityPicker;
+        await menu.priority('important').click();
+        await expect(menu.priority('important')).toHaveAttribute('aria-checked', 'true');
+        await menu.applyButton.click();
 
         // * Verify the composer shows the Important label
-        await channelsPage.messagePriority.verifyPriorityLabel(postCreate.container, 'Important');
+        const label = composer.priorityLabels.priority.locator;
+        await expect(label).toHaveText(/important/i);
 
         // # Move the pointer into the message input, away from the labels row
-        await postCreate.input.hover();
+        await input.hover();
 
         // * Verify the remove-labels control is transparent while it is neither hovered nor focused
         await expect(removeLabelsButton).toHaveCSS('opacity', '0');
 
         // # Hover the labels row
-        await postCreate.priorityLabel.hover();
+        await label.hover();
 
         // * Verify hovering anywhere in the row reveals the remove-labels control
         await expect(removeLabelsButton).toHaveCSS('opacity', '1');
@@ -226,34 +247,36 @@ test(
         await removeLabelsButton.hover();
 
         // * Verify its tooltip appears
-        await expect(removeLabelsTooltip).toBeVisible();
+        await expect(removeLabelsTooltip).toHaveMessage(Msg.unified_labels.remove_all);
 
         // # Move the pointer back into the message input and put keyboard focus there
-        await postCreate.input.click();
+        await input.hover();
+        await input.focus();
 
         // * Verify the control is transparent again and its tooltip is gone
         await expect(removeLabelsButton).toHaveCSS('opacity', '0');
         await expect(removeLabelsTooltip).toHaveCount(0);
 
         // # Tab backwards out of the message input
-        await postCreate.input.press('Shift+Tab');
+        await input.press('Shift+Tab');
+        await expect(removeLabelsButton).toBeFocused();
 
         // * Verify keyboard focus lands on the remove-labels control, which is now opaque with its tooltip shown
         // toBeFocusedWithFocusVisible returns the :focus-visible result rather than asserting it
-        expect(await pw.toBeFocusedWithFocusVisible(removeLabelsButton)).toBe(true);
+        expect(await pw.toBeFocusedWithFocusVisible(removeLabelsButton.locator)).toBe(true);
         await expect(removeLabelsButton).toHaveCSS('opacity', '1');
-        await expect(removeLabelsTooltip).toBeVisible();
+        await expect(removeLabelsTooltip).toHaveMessage(Msg.unified_labels.remove_all);
 
         // # Activate the focused control with the keyboard
         await removeLabelsButton.press('Enter');
 
         // * Verify the priority label is removed
-        await channelsPage.messagePriority.verifyNoPriorityLabelIn(postCreate.container);
+        await expect(label).toHaveCount(0);
         await expect(removeLabelsButton).toHaveCount(0);
 
         // * Verify focus returns to the message input on non-mobile devices
         if (!isMobile) {
-            await expect(postCreate.input).toBeFocused();
+            await expect(input).toBeFocused();
         }
     },
 );

@@ -23,7 +23,7 @@
  * button additionally requires `MM_FEATUREFLAGS_POLICYSIMULATION=true`.
  */
 
-import {ChannelsPage, expect, test, closeChannelSettings, openChannelSettingsInfoTab} from '@mattermost/playwright-lib';
+import {expect, test, closeChannelSettings, openChannelSettingsInfoTab} from '@mattermost/playwright-lib';
 
 import {enableABACConfig, ensureDepartmentAttribute, createPrivateChannel} from '../team_settings/helpers';
 
@@ -46,12 +46,12 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const permissionsTab = channelSettings.tabs.tab('permissions_policy').locator;
 
         // Suite-level feature-flag guard already covers PermissionPolicies;
@@ -82,12 +82,12 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const permissionsTab = channelSettings.tabs.tab('permissions_policy').locator;
         await expect(permissionsTab).toBeVisible();
         await permissionsTab.click();
@@ -129,12 +129,12 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
 
         const channel = await createPrivateChannel(adminClient, team.id);
 
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const permissionsTab = channelSettings.tabs.tab('permissions_policy').locator;
         await expect(permissionsTab).toBeVisible();
         await permissionsTab.click();
@@ -169,12 +169,14 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
 
             const channel = await createPrivateChannel(adminClient, team.id);
 
-            const {page} = await pw.testBrowser.login(adminUser);
-            const channelsPage = new ChannelsPage(page);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await app.channelsPage.goto({team, channel: channel.name});
+            await expect(app.center.postCreate).toBeVisible();
 
-            const channelSettings = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
+                app.channelSettingsModal,
+            );
             const permissionsTab = channelSettings.tabs.tab('permissions_policy').locator;
             await expect(permissionsTab).toBeVisible();
             await permissionsTab.click();
@@ -194,7 +196,7 @@ test.describe('Channel Settings Modal - Permissions Policy tab (v0.4)', () => {
             // * The blocked switch is reported through the modal's floating
             // footer in its error state, with saving from there disabled. The
             // modal withdraws it after 3s, so assert inside that window.
-            const savePanel = channelSettings.container.locator.locator('.SaveChangesPanel');
+            const {savePanel} = channelSettings;
             await expect(savePanel).toContainText('You have unsaved changes', {timeout: 2000});
             await expect(savePanel).toHaveClass(/error/);
             await expect(channelSettings.savePanel.saveButton).toBeDisabled();

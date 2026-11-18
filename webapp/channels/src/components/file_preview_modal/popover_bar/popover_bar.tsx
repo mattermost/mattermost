@@ -135,7 +135,7 @@ export default class PopoverBar extends React.PureComponent<Props> {
 
         return (
             <div
-                data-testid='fileCountFooter'
+                data-testid='file_preview_modal.zoom_bar'
                 className='modal-button-bar file-preview-modal__zoom-bar'
             >
                 {wrappedZoomControls}

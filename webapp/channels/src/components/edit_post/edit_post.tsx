@@ -29,7 +29,7 @@ export default function EditPost() {
     return (
         <div
             className='post-edit__container'
-            data-testid='post-edit-container'
+            data-testid='post_edit'
         >
             <AdvancedTextEditor
                 location={location}

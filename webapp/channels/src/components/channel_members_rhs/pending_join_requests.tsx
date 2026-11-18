@@ -169,7 +169,7 @@ function PendingJoinRequestRow({
         <>
             <div
                 className='channel-members-rhs__member channel-members-rhs__pending-request'
-                data-testid={`pending-join-request-${request.id}`}
+                data-testid={`rhs.channel_members.pending_requests.request:${request.id}`}
             >
                 <ProfilePopover
                     triggerComponentClass='channel-members-rhs__pending-request-profile'
@@ -249,6 +249,7 @@ function PendingJoinRequestRow({
                 </div>
             </div>
             <ConfirmModal
+                testId='deny_join_request_modal'
                 show={showDenyConfirm}
                 title={
                     <FormattedMessage
@@ -313,7 +314,7 @@ export default function PendingJoinRequests({
     return (
         <div
             className='channel-members-rhs__pending-requests'
-            data-testid='pending-join-requests-section'
+            data-testid='rhs.channel_members.pending_requests'
         >
             <div className='channel-members-rhs__member-list-separator channel-members-rhs__member-list-separator--first'>
                 <FormattedMessage

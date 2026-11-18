@@ -638,6 +638,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                         fileUrl={fileUrl}
                         getContent={this.getContent}
                         isMobileView={this.props.isMobileView}
+                        testId='file_preview_modal.code_loading'
                     />
                 );
             } else {
@@ -662,6 +663,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                     }
                     progress={progress}
                     size='24'
+                    testId='file_preview_modal.image_loading'
                 />
             );
         }
@@ -687,6 +689,7 @@ export default class FilePreviewModal extends React.PureComponent<Props, State> 
                 onHide={this.handleModalClose}
                 onExited={this.props.onExited}
                 className='modal-image file-preview-modal'
+                data-testid='file_preview_modal'
                 dialogClassName={dialogClassName}
                 animation={true}
                 backdrop={false}

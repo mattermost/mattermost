@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, DefaultChannel} from '@mattermost/playwright-lib';
 
 // NOTE: No global afterAll disabling content flagging here. A global afterAll
 // that writes shared server config races with reviewer-* tests running in a
@@ -21,13 +21,13 @@ const systemMessageForUser = (username: string): string =>
 
 // Helper to login and navigate to channel
 async function loginAndNavigate(pw: any, user: any, teamName?: string, channelName?: string): Promise<any> {
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {channelsPage, app} = await pw.testBrowser.login(user);
     if (teamName && channelName) {
         await channelsPage.goto(teamName, channelName);
     } else {
         await channelsPage.goto();
     }
-    await channelsPage.toBeVisible();
+    await expect(app.center.composer.locator).toBeVisible();
     return channelsPage;
 }
 
@@ -209,21 +209,20 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     const {id: secondUserID} = await adminClient.createUser(secondUser, '', '');
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
-    const townSquare = channels.find((channel) => channel.name === 'town-square');
+    const townSquare = channels.find((channel) => channel.name === DefaultChannel.TownSquare);
     if (!townSquare) {
         throw new Error('Town Square channel not found');
     }
 
     const message = `Post by @${user.username}, is flagged once`;
-    const postToBeflagged = await adminClient.createPost({
+    const postToBeflagged = await pw.postAs(user, {
         channel_id: townSquare.id,
         message,
-        user_id: user.id,
     });
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH, FLAG_COMMENT);
 
     // Login as the second user
-    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
+    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, DefaultChannel.TownSquare);
     // Town Square may show join/system posts above the target — select by post id.
     const post = await channelsPage.centerView.getPostById(postToBeflagged.id);
 
@@ -268,7 +267,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     const {id: secondUserID, username: secondUsername} = await adminClient.createUser(secondUser, '', '');
     await adminClient.addToTeam(team.id, secondUserID);
     const channels = await adminClient.getMyChannels(team.id);
-    const townSquare = channels.find((channel) => channel.name === 'town-square');
+    const townSquare = channels.find((channel) => channel.name === DefaultChannel.TownSquare);
     if (!townSquare) {
         throw new Error('Town Square channel not found');
     }
@@ -298,10 +297,9 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     });
 
     const message = `Post by @${secondUsername}, is flagged once`;
-    const postToBeflagged = await adminClient.createPost({
+    const postToBeflagged = await pw.postAs(secondUser, {
         channel_id: townSquare.id,
         message,
-        user_id: secondUserID,
     });
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH, FLAG_COMMENT);
     await adminClient.keepFlaggedPost(postToBeflagged.id, 'Retaining this post after review');
@@ -334,7 +332,7 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     });
 
     // Login as the second user
-    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, 'town-square');
+    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, DefaultChannel.TownSquare);
     const post = await channelsPage.centerView.getPostById(postToBeflagged.id);
 
     // Try to flag previously retained post
@@ -402,7 +400,7 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
         },
     });
 
-    const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');
+    const channelsPage = await loginAndNavigate(pw, user, team.name, DefaultChannel.TownSquare);
     const message = 'This is a test message to be flagged';
     const {post} = await postMessage(channelsPage, message);
 
@@ -443,7 +441,7 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
         },
     });
 
-    const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');
+    const channelsPage = await loginAndNavigate(pw, user, team.name, DefaultChannel.TownSquare);
     const message = 'This is a test message to be flagged';
     const {post} = await postMessage(channelsPage, message);
 
@@ -498,16 +496,15 @@ test('Verify message is removed from channel if the reviewer removed the message
     });
 
     const channels = await adminClient.getMyChannels(team.id);
-    const townSquare = channels.find((channel) => channel.name === 'town-square');
+    const townSquare = channels.find((channel) => channel.name === DefaultChannel.TownSquare);
     if (!townSquare) {
         throw new Error('Town Square channel not found');
     }
 
     const message = `Post by @${user.username}, is flagged once`;
-    const postToBeflagged = await adminClient.createPost({
+    const postToBeflagged = await pw.postAs(user, {
         channel_id: townSquare.id,
         message,
-        user_id: user.id,
     });
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH, FLAG_COMMENT);
 
@@ -528,7 +525,7 @@ test('Verify message is removed from channel if the reviewer removed the message
     await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
 
     // Login as the user
-    const channelsPage = await loginAndNavigate(pw, user, team.name, 'town-square');
+    const channelsPage = await loginAndNavigate(pw, user, team.name, DefaultChannel.TownSquare);
     const lastPostId = await channelsPage.centerView.getLastPostID();
     expect(lastPostId).not.toBe(postToBeflagged.id);
 });

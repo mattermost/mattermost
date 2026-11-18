@@ -74,6 +74,7 @@ const SidebarChannelMenu = ({
         markAsReadUnreadMenuItem = (
             <Menu.Item
                 id={`markAsRead-${channel.id}`}
+                data-testid='lhs.channel_menu.mark_as_read--menuitem'
                 onClick={handleMarkAsRead}
                 leadingElement={<MarkAsUnreadIcon size={18}/>}
                 labels={(
@@ -93,6 +94,7 @@ const SidebarChannelMenu = ({
         markAsReadUnreadMenuItem = (
             <Menu.Item
                 id={`markAsUnread-${channel.id}`}
+                data-testid='lhs.channel_menu.mark_as_unread--menuitem'
                 onClick={handleMarkAsUnread}
                 leadingElement={<MarkAsUnreadIcon size={18}/>}
                 labels={(
@@ -114,6 +116,7 @@ const SidebarChannelMenu = ({
         favoriteItem = (
             <Menu.Item
                 id={`unfavorite-${channel.id}`}
+                data-testid='lhs.channel_menu.unfavorite--menuitem'
                 onClick={handleUnfavoriteChannel}
                 leadingElement={<StarIcon size={18}/>}
                 labels={(
@@ -133,6 +136,7 @@ const SidebarChannelMenu = ({
         favoriteItem = (
             <Menu.Item
                 id={`favorite-${channel.id}`}
+                data-testid='lhs.channel_menu.favorite--menuitem'
                 onClick={handleFavoriteChannel}
                 leadingElement={<StarOutlineIcon size={18}/>}
                 labels={(
@@ -178,6 +182,7 @@ const SidebarChannelMenu = ({
         muteUnmuteChannelMenuItem = (
             <Menu.Item
                 id={`unmute-${channel.id}`}
+                data-testid='lhs.channel_menu.unmute--menuitem'
                 onClick={handleUnmuteChannel}
                 leadingElement={<BellOffOutlineIcon size={18}/>}
                 labels={muteChannelText}
@@ -201,6 +206,7 @@ const SidebarChannelMenu = ({
         muteUnmuteChannelMenuItem = (
             <Menu.Item
                 id={`mute-${channel.id}`}
+                data-testid='lhs.channel_menu.mute--menuitem'
                 onClick={handleMuteChannel}
                 leadingElement={<BellOutlineIcon size={18}/>}
                 labels={muteChannelText}
@@ -217,6 +223,7 @@ const SidebarChannelMenu = ({
         copyLinkMenuItem = (
             <Menu.Item
                 id={`copyLink-${channel.id}`}
+                data-testid='lhs.channel_menu.copy_link--menuitem'
                 onClick={handleCopyLink}
                 leadingElement={<LinkVariantIcon size={18}/>}
                 labels={(
@@ -242,6 +249,7 @@ const SidebarChannelMenu = ({
         addMembersMenuItem = (
             <Menu.Item
                 id={`addMembers-${channel.id}`}
+                data-testid='lhs.channel_menu.add_members--menuitem'
                 onClick={handleAddMembers}
                 aria-haspopup='true'
                 leadingElement={<AccountPlusOutlineIcon size={18}/>}
@@ -282,6 +290,7 @@ const SidebarChannelMenu = ({
         leaveChannelMenuItem = (
             <Menu.Item
                 id={`leave-${channel.id}`}
+                data-testid='lhs.channel_menu.leave--menuitem'
                 onClick={handleLeaveChannel}
                 leadingElement={<ExitToAppIcon size={18}/>}
                 labels={leaveChannelText}
@@ -294,6 +303,7 @@ const SidebarChannelMenu = ({
         <Menu.Container
             menuButton={{
                 id: `SidebarChannelMenu-Button-${channel.id}`,
+                testId: 'lhs.channel_list.channel.open_menu',
                 as: SidebarMenuTrigger,
                 class: 'SidebarMenu_menuButton',
                 'aria-label': formatMessage(messages.optionsAriaLabel[channelKind], {channelName: channel.name}),
@@ -310,13 +320,19 @@ const SidebarChannelMenu = ({
             }}
         >
             {canPopout() && !isChannelPopoutWindow() && (
-                <MenuItemOpenInNewWindow channel={channel}/>
+                <MenuItemOpenInNewWindow
+                    channel={channel}
+                    data-testid='lhs.channel_menu.open_in_new_window--menuitem'
+                />
             )}
             {markAsReadUnreadMenuItem}
             {favoriteUnfavoriteMenuItem}
             {muteUnmuteChannelMenuItem}
             <Menu.Separator/>
-            <ChannelMoveToSubmenu channel={channel}/>
+            <ChannelMoveToSubmenu
+                channel={channel}
+                testIdScope='lhs.channel_menu'
+            />
             {(copyLinkMenuItem || addMembersMenuItem) && <Menu.Separator/>}
             {copyLinkMenuItem}
             {addMembersMenuItem}

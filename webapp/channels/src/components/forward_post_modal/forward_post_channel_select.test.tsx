@@ -282,4 +282,31 @@ describe('forward_post_channel_select/FormattedOption', () => {
         expect(screen.getByTestId('profile-picture')).toBeInTheDocument();
         expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
     });
+
+    it('the label carries a test id only as the selected value; a list option is keyed on the option element', () => {
+        mockedCompassIconForName.mockReturnValue(null);
+        const option = makeSelectedChannelOption(TestHelper.getChannelMock({id: 'ch-1', name: 'town-square', type: 'O', delete_at: 0}));
+
+        const {unmount} = renderWithContext(
+            <FormattedOption
+                {...option}
+                className='option'
+            />,
+            makeState(),
+        );
+        expect(screen.queryByTestId('forward_post_modal.channel:ch-1--option')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('forward_post_modal.selected_channel--text')).not.toBeInTheDocument();
+        unmount();
+
+        renderWithContext(
+            <FormattedOption
+                {...option}
+                isSingleValue={true}
+                className='singleValue'
+            />,
+            makeState(),
+        );
+        expect(screen.getByTestId('forward_post_modal.selected_channel--text')).toBeInTheDocument();
+        expect(screen.queryByTestId('forward_post_modal.channel:ch-1--option')).not.toBeInTheDocument();
+    });
 });

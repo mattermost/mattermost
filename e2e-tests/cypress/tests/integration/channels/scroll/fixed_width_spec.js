@@ -99,7 +99,7 @@ describe('Scroll', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // * Verify All posts are displayed correctly
-        cy.findAllByTestId('postContent').should('have.length', '9').and('have.class', 'post__content center');
+        cy.findAllByTestId('center.post_list.post.content').should('have.length', '9').and('have.class', 'post__content center');
 
         // * Verify there is no scroll pop
         cy.get('#post-list').should('exist').within(() => {

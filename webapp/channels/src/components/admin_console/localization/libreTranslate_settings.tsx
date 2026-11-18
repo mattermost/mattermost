@@ -72,6 +72,7 @@ export default function LibreTranslateSettings(props: SystemConsoleCustomSetting
                                 <ExternalLink
                                     location='admin_console'
                                     href='https://docs.libretranslate.com/guides/manage_api_keys/'
+                                    data-testid='admin.auto_translation.api_key_docs--link'
                                 >
                                     {msg}
                                 </ExternalLink>

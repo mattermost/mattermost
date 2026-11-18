@@ -20,6 +20,8 @@ type Props = {
     teamId: string;
 
     onEmojiClick: (emoji: Emoji) => void;
+
+    testId?: string;
 };
 
 export default function AddReactionButton({
@@ -27,6 +29,7 @@ export default function AddReactionButton({
     teamId,
 
     onEmojiClick,
+    testId,
 }: Props) {
     const intl = useIntl();
 
@@ -60,6 +63,7 @@ export default function AddReactionButton({
                 <WithTooltip title={ariaLabel}>
                     <button
                         id={`addReaction-${post.id}`}
+                        data-testid={testId ? `${testId}--button` : undefined}
                         ref={setReference}
                         aria-label={ariaLabel}
                         className={classNames('Reaction Reaction__add', {

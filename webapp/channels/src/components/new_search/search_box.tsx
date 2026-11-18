@@ -279,10 +279,11 @@ const SearchBox = forwardRef(
             <SearchBoxContainer
                 ref={ref}
                 id='searchBox'
+                data-testid='search_box'
             >
                 <WithTooltip title={closeLabel}>
                     <SearchBoxCloseButton
-                        data-testid='searchBoxClose'
+                        data-testid='search_box.close--button'
                         size='medium'
                         icon={<Icon glyph={<CloseIcon/>}/>}
                         onClick={closeHandler}
@@ -295,8 +296,9 @@ const SearchBox = forwardRef(
                         setSearchType={setSearchType}
                     />
                     {crossTeamSearchEnabled && hasMoreThanOneTeam && (
-                        <SearchTeamSelector data-testid={'searchTeamSelector'}>
+                        <SearchTeamSelector data-testid='search_box.team_selector'>
                             <SelectTeam
+                                testIdScope='search_box.team_selector'
                                 selectedTeamId={searchTeam}
                                 onTeamSelected={changeSearchTeam}
                             />

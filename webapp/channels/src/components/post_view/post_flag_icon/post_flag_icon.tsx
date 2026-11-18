@@ -22,6 +22,8 @@ type Props = {
     postId: string;
     isFlagged: boolean;
     actions: Actions;
+
+    testId?: string;
 };
 
 const PostFlagIcon = ({
@@ -32,6 +34,7 @@ const PostFlagIcon = ({
     isFlagged,
     postId,
     location = Locations.CENTER,
+    testId,
 }: Props) => {
     const intl = useIntl();
 
@@ -97,6 +100,7 @@ const PostFlagIcon = ({
             <IconButton
                 ref={buttonRef}
                 id={`${location}_flagIcon_${postId}`}
+                data-testid={testId ? `${testId}--button` : undefined}
                 size='small'
                 padding='compact'
                 className={classNames('post-menu__item', {

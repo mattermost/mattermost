@@ -76,7 +76,7 @@ describe('components/ProfilePopoverUrl', () => {
         const link = screen.getByRole('link');
         expect(link).toHaveAttribute('href', url);
         expect(link).toHaveTextContent(url);
-        expect(screen.getByTestId('url-icon')).toBeInTheDocument();
+        expect(screen.getByTestId('profile_popover.url_icon')).toBeInTheDocument();
     });
 
     test('should render long url correctly', () => {

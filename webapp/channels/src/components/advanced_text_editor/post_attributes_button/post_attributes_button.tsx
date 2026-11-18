@@ -19,6 +19,8 @@ type Props = {
 
     // Why no attribute can be added right now; disables the button.
     disabledReason?: string;
+
+    testIdScope?: string;
 };
 
 /**
@@ -28,7 +30,7 @@ type Props = {
  *
  * Omitted rather than disabled when there is nothing left to offer.
  */
-const PostAttributesButton = ({fields, onSelect, disabledReason}: Props): JSX.Element | null => {
+const PostAttributesButton = ({fields, onSelect, disabledReason, testIdScope}: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
     const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes', description: 'Tooltip and accessible label of the button in the message composer formatting bar that opens a menu of attributes to add to the message being written. Plural noun after a verb.'});
 
@@ -43,6 +45,7 @@ const PostAttributesButton = ({fields, onSelect, disabledReason}: Props): JSX.El
         <PostAttributesFieldPicker
             id={`postAttributesButton-${instanceId}`}
             dataTestId='post-attributes-composer-add'
+            testIdScope={testIdScope}
             fields={fields}
             onSelect={onSelect}
             disabledReason={disabledReason}

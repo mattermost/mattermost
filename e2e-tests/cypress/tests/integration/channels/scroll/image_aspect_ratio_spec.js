@@ -42,13 +42,13 @@ describe('Scroll', () => {
             cy.wait('@uploadFile').its('response.statusCode').should('be.oneOf', [200, 201]);
 
             // * Verify the file preview is shown
-            cy.get('[data-testid="file-preview-item"]').should('be.visible');
+            cy.get('[data-testid^="center.post_create.file_previews.file:"]').should('be.visible');
 
             // # Post the image
             cy.postMessage(uploadedImage.file);
 
             // * Verify the last post includes the uploaded file
-            cy.findAllByTestId('postView').last().should(($post) => {
+            cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).last().should(($post) => {
                 expect($post.find('.file-view--single').length, 'file attach').to.be.greaterThan(0);
             });
 

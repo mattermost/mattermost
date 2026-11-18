@@ -65,7 +65,7 @@ function GifPickerItems(props: Props) {
     return (
         <div
             className='emoji-picker__items gif-picker__items'
-            data-testid='gif-picker-items'
+            data-testid='gif_picker.items'
         >
             <Grid
                 key={props.filter.length === 0 ? 'trending' : props.filter}

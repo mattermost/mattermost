@@ -47,10 +47,13 @@ describe('DataSpillageExposureReport', () => {
 
     test('renders idle download button', () => {
         renderWithContext(
-            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
+            <DataSpillageExposureReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.exposure_report'
+            />,
         );
 
-        const button = screen.getByTestId('data-spillage-action-download-exposure-report');
+        const button = screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button');
         expect(button).toBeVisible();
         expect(button).toHaveTextContent('Download exposure report');
         expect(button).not.toBeDisabled();
@@ -58,10 +61,13 @@ describe('DataSpillageExposureReport', () => {
 
     test('click triggers download and returns to idle on success', async () => {
         renderWithContext(
-            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
+            <DataSpillageExposureReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.exposure_report'
+            />,
         );
 
-        await userEvent.click(screen.getByTestId('data-spillage-action-download-exposure-report'));
+        await userEvent.click(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button'));
 
         await waitFor(() => {
             expect(Client4.generatePostExposureReport).toHaveBeenCalledWith(
@@ -76,7 +82,7 @@ describe('DataSpillageExposureReport', () => {
 
         // Returns to idle state
         await waitFor(() => {
-            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toHaveTextContent('Download exposure report');
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button')).toHaveTextContent('Download exposure report');
         });
     });
 
@@ -93,10 +99,13 @@ describe('DataSpillageExposureReport', () => {
         });
 
         renderWithContext(
-            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
+            <DataSpillageExposureReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.exposure_report'
+            />,
         );
 
-        await userEvent.click(screen.getByTestId('data-spillage-action-download-exposure-report'));
+        await userEvent.click(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button'));
 
         await waitFor(() => {
             expect(anchors).toHaveLength(1);
@@ -109,13 +118,16 @@ describe('DataSpillageExposureReport', () => {
         jest.spyOn(Client4, 'generatePostExposureReport').mockRejectedValue(new Error('boom'));
 
         renderWithContext(
-            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
+            <DataSpillageExposureReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.exposure_report'
+            />,
         );
 
-        await userEvent.click(screen.getByTestId('data-spillage-action-download-exposure-report'));
+        await userEvent.click(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button'));
 
         await waitFor(() => {
-            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toHaveTextContent('Generation failed. Try again.');
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button')).toHaveTextContent('Generation failed. Try again.');
         });
         expect(URL.createObjectURL).not.toHaveBeenCalled();
     });
@@ -129,15 +141,18 @@ describe('DataSpillageExposureReport', () => {
         jest.spyOn(Client4, 'generatePostExposureReport').mockReturnValue(requestPromise);
 
         const {unmount} = renderWithContext(
-            <DataSpillageExposureReport flaggedPostId={flaggedPostId}/>,
+            <DataSpillageExposureReport
+                flaggedPostId={flaggedPostId}
+                testIdScope='rhs.thread.post.spillage_report.exposure_report'
+            />,
         );
 
-        await userEvent.click(screen.getByTestId('data-spillage-action-download-exposure-report'));
+        await userEvent.click(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button'));
 
         await waitFor(() => {
-            expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toHaveTextContent('Generating…');
+            expect(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button')).toHaveTextContent('Generating…');
         });
-        expect(screen.getByTestId('data-spillage-action-download-exposure-report')).toBeDisabled();
+        expect(screen.getByTestId('rhs.thread.post.spillage_report.exposure_report.download--button')).toBeDisabled();
 
         unmount();
 

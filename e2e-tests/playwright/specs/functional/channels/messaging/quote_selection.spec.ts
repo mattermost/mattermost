@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import type {Client4} from '@mattermost/client';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {App, expect, test, type PlaywrightExtended, Api, settle} from '@mattermost/playwright-lib';
 
 import {selectTextWithMouse} from './quote_selection_helpers';
 
@@ -10,46 +14,63 @@ const TAGS = {tag: '@messaging'};
 const MESSAGE =
     'Ullamcorper eu mi, dictumst nec. Diam sapien pellentesque vestibulum pretium eget massa. Senectus ultrices tincidunt ultricies gravida.';
 
+/** Logs the user in and opens the team's Town Square. */
+async function openTownSquare(pw: PlaywrightExtended, user: UserProfile, team: Team) {
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: 'town-square'});
+    return app;
+}
+
+/** The channel's last post, once the server has one with this message. */
+async function lastPostWith(client: Client4, channelId: string, text: string) {
+    await expect
+        .poll(async () => {
+            const posts = await client.getPosts(channelId);
+            return posts.posts[posts.order[0]]?.message ?? '';
+        })
+        .toContain(text);
+    const posts = await client.getPosts(channelId);
+    return posts.posts[posts.order[0]];
+}
+
 /**
  * @objective Verify that text selected in a post can be quoted into the channel message box,
  * and that the quote and the reply typed below it are posted together.
  */
 test('quotes text selected in a post into the channel message box', TAGS, async ({pw}) => {
-    const {user, userClient, team} = await pw.initSetup();
-    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
-    await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
+    const {user, userClient, team, townSquare} = await pw.initSetup();
+    const created = await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
-    const post = await channelsPage.getLastPost();
-    const quoteButton = page.getByRole('button', {name: 'Quote selection'});
-    const {postCreate} = channelsPage.centerView;
+    const app = await openTownSquare(pw, user, team);
+    const post = app.center.postList.post(created);
+    const quoteButton = app.page.getByRole('button', {name: 'Quote selection'});
+    const {postCreate} = app.center;
 
     // * Verify the quote button isn't shown without a selection
+    await expect(post.message.container).toBeVisible();
     await expect(quoteButton).not.toBeVisible();
 
     // # Select part of the message from left to right
-    await selectTextWithMouse(post.body.locator('.post-message__text'), 'Diam sapien pellentesque');
+    await selectTextWithMouse(post.message.container.locator, 'Diam sapien pellentesque');
 
     // # Quote the selection
     await expect(quoteButton).toBeVisible();
-    await quoteButton.click();
+    await app.page.getByRole('button', {name: 'Quote selection'}).click();
 
     // * Verify the quote is in the message box followed by an empty line, and the button is gone
-    await expect(postCreate.input).toHaveValue('> Diam sapien pellentesque\n\n');
-    await expect(postCreate.input).toBeFocused();
+    await expect(postCreate.message.container).toHaveValue('> Diam sapien pellentesque\n\n');
+    await expect(postCreate.message.container).toBeFocused();
     await expect(quoteButton).not.toBeVisible();
 
     // # Type a reply below the quote and send it
-    await page.keyboard.type('What do you mean?');
-    await postCreate.sendMessage();
+    await app.page.keyboard.type('What do you mean?');
+    await settle(postCreate.sendButton, {wait: Api.CreatePost}).click();
 
     // * Verify the posted message contains the quote followed by the reply
-    const reply = await channelsPage.getLastPost();
-    await expect(reply.body.locator('blockquote')).toHaveText('Diam sapien pellentesque');
-    await reply.toContainText('What do you mean?');
+    const sent = await lastPostWith(userClient, townSquare.id, 'What do you mean?');
+    const reply = app.center.postList.post(sent).message.container.locator;
+    await expect(reply.getByRole('blockquote')).toHaveText('Diam sapien pellentesque');
+    await expect(reply).toContainText('What do you mean?');
 });
 
 /**
@@ -57,27 +78,23 @@ test('quotes text selected in a post into the channel message box', TAGS, async 
  * added after what's already in the message box.
  */
 test('adds a quote of a right to left selection after the existing draft', TAGS, async ({pw}) => {
-    const {user, userClient, team} = await pw.initSetup();
-    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
-    await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
+    const {user, userClient, team, townSquare} = await pw.initSetup();
+    const created = await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
-    const post = await channelsPage.getLastPost();
-    const quoteButton = page.getByRole('button', {name: 'Quote selection'});
-    const {postCreate} = channelsPage.centerView;
+    const app = await openTownSquare(pw, user, team);
+    const post = app.center.postList.post(created);
+    const {postCreate} = app.center;
 
     // # Write a draft first
-    await postCreate.writeMessage('About this:');
+    await postCreate.message.container.fill('About this:');
+    await expect(postCreate.message.container).toHaveValue('About this:');
 
     // # Select part of the message from right to left and quote it
-    await selectTextWithMouse(post.body.locator('.post-message__text'), 'Senectus ultrices', {backward: true});
-    await quoteButton.click();
+    await selectTextWithMouse(post.message.container.locator, 'Senectus ultrices', {backward: true});
+    await app.page.getByRole('button', {name: 'Quote selection'}).click();
 
     // * Verify the quote was added on its own after the draft
-    await expect(postCreate.input).toHaveValue('About this:\n\n> Senectus ultrices\n\n');
+    await expect(postCreate.message.container).toHaveValue('About this:\n\n> Senectus ultrices\n\n');
 });
 
 /**
@@ -85,31 +102,30 @@ test('adds a quote of a right to left selection after the existing draft', TAGS,
  * reply box rather than the channel's message box.
  */
 test('quotes text selected in the RHS into the thread reply box', TAGS, async ({pw}) => {
-    const {user, userClient, team} = await pw.initSetup();
-    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
+    const {user, userClient, team, townSquare} = await pw.initSetup();
     const root = await userClient.createPost({
         channel_id: townSquare.id,
         message: 'What are we doing for the logging points?',
     });
-    await userClient.createPost({channel_id: townSquare.id, root_id: root.id, message: MESSAGE});
+    const created = await userClient.createPost({channel_id: townSquare.id, root_id: root.id, message: MESSAGE});
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const app = await openTownSquare(pw, user, team);
 
     // # Open the thread in the RHS
-    const rootPost = await channelsPage.centerView.getPostById(root.id);
-    await rootPost.reply();
-    await channelsPage.sidebarRight.toBeVisible();
+    const rootPost = app.center.postList.post(root);
+    await rootPost.container.hover();
+    await rootPost.menu.replyButton.click();
+    await expect(app.rhs.postCreate.message.container).toBeVisible();
+    await expect(app.rhs.postCreate.message.container).toBeVisible();
 
     // # Select text in the reply and quote it
-    const replyPost = await channelsPage.sidebarRight.getLastPost();
-    await selectTextWithMouse(replyPost.body.locator('.post-message__text'), 'pretium eget massa');
-    await page.getByRole('button', {name: 'Quote selection'}).click();
+    const replyPost = app.rhs.thread.post(created);
+    await selectTextWithMouse(replyPost.message.container.locator, 'pretium eget massa');
+    await app.page.getByRole('button', {name: 'Quote selection'}).click();
 
     // * Verify the quote went into the thread reply box and not the channel message box
-    await expect(channelsPage.sidebarRight.postCreate.input).toHaveValue('> pretium eget massa\n\n');
-    await expect(channelsPage.centerView.postCreate.input).toHaveValue('');
+    await expect(app.rhs.postCreate.message.container).toHaveValue('> pretium eget massa\n\n');
+    await expect(app.center.postCreate.message.container).toHaveValue('');
 });
 
 /**
@@ -117,9 +133,8 @@ test('quotes text selected in the RHS into the thread reply box', TAGS, async ({
  * lists, code blocks and links.
  */
 test('keeps the Markdown formatting of the quoted text', TAGS, async ({pw}) => {
-    const {user, userClient, team} = await pw.initSetup();
-    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
-    await userClient.createPost({
+    const {user, userClient, team, townSquare} = await pw.initSetup();
+    const created = await userClient.createPost({
         channel_id: townSquare.id,
         message: [
             '## Project Update',
@@ -137,17 +152,15 @@ test('keeps the Markdown formatting of the quoted text', TAGS, async ({pw}) => {
         ].join('\n'),
     });
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const app = await openTownSquare(pw, user, team);
 
     // # Select the whole message and quote it
-    const post = await channelsPage.getLastPost();
-    await selectTextWithMouse(post.body.locator('.post-message__text'), 'Project Update', {untilPhrase: 'dashboard'});
-    await page.getByRole('button', {name: 'Quote selection'}).click();
+    const post = app.center.postList.post(created);
+    await selectTextWithMouse(post.message.container.locator, 'Project Update', {untilPhrase: 'dashboard'});
+    await app.page.getByRole('button', {name: 'Quote selection'}).click();
 
     // * Verify the quote keeps the heading, emphasis, list, code block and link
-    await expect(channelsPage.centerView.postCreate.input).toHaveValue(
+    await expect(app.center.postCreate.message.container).toHaveValue(
         [
             '> ## Project Update',
             '>',
@@ -171,27 +184,24 @@ test('keeps the Markdown formatting of the quoted text', TAGS, async ({pw}) => {
  * @objective Verify that the quote button can be reached with Tab and used with the keyboard.
  */
 test('quotes the selection with the keyboard', TAGS, async ({pw}) => {
-    const {user, userClient, team} = await pw.initSetup();
-    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
-    await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
+    const {user, userClient, team, townSquare} = await pw.initSetup();
+    const created = await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const app = await openTownSquare(pw, user, team);
 
     // # Select part of the message
-    const post = await channelsPage.getLastPost();
-    await selectTextWithMouse(post.body.locator('.post-message__text'), 'Diam sapien pellentesque');
-    const quoteButton = page.getByRole('button', {name: 'Quote selection'});
+    const post = app.center.postList.post(created);
+    await selectTextWithMouse(post.message.container.locator, 'Diam sapien pellentesque');
+    const quoteButton = app.page.getByRole('button', {name: 'Quote selection'});
     await expect(quoteButton).toBeVisible();
 
     // # Move to the quote button with Tab and press Enter
-    await page.keyboard.press('Tab');
+    await app.page.keyboard.press('Tab');
     await expect(quoteButton).toBeFocused();
-    await page.keyboard.press('Enter');
+    await app.page.keyboard.press('Enter');
 
     // * Verify the quote is in the message box
-    await expect(channelsPage.centerView.postCreate.input).toHaveValue('> Diam sapien pellentesque\n\n');
+    await expect(app.center.postCreate.message.container).toHaveValue('> Diam sapien pellentesque\n\n');
 });
 
 /**
@@ -205,46 +215,48 @@ test('does not offer to quote in an archived channel', TAGS, async ({pw}) => {
     const archivedPost = await userClient.createPost({channel_id: channel.id, message: MESSAGE});
     await userClient.deleteChannel(channel.id);
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel});
 
     // * The archived channel has no message box, so wait for the post instead
-    await expect(page.getByText('Diam sapien pellentesque', {exact: false}).first()).toBeVisible();
+    const post = app.center.postList.post(archivedPost);
+    await expect(post.message.container).toContainText('Diam sapien pellentesque');
 
     // # Select part of the message (the last post is the system message about archiving)
-    const post = await channelsPage.centerView.getPostById(archivedPost.id);
-    await selectTextWithMouse(post.body.locator('.post-message__text'), 'Diam sapien pellentesque');
+    await selectTextWithMouse(post.message.container.locator, 'Diam sapien pellentesque');
 
     // * Verify the text is selected but no quote button is shown
-    await expect.poll(() => page.evaluate(() => window.getSelection()?.toString())).toBe('Diam sapien pellentesque');
-    await page.waitForTimeout(500);
-    await expect(page.getByRole('button', {name: 'Quote selection'})).not.toBeVisible();
+    await expect
+        .poll(() => app.page.evaluate(() => window.getSelection()?.toString()))
+        .toBe('Diam sapien pellentesque');
+
+    // The button decides whether to show in a zero-delay timer after mouseup: let the page run a timer tick
+    // and then a frame, so that decision has been made and rendered before checking the button stays hidden.
+    await app.page.evaluate(
+        () => new Promise((resolve) => setTimeout(() => requestAnimationFrame(() => resolve(null)))),
+    );
+    await expect(app.page.getByRole('button', {name: 'Quote selection'})).not.toBeVisible();
 });
 
 /**
  * @objective Verify that text can be quoted in a channel opened in a pop-out window.
  */
 test('quotes text selected in a channel pop-out window', TAGS, async ({pw}) => {
-    const {user, userClient, team} = await pw.initSetup();
-    const townSquare = await userClient.getChannelByName(team.id, 'town-square');
+    const {user, userClient, team, townSquare} = await pw.initSetup();
     const post = await userClient.createPost({channel_id: townSquare.id, message: MESSAGE});
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const app = await openTownSquare(pw, user, team);
 
     // # Open the channel in a pop-out window
-    const [popout] = await Promise.all([
-        page.waitForEvent('popup'),
-        page.locator('#channel-header').getByRole('button', {name: 'Open in new window'}).click(),
-    ]);
-    const message = popout.locator(`#postMessageText_${post.id}`);
+    const [popoutPage] = await Promise.all([app.page.waitForEvent('popup'), app.channelHeader.popoutButton.click()]);
+    const popout = new App(popoutPage);
+    const message = popout.center.postList.post(post).message.container.locator;
     await expect(message).toBeVisible();
 
     // # Select part of the message and quote it
     await selectTextWithMouse(message, 'Diam sapien pellentesque');
-    await popout.getByRole('button', {name: 'Quote selection'}).click();
+    await popout.page.getByRole('button', {name: 'Quote selection'}).click();
 
     // * Verify the quote is in the pop-out's message box
-    await expect(popout.getByTestId('post_textbox')).toHaveValue('> Diam sapien pellentesque\n\n');
+    await expect(popout.center.postCreate.message.container).toHaveValue('> Diam sapien pellentesque\n\n');
 });

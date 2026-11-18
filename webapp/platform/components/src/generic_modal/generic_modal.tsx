@@ -92,8 +92,8 @@ export type Props = {
 
     /**
      * The testid of the modal, e.g. `channel_settings_modal`. The modal's root renders it, and its
-     * built-in buttons derive from it: `<testId>.close--button`, `<testId>.confirm--button` and
-     * `<testId>.cancel--button`. Takes precedence over `dataTestId`.
+     * built-in buttons and heading derive from it: `<testId>.close--button`, `<testId>.confirm--button`,
+     * `<testId>.cancel--button` and `<testId>.heading--text`. Takes precedence over `dataTestId`.
      */
     testId?: string;
 
@@ -282,7 +282,11 @@ export const GenericModal: React.FC<Props> = ({
     // Build header text if provided.
     const headerText = modalHeaderText && (
         <div className='GenericModal__header'>
-            <h1 id={modalHeaderTextId || 'genericModalLabel'} className='modal-title'>
+            <h1
+                id={modalHeaderTextId || 'genericModalLabel'}
+                className='modal-title'
+                data-testid={testId ? `${testId}.heading--text` : undefined}
+            >
                 {modalHeaderText}
             </h1>
             {headerButton}

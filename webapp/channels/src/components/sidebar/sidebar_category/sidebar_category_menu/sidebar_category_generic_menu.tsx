@@ -46,6 +46,7 @@ const SidebarCategoryGenericMenu = ({
             <Menu.Container
                 menuButton={{
                     id: `SidebarCategoryMenu-Button-${id}`,
+                    testId: 'lhs.channel_list.category.menu',
                     'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.editCategory', defaultMessage: '{name} category options'}, {name}),
                     as: SidebarMenuTrigger,
                     class: 'SidebarMenu_menuButton',
@@ -58,6 +59,7 @@ const SidebarCategoryGenericMenu = ({
                 menu={{
                     id: `SidebarChannelMenu-MenuList-${id}`,
                     'aria-label': formatMessage({id: 'sidebar_left.sidebar_category_menu.dropdownAriaLabel', defaultMessage: 'Edit category menu'}),
+                    testId: 'lhs.category_menu',
                     onToggle: handleMenuToggle,
                 }}
             >

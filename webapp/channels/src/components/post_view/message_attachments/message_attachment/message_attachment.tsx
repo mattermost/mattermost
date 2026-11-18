@@ -56,6 +56,8 @@ type Props = {
      */
     imagesMetadata?: Record<string, PostImage>;
 
+    testIdScope?: string;
+
     actions: {
         doPostActionWithCookie: (postId: string, actionId: string, actionCookie: string, selectedOption?: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
@@ -146,7 +148,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
 
         const content = [] as JSX.Element[];
 
-        actions.forEach((action) => {
+        actions.forEach((action, position) => {
             if (!action.id || !action.name) {
                 return;
             }
@@ -159,6 +161,7 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                         postId={this.props.postId}
                         action={action}
                         disabled={action.disabled}
+                        testIdScope={this.props.testIdScope}
                     />,
                 );
                 break;
@@ -167,6 +170,8 @@ export default class MessageAttachment extends React.PureComponent<Props, State>
                 content.push(
                     <ActionButton
                         key={action.id}
+                        testId={this.props.testIdScope ? `${this.props.testIdScope}.action` : undefined}
+                        testKey={position}
                         action={action}
                         disabled={action.disabled}
                         handleAction={this.handleAction}

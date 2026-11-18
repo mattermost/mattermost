@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, setWysiwygUserPreference, test, WysiwygEditor} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
+
+import {clearRich, expectDocument, lastPostText, openRichComposer, sendRich, typeRich} from './support';
 
 const TAGS = {tag: ['@channels', '@wysiwyg_editor']};
 
@@ -10,65 +12,74 @@ test.describe('WYSIWYG editor - markdown-as-you-type rich text', TAGS, () => {
         await pw.ensureFeatureFlag('WysiwygEditor', true);
     });
 
+    /**
+     * @objective Verify bold, italic and strikethrough markdown become inline formatting, and post.
+     */
     test('bold, italic, and strikethrough marks render inline', async ({pw}) => {
-        const {user, userClient, team} = await pw.initSetup();
-        await setWysiwygUserPreference(userClient, user.id, true);
+        const app = await openRichComposer(pw, await pw.initSetup());
+        const composer = app.center.postCreate;
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
+        // # Type the three marks as markdown
+        await typeRich(composer, '**bold** *italic* ~~strike~~');
 
-        const editor = new WysiwygEditor(page.getByTestId('post-create'));
-        await editor.toBeVisible();
-        await editor.type('**bold** *italic* ~~strike~~');
+        // * Verify each renders as formatting
+        await expectDocument(composer, /<strong>bold<\/strong>/);
+        await expectDocument(composer, /<em>italic<\/em>/);
+        await expectDocument(composer, /<s>strike<\/s>/);
 
-        await expect(editor.input.locator('strong')).toHaveText('bold');
-        await expect(editor.input.locator('em')).toHaveText('italic');
-        await expect(editor.input.locator('s')).toHaveText('strike');
+        // # Send it
+        await sendRich(composer);
 
-        await editor.sendByButton();
-        const last = await channelsPage.getLastPost();
-        await last.toContainText('bold');
-        await last.toContainText('italic');
-        await last.toContainText('strike');
+        // * Verify the post has the text
+        await expect.poll(() => lastPostText(app.center.postList)).toMatch(/bold.*italic.*strike/);
     });
 
+    /**
+     * @objective Verify heading, list and blockquote markdown shortcuts become blocks.
+     */
     test('heading, list, and blockquote markdown shortcuts are recognized', async ({pw}) => {
-        const {user, userClient, team} = await pw.initSetup();
-        await setWysiwygUserPreference(userClient, user.id, true);
+        const app = await openRichComposer(pw, await pw.initSetup());
+        const composer = app.center.postCreate;
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
+        // # Type a heading
+        await typeRich(composer, '## heading');
 
-        const editor = new WysiwygEditor(page.getByTestId('post-create'));
-        await editor.toBeVisible();
+        // * Verify it is a heading
+        await expectDocument(composer, /<h2[^>]*>heading<\/h2>/);
 
-        await editor.type('## heading');
-        await expect(editor.input.locator('h2')).toHaveText('heading');
+        // # Replace it with a list item
+        await clearRich(composer);
+        await typeRich(composer, '- item one');
 
-        await editor.clear();
-        await editor.type('- item one');
-        await expect(editor.input.locator('ul li').first()).toContainText('item one');
+        // * Verify it is a list item
+        await expectDocument(composer, /<ul[^>]*><li[^>]*>.*item one.*<\/li>/);
 
-        await editor.clear();
-        await editor.type('> quoted');
-        await expect(editor.input.locator('blockquote')).toContainText('quoted');
+        // # Replace it with a quote
+        await clearRich(composer);
+        await typeRich(composer, '> quoted');
+
+        // * Verify it is a quote
+        await expectDocument(composer, /<blockquote[^>]*>.*quoted.*<\/blockquote>/);
     });
 
+    /**
+     * @objective Verify a message of only emoji gets jumbo emoji, and loses them once text is added.
+     */
     test('all-emoji document gets the jumbo class', async ({pw}) => {
-        const {user, userClient, team} = await pw.initSetup();
-        await setWysiwygUserPreference(userClient, user.id, true);
+        const app = await openRichComposer(pw, await pw.initSetup());
+        const composer = app.center.postCreate;
 
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'off-topic');
+        // # Type only emoji
+        await typeRich(composer, '😀😀😀');
 
-        const editor = new WysiwygEditor(page.getByTestId('post-create'));
-        await editor.toBeVisible();
-        await editor.type('😀😀😀');
+        // * Verify they are jumbo
+        await expectDocument(composer, /WysiwygEditor__emoji--jumbo/);
 
-        await expect(editor.input.locator('.WysiwygEditor__emoji--jumbo').first()).toBeVisible();
+        // # Add text
+        await typeRich(composer, ' text');
 
-        await editor.type(' text');
-        await expect(editor.input.locator('.WysiwygEditor__emoji--jumbo')).toHaveCount(0);
-        await expect(editor.input.locator('.WysiwygEditor__emoji').first()).toBeVisible();
+        // * Verify they are ordinary emoji
+        await expectDocument(composer, /WysiwygEditor__emoji--jumbo/, true);
+        await expectDocument(composer, /WysiwygEditor__emoji/);
     });
 });

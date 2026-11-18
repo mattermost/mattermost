@@ -239,7 +239,7 @@ describe('Upload Files', () => {
         }
         cy.get(':nth-child(5) > .post-image__thumbnail > .post-image').should('be.visible');
         cy.postMessage('test');
-        cy.findByTestId('fileAttachmentList').find('[data-testid="media-gallery-tile"]').should('have.length', 5);
+        cy.findByTestId('center.post_list.post.attachments').find('[data-testid^="center.post_list.post.attachments.file:"][data-testid$="--button"]').should('have.length', 5);
     });
 
     it('MM-T338 Image Attachment Upload in Mobile View', () => {
@@ -336,7 +336,7 @@ describe('Upload Files', () => {
 
         // # Post message
         cy.postMessage('test');
-        cy.findByTestId('fileAttachmentList').within(() => {
+        cy.findByTestId('center.post_list.post.attachments').within(() => {
             for (let i = 1; i < 5; i++) {
                 // * Elements should have space between them
                 cy.get(`:nth-child(${i}) > .post-image__details`).then((firstAttachment) => {

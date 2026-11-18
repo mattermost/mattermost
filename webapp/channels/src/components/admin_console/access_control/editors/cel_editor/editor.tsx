@@ -494,6 +494,7 @@ function CELEditor({
                     className='cel-editor__status-bar'
                     style={{backgroundColor: editorState.statusBarColor}}
                     data-validation-state={getValidationState()}
+                    data-testid={testId ? `${testId}.status_bar--group` : undefined}
                 >
                     <div
                         className='cel-editor__status-message'

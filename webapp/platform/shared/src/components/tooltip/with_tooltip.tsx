@@ -45,6 +45,11 @@ export interface WithTooltipProps {
     id?: string;
 
     /**
+     * Test id scope of the tooltip's own element (the floating container), for the tests that read what it says.
+     */
+    testId?: string;
+
+    /**
      * Whether the tooltip should be vertical or horizontal, by default it is vertical
      * This doesn't always guarantee the tooltip will be vertical, it just determines the initial placement and fallback placements
     */
@@ -99,6 +104,7 @@ export function WithTooltip({
     disabled,
     forcedPlacement,
     id,
+    testId,
 }: WithTooltipProps) {
     const [open, setOpen] = useState(false);
 
@@ -190,6 +196,7 @@ export function WithTooltip({
                         style={{...floatingStyles, ...transitionStyles}}
                         {...getFloatingProps()}
                         id={id}
+                        data-testid={testId}
                     >
                         <TooltipContent
                             title={title}

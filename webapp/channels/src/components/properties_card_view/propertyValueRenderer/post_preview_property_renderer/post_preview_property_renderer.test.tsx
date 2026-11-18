@@ -99,12 +99,15 @@ describe('PostPreviewPropertyRenderer', () => {
 
     it('should render PostMessagePreview when all data is available', async () => {
         const {container, getByTestId, getByText} = renderWithContext(
-            <PostPreviewPropertyRenderer {...defaultProps}/>,
+            <PostPreviewPropertyRenderer
+                {...defaultProps}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
         await waitFor(() => {
-            expect(getByTestId('post-preview-property')).toBeVisible();
+            expect(getByTestId('x.card.field.value.post_preview')).toBeVisible();
         });
 
         expect(getByText('Test post message')).toBeVisible();
@@ -120,7 +123,10 @@ describe('PostPreviewPropertyRenderer', () => {
         props.metadata.post = undefined;
 
         const {container} = renderWithContext(
-            <PostPreviewPropertyRenderer {...props}/>,
+            <PostPreviewPropertyRenderer
+                {...props}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
@@ -132,7 +138,10 @@ describe('PostPreviewPropertyRenderer', () => {
         props.metadata.channel = undefined;
 
         const {container} = renderWithContext(
-            <PostPreviewPropertyRenderer {...props}/>,
+            <PostPreviewPropertyRenderer
+                {...props}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
@@ -144,7 +153,10 @@ describe('PostPreviewPropertyRenderer', () => {
         props.metadata.team = undefined;
 
         const {container} = renderWithContext(
-            <PostPreviewPropertyRenderer {...props}/>,
+            <PostPreviewPropertyRenderer
+                {...props}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
@@ -161,11 +173,14 @@ describe('PostPreviewPropertyRenderer', () => {
         props.metadata.channel = privateChannel;
 
         const {getByTestId, getByText} = renderWithContext(
-            <PostPreviewPropertyRenderer {...props}/>,
+            <PostPreviewPropertyRenderer
+                {...props}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
-        expect(getByTestId('post-preview-property')).toBeVisible();
+        expect(getByTestId('x.card.field.value.post_preview')).toBeVisible();
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
     });
@@ -186,11 +201,14 @@ describe('PostPreviewPropertyRenderer', () => {
         props.metadata.team = teamWithoutName;
 
         const {getByTestId, getByText} = renderWithContext(
-            <PostPreviewPropertyRenderer {...props}/>,
+            <PostPreviewPropertyRenderer
+                {...props}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
-        expect(getByTestId('post-preview-property')).toBeVisible();
+        expect(getByTestId('x.card.field.value.post_preview')).toBeVisible();
         expect(getByText('Test post message')).toBeVisible();
         expect(getByText('Originally posted in ~')).toBeVisible();
     });
@@ -224,11 +242,14 @@ describe('PostPreviewPropertyRenderer', () => {
         props.metadata.post = postWithAttachments;
 
         const {getByTestId, getByText} = renderWithContext(
-            <PostPreviewPropertyRenderer {...props}/>,
+            <PostPreviewPropertyRenderer
+                {...props}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
-        expect(getByTestId('post-preview-property')).toBeVisible();
+        expect(getByTestId('x.card.field.value.post_preview')).toBeVisible();
         expect(getByText('Post with file attachment')).toBeVisible();
         expect(getByText('Originally posted in ~Test Channel')).toBeVisible();
 

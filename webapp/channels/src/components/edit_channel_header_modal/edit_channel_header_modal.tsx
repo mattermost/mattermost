@@ -220,6 +220,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                 onExited={this.props.onExited}
                 role='none'
                 aria-labelledby='editChannelHeaderModalLabel'
+                data-testid='edit_channel_header_modal'
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
@@ -249,6 +250,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                                 handlePostError={this.handlePostError}
                                 channelId={this.props.channel.id!}
                                 id='edit_textbox'
+                                testId='edit_channel_header_modal.header'
                                 ref={this.editChannelHeaderTextboxRef}
                                 characterLimit={headerMaxLength}
                                 preview={this.state.showPreview}
@@ -277,6 +279,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                         type='button'
                         emphasis='tertiary'
                         onClick={this.hideModal}
+                        data-testid='edit_channel_header_modal.cancel--button'
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.cancel'
@@ -288,6 +291,7 @@ export class EditChannelHeaderModal extends React.PureComponent<Props, State> {
                         type='button'
                         emphasis='primary'
                         onClick={this.handleSave}
+                        data-testid='edit_channel_header_modal.save--button'
                     >
                         <FormattedMessage
                             id='edit_channel_header_modal.save'

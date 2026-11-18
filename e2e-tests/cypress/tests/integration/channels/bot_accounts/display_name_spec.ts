@@ -75,7 +75,7 @@ describe('Bot display name', () => {
                         cy.get('div.user-profile-popover').
                             should('be.visible');
 
-                        cy.findByTestId(`popover-fullname-${bot.username}`).
+                        cy.findByTestId('profile_popover.full_name--text').
                             should('have.text', bot.display_name);
                     }).then(() => {
                         // # Change display name after prior verification
@@ -91,7 +91,7 @@ describe('Bot display name', () => {
                                 cy.get('div.user-profile-popover').
                                     should('be.visible');
 
-                                cy.findByTestId(`popover-fullname-${bot.username}`).
+                                cy.findByTestId('profile_popover.full_name--text').
                                     should('have.text', `NEW ${bot.display_name}`);
                             });
                         });

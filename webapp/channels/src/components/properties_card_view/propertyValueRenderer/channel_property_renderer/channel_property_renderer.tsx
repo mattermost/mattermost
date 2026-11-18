@@ -14,16 +14,17 @@ import './channel_property_renderer.scss';
 type Props = {
     value: PropertyValue<unknown>;
     metadata?: ChannelFieldMetadata;
+    testIdScope?: string;
 };
 
-export default function ChannelPropertyRenderer({value, metadata}: Props) {
+export default function ChannelPropertyRenderer({value, metadata, testIdScope}: Props) {
     const channelId = value.value as string;
     const channel = metadata?.channel;
 
     return (
         <div
             className='ChannelPropertyRenderer'
-            data-testid='channel-property'
+            data-testid={testIdScope ? `${testIdScope}.channel` : undefined}
         >
             {
                 channel &&

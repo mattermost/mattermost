@@ -62,7 +62,7 @@ describe('Multi-Team + DMs', () => {
         // * Verify user's status show in the members list on RHS
         cy.get('#member_rhs').click();
         cy.get('#rhsContainer').should('be.visible');
-        cy.get(`[data-testid="memberline-${userB.id}"]`).
+        cy.get(`[data-testid="rhs.channel_members.member:${userB.id}"]`).
             should('be.visible').
             children('div.Avatar-IGMzc').
             children().

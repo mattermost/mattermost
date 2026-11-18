@@ -17,9 +17,12 @@ import './burn_on_read_timer_chip.scss';
 interface Props {
     expireAt?: number;
     onClick: () => void;
+
+    // The post's scope; undefined renders no testid.
+    testIdScope?: string;
 }
 
-const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
+const BurnOnReadTimerChip = ({expireAt, onClick, testIdScope}: Props) => {
     const {formatMessage} = useIntl();
     const [lastAnnouncement, setLastAnnouncement] = useState<number>(0);
 
@@ -89,7 +92,7 @@ const BurnOnReadTimerChip = ({expireAt, onClick}: Props) => {
                 <button
                     type='button'
                     className={`BurnOnReadTimerChip ${isWarning ? 'BurnOnReadTimerChip--warning' : ''} ${isExpired ? 'BurnOnReadTimerChip--expired' : ''}`}
-                    data-testid='burn-on-read-timer-chip'
+                    data-testid={testIdScope ? `${testIdScope}.burn_on_read_timer--button` : undefined}
                     onClick={handleClick}
                     onKeyDown={handleKeyDown}
                     aria-label={ariaLabel}

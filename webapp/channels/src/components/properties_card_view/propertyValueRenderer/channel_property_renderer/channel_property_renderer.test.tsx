@@ -28,24 +28,26 @@ describe('ChannelPropertyRenderer', () => {
     it('should render channel name and icon when channel exists', () => {
         renderWithContext(
             <ChannelPropertyRenderer
+                testIdScope='x.card.field.value'
                 value={mockValue}
                 metadata={{channel: mockChannel}}
             />,
         );
 
-        expect(screen.getByTestId('channel-property')).toBeInTheDocument();
+        expect(screen.getByTestId('x.card.field.value.channel')).toBeInTheDocument();
         expect(screen.getByText('Test Channel')).toBeInTheDocument();
     });
 
     it('should render deleted channel message when channel does not exist', () => {
         renderWithContext(
             <ChannelPropertyRenderer
+                testIdScope='x.card.field.value'
                 value={mockValue}
                 metadata={{channel: undefined}}
             />,
         );
 
-        expect(screen.getByTestId('channel-property')).toBeInTheDocument();
+        expect(screen.getByTestId('x.card.field.value.channel')).toBeInTheDocument();
         expect(screen.getByText(/Deleted channel ID: channel-id-123/)).toBeInTheDocument();
     });
 
@@ -58,6 +60,7 @@ describe('ChannelPropertyRenderer', () => {
 
         renderWithContext(
             <ChannelPropertyRenderer
+                testIdScope='x.card.field.value'
                 value={mockValue}
                 metadata={{channel: privateChannel}}
             />,
@@ -75,6 +78,7 @@ describe('ChannelPropertyRenderer', () => {
 
         const {container} = renderWithContext(
             <ChannelPropertyRenderer
+                testIdScope='x.card.field.value'
                 value={mockValue}
                 metadata={{channel: dmChannel}}
             />,
@@ -93,6 +97,7 @@ describe('ChannelPropertyRenderer', () => {
 
         const {container} = renderWithContext(
             <ChannelPropertyRenderer
+                testIdScope='x.card.field.value'
                 value={mockValue}
                 metadata={{channel: gmChannel}}
             />,
@@ -107,6 +112,7 @@ describe('ChannelPropertyRenderer', () => {
 
         const {container} = renderWithContext(
             <ChannelPropertyRenderer
+                testIdScope='x.card.field.value'
                 value={mockValue}
                 metadata={{channel: mockChannel}}
             />,
@@ -123,6 +129,7 @@ describe('ChannelPropertyRenderer', () => {
 
         const {container} = renderWithContext(
             <ChannelPropertyRenderer
+                testIdScope='x.card.field.value'
                 value={mockValue}
                 metadata={{channel: mockChannel}}
             />,

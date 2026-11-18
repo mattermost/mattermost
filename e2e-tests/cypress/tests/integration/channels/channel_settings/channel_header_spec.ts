@@ -83,7 +83,7 @@ function hoverOnChannelDescriptionAndVerifyBehavior() {
     // # Scan inside the channel header modal
     cy.get('.a11y__modal.modal-dialog').should('be.visible').within(() => {
         // # Enter a channel description
-        cy.findByTestId('edit_textbox').should('exist').clear().type(channelDescriptionText);
+        cy.findByTestId('edit_channel_header_modal.header--textbox').should('exist').clear().type(channelDescriptionText);
 
         // # Click on save
         cy.findByText('Save').should('be.visible').click();

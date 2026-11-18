@@ -24,6 +24,8 @@ type PostImageProps = {
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
+
+    testId?: string;
 };
 
 const PostImage = ({
@@ -31,6 +33,7 @@ const PostImage = ({
     link,
     post,
     actions,
+    testId,
 }: PostImageProps) => {
     const {openModal} = actions;
     const showModal = useCallback((
@@ -71,6 +74,7 @@ const PostImage = ({
                             dimensions={imageMetadata}
                             showLoader={true}
                             onClick={showModal}
+                            testId={testId}
                         />
                     </>
                 )}

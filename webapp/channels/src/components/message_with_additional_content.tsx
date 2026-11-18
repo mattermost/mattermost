@@ -21,6 +21,10 @@ type Props = {
     isRHS: boolean;
     compactDisplay?: boolean;
     isChannelAutotranslated: boolean;
+
+    testId?: string;
+
+    testIdScope?: string;
 };
 
 export default function MessageWithAdditionalContent({
@@ -30,6 +34,8 @@ export default function MessageWithAdditionalContent({
     isRHS,
     compactDisplay,
     isChannelAutotranslated,
+    testId,
+    testIdScope,
 }: Props) {
     const hasPlugin = post.type && pluginPostTypes && Object.hasOwn(pluginPostTypes, post.type);
     const {locale} = useIntl();
@@ -41,6 +47,8 @@ export default function MessageWithAdditionalContent({
             compactDisplay={compactDisplay}
             isChannelAutotranslated={isChannelAutotranslated}
             userLanguage={locale}
+            testId={testId}
+            testIdScope={testIdScope}
         />
     );
     if (post.state === Posts.POST_DELETED || hasPlugin) {
@@ -50,6 +58,7 @@ export default function MessageWithAdditionalContent({
             <PostBodyAdditionalContent
                 post={post}
                 isEmbedVisible={isEmbedVisible}
+                testIdScope={testIdScope}
             >
                 {messageWrapper}
             </PostBodyAdditionalContent>

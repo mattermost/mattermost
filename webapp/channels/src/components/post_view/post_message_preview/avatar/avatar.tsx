@@ -20,9 +20,10 @@ type Props = {
     user: UserProfile;
     enablePostIconOverride?: boolean;
     hasImageProxy?: boolean;
+    testIdScope?: string;
 };
 
-export default function PreviewPostAvatar({post, user, enablePostIconOverride, hasImageProxy}: Props) {
+export default function PreviewPostAvatar({post, user, enablePostIconOverride, hasImageProxy, testIdScope}: Props) {
     const isBot = Boolean(user && user.is_bot);
     const isSystemMessage = post ? PostUtils.isSystemMessage(post) : false;
     const fromWebhook = post ? PostUtils.isFromWebhook(post) : false;
@@ -43,25 +44,17 @@ export default function PreviewPostAvatar({post, user, enablePostIconOverride, h
         return imageURLForUser(user?.id ?? '');
     }, [enablePostIconOverride, fromAutoResponder, fromWebhook, hasImageProxy, post?.props, user?.id]);
 
-    let avatar = (
+    if (isSystemMessage && !fromWebhook && !isBot) {
+        return (<MattermostLogo className='icon'/>);
+    }
+
+    return (
         <Avatar
+            username={user?.id ? user.username : undefined}
             size={'sm'}
             url={src}
             className={'avatar-post-preview'}
+            data-testid={testIdScope ? `${testIdScope}.avatar--img` : undefined}
         />
     );
-    if (isSystemMessage && !fromWebhook && !isBot) {
-        avatar = (<MattermostLogo className='icon'/>);
-    } else if (user?.id) {
-        avatar = (
-            <Avatar
-                username={user.username}
-                size={'sm'}
-                url={src}
-                className={'avatar-post-preview'}
-            />
-        );
-    }
-
-    return avatar;
 }

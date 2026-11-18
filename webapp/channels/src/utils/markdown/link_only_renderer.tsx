@@ -13,7 +13,7 @@ export default class LinkOnlyRenderer extends RemoveMarkdown {
             outHref = `http://${outHref}`;
         }
 
-        let output = `<a class="theme markdown__link" href="${outHref}" target="_blank"`;
+        let output = `<a data-testid="markdown.plain_link--link" class="theme markdown__link" href="${outHref}" target="_blank"`;
 
         if (title) {
             output += ' title="' + title + '"';

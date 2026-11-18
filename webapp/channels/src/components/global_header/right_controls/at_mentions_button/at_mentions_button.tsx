@@ -59,6 +59,7 @@ const AtMentionsButton = (): JSX.Element => {
             forcedPlacement='bottom'
         >
             <IconButton
+                data-testid='global_header.recent_mentions--button'
                 style='inverted'
                 size='small'
                 padding='compact'

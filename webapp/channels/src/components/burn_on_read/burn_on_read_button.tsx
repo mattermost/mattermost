@@ -29,9 +29,11 @@ type Props = {
     // attributes being attached to it. Disables the button and replaces its
     // tooltip with the reason.
     blockedReason?: string;
+
+    testIdScope?: string;
 };
 
-const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes, blockedReason}: Props) => {
+const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes, blockedReason, testIdScope}: Props) => {
     const {formatMessage} = useIntl();
 
     const handleClick = () => {
@@ -58,6 +60,7 @@ const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes, blocked
     const button = (
         <IconButton
             id='burnOnReadButton'
+            data-testid={testIdScope ? `${testIdScope}.burn_on_read--button` : undefined}
             className='control'
             size='small'
             disabled={disabled || Boolean(blockedReason)}

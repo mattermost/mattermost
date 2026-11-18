@@ -12,10 +12,10 @@ import {selectPostFromRightHandSideSearch} from 'actions/views/rhs';
 
 type Props = {
     post: Post;
-    flaggedPostID: string;
+    testIdScope?: string;
 };
 
-export default function DataSpillageFooter({post, flaggedPostID}: Props) {
+export default function DataSpillageFooter({post, testIdScope}: Props) {
     const dispatch = useDispatch();
 
     const onClick = useCallback(() => {
@@ -27,12 +27,12 @@ export default function DataSpillageFooter({post, flaggedPostID}: Props) {
     return (
         <div
             className='DataSpillageFooter'
-            data-testid='data-spillage-footer'
+            data-testid={testIdScope}
         >
             <Button
                 emphasis='primary'
                 size='small'
-                data-testid={`data-spillage-action-view-details_${flaggedPostID}`}
+                data-testid={testIdScope ? `${testIdScope}.view_details--button` : undefined}
                 onClick={onClick}
             >
                 <FormattedMessage

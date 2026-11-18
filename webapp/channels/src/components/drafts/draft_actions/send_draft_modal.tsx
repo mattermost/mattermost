@@ -42,6 +42,7 @@ function SendDraftModal({
 
     return (
         <GenericModal
+            testId='send_draft_modal'
             confirmButtonText={confirmButtonText}
             handleCancel={() => {}}
             handleConfirm={onConfirm}

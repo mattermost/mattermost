@@ -33,50 +33,50 @@ describe('Keyboard Shortcuts', () => {
             cy.findByText('Reply').click();
 
             // * Confirm that reply text box has focus
-            cy.findByTestId('reply_textbox').should('be.focused');
+            cy.findByTestId('rhs.post_create.message--textbox').should('be.focused');
 
             // * Verify RHS is opened
             cy.uiGetRHS().within(() => {
                 for (let idx = 0; idx < messages.length; idx++) {
                     // # Post each message as a reply
-                    cy.findByTestId('reply_textbox').
+                    cy.findByTestId('rhs.post_create.message--textbox').
                         type(messages[idx]).
                         type('{enter}').
                         clear();
                 }
 
                 // * Confirm that reply textbox has focus
-                cy.findByTestId('reply_textbox').should('be.focused').clear();
+                cy.findByTestId('rhs.post_create.message--textbox').should('be.focused').clear();
 
                 // # Press CTRL/CMD + uparrow repeatedly
                 let previousMessageIndex = messages.length - 1;
                 for (let idx = 0; idx <= messages.length; idx++) {
                     if (idx === messages.length) {
                         // * Check if the last message is equal to the first message
-                        cy.findByTestId('reply_textbox').cmdOrCtrlShortcut('{uparrow}');
-                        cy.findByTestId('reply_textbox').should('have.text', firstMessage);
+                        cy.findByTestId('rhs.post_create.message--textbox').cmdOrCtrlShortcut('{uparrow}');
+                        cy.findByTestId('rhs.post_create.message--textbox').should('have.text', firstMessage);
                         break;
                     }
                     if (messages[previousMessageIndex] === '/shrug') {
-                        cy.findByTestId('reply_textbox').click();
+                        cy.findByTestId('rhs.post_create.message--textbox').click();
                     }
-                    cy.findByTestId('reply_textbox').cmdOrCtrlShortcut('{uparrow}');
+                    cy.findByTestId('rhs.post_create.message--textbox').cmdOrCtrlShortcut('{uparrow}');
 
                     // * Check if the message is equal to the last message
-                    cy.findByTestId('reply_textbox').should('have.text', messages[previousMessageIndex]);
+                    cy.findByTestId('rhs.post_create.message--textbox').should('have.text', messages[previousMessageIndex]);
 
                     previousMessageIndex--;
                 }
 
                 // * Press CTRL/CMD + downarrow check if the current text is equal to the second message
-                cy.findByTestId('reply_textbox').cmdOrCtrlShortcut('{downarrow}').should('have.text', messages[0]);
+                cy.findByTestId('rhs.post_create.message--textbox').cmdOrCtrlShortcut('{downarrow}').should('have.text', messages[0]);
 
                 // # Close the RHS
                 cy.uiCloseRHS().wait(TIMEOUTS.HALF_SEC);
             });
 
             // * Press CTRL/CMD + uparrow in central textbox check if the text is equal to the last message
-            cy.findByTestId('post_textbox').cmdOrCtrlShortcut('{uparrow}').should('have.text', messages[messages.length - 1]);
+            cy.findByTestId('center.post_create.message--textbox').cmdOrCtrlShortcut('{uparrow}').should('have.text', messages[messages.length - 1]);
         });
     });
 });

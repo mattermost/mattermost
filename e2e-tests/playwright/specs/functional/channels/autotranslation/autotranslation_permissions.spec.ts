@@ -105,17 +105,17 @@ test.describe('autotranslation configuration tests', () => {
                 await adminClient.addToTeam(team.id, peerUser.id);
                 await adminClient.createDirectChannel([user.id, peerUser.id]);
 
-                const {channelsPage} = await pw.testBrowser.login(user);
-                await channelsPage.goto(team.name, `@${peerUser.username}`);
-                await channelsPage.toBeVisible();
+                const {app} = await pw.testBrowser.login(user);
+                await app.channelsPage.goto({team, path: 'messages', channel: `@${peerUser.username}`});
+                await expect(app.center.postCreate).toBeVisible();
 
-                await channelsPage.centerView.header.openChannelMenu();
+                await app.channelHeader.openMenuButton.click();
                 if (shouldShowEditHeader) {
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
+                    await expect(app.channelHeader.menu.editHeaderMenuItem).toBeVisible();
+                    await expect(app.channelHeader.menu.channelSettingsMenuItem).toHaveCount(0);
                 } else {
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toBeVisible();
-                    await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toHaveCount(0);
+                    await expect(app.channelHeader.menu.channelSettingsMenuItem).toBeVisible();
+                    await expect(app.channelHeader.menu.editHeaderMenuItem).toHaveCount(0);
                 }
             } finally {
                 await adminClient.updateConfig(originalConfig as any);
@@ -168,13 +168,13 @@ test.describe('autotranslation configuration tests', () => {
                 await adminClient.addToTeam(team.id, peerUser.id);
                 await adminClient.createDirectChannel([user.id, peerUser.id]);
 
-                const {channelsPage} = await pw.testBrowser.login(user);
-                await channelsPage.goto(team.name, `@${peerUser.username}`);
-                await channelsPage.toBeVisible();
+                const {app} = await pw.testBrowser.login(user);
+                await app.channelsPage.goto({team, path: 'messages', channel: `@${peerUser.username}`});
+                await expect(app.center.postCreate).toBeVisible();
 
-                await channelsPage.centerView.header.openChannelMenu();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Edit Header'})).toBeVisible();
-                await expect(channelsPage.page.getByRole('menuitem', {name: 'Channel Settings'})).toHaveCount(0);
+                await app.channelHeader.openMenuButton.click();
+                await expect(app.channelHeader.menu.editHeaderMenuItem).toBeVisible();
+                await expect(app.channelHeader.menu.channelSettingsMenuItem).toHaveCount(0);
             } finally {
                 await adminClient.updateConfig(originalConfig as any);
             }
@@ -205,11 +205,14 @@ test.describe('autotranslation configuration tests', () => {
             await adminClient.addToTeam(team.id, otherUser.id);
             const dmChannel = await adminClient.createDirectChannel([user.id, otherUser.id]);
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, `@${otherUser.username}`);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, path: 'messages', channel: `@${otherUser.username}`});
+            await expect(app.center.postCreate).toBeVisible();
 
-            const channelSettingsModal = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
+                app.channelSettingsModal,
+            );
             await expect(channelSettingsModal).toBeVisible();
 
             const newHeader = `DM header ${pw.random.id()}`;
@@ -250,11 +253,14 @@ test.describe('autotranslation configuration tests', () => {
             });
             await adminClient.addToChannel(user.id, created.id);
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: channelName});
+            await expect(app.center.postCreate).toBeVisible();
 
-            const channelSettingsModal = await channelsPage.openChannelSettings();
+            await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+            const channelSettingsModal = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(
+                app.channelSettingsModal,
+            );
             // The tabs render with the modal, and the test branches on whether this role is offered the tab at all
             const configTabVisible = await channelSettingsModal.tabs.tab('configuration').locator.isVisible();
             if (configTabVisible) {

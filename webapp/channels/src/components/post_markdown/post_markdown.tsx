@@ -113,6 +113,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                     <DataSpillageReport
                         post={this.props.post}
                         isRHS={this.props.isRHS}
+                        testIdScope={this.props.testIdScope ? `${this.props.testIdScope}.spillage_report` : undefined}
                     />
                 </div>
             );
@@ -170,6 +171,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
                         imagesMetadata={this.props.post?.metadata?.images}
                         postId={this.props.post?.id}
                         editedAt={this.props.showPostEditedIndicator ? this.props.post?.edit_at : undefined}
+                        editedTestId={this.props.testIdScope ? `${this.props.testIdScope}.edited` : undefined}
                         allowInlineActions={allowInlineActions}
                         mmBlocksActionCookie={mmBlocksActionsCookie}
                         integrationFormat={integrationFormat}

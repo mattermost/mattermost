@@ -88,7 +88,7 @@ export default class ChannelsPost {
         // The embedded permalink preview carries no test id, so the class name is the
         // only handle available.
         this.postPreview = container.locator('.post-preview');
-        this.priorityLabel = container.getByTestId('post-priority-label');
+        this.priorityLabel = container.getByTestId('post_priority.label--text');
     }
 
     async toBeVisible() {

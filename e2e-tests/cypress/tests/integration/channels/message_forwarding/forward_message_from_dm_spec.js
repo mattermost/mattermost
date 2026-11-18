@@ -195,7 +195,7 @@ describe('Forward Message', () => {
             cy.findByRole('button', {name: 'Cancel'}).should('not.be.disabled');
 
             // * Assert Notification is shown
-            cy.findByTestId('notification_forward_post').should('be.visible').should('contain.text', `This message is from a private conversation and can only be shared with ${dmChannel.display_name}`);
+            cy.findByTestId('forward_post_modal.notification').should('be.visible').should('contain.text', `This message is from a private conversation and can only be shared with ${dmChannel.display_name}`);
 
             if (comment) {
                 // # Enter comment

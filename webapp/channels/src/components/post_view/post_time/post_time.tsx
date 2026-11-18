@@ -38,6 +38,8 @@ type Props = {
     postId: string;
     teamUrl: string;
     timestampProps?: ComponentProps<typeof Timestamp>;
+
+    testId?: string;
 };
 
 export default class PostTime extends React.PureComponent<Props> {
@@ -60,6 +62,7 @@ export default class PostTime extends React.PureComponent<Props> {
             postId,
             teamUrl,
             timestampProps = {},
+            testId,
         } = this.props;
 
         const postTime = (
@@ -75,6 +78,7 @@ export default class PostTime extends React.PureComponent<Props> {
             <div
                 role='presentation'
                 className='post__permalink post_permalink_mobile_view'
+                data-testid={testId ? `${testId}--text` : undefined}
             >
                 {postTime}
             </div>
@@ -83,6 +87,7 @@ export default class PostTime extends React.PureComponent<Props> {
                 id={`${location}_time_${postId}`}
                 to={`${teamUrl}/pl/${postId}`}
                 className='post__permalink'
+                data-testid={testId ? `${testId}_link--link` : undefined}
                 onClick={this.handleClick}
                 aria-labelledby={eventTime.toString()}
             >

@@ -114,6 +114,7 @@ const ThreadPane = ({
                         <Button
                             className={classNames('Button___icon Button___large back', {hasBackAction: backAction})}
                             onClick={selectHandler}
+                            data-testid='threads.pane.back--button'
                         >
                             <i className='icon icon-arrow-back-ios'/>
                         </Button>
@@ -128,6 +129,7 @@ const ThreadPane = ({
                                 className='separated'
                                 allowTextOverflow={true}
                                 onClick={goToInChannelHandler}
+                                data-testid='threads.pane.channel--button'
                             >
                                 {channel?.display_name}
                             </Button>
@@ -137,6 +139,7 @@ const ThreadPane = ({
                             surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
                             allowEmptyVisible={true}
                             interactive={false}
+                            testId='threads.pane.attributes'
                         />
                     </>
                 )}
@@ -145,11 +148,16 @@ const ThreadPane = ({
                         <FollowButton
                             isFollowing={isFollowing}
                             onClick={followHandler}
+                            testId='threads.pane.follow'
                         />
-                        <PopoutButton onClick={popout}/>
+                        <PopoutButton
+                            onClick={popout}
+                            testId='threads.pane.popout'
+                        />
                         <ThreadMenu
                             idPrefix='thread-menu'
                             threadId={threadId}
+                            testId='threads.pane.open_menu'
                             isFollowing={isFollowing}
                             hasUnreads={isFollowing && Boolean((thread as UserThread).unread_replies || (thread as UserThread).unread_mentions)}
                             unreadTimestamp={unreadTimestamp}

@@ -44,7 +44,7 @@ describe('Post PreHeader', () => {
             cy.get('@savedLink').click();
 
             // * Check that the saved post shows the channel name
-            cy.findByTestId('search-item-container').within(() => {
+            cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).within(() => {
                 cy.get('span.search-channel__name').
                     should('be.visible').
                     and('have.text', 'Off-Topic');
@@ -108,7 +108,7 @@ describe('Post PreHeader', () => {
                     and('contain', 'Off-Topic');
 
                 // * Check that the post pre-header is not shown for the pinned message in RHS
-                cy.findByTestId('search-item-container').within(() => {
+                cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).within(() => {
                     cy.get('div.post__content').should('be.visible');
                     cy.get(`#rhsPostMessageText_${postId}`).contains('test for pinning/unpinning a post');
                     cy.get('div.post-pre-header').should('not.exist');
@@ -169,7 +169,7 @@ describe('Post PreHeader', () => {
             cy.get('@savedLink').click();
 
             // * Check that the post pre-header only shows the pinned link in RHS
-            cy.findByTestId('search-item-container').within(() => {
+            cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).within(() => {
                 cy.get('div.post-pre-header__text-container').
                     should('be.visible').
                     and('have.text', 'Pinned');
@@ -179,7 +179,7 @@ describe('Post PreHeader', () => {
             cy.get('@pinnedLink').click();
 
             // * Check that the post pre-header only shows the saved link in RHS
-            cy.findByTestId('search-item-container').within(() => {
+            cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).within(() => {
                 cy.get('div.post-pre-header__text-container').
                     should('be.visible').
                     and('have.text', 'Saved');
@@ -195,7 +195,7 @@ describe('Post PreHeader', () => {
                     should('be.visible').
                     and('have.text', 'Search Results');
 
-                cy.findByTestId('search-item-container').within(() => {
+                cy.findByTestId(/^search\.results\.(post|file):[^.]+$/).within(() => {
                     cy.get('div.post-pre-header__text-container').
                         should('be.visible').
                         and('have.text', `Pinned${'\u2B24'}Saved`);

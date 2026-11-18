@@ -72,6 +72,7 @@ export default function SidebarTeamMenu(props: Props) {
         <Menu.Container
             menuButton={{
                 id: 'sidebarTeamMenuButton',
+                testId: 'lhs.header.open_team_menu',
                 class: buttonClassNames({emphasis: 'quaternary', size: 'sm'}, 'btn-inverted'),
                 children: (
                     <>
@@ -85,6 +86,7 @@ export default function SidebarTeamMenu(props: Props) {
             }}
             menu={{
                 id: 'sidebarTeamMenu',
+                testId: 'lhs.team_menu',
             }}
         >
             {((isGuestAccessEnabled && havePermissionToInviteGuest) || havePermissionToAddUserToTeam) && (
@@ -136,6 +138,7 @@ function InvitePeopleMenuItem(props: Menu.FirstMenuItemProps) {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.invite_people--menuitem'
             onClick={handleClick}
             leadingElement={(
                 <AccountMultiplePlusOutlineIcon
@@ -176,6 +179,7 @@ function AddGroupsToTeamMenuItem(props: Menu.FirstMenuItemProps) {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.add_groups--menuitem'
             onClick={handleClick}
             leadingElement={(
                 <AccountPlusOutlineIcon
@@ -211,6 +215,7 @@ function TeamSettingsMenuItem(props: Menu.FirstMenuItemProps) {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.team_settings--menuitem'
             leadingElement={(
                 <SettingsOutlineIcon
                     size={18}
@@ -263,6 +268,7 @@ function ManageViewMembersMenuItem(props: Menu.FirstMenuItemProps) {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.members--menuitem'
             leadingElement={(
                 <AccountMultipleOutlineIcon
                     size={18}
@@ -296,6 +302,7 @@ function ManageGroupsMenuItem({teamID}: ManageGroupsMenuItemProps) {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.manage_groups--menuitem'
             leadingElement={(
                 <MonitorAccountIcon
                     size={18}
@@ -326,6 +333,7 @@ function LeaveTeamMenuItem() {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.leave_team--menuitem'
             leadingElement={(
                 <ExitToAppIcon
                     size={18}
@@ -354,6 +362,7 @@ function JoinAnotherTeamMenuItem() {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.join_another_team--menuitem'
             leadingElement={(
                 <MessagePlusOutlineIcon
                     size={18}
@@ -391,6 +400,7 @@ function CreateTeamMenuItem({isCloud}: CreateTeamMenuItemProps) {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.create_team--menuitem'
             leadingElement={(
                 <PlusIcon
                     size={18}
@@ -461,6 +471,7 @@ function LearnAboutTeamsMenuItem() {
 
     return (
         <Menu.Item
+            data-testid='lhs.team_menu.learn_about_teams--menuitem'
             className='learnAboutTeamsMenuItem'
             onClick={handleClick}
             leadingElement={(
@@ -494,6 +505,7 @@ function PluginMenuItems() {
                 <Menu.Item
                     id={`${plugin.id}_pluginmenuitem`}
                     key={plugin.id}
+                    data-testid={`lhs.team_menu.plugin:${plugin.pluginId}--menuitem`}
                     onClick={handleClick}
                     labels={<span>{plugin.text}</span>}
                 />

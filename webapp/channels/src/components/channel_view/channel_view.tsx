@@ -154,6 +154,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 >
                     <div
                         className='channel-archived__message'
+                        data-testid='center.archived_notice'
                     >
                         <FormattedMessage
                             id='channelView.archivedChannelWithDeactivatedUser'
@@ -165,6 +166,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         <Button
                             emphasis='primary'
                             className='channel-archived__close-btn'
+                            data-testid='center.archived_notice.close--button'
                             onClick={this.onClickCloseChannel}
                         >
                             <FormattedMessage
@@ -184,6 +186,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                     <div
                         id='channelArchivedMessage'
                         className='channel-archived__message'
+                        data-testid='center.archived_notice'
                     >
                         <FormattedMessage
                             {...messages.archived[this.props.channelKind]}
@@ -194,6 +197,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                         <Button
                             emphasis='primary'
                             className='channel-archived__close-btn'
+                            data-testid='center.archived_notice.close--button'
                             onClick={this.onClickCloseChannel}
                         >
                             <FormattedMessage {...channelKindMessages.closeChannel[this.props.channelKind]}/>
@@ -234,7 +238,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
             createPost = (
                 <div
                     id='post-create'
-                    data-testid='post-create'
+                    data-testid='center.composer'
                     className='post-create__container AdvancedTextEditor__ctr'
                 >
                     <ChannelComposerBanner channelId={this.props.channelId}/>
@@ -271,6 +275,7 @@ export default class ChannelView extends React.PureComponent<Props, State> {
                 <ChannelHeader key='channelHeader'/>
                 <ChannelBanner
                     key='channelBanner'
+                    testIdScope='center.channel_banner'
                     channelId={this.props.channelId}
                 />
                 {this.props.isChannelBookmarksEnabled && (

@@ -282,7 +282,7 @@ describe('components/channel_view', () => {
 
             expect(screen.getByTestId('plugin-channel-view')).toHaveAttribute('data-focused-post-id', 'postid');
             expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-create')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.composer')).not.toBeInTheDocument();
             expect(markChannelAsRead).not.toHaveBeenCalled();
         });
 
@@ -378,7 +378,7 @@ describe('components/channel_view', () => {
             expect(pluginView).toHaveAttribute('data-team-id', 'currentTeamId');
             expect(document.getElementById('channelViewPluginComponent')).toHaveAttribute('data-plugin-id', 'test-plugin');
             expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-create')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.composer')).not.toBeInTheDocument();
             expect(document.getElementById('post-create')).not.toBeInTheDocument();
         });
 
@@ -461,7 +461,7 @@ describe('components/channel_view connected', () => {
 
         expect(screen.getByTestId('channel-header')).toBeInTheDocument();
         expect(screen.getByTestId('deferred-post-view')).toBeInTheDocument();
-        expect(screen.getByTestId('post-create')).toBeInTheDocument();
+        expect(screen.getByTestId('center.composer')).toBeInTheDocument();
         expect(screen.queryByTestId('plugin-channel-view')).not.toBeInTheDocument();
     });
 
@@ -469,7 +469,7 @@ describe('components/channel_view connected', () => {
         renderWithContext(<ConnectedChannelView/>, makeState([makeRegistration({matcher: () => false})]));
 
         expect(screen.getByTestId('deferred-post-view')).toBeInTheDocument();
-        expect(screen.getByTestId('post-create')).toBeInTheDocument();
+        expect(screen.getByTestId('center.composer')).toBeInTheDocument();
         expect(screen.queryByTestId('plugin-channel-view')).not.toBeInTheDocument();
     });
 
@@ -482,7 +482,7 @@ describe('components/channel_view connected', () => {
         expect(screen.getByTestId('plugin-channel-view')).toBeInTheDocument();
         expect(markChannelAsRead).toHaveBeenCalledWith(channel.id);
         expect(screen.queryByTestId('deferred-post-view')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('post-create')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.composer')).not.toBeInTheDocument();
     });
 
     it('treats a throwing matcher as no match', () => {
@@ -497,7 +497,7 @@ describe('components/channel_view connected', () => {
 
         renderWithContext(<ConnectedChannelView/>, makeState([throwing]));
         expect(screen.getByTestId('deferred-post-view')).toBeInTheDocument();
-        expect(screen.getByTestId('post-create')).toBeInTheDocument();
+        expect(screen.getByTestId('center.composer')).toBeInTheDocument();
         expect(screen.queryByTestId('plugin-channel-view')).not.toBeInTheDocument();
         expect(consoleSpy).toHaveBeenCalledWith(expect.stringContaining("ChannelView: matcher for plugin 'bad-plugin' threw"), expect.any(Error));
 

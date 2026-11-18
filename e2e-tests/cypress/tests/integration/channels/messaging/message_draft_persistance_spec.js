@@ -77,7 +77,7 @@ describe('Message Draft Persistance', () => {
         // * Ensure Off-Topic still has the draft icon
         cy.get('#sidebarItem_off-topic').
             should('be.visible').
-            findByTestId('draftIcon').
+            findByTestId('lhs.channel_list.channel.draft--text').
             should('be.visible');
 
         // # Switch back to Off-Topic

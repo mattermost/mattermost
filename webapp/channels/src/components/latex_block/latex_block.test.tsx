@@ -26,7 +26,7 @@ describe('components/LatexBlock', () => {
 
     test('should render', async () => {
         renderWithContext(<LatexBlock {...defaultProps}/>);
-        const wrapper = await screen.findAllByTestId('latex-enabled');
+        const wrapper = await screen.findAllByTestId('latex.block.rendered');
         expect(wrapper.length).toBe(1);
     });
 
@@ -51,7 +51,7 @@ describe('components/LatexBlock', () => {
         };
 
         renderWithContext(<LatexBlock {...props}/>);
-        const wrapper = await screen.findAllByTestId('latex-enabled');
+        const wrapper = await screen.findAllByTestId('latex.block.rendered');
         expect(wrapper.length).toBe(1);
     });
 });

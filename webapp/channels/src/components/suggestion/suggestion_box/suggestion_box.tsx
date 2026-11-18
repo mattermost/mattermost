@@ -54,6 +54,11 @@ export type SuggestionBoxProps = {
     listComponent?: React.ComponentType<any>;
 
     /**
+     * The suggestion list's scope (`<host>.suggestions`): its items are named by what they suggest (`<testIdScope>.user:<id>--option`, ...)
+     */
+    testIdScope?: string;
+
+    /**
      * Where the list will be displayed relative to the input box, defaults to 'top'
      */
     listPosition?: 'top' | 'bottom';
@@ -788,6 +793,7 @@ export default class SuggestionBox extends React.PureComponent<SuggestionBoxProp
             dateComponent,
             listComponent,
             listPosition,
+            testIdScope,
             renderNoResults,
 
             // Don't pass props used by SuggestionBox on to the input
@@ -857,6 +863,7 @@ export default class SuggestionBox extends React.PureComponent<SuggestionBoxProp
                         selection={this.state.selection}
                         inputRef={this.inputRef}
                         onLoseVisibility={this.blur}
+                        testId={testIdScope}
                     />
                 )}
                 {showList && this.state.presentationType === 'date' && SuggestionDateComponent && (

@@ -2,12 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {
+    Api,
     expect,
     isWebhookTestServerReachable,
+    settle,
     setupWebhookTestServer,
     test,
     testConfig,
 } from '@mattermost/playwright-lib';
+
+import {lastCenterPost, openThread, threadPostContaining} from './support';
 
 test.describe('Interactive mm_blocks (ephemeral post)', () => {
     test(
@@ -22,9 +26,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const marker = `E2E mm_blocks ephemeral ${pw.random.id()}`;
 
@@ -40,12 +43,11 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            await expect(lastPost.container.getByText('(Only visible to you)', {exact: true})).toBeVisible();
-            await expect(lastPost.container.locator('.mm-blocks')).toBeVisible();
-            await expect(lastPost.container.getByText(marker)).toBeVisible();
-            await expect(lastPost.container.getByText('Second line after divider.')).toBeVisible();
+            const lastPost = await lastCenterPost(app);
+            await expect(lastPost.onlyVisibleToYouText).toBeVisible();
+            await expect(lastPost.blocks).toBeVisible();
+            await expect(lastPost.blocks).toContainText(marker);
+            await expect(lastPost.blocks).toContainText('Second line after divider.');
         },
     );
 
@@ -76,9 +78,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             // Ephemeral roots have no Reply control; under CRT, integration ephemerals stay out of the center list.
             // Thread the interactive ephemeral under a normal channel post so the Thread panel can host it and the follow-up ephemeral.
@@ -115,27 +116,17 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            const replyOnAnchor = anchorPost.getByRole('button', {name: 'reply'});
-            await expect(replyOnAnchor).toBeVisible();
-            await replyOnAnchor.click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            // Thread RHS uses data-testid="rhsPostView", not "postView" (center channel only).
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
+            // Thread RHS posts are `rhs.thread.post:<id>`; center channel posts are `center.post_list.post:<id>`.
+            const ephemeralInThread = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Ping integration'}).click();
+            await settle(ephemeralInThread.blockAction('pw_mm_blocks_integration'), {wait: Api.DoPostAction}).click();
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({hasText: /Playwright mm_blocks integration OK \(user:/});
+            const integrationEphemeral = await threadPostContaining(app, /Playwright mm_blocks integration OK \(user:/);
             await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await expect(integrationEphemeral.onlyVisibleToYouText).toBeVisible();
         },
     );
 
@@ -166,9 +157,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks anchor ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -203,24 +193,14 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            const replyOnAnchor = anchorPost.getByRole('button', {name: 'reply'});
-            await expect(replyOnAnchor).toBeVisible();
-            await replyOnAnchor.click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
+            const ephemeralInThread = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Apply update'}).click();
+            await settle(ephemeralInThread.blockAction('pw_mm_blocks_apply_update'), {wait: Api.DoPostAction}).click();
 
-            await expect(
-                threadPanel.getByTestId('rhsPostView').filter({hasText: 'PLAYWRIGHT_MM_BLOCKS_UPDATED'}),
-            ).toBeVisible();
+            await threadPostContaining(app, 'PLAYWRIGHT_MM_BLOCKS_UPDATED');
         },
     );
 
@@ -252,9 +232,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks anchor override ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -292,28 +271,22 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            const replyOnAnchor = anchorPost.getByRole('button', {name: 'reply'});
-            await expect(replyOnAnchor).toBeVisible();
-            await replyOnAnchor.click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
+            const ephemeralInThread = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralInThread).toBeVisible();
 
-            const author = ephemeralInThread.locator('.post__header .user-popover');
+            const author = ephemeralInThread.header;
             await expect(author).toContainText(overrideAuthorName);
 
-            await ephemeralInThread.getByRole('button', {name: 'Apply update'}).click();
+            await settle(ephemeralInThread.blockAction('pw_mm_blocks_apply_update_eph_override'), {
+                wait: Api.DoPostAction,
+            }).click();
 
-            const updated = threadPanel.getByTestId('rhsPostView').filter({hasText: 'PLAYWRIGHT_MM_BLOCKS_UPDATED'});
+            const updated = await threadPostContaining(app, 'PLAYWRIGHT_MM_BLOCKS_UPDATED');
             await expect(updated).toBeVisible();
-            await expect(updated.locator('.post__header .user-popover')).toContainText(overrideAuthorName);
+            await expect(updated.header).toContainText(overrideAuthorName);
         },
     );
 
@@ -344,9 +317,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks eph query anchor ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -383,24 +355,19 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
+            const ephemeralInThread = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Run query merge'}).click();
+            await settle(ephemeralInThread.blockAction('pw_mm_blocks_query_btn_eph'), {wait: Api.DoPostAction}).click();
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({hasText: /Playwright mm_blocks query OK \(cli=from_block&srv=from_action\)/});
+            const integrationEphemeral = await threadPostContaining(
+                app,
+                /Playwright mm_blocks query OK \(cli=from_block&srv=from_action\)/,
+            );
             await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await expect(integrationEphemeral.onlyVisibleToYouText).toBeVisible();
         },
     );
 
@@ -431,9 +398,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks eph override anchor ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -470,20 +436,16 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
+            const ephemeralInThread = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Override dup key'}).click();
+            await settle(ephemeralInThread.blockAction('pw_mm_blocks_query_override_eph'), {
+                wait: Api.DoPostAction,
+            }).click();
 
-            await expect(threadPanel.getByText('Playwright mm_blocks query OK (dup=from_block)')).toBeVisible();
+            await threadPostContaining(app, 'Playwright mm_blocks query OK (dup=from_block)');
         },
     );
 
@@ -514,9 +476,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks eph select query anchor ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -556,29 +517,26 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralRow = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker}).last();
+            const ephemeralRow = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralRow).toBeVisible();
 
-            const regionSelect = ephemeralRow.getByRole('combobox', {name: 'Pick a region'});
+            const regionSelectPicker = ephemeralRow.select({action_id: 'pw_mm_blocks_static_select_query_eph'});
+            const regionSelect = regionSelectPicker.valueTextbox;
             await expect(regionSelect).toBeVisible();
-            await regionSelect.click();
+            await regionSelect.focus();
             await regionSelect.fill('Nor');
-            await channelsPage.page.getByRole('option', {name: 'North'}).click();
+            await (await regionSelectPicker.suggestions.suggestionList.itemWith({text: 'North'})).select();
+            await expect(regionSelectPicker.suggestions.suggestionList).toHaveKeyCount(0);
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({hasText: /Playwright mm_blocks query OK \(cli=from_block&srv=from_action\)/});
+            const integrationEphemeral = await threadPostContaining(
+                app,
+                /Playwright mm_blocks query OK \(cli=from_block&srv=from_action\)/,
+            );
             await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await expect(integrationEphemeral.onlyVisibleToYouText).toBeVisible();
         },
     );
 
@@ -609,9 +567,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks eph ds users anchor ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -646,33 +603,26 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralRow = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker}).last();
+            const ephemeralRow = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralRow).toBeVisible();
 
-            const userSelect = ephemeralRow.getByRole('combobox', {name: 'Pick a user'});
+            const userSelectPicker = ephemeralRow.select({action_id: 'pw_mm_blocks_ds_users_eph'});
+            const userSelect = userSelectPicker.valueTextbox;
             await expect(userSelect).toBeVisible();
-            await userSelect.click();
+            await userSelect.focus();
             await userSelect.fill(user.username);
-            await channelsPage.page
-                .getByRole('option')
-                .filter({hasText: new RegExp(`@${user.username}\\b`)})
-                .first()
-                .click();
+            await userSelectPicker.suggestions.suggestion(user.username).select();
+            await expect(userSelectPicker.suggestions.suggestionList).toHaveKeyCount(0);
 
-            const integrationEphemeral = threadPanel.getByTestId('rhsPostView').filter({
-                hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${user.id}\\)`),
-            });
+            const integrationEphemeral = await threadPostContaining(
+                app,
+                new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${user.id}\\)`),
+            );
             await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await expect(integrationEphemeral.onlyVisibleToYouText).toBeVisible();
         },
     );
 
@@ -703,9 +653,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks eph ds channels anchor ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -740,32 +689,26 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralRow = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker}).last();
+            const ephemeralRow = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralRow).toBeVisible();
 
-            const channelSelect = ephemeralRow.getByRole('combobox', {name: 'Pick a channel'});
+            const channelSelectPicker = ephemeralRow.select({action_id: 'pw_mm_blocks_ds_channels_eph'});
+            const channelSelect = channelSelectPicker.valueTextbox;
             await expect(channelSelect).toBeVisible();
-            await channelSelect.click();
+            await channelSelect.focus();
             await channelSelect.fill('Town');
-            await channelsPage.page
-                .getByRole('option', {name: /Town Square/})
-                .first()
-                .click();
+            await channelSelectPicker.suggestions.suggestion(townSquare.display_name).select();
+            await expect(channelSelectPicker.suggestions.suggestionList).toHaveKeyCount(0);
 
-            const integrationEphemeral = threadPanel.getByTestId('rhsPostView').filter({
-                hasText: new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${townSquare.id}\\)`),
-            });
+            const integrationEphemeral = await threadPostContaining(
+                app,
+                new RegExp(`Playwright mm_blocks static_select OK \\(selected_option: ${townSquare.id}\\)`),
+            );
             await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await expect(integrationEphemeral.onlyVisibleToYouText).toBeVisible();
         },
     );
 
@@ -796,9 +739,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks eph context anchor ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -834,24 +776,19 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
+            const ephemeralInThread = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Verify context'}).click();
+            await settle(ephemeralInThread.blockAction('pw_mm_blocks_echo_ctx_eph'), {wait: Api.DoPostAction}).click();
 
-            const integrationEphemeral = threadPanel
-                .getByTestId('rhsPostView')
-                .filter({hasText: `Playwright mm_blocks context OK (test_marker: ${contextMarker})`});
+            const integrationEphemeral = await threadPostContaining(
+                app,
+                `Playwright mm_blocks context OK (test_marker: ${contextMarker})`,
+            );
             await expect(integrationEphemeral).toBeVisible();
-            await expect(integrationEphemeral.getByText('(Only visible to you)', {exact: true})).toBeVisible();
+            await expect(integrationEphemeral.onlyVisibleToYouText).toBeVisible();
         },
     );
 
@@ -868,9 +805,8 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 throw new Error('Town Square or Off-Topic channel not found');
             }
 
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: 'town-square'});
 
             const anchorMarker = `E2E mm_blocks eph openurl anchor ${pw.random.id()}`;
             const anchor = await userClient.createPost({
@@ -905,21 +841,15 @@ test.describe('Interactive mm_blocks (ephemeral post)', () => {
                 },
             });
 
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.toBeVisible();
-            const anchorPost = lastPost.container;
-            await anchorPost.hover();
-            await anchorPost.getByRole('button', {name: 'reply'}).click();
+            const anchorPost = await lastCenterPost(app);
+            await openThread(app, anchorPost);
 
-            const threadPanel = channelsPage.page.getByRole('region', {name: /Thread/});
-            await expect(threadPanel).toBeVisible();
-
-            const ephemeralInThread = threadPanel.getByTestId('rhsPostView').filter({hasText: ephemeralMarker});
+            const ephemeralInThread = await threadPostContaining(app, ephemeralMarker);
             await expect(ephemeralInThread).toBeVisible();
-            await ephemeralInThread.getByRole('button', {name: 'Go to Off-Topic'}).click();
+            await settle(ephemeralInThread.blockAction('pw_mm_blocks_openurl_eph'), {wait: Api.DoPostAction}).click();
 
-            await expect(channelsPage.page).toHaveURL(/\/channels\/off-topic/);
-            expect(new URL(channelsPage.page.url()).searchParams.get('mm_openurl')).toBe('from_action_eph');
+            await expect(app.page).toHavePath(app.channelsPage.pathFor({team, channel: 'off-topic'}));
+            expect(new URL(app.page.url()).searchParams.get('mm_openurl')).toBe('from_action_eph');
         },
     );
 });

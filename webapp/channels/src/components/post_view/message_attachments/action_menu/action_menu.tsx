@@ -98,7 +98,7 @@ export default class ActionMenu extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const {action, disabled} = this.props;
+        const {action, disabled, testIdScope} = this.props;
         const name = action.name || action.id || '';
 
         return (
@@ -112,6 +112,8 @@ export default class ActionMenu extends React.PureComponent<Props, State> {
                         value={this.state.value}
                         toggleFocus={handlePopupOpened}
                         disabled={disabled}
+                        testIdScope={testIdScope ? `${testIdScope}.action_select` : undefined}
+                        testKey={action.id}
                     />
                 )}
             </PostContext.Consumer>

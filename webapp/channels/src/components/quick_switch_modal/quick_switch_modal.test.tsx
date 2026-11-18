@@ -275,10 +275,10 @@ describe('components/QuickSwitchModal', () => {
                 </IntlProvider>,
             );
 
-            await userEvent.click(await screen.getByTestId('SidebarChannelNavigatorButton'));
+            await userEvent.click(await screen.getByTestId('lhs.header.find_channels--button'));
             await userEvent.keyboard('{escape}');
 
-            expect(screen.getByTestId('SidebarChannelNavigatorButton')).toHaveFocus();
+            expect(screen.getByTestId('lhs.header.find_channels--button')).toHaveFocus();
         });
     });
 });

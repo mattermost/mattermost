@@ -76,7 +76,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * Guest user should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('not.exist');
         });
 
         // # Visit test channel configuration page and enable post reactions for guest and save
@@ -90,7 +90,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * Guest user should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('exist');
         });
     });
 
@@ -108,7 +108,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * Member user should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('not.exist');
         });
 
         // # Visit test Channel configuration page and enable post reactions for members and save
@@ -123,7 +123,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * Member user should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('exist');
         });
     });
 
@@ -167,7 +167,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * Guest user should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('not.exist');
         });
 
         // # Login as a Member user and visit the same channel
@@ -177,7 +177,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * Member user should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('not.exist');
         });
     });
 
@@ -201,7 +201,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * User should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('exist');
         });
 
         // # Go to system admin page and then go to the system scheme and remove post reaction option for all members and save
@@ -224,7 +224,7 @@ describe('MM-23102 - Channel Moderation - Post Reactions', () => {
         // * User should not see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('not.exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('not.exist');
         });
     });
 });

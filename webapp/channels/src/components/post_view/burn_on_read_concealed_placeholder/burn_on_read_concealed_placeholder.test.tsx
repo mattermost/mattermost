@@ -12,6 +12,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
         postId: 'post123',
         authorName: 'john.doe',
         onReveal: jest.fn(),
+        testIdScope: 'center.post_list.post' as const,
     };
 
     it('should render with concealed placeholder text', () => {
@@ -19,7 +20,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
             <BurnOnReadConcealedPlaceholder {...baseProps}/>,
         );
 
-        expect(screen.getByTestId('burn-on-read-concealed-post123')).toBeInTheDocument();
+        expect(screen.getByTestId('center.post_list.post.reveal--button')).toBeInTheDocument();
         expect(screen.getByText('View message')).toBeInTheDocument();
         expect(screen.getByRole('button')).toHaveClass('BurnOnReadConcealedPlaceholder');
     });
@@ -80,7 +81,7 @@ describe('BurnOnReadConcealedPlaceholder', () => {
             />,
         );
 
-        expect(screen.getByTestId('burn-on-read-concealed-post123')).toHaveClass('BurnOnReadConcealedPlaceholder--loading');
+        expect(screen.getByTestId('center.post_list.post.reveal--button')).toHaveClass('BurnOnReadConcealedPlaceholder--loading');
         expect(screen.queryByText('Click to Reveal')).not.toBeInTheDocument();
     });
 

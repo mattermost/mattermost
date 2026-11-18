@@ -84,7 +84,7 @@ describe('Channel Switcher', () => {
         // # Start typing channel name in the "Switch Channels" modal message box
         cy.findByRole('combobox', {name: 'quick switch input'}).type(`${channelDisplayNamePrefix} `);
 
-        cy.get(`[data-testid^=${channelC.name}] > span`).click();
+        cy.get(`[data-testid="quick_switch_modal.suggestions.channel:${channelC.id}"] > span`).click();
 
         // * Expect channel title to match title
         cy.get('#channelHeaderTitle').

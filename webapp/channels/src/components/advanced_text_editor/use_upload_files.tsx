@@ -40,6 +40,8 @@ const useUploadFiles = (
     focusTextbox: (forceFocust?: boolean) => void,
     setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     isPostBeingEdited?: boolean,
+
+    testIdScope?: string,
 ): [React.ReactNode, React.ReactNode] => {
     const intl = useIntl();
     const locale = useSelector(getCurrentLocale);
@@ -172,6 +174,7 @@ const useUploadFiles = (
                 uploadsInProgress={draft.uploadsInProgress}
                 uploadsProgressPercent={uploadsProgressPercent}
                 disabledRemoveTooltip={removeTooltip}
+                testIdScope={testIdScope ? `${testIdScope}.file_previews` : undefined}
             />
         );
     }
@@ -197,6 +200,7 @@ const useUploadFiles = (
             channelId={channelId}
             postType={postType}
             disabledByPolicy={!uploadAllowedByPolicy}
+            testIdScope={testIdScope}
         />
     );
 

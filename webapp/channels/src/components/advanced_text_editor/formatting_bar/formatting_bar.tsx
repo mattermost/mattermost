@@ -20,7 +20,7 @@ import {LayoutModes, useFormattingBarControls} from './hooks';
 import LinkPopover from './link_popover';
 import TextStyleDropdown from './text_style_dropdown';
 
-export const Separator = styled.div.attrs({'data-testid': 'formatting-bar-separator'})`
+export const Separator = styled.div`
     display: block;
     position: relative;
     width: 1px;
@@ -105,6 +105,9 @@ export interface FormattingBarHandle {
 
 interface FormattingBarProps {
 
+    /** Testid scope of the bar. */
+    testId?: string;
+
     /**
      * Apply a formatting toggle for the given markdown mode. The parent decides
      * whether this targets the legacy markdown textbox or the WYSIWYG editor.
@@ -179,6 +182,7 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
         additionalControls,
         aiActionsMenu,
         getEditor,
+        testId,
     } = props;
     const [showHiddenControls, setShowHiddenControls] = useState(false);
     const [linkPopoverOpen, setLinkPopoverOpen] = useState(false);
@@ -300,6 +304,8 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
                 onClick={makeFormattingHandler(mode)}
                 disabled={disableControls}
                 isActive={isActive}
+                testId={testId ? `${testId}.control` : undefined}
+                testKey={mode}
             />
         );
     };
@@ -307,29 +313,29 @@ const FormattingBar = forwardRef<FormattingBarHandle, FormattingBarProps>((props
     return (
         <FormattingBarContainer
             ref={formattingBarRef}
-            data-testid='formattingBarContainer'
+            data-testid={testId}
         >
             {aiActionsMenu}
-            {aiActionsMenu && showSeparators && <Separator/>}
+            {aiActionsMenu && showSeparators && <Separator data-testid={testId ? `${testId}.ai_actions_separator--separator` : undefined}/>}
             {getEditor && showTextStyleDropdown && (
                 <>
                     <TextStyleDropdown
                         getWysiwygEditor={getEditor}
                         disabled={disableControls}
                     />
-                    {showSeparators && <Separator/>}
+                    {showSeparators && <Separator data-testid={testId ? `${testId}.text_style_separator--separator` : undefined}/>}
                 </>
             )}
             {controls.map((mode) => (
                 <React.Fragment key={mode}>
                     {renderFormattingIcon(mode)}
-                    {mode === 'heading' && showSeparators && <Separator/>}
+                    {mode === 'heading' && showSeparators && <Separator data-testid={testId ? `${testId}.heading_separator--separator` : undefined}/>}
                 </React.Fragment>
             ))}
 
             {Array.isArray(additionalControls) && additionalControls.length > 0 && (
                 <>
-                    {showSeparators && <Separator/>}
+                    {showSeparators && <Separator data-testid={testId ? `${testId}.additional_controls_separator--separator` : undefined}/>}
                     {additionalControls}
                 </>
             )}

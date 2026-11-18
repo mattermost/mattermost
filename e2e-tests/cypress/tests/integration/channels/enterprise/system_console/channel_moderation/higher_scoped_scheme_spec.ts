@@ -271,7 +271,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         visitChannel(regularUser, testChannel, testTeam);
         cy.postMessage(`test message ${Date.now()}`);
         cy.findByTestId('post_textbox_placeholder').should('not.have.text', 'This channel is read-only. Only members with permission can post here.');
-        cy.findByTestId('post_textbox').should('not.be.disabled');
+        cy.findByTestId('center.post_create.message--textbox').should('not.be.disabled');
 
         visitChannelConfigPage(testChannel);
         disablePermission(checkboxesTitleToIdMap.CREATE_POSTS_MEMBERS);
@@ -282,7 +282,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
 
         // * user should see a message stating that this channel is read-only and the textbox area should be disabled
         cy.findByTestId('post_textbox_placeholder').should('have.text', 'This channel is read-only. Only members with permission can post here.');
-        cy.findByTestId('post_textbox').should('be.disabled');
+        cy.findByTestId('center.post_create.message--textbox').should('be.disabled');
 
         cy.getLastPostId().then((postId) => {
             cy.clickPostDotMenu(postId);
@@ -305,7 +305,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         // * Channel Admin should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('exist');
         });
 
         // # View members modal
@@ -329,7 +329,7 @@ describe('MM-23102 - Channel Moderation - Higher Scoped Scheme', () => {
         // * Channel Admin should see the smiley face that allows a user to react to a post
         cy.getLastPostId().then((postId) => {
             cy.get(`#post_${postId}`).trigger('mouseover');
-            cy.findByTestId('post-reaction-emoji-icon').should('exist');
+            cy.findByTestId('center.post_list.post.menu.add_reaction--button').should('exist');
         });
 
         // # View members modal

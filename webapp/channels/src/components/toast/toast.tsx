@@ -26,6 +26,11 @@ export type Props = {
     width: number;
     extraClasses?: string;
     jumpDirection?: 'up' | 'down';
+
+    testIdScope?: string;
+
+    /** Which toast this is (`unread`, `history`...). */
+    testKey?: string;
 };
 
 export default function Toast({
@@ -38,6 +43,8 @@ export default function Toast({
     width,
     extraClasses = '',
     jumpDirection = 'down',
+    testIdScope,
+    testKey,
 }: Props) {
     function handleDismiss() {
         if (typeof onDismiss === 'function') {
@@ -55,10 +62,15 @@ export default function Toast({
     });
 
     return (
-        <div className={toastClass}>
+        <div
+            className={toastClass}
+            data-testid={testIdScope && testKey ? `${testIdScope}:${testKey}` : undefined}
+        >
             <div
                 className={toastActionClass}
                 onClick={showActions ? onClick : undefined}
+                role={showActions ? 'button' : undefined}
+                data-testid={showActions && testIdScope ? `${testIdScope}.jump--button` : undefined}
             >
                 {showActions && (
                     <div className='toast__jump'>
@@ -88,7 +100,8 @@ export default function Toast({
                 <div
                     className='toast__dismiss'
                     onClick={handleDismiss}
-                    data-testid={extraClasses ? `dismissToast-${extraClasses}` : 'dismissToast'}
+                    role='button'
+                    data-testid={testIdScope ? `${testIdScope}.dismiss--button` : undefined}
                 >
                     <CloseIcon
                         className='close-btn'

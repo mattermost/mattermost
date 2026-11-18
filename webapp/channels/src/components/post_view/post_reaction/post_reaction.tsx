@@ -26,6 +26,8 @@ export type Props = {
     location?: keyof typeof Locations;
     setShowEmojiPicker: (showEmojiPicker: boolean) => void;
     showEmojiPicker: boolean;
+
+    testId?: string;
     actions: {
         toggleReaction: (postId: string, emojiName: string) => void;
     };
@@ -38,6 +40,7 @@ export default function PostReaction({
     teamId,
     showEmojiPicker,
     setShowEmojiPicker,
+    testId,
     actions: {
         toggleReaction,
     },
@@ -73,7 +76,7 @@ export default function PostReaction({
             <WithTooltip title={ariaLabel}>
                 <IconButton
                     ref={setReference}
-                    data-testid='post-reaction-emoji-icon'
+                    data-testid={testId ? `${testId}--button` : undefined}
                     id={`${location}_reaction_${postId}`}
                     size='small'
                     padding='compact'

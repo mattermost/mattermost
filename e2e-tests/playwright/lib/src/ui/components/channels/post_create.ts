@@ -51,7 +51,7 @@ export default class ChannelsPostCreate {
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityButton = container.getByLabel('Message priority');
-        this.priorityLabel = container.getByTestId('post-priority-label');
+        this.priorityLabel = container.getByTestId('post_priority.label--text');
         this.removeLabelsButton = container.getByRole('button', {name: 'Remove all labels'});
         // Tooltips render in a portal outside the post create container.
         this.removeLabelsTooltip = container.page().getByRole('tooltip', {name: 'Remove all labels'});
@@ -67,7 +67,7 @@ export default class ChannelsPostCreate {
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
         this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
-        this.burnOnReadLabel = container.getByTestId('burn-on-read-label');
+        this.burnOnReadLabel = container.getByTestId('burn_on_read.label--text');
 
         // Two distinct remove controls can sit on the label row: the label's own X and
         // UnifiedLabelsWrapper's remove-all. Kept separate so a spec can assert which

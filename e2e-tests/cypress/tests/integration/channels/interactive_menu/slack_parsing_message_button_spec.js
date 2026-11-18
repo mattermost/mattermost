@@ -43,7 +43,7 @@ describe('Interactive Menu', () => {
 
         // # Post an incoming webhook
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload, waitFor: 'attachment-pretext'});
-        cy.waitUntil(() => cy.findAllByTestId('postContent').then((el) => {
+        cy.waitUntil(() => cy.findAllByTestId('center.post_list.post.content').then((el) => {
             if (el.length > 0) {
                 return el[1].innerText.includes(payload.attachments[0].actions[0].name);
             }

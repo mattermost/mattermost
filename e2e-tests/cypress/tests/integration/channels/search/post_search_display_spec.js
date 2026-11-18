@@ -97,7 +97,7 @@ describe('Search', () => {
         cy.get('#search-items-container').should('be.visible');
 
         // * Assert search results are present and correct
-        cy.get('[data-testid="search-item-container"]').should('be.visible');
+        cy.get('[data-testid^="search.results.post:"], [data-testid^="search.results.file:"]').should('be.visible');
         cy.get('.search-highlight').first().should('contain.text', 'Hell');
     });
 });

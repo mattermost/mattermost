@@ -96,20 +96,26 @@ describe('components/post_view/PostReaction', () => {
 
         test('should render the reaction button when the policy allows', () => {
             renderWithContext(
-                <PostReaction {...baseProps}/>,
+                <PostReaction
+                    {...baseProps}
+                    testId='post_reaction'
+                />,
                 withWriteDecision(true),
             );
 
-            expect(screen.getByTestId('post-reaction-emoji-icon')).toBeInTheDocument();
+            expect(screen.getByTestId('post_reaction--button')).toBeInTheDocument();
         });
 
         test('should not render the reaction button when the policy denies', () => {
             renderWithContext(
-                <PostReaction {...baseProps}/>,
+                <PostReaction
+                    {...baseProps}
+                    testId='post_reaction'
+                />,
                 withWriteDecision(false),
             );
 
-            expect(screen.queryByTestId('post-reaction-emoji-icon')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_reaction--button')).not.toBeInTheDocument();
         });
     });
 });

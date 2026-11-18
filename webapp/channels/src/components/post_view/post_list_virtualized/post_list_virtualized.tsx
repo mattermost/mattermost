@@ -700,6 +700,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                                         <DynamicVirtualizedList
                                             ref={this.listRef}
                                             id='postListScrollContainer'
+                                            testId='center.post_list.scroller'
                                             className='post-list__dynamic'
                                             height={height}
                                             width={width}

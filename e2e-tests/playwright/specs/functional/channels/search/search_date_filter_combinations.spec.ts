@@ -9,11 +9,11 @@ import {searchAndValidate, searchFilterDates, setupSearchDateFilter} from './sea
  * @objective Verify on: returns posts created on the target date and omits posts from other dates.
  */
 test('MM-T588 on: omits results before and after target date', {tag: '@search_date_filter'}, async ({pw}) => {
-    const {channelsPage, commonText, messages} = await setupSearchDateFilter(pw);
+    const {search, commonText, messages} = await setupSearchDateFilter(pw);
 
     // # Search for matching posts on the second fixture date
     // * Verify only posts from the target date appear in reverse chronological order
-    await searchAndValidate(channelsPage, `on:${searchFilterDates.second} ${commonText}`, [
+    await searchAndValidate(search, `on:${searchFilterDates.second} ${commonText}`, [
         messages.secondOffTopic,
         messages.second,
     ]);
@@ -23,12 +23,12 @@ test('MM-T588 on: omits results before and after target date', {tag: '@search_da
  * @objective Verify before: and after: can constrain a search to the dates between them.
  */
 test('MM-T589 before: and after: can be used together', {tag: '@search_date_filter'}, async ({pw}) => {
-    const {channelsPage, commonText, messages} = await setupSearchDateFilter(pw);
+    const {search, commonText, messages} = await setupSearchDateFilter(pw);
 
     // # Search between the first and latest fixture dates
     // * Verify only posts strictly between the dates appear in reverse chronological order
     await searchAndValidate(
-        channelsPage,
+        search,
         `before:${searchFilterDates.latest} after:${searchFilterDates.first} ${commonText}`,
         [messages.secondOffTopic, messages.second],
     );
@@ -38,11 +38,11 @@ test('MM-T589 before: and after: can be used together', {tag: '@search_date_filt
  * @objective Verify after: can be combined with in: to limit results by date and channel.
  */
 test('MM-T592_1 after: can be used in conjunction with in:', {tag: '@search_date_filter'}, async ({pw}) => {
-    const {channelsPage, channel, commonText, messages} = await setupSearchDateFilter(pw);
+    const {search, channel, commonText, messages} = await setupSearchDateFilter(pw);
 
     // # Search after the first fixture date in the test channel
     // * Verify only later posts from that channel appear
-    await searchAndValidate(channelsPage, `after:${searchFilterDates.first} in:${channel.name} ${commonText}`, [
+    await searchAndValidate(search, `after:${searchFilterDates.first} in:${channel.name} ${commonText}`, [
         messages.latest,
         messages.second,
     ]);

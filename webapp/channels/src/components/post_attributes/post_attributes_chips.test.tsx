@@ -104,13 +104,14 @@ describe('PostAttributesChips', () => {
     test('renders a chip for a set value, labelled by the option name', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField()], [makeValue()]),
         );
 
-        expect(screen.getByTestId('post-attributes-chips')).toBeInTheDocument();
+        expect(screen.getByTestId('center.post_list.post.attributes')).toBeInTheDocument();
 
         // The stored value is the option id; the chip must show the option's name.
         expect(screen.getByText('SECRET')).toBeInTheDocument();
@@ -120,51 +121,58 @@ describe('PostAttributesChips', () => {
     test('renders nothing when the channel has no applicable fields', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([], [makeValue()]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test('renders nothing when the post has no values', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField()], []),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test('renders nothing without a channel, so no scope chain resolves', () => {
         renderWithContext(
-            <PostAttributesChips post={post}/>,
+            <PostAttributesChips
+                post={post}
+                testIdScope='center.post_list.post'
+            />,
             makeState([makeField()], [makeValue()]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test('ignores a channel-scoped field belonging to another channel', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField({target_id: 'other_channel'})], [makeValue()]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test('renders a system-scoped field on any channel', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
@@ -179,6 +187,7 @@ describe('PostAttributesChips', () => {
     test('renders a team-scoped field when it targets the channel\'s team', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
@@ -191,13 +200,14 @@ describe('PostAttributesChips', () => {
     test('ignores a team-scoped field belonging to another team', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField({target_type: 'team', target_id: 'other_team'})], [makeValue()]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test('skips a hidden field even when it is set', () => {
@@ -206,25 +216,27 @@ describe('PostAttributesChips', () => {
 
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([field], [makeValue()]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test('treats an empty string as unset', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField()], [makeValue({value: ''})]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test.each([
@@ -233,26 +245,28 @@ describe('PostAttributesChips', () => {
     ])('treats %s as set and gives it a chip', (_label, raw) => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField({type: 'text', attrs: {}})], [makeValue({value: raw})]),
         );
 
-        expect(screen.getByTestId('post-attributes-chips')).toBeInTheDocument();
-        expect(screen.getByTestId('text-property')).toBeInTheDocument();
+        expect(screen.getByTestId('center.post_list.post.attributes')).toBeInTheDocument();
+        expect(screen.getByTestId('center.post_list.post.attributes.value.text--text')).toBeInTheDocument();
     });
 
     test('treats an empty array as unset', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField()], [makeValue({value: []})]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test.each([
@@ -261,13 +275,14 @@ describe('PostAttributesChips', () => {
     ])('treats %s as unset', (_label, raw) => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField()], [makeValue({value: raw})]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test('renders nothing for an always field with no value', () => {
@@ -276,13 +291,14 @@ describe('PostAttributesChips', () => {
 
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([field], []),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     test('orders chips by sort_order, then by name', () => {
@@ -295,6 +311,7 @@ describe('PostAttributesChips', () => {
 
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
@@ -302,7 +319,7 @@ describe('PostAttributesChips', () => {
         );
 
         // Only the budget's worth renders, so the order is what decides which two.
-        expect(screen.getByTestId('post-attributes-chips').textContent).toBe('SECRETSECRET+1');
+        expect(screen.getByTestId('center.post_list.post.attributes').textContent).toBe('SECRETSECRET+1');
     });
 
     // Reaching the same rule through the component: a value the renderer cannot
@@ -316,13 +333,14 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
             expect(screen.queryByText('opt_withdrawn')).not.toBeInTheDocument();
         });
 
@@ -338,15 +356,16 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET']);
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.select--text').map((chip) => chip.textContent)).toEqual(['SECRET']);
             expect(screen.queryByText('opt_withdrawn')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes.overflow--img')).not.toBeInTheDocument();
         });
 
         test('drops only the unresolvable entries of a multiselect', () => {
@@ -355,14 +374,15 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET']);
-            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.select--text').map((chip) => chip.textContent)).toEqual(['SECRET']);
+            expect(screen.queryByTestId('center.post_list.post.attributes.overflow--img')).not.toBeInTheDocument();
         });
     });
 
@@ -376,13 +396,14 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
         });
 
         test('does not spend a chip slot or inflate +N', () => {
@@ -399,6 +420,7 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
@@ -407,8 +429,8 @@ describe('PostAttributesChips', () => {
 
             // Both selects fit. Counting the date would show only SECRET, with a
             // blank second slot and a +1 nobody could account for.
-            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET', 'UNCLASSIFIED']);
-            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.select--text').map((chip) => chip.textContent)).toEqual(['SECRET', 'UNCLASSIFIED']);
+            expect(screen.queryByTestId('center.post_list.post.attributes.overflow--img')).not.toBeInTheDocument();
         });
     });
 
@@ -419,15 +441,16 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.getAllByTestId('user-property')).toHaveLength(2);
-            expect(screen.getByTestId('post-attributes-chips')).toHaveTextContent('alice');
-            expect(screen.getByTestId('post-attributes-chips')).toHaveTextContent('bob');
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.user')).toHaveLength(2);
+            expect(screen.getByTestId('center.post_list.post.attributes')).toHaveTextContent('alice');
+            expect(screen.getByTestId('center.post_list.post.attributes')).toHaveTextContent('bob');
         });
 
         test('spends one slot per user and counts the rest into +N', () => {
@@ -442,6 +465,7 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
@@ -450,11 +474,11 @@ describe('PostAttributesChips', () => {
 
             // One slot left after the select, so exactly one user is drawn —
             // without `maxItems` all three would render inside that one slot.
-            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET']);
-            expect(screen.getAllByTestId('user-property')).toHaveLength(1);
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.select--text').map((chip) => chip.textContent)).toEqual(['SECRET']);
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.user')).toHaveLength(1);
 
             // The two users nobody can see, counted as two.
-            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+2');
+            expect(screen.getByTestId('center.post_list.post.attributes.overflow--img')).toHaveTextContent('+2');
         });
 
         // A user id resolves asynchronously, so a count taken at allocation
@@ -467,17 +491,18 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.getAllByTestId('user-property')).toHaveLength(2);
-            expect(screen.getByTestId('post-attributes-chips')).toHaveTextContent('alice');
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.user')).toHaveLength(2);
+            expect(screen.getByTestId('center.post_list.post.attributes')).toHaveTextContent('alice');
 
             expect(screen.getByText('Someone')).toBeInTheDocument();
-            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes.overflow--img')).not.toBeInTheDocument();
         });
     });
 
@@ -505,17 +530,18 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['ALPHA', 'BRAVO']);
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.select--text').map((chip) => chip.textContent)).toEqual(['ALPHA', 'BRAVO']);
             expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
 
             // Two unshown entries of the multiselect, plus the whole select.
-            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+3');
+            expect(screen.getByTestId('center.post_list.post.attributes.overflow--img')).toHaveTextContent('+3');
         });
 
         test('spends the remaining slot on a multiselect that follows a select', () => {
@@ -530,14 +556,15 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET', 'ALPHA']);
-            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+2');
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.select--text').map((chip) => chip.textContent)).toEqual(['SECRET', 'ALPHA']);
+            expect(screen.getByTestId('center.post_list.post.attributes.overflow--img')).toHaveTextContent('+2');
         });
 
         test('renders a two-entry multiselect in full with no overflow badge', () => {
@@ -550,14 +577,15 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['ALPHA', 'BRAVO']);
-            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+            expect(screen.getAllByTestId('center.post_list.post.attributes.value.select--text').map((chip) => chip.textContent)).toEqual(['ALPHA', 'BRAVO']);
+            expect(screen.queryByTestId('center.post_list.post.attributes.overflow--img')).not.toBeInTheDocument();
         });
 
         test('renders two chips and +1 for three set single-valued fields', () => {
@@ -574,6 +602,7 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
@@ -582,7 +611,7 @@ describe('PostAttributesChips', () => {
 
             expect(screen.getByText('SECRET')).toBeInTheDocument();
             expect(screen.getByText('UNCLASSIFIED')).toBeInTheDocument();
-            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+1');
+            expect(screen.getByTestId('center.post_list.post.attributes.overflow--img')).toHaveTextContent('+1');
         });
 
         // The badge counts what the row could not show, not what the channel
@@ -612,6 +641,7 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
@@ -620,7 +650,7 @@ describe('PostAttributesChips', () => {
 
             // Five fields, three of which earn a chip: alpha and charlie render, echo
             // overflows. The hidden and the cleared one are not +2 on top of that.
-            expect(screen.getByTestId('post-attributes-chips').textContent).toBe('SECRETUNCLASSIFIED+1');
+            expect(screen.getByTestId('center.post_list.post.attributes').textContent).toBe('SECRETUNCLASSIFIED+1');
         });
 
         test('renders no overflow badge when everything fits', () => {
@@ -635,13 +665,14 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes.overflow--img')).not.toBeInTheDocument();
         });
 
         test('names the overflow badge', () => {
@@ -654,13 +685,14 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            const badge = screen.getByTestId('post-attributes-overflow');
+            const badge = screen.getByTestId('center.post_list.post.attributes.overflow--img');
 
             expect(badge).not.toHaveAttribute('aria-hidden');
 
@@ -687,13 +719,14 @@ describe('PostAttributesChips', () => {
 
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            const badge = screen.getByTestId('post-attributes-overflow');
+            const badge = screen.getByTestId('center.post_list.post.attributes.overflow--img');
 
             expect(badge).toHaveAccessibleName('2 more attributes');
             expect(badge).toHaveTextContent('+2');
@@ -703,13 +736,14 @@ describe('PostAttributesChips', () => {
     test('renders a value whose field is unknown as nothing, without throwing', () => {
         renderWithContext(
             <PostAttributesChips
+                testIdScope='center.post_list.post'
                 post={post}
                 channel={channel}
             />,
             makeState([makeField()], [makeValue({field_id: 'deleted_field'})]),
         );
 
-        expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
     });
 
     // The server sets this when it was asked for a post's values and could not read
@@ -724,13 +758,14 @@ describe('PostAttributesChips', () => {
         test('says so instead of rendering chips', () => {
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={unavailablePost}
                     channel={channel}
                 />,
                 makeState([makeField()], [makeValue()]),
             );
 
-            expect(screen.getByTestId('post-attributes-unavailable')).toBeInTheDocument();
+            expect(screen.getByTestId('center.post_list.post.attributes_unavailable.message--text')).toBeInTheDocument();
             expect(screen.getByText('Attributes unavailable')).toBeInTheDocument();
             expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
         });
@@ -740,13 +775,14 @@ describe('PostAttributesChips', () => {
         test('says so even with values still in the store', () => {
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={unavailablePost}
                     channel={channel}
                 />,
                 makeState([makeField()], [makeValue()]),
             );
 
-            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
         });
 
         // The server only marks a post unavailable for a channel that has fields
@@ -756,25 +792,27 @@ describe('PostAttributesChips', () => {
         test('says so even before this client has loaded the fields', () => {
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={unavailablePost}
                     channel={channel}
                 />,
                 makeState([], []),
             );
 
-            expect(screen.getByTestId('post-attributes-unavailable')).toBeInTheDocument();
+            expect(screen.getByTestId('center.post_list.post.attributes_unavailable.message--text')).toBeInTheDocument();
         });
 
         test('stays quiet on a post that was hydrated successfully', () => {
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={{id: POST_ID, metadata: {property_values_unavailable: false}} as Post}
                     channel={channel}
                 />,
                 makeState([makeField()], [makeValue()]),
             );
 
-            expect(screen.queryByTestId('post-attributes-unavailable')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes_unavailable.message--text')).not.toBeInTheDocument();
             expect(screen.getByText('SECRET')).toBeInTheDocument();
         });
     });
@@ -795,6 +833,7 @@ describe('PostAttributesChips', () => {
         function renderRow(postOverride: Post = post) {
             renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={postOverride}
                     channel={channel}
                 />,
@@ -811,43 +850,43 @@ describe('PostAttributesChips', () => {
         test('opens the card once the pointer has rested on the row', () => {
             renderRow();
 
-            expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_card')).not.toBeInTheDocument();
 
-            fireEvent.mouseEnter(screen.getByTestId('post-attributes-chips'));
+            fireEvent.mouseEnter(screen.getByTestId('center.post_list.post.attributes'));
 
             // Still shut: the delay is what keeps the card from flashing as the
             // pointer crosses the message list on its way somewhere else.
-            expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_card')).not.toBeInTheDocument();
 
             rest();
 
-            expect(screen.getByTestId('post-attributes-card')).toBeInTheDocument();
+            expect(screen.getByTestId('post_attributes_card')).toBeInTheDocument();
         });
 
         test('closes the card when the pointer leaves the row', () => {
             renderRow();
 
-            const row = screen.getByTestId('post-attributes-chips');
+            const row = screen.getByTestId('center.post_list.post.attributes');
 
             fireEvent.mouseEnter(row);
             rest();
-            expect(screen.getByTestId('post-attributes-card')).toBeInTheDocument();
+            expect(screen.getByTestId('post_attributes_card')).toBeInTheDocument();
 
             fireEvent.mouseLeave(row);
 
-            expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_card')).not.toBeInTheDocument();
         });
 
         test('gives the unavailable row no card at all', () => {
             renderRow({id: POST_ID, metadata: {property_values_unavailable: true}} as Post);
 
-            const row = screen.getByTestId('post-attributes-chips-unavailable');
+            const row = screen.getByTestId('center.post_list.post.attributes_unavailable');
 
             fireEvent.mouseEnter(row);
             fireEvent.mouseMove(row);
             rest();
 
-            expect(screen.queryByTestId('post-attributes-card')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_card')).not.toBeInTheDocument();
         });
     });
 
@@ -866,13 +905,14 @@ describe('PostAttributesChips', () => {
         function open(fields: PropertyField[], values: Array<PropertyValue<unknown>>) {
             const rendered = renderWithContext(
                 <PostAttributesChips
+                    testIdScope='center.post_list.post'
                     post={post}
                     channel={channel}
                 />,
                 makeState(fields, values),
             );
 
-            fireEvent.mouseEnter(screen.getByTestId('post-attributes-chips'));
+            fireEvent.mouseEnter(screen.getByTestId('center.post_list.post.attributes'));
             act(() => {
                 jest.advanceTimersByTime(300);
             });
@@ -885,11 +925,11 @@ describe('PostAttributesChips', () => {
         }
 
         function chipLabels() {
-            return screen.queryAllByTestId('select-property').map((chip) => chip.textContent);
+            return screen.queryAllByTestId('center.post_list.post.attributes.value.select--text').map((chip) => chip.textContent);
         }
 
         function overflowCount() {
-            const badge = screen.queryByTestId('post-attributes-overflow');
+            const badge = screen.queryByTestId('center.post_list.post.attributes.overflow--img');
             return badge ? Number(badge.textContent!.replace('+', '')) : 0;
         }
 
@@ -916,7 +956,7 @@ describe('PostAttributesChips', () => {
             open(FOUR_FIELDS, FOUR_VALUES);
 
             expect(chipLabels()).toEqual(['SECRET', 'UNCLASSIFIED']);
-            expect(screen.getByTestId('post-attributes-overflow')).toHaveTextContent('+2');
+            expect(screen.getByTestId('center.post_list.post.attributes.overflow--img')).toHaveTextContent('+2');
 
             expect(cardRows()).toEqual([
                 'alphaSECRET',
@@ -970,13 +1010,13 @@ describe('PostAttributesChips', () => {
             open(fields, values);
 
             expect(cardRows()).toEqual(['alphaSECRET']);
-            expect(screen.queryByTestId('post-attributes-overflow')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes.overflow--img')).not.toBeInTheDocument();
         });
 
         test('carries no role and no accessible name', () => {
             open([makeField()], [makeValue()]);
 
-            const card = screen.getByTestId('post-attributes-card');
+            const card = screen.getByTestId('post_attributes_card');
 
             expect(card).not.toHaveAttribute('role');
             expect(card).not.toHaveAttribute('aria-label');
@@ -989,9 +1029,9 @@ describe('PostAttributesChips', () => {
         test('mounts outside the chip row', () => {
             open([makeField()], [makeValue()]);
 
-            const card = screen.getByTestId('post-attributes-card');
+            const card = screen.getByTestId('post_attributes_card');
 
-            expect(screen.getByTestId('post-attributes-chips')).not.toContainElement(card);
+            expect(screen.getByTestId('center.post_list.post.attributes')).not.toContainElement(card);
             expect(document.getElementById(RootHtmlPortalId)).toContainElement(card);
         });
     });

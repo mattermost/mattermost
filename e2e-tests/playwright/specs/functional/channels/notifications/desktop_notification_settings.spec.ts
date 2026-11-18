@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     expectNoNotification,
@@ -21,25 +21,21 @@ test(
     'MM-T491 Channel notifications do not send a desktop notification when in focus',
     {tag: '@notifications'},
     async ({pw}) => {
-        const {adminClient, team, userClient: senderClient} = await pw.initSetup();
+        const {adminClient, team, userClient: senderClient, offTopic: channel} = await pw.initSetup();
         const receiver = await pw.createNewUserProfile(adminClient, {prefix: 'notification-receiver'});
         await adminClient.addToTeam(team.id, receiver.id);
         await setDesktopNotificationLevel(adminClient, receiver, 'all');
-
-        const channel = await adminClient.getChannelByName(team.id, 'off-topic');
-        const {page, channelsPage} = await pw.testBrowser.login(receiver);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {page, app} = await pw.testBrowser.login(receiver);
+        await app.channelsPage.goto({team, channel});
         await pw.stubNotification(page, 'granted');
 
         const message = '/echo test 3';
 
         // # Post a message from another user to the channel currently in focus
-        await senderClient.createPost({channel_id: channel.id, message});
+        const post = await senderClient.createPost({channel_id: channel.id, message});
 
         // * Verify the post is rendered in the focused channel without a desktop notification
-        const lastPost = await channelsPage.getLastPost();
-        await lastPost.toContainText(message);
+        await expect(app.center.postList.post(post).message.container.locator).toContainText(message);
         await expectNoNotification(pw, page);
     },
 );

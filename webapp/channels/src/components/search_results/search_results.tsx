@@ -310,7 +310,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         contentItems = (
             <div className='sidebar--right__subheader a11y__section'>
                 <div className='sidebar--right__loading'>
-                    <LoadingWrapper text={defineMessage({id: 'search_header.loading', defaultMessage: 'Searching...'})}/>
+                    <LoadingWrapper
+                        text={defineMessage({id: 'search_header.loading', defaultMessage: 'Searching...'})}
+                        testId='search.results.loading'
+                    />
                 </div>
             </div>
         );
@@ -370,6 +373,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                         <DateSeparator
                             key={date}
                             date={date}
+                            testId='search.results.date_separator'
                         />
                     );
                 }
@@ -412,6 +416,7 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
         <div
             id='searchContainer'
             className='SearchResults sidebar-right__body'
+            data-testid='search.panel'
         >
             <SearchResultsHeader
                 newWindowHandler={newWindowHandler}
@@ -419,10 +424,10 @@ const SearchResults: React.FC<Props> = (props: Props): JSX.Element => {
                 <h2 id='rhsPanelTitle'>
                     {formattedTitle}
                 </h2>
-                {isMentionSearch && <MentionFiltersButton/>}
+                {isMentionSearch && <MentionFiltersButton testIdScope='search.mention_filters'/>}
                 {props.channelDisplayName && <div className='sidebar--right__title__channel'>{props.channelDisplayName}</div>}
             </SearchResultsHeader>
-            {isMentionSearch && <MentionFilterChips/>}
+            {isMentionSearch && <MentionFilterChips testIdScope='search.mention_filters'/>}
             {isMessagesSearch &&
                 <MessageOrFileSelector
                     selected={searchType}

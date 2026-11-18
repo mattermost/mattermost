@@ -1,7 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import type {Locator} from '@playwright/test';
+
+import {expect, lastPost, test, type App, Api, settle} from '@mattermost/playwright-lib';
+
+/**
+ * The picker shows GIPHY's description as a GIF's alt text, while the posted image is alt-texted with the GIF's
+ * title, so a GIF is matched by its GIPHY media id: the path segment before the file name in both image URLs
+ * (`/media/<id>/200.gif`, `/media/v1.<token>/<id>/giphy.webp`).
+ */
+function giphyId(src: string | null) {
+    return src ? new URL(src).pathname.split('/').at(-2) : undefined;
+}
+
+/** Searches the open picker's GIF tab for `term`, picks the first result, and returns its GIPHY media id. */
+async function pickGif(app: App, term: string) {
+    // * Verify emoji/gif picker popup appears
+    await expect(app.emojiGifPicker.tab('gifs')).toBeVisible();
+
+    // # Switch to GIF tab in the picker
+    // The picker's tabs are plain elements without a role, so the tab is clicked through its locator.
+    await app.emojiGifPicker.tab('gifs').click();
+    await expect(app.gifPicker.items).toBeVisible();
+
+    // # Search for GIFs using the term
+    await app.gifPicker.searchTextbox.fill(term);
+
+    // # Select the first GIF from search results
+    // eslint-disable-next-line test-surface/e2e-no-literal-locators -- GIPHY's Grid renders the GIF images itself, so they cannot take a test id
+    const first = app.gifPicker.items.locator.getByRole('img').first();
+    await expect(first).toBeVisible();
+    const id = giphyId(await first.getAttribute('src'));
+    expect(id).toBeTruthy();
+    await first.click();
+    await expect(first).not.toBeVisible();
+    return id;
+}
+
+/** The image in the post a list shows after its first `before` posts, once that post shows. */
+async function newPostImage(list: App['center']['postList'] | App['rhs']['thread'], before: number): Promise<Locator> {
+    await expect(list.postList).toHaveKeyCount(before + 1);
+    return (await lastPost(list)).markdown.image.container.locator;
+}
 
 /**
  * @objective Verify that users can search for GIFs, select them, and post them correctly when using the center textbox.
@@ -11,39 +52,28 @@ test.fixme(
     {tag: '@gif_picker'},
     async ({pw}) => {
         // # Initialize a test user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in as a user in new browser context
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
 
         // # Navigate to default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
 
-        // # Open emoji/gif picker from center textbox
-        await channelsPage.centerView.postCreate.openEmojiPicker();
-
-        // * Verify emoji/gif picker popup appears
-        await channelsPage.emojiGifPickerPopup.toBeVisible();
-
-        // # Switch to GIF tab in the picker
-        await channelsPage.emojiGifPickerPopup.openGifTab();
-
-        // # Search for GIFs using the term "hello"
-        await channelsPage.emojiGifPickerPopup.searchGif('hello');
-
-        // # Select the first GIF from search results
-        const {img: firstSearchGifResult, alt: altOfFirstSearchGifResult} =
-            await channelsPage.emojiGifPickerPopup.getNthGif(0);
-        await firstSearchGifResult.click();
+        // # Open emoji/gif picker from center textbox, and pick a GIF for "hello"
+        const composer = app.center.postCreate;
+        await composer.emojiButton.click();
+        await expect(app.emojiGifPicker.tab('gifs')).toBeVisible();
+        const picked = await pickGif(app, 'hello');
 
         // # Send the selected GIF as a message
-        await channelsPage.centerView.postCreate.sendMessage();
+        const before = (await app.center.postList.postList.keys()).length;
+        await settle(composer.sendButton, {wait: Api.CreatePost}).click();
 
         // * Verify the posted message contains the selected GIF
-        const lastPost = await channelsPage.getLastPost();
-        await lastPost.toBeVisible();
-        await expect(lastPost.body.getByLabel('file thumbnail')).toHaveAttribute('alt', altOfFirstSearchGifResult);
+        const image = await newPostImage(app.center.postList, before);
+        await expect(image).toHaveAttribute('src', new RegExp(`/${picked}/`));
     },
 );
 
@@ -55,56 +85,45 @@ test.fixme(
     {tag: '@gif_picker'},
     async ({pw}) => {
         // # Initialize a test user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in as a user in new browser context
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
 
         // # Navigate to default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
 
         // # Post a message to create a thread
-        await channelsPage.postMessage('Message to open RHS');
+        const center = app.center.postCreate;
+        await center.message.container.fill('Message to open RHS');
+        await settle(center.sendButton, {wait: Api.CreatePost}).click();
 
         // # Open the message in right-hand sidebar to start a thread
-        const lastPost = await channelsPage.getLastPost();
-        await lastPost.hover();
-        await lastPost.postMenu.toBeVisible();
-        await lastPost.postMenu.reply();
+        const {postList} = app.center;
+        const post = await lastPost(postList);
+        await post.container.hover();
+        await post.menu.replyButton.click();
 
         // * Verify right sidebar opens and is visible
-        const sidebarRight = channelsPage.sidebarRight;
-        await sidebarRight.toBeVisible();
+        const reply = app.rhs.postCreate;
+        await expect(reply.message.container).toBeVisible();
 
         // # Post an initial reply in the thread
-        await sidebarRight.postCreate.toBeVisible();
-        await sidebarRight.postCreate.writeMessage('Replying to a thread');
-        await sidebarRight.postCreate.sendMessage();
+        await reply.message.container.fill('Replying to a thread');
+        await settle(reply.sendButton, {wait: Api.CreatePost}).click();
 
-        // # Open emoji/gif picker from the RHS textbox
-        await sidebarRight.postCreate.openEmojiPicker();
-
-        // * Verify emoji/gif picker popup appears
-        await channelsPage.emojiGifPickerPopup.toBeVisible();
-
-        // # Switch to GIF tab in the picker
-        await channelsPage.emojiGifPickerPopup.openGifTab();
-
-        // # Search for GIFs using the term "hello"
-        await channelsPage.emojiGifPickerPopup.searchGif('hello');
-
-        // # Select the first GIF from search results
-        const {img: firstSearchGifResult, alt: altOfFirstSearchGifResult} =
-            await channelsPage.emojiGifPickerPopup.getNthGif(0);
-        await firstSearchGifResult.click();
+        // # Open emoji/gif picker from the RHS textbox, and pick a GIF for "hello"
+        await reply.emojiButton.click();
+        await expect(app.emojiGifPicker.tab('gifs')).toBeVisible();
+        const picked = await pickGif(app, 'hello');
 
         // # Send the selected GIF as a message in the thread
-        await sidebarRight.postCreate.sendMessage();
+        const before = (await app.rhs.thread.postList.keys()).length;
+        await settle(reply.sendButton, {wait: Api.CreatePost}).click();
 
         // * Verify the posted message in the thread contains the selected GIF
-        const lastPostInRHS = await sidebarRight.getLastPost();
-        await lastPostInRHS.toBeVisible();
-        await expect(lastPostInRHS.body.getByLabel('file thumbnail')).toHaveAttribute('alt', altOfFirstSearchGifResult);
+        const image = await newPostImage(app.rhs.thread, before);
+        await expect(image).toHaveAttribute('src', new RegExp(`/${picked}/`));
     },
 );

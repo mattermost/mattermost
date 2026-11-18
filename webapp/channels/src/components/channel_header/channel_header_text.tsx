@@ -109,6 +109,7 @@ function AddChannelHeaderTextButton({channel}: {channel: Channel}) {
     return (
         <button
             className='header-placeholder style--none'
+            data-testid='channel_header.add_header--button'
             onClick={handleClick}
         >
             <FormattedMessage {...addHeaderMessages[channelKind]}/>

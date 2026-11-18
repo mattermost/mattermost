@@ -31,7 +31,7 @@ describe('Emoji sorting', () => {
         cy.uiOpenEmojiPicker();
 
         // # Assert first recently used emoji has the data-test-id value of 'cat' which was the last one we sent
-        cy.findAllByTestId('emojiItem').
+        cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).
             each(($btn) => {
                 // Check if the button has the specific aria-label
                 if ($btn.attr('aria-label') === 'cat emoji') {
@@ -55,7 +55,7 @@ describe('Emoji sorting', () => {
         cy.findByPlaceholderText('Search emojis').should('be.visible').type('sma', {delay: TIMEOUTS.HALF_SEC});
 
         // # Get list of recent emojis based on search text
-        cy.findAllByTestId('emojiItem').children('img').each(($el) => {
+        cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).children('img').each(($el) => {
             const emojiName = $el.get(0);
             emojiList.push(emojiName.dataset.testid!);
         }).then(() => {

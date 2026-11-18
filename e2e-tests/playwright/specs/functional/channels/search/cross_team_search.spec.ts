@@ -3,7 +3,13 @@
 
 import type {Team} from '@mattermost/types/teams';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, type App} from '@mattermost/playwright-lib';
+
+/** Opens the search box from the global header. */
+async function openSearch(app: App) {
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    return app.searchBox.inputSearchbox;
+}
 
 /**
  * @objective Verify cross-team search still renders the team selector and returns results correctly
@@ -11,30 +17,29 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test('MM-T5806 cross-team search works under the Onyx (dark) theme', {tag: '@search'}, async ({pw}) => {
     // # Create a user with two teams and post a message to search for
-    const {adminClient, team, user} = await pw.initSetup();
+    const {adminClient, team, user, townSquare: channel} = await pw.initSetup();
     const secondTeam = await adminClient.createTeam(await pw.random.team('team', 'Team', 'O', true));
     await adminClient.addUsersToTeam(secondTeam.id, [user.id]);
-
     const message = 'this is a test post containing the word pineapple';
-    const channel = await adminClient.getChannelByName(team.id, 'town-square');
-    await adminClient.createPost({channel_id: channel.id, message});
+    const post = await adminClient.createPost({channel_id: channel.id, message});
 
     // # Log in and switch to the Onyx (dark) theme
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name);
-    await channelsPage.toBeVisible();
-
+    const {app, channelsPage} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel});
+    // The settings controls declare no parts here, so they are found by their accessible names.
     const settingsModal = await channelsPage.openSettings();
     const displaySettings = await settingsModal.openDisplayTab();
     await displaySettings.selectPremadeTheme('Onyx');
     await settingsModal.close();
 
     // # Search for the message across teams
-    await channelsPage.searchFor('pineapple');
+    const input = await openSearch(app);
+    await input.fill('pineapple');
+    await input.press('Enter');
 
     // * Verify the team selector and search results render correctly under the dark theme
-    await channelsPage.searchResultsPanel.teamSelector.toBeVisible();
-    await channelsPage.searchResultsPanel.toContainText(message);
+    await expect(app.search.teamSelector.openMenuButton).toBeVisible();
+    await expect(app.search.results.post(post).message.container).toHaveText(message);
 });
 
 /**
@@ -44,42 +49,38 @@ test('MM-T5806 cross-team search works under the Onyx (dark) theme', {tag: '@sea
 test('MM-T5805 team filter shows no results for a non-matching query', {tag: '@search'}, async ({pw}) => {
     // # Create a user and enough teams (5 total) for the team-filter input to render
     // (see team_selector.spec.ts: the filter only shows with more than 4 teams)
-    const {adminClient, team, user} = await pw.initSetup();
-
+    const {adminClient, team, user, townSquare} = await pw.initSetup();
     const extraTeams: Record<string, Team> = {};
     for (const fruit of ['Apple', 'Banana', 'Peach', 'Grape']) {
         const newTeam = await adminClient.createTeam(await pw.random.team(fruit.toLowerCase(), fruit, 'O', true));
         await adminClient.addUsersToTeam(newTeam.id, [user.id]);
         extraTeams[fruit] = newTeam;
     }
-
     // # Log in, open search, and open the team selector
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name);
-    await channelsPage.toBeVisible();
-    await channelsPage.globalHeader.openSearch();
-
-    const teamSelector = channelsPage.searchBox.teamSelector;
-    await teamSelector.open();
-    await expect(teamSelector.filterInput).toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: townSquare});
+    await openSearch(app);
+    await app.searchBox.teamSelector.openMenuButton.clickTo(app.searchBox.teamSelector.menu.allTeamsMenuItemRadio);
+    const menu = app.searchBox.teamSelector.menu;
+    await expect(menu.filter.container).toBeVisible();
 
     // # Filter by a string that matches no team
-    await teamSelector.filterBy('Rhino');
+    await menu.filter.container.fill('Rhino');
 
     // * Verify none of the fruit teams match, but the current team is still shown (current team is always visible)
+    await expect(menu.team(team)).toBeVisible();
     for (const fruit of Object.keys(extraTeams)) {
-        await expect(teamSelector.teamOption(extraTeams[fruit].display_name)).not.toBeVisible();
+        await expect(menu.team(extraTeams[fruit])).not.toBeVisible();
     }
-    await expect(teamSelector.teamOption(team.display_name)).toBeVisible();
 
     // # Filter by a partial string that matches exactly one team
-    await teamSelector.filterBy('Banana');
+    await menu.filter.container.fill('Banana');
 
     // * Verify only the matching team (plus the always-visible current team) is shown
-    await expect(teamSelector.teamOption(extraTeams.Banana.display_name)).toBeVisible();
-    await expect(teamSelector.teamOption(team.display_name)).toBeVisible();
+    await expect(menu.team(extraTeams.Banana)).toBeVisible();
+    await expect(menu.team(team)).toBeVisible();
     for (const fruit of ['Apple', 'Peach', 'Grape']) {
-        await expect(teamSelector.teamOption(extraTeams[fruit].display_name)).not.toBeVisible();
+        await expect(menu.team(extraTeams[fruit])).not.toBeVisible();
     }
 });
 
@@ -94,8 +95,7 @@ test(
     async ({pw}) => {
         // # Create a user and 4 more teams (5 total) so the "Your teams" section renders
         // (see team_selector.spec.ts: the filter/section only shows with more than 4 teams)
-        const {adminClient, team, user} = await pw.initSetup();
-
+        const {adminClient, team, user, townSquare} = await pw.initSetup();
         const teams = [team];
         for (let i = 0; i < 4; i++) {
             const newTeam = await adminClient.createTeam(await pw.random.team('team', 'Team', 'O', true));
@@ -103,35 +103,36 @@ test(
             teams.push(newTeam);
         }
         const secondTeam = teams[1];
-
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-        await channelsPage.globalHeader.openSearch();
-
-        const teamSelector = channelsPage.searchBox.teamSelector;
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
+        const input = await openSearch(app);
+        const selector = app.searchBox.teamSelector;
 
         // * Verify the selector defaults to the currently active team, not "All Teams"
-        await expect(teamSelector.menuButton).toContainText(team.display_name);
+        await expect(selector.openMenuButton).toContainText(team.display_name);
 
         // # Type a query without submitting, then switch the team selector to a different team
-        await channelsPage.searchBox.searchInput.fill('pineapple');
-        await teamSelector.selectTeam(secondTeam.display_name);
+        await input.fill('pineapple');
+        await selector.openMenuButton.clickTo(selector.menu.allTeamsMenuItemRadio);
+        await selector.menu.team(secondTeam).click();
 
         // * Verify the button label updated and the query text was preserved
-        await expect(teamSelector.menuButton).toContainText(secondTeam.display_name);
-        await expect(channelsPage.searchBox.searchInput).toHaveValue('pineapple');
+        await expect(selector.openMenuButton).toContainText(secondTeam.display_name);
+        await expect(input).toHaveValue('pineapple');
 
         // * Verify the "Your teams" section header is shown while a specific team is selected
-        await teamSelector.open();
-        await expect(teamSelector.yourTeamsHeader).toBeVisible();
+        await selector.openMenuButton.clickTo(selector.menu.allTeamsMenuItemRadio);
+        const menu = selector.menu;
+        await expect(menu.yourTeamsSeparator).toBeVisible();
 
         // # Switch to "All Teams" (the menu is already open from the check above)
-        await teamSelector.teamOption('All Teams').click();
+        await menu.allTeamsMenuItemRadio.click();
+        await expect(selector.openMenuButton).toContainText('All Teams');
 
         // * Verify the "Your teams" section header is hidden once "All Teams" is selected
-        await teamSelector.open();
-        await expect(teamSelector.yourTeamsHeader).not.toBeVisible();
+        await selector.openMenuButton.clickTo(selector.menu.allTeamsMenuItemRadio);
+        await expect(menu.allTeamsMenuItemRadio).toBeVisible();
+        await expect(menu.yourTeamsSeparator).not.toBeVisible();
     },
 );
 
@@ -148,25 +149,22 @@ test.fixme(
     {tag: '@search'},
     async ({pw}) => {
         // # Create a user with a second team so "All Teams" is a real, distinct selector choice
-        const {adminClient, team, user} = await pw.initSetup();
+        const {adminClient, team, user, townSquare: channel} = await pw.initSetup();
         const secondTeam = await adminClient.createTeam(await pw.random.team('team', 'Team', 'O', true));
         await adminClient.addUsersToTeam(secondTeam.id, [user.id]);
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
-
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
-        await channelsPage.globalHeader.openSearch();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
+        const searchInput = await openSearch(app);
 
         // # Type "in:" and pick the channel from the autocomplete suggestion
-        const {searchInput} = channelsPage.searchBox;
         await searchInput.fill('in:');
-        await searchInput.pressSequentially(channel.name);
-        await channelsPage.searchBox.container.getByText(channel.display_name, {exact: false}).first().click();
+        await searchInput.type(channel.name);
+        await app.searchBox.suggestions.suggestion(channel.name).select();
         await expect(searchInput).toHaveValue(`in:${channel.name} `);
 
         // # Switch the team selector to "All Teams"
-        await channelsPage.searchBox.teamSelector.selectAllTeams();
+        await app.searchBox.teamSelector.openMenuButton.clickTo(app.searchBox.teamSelector.menu.allTeamsMenuItemRadio);
+        await app.searchBox.teamSelector.menu.allTeamsMenuItemRadio.click();
 
         // * Verify the "in:" clause was cleared, since it's meaningless once scoped to All Teams
         await expect(searchInput).not.toHaveValue(new RegExp(`in:${channel.name}`));

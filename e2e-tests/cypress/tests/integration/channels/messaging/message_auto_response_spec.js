@@ -97,7 +97,7 @@ describe('Auto Response In DMs', () => {
         openDmWithUserB();
 
         // * Verify OOO notice is shown above the post input
-        cy.findByTestId('outOfOfficeWarning').
+        cy.findByTestId('center.post_create.out_of_office_warning--text').
             should('be.visible').
             and('contain.text', 'is Out of Office.');
 

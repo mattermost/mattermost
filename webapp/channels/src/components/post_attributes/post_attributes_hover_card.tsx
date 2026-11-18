@@ -33,6 +33,7 @@ export default function PostAttributesHoverCard({attributes, onEdit}: Props) {
                 <button
                     type='button'
                     className='PostAttributesHoverCard__edit'
+                    data-testid='post_attributes_card.edit--button'
                     onClick={onEdit}
                 >
                     <FormattedMessage
@@ -51,8 +52,14 @@ export default function PostAttributesHoverCard({attributes, onEdit}: Props) {
                     <li
                         key={field.id}
                         className='PostAttributesHoverCard__row'
+                        data-testid={`post_attributes_card.attribute:${field.id}`}
                     >
-                        <span className='PostAttributesHoverCard__name'>{getPropertyFieldLabel(field)}</span>
+                        <span
+                            className='PostAttributesHoverCard__name'
+                            data-testid='post_attributes_card.attribute.name--text'
+                        >
+                            {getPropertyFieldLabel(field)}
+                        </span>
                         <span className='PostAttributesHoverCard__value'>
                             <PostAttributeText
                                 field={field}

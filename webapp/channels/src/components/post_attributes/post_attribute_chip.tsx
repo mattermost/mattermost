@@ -35,6 +35,11 @@ type Props = {
     // button: the user's name is then plain text rather than the profile
     // popover's own button. Defaults to true.
     interactive?: boolean;
+
+    // The scope of the chip's test ids: `<scope>.select--text`, `.user`, `.channel`, `.team`, `.timestamp--text`,
+    // `.post_preview` and `.text--text`, as the renderers these chips replaced named them. Without a scope (the
+    // composer's staged chips) the ids are the plain ones.
+    testIdScope?: string;
 };
 
 /**
@@ -49,7 +54,7 @@ type Props = {
  * into "remove", and the composer needs both to open a chip's value menu. The
  * test ids are the old renderers', so the chip row's tests read the same.
  */
-export default function PostAttributeChip({field, value, maxItems, interactive = true}: Props) {
+export default function PostAttributeChip({field, value, maxItems, interactive = true, testIdScope}: Props) {
     switch (field.type) {
     case 'select':
     case 'rank':
@@ -68,7 +73,7 @@ export default function PostAttributeChip({field, value, maxItems, interactive =
                         key={`${index}:${chip.key}`}
                         size='small'
                         className='PostAttributeChip'
-                        data-testid='select-property'
+                        data-testid={testIdScope ? `${testIdScope}.select--text` : 'select-property'}
                     >
                         {chip.label}
                     </Chip>
@@ -82,6 +87,7 @@ export default function PostAttributeChip({field, value, maxItems, interactive =
             <UserChip
                 userId={typeof value.value === 'string' ? value.value : ''}
                 interactive={interactive}
+                testIdScope={testIdScope}
             />
         );
 
@@ -95,6 +101,7 @@ export default function PostAttributeChip({field, value, maxItems, interactive =
                         key={`${index}:${String(userId)}`}
                         userId={String(userId)}
                         interactive={interactive}
+                        testIdScope={testIdScope}
                     />
                 ))}
             </>
@@ -105,6 +112,7 @@ export default function PostAttributeChip({field, value, maxItems, interactive =
             <TextChip
                 field={field}
                 value={value}
+                testIdScope={testIdScope}
             />
         );
 
@@ -118,14 +126,14 @@ export default function PostAttributeChip({field, value, maxItems, interactive =
  * profile popover, unless the chip sits inside another control. An id whose
  * profile has not arrived renders its "Someone" fallback, as before.
  */
-function UserChip({userId, interactive}: {userId: string; interactive: boolean}) {
+function UserChip({userId, interactive, testIdScope}: {userId: string; interactive: boolean; testIdScope?: string}) {
     const user = useUser(userId);
 
     return (
         <Chip
             size='small'
             className='PostAttributeChip'
-            data-testid='user-property'
+            data-testid={testIdScope ? `${testIdScope}.user` : 'user-property'}
             leadingAvatar={user ? {src: imageURLForUser(user.id, user.last_picture_update), alt: ''} : undefined}
         >
             <UserProfileComponent
@@ -141,7 +149,7 @@ function UserChip({userId, interactive}: {userId: string; interactive: boolean})
  * names, read from the store by `usePropertyValueMetadata`; nothing is fetched
  * per chip. Every text chip is capped at 160px; the hover card has the rest.
  */
-function TextChip({field, value}: {field: PropertyField; value: PropertyValue<unknown>}) {
+function TextChip({field, value, testIdScope}: {field: PropertyField; value: PropertyValue<unknown>; testIdScope?: string}) {
     const metadata = usePropertyValueMetadata(field, value);
     const stored = value.value === null || value.value === undefined ? '' : String(value.value);
 
@@ -154,7 +162,7 @@ function TextChip({field, value}: {field: PropertyField; value: PropertyValue<un
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid='channel-property'
+                data-testid={testIdScope ? `${testIdScope}.channel` : 'channel-property'}
                 leadingIcon={hasIcon ? <ChannelIcon channel={channel}/> : undefined}
             >
                 {channel ? channel.display_name : (
@@ -176,7 +184,7 @@ function TextChip({field, value}: {field: PropertyField; value: PropertyValue<un
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid='team-property'
+                data-testid={testIdScope ? `${testIdScope}.team` : 'team-property'}
                 leadingAvatar={image ? {src: image, alt: ''} : undefined}
             >
                 {team ? team.display_name : (
@@ -195,7 +203,7 @@ function TextChip({field, value}: {field: PropertyField; value: PropertyValue<un
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid='timestamp-property'
+                data-testid={testIdScope ? `${testIdScope}.timestamp--text` : 'timestamp-property'}
             >
                 <TimestampPropertyRenderer value={value}/>
             </Chip>
@@ -210,7 +218,7 @@ function TextChip({field, value}: {field: PropertyField; value: PropertyValue<un
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid='post-preview-property'
+                data-testid={testIdScope ? `${testIdScope}.post_preview` : 'post-preview-property'}
             >
                 {channel ? (
                     <FormattedMessage
@@ -235,7 +243,7 @@ function TextChip({field, value}: {field: PropertyField; value: PropertyValue<un
             <Chip
                 size='small'
                 className='PostAttributeChip PostAttributeChip--text'
-                data-testid='text-property'
+                data-testid={testIdScope ? `${testIdScope}.text--text` : 'text-property'}
                 title={stored}
             >
                 {stored}

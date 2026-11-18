@@ -37,6 +37,7 @@ describe('PostAttributesButton', () => {
     test('renders a plus button labelled for the composer, and not disabled', () => {
         renderWithContext(
             <PostAttributesButton
+                testIdScope='center.post_create.post_attributes'
                 fields={[makeField()]}
                 onSelect={jest.fn()}
             />,
@@ -50,7 +51,7 @@ describe('PostAttributesButton', () => {
 
         // The focused element is the menu button itself, so it carries the
         // menu state that a screen reader announces.
-        expect(button).toHaveAttribute('data-testid', 'post-attributes-composer-add');
+        expect(button).toHaveAttribute('data-testid', 'center.post_create.post_attributes--button');
         expect(button).toHaveAttribute('aria-haspopup', 'true');
         expect(button).toHaveAttribute('aria-expanded', 'false');
     });
@@ -60,6 +61,7 @@ describe('PostAttributesButton', () => {
 
         renderWithContext(
             <PostAttributesButton
+                testIdScope='center.post_create.post_attributes'
                 fields={[makeField({id: 'f_a', name: 'alpha'}), makeField({id: 'f_b', name: 'beta'})]}
                 onSelect={onSelect}
             />,
@@ -68,11 +70,11 @@ describe('PostAttributesButton', () => {
         await userEvent.click(screen.getByRole('button', {name: 'Add attributes'}));
 
         expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual([
-            'post-attribute-add-alpha',
-            'post-attribute-add-beta',
+            'center.post_create.post_attributes_menu.field:f_a--menuitem',
+            'center.post_create.post_attributes_menu.field:f_b--menuitem',
         ]);
 
-        await userEvent.click(screen.getByTestId('post-attribute-add-beta'));
+        await userEvent.click(screen.getByTestId('center.post_create.post_attributes_menu.field:f_b--menuitem'));
 
         await waitFor(() => expect(onSelect).toHaveBeenCalledTimes(1));
         expect(onSelect).toHaveBeenCalledWith('f_b');
@@ -81,12 +83,13 @@ describe('PostAttributesButton', () => {
     test('renders nothing when there is no field to offer', () => {
         renderWithContext(
             <PostAttributesButton
+                testIdScope='center.post_create.post_attributes'
                 fields={[]}
                 onSelect={jest.fn()}
             />,
         );
 
-        expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.post_create.post_attributes--button')).not.toBeInTheDocument();
         expect(screen.queryByRole('button')).not.toBeInTheDocument();
     });
 
@@ -94,17 +97,19 @@ describe('PostAttributesButton', () => {
         renderWithContext(
             <>
                 <PostAttributesButton
+                    testIdScope='center.post_create.post_attributes'
                     fields={[makeField()]}
                     onSelect={jest.fn()}
                 />
                 <PostAttributesButton
+                    testIdScope='center.post_create.post_attributes'
                     fields={[makeField()]}
                     onSelect={jest.fn()}
                 />
             </>,
         );
 
-        const [first, second] = screen.getAllByTestId('post-attributes-composer-add');
+        const [first, second] = screen.getAllByTestId('center.post_create.post_attributes--button');
 
         expect(first.id).not.toBe(second.id);
         expect(first.getAttribute('aria-controls')).not.toBe(second.getAttribute('aria-controls'));

@@ -3,21 +3,22 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {expect, getFileFromAsset, test} from '@mattermost/playwright-lib';
+import {Api, expect, getFileFromAsset, settle, test} from '@mattermost/playwright-lib';
 
 import {assertRootModal, closeRootModal, uploadFileViaYourComputer} from '../helpers';
 
-async function uploadDemoFile(client: Client4, channelId: string): Promise<void> {
+async function uploadDemoFile(client: Client4, channelId: string) {
     const file = getFileFromAsset('sample-file.demo');
     const formData = new FormData();
     formData.set('files', file, 'sample-file.demo');
     formData.set('channel_id', channelId);
     const result = await client.uploadFile(formData);
-    await client.createPost({
+    const post = await client.createPost({
         channel_id: channelId,
         message: '',
         file_ids: [result.file_infos[0].id],
     });
+    return {post, file: result.file_infos[0]};
 }
 
 test('should show "Upload using Demo Plugin" entry in attachment menu and open Root Modal', async ({pw}) => {
@@ -26,23 +27,26 @@ test('should show "Upload using Demo Plugin" entry in attachment menu and open R
     await pw.ensureDemoPlugin();
 
     // # Login and navigate to Town Square
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Click the attachment button to open the upload type menu
-    await channelsPage.centerView.postCreate.attachmentButton.click();
+    await app.center.postCreate.attachButton.click();
 
     // * Verify both upload entries are visible
-    await expect(channelsPage.page.getByText('Your computer')).toBeVisible();
-    await expect(channelsPage.page.getByText('Upload using Demo Plugin')).toBeVisible();
+    await expect(app.page.getByText('Your computer')).toBeVisible();
+    await expect(app.page.getByText('Upload using Demo Plugin')).toBeVisible();
 
     // # Click "Upload using Demo Plugin"
-    await channelsPage.page.getByText('Upload using Demo Plugin').click();
+    await app.page.getByText('Upload using Demo Plugin').click();
+    await expect(
+        app.page.getByText('You have triggered the root component of the demo plugin.', {exact: true}),
+    ).toBeVisible();
 
     // * Verify Root Modal opens (no element context for this entry point)
-    await assertRootModal(channelsPage.page);
-    await closeRootModal(channelsPage.page);
+    await assertRootModal(app.page);
+    await closeRootModal(app.page);
 });
 
 test('should show Demo Plugin entry in file attachment dropdown for .demo files and open Root Modal', async ({pw}) => {
@@ -59,28 +63,34 @@ test('should show Demo Plugin entry in file attachment dropdown for .demo files 
     });
     const createdChannel = await adminClient.createChannel(channel);
     await adminClient.addToChannel(user.id, createdChannel.id);
-    await uploadDemoFile(adminClient, createdChannel.id);
+    const uploaded = await uploadDemoFile(adminClient, createdChannel.id);
 
     // # Login and navigate to the channel
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'demo-file-test');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: {name: 'demo-file-test'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Hover the file attachment to reveal the kebab menu, scoped to the post
-    const post = channelsPage.centerView.container.getByRole('listitem').filter({hasText: 'sample-file.demo'}).last();
-    await post.getByText('sample-file.demo').hover();
-    await post.getByRole('button', {name: 'more actions'}).click();
+    const post = app.center.postList.post({id: uploaded.post.id});
+    const file = post.attachments.fileCard({id: uploaded.file.id});
+    await expect(file).toContainText('sample-file.demo');
+    await file.container.hover();
+    await expect(file.moreActionsButton).toBeVisible();
+    await file.moreActionsButton.click();
 
     // * Verify the file attachment dropdown contains the Demo Plugin entry
-    await expect(channelsPage.page.getByRole('menuitem', {name: 'Get a public link'})).toBeVisible();
-    await expect(channelsPage.page.getByRole('menuitem', {name: 'Demo Plugin'})).toBeVisible();
+    await expect(app.page.getByRole('menuitem', {name: 'Get a public link'})).toBeVisible();
+    await expect(app.page.getByRole('menuitem', {name: 'Demo Plugin'})).toBeVisible();
 
     // # Click "Demo Plugin"
-    await channelsPage.page.getByRole('menuitem', {name: 'Demo Plugin'}).click();
+    await app.page.getByRole('menuitem', {name: 'Demo Plugin'}).click();
+    await expect(
+        app.page.getByText('You have triggered the root component of the demo plugin.', {exact: true}),
+    ).toBeVisible();
 
     // * Verify Root Modal opens
-    await assertRootModal(channelsPage.page);
-    await closeRootModal(channelsPage.page);
+    await assertRootModal(app.page);
+    await closeRootModal(app.page);
 });
 
 test('should render custom preview for .demo files', async ({pw}) => {
@@ -96,18 +106,20 @@ test('should render custom preview for .demo files', async ({pw}) => {
     });
     const createdChannel = await adminClient.createChannel(channel);
     await adminClient.addToChannel(user.id, createdChannel.id);
-    await uploadDemoFile(adminClient, createdChannel.id);
+    const uploaded = await uploadDemoFile(adminClient, createdChannel.id);
 
     // # Login and navigate to the channel
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'demo-preview-test');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: {name: 'demo-preview-test'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Click the file thumbnail to open the preview
-    await channelsPage.page.getByRole('link', {name: /file thumbnail sample-file\.demo/}).click();
+    const file = app.center.postList.post({id: uploaded.post.id}).attachments.fileCard({id: uploaded.file.id});
+    await expect(file.thumbnailLink).toHaveAccessibleName(/file thumbnail sample-file\.demo/);
+    await file.thumbnailLink.click();
 
     // * Verify the preview dialog opens with the custom demo plugin content
-    const previewDialog = channelsPage.page.getByRole('dialog');
+    const previewDialog = app.page.getByRole('dialog');
     await expect(previewDialog).toBeVisible();
 
     // The custom demo plugin preview renders the filename as an h3 heading
@@ -135,26 +147,29 @@ test('should upload a file via "Your computer" from the demo plugin attachment s
     await pw.ensureDemoPlugin();
 
     // # Login and navigate to Town Square
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: {name: 'town-square'}});
+    await expect(app.center.postCreate.message.container).toBeVisible();
 
     // # Upload a file via the UI — the demo plugin intercepts the attachment button
     // and shows a submenu. uploadFileViaYourComputer clicks "Your computer" to reach
     // the native file chooser.
-    await uploadFileViaYourComputer(
-        channelsPage.page,
-        channelsPage.centerView.postCreate.attachmentButton,
-        'sample_text_file.txt',
-    );
+    await uploadFileViaYourComputer(app.page, app.center.postCreate.attachButton, 'sample_text_file.txt');
 
     // * Verify the file preview appears in the compose area before sending
-    await channelsPage.centerView.postCreate.waitUntilFilePreviewContains(['sample_text_file.txt']);
+    const previews = app.center.postCreate.filePreviews;
+    await expect(previews.fileList).toHaveKeyCount(1);
+    const [fileId] = await previews.fileList.keys();
+    await expect(previews.file({id: fileId}).details).toBeVisible();
+    await expect(previews).toContainText('sample_text_file.txt');
 
     // # Send the message with file
-    await channelsPage.centerView.postCreate.postMessage('file upload test');
+    await app.center.postCreate.message.container.fill('file upload test');
+    await expect(app.center.postCreate.message.container).toHaveValue('file upload test');
+    const sent = await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
 
     // * Verify the file attachment appears in the channel post
-    const lastPost = await channelsPage.centerView.getLastPost();
-    await expect(lastPost.container.getByText('sample_text_file.txt')).toBeVisible();
+    const lastPost = app.center.postList.post({id: sent.id});
+    // File cards have no generated filename text part; retain the visible filename check inside the sent post's attachments.
+    await expect(lastPost.attachments.container.locator.getByText('sample_text_file.txt')).toBeVisible();
 });

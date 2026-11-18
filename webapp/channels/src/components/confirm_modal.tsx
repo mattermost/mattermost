@@ -230,6 +230,7 @@ const ConfirmModal = ({
                 <div
                     className='ConfirmModal__body'
                     id='confirmModalBody'
+                    data-testid={testId ? `${testId}.message--text` : undefined}
                 >
                     {message}
                     {!checkboxInFooter && checkbox}
