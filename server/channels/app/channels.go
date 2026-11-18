@@ -49,6 +49,7 @@ type Channels struct {
 	pluginCommands                []*PluginCommand
 	pluginsLock                   sync.RWMutex
 	pluginsEnvironment            *plugin.Environment
+	prepackagedPluginsLock        sync.Mutex
 	pluginConfigListenerID        string
 	pluginLicenseListenerID       string
 	pluginClusterLeaderListenerID string

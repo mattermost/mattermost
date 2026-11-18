@@ -24,19 +24,15 @@ func callsVersionFromPluginVersion(version string) string {
 	return model.PluginCallsVersionV2
 }
 
-// resolveCallsVersion returns the value to use for an empty CallsVersion setting. installed is
-// the Calls manifest unpacked locally after syncPlugins, or nil if Calls is not installed, and
-// candidates are the prepackaged Calls manifests.
-//
-// A server already running Calls v2 (it can only have been uploaded, which syncPlugins restores)
-// stays on v2. Everything else defaults to v1 while a v1 bundle is prepackaged: v1 works without
-// any extra infrastructure, whereas v2 does not work until LiveKit is set up, so a wrong guess
-// toward v2 breaks calling while a wrong guess toward v1 costs an admin one setting change. This
-// deliberately does not try to tell a fresh install from an upgrade. Once v1 is no longer
-// prepackaged the default is v2.
-func resolveCallsVersion(installed *model.Manifest, candidates []*model.Manifest) string {
-	if installed != nil {
-		return callsVersionFromPluginVersion(installed.Version)
+// effectiveCallsVersion returns the Calls version to install: the CallsVersion setting if it is
+// set, otherwise v1 while a v1 bundle is prepackaged and v2 after that. v1 is the default because
+// it works without any extra infrastructure, whereas v2 does not work until LiveKit is configured,
+// so a wrong guess toward v2 breaks calling while a wrong guess toward v1 costs an admin one
+// setting change. The default is computed from the bundles this server ships each time and is
+// never written to the config.
+func effectiveCallsVersion(setting string, candidates []*model.Manifest) string {
+	if setting != "" {
+		return setting
 	}
 	for _, m := range candidates {
 		if callsVersionFromPluginVersion(m.Version) == model.PluginCallsVersionV1 {
@@ -102,20 +98,20 @@ func callsInstallStrategy(chosen, installed *model.Manifest, installedIsManual b
 	return installPluginLocallyAlways, true
 }
 
-// ensureCallsVersion returns the effective CallsVersion, resolving and persisting it first if
-// the setting is empty. installed is the Calls manifest unpacked locally, or nil, and candidates
-// are the prepackaged Calls manifests.
-func (ch *Channels) ensureCallsVersion(installed *model.Manifest, candidates []*model.Manifest) string {
-	if v := *ch.cfgSvc.Config().PluginSettings.CallsVersion; v != "" {
-		return v
-	}
+// callsEnabled reports whether the Calls plugin is enabled in the given config.
+func callsEnabled(cfg *model.Config) bool {
+	state := cfg.PluginSettings.PluginStates[model.PluginIdCalls]
+	return state != nil && state.Enable
+}
 
-	resolved := resolveCallsVersion(installed, candidates)
-	ch.srv.Log().Info("Resolved empty Calls version setting", mlog.String("calls_version", resolved))
-	ch.cfgSvc.UpdateConfig(func(cfg *model.Config) {
-		if *cfg.PluginSettings.CallsVersion == "" {
-			cfg.PluginSettings.CallsVersion = new(resolved)
-		}
-	})
-	return resolved
+// callsVersionNeedsReeval reports whether a config change should re-run the prepackaged plugin
+// selection so the chosen Calls bundle is installed: when CallsVersion changes, or when Calls is
+// enabled, which applies a version chosen while Calls was disabled and nothing could be installed.
+// Pre-packaged plugins are otherwise only processed at startup. The re-run is idempotent, so a
+// change that leaves the effective version unchanged installs nothing.
+func callsVersionNeedsReeval(oldCfg, newCfg *model.Config) bool {
+	if *newCfg.PluginSettings.CallsVersion != *oldCfg.PluginSettings.CallsVersion {
+		return true
+	}
+	return callsEnabled(newCfg) && !callsEnabled(oldCfg)
 }

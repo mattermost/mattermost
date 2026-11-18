@@ -33,17 +33,52 @@ func TestCallsVersionFromPluginVersion(t *testing.T) {
 	assert.Equal(t, model.PluginCallsVersionV1, callsVersionFromPluginVersion("not-a-version"))
 }
 
-func TestResolveCallsVersion(t *testing.T) {
+func TestEffectiveCallsVersion(t *testing.T) {
 	v1, v2 := callsManifest("1.9.0"), callsManifest("2.0.0")
-	both := []*model.Manifest{v1, v2}
 
-	assert.Equal(t, model.PluginCallsVersionV1, resolveCallsVersion(nil, both), "nothing installed defaults to v1 while v1 is prepackaged")
-	assert.Equal(t, model.PluginCallsVersionV1, resolveCallsVersion(nil, []*model.Manifest{v1}))
-	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(nil, []*model.Manifest{v2}), "v1 is no longer prepackaged")
-	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(nil, nil))
-	assert.Equal(t, model.PluginCallsVersionV1, resolveCallsVersion(callsManifest("1.8.0"), both))
-	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(callsManifest("2.0.1"), both), "an installed v2 stays on v2")
-	assert.Equal(t, model.PluginCallsVersionV2, resolveCallsVersion(callsManifest("2.0.1"), []*model.Manifest{v1}), "an installed v2 stays on v2 even if only v1 is prepackaged")
+	assert.Equal(t, model.PluginCallsVersionV1, effectiveCallsVersion("", []*model.Manifest{v1, v2}), "empty defaults to v1 while v1 is prepackaged")
+	assert.Equal(t, model.PluginCallsVersionV1, effectiveCallsVersion("", []*model.Manifest{v1}))
+	assert.Equal(t, model.PluginCallsVersionV2, effectiveCallsVersion("", []*model.Manifest{v2}), "v1 is no longer prepackaged")
+	assert.Equal(t, model.PluginCallsVersionV2, effectiveCallsVersion("", nil))
+	assert.Equal(t, model.PluginCallsVersionV2, effectiveCallsVersion("v2", []*model.Manifest{v1, v2}), "an explicit setting wins")
+	assert.Equal(t, model.PluginCallsVersionV1, effectiveCallsVersion("v1", []*model.Manifest{v1, v2}))
+	assert.Equal(t, model.PluginCallsVersionV1, effectiveCallsVersion("v1", []*model.Manifest{v2}), "selectCallsBundle handles a missing bundle")
+}
+
+func TestCallsVersionNeedsReeval(t *testing.T) {
+	cfg := func(version string, enabled bool) *model.Config {
+		c := &model.Config{}
+		c.SetDefaults()
+		c.PluginSettings.CallsVersion = &version
+		c.PluginSettings.PluginStates[model.PluginIdCalls] = &model.PluginState{Enable: enabled}
+		return c
+	}
+
+	for _, tc := range []struct {
+		name     string
+		old, new *model.Config
+		want     bool
+	}{
+		{"nothing changed", cfg("v1", true), cfg("v1", true), false},
+		{"switch to v2", cfg("v1", true), cfg("v2", true), true},
+		{"switch while disabled", cfg("v1", false), cfg("v2", false), true},
+		{"version cleared", cfg("v1", true), cfg("", true), true},
+		{"first value set", cfg("", true), cfg("v1", true), true},
+		{"Calls enabled", cfg("v1", false), cfg("v1", true), true},
+		{"Calls enabled with an empty version", cfg("", false), cfg("", true), true},
+		{"empty version stays empty", cfg("", true), cfg("", true), false},
+		{"Calls disabled", cfg("v1", true), cfg("v1", false), false},
+		{"enabled and switched", cfg("v1", false), cfg("v2", true), true},
+		{"Calls state removed", cfg("v1", true), func() *model.Config {
+			c := cfg("v1", true)
+			delete(c.PluginSettings.PluginStates, model.PluginIdCalls)
+			return c
+		}(), false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.want, callsVersionNeedsReeval(tc.old, tc.new))
+		})
+	}
 }
 
 func TestSelectCallsBundle(t *testing.T) {
@@ -244,21 +279,21 @@ func TestProcessPrepackagedCallsVersions(t *testing.T) {
 		assert.Equal(t, "2.0.0", installedVersion(t, th))
 	})
 
-	t.Run("an empty setting defaults to v1 while v1 is prepackaged and is persisted", func(t *testing.T) {
+	t.Run("an empty setting defaults to v1 while v1 is prepackaged and is not written to the config", func(t *testing.T) {
 		th := setup(t, "", "1.9.0", "2.0.0")
 		process(t, th)
 		assert.Equal(t, "1.9.0", installedVersion(t, th))
-		assert.Equal(t, "v1", *th.App.Config().PluginSettings.CallsVersion)
+		assert.Equal(t, "", *th.App.Config().PluginSettings.CallsVersion)
 	})
 
 	t.Run("an empty setting defaults to v2 once v1 is no longer prepackaged", func(t *testing.T) {
 		th := setup(t, "", "2.0.0")
 		process(t, th)
 		assert.Equal(t, "2.0.0", installedVersion(t, th))
-		assert.Equal(t, "v2", *th.App.Config().PluginSettings.CallsVersion)
+		assert.Equal(t, "", *th.App.Config().PluginSettings.CallsVersion)
 	})
 
-	t.Run("an empty setting keeps an installed v1 through the startup sync", func(t *testing.T) {
+	t.Run("an empty setting keeps v1 through the startup sync", func(t *testing.T) {
 		th := setup(t, "v1", "1.9.0")
 		process(t, th)
 		require.Equal(t, "1.9.0", installedVersion(t, th))
@@ -272,19 +307,42 @@ func TestProcessPrepackagedCallsVersions(t *testing.T) {
 		require.Equal(t, "", installedVersion(t, th), "syncPlugins should have removed the prepackaged v1")
 		process(t, th)
 		assert.Equal(t, "1.9.0", installedVersion(t, th))
-		assert.Equal(t, "v1", *th.App.Config().PluginSettings.CallsVersion)
 	})
 
-	t.Run("an empty setting keeps an installed v2", func(t *testing.T) {
-		th := setup(t, "v2", "1.9.0", "2.0.0")
-		process(t, th)
+	t.Run("an empty setting does not replace an uploaded v2", func(t *testing.T) {
+		th := setup(t, "", "1.9.0", "2.0.0")
+		bundle, err := os.ReadFile(filepath.Join(th.tempWorkspace, prepackagedPluginsDir, "mattermost-plugin-calls-2.0.0.tar.gz"))
+		require.NoError(t, err)
+		_, appErr := th.App.InstallPlugin(bytes.NewReader(bundle), true)
+		require.Nil(t, appErr)
 		require.Equal(t, "2.0.0", installedVersion(t, th))
 
-		// A server already running v2 (an upload restored by syncPlugins) must not be moved to v1.
-		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PluginSettings.CallsVersion = new("") })
+		// The empty setting defaults to v1, but an uploaded Calls is never switched across versions.
 		process(t, th)
 		assert.Equal(t, "2.0.0", installedVersion(t, th))
-		assert.Equal(t, "v2", *th.App.Config().PluginSettings.CallsVersion)
+	})
+
+	t.Run("a version chosen while Calls is disabled applies once Calls is enabled", func(t *testing.T) {
+		th := setup(t, "v1", "1.9.0", "2.0.0")
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdCalls] = &model.PluginState{Enable: false}
+		})
+		process(t, th)
+		require.Equal(t, "", installedVersion(t, th))
+
+		oldCfg := th.App.Config().Clone()
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.PluginSettings.CallsVersion = new("v2") })
+		require.True(t, callsVersionNeedsReeval(oldCfg, th.App.Config()))
+		process(t, th)
+		require.Equal(t, "", installedVersion(t, th), "nothing installs while Calls is disabled")
+
+		oldCfg = th.App.Config().Clone()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.PluginSettings.PluginStates[model.PluginIdCalls] = &model.PluginState{Enable: true}
+		})
+		require.True(t, callsVersionNeedsReeval(oldCfg, th.App.Config()))
+		process(t, th)
+		assert.Equal(t, "2.0.0", installedVersion(t, th))
 	})
 
 	t.Run("does not install anything when Calls is disabled", func(t *testing.T) {

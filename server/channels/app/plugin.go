@@ -240,11 +240,14 @@ func (ch *Channels) initPlugins(rctx request.CTX, pluginDir, webappPluginDir str
 		// Because (*App).InitPlugins is already run as a config change hook.
 		if *oldCfg.PluginSettings.Enable == *newCfg.PluginSettings.Enable {
 			// Switching between prepackaged Calls v1 and v2 reinstalls the selected bundle on
-			// this node. Every node runs this listener, so a cluster switches together.
-			if newVersion := *newCfg.PluginSettings.CallsVersion; newVersion != "" && newVersion != *oldCfg.PluginSettings.CallsVersion {
-				ch.srv.Log().Info("Calls version setting changed", mlog.String("calls_version", newVersion))
+			// this node, and so does enabling Calls, which applies a version chosen while it was
+			// disabled. Every node runs this listener, so a cluster switches together.
+			if callsVersionNeedsReeval(oldCfg, newCfg) {
+				ch.srv.Log().Info("Re-evaluating the prepackaged Calls bundle after a config change",
+					mlog.String("calls_version", *newCfg.PluginSettings.CallsVersion),
+					mlog.Bool("calls_enabled", callsEnabled(newCfg)))
 				if err := ch.processPrepackagedPlugins(prepackagedPluginsDir); err != nil {
-					ch.srv.Log().Error("Failed to process prepackaged plugins after Calls version change", mlog.Err(err))
+					ch.srv.Log().Error("Failed to process prepackaged plugins after a Calls config change", mlog.Err(err))
 				}
 			}
 
@@ -936,6 +939,11 @@ func (ch *Channels) getPluginsFromFilePaths(fileStorePaths []string) map[string]
 // If enabled, prepackaged plugins are installed or upgraded locally. A list of transitionally
 // prepackaged plugins is also collected for later persistence to the filestore.
 func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) error {
+	// Config changes can run this concurrently, and two runs must not unpack the same plugin into
+	// the same directory at the same time.
+	ch.prepackagedPluginsLock.Lock()
+	defer ch.prepackagedPluginsLock.Unlock()
+
 	logger := ch.srv.Log()
 	logger.Info("Processing prepackaged plugin")
 
@@ -1017,14 +1025,20 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 			installedCalls = bundleInfo.Manifest
 		}
 
-		wanted := ch.ensureCallsVersion(installedCalls, callsManifests)
+		setting := *ch.cfgSvc.Config().PluginSettings.CallsVersion
+		wanted := effectiveCallsVersion(setting, callsManifests)
+		if setting == "" {
+			logger.Info("The Calls version setting is empty, using the default", mlog.String("calls_version", wanted))
+		}
 		chosenCalls = selectCallsBundle(wanted, callsManifests, logger)
 
 		if installedCalls != nil && chosenCalls != nil {
 			// A Calls bundle uploaded by an admin lives in the file store; prepackaged ones don't.
 			manual, appErr := ch.srv.fileExists(getBundleStorePath(model.PluginIdCalls))
 			if appErr != nil {
-				logger.Warn("Failed to check for a manually installed Calls plugin", mlog.Err(appErr))
+				// Fail closed: without knowing, don't overwrite what may be an admin's upload.
+				logger.Warn("Failed to check for a manually installed Calls plugin, assuming it is one", mlog.Err(appErr))
+				manual = true
 			}
 			callsStrategy, installCalls = callsInstallStrategy(chosenCalls, installedCalls, manual)
 			if !installCalls {
