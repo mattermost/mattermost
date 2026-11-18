@@ -1,0 +1,334 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// Package report builds a shareable health report from rendered findings, and renders it as a
+// self-contained HTML file or as Markdown. The server and mmctl, including mmctl offline with a
+// Support Packet, build their reports here so they group, sort and label findings the same way.
+package report
+
+import (
+	"cmp"
+	"maps"
+	"slices"
+	"strings"
+	"time"
+
+	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+)
+
+// staleAfter is how old an evaluation can be before it appears to have stopped. The server
+// evaluates hourly, so results older than two intervals mean evaluation stopped.
+const staleAfter = 2 * time.Hour
+
+const timeLayout = "2006-01-02 15:04 MST"
+
+type Options struct {
+	// T translates the report's labels. The findings must already be rendered.
+	T i18n.TranslateFunc
+	// Location is the time zone every time is shown in; nil means UTC.
+	Location    *time.Location
+	GeneratedAt time.Time
+	// PointInTime marks findings from a one-off evaluation, such as of a Support Packet, whose age
+	// says nothing about whether evaluation stopped.
+	PointInTime bool
+
+	SiteName      string
+	SiteURL       string
+	ServerVersion string
+	License       string
+
+	// Notes open the report, such as the Support Packet disclaimer.
+	Notes []string
+}
+
+type Report struct {
+	Title       string
+	Notes       []string
+	GeneratedAt Field
+	EvaluatedAt Field
+	// Site lists the site facts the caller set.
+	Site []Field
+	// Age is how old the evaluation was when the report was generated. It is zero for a
+	// point-in-time evaluation and when nothing has been evaluated yet.
+	Age time.Duration
+	// Stale warns that evaluation appears to have stopped; it is empty otherwise.
+	Stale string
+
+	// Summary counts the open findings, those in the severity and unknown sections, or says
+	// when the first evaluation runs.
+	Summary string
+	// AlsoIncluded counts the muted and resolved findings; it is empty when there are none.
+	AlsoIncluded string
+
+	// Sections holds only the non-empty sections, in display order.
+	Sections []Section
+	Labels   Labels
+}
+
+type Field struct {
+	Label string
+	Value string
+}
+
+// Labels are the translated words the renderers put around findings.
+type Labels struct {
+	Summary       string
+	Remediation   string
+	Documentation string
+	Details       string
+}
+
+type SectionKind string
+
+const (
+	SectionCritical SectionKind = "critical"
+	SectionWarning  SectionKind = "warning"
+	SectionInfo     SectionKind = "info"
+	SectionUnknown  SectionKind = "unknown"
+	SectionMuted    SectionKind = "muted"
+	SectionResolved SectionKind = "resolved"
+)
+
+var sectionOrder = []SectionKind{SectionCritical, SectionWarning, SectionInfo, SectionUnknown, SectionMuted, SectionResolved}
+
+type Section struct {
+	Kind     SectionKind
+	Title    string
+	Findings []Finding
+}
+
+type Finding struct {
+	Area     string
+	Severity string
+	// Title names the node too for a node-scoped finding.
+	Title       string
+	Message     string
+	Remediation string
+	DocsURL     string
+	// Details is sorted by label.
+	Details []Field
+}
+
+// Build places each finding in exactly one section: resolved findings go to Resolved even if
+// muted, muted findings to Muted, and the rest by state and severity. MutedBy is never included.
+func Build(list *model.HealthFindingList, opts Options) *Report {
+	T := opts.T
+	location := cmp.Or(opts.Location, time.UTC)
+	formatTime := func(t time.Time) string { return t.In(location).Format(timeLayout) }
+
+	r := &Report{
+		Title: T("health.report.title"),
+		Notes: opts.Notes,
+		Labels: Labels{
+			Summary:       T("health.report.label.summary"),
+			Remediation:   T("health.report.label.remediation"),
+			Documentation: T("health.report.label.documentation"),
+			Details:       T("health.report.label.details"),
+		},
+	}
+
+	r.GeneratedAt = Field{T("health.report.header.generated_at"), formatTime(opts.GeneratedAt)}
+	r.EvaluatedAt = Field{T("health.report.header.evaluated_at"), T("health.report.header.not_evaluated")}
+	if list.EvaluatedAt != 0 {
+		evaluatedAt := time.UnixMilli(list.EvaluatedAt)
+		r.EvaluatedAt.Value = formatTime(evaluatedAt)
+		if !opts.PointInTime {
+			r.Age = opts.GeneratedAt.Sub(evaluatedAt)
+		}
+		if r.Age > staleAfter {
+			r.Stale = T("health.report.header.stale")
+		}
+	}
+	for _, field := range []Field{
+		{T("health.report.header.site_name"), opts.SiteName},
+		{T("health.report.header.site_url"), opts.SiteURL},
+		{T("health.report.header.server_version"), opts.ServerVersion},
+		{T("health.report.header.license"), opts.License},
+	} {
+		if field.Value != "" {
+			r.Site = append(r.Site, field)
+		}
+	}
+
+	findings := slices.Clone(list.Findings)
+	slices.SortStableFunc(findings, compareFindings)
+
+	bySection := map[SectionKind][]Finding{}
+	for _, finding := range findings {
+		kind := sectionOf(finding)
+		bySection[kind] = append(bySection[kind], newFinding(finding, T))
+	}
+	for _, kind := range sectionOrder {
+		if len(bySection[kind]) > 0 {
+			r.Sections = append(r.Sections, Section{Kind: kind, Title: sectionTitle(kind, T), Findings: bySection[kind]})
+		}
+	}
+
+	r.Summary = cmp.Or(joinCounts(bySection, T, []countID{
+		{SectionCritical, healthcheck.TranslationId("health.report.summary.critical")},
+		{SectionWarning, healthcheck.TranslationId("health.report.summary.warning")},
+		{SectionInfo, healthcheck.TranslationId("health.report.summary.info")},
+		{SectionUnknown, healthcheck.TranslationId("health.report.summary.unknown")},
+	}), T("health.report.summary.none"))
+	if list.EvaluatedAt == 0 {
+		r.Summary = T("health.report.summary.not_evaluated")
+	}
+
+	// Listing only the non-zero counts keeps a category the caller filtered out from reading as empty.
+	if counts := joinCounts(bySection, T, []countID{
+		{SectionMuted, healthcheck.TranslationId("health.report.summary.muted")},
+		{SectionResolved, healthcheck.TranslationId("health.report.summary.resolved")},
+	}); counts != "" {
+		r.AlsoIncluded = T("health.report.summary.also_included", map[string]any{"Counts": counts})
+	}
+
+	return r
+}
+
+type countID struct {
+	kind SectionKind
+	id   string
+}
+
+// joinCounts joins the translated counts of the non-empty sections.
+func joinCounts(bySection map[SectionKind][]Finding, T i18n.TranslateFunc, ids []countID) string {
+	var counts []string
+	for _, c := range ids {
+		if n := len(bySection[c.kind]); n > 0 {
+			counts = append(counts, T(c.id, n, map[string]any{"Count": n}))
+		}
+	}
+	return strings.Join(counts, ", ")
+}
+
+func sectionOf(finding *model.HealthFinding) SectionKind {
+	switch {
+	case finding.State == string(healthcheck.StateResolved):
+		return SectionResolved
+	case finding.IsMuted():
+		return SectionMuted
+	case finding.State == string(healthcheck.StateUnknown):
+		return SectionUnknown
+	}
+
+	switch healthcheck.Severity(finding.Severity) {
+	case healthcheck.SeverityCritical:
+		return SectionCritical
+	case healthcheck.SeverityWarning:
+		return SectionWarning
+	default:
+		return SectionInfo
+	}
+}
+
+func newFinding(finding *model.HealthFinding, T i18n.TranslateFunc) Finding {
+	title := finding.Title
+	if finding.Scope != "" {
+		title = T("health.report.finding.title_on_node", map[string]any{"Title": finding.Title, "Node": finding.Scope})
+	}
+
+	details := make([]Field, 0, len(finding.Details))
+	for _, key := range slices.Sorted(maps.Keys(finding.Details)) {
+		details = append(details, Field{Label: key, Value: finding.Details[key]})
+	}
+
+	return Finding{
+		Area:        areaLabel(finding.Area, T),
+		Severity:    severityLabel(finding.Severity, T),
+		Title:       title,
+		Message:     finding.Message,
+		Remediation: finding.Remediation,
+		DocsURL:     finding.DocsURL,
+		Details:     details,
+	}
+}
+
+func compareFindings(a, b *model.HealthFinding) int {
+	return cmp.Or(
+		cmp.Compare(severityRank(a.Severity), severityRank(b.Severity)),
+		cmp.Compare(areaRank(a.Area), areaRank(b.Area)),
+		strings.Compare(string(a.Area), string(b.Area)),
+		strings.Compare(a.Title, b.Title),
+		strings.Compare(a.Scope, b.Scope),
+		strings.Compare(a.Fingerprint, b.Fingerprint),
+	)
+}
+
+func areaRank(area model.HealthArea) int {
+	if i := slices.Index(model.AllHealthAreas(), area); i >= 0 {
+		return i
+	}
+	return len(model.AllHealthAreas())
+}
+
+func severityRank(severity string) int {
+	switch healthcheck.Severity(severity) {
+	case healthcheck.SeverityCritical:
+		return 0
+	case healthcheck.SeverityWarning:
+		return 1
+	case healthcheck.SeverityInfo:
+		return 2
+	default:
+		return 3
+	}
+}
+
+func sectionTitle(kind SectionKind, T i18n.TranslateFunc) string {
+	switch kind {
+	case SectionCritical:
+		return severityLabel(string(healthcheck.SeverityCritical), T)
+	case SectionWarning:
+		return severityLabel(string(healthcheck.SeverityWarning), T)
+	case SectionInfo:
+		return severityLabel(string(healthcheck.SeverityInfo), T)
+	case SectionUnknown:
+		return T("health.report.section.unknown")
+	case SectionMuted:
+		return T("health.report.section.muted")
+	default:
+		return T("health.report.section.resolved")
+	}
+}
+
+func severityLabel(severity string, T i18n.TranslateFunc) string {
+	switch healthcheck.Severity(severity) {
+	case healthcheck.SeverityCritical:
+		return T("health.report.severity.critical")
+	case healthcheck.SeverityWarning:
+		return T("health.report.severity.warning")
+	case healthcheck.SeverityInfo:
+		return T("health.report.severity.info")
+	default:
+		return severity
+	}
+}
+
+func areaLabel(area model.HealthArea, T i18n.TranslateFunc) string {
+	switch area {
+	case model.AreaAuth:
+		return T("health.report.area.auth")
+	case model.AreaDatabase:
+		return T("health.report.area.database")
+	case model.AreaSearch:
+		return T("health.report.area.search")
+	case model.AreaJobs:
+		return T("health.report.area.jobs")
+	case model.AreaCluster:
+		return T("health.report.area.cluster")
+	case model.AreaNotifications:
+		return T("health.report.area.notifications")
+	case model.AreaCompliance:
+		return T("health.report.area.compliance")
+	case model.AreaPlatform:
+		return T("health.report.area.platform")
+	case model.AreaLicense:
+		return T("health.report.area.license")
+	case model.AreaVersion:
+		return T("health.report.area.version")
+	default:
+		return string(area)
+	}
+}

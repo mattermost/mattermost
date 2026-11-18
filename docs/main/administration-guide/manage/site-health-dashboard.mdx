@@ -133,6 +133,8 @@ Use the [mmctl](/administration-guide/manage/mmctl-command-line-tool) `health ch
 mmctl health check
 ```
 
+From Mattermost v12.3, findings are grouped the same way as on the dashboard: firing findings by severity (**Critical**, **Warning**, **Info**), each tagged with its area, followed by the checks that **Could not evaluate**, then **Muted** and **Resolved** findings. Each finding appears in one group only, so a muted finding that has since resolved is listed under **Resolved**. A summary at the end counts the open findings and any muted or resolved findings shown.
+
 By default, only firing and unknown findings are shown. Use the following flags to include more:
 
 | Flag | Description |

@@ -3594,6 +3594,8 @@ Server-backed commands require a Mattermost Entry, Professional, Enterprise, or 
 
 Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.
 
+Findings are grouped by severity, then listed as could not be evaluated, muted, and resolved. Each finding appears in one group only: a muted finding that resolved is listed as resolved. Before Mattermost v12.3, mmctl grouped findings by area.
+
 With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included. --packet can't be combined with --include-muted, because findings evaluated from a packet are never muted.
 
 **Format**

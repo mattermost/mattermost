@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Health report</title>
+<style>
+body { margin: 0 auto; max-width: 960px; padding: 32px 24px; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; line-height: 1.5; color: #1f2329; background: #fff; }
+h1 { font-size: 24px; margin: 0 0 16px; }
+h2 { font-size: 18px; margin: 32px 0 12px; padding-bottom: 4px; border-bottom: 1px solid #dde0e4; }
+h3 { font-size: 15px; margin: 0 0 4px; }
+p { margin: 4px 0; }
+dl.header { display: grid; grid-template-columns: max-content 1fr; gap: 4px 16px; margin: 0 0 16px; }
+dl.header dt { font-weight: 600; }
+dl.header dd { margin: 0; }
+.note { margin: 0 0 16px; padding: 8px 12px; border-left: 4px solid #8a95a3; background: #f4f5f6; }
+.stale { color: #b42318; font-weight: 600; }
+.finding { margin: 0 0 12px; padding: 12px 16px; border: 1px solid #dde0e4; border-left-width: 4px; border-radius: 4px; break-inside: avoid; }
+.critical .finding { border-left-color: #d24b4e; }
+.warning .finding { border-left-color: #ffbc1f; }
+.info .finding { border-left-color: #5d89ea; }
+.tag { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; background: #eceef0; font-size: 12px; font-weight: 600; vertical-align: 1px; }
+.label { font-weight: 600; }
+details { margin-top: 8px; }
+summary { cursor: pointer; font-weight: 600; }
+details dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; margin: 4px 0 0; }
+details dd { margin: 0; overflow-wrap: anywhere; }
+ul.findings { margin: 0; padding-left: 20px; }
+ul.findings li { margin: 4px 0; }
+a { color: #1c58d9; }
+@media print {
+  body { max-width: none; padding: 0; font-size: 11pt; }
+  h2 { break-after: avoid; }
+  a { color: inherit; }
+  summary { list-style: none; }
+  details::details-content { content-visibility: visible; display: block; }
+}
+</style>
+</head>
+<body>
+<h1>Health report</h1>
+<dl class="header">
+<dt>Generated</dt><dd>2026-11-18 09:50 UTC</dd>
+<dt>Last evaluated</dt><dd>Not evaluated yet</dd>
+<dt>Site name</dt><dd>Example Chat</dd>
+<dt>Site URL</dt><dd>https://chat.example.com</dd>
+<dt>Server version</dt><dd>12.3.0</dd>
+<dt>License</dt><dd>Enterprise</dd>
+</dl>
+<h2>Summary</h2>
+<p>The first health check runs within an hour of enabling the feature.</p>
+
+</body>
+</html>
