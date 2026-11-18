@@ -53,6 +53,16 @@
         }
     }
 
+    // A thread or the RHS pins the formatting bar to the bottom of the cell.
+    // Agent mode keeps the bar in the flow, above the + and send, so opening
+    // it does not cover those controls.
+    .sidebar--right &--agent,
+    .ThreadViewer &--agent {
+        .AutoHeight {
+            position: static;
+        }
+    }
+
     .custom-textarea {
         // fix for a miscalculation due to the heavily overwritten custom-textarea class
         height: 0;

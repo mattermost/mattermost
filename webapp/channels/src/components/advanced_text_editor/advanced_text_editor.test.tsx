@@ -1410,6 +1410,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'Message options'})).not.toBeInTheDocument();
             expect(screen.queryByTestId('agent-composer-controls')).not.toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--agent');
             expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeInTheDocument();
         });
 
@@ -1453,6 +1454,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(controls.firstElementChild).toContainElement(menu);
             expect(controls.lastElementChild).toContainElement(send);
             expect(menu.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--agent');
+            expect(document.querySelector('.AutoHeight')?.compareDocumentPosition(controls) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
 
         it('omits Add attributes when post attributes are off', async () => {

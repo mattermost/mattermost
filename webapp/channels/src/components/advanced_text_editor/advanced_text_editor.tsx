@@ -942,6 +942,7 @@ const AdvancedTextEditor = ({
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
+                    'AdvancedTextEditor--agent': agentMode,
                     scroll: renderScrollbar,
                     'formatting-bar': showFormattingBar,
                 })}
