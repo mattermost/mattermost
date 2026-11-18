@@ -5,6 +5,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
 
+import {onSubmit} from 'actions/views/create_comment';
 import {openModal} from 'actions/views/modals';
 
 import {renderHookWithContext} from 'tests/react_testing_utils';
@@ -269,6 +270,48 @@ describe('useSubmit', () => {
         expect(openModal).not.toHaveBeenCalledWith(expect.objectContaining({
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
         }));
+    });
+
+    describe('scheduling a message', () => {
+        const schedulingInfo = {scheduled_at: Date.now() + 60000};
+
+        function renderSubmit() {
+            const {result} = renderHookWithContext(() => useSubmit(
+                mockDraft,
+                mockPostError,
+                'channel_id',
+                'root_id',
+                mockServerError,
+                mockLastBlurAt,
+                mockFocusTextbox,
+                mockSetServerError,
+                mockSetShowPreview,
+                mockHandleDraftChange,
+                mockPrioritySubmitCheck,
+                mockAfterOptimisticSubmit,
+                mockAfterSubmit,
+                false,
+                false,
+                'post_id',
+            ), getBaseState());
+            return result.current[0];
+        }
+
+        it('should return the error message when the server rejects the scheduled post', async () => {
+            const serverError = {server_error_id: 'model.scheduled_post.is_valid.scheduled_at.app_error', message: 'Invalid scheduled at time.'};
+            jest.mocked(onSubmit).mockReturnValueOnce(() => Promise.resolve({error: serverError}));
+
+            const response = await renderSubmit()(undefined, schedulingInfo);
+
+            expect(response).toEqual({error: 'Invalid scheduled at time.'});
+            expect(mockSetServerError).toHaveBeenCalledWith(expect.objectContaining({message: 'Invalid scheduled at time.'}));
+        });
+
+        it('should not return an error when the scheduled post is created', async () => {
+            const response = await renderSubmit()(undefined, schedulingInfo);
+
+            expect(response).toEqual({});
+        });
     });
 });
 

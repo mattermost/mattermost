@@ -28,13 +28,15 @@ function momentToLocalDate(m: Moment): Date {
 }
 
 export function getRoundedTime(value: Moment, roundedTo = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment {
-    const diff = value.minute() % roundedTo;
-    if (diff === 0) {
-        // Always return a new moment for consistency, even if no rounding needed
-        return moment(value).seconds(0).milliseconds(0);
+    const truncated = moment(value).seconds(0).milliseconds(0);
+    const diff = truncated.minute() % roundedTo;
+    const isAlreadyRounded = diff === 0 && truncated.isSame(value);
+    if (isAlreadyRounded) {
+        return truncated;
     }
-    const remainder = roundedTo - diff;
-    return moment(value).add(remainder, 'm').seconds(0).milliseconds(0);
+
+    // Never round backwards: a time past the interval boundary moves to the next one
+    return truncated.add(roundedTo - diff, 'm');
 }
 
 export const getTimeInIntervals = (startTime: Moment, interval = CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES): Moment[] => {
@@ -335,7 +337,7 @@ const DateTimeInputContainer: React.FC<Props> = ({
     useEffect(() => {
         if (time && !manualTimeEntry) {
             const interval = timePickerInterval || CUSTOM_STATUS_TIME_PICKER_INTERVALS_IN_MINUTES;
-            const rounded = getRoundedTime(time, interval);
+            const rounded = getRoundedTime(moment(time).startOf('minute'), interval);
 
             // Only update if the time actually needs rounding
             if (!rounded.isSame(time, 'minute')) {
