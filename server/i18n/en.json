@@ -15583,7 +15583,7 @@
   },
   {
     "id": "health.rule.open_signup_unverified.remediation",
-    "translation": "Set EmailSettings.RequireEmailVerification to true, which needs working SMTP, or set TeamSettings.EnableOpenServer to false so new users need an invitation. To limit signup to your organization, set TeamSettings.RestrictCreationToDomains together with email verification; without verification it can be bypassed.",
+    "translation": "Set EmailSettings.RequireEmailVerification to true. Confirm that SMTP works first: existing users who never verified their email address must verify it at their next login. If you don't want open signup, set TeamSettings.EnableOpenServer to false; users can still join through team invite links, so email verification is still recommended. To limit signup to your organization, set TeamSettings.RestrictCreationToDomains together with email verification; without verification it can be bypassed.",
     "description": "Health dashboard fix-it step when anyone can create an account with an unverified email address. 'EmailSettings.RequireEmailVerification', 'TeamSettings.EnableOpenServer', 'TeamSettings.RestrictCreationToDomains' and 'SMTP' are config or product names, and 'true' and 'false' are setting values; do not translate them."
   },
   {
