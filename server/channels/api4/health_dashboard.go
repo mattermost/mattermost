@@ -124,6 +124,11 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	list.Findings = renderFindings(c, list.Findings)
 
+	var sku string
+	if license := c.App.Channels().License(); license != nil {
+		sku = license.SkuShortName
+	}
+
 	cfg := c.App.Config()
 	location := user.GetTimezoneLocation()
 	now := time.Now().In(location)
@@ -134,7 +139,7 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		SiteName:      *cfg.TeamSettings.SiteName,
 		SiteURL:       *cfg.ServiceSettings.SiteURL,
 		ServerVersion: model.CurrentVersion,
-		License:       c.App.Channels().License().SkuShortName,
+		License:       sku,
 	})
 
 	var buf bytes.Buffer
