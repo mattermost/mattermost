@@ -375,7 +375,7 @@ func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *mo
 }
 
 func (a *App) MFARequired(rctx request.CTX, method string) *model.AppError {
-	if license := a.Channels().License(); license == nil || !*license.Features.MFA || !*a.Config().ServiceSettings.EnableMultifactorAuthentication || !*a.Config().ServiceSettings.EnforceMultifactorAuthentication {
+	if license := a.Channels().License(); license == nil || !*license.Features.MFA || !a.Config().ServiceSettings.MultifactorAuthenticationEnforced() {
 		return nil
 	}
 

@@ -545,6 +545,45 @@ func (s *ServiceSettings) CompressResponsesWithBrotli(enableBrotliCompression bo
 	return s.CompressResponses() && enableBrotliCompression
 }
 
+// InlineLatexEnabled reports whether inline LaTeX is rendered, which requires LaTeX rendering.
+func (s *ServiceSettings) InlineLatexEnabled() bool {
+	return *s.EnableLatex && *s.EnableInlineLatex
+}
+
+// MultifactorAuthenticationEnforced reports whether users must set up MFA, which requires MFA to be enabled.
+func (s *ServiceSettings) MultifactorAuthenticationEnforced() bool {
+	return *s.EnableMultifactorAuthentication && *s.EnforceMultifactorAuthentication
+}
+
+// EffectiveListenAddress returns ListenAddress, defaulting to the standard HTTP or HTTPS port when unset.
+func (s *ServiceSettings) EffectiveListenAddress() string {
+	if *s.ListenAddress != "" {
+		return *s.ListenAddress
+	}
+	if *s.ConnectionSecurity == ConnSecurityTLS {
+		return ":https"
+	}
+	return ":http"
+}
+
+// Forwards80To443 reports whether port 80 is forwarded to port 443, which requires listening on port 443.
+func (s *ServiceSettings) Forwards80To443() bool {
+	if !*s.Forward80To443 {
+		return false
+	}
+	_, port, err := net.SplitHostPort(s.EffectiveListenAddress())
+	if err != nil {
+		return false
+	}
+	portNumber, err := net.LookupPort("tcp", port)
+	return err == nil && portNumber == 443
+}
+
+// UsesLetsEncrypt reports whether TLS certificates come from Let's Encrypt, which requires forwarding port 80 to 443.
+func (s *ServiceSettings) UsesLetsEncrypt() bool {
+	return *s.UseLetsEncrypt && s.Forwards80To443()
+}
+
 func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 	if s.EnableEmailInvitations == nil {
 		// If the site URL is also not present then assume this is a clean install
@@ -1288,6 +1327,16 @@ type MetricsSettings struct {
 	ClientSideUserIds         []string `access:"environment_performance_monitoring,write_restrictable,cloud_restrictable"` // telemetry: none
 }
 
+// ClientMetricsEnabled reports whether client performance metrics are collected, which requires metrics to be enabled.
+func (s *MetricsSettings) ClientMetricsEnabled() bool {
+	return *s.Enable && *s.EnableClientMetrics
+}
+
+// NotificationMetricsEnabled reports whether notification metrics are collected, which requires metrics to be enabled.
+func (s *MetricsSettings) NotificationMetricsEnabled() bool {
+	return *s.Enable && *s.EnableNotificationMetrics
+}
+
 func (s *MetricsSettings) SetDefaults() {
 	if s.ListenAddress == nil {
 		s.ListenAddress = new(":8067")
@@ -2010,6 +2059,11 @@ type FileSettings struct {
 	ExportAzurePresignExpiresSeconds         *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
+// ArchiveRecursionEnabled reports whether content extraction recurses into archives, which requires content extraction.
+func (s *FileSettings) ArchiveRecursionEnabled() bool {
+	return *s.ExtractContent && *s.ArchiveRecursion
+}
+
 func (s *FileSettings) SetDefaults(isUpdate bool) {
 	if s.EnableFileAttachments == nil {
 		s.EnableFileAttachments = new(true)
@@ -2303,6 +2357,11 @@ type EmailSettings struct {
 	EnablePreviewModeBanner           *bool   `access:"site_notifications"`
 	SkipServerCertificateVerification *bool   `access:"environment_smtp,write_restrictable,cloud_restrictable,manage_system_write"`
 	EmailNotificationContentsType     *string `access:"site_notifications"`
+}
+
+// EmailBatchingEnabled reports whether notification emails are batched, which requires email notifications.
+func (s *EmailSettings) EmailBatchingEnabled() bool {
+	return *s.SendEmailNotifications && *s.EnableEmailBatching
 }
 
 func (s *EmailSettings) SetDefaults(isUpdate bool) {
@@ -2622,6 +2681,11 @@ type AnnouncementSettings struct {
 	NoticesSkipCache      *bool   `access:"site_notices,write_restrictable"` // telemetry: none
 }
 
+// BannerDismissalAllowed reports whether users can dismiss the announcement banner, which requires the banner.
+func (s *AnnouncementSettings) BannerDismissalAllowed() bool {
+	return *s.EnableBanner && *s.AllowBannerDismissal
+}
+
 func (s *AnnouncementSettings) SetDefaults() {
 	if s.EnableBanner == nil {
 		s.EnableBanner = new(false)
@@ -2674,6 +2738,11 @@ type ThemeSettings struct {
 	DefaultTheme         *string  `access:"site_customization"`
 	AllowCustomThemes    *bool    `access:"site_customization"`
 	AllowedThemes        []string `access:"site_customization"`
+}
+
+// CustomThemesAllowed reports whether users can create custom themes, which requires theme selection.
+func (s *ThemeSettings) CustomThemesAllowed() bool {
+	return *s.EnableThemeSelection && *s.AllowCustomThemes
 }
 
 func (s *ThemeSettings) SetDefaults() {
@@ -2874,6 +2943,13 @@ type LdapSettings struct {
 
 	// Customization
 	LoginFieldName *string `access:"authentication_ldap"`
+}
+
+// UsesAdminFilter reports whether AdminFilter determines system admins, which requires AD/LDAP login or sync to be enabled.
+func (s *LdapSettings) UsesAdminFilter() bool {
+	return (SafeDereference(s.Enable) || SafeDereference(s.EnableSync)) &&
+		SafeDereference(s.EnableAdminFilter) &&
+		SafeDereference(s.AdminFilter) != ""
 }
 
 func (s *LdapSettings) SetDefaults() {
@@ -3174,6 +3250,22 @@ type SamlSettings struct {
 	LoginButtonText *string `access:"authentication_saml"`
 }
 
+// SyncsWithLdap reports whether SAML users are synchronized with AD/LDAP, which requires SAML to be enabled.
+func (s *SamlSettings) SyncsWithLdap() bool {
+	return SafeDereference(s.Enable) && SafeDereference(s.EnableSyncWithLdap)
+}
+
+// SyncsWithLdapIncludeAuth reports whether AD/LDAP sync also overrides SAML auth data, which requires AD/LDAP sync.
+func (s *SamlSettings) SyncsWithLdapIncludeAuth() bool {
+	return s.SyncsWithLdap() && SafeDereference(s.EnableSyncWithLdapIncludeAuth)
+}
+
+// SignsRequests reports whether SAML requests are signed, which requires encryption and the service provider key pair.
+func (s *SamlSettings) SignsRequests() bool {
+	return SafeDereference(s.SignRequest) && SafeDereference(s.Encrypt) &&
+		SafeDereference(s.PrivateKeyFile) != "" && SafeDereference(s.PublicCertificateFile) != ""
+}
+
 func (s *SamlSettings) SetDefaults() {
 	if s.Enable == nil {
 		s.Enable = new(false)
@@ -3313,6 +3405,11 @@ type NativeAppSettings struct {
 	MobileJailbreakProtection     *bool    `access:"site_customization,write_restrictable"`
 	MobileEnableSecureFilePreview *bool    `access:"site_customization,write_restrictable"`
 	MobileAllowPdfLinkNavigation  *bool    `access:"site_customization,write_restrictable"`
+}
+
+// MobilePdfLinkNavigationAllowed reports whether links in secure PDF previews can be followed, which requires secure file preview.
+func (s *NativeAppSettings) MobilePdfLinkNavigationAllowed() bool {
+	return *s.MobileEnableSecureFilePreview && *s.MobileAllowPdfLinkNavigation
 }
 
 func (s *NativeAppSettings) SetDefaults() {
@@ -4265,6 +4362,26 @@ type AccessControlSettings struct {
 	AttributeRefreshIntervalSeconds *int `access:"write_restrictable,cloud_restrictable"`
 }
 
+// AuditLoggingEnabled reports whether access control decisions are audit logged, which requires attribute-based access control.
+func (s *AccessControlSettings) AuditLoggingEnabled() bool {
+	return SafeDereference(s.EnableAttributeBasedAccessControl) && SafeDereference(s.EnableAccessControlAuditLogging)
+}
+
+// ChannelPolicyIndicatorsEnabled reports whether channel policy indicators are shown, which requires attribute-based access control.
+func (s *AccessControlSettings) ChannelPolicyIndicatorsEnabled() bool {
+	return SafeDereference(s.EnableAttributeBasedAccessControl) && SafeDereference(s.EnableChannelPolicyIndicators)
+}
+
+// TrustsProxyDeviceIdentityHeader reports whether the proxy device identity header is trusted, which requires attribute-based access control.
+func (s *AccessControlSettings) TrustsProxyDeviceIdentityHeader() bool {
+	return SafeDereference(s.EnableAttributeBasedAccessControl) && SafeDereference(s.TrustProxyDeviceIdentityHeader)
+}
+
+// EnforcesDeviceIDConsistency reports whether sessions are revoked on device ID changes, which requires attribute-based access control.
+func (s *AccessControlSettings) EnforcesDeviceIDConsistency() bool {
+	return SafeDereference(s.EnableAttributeBasedAccessControl) && SafeDereference(s.EnforceDeviceIDConsistency)
+}
+
 func (s *AccessControlSettings) SetDefaults() {
 	if s.EnableAttributeBasedAccessControl == nil {
 		s.EnableAttributeBasedAccessControl = new(false)
@@ -4464,6 +4581,16 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	return nil
 }
 
+// GuestMultifactorAuthenticationEnforced reports whether guests must set up MFA, which requires MFA to be enforced.
+func (o *Config) GuestMultifactorAuthenticationEnforced() bool {
+	return o.ServiceSettings.MultifactorAuthenticationEnforced() && *o.GuestAccountsSettings.EnforceMultifactorAuthentication
+}
+
+// SamlIgnoresGuestsLdapSync reports whether SAML guests are excluded from AD/LDAP sync, which requires both AD/LDAP sync and guest accounts.
+func (o *Config) SamlIgnoresGuestsLdapSync() bool {
+	return o.SamlSettings.SyncsWithLdap() && SafeDereference(o.GuestAccountsSettings.Enable) && SafeDereference(o.SamlSettings.IgnoreGuestsLdapSync)
+}
+
 func ConfigFromJSON(data io.Reader) *Config {
 	var o *Config
 	json.NewDecoder(data).Decode(&o)
@@ -4541,11 +4668,11 @@ func (o *Config) SetDefaults() {
 }
 
 func (o *Config) IsValid() *AppError {
-	if *o.ServiceSettings.SiteURL == "" && *o.EmailSettings.EnableEmailBatching {
+	if *o.ServiceSettings.SiteURL == "" && o.EmailSettings.EmailBatchingEnabled() {
 		return NewAppError("Config.IsValid", "model.config.is_valid.site_url_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *o.ClusterSettings.Enable && *o.EmailSettings.EnableEmailBatching {
+	if *o.ClusterSettings.Enable && o.EmailSettings.EmailBatchingEnabled() {
 		return NewAppError("Config.IsValid", "model.config.is_valid.cluster_email_batching.app_error", nil, "", http.StatusBadRequest)
 	}
 
@@ -5168,6 +5295,14 @@ func (s *SamlSettings) isValid() *AppError {
 	return nil
 }
 
+func isMissingFile(path string) bool {
+	if path == "" {
+		return true
+	}
+	_, err := os.Stat(path)
+	return os.IsNotExist(err)
+}
+
 func (s *ServiceSettings) isValid() *AppError {
 	if *s.SiteURL == "" && *s.AllowCookiesForSubdomains {
 		return NewAppError("Config.IsValid", "model.config.is_valid.allow_cookies_for_subdomains.app_error", nil, "", http.StatusBadRequest)
@@ -5177,21 +5312,18 @@ func (s *ServiceSettings) isValid() *AppError {
 		return NewAppError("Config.IsValid", "model.config.is_valid.webserver_security.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.ConnectionSecurity == ConnSecurityTLS && !*s.UseLetsEncrypt {
-		appErr := NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file_missing.app_error", nil, "", http.StatusBadRequest)
+	if *s.ConnectionSecurity == ConnSecurityTLS && !s.UsesLetsEncrypt() {
+		certFileMissing := isMissingFile(*s.TLSCertFile)
+		keyFileMissing := isMissingFile(*s.TLSKeyFile)
 
-		if *s.TLSCertFile == "" {
-			return appErr
-		} else if _, err := os.Stat(*s.TLSCertFile); os.IsNotExist(err) {
-			return appErr
+		if *s.UseLetsEncrypt && (certFileMissing || keyFileMissing) {
+			return NewAppError("Config.IsValid", "model.config.is_valid.lets_encrypt_requires_forward80to443.app_error", nil, "", http.StatusBadRequest)
 		}
-
-		appErr = NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file_missing.app_error", nil, "", http.StatusBadRequest)
-
-		if *s.TLSKeyFile == "" {
-			return appErr
-		} else if _, err := os.Stat(*s.TLSKeyFile); os.IsNotExist(err) {
-			return appErr
+		if certFileMissing {
+			return NewAppError("Config.IsValid", "model.config.is_valid.tls_cert_file_missing.app_error", nil, "", http.StatusBadRequest)
+		}
+		if keyFileMissing {
+			return NewAppError("Config.IsValid", "model.config.is_valid.tls_key_file_missing.app_error", nil, "", http.StatusBadRequest)
 		}
 	}
 

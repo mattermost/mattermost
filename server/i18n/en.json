@@ -4745,16 +4745,6 @@
     "description": "Server error logged/returned when the emails reminding admins that the license is up for renewal fail to send."
   },
   {
-    "id": "api.server.start_server.forward80to443.disabled_while_using_lets_encrypt",
-    "translation": "Must enable Forward80To443 when using LetsEncrypt",
-    "description": "Fatal server startup error: the Forward80To443 config setting must be enabled when LetsEncrypt certificates are used; both are setting/product names and should not be translated."
-  },
-  {
-    "id": "api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port",
-    "translation": "Unable to forward port 80 to port 443 while listening on port %s: disable Forward80To443 if using a proxy server",
-    "description": "Fatal server startup error about the Forward80To443 config setting; %s is the port number the server is listening on. Audience is system admins reading server logs."
-  },
-  {
     "id": "api.server.start_server.rate_limiting_memory_store",
     "translation": "Unable to initialize rate limiting memory store. Check MemoryStoreSize config setting.",
     "description": "Fatal error logged/shown at server startup when the in-memory store used for API rate limiting cannot be created; 'MemoryStoreSize' is a config setting name and must not be translated."
@@ -17655,6 +17645,11 @@
     "id": "model.config.is_valid.ldap_username",
     "translation": "AD/LDAP field \"Username Attribute\" is required.",
     "description": "Config validation error shown to system admins enabling AD/LDAP; 'Username Attribute' is the display name of the required LDAP setting."
+  },
+  {
+    "id": "model.config.is_valid.lets_encrypt_requires_forward80to443.app_error",
+    "translation": "Let's Encrypt requires Forward port 80 to 443, which requires listening on port 443. Enable both, or set paths to existing TLS certificate and key files.",
+    "description": "Config validation error shown to system admins when Let's Encrypt is enabled but cannot be used because port 80 is not forwarded to 443, and no TLS certificate/key files are configured as a fallback. 'Let's Encrypt' is a product name and 'Forward port 80 to 443' is a setting name."
   },
   {
     "id": "model.config.is_valid.link_metadata_timeout.app_error",

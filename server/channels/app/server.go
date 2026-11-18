@@ -591,7 +591,7 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	}
 
-	// Re-init email batching only when its enable flag or interval changes.
+	// Re-init email batching only when its enable flags or interval change.
 	s.platform.AddConfigListener(func(oldCfg, newCfg *model.Config) {
 		if emailBatchingSettingChanged(oldCfg, newCfg) {
 			s.EmailService.InitEmailBatching()
@@ -617,9 +617,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	s.platform.SetAuditLoggingActiveFunc(s.Audit.IsActive)
 
-	if cfg := s.platform.Config(); cfg.AccessControlSettings.EnableAccessControlAuditLogging != nil &&
-		*cfg.AccessControlSettings.EnableAccessControlAuditLogging &&
-		!s.Audit.IsActive() {
+	if s.platform.Config().AccessControlSettings.AuditLoggingEnabled() && !s.Audit.IsActive() {
 		s.Log().Warn(accessControlAuditTargetMissingWarning)
 	}
 
@@ -1219,14 +1217,8 @@ func (s *Server) Start() error {
 		ErrorLog:     errStdLog,
 	}
 
-	addr := *s.platform.Config().ServiceSettings.ListenAddress
-	if addr == "" {
-		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-			addr = ":https"
-		} else {
-			addr = ":http"
-		}
-	}
+	serviceSettings := s.platform.Config().ServiceSettings
+	addr := serviceSettings.EffectiveListenAddress()
 
 	listener, err := net.Listen("tcp", addr)
 	if err != nil {
@@ -1239,46 +1231,45 @@ func (s *Server) Start() error {
 
 	m := s.newLetsEncryptManager()
 
-	if *s.platform.Config().ServiceSettings.Forward80To443 {
-		if host, port, err := net.SplitHostPort(addr); err != nil {
-			mlog.Error("Unable to setup forwarding", mlog.Err(err))
-		} else if port != "443" {
-			return fmt.Errorf(i18n.T("api.server.start_server.forward80to443.enabled_but_listening_on_wrong_port"), port)
-		} else {
-			httpListenAddress := net.JoinHostPort(host, "http")
+	if serviceSettings.Forwards80To443() {
+		host, _, _ := net.SplitHostPort(addr)
+		httpListenAddress := net.JoinHostPort(host, "http")
 
-			if *s.platform.Config().ServiceSettings.UseLetsEncrypt {
-				server := &http.Server{
-					Addr:     httpListenAddress,
-					Handler:  m.HTTPHandler(nil),
-					ErrorLog: s.Log().With(mlog.String("source", "le_forwarder_server")).StdLogger(mlog.LvlError),
-				}
-				go func() {
-					if err := server.ListenAndServe(); err != nil {
-						mlog.Error("Failed to serve redirect from port 80 to 443 with autocert ", mlog.Err(err))
-					}
-				}()
-			} else {
-				go func() {
-					redirectListener, err := net.Listen("tcp", httpListenAddress)
-					if err != nil {
-						mlog.Error("Unable to setup forwarding", mlog.Err(err))
-						return
-					}
-					defer redirectListener.Close()
-
-					server := &http.Server{
-						Handler:  http.HandlerFunc(handleHTTPRedirect),
-						ErrorLog: s.Log().With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
-					}
-					if err := server.Serve(redirectListener); err != nil {
-						mlog.Error("Failed to serve redirect from port 80 to 443", mlog.Err(err))
-					}
-				}()
+		if serviceSettings.UsesLetsEncrypt() {
+			server := &http.Server{
+				Addr:     httpListenAddress,
+				Handler:  m.HTTPHandler(nil),
+				ErrorLog: s.Log().With(mlog.String("source", "le_forwarder_server")).StdLogger(mlog.LvlError),
 			}
+			go func() {
+				if err := server.ListenAndServe(); err != nil {
+					mlog.Error("Failed to serve redirect from port 80 to 443 with autocert ", mlog.Err(err))
+				}
+			}()
+		} else {
+			go func() {
+				redirectListener, err := net.Listen("tcp", httpListenAddress)
+				if err != nil {
+					mlog.Error("Unable to setup forwarding", mlog.Err(err))
+					return
+				}
+				defer redirectListener.Close()
+
+				server := &http.Server{
+					Handler:  http.HandlerFunc(handleHTTPRedirect),
+					ErrorLog: s.Log().With(mlog.String("source", "forwarder_server")).StdLogger(mlog.LvlError),
+				}
+				if err := server.Serve(redirectListener); err != nil {
+					mlog.Error("Failed to serve redirect from port 80 to 443", mlog.Err(err))
+				}
+			}()
 		}
-	} else if *s.platform.Config().ServiceSettings.UseLetsEncrypt {
-		return errors.New(i18n.T("api.server.start_server.forward80to443.disabled_while_using_lets_encrypt"))
+	} else if *serviceSettings.Forward80To443 {
+		mlog.Warn("Not forwarding port 80 to 443 because the server is not listening on port 443", mlog.String("address", addr))
+	}
+
+	if *serviceSettings.UseLetsEncrypt && !serviceSettings.UsesLetsEncrypt() {
+		mlog.Warn("Not using Let's Encrypt because port 80 is not forwarded to port 443")
 	}
 
 	s.didFinishListen = make(chan struct{})
@@ -1333,7 +1324,7 @@ func (s *Server) Start() error {
 			certFile := ""
 			keyFile := ""
 
-			if *s.platform.Config().ServiceSettings.UseLetsEncrypt {
+			if serviceSettings.UsesLetsEncrypt() {
 				tlsConfig.GetCertificate = m.GetCertificate
 				tlsConfig.NextProtos = append(tlsConfig.NextProtos, "h2")
 			} else {
@@ -2163,6 +2154,8 @@ func emailBatchingSettingChanged(oldCfg, newCfg *model.Config) bool {
 	}
 	return model.SafeDereference(oldCfg.EmailSettings.EnableEmailBatching) !=
 		model.SafeDereference(newCfg.EmailSettings.EnableEmailBatching) ||
+		model.SafeDereference(oldCfg.EmailSettings.SendEmailNotifications) !=
+			model.SafeDereference(newCfg.EmailSettings.SendEmailNotifications) ||
 		model.SafeDereference(oldCfg.EmailSettings.EmailBatchingInterval) !=
 			model.SafeDereference(newCfg.EmailSettings.EmailBatchingInterval)
 }

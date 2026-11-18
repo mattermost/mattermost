@@ -4062,8 +4062,32 @@ func TestGetChannelAccessControlAttributes(t *testing.T) {
 		mockACS.AssertNotCalled(t, "GetPolicyRuleAttributes", mock.Anything, mock.Anything, mock.Anything)
 	})
 
+	t.Run("returns empty and skips the policy lookup when attribute-based access control is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			cfg.AccessControlSettings.EnableChannelPolicyIndicators = model.NewPointer(true)
+		})
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		mockACS.On("GetPolicyRuleAttributes", mock.Anything, mock.Anything, mock.Anything).
+			Return(map[string][]string{"team": {"engineering"}}, (*model.AppError)(nil))
+		th.App.Srv().Channels().AccessControl = mockACS
+		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
+
+		resp, err := th.Client.DoAPIGet(context.Background(), url, "")
+		require.NoError(t, err)
+		defer resp.Body.Close()
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var attributes map[string][]string
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&attributes))
+		require.Empty(t, attributes)
+		mockACS.AssertNotCalled(t, "GetPolicyRuleAttributes", mock.Anything, mock.Anything, mock.Anything)
+	})
+
 	t.Run("queries the policy attributes when channel policy indicators are enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 			cfg.AccessControlSettings.EnableChannelPolicyIndicators = model.NewPointer(true)
 		})
 

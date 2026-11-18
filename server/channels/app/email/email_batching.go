@@ -39,7 +39,7 @@ type postData struct {
 }
 
 func (es *Service) InitEmailBatching() {
-	if *es.config().EmailSettings.EnableEmailBatching {
+	if es.config().EmailSettings.EmailBatchingEnabled() {
 		if es.EmailBatching == nil {
 			es.EmailBatching = NewEmailBatchingJob(es, *es.config().EmailSettings.EmailBatchingBufferSize)
 		}
@@ -51,7 +51,7 @@ func (es *Service) InitEmailBatching() {
 }
 
 func (es *Service) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
-	if !*es.config().EmailSettings.EnableEmailBatching {
+	if !es.config().EmailSettings.EmailBatchingEnabled() {
 		return model.NewAppError("AddNotificationEmailToBatch", "api.email_batching.add_notification_email_to_batch.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 

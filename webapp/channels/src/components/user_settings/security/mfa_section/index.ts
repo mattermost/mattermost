@@ -22,7 +22,7 @@ function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const mfaLicensed = license && license.IsLicensed === 'true' && license.MFA === 'true';
     const mfaEnabled = config.EnableMultifactorAuthentication === 'true';
-    const mfaEnforced = mfaLicensed && config.EnforceMultifactorAuthentication === 'true';
+    const mfaEnforced = mfaLicensed && mfaEnabled && config.EnforceMultifactorAuthentication === 'true';
     const user: UserProfile = getCurrentUser(state);
     let mfaActive = false;
     let mfaAvailable = false;

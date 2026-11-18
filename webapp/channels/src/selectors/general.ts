@@ -54,5 +54,6 @@ export function isTeamMembershipAccessControlEnabled(state: GlobalState): boolea
 // tags shown in the members RHS and invite modal banners) should be shown to
 // end users. Admins can disable these to avoid leaking policy details.
 export function areChannelAccessControlIndicatorsEnabled(state: GlobalState): boolean {
-    return getAccessControlSettings(state).EnableChannelPolicyIndicators;
+    const settings = getAccessControlSettings(state);
+    return Boolean(settings.EnableAttributeBasedAccessControl && settings.EnableChannelPolicyIndicators);
 }

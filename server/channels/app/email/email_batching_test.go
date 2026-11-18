@@ -283,3 +283,22 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
 }
+
+func TestEmailBatchingRequiresEmailNotifications(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := SetupWithStoreMock(t)
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = "http://localhost:8065"
+		*cfg.EmailSettings.SendEmailNotifications = false
+		*cfg.EmailSettings.EnableEmailBatching = true
+	})
+	th.service.EmailBatching = nil
+
+	th.service.InitEmailBatching()
+	assert.Nil(t, th.service.EmailBatching)
+
+	appErr := th.service.AddNotificationEmailToBatch(&model.User{Id: model.NewId()}, &model.Post{Message: "test"}, &model.Team{Name: "team"})
+	require.NotNil(t, appErr)
+	assert.Equal(t, "api.email_batching.add_notification_email_to_batch.disabled.app_error", appErr.Id)
+}

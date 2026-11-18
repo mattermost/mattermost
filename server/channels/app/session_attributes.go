@@ -155,7 +155,7 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		}
 	}
 
-	if *a.Config().AccessControlSettings.TrustProxyDeviceIdentityHeader {
+	if a.Config().AccessControlSettings.TrustsProxyDeviceIdentityHeader() {
 		if proxyDeviceID := strings.TrimSpace(r.Header.Get(model.SessionAttributeHeaderProxyDeviceID)); proxyDeviceID != "" {
 			if validatedSessionAttributeField(fieldsByName, model.SessionAttributesPropertyFieldTLSDDeviceID, platform, proxyDeviceID) {
 				attrsToMerge[model.SessionAttributesPropertyFieldTLSDDeviceID] = proxyDeviceID
@@ -163,7 +163,7 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		}
 	}
 
-	if *a.Config().AccessControlSettings.EnforceDeviceIDConsistency {
+	if a.Config().AccessControlSettings.EnforcesDeviceIDConsistency() {
 		cached, _, err := a.Srv().Store().SessionAttribute().Get(rctx.Session().Id)
 		if err != nil && !errors.Is(err, cache.ErrKeyNotFound) {
 			rctx.Logger().Warn("Failed to load cached session attributes for device ID consistency check", mlog.Err(err))

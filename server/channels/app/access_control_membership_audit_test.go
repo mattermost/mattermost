@@ -35,8 +35,19 @@ func TestBuildAccessControlMembershipAuditRecord(t *testing.T) {
 		require.Nil(t, rec)
 	})
 
+	t.Run("returns nil when attribute-based access control is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(false)
+			cfg.AccessControlSettings.EnableAccessControlAuditLogging = model.NewPointer(true)
+		})
+
+		rec := th.App.buildAccessControlMembershipAuditRecord(th.Context, model.AuditEventChannelMembershipAdded, model.AuditStatusSuccess, data)
+		require.Nil(t, rec)
+	})
+
 	t.Run("populates all fields when enabled", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 			cfg.AccessControlSettings.EnableAccessControlAuditLogging = model.NewPointer(true)
 		})
 
@@ -64,6 +75,7 @@ func TestBuildAccessControlMembershipAuditRecord(t *testing.T) {
 
 	t.Run("omits optional job_id and reason when empty and includes correlation ids", func(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 			cfg.AccessControlSettings.EnableAccessControlAuditLogging = model.NewPointer(true)
 		})
 

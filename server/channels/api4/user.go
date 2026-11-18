@@ -664,7 +664,7 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	auditRec.AddEventResultState(user)
 
-	if (user.IsLDAPUser() || (user.IsSAMLUser() && *c.App.Config().SamlSettings.EnableSyncWithLdap)) &&
+	if (user.IsLDAPUser() || (user.IsSAMLUser() && c.App.Config().SamlSettings.SyncsWithLdap())) &&
 		*c.App.Config().LdapSettings.PictureAttribute != "" {
 		c.Err = model.NewAppError(
 			"uploadProfileImage", "api.user.upload_profile_user.login_provider_attribute_set.app_error",

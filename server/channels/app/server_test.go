@@ -67,6 +67,35 @@ func TestStartServerSuccess(t *testing.T) {
 	require.NoError(t, serverErr)
 }
 
+func TestStartServerIgnoresInapplicableForwardingSettings(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	for name, edit := range map[string]func(cfg *model.Config){
+		"Forward80To443 while not listening on port 443": func(cfg *model.Config) {
+			*cfg.ServiceSettings.Forward80To443 = true
+		},
+		"UseLetsEncrypt without Forward80To443": func(cfg *model.Config) {
+			*cfg.ServiceSettings.Forward80To443 = false
+			*cfg.ServiceSettings.UseLetsEncrypt = true
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			s, err := newServerWithConfig(t, func(cfg *model.Config) {
+				*cfg.ServiceSettings.ListenAddress = "localhost:0"
+				edit(cfg)
+			})
+			require.NoError(t, err)
+
+			serverErr := s.Start()
+			require.NoError(t, serverErr)
+
+			err = checkEndpoint(t, &http.Client{}, "http://localhost:"+strconv.Itoa(s.ListenAddr.Port)+"/")
+			s.Shutdown()
+			require.NoError(t, err)
+		})
+	}
+}
+
 func TestStartServerPortUnavailable(t *testing.T) {
 	mainHelper.Parallel(t)
 	// Pin to IPv4 so the blocked port exactly matches the address Start() will bind.
@@ -692,6 +721,20 @@ func TestEmailBatchingSettingChanged(t *testing.T) {
 		{name: "enabled", oldCfg: cfg(false, 30), newCfg: cfg(true, 30), expected: true},
 		{name: "disabled", oldCfg: cfg(true, 30), newCfg: cfg(false, 30), expected: true},
 		{name: "interval changed", oldCfg: cfg(true, 30), newCfg: cfg(true, 300), expected: true},
+		{
+			name: "email notifications enabled",
+			oldCfg: func() *model.Config {
+				c := cfg(true, 30)
+				c.EmailSettings.SendEmailNotifications = model.NewPointer(false)
+				return c
+			}(),
+			newCfg: func() *model.Config {
+				c := cfg(true, 30)
+				c.EmailSettings.SendEmailNotifications = model.NewPointer(true)
+				return c
+			}(),
+			expected: true,
+		},
 		{
 			name: "push notification server change is ignored",
 			oldCfg: func() *model.Config {
