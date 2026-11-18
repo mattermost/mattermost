@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
@@ -1048,6 +1049,33 @@ func stripPort(hostport string) string {
 	return net.JoinHostPort(host, "443")
 }
 
+func (s *Server) newLetsEncryptManager() *autocert.Manager {
+	return &autocert.Manager{
+		Cache:      autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: s.letsEncryptHostPolicy,
+	}
+}
+
+// letsEncryptHostPolicy only allows certificates for the Site URL hostname, so clients
+// presenting arbitrary hostnames (e.g. internet scanners) cannot trigger issuance.
+func (s *Server) letsEncryptHostPolicy(ctx context.Context, host string) error {
+	siteURL, err := url.Parse(*s.platform.Config().ServiceSettings.SiteURL)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse Site URL")
+	}
+	if siteURL.Hostname() == "" {
+		return errors.New("the Site URL must include a hostname to obtain a Let's Encrypt certificate")
+	}
+	// HostWhitelist normalizes its entries but not the requested host, which the
+	// HTTP-01 handler passes through exactly as the client sent it.
+	normalizedHost, err := idna.Lookup.ToASCII(host)
+	if err != nil {
+		return errors.Wrapf(err, "invalid hostname %q", host)
+	}
+	return autocert.HostWhitelist(siteURL.Hostname())(ctx, normalizedHost)
+}
+
 func (s *Server) Start() error {
 	// Start inter-cluster services first so shared channels APIs are
 	// available when plugins activate during channels startup.
@@ -1209,10 +1237,7 @@ func (s *Server) Start() error {
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
-	m := &autocert.Manager{
-		Cache:  autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
-		Prompt: autocert.AcceptTOS,
-	}
+	m := s.newLetsEncryptManager()
 
 	if *s.platform.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {

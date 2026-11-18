@@ -4,13 +4,13 @@
 import {expect, test} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
-async function skipUnlessEnterprise(pw: PlaywrightExtended) {
+async function skipUnlessProfessional(pw: PlaywrightExtended) {
     const {adminClient} = await pw.getAdminClient();
     const license = await adminClient.getClientLicenseOld();
 
     test.skip(
-        !['enterprise', 'advanced'].includes(license.SkuShortName),
-        'Skipping test - server has no enterprise or enterprise advanced license',
+        !['professional', 'enterprise', 'advanced', 'entry'].includes(license.SkuShortName),
+        'Skipping test - server has no Professional or higher license',
     );
 }
 
@@ -22,7 +22,7 @@ async function skipUnlessEnterprise(pw: PlaywrightExtended) {
  * Full (Testcontainers) mode, so the server can be restarted with the HealthDashboard feature flag off.
  */
 test('hides Site health when the feature flag is off', {tag: '@system_console'}, async ({pw}) => {
-    await skipUnlessEnterprise(pw);
+    await skipUnlessProfessional(pw);
     await pw.ensureFeatureFlag('HealthDashboard', false);
 
     const {adminUser} = await pw.initSetup();

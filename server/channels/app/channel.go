@@ -133,11 +133,11 @@ func (a *App) postJoinMessageForDefaultChannel(rctx request.CTX, user *model.Use
 	if channel.Name == model.DefaultChannelName {
 		if requestor == nil {
 			if err := a.postJoinTeamMessage(rctx, user, channel); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		} else {
 			if err := a.postAddToTeamMessage(rctx, requestor, user, channel, ""); err != nil {
-				return err
+				return model.AsAppError(err)
 			}
 		}
 	} else {
@@ -969,7 +969,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 		if _, err = a.UpdateChannel(rctx, channel); err != nil {
 			a.Log().Error("Failed to revert channel privacy after posting an update message failed", mlog.Err(err))
 		}
-		return channel, postErr
+		return channel, model.AsAppError(postErr)
 	}
 
 	// Now that the conversion is fully committed, cancel pending join
@@ -995,7 +995,7 @@ func (a *App) UpdateChannelPrivacy(rctx request.CTX, oldChannel *model.Channel, 
 	return channel, nil
 }
 
-func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postChannelPrivacyMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	var authorId string
 	var authorUsername string
 	if user != nil {
@@ -2277,9 +2277,9 @@ func (a *App) PostUpdateChannelDisplayNameMessage(rctx request.CTX, userID strin
 }
 
 func (a *App) GetChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
-	channel, appErr := a.Srv().getChannel(rctx, channelID)
-	if appErr != nil {
-		return nil, appErr
+	channel, err := a.Srv().getChannel(rctx, channelID)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	// Hydrate policy action set so consumers can distinguish a membership
 	// policy from a permission-only policy without a second round-trip.
@@ -2325,7 +2325,7 @@ func (a *App) GetChannelOfType(rctx request.CTX, channelID string, channelType m
 	return channel, nil
 }
 
-func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, *model.AppError) {
+func (s *Server) getChannel(rctx request.CTX, channelID string) (*model.Channel, error) {
 	channel, err := s.Store().Channel().Get(channelID, true)
 	if err != nil {
 		errCtx := map[string]any{"channel_id": channelID}
@@ -2445,7 +2445,7 @@ func (a *App) GetChannelByNameForTeamName(rctx request.CTX, channelName, teamNam
 	return result, nil
 }
 
-func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
+func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, error) {
 	list, err := s.Store().Channel().GetChannels(teamID, userID, opts)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -2461,9 +2461,9 @@ func (s *Server) getChannelsForTeamForUser(rctx request.CTX, teamID string, user
 }
 
 func (a *App) GetChannelsForTeamForUser(rctx request.CTX, teamID string, userID string, opts *model.ChannelSearchOpts) (model.ChannelList, *model.AppError) {
-	channels, appErr := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
-	if appErr != nil {
-		return nil, appErr
+	channels, err := a.Srv().getChannelsForTeamForUser(rctx, teamID, userID, opts)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 	// Hydrate the policy action set so the frontend can distinguish a
 	// membership policy from a permission-only one (e.g. file upload) without
@@ -2853,7 +2853,7 @@ func (a *App) postJoinChannelMessage(rctx request.CTX, user *model.User, channel
 	return nil
 }
 
-func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) postJoinTeamMessage(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.join_team.post_and_forget"), user.Username),
@@ -2983,7 +2983,7 @@ func (a *App) PostAddToChannelMessage(rctx request.CTX, user *model.User, addedU
 	return nil
 }
 
-func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) *model.AppError {
+func (a *App) postAddToTeamMessage(rctx request.CTX, user *model.User, addedUser *model.User, channel *model.Channel, postRootId string) error {
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message:   fmt.Sprintf(i18n.T("api.team.add_user_to_team.added"), addedUser.Username, user.Username),
@@ -3040,7 +3040,7 @@ func (a *App) postRemoveFromChannelMessage(rctx request.CTX, removerUserId strin
 // removeChannelMembership strips a user's channel membership and the associated
 // thread memberships. Keeping these together ensures channel access cannot be
 // revoked without also dropping the thread state that depends on it.
-func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) *model.AppError {
+func (a *App) removeChannelMembership(rctx request.CTX, userID, channelID, caller string) error {
 	if err := a.Srv().Store().Channel().RemoveMember(rctx, channelID, userID); err != nil {
 		return model.NewAppError(caller, "app.channel.remove_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -3084,8 +3084,8 @@ func (a *App) removeUserFromChannel(rctx request.CTX, userIDToRemove string, rem
 		return err
 	}
 
-	if appErr := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); appErr != nil {
-		return appErr
+	if err := a.removeChannelMembership(rctx, userIDToRemove, channel.Id, "removeUserFromChannel"); err != nil {
+		return model.AsAppError(err)
 	}
 	if err := a.Srv().Store().ChannelMemberHistory().LogLeaveEvent(rctx, userIDToRemove, channel.Id, model.GetMillis()); err != nil {
 		return model.NewAppError("removeUserFromChannel", "app.channel_member_history.log_leave_event.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)

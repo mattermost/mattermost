@@ -52,16 +52,18 @@ func TestScheduleJob(t *testing.T) {
 		})).Return(func(job *model.Job) *model.Job { return job }, nil).Once()
 	}
 
-	t.Run("creates a job when none is pending or in progress", func(t *testing.T) {
-		scheduler, mockStore := newScheduler(t, enterpriseLicense)
-		expectRunning(mockStore, nil)
-		expectSaveOnce(mockStore)
+	for _, sku := range []string{model.LicenseShortSkuProfessional, model.LicenseShortSkuEnterprise} {
+		t.Run("creates a job when none is pending or in progress ("+sku+")", func(t *testing.T) {
+			scheduler, mockStore := newScheduler(t, func() *model.License { return model.NewTestLicenseSKU(sku) })
+			expectRunning(mockStore, nil)
+			expectSaveOnce(mockStore)
 
-		job, appErr := scheduler.ScheduleJob(rctx, nil, false, nil)
-		require.Nil(t, appErr)
-		require.NotNil(t, job)
-		assert.Equal(t, model.JobTypeHealthCheck, job.Type)
-	})
+			job, appErr := scheduler.ScheduleJob(rctx, nil, false, nil)
+			require.Nil(t, appErr)
+			require.NotNil(t, job)
+			assert.Equal(t, model.JobTypeHealthCheck, job.Type)
+		})
+	}
 
 	t.Run("skips while a job is in progress", func(t *testing.T) {
 		scheduler, mockStore := newScheduler(t, enterpriseLicense)
@@ -90,9 +92,9 @@ func TestScheduleJob(t *testing.T) {
 		license     *model.License
 		pendingJobs bool
 	}{
-		"skips while a job is pending":      {license: enterpriseLicense(), pendingJobs: true},
-		"skips without a license":           {license: nil},
-		"skips with a Professional license": {license: model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)},
+		"skips while a job is pending": {license: enterpriseLicense(), pendingJobs: true},
+		"skips without a license":      {license: nil},
+		"skips below Professional":     {license: model.NewTestLicenseSKU(model.LicenseShortSkuE20)},
 	} {
 		t.Run(name, func(t *testing.T) {
 			scheduler, _ := newScheduler(t, func() *model.License { return tc.license })

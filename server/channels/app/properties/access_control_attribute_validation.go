@@ -867,14 +867,14 @@ func (ps *PropertyService) isDefinitionSync(rctx request.CTX, field *model.Prope
 
 // syncedOptionsLockedError is an AppError so that its i18n key survives the
 // HTTP layer's mapPropertyServiceError fallback.
-func syncedOptionsLockedError(where string, field *model.PropertyField) *model.AppError {
+func syncedOptionsLockedError(where string, field *model.PropertyField) error {
 	details := fmt.Sprintf("field %s: options of a synced field are managed by %s sync", field.ID, model.GetPropertyFieldSyncSource(field))
 	return model.NewAppError(where, "app.property_field.synced_options_locked.app_error", nil, details, http.StatusForbidden)
 }
 
 // syncSourceUnlinkedError refuses a sync changing a field that is not synced
 // from its source, such as one an admin unlinked while a sync job was running.
-func syncSourceUnlinkedError(where string, field *model.PropertyField, source string) *model.AppError {
+func syncSourceUnlinkedError(where string, field *model.PropertyField, source string) error {
 	details := fmt.Sprintf("field %s is not synced from %s", field.ID, source)
 	return model.NewAppError(where, "app.property_field.sync_source_unlinked.app_error", nil, details, http.StatusConflict)
 }
