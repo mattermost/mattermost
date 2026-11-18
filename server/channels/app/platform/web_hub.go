@@ -627,6 +627,11 @@ func (h *Hub) Start() {
 			case <-ticker.C:
 				connIndex.RemoveInactiveConnections()
 			case webConnReg := <-h.register:
+				if webConnReg.conn.sendClosed.Load() {
+					webConnReg.err <- nil
+					continue
+				}
+
 				// Mark the current one as active.
 				// There is no need to check if it was inactive or not,
 				// we will anyways need to make it active.
@@ -856,6 +861,9 @@ func areAllInactive(conns iter.Seq[*WebConn]) bool {
 // closeAndRemoveConn closes the send channel which will close the
 // websocket connection, and then it removes the webConn from the conn index.
 func closeAndRemoveConn(connIndex *hubConnectionIndex, conn *WebConn) {
+	if !conn.sendClosed.CompareAndSwap(false, true) {
+		return
+	}
 	close(conn.send)
 	connIndex.Remove(conn)
 }
