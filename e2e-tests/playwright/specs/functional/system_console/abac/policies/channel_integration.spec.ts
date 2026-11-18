@@ -1,23 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    enableABAC,
-    navigateToABACPage,
-    runSyncJob,
-    verifyUserInChannel,
-} from '@mattermost/playwright-lib';
+import {expect, systemConsolePath, test, verifyUserInChannel, type App, duration} from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
 import {
     ensureUserAttributes,
     createUserForABAC,
     createPrivateChannelForABAC,
-    createBasicPolicy,
-    waitForLatestSyncJob,
+    getUserAttributeFieldByName,
 } from '../support';
+import {
+    createMembershipPolicy,
+    fieldNamed,
+    openPolicy,
+    policyIdByName,
+    runSyncJob,
+    setAbacEnabled,
+    waitForSyncJob,
+} from '../surface';
+
+const CHANNELS_PATH = systemConsolePath('user_management/channels');
+
+/** Opens System Console > Channels and finds a channel by name. */
+async function openChannels(app: App, channel: {id: string; display_name: string}) {
+    await app.page.goto(CHANNELS_PATH);
+    const {channels} = app.admin;
+    await channels.searchTextbox.fill(channel.display_name);
+    await expect(channels.row(channel.id).nameText).toContainText(channel.display_name);
+    return channels;
+}
 
 /**
  * ABAC Policies - Channel Integration
@@ -32,7 +44,7 @@ test.describe('ABAC Policies - Channel Integration', () => {
      * 1. As admin go to System Console > User Management > Channels
      */
     test('MM-T5788 Add policy to channel from Channel Configuration page', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
 
         await pw.skipIfNoLicense();
 
@@ -41,7 +53,6 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // ============================================================
         const {adminUser, adminClient, team} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
-
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, [
             {name: 'Department', type: 'text'},
         ]);
@@ -62,115 +73,70 @@ test.describe('ABAC Policies - Channel Integration', () => {
         const channel = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(nonSatisfyingUser.id, channel.id);
 
-        // Login and setup ABAC
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
-
-        // Create policy without channels (we'll link via Channel Config)
-        const policyName = `Channel Config Policy ${pw.random.id()}`;
-        await createBasicPolicy(systemConsolePage.page, {
+        // # Log in, turn attribute-based access on, and create a policy without channels (linked from the channel)
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
+        const policySuffix = pw.random.id();
+        const policyName = `Channel Config Policy ${policySuffix}`;
+        await createMembershipPolicy(app, {
             name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
+            rules: [{field: fieldNamed(attributeFieldsMap, 'Department'), value: 'Engineering'}],
         });
-
-        // Get search term for policy
-        const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);
-        const searchTerm = policyIdMatch ? policyIdMatch[1] : policyName;
+        const policyId = await policyIdByName(adminClient, policyName);
 
         // ============================================================
         // STEP 1-2: Navigate to Channel Configuration
         // ============================================================
-
-        await systemConsolePage.page.goto('/admin_console/user_management/channels');
-        await systemConsolePage.page.waitForLoadState('networkidle');
-
-        // Search and find our channel
-        const channelSearchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        await channelSearchInput.fill(channel.display_name);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        // Verify channel shows "Manual Invites" management
-        const channelRow = systemConsolePage.page
-            .locator('.DataGrid_row')
-            .filter({hasText: channel.display_name})
-            .first();
-        // const managementText = await channelRow.textContent();
-
-        // Click Edit
-        await channelRow.getByText('Edit').click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        const channels = await openChannels(app, channel);
+        await channels.row(channel.id).editLink.click();
 
         // ============================================================
         // STEP 3: Toggle on "Enable attribute based channel access"
         // ============================================================
-
-        await systemConsolePage.channelDetail.enablePolicyEnforcement();
-        await systemConsolePage.page.waitForTimeout(500);
+        const configuration = app.admin.channel;
+        const enforce = configuration.policyEnforce.container;
+        await expect(enforce).toBeVisible();
+        await enforce.set(true);
+        await expect(enforce).toBeChecked();
 
         // ============================================================
         // STEP 4: Link to policy and Save
         // ============================================================
+        const policySelectionModal = await configuration.accessPolicy.linkButton.clickTo(app.policySelectionModal);
+        // The modal loads its first page when it opens, and that response can land after a search's and replace
+        // the results, so let it load before searching (by the name's unique suffix)
+        await expect.poll(async () => (await policySelectionModal.policies.rowList.keys()).length).toBeGreaterThan(0);
+        await policySelectionModal.policies.searchTextbox.fill(policySuffix);
+        // The DataGrid name cell opens the editor but has no operable role or click driver.
+        await policySelectionModal.policies.row(policyId).cell('name').click();
+        await expect(policySelectionModal.policies.searchTextbox).not.toBeVisible();
 
-        // Click "Link to a policy"
-        const linkButton = systemConsolePage.page.locator('[data-testid="link-to-a-policy"]');
-        await linkButton.waitFor({state: 'visible', timeout: 5000});
-        await linkButton.click();
-        await systemConsolePage.page.waitForTimeout(500);
+        // * Saving returns to the channel list, where the channel is now managed by its attributes
+        await configuration.savePanel.saveButton.click();
+        await expect(app.page).toHavePath(CHANNELS_PATH);
+        // the list is paged, and other tests' channels can push this one off the first page: search for it
+        const list = await openChannels(app, channel);
+        await expect(list.row(channel.id).cell('management')).toContainText('Attribute Based');
 
-        // Select policy in modal
-        const modal = systemConsolePage.page.locator('[role="dialog"]').filter({hasText: 'Select a Membership Policy'});
-        await modal.waitFor({state: 'visible', timeout: 5000});
-
-        const modalSearch = modal.locator('[data-testid="searchInput"]');
-        await modalSearch.fill(searchTerm);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyOption = modal.locator('.DataGrid_row').filter({hasText: policyName}).first();
-        await policyOption.click();
-        await systemConsolePage.page.waitForTimeout(500);
-
-        // Save
-        await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
-
-        // ============================================================
-        // Run sync to apply policy
-        // ============================================================
-        await systemConsolePage.page.waitForTimeout(2000);
-        await navigateToABACPage(systemConsolePage.page);
-        const jobId1 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, 5, jobId1);
+        // # Run sync to apply the policy
+        await waitForSyncJob(adminClient, await runSyncJob(app));
 
         // ============================================================
         // VERIFY: Channel membership
         // ============================================================
 
-        // 1. Non-satisfying user should be REMOVED
-        const nonSatisfyingInChannel = await verifyUserInChannel(adminClient, nonSatisfyingUser.id, channel.id);
-        expect(nonSatisfyingInChannel).toBe(false);
+        // * 1. Non-satisfying user is REMOVED
+        expect(await verifyUserInChannel(adminClient, nonSatisfyingUser.id, channel.id)).toBe(false);
 
-        // 2. Satisfying user should NOT be auto-added (per requirement)
-        const satisfyingInChannel = await verifyUserInChannel(adminClient, satisfyingUser.id, channel.id);
-        // Note: If implementation auto-adds, this will fail. Adjust if needed.
-        expect(satisfyingInChannel).toBe(false);
+        // * 2. Satisfying user is NOT auto-added (per requirement)
+        expect(await verifyUserInChannel(adminClient, satisfyingUser.id, channel.id)).toBe(false);
 
-        // 3. Satisfying user CAN be manually added
+        // * 3. Satisfying user CAN be manually added
         await adminClient.addToChannel(satisfyingUser.id, channel.id);
-        const afterManualAdd = await verifyUserInChannel(adminClient, satisfyingUser.id, channel.id);
-        expect(afterManualAdd).toBe(true);
+        expect(await verifyUserInChannel(adminClient, satisfyingUser.id, channel.id)).toBe(true);
 
-        // 4. Non-satisfying user CANNOT be added (blocked by policy)
-        let blocked = false;
-        try {
-            await adminClient.addToChannel(nonSatisfyingUser.id, channel.id);
-        } catch {
-            // Expected to fail - policy blocks non-qualifying users
-            blocked = true;
-        }
-        expect(blocked).toBe(true);
+        // * 4. Non-satisfying user CANNOT be added (blocked by policy)
+        await expect(adminClient.addToChannel(nonSatisfyingUser.id, channel.id)).rejects.toThrow();
     });
 
     /**
@@ -193,44 +159,35 @@ test.describe('ABAC Policies - Channel Integration', () => {
      *
      * Expected: ABAC not available for channels using LDAP group sync
      *
-     * Test Data Note: Current UI behavior is uncertain - may allow save but channel
-     * not added, or may show error. This test observes and documents actual behavior.
-     *
      * Implementation Note: We mock Group Sync by setting group_constrained=true via API.
      * This works without LDAP - the server accepts it and UI shows "Group Sync".
      */
     test('MM-T5789 Channel with LDAP group sync cannot use ABAC', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
 
         await pw.skipIfNoLicense();
-
         const {adminUser, adminClient, team} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
+        const department = await getUserAttributeFieldByName(adminClient, 'Department');
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const page = systemConsolePage.page;
+        const {app} = await pw.testBrowser.login(adminUser);
 
         // ===========================================
         // PRECONDITION 1: Create a policy first
         // ===========================================
-        await navigateToABACPage(page);
-        await enableABAC(page);
-
+        await setAbacEnabled(app, true);
         const policyName = `ABAC-GroupSync-Test-${pw.random.id()}`;
-        await createBasicPolicy(page, {
+        await createMembershipPolicy(app, {
             name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: false,
+            rules: [{field: department, value: 'Engineering'}],
         });
+        const policyId = await policyIdByName(adminClient, policyName);
 
         // ===========================================
         // PRECONDITION 2: Create a Group Sync channel via API
         // We mock Group Sync by setting group_constrained=true
         // This works without LDAP configuration
         // ===========================================
-
         const groupSyncChannelName = `ABAC-GroupSync-${pw.random.id()}`;
         const groupSyncChannel = await adminClient.createChannel({
             team_id: team.id,
@@ -238,162 +195,52 @@ test.describe('ABAC Policies - Channel Integration', () => {
             display_name: groupSyncChannelName,
             type: 'P', // Private
         });
+        await adminClient.patchChannel(groupSyncChannel.id, {group_constrained: true} as any);
 
-        // Set group_constrained=true via API to mock Group Sync
-        await adminClient.patchChannel(groupSyncChannel.id, {
-            group_constrained: true,
-        } as any);
+        // A private channel that is not group-synced, which the policy can take
+        const plainChannel = await createPrivateChannelForABAC(adminClient, team.id);
 
         // ===========================================
         // STEP 1: Navigate to Group Sync channel config
         // ===========================================
-        await page.goto('/admin_console/user_management/channels');
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
+        const channels = await openChannels(app, groupSyncChannel);
 
-        // Search for our channel
-        const searchInput = page.locator('input[placeholder*="Search" i]').first();
-        if (await searchInput.isVisible({timeout: 3000})) {
-            await searchInput.fill(groupSyncChannelName);
-            await page.waitForTimeout(1000);
-        }
+        // * The channel shows as "Group Sync"
+        await expect(channels.row(groupSyncChannel.id).cell('management')).toContainText('Group Sync');
 
-        // Verify channel shows as "Group Sync"
-        const channelRow = page.locator('.DataGrid_row').filter({hasText: groupSyncChannelName}).first();
-        await channelRow.waitFor({state: 'visible', timeout: 10000});
+        // # Open its configuration
+        await channels.row(groupSyncChannel.id).editLink.click();
+        const configuration = app.admin.channel;
 
-        const rowText = await channelRow.textContent();
-        expect(rowText).toContain('Group Sync');
+        // * STEP 1.3: the attribute-based access toggle is NOT available while Group Sync is on
+        await expect(configuration.syncGroups.container).toBeVisible();
+        await expect(configuration.policyEnforce.container).toHaveCount(0);
 
-        // Click Edit to open channel configuration
-        await channelRow.getByText('Edit').click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
+        // # STEP 1.4: Turn Group Sync off (through the API) and reload
+        await adminClient.patchChannel(groupSyncChannel.id, {group_constrained: false} as any);
+        await app.page.reload();
 
-        // STEP 1.3: Verify ABAC toggle is NOT available when Group Sync is enabled
-        const abacToggle = systemConsolePage.channelDetail.policyEnforceSwitch.input;
-        const abacVisibleWithGroupSync = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
+        // * The attribute-based access toggle is now available
+        await expect(configuration.policyEnforce.container).toBeVisible();
 
-        expect(abacVisibleWithGroupSync).toBe(false);
-
-        // STEP 1.4: Toggle off Group Sync and verify ABAC becomes available
-
-        // Disable Group Sync via API (more reliable than UI toggle)
-        await adminClient.patchChannel(groupSyncChannel.id, {
-            group_constrained: false,
-        } as any);
-
-        // Reload page to see updated UI
-        await page.reload();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
-
-        // Verify ABAC toggle is now available
-        const abacVisibleAfterDisable = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
-
-        expect(abacVisibleAfterDisable).toBe(true);
-
-        // Re-enable Group Sync for Step 2
-        await adminClient.patchChannel(groupSyncChannel.id, {
-            group_constrained: true,
-        } as any);
+        // # Re-enable Group Sync for Step 2
+        await adminClient.patchChannel(groupSyncChannel.id, {group_constrained: true} as any);
 
         // ===========================================
-        // STEP 2: Try to add Group Sync channel to existing policy
+        // STEP 2: Try to add the Group Sync channel to the policy
         // ===========================================
-        await navigateToABACPage(page);
-        await page.waitForTimeout(1000);
+        const policy = await openPolicy(app, policyId);
+        await policy.addChannelsButton.click();
+        const {channels: picker} = app.channelSelectorModal;
+        await expect(picker.searchCombobox).toBeVisible();
 
-        // Step 2.2: Click the policy to edit it
+        // * A channel that isn't group-synced is offered
+        await picker.searchCombobox.fill(plainChannel.name);
+        await expect(picker.results.channel(plainChannel)).toBeVisible();
 
-        // Search for the policy first
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
-        if (await policySearchInput.isVisible({timeout: 3000})) {
-            await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1000);
-        }
-
-        // Click on the policy row (use text-based locator)
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-        await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
-        await policyRowLocator.click();
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1000);
-
-        // Click Add channels button
-        const addChannelsButton = page.getByRole('button', {name: /add channel/i});
-        await addChannelsButton.waitFor({state: 'visible', timeout: 10000});
-        await addChannelsButton.click();
-        await page.waitForTimeout(1000);
-
-        // Step 2.3: Try to select the Group Sync channel
-        const channelModal = page.locator('[role="dialog"]').filter({hasText: /channel/i});
-        await channelModal.waitFor({state: 'visible', timeout: 5000});
-
-        // Search for the Group Sync channel
-        const modalSearchInput = channelModal.locator('[data-testid="searchInput"], input[type="text"]').first();
-        if (await modalSearchInput.isVisible({timeout: 3000})) {
-            await modalSearchInput.fill(groupSyncChannelName);
-            await page.waitForTimeout(1000);
-        }
-
-        // Document actual behavior (requirement notes uncertainty)
-
-        const channelRows = channelModal.locator('.DataGrid_row, .more-modal__row');
-        const rowCount = await channelRows.count();
-
-        if (rowCount === 0) {
-            // Group Sync channel is filtered out - good behavior
-        } else {
-            // Channel is shown - try to select it
-            const channelRowToSelect = channelRows.first();
-            await channelRowToSelect.textContent();
-
-            // Try to click/select the channel
-            await channelRowToSelect.click({timeout: 5000}).catch(() => {
-                // Ignore click errors
-            });
-            await page.waitForTimeout(500);
-
-            // Try to click Add button
-            const addButton = channelModal.getByRole('button', {name: 'Add'});
-            if (await addButton.isVisible({timeout: 3000})) {
-                const addButtonDisabled = await addButton.isDisabled();
-                if (addButtonDisabled) {
-                    // Add button is disabled
-                } else {
-                    await addButton.click();
-                    await page.waitForTimeout(1000);
-                }
-            }
-
-            // Close modal
-            const closeButton = channelModal.getByRole('button', {name: /close|cancel|×/i});
-            if (await closeButton.isVisible({timeout: 2000})) {
-                await closeButton.click();
-                await page.waitForTimeout(500);
-            }
-
-            // Check if we're back on edit page - try to save
-            const saveButton = page.getByRole('button', {name: 'Save'});
-            if (await saveButton.isVisible({timeout: 3000})) {
-                const saveEnabled = await saveButton.isEnabled();
-
-                if (saveEnabled) {
-                    await saveButton.click();
-                    await page.waitForTimeout(2000);
-
-                    // Check for error message
-                    const errorMessage = page.locator('.error-message, [class*="error"], .alert-danger');
-                    const hasError = await errorMessage.isVisible({timeout: 3000}).catch(() => false);
-
-                    if (hasError) {
-                        await errorMessage.textContent();
-                    } else {
-                        // Check if channel was actually added
-                    }
-                }
-            }
-        }
+        // * The group-synced channel is not offered
+        await picker.searchCombobox.fill(groupSyncChannelName);
+        await expect(picker.results.noResultsText).toBeVisible();
+        await expect(picker.results.channel(groupSyncChannel)).toHaveCount(0);
     });
 });

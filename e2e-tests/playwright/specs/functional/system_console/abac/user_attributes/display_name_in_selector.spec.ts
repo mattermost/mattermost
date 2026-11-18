@@ -4,29 +4,25 @@
 import type {Client4} from '@mattermost/client';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
+import {deleteAccessControlPolicyIfPresent, expect, test, duration, Msg} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {
     deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
 } from '../../../channels/custom_profile_attributes/helpers';
-import {fillSingleConditionValue, getPolicyIdByName} from '../support';
+import {fieldNamed, fillRuleValue, openMembershipPolicies, policyIdByName, setAbacEnabled} from '../surface';
 
 type FieldsMap = Record<string, UserPropertyField>;
 
 async function clearExistingFields(client: Client4): Promise<void> {
-    try {
-        const existing = await client.getCustomProfileAttributeFields();
-        if (existing?.length) {
-            const map: FieldsMap = {};
-            for (const f of existing) {
-                map[f.id] = f;
-            }
-            await deleteCustomProfileAttributes(client, map);
+    const existing = await client.getCustomProfileAttributeFields();
+    if (existing.length) {
+        const map: FieldsMap = {};
+        for (const f of existing) {
+            map[f.id] = f;
         }
-    } catch {
-        // No fields to clean up
+        await deleteCustomProfileAttributes(client, map);
     }
 }
 
@@ -44,7 +40,7 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
         'renders and filters by display_name while persisting CEL identifier',
         {tag: '@user_attributes'},
         async ({pw}) => {
-            test.setTimeout(120000);
+            test.setTimeout(duration.two_min);
 
             await pw.ensureLicense();
             await pw.skipIfNoLicense();
@@ -79,107 +75,67 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
             let policyId: string | null = null;
 
             try {
-                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-                const {page} = systemConsolePage;
-
-                await navigateToABACPage(page);
-                await enableABAC(page);
+                const {app} = await pw.testBrowser.login(adminUser);
+                await setAbacEnabled(app, true);
 
                 // # Open the new-policy form
-                await page.getByRole('button', {name: 'Add policy'}).click();
-                await page.waitForLoadState('networkidle');
+                const policies = await openMembershipPolicies(app);
+                await policies.addButton.click();
+                const {policy} = app.admin.accessControl;
+                await expect(policy.editPolicy.name.valueTextbox).toBeVisible();
+                await policy.editPolicy.name.valueTextbox.fill(policyName);
 
-                const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
-                await nameInput.waitFor({state: 'visible', timeout: 10000});
-                await nameInput.fill(policyName);
+                // # Add an attribute rule; its selector opens itself
+                const row = policy.rules.row(0);
+                await expect(policy.rules.addButton).toBeEnabled();
+                await policy.rules.addButton.click();
+                const {attributeMenu} = row;
+                const deptHead = attributeMenu.attribute(fieldNamed(fieldsMap, 'dept_head'));
+                const office = attributeMenu.attribute(fieldNamed(fieldsMap, 'office'));
 
-                // # Add an attribute rule and open its selector
-                const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
-                await expect(addAttributeButton).toBeEnabled({timeout: 10000});
-                await addAttributeButton.click();
-
-                const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
-                await attributeButton.waitFor({state: 'visible', timeout: 5000});
-
-                const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
-
-                if (!(await attributeMenu.isVisible({timeout: 1000}).catch(() => false))) {
-                    await attributeButton.click();
-                }
-                await attributeMenu.waitFor({state: 'visible', timeout: 5000});
-
-                const deptHeadItem = page.locator('[id^="attribute-selector-menu"] li:has-text("Department Head")');
-                const officeItem = page.locator('[id^="attribute-selector-menu"] li:has-text("office")');
-
-                // * Both fields render: 'Department Head' (display_name) and 'office' (name fallback)
-                await expect(deptHeadItem).toBeVisible();
-                await expect(officeItem).toBeVisible();
-
-                const filterInput = attributeMenu.locator('.attribute-selector-search input');
-                await filterInput.waitFor({state: 'visible', timeout: 5000});
+                // * Both fields render: 'Department Head' (display_name, shown beside its identifier) and 'office' (name fallback)
+                await expect(deptHead).toContainText('Department Head');
+                await expect(office).toHaveText('office');
 
                 // * Filter by display_name keeps only 'Department Head'
-                await filterInput.fill('department');
-                await expect(deptHeadItem).toBeVisible();
-                await expect(officeItem).toHaveCount(0);
+                await attributeMenu.filter.container.fill('department');
+                await expect(deptHead).toBeVisible();
+                await expect(office).toHaveCount(0);
 
                 // * Filter by CEL identifier keeps only 'Department Head'
-                await filterInput.fill('');
-                await filterInput.fill('dept_head');
-                await expect(deptHeadItem).toBeVisible();
-                await expect(officeItem).toHaveCount(0);
+                await attributeMenu.filter.container.fill('dept_head');
+                await expect(deptHead).toBeVisible();
+                await expect(office).toHaveCount(0);
 
                 // * Filter on the no-display_name field's `name` keeps only 'office'
-                await filterInput.fill('');
-                await filterInput.fill('office');
-                await expect(officeItem).toBeVisible();
-                await expect(deptHeadItem).toHaveCount(0);
+                await attributeMenu.filter.container.fill('office');
+                await expect(office).toBeVisible();
+                await expect(deptHead).toHaveCount(0);
 
                 // # Select 'Department Head'
-                await filterInput.fill('');
-                await deptHeadItem.first().click({force: true});
+                await attributeMenu.filter.container.fill('');
+                await deptHead.click();
 
                 // * The trigger button shows display_name, not the CEL identifier
-                await expect(attributeButton).toContainText('Department Head', {timeout: 5000});
+                await expect(row.attributeButton).toContainText('Department Head');
 
-                // # Wait for the attribute-selector popover to close before opening the next menu
-                const attributeMenuPopover = page.locator('[id^="attribute-selector-menu"]');
-                await attributeMenuPopover.waitFor({state: 'hidden', timeout: 5000});
+                // # The rule is "is engineering"
+                await expect(deptHead).not.toBeVisible();
+                await expect(row.operatorButton).toContainMessage(Msg.admin.access_control.table_editor.operator.is);
+                await fillRuleValue(row, 'engineering');
 
-                const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
-                await operatorButton.waitFor({state: 'visible', timeout: 5000});
-                await operatorButton.click();
-
-                const operatorMenu = page.locator('[id^="operator-selector-menu"]');
-                await operatorMenu.waitFor({state: 'visible', timeout: 5000});
-                await operatorMenu.locator('li:has-text("is")').first().click();
-
-                await fillSingleConditionValue(page, 'engineering');
-
-                const saveButton = page.getByRole('button', {name: 'Save'});
-                await expect(saveButton).toBeEnabled({timeout: 10000});
-
-                // # Click Save and wait on the create-policy PUT (button unmounts on navigate)
-                const createPolicyResponse = page.waitForResponse(
-                    (r) => /\/access_control_policies(?:\?|$)/.test(r.url()) && r.request().method() === 'PUT',
-                    {timeout: 15000},
+                // # Save
+                await expect(app.admin.saveButton).toBeEnabled();
+                await app.admin.saveButton.click();
+                await expect(app.page).toHavePath(
+                    `${app.adminConsolePage.pathFor()}/system_attributes/membership_policies`,
                 );
-                await saveButton.click();
-                const createResponse = await createPolicyResponse;
-                expect(createResponse.ok()).toBe(true);
-
-                await page.waitForURL(/\/admin_console\/system_attributes\/membership_policies/, {timeout: 10000});
 
                 // * The persisted CEL uses the canonical identifier, not display_name
-                policyId = await getPolicyIdByName(adminClient, policyName);
-                expect(policyId).not.toBeNull();
+                policyId = await policyIdByName(adminClient, policyName);
+                const saved = await adminClient.getAccessControlPolicy(policyId);
 
-                const policy = await (adminClient as any).doFetch(
-                    `${adminClient.getBaseRoute()}/access_control_policies/${policyId}`,
-                    {method: 'GET'},
-                );
-
-                const rules = (policy?.rules || []) as Array<{actions?: string[]; expression?: string}>;
+                const rules = (saved?.rules || []) as Array<{actions?: string[]; expression?: string}>;
                 const membershipRule = rules.find((r) => r.actions?.includes('membership')) || rules[0];
 
                 expect(membershipRule).toBeDefined();
@@ -187,14 +143,7 @@ test.describe('ABAC Attribute Selector - display_name rendering and filtering', 
                 expect(membershipRule?.expression || '').not.toContain('Department Head');
             } finally {
                 if (policyId) {
-                    try {
-                        await (adminClient as any).doFetch(
-                            `${adminClient.getBaseRoute()}/access_control_policies/${policyId}`,
-                            {method: 'DELETE'},
-                        );
-                    } catch {
-                        // best-effort cleanup
-                    }
+                    await deleteAccessControlPolicyIfPresent(adminClient, policyId);
                 }
 
                 await deleteCustomProfileAttributes(adminClient, fieldsMap);

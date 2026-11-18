@@ -1,7 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelsPage, expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
+import {
+    closeChannelSettings,
+    expect,
+    openChannel,
+    openChannelSettings,
+    test,
+    type App,
+    duration,
+} from '@mattermost/playwright-lib';
 
 import {
     assignChannelsToPolicy,
@@ -9,8 +17,10 @@ import {
     createTeamAdmin,
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
+import {closeTeamSettings, openAccessPoliciesTab} from '../../../channels/team_settings/surface';
 import {assignTeamsToPolicy} from '../teams/helpers';
 import {enableUserManagedAttributes} from '../support';
+import {setAbacEnabled} from '../surface';
 
 import {
     createMaskingTextField,
@@ -25,6 +35,22 @@ import {deleteFieldFromDB, purgeFieldsByPrefix, setFieldAsSharedOnly, setFieldAs
 
 const fieldPrefix = 'MaskingAR';
 
+/** Opens Team Settings > Membership Policies and a policy's editor from the list (searching for it first). */
+async function openTeamPolicy(app: App, policy: {id: string; name: string}) {
+    const settings = await openAccessPoliciesTab(app);
+    const {policies, editor} = settings.accessPolicies;
+
+    // the list loads its first page on open, and that response can replace a search's results
+    await expect(await policies.rowList.first()).toBeVisible();
+    await expect(policies.searchTextbox).toBeVisible();
+    await policies.searchTextbox.fill(policy.name);
+    await expect(policies.row(policy.id)).toBeVisible();
+    // The DataGrid name cell opens the editor but has no operable role or click driver.
+    await policies.row(policy.id).cell('name').click();
+    await expect(editor.name.container).toHaveValue(policy.name);
+    return {settings, editor};
+}
+
 test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_masking']}, () => {
     test.beforeAll(async () => {
         await purgeFieldsByPrefix(fieldPrefix);
@@ -37,10 +63,10 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
         // the Delete button stays disabled even after a team admin removes all assigned
         // channels from the policy, as long as masked values are present.
         // The server also returns HTTP 403 for a direct DELETE request.
-        test.setTimeout(150000);
+        test.setTimeout(duration.four_min);
         await pw.skipIfNoLicense();
 
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
         const fieldIds: string[] = [];
         const policyIds: string[] = [];
 
@@ -55,14 +81,12 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             // adminUser holds "Alpha"; policy has ["Alpha", "Bravo"] — Bravo is masked
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const sysPage = systemConsolePage.page;
-            await navigateToABACPage(sysPage);
-            await enableABAC(sysPage);
+            const {app: consoleApp} = await pw.testBrowser.login(adminUser);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
             const policyId = await createPolicyWithCEL(
-                sysPage,
+                consoleApp,
+                adminClient,
                 policyName,
                 `user.attributes.${fieldName} in ["Alpha", "Bravo"]`,
             );
@@ -80,39 +104,26 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await setFieldAsSharedOnly(fieldId);
             await assignTeamsToPolicy(adminClient, policyId, [team.id]);
 
-            const {page} = await pw.testBrowser.login(adminUser);
-            const channelsPage = new ChannelsPage(page);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, adminUser, {team, channel: townSquare});
+            const {settings, editor} = await openTeamPolicy(app, {id: policyId, name: policyName});
 
-            const teamSettings = await channelsPage.openTeamSettings();
-            await teamSettings.openAccessPoliciesTab();
+            // * The policy's masked values make Delete unavailable
+            await expect(editor.rules.row(0).maskedImg).toBeVisible();
+            await expect(editor.deleteButton).toBeVisible();
+            await expect(editor.deleteButton).toBeDisabled();
 
-            const policyRow = teamSettings.container.getByText(policyName).first();
-            await expect(policyRow).toBeVisible({timeout: 10000});
-            await policyRow.click();
-            await page.waitForTimeout(500);
+            // # Remove the channel
+            const channelRow = editor.channels.row(channel.id);
+            await channelRow.removeLink.click();
+            await expect(channelRow).toHaveCount(0);
 
-            const deleteBtn = teamSettings.container
-                .locator('.TeamPolicyEditor__section--delete button')
-                .filter({hasText: 'Delete'});
+            // * Delete stays disabled, because of the masked values
+            await expect(editor.deleteButton).toBeDisabled();
 
-            await expect(deleteBtn).toBeVisible({timeout: 3000});
-            await expect(deleteBtn).toBeDisabled();
+            await closeTeamSettings(settings);
 
-            // Remove the channel — button must STAY disabled due to masked values
-            const removeLink = teamSettings.policyChannelRemoveLink;
-            await expect(removeLink).toBeVisible({timeout: 5000});
-            await removeLink.click();
-            await page.waitForTimeout(300);
-            await expect(deleteBtn).toBeDisabled();
-
-            await teamSettings.close();
-
-            expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);
-
-            // Server: direct DELETE must return HTTP 403 regardless of UI state
-            const status = await page.evaluate(async (id: string) => {
+            // * Server: a direct DELETE returns HTTP 403 regardless of UI state
+            const status = await app.page.evaluate(async (id: string) => {
                 const resp = await fetch(`/api/v4/access_control_policies/${id}`, {
                     method: 'DELETE',
                     headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -149,10 +160,10 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
         // PermissionManageSystem) must see masking in the team-settings access
         // policy editor. The masked-values guard MUST apply at this surface too:
         // controls locked, Delete disabled, server 403 on direct DELETE.
-        test.setTimeout(180000);
+        test.setTimeout(duration.four_min);
         await pw.skipIfNoLicense();
 
-        const {adminUser, adminClient, team} = await pw.initSetup();
+        const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
         const fieldIds: string[] = [];
         const policyIds: string[] = [];
 
@@ -170,10 +181,8 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             const channel = await createPrivateChannel(adminClient, team.id);
             await adminClient.addToChannel(teamAdmin.id, channel.id);
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const sysPage = systemConsolePage.page;
-            await navigateToABACPage(sysPage);
-            await enableABAC(sysPage);
+            const {app: consoleApp} = await pw.testBrowser.login(adminUser);
+            await setAbacEnabled(consoleApp, true);
             const policyName = `MaskingPolicy ${pw.random.id()}`;
             const policyExpression = `user.attributes.${fieldName} in ["Alpha", "Bravo"]`;
             const policyResp = await (adminClient as any).doFetch(
@@ -201,51 +210,19 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
 
             await setFieldAsSharedOnly(fieldId);
 
-            // Log in AS THE TEAM ADMIN (not the sysadmin)
-            const {page} = await pw.testBrowser.login(teamAdmin);
-            const channelsPage = new ChannelsPage(page);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
+            // # Log in AS THE TEAM ADMIN (not the sysadmin) and open the policy in Team Settings
+            const app = await openChannel(pw, teamAdmin, {team, channel: townSquare});
+            const {settings, editor} = await openTeamPolicy(app, {id: policyId, name: policyName});
 
-            const teamSettings = await channelsPage.openTeamSettings();
-            await teamSettings.openAccessPoliciesTab();
+            // * Masking surfaces in the team-policy editor exactly as in the System Console, and Delete is disabled
+            await expect(editor.rules.row(0).maskedImg).toBeVisible();
+            await expect(editor.deleteButton).toBeVisible();
+            await expect(editor.deleteButton).toBeDisabled();
 
-            const searchInput = teamSettings.container.locator('[data-testid="searchInput"]').first();
-            await expect(searchInput).toBeVisible({timeout: 10000});
-            const searchResponse = page.waitForResponse(
-                (resp) =>
-                    /\/api\/v4\/access_control_policies\/search$/.test(resp.url()) &&
-                    resp.request().method() === 'POST' &&
-                    Boolean(resp.request().postData()?.includes(policyName)) &&
-                    resp.ok(),
-                {timeout: 15000},
-            );
-            await searchInput.fill(policyName);
-            await searchResponse.catch(() => {
-                // debounced search can occasionally settle from cached data
-            });
-            await page.waitForLoadState('networkidle');
+            await closeTeamSettings(settings);
 
-            const policyRow = teamSettings.container.getByText(policyName).first();
-            await expect(policyRow).toBeVisible({timeout: 10000});
-            await policyRow.click();
-            await page.waitForTimeout(500);
-
-            // Masking surfaces in the team-policy editor exactly as in the system console
-            await expect(teamSettings.container.locator('.select__multi-value--masked').first()).toBeVisible({
-                timeout: 5000,
-            });
-
-            const deleteBtn = teamSettings.container
-                .locator('.TeamPolicyEditor__section--delete button')
-                .filter({hasText: 'Delete'});
-            await expect(deleteBtn).toBeVisible({timeout: 5000});
-            await expect(deleteBtn).toBeDisabled();
-
-            await teamSettings.close();
-
-            expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);
-            const status = await page.evaluate(
+            // * Server: a direct DELETE as the team admin returns 403
+            const status = await app.page.evaluate(
                 async ({id, teamId}: {id: string; teamId: string}) => {
                     const resp = await fetch(`/api/v4/access_control_policies/${id}?team_id=${teamId}`, {
                         method: 'DELETE',
@@ -283,7 +260,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
         // PermissionManageChannelAccessRules (via channel_admin role) on a
         // private channel must see masking inside the Membership Policy tab of
         // the channel settings modal.
-        test.setTimeout(180000);
+        test.setTimeout(duration.four_min);
         await pw.skipIfNoLicense();
 
         const {adminClient, user, team} = await pw.initSetup();
@@ -331,27 +308,17 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
 
             await setFieldAsSharedOnly(fieldId);
 
-            // Log in AS THE CHANNEL ADMIN (not the sysadmin)
-            const {page} = await pw.testBrowser.login(user);
-            const channelsPage = new ChannelsPage(page);
-            await page.goto(`/${team.name}/channels/${channel.name}`);
-            await channelsPage.toBeVisible();
+            // # Log in AS THE CHANNEL ADMIN (not the sysadmin) and open the channel's membership policy
+            const app = await openChannel(pw, user, {team, channel});
+            const settings = await openChannelSettings(app, 'access_rules');
 
-            const channelSettings = await channelsPage.openChannelSettings();
-            const membershipPolicyTab = channelSettings.tabs.tab('access_rules').locator;
-            await membershipPolicyTab.waitFor({state: 'visible', timeout: 10000});
-            await membershipPolicyTab.click();
-            await page.waitForTimeout(1500);
+            // * The masked chip shows there too
+            await expect(settings.accessRules.rules.row(0).maskedImg).toBeVisible();
+            await closeChannelSettings(settings);
 
-            await expect(channelSettings.container.locator.locator('.select__multi-value--masked').first()).toBeVisible(
-                {
-                    timeout: 10000,
-                },
-            );
-
-            // Server-side guard: direct DELETE by the channel admin must 403
+            // * Server-side guard: a direct DELETE by the channel admin returns 403
             expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);
-            const status = await page.evaluate(async (id: string) => {
+            const status = await app.page.evaluate(async (id: string) => {
                 const resp = await fetch(`/api/v4/access_control_policies/${id}`, {
                     method: 'DELETE',
                     headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -385,7 +352,7 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
         // Validates that the /attributes endpoint strips source_only and shared_only
         // fields before they reach the channel members RHS panel. A public field in
         // the same policy must still appear so we confirm the filter is selective.
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient, team} = await pw.initSetup();
@@ -394,6 +361,9 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
 
         try {
             await enableUserManagedAttributes(adminClient);
+
+            // The tags only render when the channel policy indicators are on, which is off by default
+            await adminClient.patchConfig({AccessControlSettings: {EnableChannelPolicyIndicators: true}} as any);
             await enableMaskingFlag(adminClient);
 
             const id = pw.random.id();
@@ -412,13 +382,12 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             await setUserAttribute(adminClient, adminUser.id, sharedFieldId, 'Beta');
             await setUserAttribute(adminClient, adminUser.id, sourceFieldId, 'Gamma');
 
-            const {channelsPage, page} = await pw.testBrowser.login(adminUser);
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app: consoleApp} = await pw.testBrowser.login(adminUser);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
             const policyId = await createPolicyWithCEL(
-                page,
+                consoleApp,
+                adminClient,
                 policyName,
                 `user.attributes.${publicFieldName} in ["Alpha"] && user.attributes.${sharedFieldName} in ["Beta"] && user.attributes.${sourceFieldName} in ["Gamma"]`,
             );
@@ -430,42 +399,27 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
             const channel = await createPrivateChannel(adminClient, team.id);
             await assignChannelsToPolicy(adminClient, policyId, [channel.id]);
 
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            // # Wait until the server's answer for the channel holds the public field's value: the policy's
+            // enforcement cache is cold on the first request. The webapp keeps its first answer for five minutes, so
+            // the panel opens only after that.
+            await expect
+                .poll(async () => (await adminClient.getChannelAccessControlAttributes(channel.id))[publicFieldName], {
+                    message: `the channel's access control attributes never listed ${publicFieldName}`,
+                    timeout: pw.duration.one_min,
+                })
+                .toContain('Alpha');
 
-            // The enforcement cache is cold on the first request — retry until the
-            // public-field tag is visible (up to 6 attempts with reload).
-            const alertContainer = page.locator('.channel-members-rhs__alert-container.policy-enforced');
-            let publicTagVisible = false;
-            for (let attempt = 0; attempt < 6; attempt++) {
-                if (attempt > 0) {
-                    await page.keyboard.press('Escape');
-                    await page.waitForTimeout(3000);
-                    await page.reload();
-                    await channelsPage.toBeVisible();
-                }
+            // # Open the channel's members panel, once
+            const app = await openChannel(pw, adminUser, {team, channel});
+            const {policy} = app.rhs.channelMembers;
+            await app.channelHeader.membersButton.click();
+            await expect(app.rhs.channelMembers.container).toBeVisible();
+            await expect(await policy.tagList.itemWith({text: 'Alpha'})).toBeVisible();
 
-                await channelsPage.centerView.header.openChannelMenu();
-                await page.locator('#channelMembers').click();
-                await channelsPage.sidebarRight.toBeVisible();
-
-                try {
-                    await alertContainer.waitFor({state: 'visible', timeout: 10000});
-                    publicTagVisible = await alertContainer.getByText(/:\s*Alpha/).isVisible();
-                    if (publicTagVisible) {
-                        break;
-                    }
-                } catch {
-                    // alert container not yet visible, retry
-                }
-            }
-
-            // Public field (value "Alpha") MUST be visible
-            await expect(alertContainer.getByText(/:\s*Alpha/)).toBeVisible({timeout: 5000});
-
-            // shared_only (value "Beta") and source_only (value "Gamma") must NOT appear
-            await expect(alertContainer.getByText(/:\s*Beta/)).not.toBeVisible();
-            await expect(alertContainer.getByText(/:\s*Gamma/)).not.toBeVisible();
+            // * The public field's value shows; the shared_only and source_only ones don't
+            await expect(policy).toContainText('Alpha');
+            await expect(policy).not.toContainText('Beta');
+            await expect(policy).not.toContainText('Gamma');
         } finally {
             for (const id of policyIds) {
                 try {

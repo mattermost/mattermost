@@ -155,6 +155,8 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                 <Menu.Title
                     key={`${section.key}-title`}
                     role='presentation'
+                    testId={testId ? 'policy_rule_operator_menu.group' : undefined}
+                    testKey={section.key}
                 >
                     {formatMessage(section.title)}
                 </Menu.Title>,
@@ -168,22 +170,22 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                 <Menu.Item
                     id={id}
                     key={id}
-                    data-testid={testId ? `${testId}.operator_menu.operator:${id}--menuitemradio` : undefined}
+                    data-testid={testId ? `policy_rule_operator_menu.operator:${id}--menuitemradio` : undefined}
                     role='menuitemradio'
                     forceCloseOnSelect={true}
                     aria-checked={id === currentOperatorDescriptor.id}
                     onClick={() => handleOperatorChange(descriptor)}
                     labels={description ? (
                         <>
-                            <span><FormattedMessage {...label}/></span>
-                            <span>
+                            <span data-testid={testId ? 'policy_rule_operator_menu.operator.label--text' : undefined}><FormattedMessage {...label}/></span>
+                            <span data-testid={testId ? 'policy_rule_operator_menu.operator.description--text' : undefined}>
                                 <FormattedMessage
                                     {...description}
                                     values={{
                                         functionName: (
                                             <span
                                                 className='operator-selector-menu__function-name'
-                                                data-testid={testId ? `${testId}.operator_menu.operator.function_name--text` : undefined}
+                                                data-testid={testId ? 'policy_rule_operator_menu.operator.function_name--text' : undefined}
                                             >
                                                 {`(${functionName})`}
                                             </span>
@@ -237,6 +239,7 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                 type='text'
                 placeholder={formatMessage({id: 'admin.access_control.table_editor.selector.filter_operators', defaultMessage: 'Search operators...'})}
                 className='attribute-selector-search'
+                testId={testId ? 'policy_rule_operator_menu.filter' : undefined}
                 value={filter}
                 onChange={onFilterChange}
             />

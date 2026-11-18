@@ -1,26 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    enableABAC,
-    navigateToABACPage,
-    runSyncJob,
-    verifyUserInChannel,
-    updateUserAttributes,
-} from '@mattermost/playwright-lib';
+import {expect, test, verifyUserInChannel, updateUserAttributes, duration} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
+import {createUserForABAC, createPrivateChannelForABAC, activatePolicy, enableUserManagedAttributes} from '../support';
 import {
-    createUserForABAC,
-    createPrivateChannelForABAC,
-    createBasicPolicy,
-    activatePolicy,
-    waitForLatestSyncJob,
-    enableUserManagedAttributes,
-} from '../support';
+    createMembershipPolicy,
+    fieldNamed,
+    policyIdByName,
+    runSyncJob,
+    setAbacEnabled,
+    waitForSyncJob,
+} from '../surface';
 
 /**
  * ABAC User Attributes - Attribute Changes
@@ -43,7 +36,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
      * - System posts a "User removed" message in the channel
      */
     test('MM-T5796 User auto-removed when required attribute is removed', async ({pw}) => {
-        test.setTimeout(180000);
+        test.setTimeout(duration.four_min);
 
         await pw.skipIfNoLicense();
 
@@ -69,18 +62,15 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         // TEST SCENARIO 1: Auto-add FALSE
         // ============================================================
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
 
         const policy1Name = `Engineering Access NoAutoAdd ${pw.random.id()}`;
-        const jobId1 = await createBasicPolicy(systemConsolePage.page, {
+        const jobId1 = await createMembershipPolicy(app, {
             name: policy1Name,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: false, // Auto-add FALSE
-            channels: [privateChannel.display_name],
+            rules: [{field: fieldNamed(attributeFieldsMap, 'Department'), value: 'Engineering'}],
+            channels: [privateChannel],
+            autoAdd: false,
         });
 
         // Manually add user to channel
@@ -89,39 +79,25 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         expect(initialInChannel).toBe(true);
 
         // Get policy ID and activate
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobId1);
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        await searchInput.waitFor({state: 'visible', timeout: 5000});
-        const idMatch = policy1Name.match(/([a-z0-9]+)$/i);
-        const uniqueId = idMatch ? idMatch[1] : policy1Name;
-        await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
-        const policyElementId = await policyRow.getAttribute('id');
-        const policyId = policyElementId?.replace('customDescription-', '');
-
-        if (policyId) {
-            await activatePolicy(adminClient, policyId);
+        if (!jobId1) {
+            throw new Error('Saving a policy with channels starts no sync job');
         }
-        await searchInput.clear();
+        await waitForSyncJob(adminClient, jobId1);
+        await activatePolicy(adminClient, await policyIdByName(adminClient, policy1Name));
 
         // Remove the qualifying attribute
         await updateUserAttributes(adminClient, testUser.id, {Department: 'Sales'});
 
         // Wait for attribute change to propagate
-        await systemConsolePage.page.waitForTimeout(1000);
 
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         });
 
         // Run sync job
-        const syncJob1 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob1);
+        await waitForSyncJob(adminClient, await runSyncJob(app));
 
         // Wait for membership updates to apply
-        await systemConsolePage.page.waitForTimeout(1000);
 
         // Verify user is removed
         const userInChannelAfterRemoval = await verifyUserInChannel(adminClient, testUser.id, privateChannel.id);
@@ -153,30 +129,20 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
 
         const channel2 = await createPrivateChannelForABAC(adminClient, team.id);
 
-        await navigateToABACPage(systemConsolePage.page);
-
         const policy2Name = `Engineering Access WithAutoAdd ${pw.random.id()}`;
-        const jobId2 = await createBasicPolicy(systemConsolePage.page, {
+        const jobId2 = await createMembershipPolicy(app, {
             name: policy2Name,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: true, // Auto-add TRUE
-            channels: [channel2.display_name],
+            rules: [{field: fieldNamed(attributeFieldsMap, 'Department'), value: 'Engineering'}],
+            channels: [channel2],
+            autoAdd: true,
         });
 
         // Activate and run sync to auto-add user
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobId2);
-        await searchInput.fill(policy2Name.match(/([a-z0-9]+)$/i)?.[1] || policy2Name);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyRow2 = systemConsolePage.page.locator('.policy-name').first();
-        const policyId2 = (await policyRow2.getAttribute('id'))?.replace('customDescription-', '');
-
-        if (policyId2) {
-            await activatePolicy(adminClient, policyId2);
+        if (!jobId2) {
+            throw new Error('Saving a policy with channels starts no sync job');
         }
-        await searchInput.clear();
+        await waitForSyncJob(adminClient, jobId2);
+        await activatePolicy(adminClient, await policyIdByName(adminClient, policy2Name));
 
         // Re-apply ABAC enable guard: a concurrent initSetup() on another shard may have
         // disabled ABAC between the initial enableABAC call and this sync job.
@@ -185,8 +151,7 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         });
 
-        const syncJob2 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob2);
+        await waitForSyncJob(adminClient, await runSyncJob(app));
 
         const userAutoAdded = await verifyUserInChannel(adminClient, testUser.id, channel2.id);
         expect(userAutoAdded).toBe(true);
@@ -195,18 +160,15 @@ test.describe('ABAC User Attributes - Attribute Changes', () => {
         await updateUserAttributes(adminClient, testUser.id, {Department: 'Marketing'});
 
         // Wait for attribute change to propagate
-        await systemConsolePage.page.waitForTimeout(1000);
 
         await adminClient.patchConfig({
             AccessControlSettings: {EnableAttributeBasedAccessControl: true},
         });
 
         // Run sync
-        const syncJob3 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob3);
+        await waitForSyncJob(adminClient, await runSyncJob(app));
 
         // Small delay for channel membership update
-        await systemConsolePage.page.waitForTimeout(1000);
 
         // Verify user is removed
         const userRemovedFromChannel2 = await verifyUserInChannel(adminClient, testUser.id, channel2.id);

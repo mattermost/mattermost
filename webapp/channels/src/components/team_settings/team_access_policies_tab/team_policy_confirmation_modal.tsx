@@ -65,6 +65,7 @@ export default function TeamPolicyConfirmationModal({channelsAffected, publicCha
     return (
         <GenericModal
             className='TeamPolicyConfirmationModal'
+            testId='team_settings_modal.access_policies.editor.policy_change_modal'
             show={true}
             isStacked={true}
             onExited={onExited}
@@ -82,6 +83,7 @@ export default function TeamPolicyConfirmationModal({channelsAffected, publicCha
                         type='button'
                         emphasis='tertiary'
                         onClick={onExited}
+                        data-testid='team_settings_modal.access_policies.editor.policy_change_modal.cancel--button'
                     >
                         {formatMessage({id: 'team_settings.policy_editor.confirmation.cancel', defaultMessage: 'Cancel'})}
                     </Button>
@@ -89,6 +91,7 @@ export default function TeamPolicyConfirmationModal({channelsAffected, publicCha
                         type='button'
                         onClick={onConfirm}
                         disabled={saving}
+                        data-testid='team_settings_modal.access_policies.editor.policy_change_modal.confirm--button'
                         destructive={true}
                     >
                         {formatMessage({id: 'team_settings.policy_editor.confirmation.apply', defaultMessage: 'Apply policy'})}

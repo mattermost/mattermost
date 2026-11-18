@@ -20,14 +20,14 @@ function makeProps(overrides = {}) {
 describe('LevelColorCell', () => {
     test('renders the color input with the initial value', () => {
         render(<LevelColorCell {...makeProps()}/>);
-        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#FF0000');
+        expect(screen.getByTestId('admin.classification.levels.row.color--textbox')).toHaveValue('#FF0000');
     });
 
     test('calls updateLevel on blur when color has changed', () => {
         const updateLevel = jest.fn();
         render(<LevelColorCell {...makeProps({updateLevel})}/>);
 
-        const input = screen.getByTestId('color-inputColorValue');
+        const input = screen.getByTestId('admin.classification.levels.row.color--textbox');
         fireEvent.focus(input);
         fireEvent.change(input, {target: {value: '#0000FF'}});
         fireEvent.blur(input);
@@ -39,17 +39,17 @@ describe('LevelColorCell', () => {
         const updateLevel = jest.fn();
         render(<LevelColorCell {...makeProps({value: '#ff0000', updateLevel})}/>);
 
-        fireEvent.blur(screen.getByTestId('color-inputColorValue'));
+        fireEvent.blur(screen.getByTestId('admin.classification.levels.row.color--textbox'));
 
         expect(updateLevel).not.toHaveBeenCalled();
     });
 
     test('syncs to updated external value prop', () => {
         const {rerender} = render(<LevelColorCell {...makeProps({value: '#FF0000'})}/>);
-        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#FF0000');
+        expect(screen.getByTestId('admin.classification.levels.row.color--textbox')).toHaveValue('#FF0000');
 
         rerender(<LevelColorCell {...makeProps({value: '#00FF00'})}/>);
-        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#00FF00');
+        expect(screen.getByTestId('admin.classification.levels.row.color--textbox')).toHaveValue('#00FF00');
     });
 
     test('renders the color swatch button with the correct aria-label', () => {

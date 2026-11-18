@@ -10,9 +10,19 @@
  * they share the same helpers and feature-flag gating.
  */
 
-import type {Page} from '@playwright/test';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {expect, test, getAdminClient, licenseTier} from '@mattermost/playwright-lib';
+import {
+    expect,
+    getAdminClient,
+    licenseTier,
+    openChannel,
+    test,
+    type App,
+    type PlaywrightExtended,
+    duration,
+    DefaultChannel,
+} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
@@ -20,14 +30,20 @@ import {
     setupClassificationFieldWithGlobalBanner,
 } from './classification_markings_helpers';
 
-const TOP_BANNER_SELECTOR = '[data-testid="global-classification-banner-top"]';
-const BOTTOM_BANNER_SELECTOR = '[data-testid="global-classification-banner-bottom"]';
+/** Logs the admin in on System Console > Classification Markings, waiting for its form. */
+async function openClassificationMarkings(pw: PlaywrightExtended, admin: UserProfile) {
+    const {app} = await pw.testBrowser.login(admin);
+    await app.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+    await expect(app.admin.setting('classificationEnabled').trueRadio).toBeVisible();
+    return app;
+}
 
-async function selectClassificationPreset(page: Page, optionLabel: string) {
-    await page.getByTestId('classificationPreset').click();
-    const menu = page.locator('.DropDown__menu');
-    await expect(menu).toBeVisible();
-    await menu.getByText(optionLabel, {exact: true}).click();
+/** Saves the Classification Markings page, waiting for Save to settle. */
+async function save(app: App) {
+    const {saveButton} = app.admin.classification.savePanel;
+    await saveButton.click();
+    await expect(saveButton).toBeSaved({timeout: duration.half_min});
+    await expect(saveButton).toBeDisabled();
 }
 
 test.describe('Global Classification Banner', () => {
@@ -49,7 +65,7 @@ test.describe('Global Classification Banner', () => {
         'MM-T6221 global banner: not rendered when global banner toggle is disabled',
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient, team} = await pw.initSetup();
 
             // Set up classification levels but keep the global banner disabled
             await setupClassificationFieldWithGlobalBanner(
@@ -61,12 +77,10 @@ test.describe('Global Classification Banner', () => {
                 {levelId: '', enabled: false, placement: 'top'},
             );
 
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, adminUser, {team, channel: {name: DefaultChannel.TownSquare}});
 
-            await expect(channelsPage.page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
-            await expect(channelsPage.page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
+            await expect(app.classificationBanner.top).not.toBeVisible();
+            await expect(app.classificationBanner.bottom).not.toBeVisible();
 
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
@@ -80,26 +94,29 @@ test.describe('Global Classification Banner', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             const {adminUser, adminClient} = await pw.initSetup();
-
             await deleteClassificationMarkingsFieldIfExists(adminClient);
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {page} = systemConsolePage;
-            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            const app = await openClassificationMarkings(pw, adminUser);
+            const {classification} = app.admin;
 
             // Enable classification markings and select a preset to have levels
-            await page.locator('input[name="classificationEnabled"][value="true"]').click();
-            await selectClassificationPreset(page, 'United States');
+            await app.admin.setting('classificationEnabled').trueRadio.check();
+            await expect(app.admin.setting('classificationEnabled').trueRadio).toBeChecked();
+            await classification.preset.controlButton.clickTo(classification.preset.menu.container);
+            await (await classification.preset.menu.optionList.itemWith({text: 'United States'})).select();
+            await expect(classification.preset.menu.container).not.toBeVisible();
 
             // Enable global banner without selecting a level
-            await page.locator('input[name="globalBannerEnabled"][value="true"]').click();
+            await app.admin.setting('globalBannerEnabled').trueRadio.check();
+            await expect(app.admin.setting('globalBannerEnabled').trueRadio).toBeChecked();
 
             // Try to save
-            await page.getByRole('button', {name: 'Save', exact: true}).click();
+            await classification.savePanel.saveButton.click();
 
             // Validation error is shown
-            await expect(page.getByText(/A global classification level must be selected/i)).toBeVisible();
+            await expect(classification.savePanel.errorText).toContainText(
+                /A global classification level must be selected/i,
+            );
         },
     );
 
@@ -111,7 +128,7 @@ test.describe('Global Classification Banner', () => {
         'MM-T6223 global banner: renders at top with correct text and color after full setup',
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient, team} = await pw.initSetup();
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
@@ -122,17 +139,15 @@ test.describe('Global Classification Banner', () => {
                 {levelId: 'lvlsecret00000000000000000', enabled: true, placement: 'top'},
             );
 
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, adminUser, {team, channel: {name: DefaultChannel.TownSquare}});
 
-            const topBanner = channelsPage.page.locator(TOP_BANNER_SELECTOR);
+            const topBanner = app.classificationBanner.top.locator;
             await expect(topBanner).toBeVisible();
             await expect(topBanner).toContainText('SECRET');
             await expect(topBanner).toHaveCSS('background-color', 'rgb(200, 16, 46)'); // #C8102E
 
             // Bottom banner should NOT be visible (placement is top only)
-            await expect(channelsPage.page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
+            await expect(app.classificationBanner.bottom).not.toBeVisible();
 
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
@@ -145,7 +160,7 @@ test.describe('Global Classification Banner', () => {
         'MM-T6224 global banner: top and bottom banners render when placement is top_and_bottom',
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient, team} = await pw.initSetup();
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
@@ -153,16 +168,13 @@ test.describe('Global Classification Banner', () => {
                 {levelId: 'lvltopsecret00000000000000', enabled: true, placement: 'top_and_bottom'},
             );
 
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, adminUser, {team, channel: {name: DefaultChannel.TownSquare}});
 
-            const topBanner = channelsPage.page.locator(TOP_BANNER_SELECTOR);
-            const bottomBanner = channelsPage.page.locator(BOTTOM_BANNER_SELECTOR);
+            const topBanner = app.classificationBanner.top.locator;
+            const bottomBanner = app.classificationBanner.bottom.locator;
 
             await expect(topBanner).toBeVisible();
             await expect(topBanner).toContainText('TOP SECRET');
-
             await expect(bottomBanner).toBeVisible();
             await expect(bottomBanner).toContainText('TOP SECRET');
 
@@ -189,11 +201,9 @@ test.describe('Global Classification Banner', () => {
                 {levelId: 'lvlconfidential00000000000', enabled: true, placement: 'top'},
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.page.waitForLoadState('networkidle');
+            const app = await openClassificationMarkings(pw, adminUser);
 
-            const topBanner = systemConsolePage.page.locator(TOP_BANNER_SELECTOR);
+            const topBanner = app.classificationBanner.top.locator;
             await expect(topBanner).toBeVisible();
             await expect(topBanner).toContainText('CONFIDENTIAL');
 
@@ -216,22 +226,18 @@ test.describe('Global Classification Banner', () => {
                 {levelId: 'lvlrestricted0000000000000', enabled: true, placement: 'top'},
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {page} = systemConsolePage;
-            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            const app = await openClassificationMarkings(pw, adminUser);
 
             // Banner should be visible initially
-            await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
+            await expect(app.classificationBanner.top).toBeVisible();
 
             // Disable the global banner
-            await page.locator('input[name="globalBannerEnabled"][value="false"]').click();
-            const saveBtn = page.getByRole('button', {name: 'Save', exact: true});
-            await saveBtn.click();
-            await expect(saveBtn).toBeDisabled({timeout: 30000});
+            await app.admin.setting('globalBannerEnabled').falseRadio.check();
+            await expect(app.admin.setting('globalBannerEnabled').falseRadio).toBeChecked();
+            await save(app);
 
             // Banner should no longer be visible
-            await expect(page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
+            await expect(app.classificationBanner.top).not.toBeVisible();
 
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
@@ -256,24 +262,20 @@ test.describe('Global Classification Banner', () => {
                 },
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {page} = systemConsolePage;
-            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            const app = await openClassificationMarkings(pw, adminUser);
 
             // Initially only top banner
-            await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
-            await expect(page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
+            await expect(app.classificationBanner.top).toBeVisible();
+            await expect(app.classificationBanner.bottom).not.toBeVisible();
 
-            // Switch placement to top_and_bottom and save
-            await page.locator('input[name="globalBannerPlacement"][value="false"]').click();
-            const saveBtn2 = page.getByRole('button', {name: 'Save', exact: true});
-            await saveBtn2.click();
-            await expect(saveBtn2).toBeDisabled({timeout: 30000});
+            // Switch placement to top_and_bottom (the setting's false side) and save
+            await app.admin.setting('globalBannerPlacement').falseRadio.check();
+            await expect(app.admin.setting('globalBannerPlacement').falseRadio).toBeChecked();
+            await save(app);
 
             // Both banners should now be visible
-            await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
-            await expect(page.locator(BOTTOM_BANNER_SELECTOR)).toBeVisible();
+            await expect(app.classificationBanner.top).toBeVisible();
+            await expect(app.classificationBanner.bottom).toBeVisible();
 
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
@@ -295,24 +297,20 @@ test.describe('Global Classification Banner', () => {
                 {levelId: 'lvltopsecret00000000000000', enabled: true, placement: 'top_and_bottom'},
             );
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {page} = systemConsolePage;
-            await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            const app = await openClassificationMarkings(pw, adminUser);
 
             // Both banners should be visible
-            await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
-            await expect(page.locator(BOTTOM_BANNER_SELECTOR)).toBeVisible();
+            await expect(app.classificationBanner.top).toBeVisible();
+            await expect(app.classificationBanner.bottom).toBeVisible();
 
             // Disable classification markings entirely
-            await page.locator('input[name="classificationEnabled"][value="false"]').click();
-            const saveBtn3 = page.getByRole('button', {name: 'Save', exact: true});
-            await saveBtn3.click();
-            await expect(saveBtn3).toBeDisabled({timeout: 30000});
+            await app.admin.setting('classificationEnabled').falseRadio.check();
+            await expect(app.admin.setting('classificationEnabled').falseRadio).toBeChecked();
+            await save(app);
 
             // Banners should be gone
-            await expect(page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
-            await expect(page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
+            await expect(app.classificationBanner.top).not.toBeVisible();
+            await expect(app.classificationBanner.bottom).not.toBeVisible();
 
             await deleteClassificationMarkingsFieldIfExists(adminClient);
         },
@@ -326,7 +324,7 @@ test.describe('Global Classification Banner', () => {
         'MM-T6230 global banner: propagates to non-admin users via websocket',
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
-            const {adminClient, user} = await pw.initSetup();
+            const {adminClient, team, user} = await pw.initSetup();
 
             await setupClassificationFieldWithGlobalBanner(
                 adminClient,
@@ -338,11 +336,9 @@ test.describe('Global Classification Banner', () => {
             );
 
             // Login the non-admin user
-            const {channelsPage: userChannelsPage} = await pw.testBrowser.login(user);
-            await userChannelsPage.goto();
-            await userChannelsPage.toBeVisible();
+            const app = await openChannel(pw, user, {team, channel: {name: DefaultChannel.TownSquare}});
 
-            const userTopBanner = userChannelsPage.page.locator(TOP_BANNER_SELECTOR);
+            const userTopBanner = app.classificationBanner.top.locator;
             await expect(userTopBanner).toBeVisible();
             await expect(userTopBanner).toContainText('UNCLASSIFIED');
 
@@ -373,7 +369,7 @@ test.describe('Global Classification Banner', () => {
         'MM-T6229 global banner: text color contrasts with background for readability',
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
-            const {adminUser, adminClient} = await pw.initSetup();
+            const {adminUser, adminClient, team} = await pw.initSetup();
 
             // Light background (#FFFFFF) — text should be dark (#000000)
             await setupClassificationFieldWithGlobalBanner(
@@ -382,11 +378,9 @@ test.describe('Global Classification Banner', () => {
                 {levelId: 'lvlunclassified00000000000', enabled: true, placement: 'top'},
             );
 
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, adminUser, {team, channel: {name: DefaultChannel.TownSquare}});
 
-            const topBanner = channelsPage.page.locator(TOP_BANNER_SELECTOR);
+            const topBanner = app.classificationBanner.top.locator;
             await expect(topBanner).toBeVisible();
             await expect(topBanner).toHaveCSS('color', 'rgb(0, 0, 0)');
 
@@ -397,8 +391,8 @@ test.describe('Global Classification Banner', () => {
                 {levelId: 'lvltopsecret00000000000000', enabled: true, placement: 'top'},
             );
 
-            await channelsPage.page.reload();
-            await channelsPage.toBeVisible();
+            await app.page.reload();
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
             await expect(topBanner).toBeVisible();
             await expect(topBanner).toHaveCSS('color', 'rgb(255, 255, 255)');

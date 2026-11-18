@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {runCleanups, test} from '@mattermost/playwright-lib';
 
 import {enableUserManagedAttributes} from '../support';
 
-import {createChannelTextField, deletePropertyFieldQuietly, expectMaskedTokenRejected} from './helpers';
+import {createChannelTextField, deletePropertyFieldIfPresent, expectMaskedTokenRejected} from './helpers';
 
 /**
  * Attribute-value masking on the resource.attributes.* write path.
@@ -33,10 +33,7 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
         // Reverse order, so a policy goes before the fields its rules reference: while
         // attribute-value masking is on, deleting a policy whose field is already gone
         // is refused outright and the policy can no longer be removed at all.
-        for (const cleanup of cleanups.reverse()) {
-            await cleanup().catch(() => {});
-        }
-        cleanups.length = 0;
+        await runCleanups(cleanups);
     });
 
     test('rejects saving a resource.attributes condition carrying the masked sentinel', async ({pw}) => {
@@ -57,7 +54,7 @@ test.describe('ABAC resource.attributes - masking write path', {tag: ['@abac', '
 
         const attr = `region${pw.random.id()}`;
         const channelFieldId = await createChannelTextField(adminClient, attr);
-        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
+        cleanups.push(() => deletePropertyFieldIfPresent(adminClient, 'channel', channelFieldId));
 
         // The 8-dash sentinel is server-generated and never a real value, so a
         // submitted expression containing it cannot be resolved to a stored

@@ -1643,7 +1643,7 @@ export class UserSettingsGeneralTab extends PureComponent<Props, State> {
                             <AttributeCombobox
                                 key={sectionName}
                                 id={comboboxId}
-                                testId={comboboxId}
+                                testIdScope='settings.custom_attribute'
                                 label={getUserPropertyFieldLabel(attribute)}
                                 options={attribute.attrs?.options ?? []}
                                 placeholder={placeholder}

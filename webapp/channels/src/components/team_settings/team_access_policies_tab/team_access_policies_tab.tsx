@@ -156,6 +156,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                 <Button
                     emphasis='primary'
                     onClick={handleAddPolicy}
+                    data-testid='team_settings_modal.access_policies.add_policy--button'
                     leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
                     <FormattedMessage
@@ -169,6 +170,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
                 hideHeader={true}
                 hideDeleteAction={true}
                 showRefreshButton={true}
+                testIdScope='team_settings_modal.access_policies.policies'
                 actions={policyListActions}
                 onPolicySelected={handlePolicySelected}
                 onPoliciesLoaded={handlePoliciesLoaded}
@@ -179,6 +181,7 @@ const TeamAccessPoliciesTab = ({team, accessControlSettings, setAreThereUnsavedC
             />
             {successMessage && (
                 <SaveChangesPanel
+                    testId='team_settings_modal.save_panel'
                     handleSubmit={() => {}}
                     handleCancel={() => {}}
                     handleClose={() => setSuccessMessage(null)}

@@ -34,7 +34,7 @@ export default function GeneratedStepBody({
             />
             <ReportNotice
                 variant='success'
-                testId='generated-section'
+                testId='flagged_message_modal.generated'
                 icon={<span className='icon icon-check'/>}
                 title={
                     <FormattedMessage

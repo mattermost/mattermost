@@ -5,9 +5,12 @@ import React from 'react';
 
 import type {PropertyFieldOption} from '@mattermost/types/properties';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 
 import AttributeOptionsRankValues from './attribute_options_rank_values';
+
+// an option's chip is keyed by its position (lowest rank first); its parts are unkeyed
+const editButton = (id: string) => within(screen.getByTestId(`admin.attribute.ranks.option:${id}`)).getByTestId('admin.attribute.ranks.option.edit--button');
 
 describe('AttributeOptionsRankValues', () => {
     const baseOptions = (): PropertyFieldOption[] => [
@@ -23,9 +26,9 @@ describe('AttributeOptionsRankValues', () => {
             />,
         );
 
-        const chips = screen.getAllByTestId('attributeOptionsRankValues__chipLabel');
+        const chips = screen.getAllByTestId('admin.attribute.ranks.option.label--text');
         expect(chips.map((chip) => chip.textContent)).toEqual(['Low', 'High']);
-        expect(screen.getAllByTestId('rank-badge').map((badge) => badge.textContent)).toEqual(['1', '2']);
+        expect(screen.getAllByTestId('admin.attribute.ranks.option.badge--text').map((badge) => badge.textContent)).toEqual(['1', '2']);
     });
 
     it('adds a new option via Enter with the next rank', async () => {
@@ -37,7 +40,7 @@ describe('AttributeOptionsRankValues', () => {
             />,
         );
 
-        await userEvent.type(screen.getByTestId('attributeOptionsRankValues__addInput'), 'Highest{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.ranks.add--textbox'), 'Highest{Enter}');
 
         expect(onOptionsChange).toHaveBeenCalledWith([...baseOptions(), {id: '', name: 'Highest', rank: 3}]);
     });
@@ -51,7 +54,7 @@ describe('AttributeOptionsRankValues', () => {
             />,
         );
 
-        await userEvent.type(screen.getByTestId('attributeOptionsRankValues__addInput'), 'Low{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.ranks.add--textbox'), 'Low{Enter}');
 
         expect(onOptionsChange).not.toHaveBeenCalled();
         expect(screen.getByText('Values must be unique.')).toBeInTheDocument();
@@ -82,7 +85,7 @@ describe('AttributeOptionsRankValues', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('attribute-rank-chip-1'));
+        await userEvent.click(editButton('1'));
         const input = screen.getByRole('textbox', {name: 'Option label'});
         await userEvent.clear(input);
         await userEvent.type(input, 'Low{Enter}');
@@ -100,7 +103,7 @@ describe('AttributeOptionsRankValues', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('attribute-rank-chip-1'));
+        await userEvent.click(editButton('1'));
         const input = screen.getByRole('textbox', {name: 'Option label'});
         await userEvent.clear(input);
         await userEvent.type(input, 'Highest{Enter}');
@@ -119,11 +122,11 @@ describe('AttributeOptionsRankValues', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('attribute-rank-chip-0'));
+        await userEvent.click(editButton('0'));
         expect(screen.getByText('1 (Lowest)')).toBeInTheDocument();
         await userEvent.keyboard('{Escape}');
 
-        await userEvent.click(screen.getByTestId('attribute-rank-chip-1'));
+        await userEvent.click(editButton('1'));
         expect(screen.getByText('2 (Highest)')).toBeInTheDocument();
     });
 
@@ -136,7 +139,7 @@ describe('AttributeOptionsRankValues', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('attribute-rank-chip-1'));
+        await userEvent.click(editButton('1'));
         await userEvent.click(screen.getByText('Rank'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: '1'}));
 

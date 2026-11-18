@@ -129,9 +129,12 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
             className='AccessControlSyncJobTable'
             title={panelMessages.title}
             subtitle={teamAbacEnabled ? panelMessages.descriptionChannelScope : panelMessages.description}
+            titleTestId='admin.access_control.sync_jobs_title--text'
+            subtitleTestId='admin.access_control.sync_jobs_description--text'
             button={
                 <Button
                     emphasis='primary'
+                    data-testid='admin.access_control.run_sync--button'
                     onClick={handleCreateJob}
                     disabled={isSubmitting}
                     leadingIcon={<Icon glyph={<PlusIcon/>}/>}
@@ -141,7 +144,10 @@ export default function AccessControlSyncJobTable(props: Props): JSX.Element {
             }
         >
             {teamAbacEnabled && (
-                <div className='team-sync-note'>
+                <div
+                    className='team-sync-note'
+                    data-testid='admin.access_control.team_sync_note'
+                >
                     <SectionNotice
                         type='info'
                         title={formatMessage({

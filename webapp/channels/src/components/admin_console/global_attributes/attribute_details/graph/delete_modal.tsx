@@ -156,7 +156,7 @@ function AttributeGraphDeleteModal({optionName, options, onConfirm, onExited}: P
                 handleCancel={noop}
                 handleConfirm={onConfirm}
                 onExited={onExited}
-                dataTestId='attributeGraphDeleteModal'
+                testId='admin.attribute.graph.delete_modal'
             >
                 <div className='attribute-graph-delete-modal'>
                     <p>
@@ -181,7 +181,7 @@ function AttributeGraphDeleteModal({optionName, options, onConfirm, onExited}: P
                 handleCancel={noop}
                 handleConfirm={onConfirm}
                 onExited={onExited}
-                dataTestId='attributeGraphDeleteModal'
+                testId='admin.attribute.graph.delete_modal'
             >
                 <div className='attribute-graph-delete-modal'>
                     <p>

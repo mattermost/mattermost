@@ -21,7 +21,7 @@ export type AssignmentGraphPickerProps = {
     disabled?: boolean;
 } & Pick<
     HierarchicalValueMenuProps,
-'menuId' | 'buttonId' | 'buttonDataTestId' | 'placeholder' | 'ariaLabel' |
+'menuId' | 'buttonId' | 'buttonDataTestId' | 'testIdScope' | 'placeholder' | 'ariaLabel' |
 'className' | 'buttonClassName' | 'invalid' | 'ariaDescribedBy'
 > & {
     variant?: Exclude<HierarchicalValueMenuVariant, 'policy'>;

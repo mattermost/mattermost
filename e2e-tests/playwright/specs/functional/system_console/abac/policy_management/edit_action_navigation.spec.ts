@@ -1,9 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
+import {expect, test, duration} from '@mattermost/playwright-lib';
 
-import {createBasicPolicy, ensureUserAttributes, getPolicyIdByName} from '../support';
+import {ensureUserAttributes, getUserAttributeFieldByName} from '../support';
+import {
+    MEMBERSHIP_POLICIES_PATH,
+    createMembershipPolicy,
+    openMembershipPolicies,
+    policyIdByName,
+    setAbacEnabled,
+} from '../surface';
 
 /**
  * @objective E2E coverage for membership policy edit action navigation:
@@ -23,12 +30,13 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
      * 5. Verify the URL is /admin_console/system_attributes/membership_policies/edit_policy/<policy_id>
      */
     test('MM-68958 Edit action navigates to membership policy editor', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
 
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient, team} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
+        const department = await getUserAttributeFieldByName(adminClient, 'Department');
 
         // Create a test channel for the policy
         const channelName = `abac-edit-nav-test-${pw.random.id()}`;
@@ -39,71 +47,30 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
             type: 'P',
         });
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const page = systemConsolePage.page;
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
 
-        await navigateToABACPage(page);
-        await enableABAC(page);
-
-        // Create a basic membership policy
+        // # Step 1: create a basic membership policy
         const policyName = `Edit-Nav-Test-${pw.random.id()}`;
-
-        await createBasicPolicy(page, {
+        await createMembershipPolicy(app, {
             name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: false,
-            channels: [privateChannel.display_name],
+            rules: [{field: department, value: 'Engineering'}],
+            channels: [privateChannel],
         });
+        const policyId = await policyIdByName(adminClient, policyName);
 
-        // Get the policy ID from the backend
-        const policyId = await getPolicyIdByName(adminClient, policyName);
-        expect(policyId, 'Policy should be created and have an ID').toBeTruthy();
+        // # Steps 2-4: open the list, find the policy, and choose Edit from its row menu
+        const policies = await openMembershipPolicies(app);
+        await policies.searchTextbox.fill(policyName);
+        await policies.row(policyId).openMenuButton.click();
+        const menu = app.accessPolicyRowMenu;
+        await expect(menu.editMenuItem).toBeVisible();
+        await menu.editMenuItem.click();
 
-        // Navigate to Membership Policies list page
-        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
-        await page.waitForTimeout(1000);
-
-        // Search for the policy to ensure it's visible
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
-        if (await policySearchInput.isVisible({timeout: 3000})) {
-            await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1000);
-        }
-
-        // Find the policy row
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-        await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
-
-        // Open the three-dot action menu for the policy
-        const actionMenuButton = policyRowLocator
-            .locator('button[aria-label*="Actions" i], button:has(i.icon-dots-vertical)')
-            .first();
-        await actionMenuButton.waitFor({state: 'visible', timeout: 5000});
-        await actionMenuButton.click();
-        await page.waitForTimeout(500);
-
-        // Click the Edit menu item
-        const editMenuItem = page.locator(`[id*="policy-menu-edit-${policyId}"]`).first();
-        await editMenuItem.waitFor({state: 'visible', timeout: 5000});
-
-        // Click Edit and wait for navigation
-        await editMenuItem.click();
-
-        // Wait for the URL to change to the edit policy page
-        await page.waitForURL(`**/admin_console/system_attributes/membership_policies/edit_policy/${policyId}`, {
-            timeout: 10000,
-        });
-
-        // Verify we're on the edit policy page by checking the URL
-        const currentURL = page.url();
-        expect(currentURL).toContain(`/admin_console/system_attributes/membership_policies/edit_policy/${policyId}`);
-
-        // Additional verification: Check that the policy editor is loaded
-        // The policy editor should have the policy name visible
-        const policyNameInput = page.locator('input[placeholder*="name" i], input[value*="Edit-Nav-Test"]').first();
-        await expect(policyNameInput).toBeVisible({timeout: 10000});
+        // * Step 5: the editor for that policy opens
+        await expect(app.page).toHavePath(`${MEMBERSHIP_POLICIES_PATH}/edit_policy/${policyId}`);
+        await expect(app.admin.accessControl.policy.editPolicy.name.valueTextbox).toBeVisible();
+        await expect(app.admin.accessControl.policy.editPolicy.name.valueTextbox).toHaveValue(policyName);
     });
 
     /**
@@ -113,12 +80,13 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
      * This behavior should have been working before, but we verify it still works after the fix.
      */
     test('Row click navigates to membership policy editor', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
 
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient, team} = await pw.initSetup();
         await ensureUserAttributes(adminClient);
+        const department = await getUserAttributeFieldByName(adminClient, 'Department');
 
         // Create a test channel for the policy
         const channelName = `abac-row-click-test-${pw.random.id()}`;
@@ -129,53 +97,26 @@ test.describe('ABAC Policy Management - Edit Action Navigation', () => {
             type: 'P',
         });
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const page = systemConsolePage.page;
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
 
-        await navigateToABACPage(page);
-        await enableABAC(page);
-
-        // Create a basic membership policy
+        // # Create a basic membership policy
         const policyName = `Row-Click-Test-${pw.random.id()}`;
-
-        await createBasicPolicy(page, {
+        await createMembershipPolicy(app, {
             name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Sales',
-            autoSync: false,
-            channels: [privateChannel.display_name],
+            rules: [{field: department, value: 'Sales'}],
+            channels: [privateChannel],
         });
+        const policyId = await policyIdByName(adminClient, policyName);
 
-        // Get the policy ID from the backend
-        const policyId = await getPolicyIdByName(adminClient, policyName);
-        expect(policyId, 'Policy should be created and have an ID').toBeTruthy();
+        // # Open the list, find the policy, and click its row (not the action menu)
+        const policies = await openMembershipPolicies(app);
+        await policies.searchTextbox.fill(policyName);
+        // The DataGrid name cell opens the editor but has no operable role or click driver.
+        await policies.row(policyId).cell('name').click();
 
-        // Navigate to Membership Policies list page
-        await page.goto('/admin_console/system_attributes/membership_policies', {waitUntil: 'networkidle'});
-        await page.waitForTimeout(1000);
-
-        // Search for the policy to ensure it's visible
-        const policySearchInput = page.locator('input[placeholder*="Search" i]').first();
-        if (await policySearchInput.isVisible({timeout: 3000})) {
-            await policySearchInput.fill(policyName);
-            await page.waitForTimeout(1000);
-        }
-
-        // Find the policy row
-        const policyRowLocator = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-        await policyRowLocator.waitFor({state: 'visible', timeout: 10000});
-
-        // Click the row (not the action menu)
-        await policyRowLocator.click();
-
-        // Wait for the URL to change to the edit policy page
-        await page.waitForURL(`**/admin_console/system_attributes/membership_policies/edit_policy/${policyId}`, {
-            timeout: 10000,
-        });
-
-        // Verify we're on the edit policy page
-        const currentURL = page.url();
-        expect(currentURL).toContain(`/admin_console/system_attributes/membership_policies/edit_policy/${policyId}`);
+        // * The editor for that policy opens
+        await expect(app.page).toHavePath(`${MEMBERSHIP_POLICIES_PATH}/edit_policy/${policyId}`);
+        await expect(app.admin.accessControl.policy.editPolicy.name.valueTextbox).toHaveValue(policyName);
     });
 });

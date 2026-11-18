@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {FieldType} from '@mattermost/types/properties';
 import type {UserPropertyField, UserPropertyFieldPatch} from '@mattermost/types/properties_user';
 
-import type {ChannelsPage} from '@mattermost/playwright-lib';
-import {expect} from '@mattermost/playwright-lib';
+import {expect, ignoreMissing, type App, duration, Api, settle} from '@mattermost/playwright-lib';
 
 // Common test data constants
 export const TEST_PHONE = '555-123-4567';
@@ -145,162 +143,159 @@ export function getFieldIdByName(fieldsMap: Record<string, UserPropertyField>, n
     throw new Error(`Could not find field ID for attribute: ${name}`);
 }
 
+/** The Profile settings section keyed by the custom attribute's id. */
+export function attributeSection(
+    app: App,
+    fieldsMap: Record<string, UserPropertyField>,
+    attributeName: string,
+): ReturnType<App['settings']['customAttribute']> {
+    return app.settings.customAttribute(getFieldIdByName(fieldsMap, attributeName));
+}
+
+/** Saves an open attribute section and waits for it to collapse (the Edit button returns only once the save is done). */
+async function saveSection(section: ReturnType<typeof attributeSection>) {
+    await settle(section.saveButton, {wait: Api.PatchCPAValuesForUser}).click();
+    await expect(section.editButton).toBeVisible();
+}
+
+/** Picks options of a select attribute by index, in Profile settings. */
+async function pickOptions(
+    section: ReturnType<typeof attributeSection>,
+    field: UserPropertyField,
+    optionIndices: number[],
+) {
+    const options = (field.attrs?.options ?? []) as Array<{id: string}>;
+    const keepsMenuOpen = field.type === 'multiselect';
+    for (const index of optionIndices) {
+        // ArrowDown opens a closed menu and only moves the highlight in an open one, so each pick starts the same way
+        // whether the menu closed after the last pick or not.
+        await section.valueChoiceCombobox.press('ArrowDown');
+        await expect(section.valueChoiceCombobox).toHaveAttribute('aria-expanded', 'true');
+        await section.choice({id: options[index].id}).container.select();
+        if (keepsMenuOpen) {
+            // Compass renders selected labels as chips inside the generated attribute section; a chip is built by
+            // the Compass combobox and takes no test id.
+            const chips = section.container.locator
+                // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the chip is rendered by the Compass combobox and cannot take a test id
+                .locator('[data-chip]')
+                .filter({hasText: (field.attrs?.options ?? [])[index].name});
+            await expect(chips).toBeVisible();
+        } else {
+            await expect(section.valueChoiceCombobox).toHaveValue((field.attrs?.options ?? [])[index].name);
+        }
+    }
+}
+
 /**
- * Helper function to edit a text attribute
- * @param {Page} page - The Playwright page object
- * @param {Object} fieldsMap - Map of field IDs to field objects
- * @param {string} attributeName - The name of the attribute to edit
- * @param {string} newValue - The new value to set
+ * Edits a text attribute in Profile settings: Edit, replace the value, Save.
+ * @param newValue - The new value to set (empty clears it)
  */
 export async function editTextAttribute(
-    page: Page,
+    app: App,
     fieldsMap: Record<string, UserPropertyField>,
     attributeName: string,
     newValue: string,
 ): Promise<void> {
-    const fieldId = getFieldIdByName(fieldsMap, attributeName);
-    await page.locator(`text=${attributeName}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).click();
-    await page.locator(`#customAttribute_${fieldId}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}`).clear();
+    const section = attributeSection(app, fieldsMap, attributeName);
+    await section.editButton.click();
+    await expect(section.value.container).toBeVisible();
+    await section.value.container.clear();
     if (newValue) {
-        await page.locator(`#customAttribute_${fieldId}`).fill(newValue);
+        await section.value.container.fill(newValue);
     }
-    await page.locator('button:has-text("Save")').click();
-    // Wait for the Edit button to reappear — it is only visible when the section is in
-    // display mode (not editing). It returns to display mode only after the save API call
-    // resolves and the component calls updateSection(''). Without this wait, the next
-    // Edit click fires updateSection() while the save is still in-flight, which closes
-    // the active section and disrupts subsequent saves.
-    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
+    await expect(section.value.container).toHaveValue(newValue);
+    await saveSection(section);
 }
 
 /**
- * Helper function to edit a select attribute
- * @param {Page} page - The Playwright page object
- * @param {Object} fieldsMap - Map of field IDs to field objects
- * @param {string} attributeName - The name of the attribute to edit
- * @param {number} optionIndex - The index of the option to select, counted over all
- *   options in definition order (the Combobox keeps the selected row in the list)
+ * Edits a select attribute in Profile settings, picking the option at `optionIndex`, counted over all
+ * options in definition order (the Combobox keeps the selected row in the list).
  */
 export async function editSelectAttribute(
-    page: Page,
+    app: App,
     fieldsMap: Record<string, UserPropertyField>,
     attributeName: string,
     optionIndex: number,
 ): Promise<void> {
-    const fieldId = getFieldIdByName(fieldsMap, attributeName);
-    await page.locator(`text=${attributeName}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).click();
-
-    // The Combobox input carries the field-scoped id and takes focus when the section opens.
-    const input = page.locator(`#customProfileAttribute_${fieldId}`);
-    await expect(input).toBeFocused();
-    await input.scrollIntoViewIfNeeded();
-    await input.click();
-
-    // A closed menu stays mounted at opacity 0, so check aria-expanded rather than visibility.
-    // The menu is portaled out of the modal; its listbox id is derived from the input id.
-    await expect(input).toHaveAttribute('aria-expanded', 'true');
-    const listbox = page.locator(`#customProfileAttribute_${fieldId}-listbox`);
-    await listbox.getByRole('option').nth(optionIndex).click();
-
-    await page.locator('button:has-text("Save")').click();
-    // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
-    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
+    const section = attributeSection(app, fieldsMap, attributeName);
+    await section.editButton.click();
+    await expect(section.valueChoiceCombobox).toBeVisible();
+    await pickOptions(section, fieldsMap[getFieldIdByName(fieldsMap, attributeName)], [optionIndex]);
+    await saveSection(section);
 }
 
 /**
- * Helper function to edit a multiselect attribute
- * @param {Page} page - The Playwright page object
- * @param {Object} fieldsMap - Map of field IDs to field objects
- * @param {string} attributeName - The name of the attribute to edit
- * @param {Array<number>} optionIndices - The indices of the options to select, counted over
- *   all options in definition order. Selected rows stay in the list and clicking one
- *   deselects it, so each index must point at a row that isn't already selected.
+ * Edits a multiselect attribute in Profile settings, adding the options at `optionIndices`, counted over all
+ * options in definition order. Selected rows stay in the list and clicking one deselects it, so each index
+ * must point at a row that isn't already selected.
  */
 export async function editMultiselectAttribute(
-    page: Page,
+    app: App,
     fieldsMap: Record<string, UserPropertyField>,
     attributeName: string,
     optionIndices: number[],
 ): Promise<void> {
-    const fieldId = getFieldIdByName(fieldsMap, attributeName);
-    await page.locator(`text=${attributeName}`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).scrollIntoViewIfNeeded();
-    await page.locator(`#customAttribute_${fieldId}Edit`).click();
-
-    const input = page.locator(`#customProfileAttribute_${fieldId}`);
-    const listbox = page.locator(`#customProfileAttribute_${fieldId}-listbox`);
-    await expect(input).toBeFocused();
-
-    for (const index of optionIndices) {
-        // The menu closes after each pick; clicking the input opens it if it isn't open yet.
-        await input.scrollIntoViewIfNeeded();
-        await input.click();
-        await expect(input).toHaveAttribute('aria-expanded', 'true');
-
-        const option = listbox.getByRole('option').nth(index);
-        await expect(option).not.toHaveAttribute('aria-selected', 'true');
-        await option.click();
-    }
-
-    await page.locator('button:has-text("Save")').click();
-    // Wait for the Edit button to reappear — same reasoning as editTextAttribute.
-    await page.locator(`#customAttribute_${fieldId}Edit`).waitFor({state: 'visible'});
+    const section = attributeSection(app, fieldsMap, attributeName);
+    await section.editButton.click();
+    await expect(section.valueChoiceCombobox).toBeVisible();
+    await pickOptions(section, fieldsMap[getFieldIdByName(fieldsMap, attributeName)], optionIndices);
+    await saveSection(section);
 }
 
-/**
- * Helper function to verify an attribute exists in the profile settings
- * @param {Page} page - The Playwright page object
- * @param {Array} attributes - Array of attribute objects with name
- */
-export async function verifyAttributesExistInSettings(page: Page, attributes: CustomProfileAttribute[]): Promise<void> {
+/** Verifies each attribute has its section in Profile settings, labelled with its name. */
+export async function verifyAttributesExistInSettings(
+    app: App,
+    fieldsMap: Record<string, UserPropertyField>,
+    attributes: CustomProfileAttribute[],
+): Promise<void> {
     for (const attribute of attributes) {
-        // Wait for the attribute label to appear — custom profile attribute fields are
-        // fetched asynchronously after the settings modal opens, so we need an explicit
-        // wait before asserting visibility.
-        const label = page.locator('.user-settings').getByText(attribute.name, {exact: false});
-        await label.waitFor({state: 'visible', timeout: 15000});
-        await label.scrollIntoViewIfNeeded();
+        // fields are fetched after the settings open, hence the longer wait
+        await expect(attributeSection(app, fieldsMap, attribute.name).titleText).toContainText(attribute.name, {
+            timeout: duration.half_min,
+        });
     }
 }
 
-/**
- * Helper function to verify an attribute is displayed in the profile popover
- * @param {ChannelsPage} channelsPage - The Playwright channels page object
- * @param {string} attributeName - The name of the attribute to verify
- * @param {string} attributeValue - The value of the attribute to verify
- */
+/** Verifies an attribute shows in the open profile popover with its name and value. */
 export async function verifyAttributeInPopover(
-    channelsPage: ChannelsPage,
+    app: App,
+    fieldsMap: Record<string, UserPropertyField>,
     attributeName: string,
     attributeValue: string,
 ): Promise<void> {
-    const popover = channelsPage.userProfilePopover.container;
+    const field = fieldsMap[getFieldIdByName(fieldsMap, attributeName)];
+    const shown = app.profilePopover.attribute(field).locator;
 
-    // Check for the attribute name
-    const nameElement = popover.getByText(attributeName, {exact: false});
-    await expect(nameElement).toBeVisible();
-
-    // Check for the attribute value
-    const valueElement = popover.getByText(attributeValue, {exact: false});
-    await expect(valueElement).toBeVisible();
+    // the popover labels a field with its display name when it has one
+    await expect(shown).toContainText((field.attrs?.display_name as string | undefined) || attributeName);
+    await expect(shown).toContainText(attributeValue);
 }
 
-/**
- * Helper function to verify an attribute is not displayed in the profile popover
- * @param {ChannelsPage} channelsPage - The Playwright channels page object
- * @param {string} attributeName - The name of the attribute to verify
- */
-export async function verifyAttributeNotInPopover(channelsPage: ChannelsPage, attributeName: string): Promise<void> {
-    const popover = channelsPage.userProfilePopover.container;
+/** Verifies an attribute isn't in the open profile popover (the popover itself has loaded: its username shows). */
+export async function verifyAttributeNotInPopover(
+    app: App,
+    fieldsMap: Record<string, UserPropertyField>,
+    attributeName: string,
+): Promise<void> {
+    await expect(app.profilePopover.usernameText).toBeVisible();
+    await expect(app.profilePopover.attribute({id: getFieldIdByName(fieldsMap, attributeName)})).toHaveCount(0);
+}
 
-    // Check that the attribute name is not present
-    const nameElement = popover.getByText(attributeName, {exact: false});
-    await expect(nameElement).not.toBeVisible();
+/** Posts a message from the composer, opens the author's profile popover from it, and returns the post id. */
+export async function openOwnPopover(app: App, message: string) {
+    await app.center.postCreate.message.container.fill(message);
+    await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    let id = '';
+    await expect
+        .poll(async () => {
+            id = (await app.center.postList.postList.keys()).at(-1) ?? '';
+            return id ? app.center.postList.post({id}).message.container.text() : '';
+        })
+        .toBe(message);
+    // ProfilePicture exposes a role-free container, so the popover trigger has no click driver.
+    await app.center.postList.post({id}).avatar.container.click();
+    await expect(app.profilePopover).toBeVisible();
+    return id;
 }
 
 /**
@@ -382,15 +377,9 @@ export async function setupCustomProfileAttributeFields(
     // exist (e.g. a 'Department' field created by global test setup) and only
     // create the ones that are genuinely missing.
     const existingByName: Record<string, UserPropertyField> = {};
-    try {
-        const existingFields = await adminClient.getCustomProfileAttributeFields();
-        for (const field of existingFields) {
-            existingByName[field.name] = field;
-        }
-    } catch (error) {
-        // If request fails, continue to create new fields
-        // eslint-disable-next-line no-console
-        console.log('Error getting existing custom profile fields, will create new ones', error);
+    const existingFields = await adminClient.getCustomProfileAttributeFields();
+    for (const field of existingFields) {
+        existingByName[field.name] = field;
     }
 
     // Create fields sequentially, reusing any that already exist by name AND type.
@@ -401,49 +390,18 @@ export async function setupCustomProfileAttributeFields(
         if (existing && existing.type === field.type) {
             // Name and type both match — safe to reuse without touching ownedIds.
             fieldsMap[existing.id] = existing;
-        } else if (existing && existing.type !== field.type) {
+            continue;
+        }
+
+        if (existing) {
             // Same name but wrong type (e.g. a previous spec created 'Location' as 'text'
             // while this spec needs it as 'select'). Delete the stale field and recreate.
-            try {
-                await adminClient.deleteCustomProfileAttributeField(existing.id);
-            } catch {
-                // Ignore delete errors — the field may already be gone.
-            }
-            try {
-                const createdField = await adminClient.createCustomProfileAttributeField(field);
-                fieldsMap[createdField.id] = createdField;
-                ownedIds.add(createdField.id);
-            } catch {
-                // Race: another worker recreated it first — borrow it (not owned).
-                try {
-                    const currentFields = await adminClient.getCustomProfileAttributeFields();
-                    const raceCreated = currentFields.find((f) => f.name === field.name);
-                    if (raceCreated) {
-                        fieldsMap[raceCreated.id] = raceCreated;
-                    }
-                } catch {
-                    // ignore — missing field surfaces via getFieldIdByName()
-                }
-            }
-        } else {
-            // Field does not exist at all — create it.
-            try {
-                const createdField = await adminClient.createCustomProfileAttributeField(field);
-                fieldsMap[createdField.id] = createdField;
-                ownedIds.add(createdField.id);
-            } catch {
-                // Race: another shard created the field first — re-fetch and borrow it (not owned).
-                try {
-                    const currentFields = await adminClient.getCustomProfileAttributeFields();
-                    const raceCreated = currentFields.find((f) => f.name === field.name);
-                    if (raceCreated) {
-                        fieldsMap[raceCreated.id] = raceCreated;
-                    }
-                } catch {
-                    // ignore — missing field surfaces via getFieldIdByName()
-                }
-            }
+            await ignoreMissing(() => adminClient.deleteCustomProfileAttributeField(existing.id));
         }
+
+        const createdField = await adminClient.createCustomProfileAttributeField(field);
+        fieldsMap[createdField.id] = createdField;
+        ownedIds.add(createdField.id);
     }
 
     // Non-enumerable so Object.keys/values/entries/JSON.stringify skip it.
@@ -552,7 +510,7 @@ export async function deleteCustomProfileAttributes(
     adminClient: Client4,
     attributes: Record<string, UserPropertyField>,
 ): Promise<void> {
-    // Only delete owned fields; fall back to all keys for legacy callers without ownedIds.
+    // Only delete owned fields when ownedIds is supplied; otherwise delete every returned key.
     const ownedIds: Set<string> =
         'ownedIds' in attributes ? (attributes as CpaFieldsMap).ownedIds : new Set(Object.keys(attributes));
 

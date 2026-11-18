@@ -25,7 +25,7 @@ describe('SourceFilter', () => {
         );
     }
 
-    const trigger = () => screen.getByTestId('global-attributes-source-filter');
+    const trigger = () => screen.getByTestId('admin.attributes.source_filter--button');
     const shownValue = () => screen.getByRole('textbox', {hidden: true});
 
     test('shows the current selection under the Source label', () => {

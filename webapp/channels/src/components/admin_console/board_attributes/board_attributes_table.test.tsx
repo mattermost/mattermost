@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {BoardsPropertyField} from '@mattermost/types/properties_board';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import {BoardAttributesTable} from './board_attributes_table';
 import type {BoardPropertyFields} from './board_attributes_utils';
@@ -64,7 +64,7 @@ describe('BoardAttributesTable', () => {
             renderTable();
 
             // No field-name inputs are present
-            expect(screen.queryAllByTestId('board-attribute-field-input')).toHaveLength(0);
+            expect(screen.queryAllByTestId('admin.board_attributes.row.name--textbox')).toHaveLength(0);
         });
 
         it('renders one row per field with its name in the input', () => {
@@ -76,7 +76,7 @@ describe('BoardAttributesTable', () => {
                 ]),
             });
 
-            const inputs = screen.getAllByTestId('board-attribute-field-input') as HTMLInputElement[];
+            const inputs = screen.getAllByTestId('admin.board_attributes.row.name--textbox') as HTMLInputElement[];
             expect(inputs).toHaveLength(3);
             const values = inputs.map((i) => i.value);
             expect(values).toEqual(expect.arrayContaining(['Priority', 'Owner', 'Due Date']));
@@ -89,7 +89,7 @@ describe('BoardAttributesTable', () => {
                 ]),
             });
 
-            const input = screen.getByTestId('board-attribute-field-input') as HTMLInputElement;
+            const input = screen.getByTestId('admin.board_attributes.row.name--textbox') as HTMLInputElement;
             expect(input).toBeDisabled();
         });
 
@@ -100,7 +100,7 @@ describe('BoardAttributesTable', () => {
                 ]),
             });
 
-            const input = screen.getByTestId('board-attribute-field-input') as HTMLInputElement;
+            const input = screen.getByTestId('admin.board_attributes.row.name--textbox') as HTMLInputElement;
             expect(input).toBeDisabled();
         });
     });
@@ -166,8 +166,8 @@ describe('BoardAttributesTable', () => {
                 ]),
             });
 
-            expect(screen.getByTestId('board-attribute-field_dotmenu-a')).toBeInTheDocument();
-            expect(screen.getByTestId('board-attribute-field_dotmenu-b')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.board_attributes.row:a--row')).getByTestId('admin.board_attributes.row.actions--button')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.board_attributes.row:b--row')).getByTestId('admin.board_attributes.row.actions--button')).toBeInTheDocument();
         });
 
         it('calls updateField when the name input is edited and blurred', async () => {
@@ -175,7 +175,7 @@ describe('BoardAttributesTable', () => {
                 data: makeCollection([makeField({id: '1', name: 'Old'})]),
             });
 
-            const input = screen.getByTestId('board-attribute-field-input') as HTMLInputElement;
+            const input = screen.getByTestId('admin.board_attributes.row.name--textbox') as HTMLInputElement;
             await userEvent.clear(input);
             await userEvent.type(input, 'New');
             await userEvent.tab();

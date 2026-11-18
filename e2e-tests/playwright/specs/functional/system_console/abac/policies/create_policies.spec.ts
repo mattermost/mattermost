@@ -1,27 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {
-    expect,
-    test,
-    enableABAC,
-    navigateToABACPage,
-    runSyncJob,
-    verifyUserInChannel,
-} from '@mattermost/playwright-lib';
+import {expect, test, verifyUserInChannel, duration} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
+import {activatePolicy, createPrivateChannelForABAC, createUserForABAC, enableUserManagedAttributes} from '../support';
 import {
-    createUserForABAC,
-    testAccessRule,
-    createPrivateChannelForABAC,
-    createBasicPolicy,
-    activatePolicy,
-    waitForLatestSyncJob,
-    waitForPolicySyncJob,
-    enableUserManagedAttributes,
-} from '../support';
+    addRule,
+    createMembershipPolicy,
+    expectAccessTest,
+    fieldNamed,
+    openMembershipPolicies,
+    openPolicy,
+    policyIdByName,
+    runSyncJob,
+    setAbacEnabled,
+    syncJobId,
+    waitForSyncJob,
+} from '../surface';
 
 /**
  * ABAC Policies - Create Policies
@@ -36,32 +33,23 @@ test.describe('ABAC Policies - Create Policies', () => {
         // SETUP: Create users and channel BEFORE creating policy
         // ============================================================
         const {adminUser, adminClient, team} = await pw.initSetup();
-
-        // Enable user-managed attributes
         await enableUserManagedAttributes(adminClient);
-
-        // Define and create the Department attribute field
         const departmentAttribute: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
+        const department = fieldNamed(attributeFieldsMap, 'Department');
 
-        // Create 3 users as per test case:
         // 1. satisfyingUserNotInChannel - Department=Engineering, NOT in channel initially
         // 2. satisfyingUserInChannel - Department=Engineering, IN channel initially
         // 3. nonSatisfyingUserInChannel - Department=Sales, IN channel initially
-
         const satisfyingUserNotInChannel = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
         ]);
-
         const satisfyingUserInChannel = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
         ]);
-
         const nonSatisfyingUserInChannel = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Sales'},
         ]);
-
-        // Add all users to the team
         await adminClient.addToTeam(team.id, satisfyingUserNotInChannel.id);
         await adminClient.addToTeam(team.id, satisfyingUserInChannel.id);
         await adminClient.addToTeam(team.id, nonSatisfyingUserInChannel.id);
@@ -71,119 +59,53 @@ test.describe('ABAC Policies - Create Policies', () => {
         await adminClient.addToChannel(satisfyingUserInChannel.id, privateChannel.id);
         await adminClient.addToChannel(nonSatisfyingUserInChannel.id, privateChannel.id);
 
-        // Verify initial channel state
-        const initialUser1InChannel = await verifyUserInChannel(
-            adminClient,
-            satisfyingUserNotInChannel.id,
-            privateChannel.id,
-        );
-        const initialUser2InChannel = await verifyUserInChannel(
-            adminClient,
-            satisfyingUserInChannel.id,
-            privateChannel.id,
-        );
-        const initialUser3InChannel = await verifyUserInChannel(
-            adminClient,
-            nonSatisfyingUserInChannel.id,
-            privateChannel.id,
-        );
-        expect(initialUser1InChannel).toBe(false);
-        expect(initialUser2InChannel).toBe(true);
-        expect(initialUser3InChannel).toBe(true);
+        // * Verify initial channel state
+        expect(await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id)).toBe(false);
+        expect(await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id)).toBe(true);
+        expect(await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id)).toBe(true);
 
-        // ============================================================
-        // STEP 1-4: Login, navigate to ABAC, create policy with rule and channel
-        // ============================================================
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
-
-        // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and policy creation
-        await adminClient.patchConfig({
-            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
-        });
-
-        // Use the working createBasicPolicy helper (same as MM-T5784)
+        // # Log in, turn attribute-based access on, and create the policy with auto-add off
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
         const policyName = `Engineering Policy ${pw.random.id()}`;
-        const jobIdMM5783 = await createBasicPolicy(systemConsolePage.page, {
-            name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: false, // Auto-add DISABLED for this test
-            channels: [privateChannel.display_name],
+        const jobId = syncJobId(
+            await createMembershipPolicy(app, {
+                name: policyName,
+                rules: [{field: department, value: 'Engineering'}],
+                channels: [privateChannel],
+                autoAdd: false,
+            }),
+        );
+
+        // * Testing the rule lists the users who satisfy it, and not the one who doesn't
+        const policy = await openPolicy(app, await policyIdByName(adminClient, policyName));
+        await expectAccessTest(app, policy, {
+            client: adminClient,
+            matching: [satisfyingUserNotInChannel, satisfyingUserInChannel],
+            notMatching: [nonSatisfyingUserInChannel],
         });
 
-        // ============================================================
-        // STEP 3: Test Access Rule (navigate back to policy to test)
-        // ============================================================
+        // # Wait for the sync the policy started
+        await waitForSyncJob(adminClient, jobId);
 
-        // Navigate back to policy to test the access rule
-        await systemConsolePage.page.waitForTimeout(1000);
-        const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-        if (await policyRowForTest.isVisible({timeout: 3000})) {
-            await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
+        // * The satisfying user outside the channel is NOT auto-added (auto-add is off)
+        expect(await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id)).toBe(false);
 
-            const testResult = await testAccessRule(systemConsolePage.page, {
-                expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
-                expectedNonMatchingUsers: [nonSatisfyingUserInChannel.username],
-            });
+        // * The satisfying member stays
+        expect(await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id)).toBe(true);
 
-            expect(testResult.expectedUsersMatch).toBe(true);
-            expect(testResult.unexpectedUsersMatch).toBe(false);
+        // * The member who doesn't satisfy it is removed
+        expect(await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id)).toBe(false);
 
-            // Navigate back to ABAC page
-            await navigateToABACPage(systemConsolePage.page);
-        }
-
-        // Wait for sync job to complete (triggered by createBasicPolicy)
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobIdMM5783);
-
-        // ============================================================
-        // STEP 5-7: Verify channel membership after sync
-        // ============================================================
-
-        // Step 5: User who satisfies policy but NOT in channel → should NOT be auto-added
-        const user1AfterSync = await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id);
-        expect(user1AfterSync).toBe(false); // NOT auto-added because auto-add is FALSE
-
-        // Step 6: User who satisfies policy and IS in channel → no change (stays in channel)
-        const user2AfterSync = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
-        expect(user2AfterSync).toBe(true); // Stays in channel
-
-        // Step 7: User who does NOT satisfy policy and IS in channel → auto-removed
-        const user3AfterSync = await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id);
-        expect(user3AfterSync).toBe(false); // AUTO-REMOVED
-
-        // ============================================================
-        // STEP 8: Admin can manually add the satisfying user to channel
-        // Validate: satisfying user CAN be added, non-satisfying user CANNOT
-        // ============================================================
-
-        // 8a. Add user who SATISFIES the policy - should succeed
+        // # The admin can add the satisfying user by hand
         await adminClient.addToChannel(satisfyingUserNotInChannel.id, privateChannel.id);
-        const user1AfterManualAdd = await verifyUserInChannel(
-            adminClient,
-            satisfyingUserNotInChannel.id,
-            privateChannel.id,
-        );
-        expect(user1AfterManualAdd).toBe(true); // Successfully added by admin
+        expect(await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id)).toBe(true);
 
-        // 8b. Try to add user who does NOT satisfy the policy - should FAIL
-        try {
-            await adminClient.addToChannel(nonSatisfyingUserInChannel.id, privateChannel.id);
-        } catch {
-            // Expected to fail - policy prevents non-compliant users
-        }
+        // # Try to add the user who does NOT satisfy the policy
+        await expect(adminClient.addToChannel(nonSatisfyingUserInChannel.id, privateChannel.id)).rejects.toThrow();
 
-        // Verify the non-satisfying user is NOT in the channel
-        const user3AfterAttempt = await verifyUserInChannel(
-            adminClient,
-            nonSatisfyingUserInChannel.id,
-            privateChannel.id,
-        );
-        expect(user3AfterAttempt).toBe(false); // Policy prevents non-compliant users
+        // * The policy keeps them out
+        expect(await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id)).toBe(false);
     });
 
     /**
@@ -206,8 +128,7 @@ test.describe('ABAC Policies - Create Policies', () => {
      * - User who does not satisfy the policy is auto-removed
      */
     test('MM-T5784 Create and test policy with auto-add enabled', async ({pw}) => {
-        // Increase timeout for this complex test to prevent trace file race conditions
-        test.setTimeout(120000); // 2 minutes instead of default 1 minute
+        test.setTimeout(duration.two_min);
 
         // # Skip test if no license for ABAC
         await pw.skipIfNoLicense();
@@ -216,210 +137,108 @@ test.describe('ABAC Policies - Create Policies', () => {
         // SETUP: Create users and channel BEFORE creating policy
         // ============================================================
         const {adminUser, adminClient, team} = await pw.initSetup();
-
-        // Enable user-managed attributes
         await enableUserManagedAttributes(adminClient);
-
-        // Define and create the Department attribute field
         const departmentAttribute: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
         const attributeFieldsMap = await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
-
-        // Create 3 users as per test case:
-        // 1. satisfyingUserNotInChannel - Department=Engineering, NOT in channel initially
-        // 2. satisfyingUserInChannel - Department=Engineering, IN channel initially
-        // 3. nonSatisfyingUserInChannel - Department=Sales, IN channel initially
+        const department = fieldNamed(attributeFieldsMap, 'Department');
 
         const satisfyingUserNotInChannel = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
         ]);
-
         const satisfyingUserInChannel = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Engineering'},
         ]);
-
         const nonSatisfyingUserInChannel = await createUserForABAC(adminClient, attributeFieldsMap, [
             {name: 'Department', type: 'text', value: 'Sales'},
         ]);
-
-        // Add all users to the team
         await adminClient.addToTeam(team.id, satisfyingUserNotInChannel.id);
         await adminClient.addToTeam(team.id, satisfyingUserInChannel.id);
         await adminClient.addToTeam(team.id, nonSatisfyingUserInChannel.id);
 
-        // Wait for user attributes to be indexed before creating policy
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-
-        // Create private channel and add users 2 and 3 (but NOT user 1)
         const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(satisfyingUserInChannel.id, privateChannel.id);
         await adminClient.addToChannel(nonSatisfyingUserInChannel.id, privateChannel.id);
 
-        // Verify initial channel state
-        const initialUser1InChannel = await verifyUserInChannel(
-            adminClient,
-            satisfyingUserNotInChannel.id,
-            privateChannel.id,
-        );
-        const initialUser2InChannel = await verifyUserInChannel(
-            adminClient,
-            satisfyingUserInChannel.id,
-            privateChannel.id,
-        );
-        const initialUser3InChannel = await verifyUserInChannel(
-            adminClient,
-            nonSatisfyingUserInChannel.id,
-            privateChannel.id,
-        );
-        expect(initialUser1InChannel).toBe(false);
-        expect(initialUser2InChannel).toBe(true);
-        expect(initialUser3InChannel).toBe(true);
+        // * Verify initial channel state
+        expect(await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id)).toBe(false);
+        expect(await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id)).toBe(true);
+        expect(await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id)).toBe(true);
 
-        // ============================================================
-        // STEP 1-4: Login, navigate to ABAC, create policy with auto-add TRUE
-        // ============================================================
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
-
-        // Use createBasicPolicy with autoSync: true
+        // # Steps 1-4: log in, turn attribute-based access on, create the policy with auto-add on
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
         const policyName = `Auto-Add Policy ${pw.random.id()}`;
-        const jobIdMM5784 = await createBasicPolicy(systemConsolePage.page, {
-            name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: true, // Auto-add ENABLED for this test
-            channels: [privateChannel.display_name],
+        const jobId = syncJobId(
+            await createMembershipPolicy(app, {
+                name: policyName,
+                rules: [{field: department, value: 'Engineering'}],
+                channels: [privateChannel],
+                autoAdd: true,
+            }),
+        );
+
+        // * Step 3: testing the rule lists the users who satisfy it, and not the one who doesn't
+        const policyId = await policyIdByName(adminClient, policyName);
+        const policy = await openPolicy(app, policyId);
+        await expectAccessTest(app, policy, {
+            client: adminClient,
+            matching: [satisfyingUserNotInChannel, satisfyingUserInChannel],
+            notMatching: [nonSatisfyingUserInChannel],
         });
 
-        // ============================================================
-        // STEP 3: Test Access Rule (navigate back to policy to test)
-        // ============================================================
-
-        await systemConsolePage.page.waitForTimeout(1000);
-        const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-        if (await policyRowForTest.isVisible({timeout: 3000})) {
-            await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
-
-            const testResult = await testAccessRule(systemConsolePage.page, {
-                expectedMatchingUsers: [satisfyingUserNotInChannel.username, satisfyingUserInChannel.username],
-                expectedNonMatchingUsers: [nonSatisfyingUserInChannel.username],
-            });
-
-            expect(testResult.expectedUsersMatch).toBe(true);
-            expect(testResult.unexpectedUsersMatch).toBe(false);
-
-            await navigateToABACPage(systemConsolePage.page);
-        }
-
-        // Wait for initial sync job to complete
-        await waitForLatestSyncJob(systemConsolePage.page, undefined, jobIdMM5784);
-
-        // Get policy ID and activate it for auto-add to work
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        await searchInput.waitFor({state: 'visible', timeout: 5000});
-
-        const idMatch = policyName.match(/([a-z0-9]+)$/i);
-        const uniqueId = idMatch ? idMatch[1] : policyName;
-        await searchInput.fill(uniqueId);
-        await systemConsolePage.page.waitForTimeout(1000);
-
-        const policyRow = systemConsolePage.page.locator('.policy-name').first();
-        const policyElementId = await policyRow.getAttribute('id');
-        const policyId = policyElementId?.replace('customDescription-', '');
-
-        if (!policyId) {
-            throw new Error('Could not get policy ID');
-        }
-        await searchInput.clear();
-
-        // Activate the policy so auto-add works
+        // # Wait for the initial sync, activate the policy so auto-add works, and sync again
+        await waitForSyncJob(adminClient, jobId);
         await activatePolicy(adminClient, policyId);
+        await waitForSyncJob(adminClient, await runSyncJob(app));
 
-        // Run sync job with active policy; poll by policyId to avoid picking up a
-        // concurrent shard's job completing first
-        await runSyncJob(systemConsolePage.page);
-        await waitForPolicySyncJob(adminClient, policyId);
+        // * Step 5: the satisfying user outside the channel is auto-added
+        expect(await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id)).toBe(true);
 
-        // ============================================================
-        // STEP 5-7: Verify via API
-        // ============================================================
+        // * Step 6: the satisfying member stays
+        expect(await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id)).toBe(true);
 
-        // Step 5: User who satisfies policy but NOT in channel → should be AUTO-ADDED
-        const user1AfterSync = await verifyUserInChannel(adminClient, satisfyingUserNotInChannel.id, privateChannel.id);
-        expect(user1AfterSync).toBe(true); // AUTO-ADDED because auto-add is TRUE
-
-        // Step 6: User who satisfies policy and IS in channel → no change (stays in channel)
-        const user2AfterSync = await verifyUserInChannel(adminClient, satisfyingUserInChannel.id, privateChannel.id);
-        expect(user2AfterSync).toBe(true); // Stays in channel
-
-        // Step 7: User who does NOT satisfy policy and IS in channel → auto-removed
-        const user3AfterSync = await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id);
-        expect(user3AfterSync).toBe(false); // AUTO-REMOVED
+        // * Step 7: the member who doesn't satisfy it is removed
+        expect(await verifyUserInChannel(adminClient, nonSatisfyingUserInChannel.id, privateChannel.id)).toBe(false);
     });
 
-    /**
-     * MM-63848: Creating a policy with a name that already exists should show an error
-     */
     test('MM-63848 Should show error when creating policy with duplicate name', async ({pw}) => {
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient, team} = await pw.initSetup();
-
         await enableUserManagedAttributes(adminClient);
-
         const departmentAttribute: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
-        await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
-
+        const department = fieldNamed(
+            await setupCustomProfileAttributeFields(adminClient, departmentAttribute),
+            'Department',
+        );
         const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const page = systemConsolePage.page;
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
 
-        await navigateToABACPage(page);
-        await enableABAC(page);
-
-        // Re-apply guard: concurrent initSetup() resets ABAC between enableABAC() UI call and policy creation
-        await adminClient.patchConfig({
-            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
-        });
-
-        // Create the first policy
+        // # Create the first policy
         const policyName = `Duplicate Test ${pw.random.id()}`;
-        await createBasicPolicy(page, {
+        await createMembershipPolicy(app, {
             name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: false,
-            channels: [privateChannel.display_name],
+            rules: [{field: department, value: 'Engineering'}],
+            channels: [privateChannel],
         });
+        const {policy} = app.admin.accessControl;
 
-        // Navigate back and try to create another policy with the same name.
-        // Re-apply guards: a concurrent initSetup() may have reset EnableAttributeBasedAccessControl
-        // AND deleted custom profile attributes between the first createBasicPolicy call and now.
-        // Without the Department attribute the attributeSelectorMenuButton has no items and times out.
-        await navigateToABACPage(page);
-        await setupCustomProfileAttributeFields(adminClient, departmentAttribute);
-        await adminClient.patchConfig({
-            AccessControlSettings: {EnableAttributeBasedAccessControl: true},
-        });
+        // * No error the first time
+        await expect(policy.errorText).toHaveCount(0);
 
-        await createBasicPolicy(page, {
-            name: policyName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Sales',
-            autoSync: false,
-            channels: [],
-        });
+        // # Create another policy with the same name
+        const policies = await openMembershipPolicies(app);
+        await policies.addButton.click();
+        await expect(policy.editPolicy.name.valueTextbox).toBeVisible();
+        await policy.editPolicy.name.valueTextbox.fill(policyName);
+        await expect(policy.editPolicy.name.valueTextbox).toHaveValue(policyName);
+        await addRule(policy.rules, {field: department, value: 'Sales'});
+        await app.admin.saveButton.click();
 
-        // Verify error message is shown
-        const errorMessage = page.locator('.EditPolicy__error');
-        await expect(errorMessage).toBeVisible({timeout: 5000});
-
-        const errorText = await errorMessage.textContent();
-        expect(errorText).toContain('A policy with this name already exists');
+        // * The editor says the name is taken
+        await expect(policy.errorText).toBeVisible();
+        await expect(policy.errorText).toContainText('A policy with this name already exists');
     });
 });

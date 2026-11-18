@@ -6,17 +6,18 @@ import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, getRandomId} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import {
+    expect,
+    getRandomId,
+    ignoreMissing,
+    type App,
+    type PlaywrightExtended,
+    duration,
+} from '@mattermost/playwright-lib';
 
 import {setupCustomProfileAttributeValuesForUser} from '../../../channels/custom_profile_attributes/helpers';
-import {
-    createPermissionPolicy,
-    deletePermissionPolicyByName,
-    ensureUserAttributes,
-    getPolicyIdByName,
-    getUserAttributeFieldByName,
-} from '../support';
+import {deletePermissionPolicyByName, ensureUserAttributes, getUserAttributeFieldByName} from '../support';
+import {createPermissionPolicy, permissionPolicyIdByName} from '../surface';
 
 /**
  * Require a feature flag to be on, in whichever mode the suite is running.
@@ -81,7 +82,7 @@ export async function ensureBurnOnReadEnabled(adminClient: Client4): Promise<voi
                 const cfg = await adminClient.getConfig();
                 return cfg.ServiceSettings?.EnableBurnOnRead === true;
             },
-            {timeout: 15000, intervals: [500, 1000, 2000]},
+            {timeout: duration.half_min, intervals: [500, 1000, 2000]},
         )
         .toBe(true);
 }
@@ -102,7 +103,7 @@ export async function ensureABACEnabled(adminClient: Client4): Promise<void> {
                 const cfg = await adminClient.getConfig();
                 return cfg.AccessControlSettings?.EnableAttributeBasedAccessControl === true;
             },
-            {timeout: 15000, intervals: [500, 1000, 2000]},
+            {timeout: duration.half_min, intervals: [500, 1000, 2000]},
         )
         .toBe(true);
 }
@@ -112,23 +113,16 @@ export async function ensureABACEnabled(adminClient: Client4): Promise<void> {
  * action from a user who currently holds it. Returns the policy name so the caller can
  * delete it in afterEach.
  */
-export async function revokeBurnOnRead(page: Page, adminClient: Client4): Promise<string> {
+export async function revokeBurnOnRead(app: App, adminClient: Client4): Promise<string> {
     await ensureUserAttributes(adminClient, ['Department']);
 
     const policyName = `BoR Deny ${getRandomId()}`;
-    await createPermissionPolicy(page, {
+    await createPermissionPolicy(app, {
         name: policyName,
-        celExpression: DENY_ALL_CEL,
-        permissions: ['Create Burn-on-Read Message'],
-        adminClient,
+        cel: DENY_ALL_CEL,
+        permissions: ['create_burn_on_read_post'],
     });
-
-    await expect
-        .poll(async () => Boolean(await getPolicyIdByName(adminClient, policyName, 1)), {
-            timeout: 30000,
-            intervals: [500, 1000, 2000],
-        })
-        .toBe(true);
+    await permissionPolicyIdByName(adminClient, policyName);
 
     return policyName;
 }
@@ -207,23 +201,16 @@ export async function setDepartment(adminClient: Client4, user: UserProfile, val
  * pre-existing deny policy on system_user. If the control stays hidden after calling
  * this, look for another policy governing the action before suspecting the grant.
  */
-export async function grantBurnOnRead(page: Page, adminClient: Client4, user: UserProfile): Promise<string> {
+export async function grantBurnOnRead(app: App, adminClient: Client4, user: UserProfile): Promise<string> {
     await setDepartment(adminClient, user, BOR_ALLOWED_DEPARTMENT);
 
     const policyName = `BoR Allow ${getRandomId()}`;
-    await createPermissionPolicy(page, {
+    await createPermissionPolicy(app, {
         name: policyName,
-        celExpression: `user.attributes.Department == '${BOR_ALLOWED_DEPARTMENT}'`,
-        permissions: ['Create Burn-on-Read Message'],
-        adminClient,
+        cel: `user.attributes.Department == '${BOR_ALLOWED_DEPARTMENT}'`,
+        permissions: ['create_burn_on_read_post'],
     });
-
-    await expect
-        .poll(async () => Boolean(await getPolicyIdByName(adminClient, policyName, 1)), {
-            timeout: 30000,
-            intervals: [500, 1000, 2000],
-        })
-        .toBe(true);
+    await permissionPolicyIdByName(adminClient, policyName);
 
     return policyName;
 }
@@ -312,18 +299,16 @@ export async function upsertChannelPolicy(
     return saved.id;
 }
 
-/** Safe to call with an empty id, so afterEach needs no conditional. */
+/** Safe to call with an empty id, so afterEach needs no conditional. A policy that is already gone is fine. */
 export async function deletePolicyById(adminClient: Client4, policyId: string): Promise<void> {
     if (!policyId) {
         return;
     }
-    try {
-        await (adminClient as any).doFetch(`${adminClient.getBaseRoute()}/access_control_policies/${policyId}`, {
+    await ignoreMissing(() =>
+        (adminClient as any).doFetch(`${adminClient.getBaseRoute()}/access_control_policies/${policyId}`, {
             method: 'DELETE',
-        });
-    } catch {
-        // Already gone, or never created — afterEach must not fail on cleanup.
-    }
+        }),
+    );
 }
 
 /**
@@ -358,7 +343,7 @@ export async function scheduleBurnOnReadPostInPage(
                 type: 'burn_on_read',
             }),
         });
-        const body = await resp.json().catch(() => ({}));
-        return {status: resp.status, body};
+        const text = await resp.text();
+        return {status: resp.status, body: JSON.parse(text || '{}')};
     }, options);
 }

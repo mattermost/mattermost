@@ -14,12 +14,22 @@ import AttributeGraphDeleteModal from './delete_modal';
 import {addChildOption, removeOption, renameOption} from './graph_utils';
 import AttributeOptionsGraphValues from './graph_values';
 
+// A suggestion is keyed by its position; the tests find it by the name it shows.
+const queryCandidate = (name: string) => screen.queryAllByTestId(/^admin\.attribute\.graph\.pane\.candidate:\d+--button$/).find((el) => el.textContent === name) ?? null;
+const getCandidate = (name: string) => {
+    const candidate = queryCandidate(name);
+    if (!candidate) {
+        throw new Error(`no candidate named ${name}`);
+    }
+    return candidate;
+};
+
 jest.mock('actions/views/modals', () => ({
     openModal: jest.fn(() => ({type: 'MOCK_OPEN_MODAL'})),
 }));
 
 function getRow(optionName: string, parentName = '') {
-    const row = screen.getAllByTestId('attributeOptionsGraphRow').find(
+    const row = screen.getAllByTestId(/^admin\.attribute\.graph\.row:/).find(
         (el) => el.getAttribute('data-option-name') === optionName && el.getAttribute('data-parent-name') === parentName,
     );
     if (!row) {
@@ -29,19 +39,19 @@ function getRow(optionName: string, parentName = '') {
 }
 
 async function clickRowAddChild(optionName: string, parentName = '') {
-    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__addChild'));
+    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('admin.attribute.graph.row.add_child--button'));
 }
 
 async function clickRowParents(optionName: string, parentName = '') {
-    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__parents'));
+    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('admin.attribute.graph.row.parents--button'));
 }
 
 async function clickRowDelete(optionName: string, parentName = '') {
-    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__delete'));
+    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('admin.attribute.graph.row.delete--button'));
 }
 
 async function openItemMenu(optionName: string, parentName = '') {
-    await userEvent.click(within(getRow(optionName, parentName)).getByTestId('attributeOptionsGraphRow__name'));
+    await userEvent.click(within(getRow(optionName, parentName)).getByTestId(/^admin\.attribute\.graph\.row\.(?:name|rename)--/));
 }
 
 describe('AttributeOptionsGraphValues', () => {
@@ -64,24 +74,24 @@ describe('AttributeOptionsGraphValues', () => {
     it('renders helper, empty canvas, footer, and a disabled Add value', () => {
         renderEmpty();
 
-        expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.graph.empty')).toBeInTheDocument();
         expect(screen.getByText('Each value can have parents and children.')).toBeInTheDocument();
         expect(screen.getByText('Add the first value')).toBeInTheDocument();
         expect(screen.getByText('Start with a top-level value. You can add parents and children from its row.')).toBeInTheDocument();
         expect(screen.getByText('Up to 100 parents per value, 100 levels deep.')).toBeInTheDocument();
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton').className).toMatch(/button--emphasis-primary/);
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__nameInput')).toHaveAttribute('placeholder', 'Value name');
-        expect(screen.queryByTestId('attributeOptionsGraphList')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.graph.empty.add--button')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.graph.empty.add--button').className).toMatch(/button--emphasis-primary/);
+        expect(screen.getByTestId('admin.attribute.graph.empty.name--textbox')).toHaveAttribute('placeholder', 'Value name');
+        expect(screen.queryByTestId('admin.attribute.graph.rows--list')).not.toBeInTheDocument();
     });
 
     it('does not enable Add value on whitespace', async () => {
         const onOptionsChange = jest.fn();
         renderEmpty(onOptionsChange);
 
-        await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), '   ');
+        await userEvent.type(screen.getByTestId('admin.attribute.graph.empty.name--textbox'), '   ');
 
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.graph.empty.add--button')).toBeDisabled();
         expect(onOptionsChange).not.toHaveBeenCalled();
     });
 
@@ -89,10 +99,10 @@ describe('AttributeOptionsGraphValues', () => {
         const onOptionsChange = jest.fn();
         renderEmpty(onOptionsChange);
 
-        await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), '  Root  ');
-        expect(screen.getByTestId('attributeOptionsGraphEmpty__addButton')).not.toBeDisabled();
+        await userEvent.type(screen.getByTestId('admin.attribute.graph.empty.name--textbox'), '  Root  ');
+        expect(screen.getByTestId('admin.attribute.graph.empty.add--button')).not.toBeDisabled();
 
-        await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.graph.empty.add--button'));
 
         expect(onOptionsChange).toHaveBeenCalledTimes(1);
         expect(onOptionsChange).toHaveBeenCalledWith([{id: '', name: 'Root', parents: []}]);
@@ -109,14 +119,14 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await userEvent.type(screen.getByTestId('attributeOptionsGraphAddTop__nameInput'), 'engineering{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.graph.add_top.name--textbox'), 'engineering{Enter}');
 
         expect(onOptionsChange).not.toHaveBeenCalled();
         expect(screen.getByRole('alert')).toHaveTextContent('"engineering" already exists in this field.');
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute('aria-invalid', 'true');
+        expect(screen.getByTestId('admin.attribute.graph.add_top.name--textbox')).toHaveAttribute('aria-invalid', 'true');
 
-        await userEvent.clear(screen.getByTestId('attributeOptionsGraphAddTop__nameInput'));
-        await userEvent.type(screen.getByTestId('attributeOptionsGraphAddTop__nameInput'), 'ENGINEERING{Enter}');
+        await userEvent.clear(screen.getByTestId('admin.attribute.graph.add_top.name--textbox'));
+        await userEvent.type(screen.getByTestId('admin.attribute.graph.add_top.name--textbox'), 'ENGINEERING{Enter}');
 
         expect(onOptionsChange).not.toHaveBeenCalled();
         expect(screen.getByRole('alert')).toHaveTextContent('"ENGINEERING" already exists in this field.');
@@ -131,10 +141,10 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.graph.empty')).toBeInTheDocument();
         expect(screen.getByText('Add the first value')).toBeInTheDocument();
-        expect(screen.queryByTestId('attributeOptionsGraphEmpty__nameInput')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attributeOptionsGraphEmpty__addButton')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.empty.name--textbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.empty.add--button')).not.toBeInTheDocument();
     });
 
     it('hides the add-top-level field when the list is read-only', () => {
@@ -146,10 +156,10 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        expect(screen.getByTestId('attributeOptionsGraphList')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.graph.rows--list')).toBeInTheDocument();
         expect(getRow('Root')).toBeInTheDocument();
-        expect(screen.queryByTestId('attributeOptionsGraphAddTop__nameInput')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attributeOptionsGraphAddTop__addButton')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.add_top.name--textbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.add_top.add--button')).not.toBeInTheDocument();
     });
 
     it('renders a root occurrence row with a placeholder drag handle after the first value', () => {
@@ -160,15 +170,15 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        expect(screen.queryByTestId('attributeOptionsGraphEmpty')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeOptionsGraphList')).toBeInTheDocument();
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__nameInput')).toHaveAttribute('placeholder', 'Add a top-level value');
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).toMatch(/button--emphasis-secondary/);
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).toBeDisabled();
+        expect(screen.queryByTestId('admin.attribute.graph.empty')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.graph.rows--list')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.graph.add_top.name--textbox')).toHaveAttribute('placeholder', 'Add a top-level value');
+        expect(screen.getByTestId('admin.attribute.graph.add_top.add--button').className).toMatch(/button--emphasis-secondary/);
+        expect(screen.getByTestId('admin.attribute.graph.add_top.add--button')).toBeDisabled();
 
         const row = getRow('Root');
         expect(row).toHaveAttribute('data-depth', '0');
-        const handle = within(row).getByTestId('attributeOptionsGraphRow__dragHandle');
+        const handle = within(row).getByTestId('admin.attribute.graph.row.drag_handle');
         expect(handle).toHaveAttribute('aria-hidden', 'true');
         expect(handle).toHaveAttribute('tabindex', '-1');
         expect(handle).not.toHaveAttribute('tabindex', '0');
@@ -183,11 +193,11 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await userEvent.type(screen.getByTestId('attributeOptionsGraphAddTop__nameInput'), 'Trunk');
+        await userEvent.type(screen.getByTestId('admin.attribute.graph.add_top.name--textbox'), 'Trunk');
 
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton')).not.toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).toMatch(/button--emphasis-secondary/);
-        expect(screen.getByTestId('attributeOptionsGraphAddTop__addButton').className).not.toMatch(/button--emphasis-primary/);
+        expect(screen.getByTestId('admin.attribute.graph.add_top.add--button')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.graph.add_top.add--button').className).toMatch(/button--emphasis-secondary/);
+        expect(screen.getByTestId('admin.attribute.graph.add_top.add--button').className).not.toMatch(/button--emphasis-primary/);
     });
 
     it('adds a trimmed child from the overflow menu as an indented sibling row', async () => {
@@ -201,16 +211,16 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await clickRowAddChild('Root');
-        const draftInput = await screen.findByTestId('attributeOptionsGraphRow__childNameInput');
+        const draftInput = await screen.findByTestId('admin.attribute.graph.child_draft.name--textbox');
 
-        expect(screen.getByTestId('attributeOptionsGraphRow__childAddButton')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.graph.child_draft.add--button')).toBeDisabled();
         await userEvent.type(draftInput, '   ');
-        expect(screen.getByTestId('attributeOptionsGraphRow__childAddButton')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.graph.child_draft.add--button')).toBeDisabled();
         expect(onOptionsChange).not.toHaveBeenCalled();
 
         await userEvent.clear(draftInput);
         await userEvent.type(draftInput, '  Child  ');
-        await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childAddButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.graph.child_draft.add--button'));
 
         expect(onOptionsChange).toHaveBeenCalledWith(addChildOption(options, 'Child', 'Root'));
     });
@@ -228,7 +238,7 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await clickRowAddChild('newtop');
-        const draft = await screen.findByTestId('attributeOptionsGraphRow__childDraft');
+        const draft = await screen.findByTestId('admin.attribute.graph.child_draft');
 
         expect(getRow('newtop')).toHaveAttribute('data-depth', '0');
         expect(getRow('newmiddle', 'newtop')).toHaveAttribute('data-depth', '1');
@@ -237,10 +247,10 @@ describe('AttributeOptionsGraphValues', () => {
         expect(draft.style.getPropertyValue('--attribute-options-graph-values-indent')).toBe(
             getRow('newmiddle', 'newtop').style.getPropertyValue('--attribute-options-graph-values-indent'),
         );
-        expect(within(draft).queryByTestId('attributeOptionsGraphRow__dragHandle')).not.toBeInTheDocument();
+        expect(within(draft).queryByTestId('admin.attribute.graph.row.drag_handle')).not.toBeInTheDocument();
         expect(draft.querySelector('.attribute-options-graph-values__draft-handle-spacer')).toBeNull();
 
-        const items = [...screen.getByTestId('attributeOptionsGraphList').querySelectorAll(':scope > li')];
+        const items = [...screen.getByTestId('admin.attribute.graph.rows--list').querySelectorAll(':scope > li')];
         expect(items[items.length - 2]).toHaveAttribute('data-option-name', 'newmiddle2');
         expect(items[items.length - 1]).toBe(draft);
     });
@@ -256,17 +266,17 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await clickRowAddChild('Root');
-        const draft = await screen.findByTestId('attributeOptionsGraphRow__childDraft');
+        const draft = await screen.findByTestId('admin.attribute.graph.child_draft');
         expect(draft).toHaveAttribute('data-depth', '1');
-        expect(screen.getByTestId('attributeOptionsGraphRow__childNameInput')).toHaveAttribute('placeholder', 'Name the new value');
-        expect(screen.getByTestId('attributeOptionsGraphRow__childAddButton')).toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphRow__childCancelButton')).toBeEnabled();
+        expect(screen.getByTestId('admin.attribute.graph.child_draft.name--textbox')).toHaveAttribute('placeholder', 'Name the new value');
+        expect(screen.getByTestId('admin.attribute.graph.child_draft.add--button')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.graph.child_draft.cancel--button')).toBeEnabled();
 
-        await userEvent.type(screen.getByTestId('attributeOptionsGraphRow__childNameInput'), 'Child');
-        await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childCancelButton'));
+        await userEvent.type(screen.getByTestId('admin.attribute.graph.child_draft.name--textbox'), 'Child');
+        await userEvent.click(screen.getByTestId('admin.attribute.graph.child_draft.cancel--button'));
 
         expect(onOptionsChange).not.toHaveBeenCalled();
-        expect(screen.queryByTestId('attributeOptionsGraphRow__childDraft')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.child_draft')).not.toBeInTheDocument();
     });
 
     it('dismisses the child draft on Escape', async () => {
@@ -279,11 +289,11 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await clickRowAddChild('Root');
-        const draftInput = await screen.findByTestId('attributeOptionsGraphRow__childNameInput');
+        const draftInput = await screen.findByTestId('admin.attribute.graph.child_draft.name--textbox');
         await userEvent.type(draftInput, 'Child{Escape}');
 
         expect(onOptionsChange).not.toHaveBeenCalled();
-        expect(screen.queryByTestId('attributeOptionsGraphRow__childDraft')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.child_draft')).not.toBeInTheDocument();
     });
 
     it('renders the new child occurrence under its parent after add', () => {
@@ -316,7 +326,7 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await clickRowAddChild('Root');
-        const draftInput = await screen.findByTestId('attributeOptionsGraphRow__childNameInput');
+        const draftInput = await screen.findByTestId('admin.attribute.graph.child_draft.name--textbox');
         await userEvent.type(draftInput, 'child{Enter}');
 
         expect(onOptionsChange).not.toHaveBeenCalled();
@@ -338,7 +348,7 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await openItemMenu('Root');
-        const input = await screen.findByTestId('attributeGraphParentsPane__nameInput');
+        const input = await screen.findByTestId('admin.attribute.graph.pane.name_input--textbox');
 
         await userEvent.clear(input);
         await userEvent.type(input, 'Child{Enter}');
@@ -361,12 +371,12 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await openItemMenu('Root');
-        const input = await screen.findByTestId('attributeGraphParentsPane__nameInput');
+        const input = await screen.findByTestId('admin.attribute.graph.pane.name_input--textbox');
         await userEvent.clear(input);
         await userEvent.type(input, '{Enter}');
 
         expect(onOptionsChange).not.toHaveBeenCalled();
-        expect(screen.getByTestId('attributeOptionsGraphRow__name')).toHaveTextContent('Root');
+        expect(screen.getByTestId(/^admin\.attribute\.graph\.row\.(?:name|rename)--/)).toHaveTextContent('Root');
     });
 
     it('shows a 2 parents badge on every dual occurrence and indents by path depth', () => {
@@ -377,7 +387,7 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        const deepwaterRows = screen.getAllByTestId('attributeOptionsGraphRow').filter(
+        const deepwaterRows = screen.getAllByTestId(/^admin\.attribute\.graph\.row:/).filter(
             (row) => row.getAttribute('data-option-name') === 'Deepwater',
         );
         expect(deepwaterRows).toHaveLength(2);
@@ -386,14 +396,14 @@ describe('AttributeOptionsGraphValues', () => {
         expect(getRow('Air')).toHaveAttribute('data-depth', '0');
         expect(getRow('Maritime')).toHaveAttribute('data-depth', '0');
 
-        const badges = screen.getAllByTestId('attributeOptionsGraphRow__parentsBadge');
+        const badges = screen.getAllByTestId('admin.attribute.graph.row.parents_badge--button');
         expect(badges).toHaveLength(2);
         expect(badges[0]).toHaveTextContent('2 parents');
         expect(badges[1]).toHaveTextContent('2 parents');
-        expect(within(getRow('Falcon', 'Air')).queryByTestId('attributeOptionsGraphRow__parentsBadge')).not.toBeInTheDocument();
+        expect(within(getRow('Falcon', 'Air')).queryByTestId('admin.attribute.graph.row.parents_badge--button')).not.toBeInTheDocument();
         const dualRow = getRow('Deepwater', 'Falcon');
-        expect(within(dualRow).getByTestId('attributeOptionsGraphRow__nameWrap').nextElementSibling).toBe(
-            within(dualRow).getByTestId('attributeOptionsGraphRow__parentsBadge'),
+        expect(within(dualRow).getByTestId('admin.attribute.graph.row.name_wrap').nextElementSibling).toBe(
+            within(dualRow).getByTestId('admin.attribute.graph.row.parents_badge--button'),
         );
     });
 
@@ -405,20 +415,20 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        expect(within(getRow('Air')).getByTestId('attributeOptionsGraphRow__collapse')).toHaveAttribute('aria-expanded', 'true');
-        expect(within(getRow('Maritime')).queryByTestId('attributeOptionsGraphRow__collapse')).toBeInTheDocument();
-        expect(within(getRow('Deepwater', 'Falcon')).queryByTestId('attributeOptionsGraphRow__collapse')).not.toBeInTheDocument();
+        expect(within(getRow('Air')).getByTestId('admin.attribute.graph.row.collapse--button')).toHaveAttribute('aria-expanded', 'true');
+        expect(within(getRow('Maritime')).queryByTestId('admin.attribute.graph.row.collapse--button')).toBeInTheDocument();
+        expect(within(getRow('Deepwater', 'Falcon')).queryByTestId('admin.attribute.graph.row.collapse--button')).not.toBeInTheDocument();
 
-        await userEvent.click(within(getRow('Air')).getByTestId('attributeOptionsGraphRow__collapse'));
+        await userEvent.click(within(getRow('Air')).getByTestId('admin.attribute.graph.row.collapse--button'));
 
-        expect(screen.queryAllByTestId('attributeOptionsGraphRow').find(
+        expect(screen.queryAllByTestId(/^admin\.attribute\.graph\.row:/).find(
             (el) => el.getAttribute('data-option-name') === 'Falcon',
         )).toBeUndefined();
         expect(getRow('Deepwater', 'Trident')).toBeInTheDocument();
         expect(getRow('Trident', 'Maritime')).toBeInTheDocument();
         expect(getRow('Air')).toHaveAttribute('aria-expanded', 'false');
 
-        await userEvent.click(within(getRow('Air')).getByTestId('attributeOptionsGraphRow__collapse'));
+        await userEvent.click(within(getRow('Air')).getByTestId('admin.attribute.graph.row.collapse--button'));
         expect(getRow('Falcon', 'Air')).toBeInTheDocument();
         expect(getRow('Deepwater', 'Falcon')).toBeInTheDocument();
     });
@@ -431,11 +441,11 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await userEvent.click(within(getRow('Deepwater', 'Falcon')).getByTestId('attributeOptionsGraphRow__parentsBadge'));
-        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Deepwater');
+        await userEvent.click(within(getRow('Deepwater', 'Falcon')).getByTestId('admin.attribute.graph.row.parents_badge--button'));
+        expect(await screen.findByTestId('admin.attribute.graph.pane.back--button')).toHaveTextContent('Parents of Deepwater');
         expect(screen.queryByText(/sits under/i)).not.toBeInTheDocument();
-        const nameWrap = within(getRow('Deepwater', 'Falcon')).getByTestId('attributeOptionsGraphRow__nameWrap');
-        const parentsAnchor = within(nameWrap).getByTestId('attributeOptionsGraphRow__parentsAnchor');
+        const nameWrap = within(getRow('Deepwater', 'Falcon')).getByTestId('admin.attribute.graph.row.name_wrap');
+        const parentsAnchor = within(nameWrap).getByTestId('admin.attribute.graph.row.menu_anchor--button');
         expect(parentsAnchor.tagName).toBe('DIV');
         expect(parentsAnchor).toHaveClass('attribute-options-graph-values__parents-anchor');
     });
@@ -452,25 +462,25 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await clickRowParents('Air');
-        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
+        expect(await screen.findByTestId('admin.attribute.graph.pane.back--button')).toHaveTextContent('Parents of Air');
 
-        const search = screen.getByTestId('attributeGraphParentsPane__search');
+        const search = screen.getByTestId('admin.attribute.graph.pane.parents.search--textbox');
         const menuPaper = search.closest('.MuiPopover-paper');
         expect(menuPaper).toBeTruthy();
 
         await userEvent.click(search);
-        const suggestions = await screen.findByTestId('attributeGraphParentsPane__suggestions');
+        const suggestions = await screen.findByTestId('admin.attribute.graph.pane.parents.suggestions--list');
         expect(suggestions.closest('.attribute-graph-parents-pane')).toBeNull();
         expect(menuPaper).not.toContainElement(suggestions);
         expect(suggestions.closest('.attribute-graph-parents-pane__suggestions-paper')).toBeTruthy();
 
-        const candidate = screen.getByTestId('attributeGraphParentsPane__candidate-Maritime');
+        const candidate = getCandidate('Maritime');
         fireEvent.mouseDown(candidate);
         fireEvent.pointerDown(candidate);
-        expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
-        expect(screen.getByTestId('attributeGraphParentsPane__suggestions')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.graph.pane.back--button')).toHaveTextContent('Parents of Air');
+        expect(screen.getByTestId('admin.attribute.graph.pane.parents.suggestions--list')).toBeInTheDocument();
         expect(screen.getByRole('menu', {name: 'Edit Air', hidden: true})).toBeInTheDocument();
-        expect(screen.getByTestId('attributeOptionsGraphRow__parentsAnchor')).toHaveAttribute('aria-expanded', 'true');
+        expect(screen.getByTestId('admin.attribute.graph.row.menu_anchor--button')).toHaveAttribute('aria-expanded', 'true');
     });
 
     it('indents dual occurrences by their own path depth, not maxDepth', () => {
@@ -502,19 +512,19 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         const row = getRow('Root');
-        expect(within(row).getByTestId('attributeOptionsGraphRow__addChild')).toBeInTheDocument();
-        expect(within(row).getByTestId('attributeOptionsGraphRow__parents')).toBeInTheDocument();
-        expect(within(row).getByTestId('attributeOptionsGraphRow__delete')).toBeInTheDocument();
+        expect(within(row).getByTestId('admin.attribute.graph.row.add_child--button')).toBeInTheDocument();
+        expect(within(row).getByTestId('admin.attribute.graph.row.parents--button')).toBeInTheDocument();
+        expect(within(row).getByTestId('admin.attribute.graph.row.delete--button')).toBeInTheDocument();
         expect(within(row).queryByTestId('attributeOptionsGraphRow__menu')).not.toBeInTheDocument();
-        expect(within(row).queryByTestId('attributeOptionsGraphRow__collapse')).not.toBeInTheDocument();
+        expect(within(row).queryByTestId('admin.attribute.graph.row.collapse--button')).not.toBeInTheDocument();
 
         await openItemMenu('Root');
-        expect(await screen.findByTestId('attributeGraphParentsPane__nameInput')).toHaveValue('Root');
-        expect(screen.getByTestId('attributeGraphParentsPane__openParents')).toHaveTextContent('Top level');
-        expect(screen.getByTestId('attributeGraphParentsPane__openChildren')).toHaveTextContent('None');
+        expect(await screen.findByTestId('admin.attribute.graph.pane.name_input--textbox')).toHaveValue('Root');
+        expect(screen.getByTestId('admin.attribute.graph.pane.parents--menuitem')).toHaveTextContent('Top level');
+        expect(screen.getByTestId('admin.attribute.graph.pane.children--menuitem')).toHaveTextContent('None');
         expect(screen.getByRole('menuitem', {name: 'Delete this value'})).toBeInTheDocument();
-        expect(within(row).getByTestId('attributeOptionsGraphRow__nameWrap')).toContainElement(
-            screen.getByTestId('attributeOptionsGraphRow__parentsAnchor'),
+        expect(within(row).getByTestId('admin.attribute.graph.row.name_wrap')).toContainElement(
+            screen.getByTestId('admin.attribute.graph.row.menu_anchor--button'),
         );
 
         await clickRowDelete('Root');
@@ -533,12 +543,12 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         await openItemMenu('Root');
-        await userEvent.click(await screen.findByTestId('attributeGraphParentsPane__openChildren'));
-        expect(screen.getByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Children of Root');
-        expect(screen.getByTestId('attributeGraphParentsPane__childrenEmpty')).toHaveTextContent('No children yet.');
+        await userEvent.click(await screen.findByTestId('admin.attribute.graph.pane.children--menuitem'));
+        expect(screen.getByTestId('admin.attribute.graph.pane.back--button')).toHaveTextContent('Children of Root');
+        expect(screen.getByTestId('admin.attribute.graph.pane.children.empty--text')).toHaveTextContent('No children yet.');
 
-        await userEvent.type(screen.getByTestId('attributeGraphParentsPane__childSearch'), 'Wing');
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__createChild'));
+        await userEvent.type(screen.getByTestId('admin.attribute.graph.pane.children.search--textbox'), 'Wing');
+        await userEvent.click(screen.getByTestId('admin.attribute.graph.pane.children.create--button'));
 
         expect(onOptionsChange).toHaveBeenCalledWith(addChildOption(options, 'Wing', 'Root'));
     });
@@ -551,9 +561,9 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        const list = screen.getByTestId('attributeOptionsGraphList');
+        const list = screen.getByTestId('admin.attribute.graph.rows--list');
         expect(within(list).queryByRole('list')).toBeNull();
-        expect(list.querySelectorAll(':scope > li')).toHaveLength(screen.getAllByTestId('attributeOptionsGraphRow').length);
+        expect(list.querySelectorAll(':scope > li')).toHaveLength(screen.getAllByTestId(/^admin\.attribute\.graph\.row:/).length);
     });
 
     it('shows a drag-handle tooltip titled Drag to move {name} with the nest-and-order hint', async () => {
@@ -564,7 +574,7 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await userEvent.hover(within(getRow('Air Operations')).getByTestId('attributeOptionsGraphRow__dragHandle'));
+        await userEvent.hover(within(getRow('Air Operations')).getByTestId('admin.attribute.graph.row.drag_handle'));
         const tooltip = await screen.findByRole('tooltip', {hidden: true});
         expect(tooltip).toHaveTextContent('Drag to move Air Operations');
         expect(tooltip).toHaveTextContent('Drop on a row to nest it under that value. Order in the list carries no meaning.');
@@ -578,7 +588,7 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await userEvent.hover(within(getRow('Air Operations')).getByTestId('attributeOptionsGraphRow__addChild'));
+        await userEvent.hover(within(getRow('Air Operations')).getByTestId('admin.attribute.graph.row.add_child--button'));
         expect(await screen.findByRole('tooltip', {hidden: true})).toHaveTextContent('Add a value under Air Operations');
     });
 
@@ -590,7 +600,7 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        await userEvent.hover(within(getRow('Air Operations')).getByTestId('attributeOptionsGraphRow__parents'));
+        await userEvent.hover(within(getRow('Air Operations')).getByTestId('admin.attribute.graph.row.parents--button'));
         expect(await screen.findByRole('tooltip', {hidden: true})).toHaveTextContent('Parents — who this value is granted by');
     });
 
@@ -602,7 +612,7 @@ describe('AttributeOptionsGraphValues', () => {
             />,
         );
 
-        const deleteButton = within(getRow('Air Operations')).getByTestId('attributeOptionsGraphRow__delete');
+        const deleteButton = within(getRow('Air Operations')).getByTestId('admin.attribute.graph.row.delete--button');
         expect(deleteButton).toHaveAttribute('aria-label', 'Delete Air Operations');
 
         await userEvent.hover(deleteButton);
@@ -620,13 +630,13 @@ describe('AttributeOptionsGraphValues', () => {
         );
 
         const row = getRow('Air Operations');
-        expect(within(row).queryByTestId('attributeOptionsGraphRow__addChild')).not.toBeInTheDocument();
-        expect(within(row).queryByTestId('attributeOptionsGraphRow__parents')).not.toBeInTheDocument();
-        expect(within(row).queryByTestId('attributeOptionsGraphRow__delete')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attributeOptionsGraphAddTop__nameInput')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attributeOptionsGraphAddTop__addButton')).not.toBeInTheDocument();
+        expect(within(row).queryByTestId('admin.attribute.graph.row.add_child--button')).not.toBeInTheDocument();
+        expect(within(row).queryByTestId('admin.attribute.graph.row.parents--button')).not.toBeInTheDocument();
+        expect(within(row).queryByTestId('admin.attribute.graph.row.delete--button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.add_top.name--textbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.add_top.add--button')).not.toBeInTheDocument();
 
-        const handle = within(row).getByTestId('attributeOptionsGraphRow__dragHandle');
+        const handle = within(row).getByTestId('admin.attribute.graph.row.drag_handle');
         expect(handle).toHaveClass('attribute-options-graph-values__drag-handle--disabled');
 
         await userEvent.hover(handle);
@@ -660,7 +670,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             />,
         );
 
-        expect(within(getRow('X')).getByTestId('attributeOptionsGraphRow__delete')).not.toBeDisabled();
+        expect(within(getRow('X')).getByTestId('admin.attribute.graph.row.delete--button')).not.toBeDisabled();
     });
 
     it('deletes a leaf from the row Delete action without opening the modal', async () => {
@@ -749,7 +759,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         );
 
         await clickRowParents('X');
-        await userEvent.click(await screen.findByTestId('attributeGraphParentsPane__back'));
+        await userEvent.click(await screen.findByTestId('admin.attribute.graph.pane.back--button'));
         const paneDelete = await screen.findByRole('menuitem', {name: 'Delete this value'});
         await userEvent.click(paneDelete);
 
@@ -776,7 +786,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         );
 
         await openItemMenu('X');
-        expect(await screen.findByTestId('attributeGraphParentsPane__nameInput')).toHaveValue('X');
+        expect(await screen.findByTestId('admin.attribute.graph.pane.name_input--textbox')).toHaveValue('X');
 
         await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
 
@@ -792,7 +802,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
                 },
             });
         });
-        expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.pane.name_input--textbox')).not.toBeInTheDocument();
         expect(screen.queryByRole('menuitem', {name: 'Delete this value'})).not.toBeInTheDocument();
         expect(document.querySelector('#backdropForMenuComponent')).not.toBeInTheDocument();
     });
@@ -860,8 +870,8 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
             />,
         );
 
-        await userEvent.click(within(getRow('X')).getByTestId('attributeOptionsGraphRow__collapse'));
-        expect(screen.queryAllByTestId('attributeOptionsGraphRow').find(
+        await userEvent.click(within(getRow('X')).getByTestId('admin.attribute.graph.row.collapse--button'));
+        expect(screen.queryAllByTestId(/^admin\.attribute\.graph\.row:/).find(
             (el) => el.getAttribute('data-option-name') === 'Orphan',
         )).toBeUndefined();
 
@@ -895,7 +905,7 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         });
 
         const orphanRow = getRow('Orphan', 'X');
-        const deleteButton = within(getRow('X')).getByTestId('attributeOptionsGraphRow__delete');
+        const deleteButton = within(getRow('X')).getByTestId('admin.attribute.graph.row.delete--button');
 
         act(() => {
             dialogProps().onConfirm();
@@ -929,9 +939,9 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         );
 
         await clickRowParents('X');
-        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of X');
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__back'));
-        expect(await screen.findByTestId('attributeGraphParentsPane__nameInput')).toHaveValue('X');
+        expect(await screen.findByTestId('admin.attribute.graph.pane.back--button')).toHaveTextContent('Parents of X');
+        await userEvent.click(screen.getByTestId('admin.attribute.graph.pane.back--button'));
+        expect(await screen.findByTestId('admin.attribute.graph.pane.name_input--textbox')).toHaveValue('X');
 
         await userEvent.click(screen.getByRole('menuitem', {name: 'Delete this value'}));
         await waitFor(() => {
@@ -939,19 +949,19 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         });
 
         const orphanRow = getRow('Orphan', 'X');
-        expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.pane.name_input--textbox')).not.toBeInTheDocument();
         act(() => {
             dialogProps().onConfirm();
         });
         expect(document.activeElement).not.toBe(orphanRow);
-        expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.pane.name_input--textbox')).not.toBeInTheDocument();
 
         act(() => {
             dialogProps().onExited();
         });
         expect(orphanRow).toHaveFocus();
         expect(orphanRow).toHaveClass('attribute-options-graph-values__row--highlight');
-        expect(screen.queryByTestId('attributeGraphParentsPane__nameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.pane.name_input--textbox')).not.toBeInTheDocument();
     });
 
     it('closes the Parents pane when another row add-child action opens', async () => {
@@ -963,13 +973,13 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         );
 
         await clickRowParents('X');
-        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of X');
+        expect(await screen.findByTestId('admin.attribute.graph.pane.back--button')).toHaveTextContent('Parents of X');
 
         await clickRowAddChild('Orphan', 'X');
 
-        expect(screen.queryByTestId('attributeGraphParentsPane__back')).not.toBeInTheDocument();
-        expect(within(getRow('Orphan', 'X')).getByTestId('attributeOptionsGraphRow__delete')).not.toBeDisabled();
-        expect(screen.getByTestId('attributeOptionsGraphRow__childNameInput')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.pane.back--button')).not.toBeInTheDocument();
+        expect(within(getRow('Orphan', 'X')).getByTestId('admin.attribute.graph.row.delete--button')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.graph.child_draft.name--textbox')).toBeInTheDocument();
     });
 
     it('applies a grant-skip second parent without a JS error and closes the Parents menu', async () => {
@@ -990,18 +1000,18 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         renderWithContext(<Harness/>);
 
         await clickRowParents('Shared', 'X');
-        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Shared');
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__search'));
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__candidate-Keep'));
+        expect(await screen.findByTestId('admin.attribute.graph.pane.back--button')).toHaveTextContent('Parents of Shared');
+        await userEvent.click(screen.getByTestId('admin.attribute.graph.pane.parents.search--textbox'));
+        await userEvent.click(getCandidate('Keep'));
 
         await waitFor(() => {
-            expect(screen.queryByTestId('attributeGraphParentsPane__search')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.graph.pane.parents.search--textbox')).not.toBeInTheDocument();
         });
         expect(openModal).not.toHaveBeenCalled();
         expect(document.querySelector('#backdropForMenuComponent')).not.toBeInTheDocument();
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-        const badges = screen.getAllByTestId('attributeOptionsGraphRow__parentsBadge');
+        const badges = screen.getAllByTestId('admin.attribute.graph.row.parents_badge--button');
         expect(badges).toHaveLength(2);
         expect(badges[0]).toHaveTextContent('2 parents');
         expect(badges[1]).toHaveTextContent('2 parents');
@@ -1023,16 +1033,16 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         );
 
         await clickRowParents('Air');
-        expect(await screen.findByTestId('attributeGraphParentsPane__back')).toHaveTextContent('Parents of Air');
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__search'));
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__candidate-Maritime'));
+        expect(await screen.findByTestId('admin.attribute.graph.pane.back--button')).toHaveTextContent('Parents of Air');
+        await userEvent.click(screen.getByTestId('admin.attribute.graph.pane.parents.search--textbox'));
+        await userEvent.click(getCandidate('Maritime'));
 
         await waitFor(() => {
             expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
                 modalId: ModalIdentifiers.GRAPH_GRANT_CONFIRM,
             }));
         });
-        expect(screen.queryByTestId('attributeGraphParentsPane__search')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.pane.parents.search--textbox')).not.toBeInTheDocument();
         expect(document.querySelector('#backdropForMenuComponent')).not.toBeInTheDocument();
         expect(onOptionsChange).not.toHaveBeenCalled();
 
@@ -1060,15 +1070,15 @@ describe('AttributeOptionsGraphValues delete wiring', () => {
         );
 
         await clickRowParents('Air');
-        await userEvent.click(await screen.findByTestId('attributeGraphParentsPane__search'));
-        await userEvent.click(screen.getByTestId('attributeGraphParentsPane__candidate-Maritime'));
+        await userEvent.click(await screen.findByTestId('admin.attribute.graph.pane.parents.search--textbox'));
+        await userEvent.click(getCandidate('Maritime'));
 
         await waitFor(() => {
             expect(openModal).toHaveBeenCalledWith(expect.objectContaining({
                 modalId: ModalIdentifiers.GRAPH_GRANT_CONFIRM,
             }));
         });
-        expect(screen.queryByTestId('attributeGraphParentsPane__search')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.graph.pane.parents.search--textbox')).not.toBeInTheDocument();
 
         const grantCall = (openModal as jest.Mock).mock.calls.find(
             ([arg]) => arg.modalId === ModalIdentifiers.GRAPH_GRANT_CONFIRM,

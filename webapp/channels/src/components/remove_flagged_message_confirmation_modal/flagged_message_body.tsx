@@ -49,14 +49,14 @@ export default function FlaggedMessageBody({action, flaggedPost, reportingUser, 
     return (
         <div
             className='section message_body'
-            data-testid='keep-remove-flagged-message-body'
+            data-testid='flagged_message_modal.message'
         >
             <BodyMainActionText
                 action={action}
                 flaggedPost={flaggedPost}
                 reportingUser={reportingUser}
             />
-            <p data-testid='keep-remove-flagged-message-subtext'>{subtext}</p>
+            <p data-testid='flagged_message_modal.message.subtext--text'>{subtext}</p>
         </div>
     );
 }

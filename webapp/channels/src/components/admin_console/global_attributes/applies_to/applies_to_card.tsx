@@ -60,7 +60,7 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResou
             {readOnlyResources.length > 0 && (
                 <ul
                     className='AppliesToCard__readOnlyResources'
-                    data-testid='appliesToReadOnlyResources'
+                    data-testid='admin.classification.applies_to.read_only--list'
                 >
                     {readOnlyResources.map((resource) => (
                         <li key={resource.type}>
@@ -90,7 +90,7 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResou
             {!channelResource && readOnlyResources.length === 0 && (
                 <p
                     className='AppliesToCard__empty'
-                    data-testid='appliesToEmpty'
+                    data-testid='admin.classification.applies_to.empty--text'
                 >
                     <FormattedMessage {...messages.empty}/>
                 </p>
@@ -103,7 +103,7 @@ const AppliesToCard = ({channelResource, onChannelResourceChange, onChannelResou
                         className='AppliesToCard__addResource'
                         onClick={() => onChannelResourceChange({...DEFAULT_CHANNEL_RESOURCE_CONFIG})}
                         disabled={disabled}
-                        data-testid='appliesToAddResource'
+                        data-testid='admin.classification.applies_to.add--button'
                         leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                     >
                         <FormattedMessage {...messages.addResource}/>

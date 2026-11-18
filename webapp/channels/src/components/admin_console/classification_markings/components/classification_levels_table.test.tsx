@@ -83,7 +83,7 @@ describe('ClassificationLevelsTable', () => {
     test('renders color inputs (editable) when not disabled', () => {
         renderWithContext(<ClassificationLevelsTable {...makeProps()}/>);
 
-        const colorInputs = screen.getAllByTestId('color-inputColorValue');
+        const colorInputs = screen.getAllByTestId('admin.classification.levels.row.color--textbox');
         expect(colorInputs).toHaveLength(LEVELS.length);
         expect(colorInputs[0]).toHaveValue('#007A33');
     });

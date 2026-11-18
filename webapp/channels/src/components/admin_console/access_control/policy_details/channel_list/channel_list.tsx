@@ -41,6 +41,8 @@ type Props = WrappedComponentProps & {
     onPolicyActiveStatusChange?: (changes: PolicyActiveStatus[]) => void;
     saving?: boolean;
     hideTeamColumn?: boolean;
+
+    testIdScope?: string;
     actions: {
         searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
         setChannelListSearch: (term: string) => void;
@@ -364,8 +366,8 @@ class ChannelList extends React.PureComponent<Props, State> {
                     <div className='ChannelList__autoAddHeader'>
                         <Checkbox
                             id='auto-add-header-checkbox'
+                            data-testid={`${this.testIdScope()}.auto_add_all--checkbox`}
                             className='header-checkbox'
-                            data-testid='auto-add-header-checkbox'
                             checked={autoAddHeaderStatus.allActive}
                             indeterminate={autoAddHeaderStatus.mixed}
                             disabled={this.props.saving}
@@ -407,6 +409,8 @@ class ChannelList extends React.PureComponent<Props, State> {
         return columns;
     };
 
+    testIdScope = (): string => this.props.testIdScope ?? 'admin.access_control.policy.channels';
+
     getRows = () => {
         const {channels, channelsToRemove, channelsToAdd} = this.props;
         const {startCount, endCount} = this.getPaginationProps();
@@ -422,7 +426,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                 <ChannelIcon
                     channel={channel}
                     className='channel-icon'
-                    data-testid={`${channel.name}-archive-icon`}
+                    data-testid={`${this.testIdScope()}.row.channel_icon`}
                 />
             );
 
@@ -437,6 +441,7 @@ class ChannelList extends React.PureComponent<Props, State> {
             const autoAddStatus = this.getChannelAutoAddStatus(channel.id);
 
             return {
+                testKey: channel.id,
                 cells: {
                     id: channel.id,
                     name: (
@@ -457,8 +462,8 @@ class ChannelList extends React.PureComponent<Props, State> {
                         <div className='ChannelList__autoAddColumn'>
                             <Checkbox
                                 id={`auto-add-checkbox-${channel.id}`}
+                                data-testid={`${this.testIdScope()}.row.auto_add--checkbox`}
                                 className='channel-checkbox'
-                                data-testid={`auto-add-checkbox-${channel.id}`}
                                 checked={autoAddStatus}
                                 disabled={this.props.saving}
                                 onChange={() => this.handleAutoAddToggle(channel.id, autoAddStatus)}
@@ -480,6 +485,7 @@ class ChannelList extends React.PureComponent<Props, State> {
                     remove: (
                         <a
                             id={`remove-channel-${channel.id}`}
+                            data-testid={`${this.testIdScope()}.row.remove--link`}
                             className={'group-actions TeamList_editText'}
                             onClick={(e) => {
                                 e.preventDefault();
@@ -541,6 +547,7 @@ class ChannelList extends React.PureComponent<Props, State> {
         return (
             <div className='AccessControlPolicyChannelsList'>
                 <DataGrid
+                    testIdScope={this.testIdScope()}
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}

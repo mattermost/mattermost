@@ -77,7 +77,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
                     defaultMessage: 'System attribute options cannot be modified',
                 })}
             >
-                <ValuesContainer data-testid='property-values-readonly'>
+                <ValuesContainer data-testid='admin.board_attributes.row.locked_values'>
                     {options.map((option) => (
                         <EditableChip
                             key={option.id}
@@ -116,7 +116,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
         <>
             <ValuesContainer
                 ref={containerRef}
-                data-testid='property-values-input'
+                data-testid='admin.board_attributes.row.values'
             >
                 {options.map((option) => (
                     <EditableChip
@@ -135,6 +135,7 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
                 >
                     <AddButton
                         onClick={handleAdd}
+                        data-testid='admin.board_attributes.row.add_value--button'
                         aria-label={formatMessage({
                             id: 'admin.board_attributes.values.add_value',
                             defaultMessage: 'Add value',
@@ -146,11 +147,12 @@ const BoardAttributesValues = ({field, updateField, warning}: Props) => {
                 </WithTooltip>
             </ValuesContainer>
             {warning === ValidationWarningOptionsUnique && (
-                <FormattedMessage
-                    tagName={DangerText}
-                    id='admin.board_attributes.table.validation.values_unique'
-                    defaultMessage='Values must be unique.'
-                />
+                <DangerText data-testid='admin.board_attributes.row.values_error--text'>
+                    <FormattedMessage
+                        id='admin.board_attributes.table.validation.values_unique'
+                        defaultMessage='Values must be unique.'
+                    />
+                </DangerText>
             )}
         </>
     );
@@ -272,7 +274,10 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
         // delete button, and the chip + dropzone refs stay unset so
         // useBoardOptionDnd never wires up DnD for this option.
         return (
-            <ChipDropZone data-flip-key={option.id}>
+            <ChipDropZone
+                data-flip-key={option.id}
+                data-testid={`admin.board_attributes.row.option:${option.id}`}
+            >
                 <ChipShell
                     $invalid={false}
                     $readonly={true}
@@ -280,7 +285,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                 >
                     <span
                         className='property-option-chip-trigger'
-                        data-testid={`property-option-chip-${option.id || option.name}`}
+                        data-testid='admin.board_attributes.row.option.locked--text'
                     >
                         <ChipLabel>{option.name}</ChipLabel>
                     </span>
@@ -293,6 +298,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
         <ChipDropZone
             ref={setDropZoneElement}
             data-flip-key={option.id}
+            data-testid={`admin.board_attributes.row.option:${option.id}`}
         >
             <ChipShell
                 ref={setChipElement}
@@ -304,7 +310,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                         id: `${menuId}-button`,
                         class: 'property-option-chip-trigger',
                         children: <ChipLabel>{option.name}</ChipLabel>,
-                        dataTestId: `property-option-chip-${option.id || option.name}`,
+                        dataTestId: 'admin.board_attributes.row.option.edit--button',
                     }}
                     menu={{
                         id: `${menuId}-menu`,
@@ -318,6 +324,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                     <RenameInputWrapper>
                         <RenameInput
                             ref={inputRef}
+                            data-testid='board_attribute_option_menu.name--textbox'
                             value={editValue}
                             onChange={(e) => setEditValue(e.target.value)}
                             onFocus={(e) => e.target.select()}
@@ -332,7 +339,10 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                             aria-invalid={liveRenameTaken}
                         />
                         {liveRenameTaken && (
-                            <RenameError role='alert'>
+                            <RenameError
+                                role='alert'
+                                data-testid='board_attribute_option_menu.name_error--alert'
+                            >
                                 <FormattedMessage
                                     id='admin.board_attributes.values.rename_duplicate'
                                     defaultMessage='A value with this name already exists.'
@@ -343,6 +353,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                     {canDelete && (
                         <Menu.Item
                             id={`${menuId}-delete`}
+                            data-testid='board_attribute_option_menu.delete--menuitem'
                             onClick={handleDelete}
                             isDestructive={true}
                             leadingElement={<TrashCanOutlineIcon size={16}/>}
@@ -365,6 +376,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                         <Menu.Item
                             key={token}
                             id={`${menuId}-color-${token}`}
+                            data-testid={`board_attribute_option_menu.color:${token}--menuitemradio`}
                             role='menuitemradio'
                             aria-checked={color === token}
                             forceCloseOnSelect={false}
@@ -388,7 +400,7 @@ const EditableChip = ({option, options, setOptions, fieldId, readonly = false}: 
                             id: 'admin.board_attributes.values.delete_option',
                             defaultMessage: 'Delete option {name}',
                         }, {name: option.name})}
-                        data-testid={`property-option-delete-${option.id || option.name}`}
+                        data-testid='admin.board_attributes.row.option.delete--button'
                     >
                         <CloseCircleIcon
                             size={14}

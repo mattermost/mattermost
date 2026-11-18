@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
-import {fireEvent, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, waitFor, within} from 'tests/react_testing_utils';
 
 import ChannelList from './channel_list';
 
@@ -78,10 +78,10 @@ describe('components/admin_console/access_control/channel_list', () => {
         renderWithContext(<ChannelList {...props}/>);
 
         await waitFor(() => {
-            expect(screen.getByTestId('auto-add-header-checkbox')).toBeInTheDocument();
+            expect(screen.getByTestId(/\.auto_add_all--checkbox$/)).toBeInTheDocument();
         });
 
-        const headerCheckbox = screen.getByTestId('auto-add-header-checkbox');
+        const headerCheckbox = screen.getByTestId(/\.auto_add_all--checkbox$/);
         expect(headerCheckbox).toHaveAttribute('id', 'auto-add-header-checkbox');
         expect(headerCheckbox).toHaveAttribute('aria-checked', 'mixed');
         expect((headerCheckbox as HTMLInputElement).indeterminate).toBe(true);
@@ -97,16 +97,16 @@ describe('components/admin_console/access_control/channel_list', () => {
         renderWithContext(<ChannelList {...props}/>);
 
         await waitFor(() => {
-            expect(screen.getByTestId('auto-add-checkbox-channel1')).toBeInTheDocument();
+            expect(within(screen.getByTestId(/\.row:channel1--row$/)).getByTestId(/\.row\.auto_add--checkbox$/)).toBeInTheDocument();
         });
 
-        fireEvent.click(screen.getByTestId('auto-add-checkbox-channel1'));
+        fireEvent.click(within(screen.getByTestId(/\.row:channel1--row$/)).getByTestId(/\.row\.auto_add--checkbox$/));
         expect(mockOnPolicyActiveStatusChange).toHaveBeenCalledWith([
             {id: 'channel1', active: false},
         ]);
 
         mockOnPolicyActiveStatusChange.mockClear();
-        fireEvent.click(screen.getByTestId('auto-add-header-checkbox'));
+        fireEvent.click(screen.getByTestId(/\.auto_add_all--checkbox$/));
         expect(mockOnPolicyActiveStatusChange).toHaveBeenCalledWith([
             {id: 'channel1', active: true},
             {id: 'channel2', active: true},

@@ -552,6 +552,7 @@ function PolicyDetails({
                     <BlockableLink
                         to='/admin_console/system_attributes/membership_policies'
                         className='fa fa-angle-left back'
+                        data-testid='admin.access_control.policy.back--link'
                     />
                     <FormattedMessage
                         id='admin.access_control.policy.edit_policy.title'
@@ -564,6 +565,7 @@ function PolicyDetails({
                     <div className='admin-console__setting-group'>
                         <TextSetting
                             id='admin.access_control.policy.edit_policy.policyName'
+                            testIdScope='admin.access_control.policy.edit_policy.name'
                             label={
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.policyName'
@@ -641,6 +643,7 @@ function PolicyDetails({
                                 disabled={editorModeDisabled}
                                 emphasis='primary'
                                 onClick={() => setEditorMode(editorMode === 'table' ? 'cel' : 'table')}
+                                data-testid='admin.access_control.policy.switch_mode--button'
                             >
                                 <FormattedMessage
                                     {...(editorMode === 'table' ? panelMessages.switchToAdvanced : panelMessages.switchToSimple)}
@@ -662,7 +665,10 @@ function PolicyDetails({
                                 button={editorModeButton}
                             >
                                 {hasMaskedRows && (
-                                    <div className='admin-console__warning-notice EditPolicy__masked-values-warning'>
+                                    <div
+                                        className='admin-console__warning-notice EditPolicy__masked-values-warning'
+                                        data-testid='admin.access_control.policy.masked_values_warning'
+                                    >
                                         <SectionNotice
                                             type='warning'
                                             title={
@@ -680,6 +686,7 @@ function PolicyDetails({
                                 )}
                                 {editorMode === 'cel' ? (
                                     <CELEditor
+                                        testId='admin.access_control.policy.cel'
                                         value={expression}
                                         onChange={(value) => {
                                             setExpression(value);
@@ -696,6 +703,7 @@ function PolicyDetails({
                                     />
                                 ) : (
                                     <TableEditor
+                                        testId='admin.access_control.policy.rules'
                                         value={expression}
                                         onChange={(value) => {
                                             setExpression(value);
@@ -725,6 +733,7 @@ function PolicyDetails({
                             <Button
                                 emphasis='primary'
                                 onClick={() => setAddChannelOpen(true)}
+                                data-testid='admin.access_control.policy.add_channels--button'
                             >
                                 <FormattedMessage {...panelMessages.addChannels}/>
                             </Button>
@@ -767,6 +776,7 @@ function PolicyDetails({
                                 <Button
                                     emphasis='primary'
                                     disabled={hasAssignedResources() || hasMaskedRows}
+                                    data-testid='admin.access_control.policy.delete--button'
                                     onClick={() => {
                                         if (hasAssignedResources()) {
                                             return;
@@ -779,7 +789,10 @@ function PolicyDetails({
                             }
                         >
                             {hasMaskedRows && (
-                                <div className='admin-console__warning-notice EditPolicy__delete-masked-values-warning'>
+                                <div
+                                    className='admin-console__warning-notice EditPolicy__delete-masked-values-warning'
+                                    data-testid='admin.access_control.policy.delete_masked_values_warning'
+                                >
                                     <SectionNotice
                                         type='warning'
                                         title={
@@ -858,6 +871,7 @@ function PolicyDetails({
 
             {showDeleteConfirmationModal && (
                 <GenericModal
+                    testId='admin.access_control.policy.delete_modal'
                     onExited={() => setShowDeleteConfirmationModal(false)}
                     handleConfirm={handleDelete}
                     handleCancel={() => setShowDeleteConfirmationModal(false)}
@@ -887,6 +901,7 @@ function PolicyDetails({
 
             <div className='admin-console-save'>
                 <SaveButton
+                    testId='admin.save'
                     disabled={!saveNeeded}
                     saving={saving}
                     onClick={() => {
@@ -918,7 +933,10 @@ function PolicyDetails({
                     </BlockableLink>
                 </Button>
                 {serverError && (
-                    <span className='EditPolicy__error'>
+                    <span
+                        className='EditPolicy__error'
+                        data-testid='admin.access_control.policy.error--text'
+                    >
                         <i className='icon icon-alert-outline'/>
                         <FormattedMessage
                             id='admin.access_control.edit_policy.serverError'

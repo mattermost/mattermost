@@ -39,7 +39,7 @@ function AttributeAppliesToPostItem({disabled = false, lockedTooltip, onRemove}:
             aria-expanded={isOpen}
             aria-controls={BODY_ID}
             aria-label={toggleLabel}
-            data-testid='attributeAppliesToRow-post-toggle'
+            data-testid='admin.attribute.applies_to.post.toggle--button'
         >
             <ChevronDownIcon
                 size={16}
@@ -55,7 +55,7 @@ function AttributeAppliesToPostItem({disabled = false, lockedTooltip, onRemove}:
     return (
         <div
             className={classNames('AttributeAppliesToItem', {'AttributeAppliesToItem--open': isOpen})}
-            data-testid='attributeAppliesToRow-post'
+            data-testid='admin.attribute.applies_to.post'
         >
             <div className='AttributeAppliesToItem__header'>
                 {lockedTooltip ? (
@@ -63,7 +63,7 @@ function AttributeAppliesToPostItem({disabled = false, lockedTooltip, onRemove}:
                         <span
                             // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled toggle is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                             tabIndex={0}
-                            data-testid='attributeAppliesToRow-post-toggleLockWrap'
+                            data-testid='admin.attribute.applies_to.post.toggle_locked'
                         >
                             {toggleButton}
                         </span>
@@ -78,7 +78,7 @@ function AttributeAppliesToPostItem({disabled = false, lockedTooltip, onRemove}:
                         className='AttributeAppliesToItem__remove'
                         onClick={onRemove}
                         disabled={disabled}
-                        data-testid='attributeAppliesToRow-post-remove'
+                        data-testid='admin.attribute.applies_to.post.remove--button'
                     >
                         <FormattedMessage {...messages.removeLabel}/>
                     </Button>
@@ -90,7 +90,7 @@ function AttributeAppliesToPostItem({disabled = false, lockedTooltip, onRemove}:
                     role='region'
                     aria-label={label}
                     className='AttributeAppliesToItem__body'
-                    data-testid='attributeAppliesToRow-post-body'
+                    data-testid='admin.attribute.applies_to.post.body--region'
                 >
                     <div className='AttributeAppliesToItem__row'>
                         <span>

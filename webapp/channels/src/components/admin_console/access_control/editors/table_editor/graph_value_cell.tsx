@@ -56,7 +56,7 @@ export default function GraphValueCell({
             menuId={`value-selector-menu-${rowIndex}`}
             buttonId={`value-selector-button-${rowIndex}`}
             buttonDataTestId={testId ? `${testId}.value--button` : undefined}
-            testIdScope={testId ? `${testId}.value_menu` : undefined}
+            testIdScope={testId ? 'policy_rule_value_menu' : undefined}
             placeholder={placeholder}
             className='values-editor'
             trailingChips={row.hasMaskedValues ? <MaskedChip testId={testId ? `${testId}.masked` : undefined}/> : undefined}

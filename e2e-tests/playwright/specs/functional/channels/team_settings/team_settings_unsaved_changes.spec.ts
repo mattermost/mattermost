@@ -25,7 +25,6 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
 
         // # Try to close modal (first attempt)
         await settings.closeButton.click();
-
         // * Verify the unsaved changes warning appears with its Save button, and the modal stays open
         await expect(settings.savePanel.messageText).toHaveMessage(Msg.saveChangesPanel.message);
         await expect(settings.savePanel.messageText).toBeVisible();
@@ -34,7 +33,6 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
 
         // # Try to close modal again (second attempt - warn-once behavior)
         await settings.closeButton.click();
-
         // * Verify modal closes on second attempt
         await expect(settings).not.toBeVisible();
     });
@@ -105,7 +103,6 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
 
         // # Close modal immediately after save (should work without warning)
         await settings.closeButton.click();
-
         // * Verify modal closes without warning
         await expect(settings).not.toBeVisible();
     });

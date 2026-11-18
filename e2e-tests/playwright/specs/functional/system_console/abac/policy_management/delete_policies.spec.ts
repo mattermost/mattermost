@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
+import {expect, test, duration} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
-import {createPrivateChannelForABAC, createBasicPolicy, enableUserManagedAttributes} from '../support';
+import {createPrivateChannelForABAC, enableUserManagedAttributes} from '../support';
+import {createMembershipPolicy, fieldNamed, openMembershipPolicies, policyIdByName, setAbacEnabled} from '../surface';
 
 /**
  * ABAC Policy Management - Delete Policies
@@ -26,201 +27,73 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
      * - Policy NOT applied to any channels CAN be deleted
      */
     test('MM-T5793 Policy with channels cannot be deleted, policy without channels can be deleted', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
 
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
-
-        // Enable user-managed attributes
         await enableUserManagedAttributes(adminClient);
-
-        // Set up a basic attribute field
         const attributeFields: CustomProfileAttribute[] = [{name: 'Department', type: 'text', value: ''}];
-        await setupCustomProfileAttributeFields(adminClient, attributeFields);
+        const department = fieldNamed(
+            await setupCustomProfileAttributeFields(adminClient, attributeFields),
+            'Department',
+        );
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const page = systemConsolePage.page;
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
 
-        await navigateToABACPage(page);
-        await enableABAC(page);
-
-        // ===========================================
-        // Create two policies:
-        // 1. policyWithChannel - has a channel assigned
-        // 2. policyWithoutChannel - has NO channels assigned
-        // ===========================================
+        // # Create two policies: one with a channel assigned, one with none
         const uniqueId = pw.random.id();
         const policyWithChannelName = `ABAC-WithChannel-${uniqueId}`;
         const policyWithoutChannelName = `ABAC-NoChannel-${uniqueId}`;
 
-        // Create a channel for the first policy
         const team = (await adminClient.getMyTeams())[0];
         const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
 
-        // Create policy WITH channel
-        await createBasicPolicy(page, {
+        await createMembershipPolicy(app, {
             name: policyWithChannelName,
-            attribute: 'Department',
-            operator: '==',
-            value: 'Engineering',
-            autoSync: false,
-            channels: [privateChannel.display_name],
+            rules: [{field: department, value: 'Engineering'}],
+            channels: [privateChannel],
         });
 
-        // Navigate back to ABAC page
-        await navigateToABACPage(page);
-        await page.waitForTimeout(1000);
+        // Saved without channels, the editor goes straight back to the list (no apply dialog)
+        await createMembershipPolicy(app, {
+            name: policyWithoutChannelName,
+            cel: 'user.attributes.Department == "Sales"',
+        });
 
-        // Create policy WITHOUT channel using UI (Advanced mode)
-        // We'll create the policy, save it without channels, then remove channels via UI
+        const withChannelId = await policyIdByName(adminClient, policyWithChannelName);
+        const withoutChannelId = await policyIdByName(adminClient, policyWithoutChannelName);
 
-        // Click Add policy
-        const addPolicyButton = page.getByRole('button', {name: 'Add policy'});
-        await addPolicyButton.click();
-        await page.waitForLoadState('networkidle');
+        // # Steps 1-2: open the menu of the policy with a channel
+        const policies = await openMembershipPolicies(app);
+        await policies.searchTextbox.fill(policyWithChannelName);
+        const withChannel = policies.row(withChannelId);
+        await withChannel.openMenuButton.click();
+        const withChannelMenu = app.accessPolicyRowMenu;
 
-        // Fill policy name
-        const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
-        await nameInput.waitFor({state: 'visible', timeout: 10000});
-        await nameInput.fill(policyWithoutChannelName);
+        // * Delete is disabled
+        await expect(withChannelMenu.deleteMenuItem).toHaveAttribute('aria-disabled', 'true');
+        await app.page.keyboard.press('Escape');
+        await expect(withChannelMenu.deleteMenuItem).not.toBeVisible();
 
-        // Switch to Advanced mode to create minimal policy
-        const advancedModeButton = page.getByRole('button', {name: /advanced/i});
-        if (await advancedModeButton.isVisible({timeout: 2000})) {
-            await advancedModeButton.click();
-            await page.waitForTimeout(1000);
-        }
+        // # Steps 3-4: open the menu of the policy without channels
+        await policies.searchTextbox.fill(policyWithoutChannelName);
+        const withoutChannel = policies.row(withoutChannelId);
+        await withoutChannel.openMenuButton.click();
+        const withoutChannelMenu = app.accessPolicyRowMenu;
 
-        // Fill CEL expression in Monaco editor
-        const monacoContainer = page.locator('.monaco-editor').first();
-        await monacoContainer.waitFor({state: 'visible', timeout: 5000});
+        // * Delete is enabled
+        await expect(withoutChannelMenu.deleteMenuItem).not.toHaveAttribute('aria-disabled', 'true');
 
-        const editorLines = page.locator('.monaco-editor .view-lines').first();
-        await editorLines.click({force: true});
-        await page.waitForTimeout(300);
+        // # Delete it and confirm
+        await withoutChannelMenu.deleteMenuItem.click();
+        await expect(policies.deleteModal).toBeVisible();
+        await policies.deleteModal.confirmButton.click();
 
-        // Type a simple expression
-        const isMac = process.platform === 'darwin';
-        await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-        await page.waitForTimeout(100);
-        await page.keyboard.type('user.attributes.Department == "Sales"', {delay: 10});
-        await page.waitForTimeout(1000);
-
-        // Save policy WITHOUT assigning any channels
-        const saveButton = page.getByRole('button', {name: 'Save'});
-        await saveButton.click();
-
-        // The "Apply policy" modal should NOT appear since there are no channels
-        // The webapp will call handleSubmit() directly and navigate back automatically
-        // Wait for navigation to complete
-        await page.waitForURL('**/membership_policies', {timeout: 10000});
-        await page.waitForLoadState('networkidle');
-        await page.waitForTimeout(1500);
-
-        // ===========================================
-        // STEP 1-2: Verify Delete is DISABLED for policy WITH channel
-        // ===========================================
-
-        // Clear any existing search and verify both policies exist
-        const searchInput = page.locator('input[placeholder*="Search" i]').first();
-        await searchInput.waitFor({state: 'visible', timeout: 5000});
-        await searchInput.clear();
-        await page.waitForTimeout(500);
-
-        // Verify both policies are visible
-        await page.locator('.policy-name, tr.clickable').count();
-
-        // Now search for the policy with channel
-        await searchInput.fill(policyWithChannelName);
-        await page.waitForTimeout(1000);
-
-        // Find and click the three-dot menu for the policy with channel
-        const policyWithChannelRow = page
-            .locator('tr.clickable, .DataGrid_row')
-            .filter({hasText: policyWithChannelName})
-            .first();
-        await policyWithChannelRow.waitFor({state: 'visible', timeout: 10000});
-
-        const menuButtonWithChannel = policyWithChannelRow
-            .locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)')
-            .first();
-        await menuButtonWithChannel.click();
-        await page.waitForTimeout(500);
-
-        // Check if Delete is disabled
-        const deleteMenuItemWithChannel = page.getByRole('menuitem', {name: /delete/i});
-        const isDeleteDisabled = await deleteMenuItemWithChannel.isDisabled();
-
-        // Close the menu
-        await page.keyboard.press('Escape');
-        await page.waitForTimeout(300);
-
-        expect(isDeleteDisabled).toBe(true);
-
-        // ===========================================
-        // STEP 3-4: Verify Delete is ENABLED for policy WITHOUT channel and delete it
-        // ===========================================
-
-        // Clear search first to ensure we're seeing all policies
-        await searchInput.clear();
-        await page.waitForTimeout(500);
-
-        // Verify policy without channel exists in the list
-        const policyWithoutChannelExists = await page.locator('text=' + policyWithoutChannelName).count();
-
-        if (policyWithoutChannelExists === 0) {
-            // Try reloading if policy not visible
-            await page.reload();
-            await page.waitForLoadState('networkidle');
-            await page.waitForTimeout(1000);
-        }
-
-        // Now search for the policy without channel
-        await searchInput.fill(policyWithoutChannelName);
-        await page.waitForTimeout(1000);
-
-        // Find and click the three-dot menu for the policy without channel
-        const policyWithoutChannelRow = page
-            .locator('tr.clickable, .DataGrid_row')
-            .filter({hasText: policyWithoutChannelName})
-            .first();
-        await policyWithoutChannelRow.waitFor({state: 'visible', timeout: 10000});
-
-        const menuButtonWithoutChannel = policyWithoutChannelRow
-            .locator('button[id*="policy-menu"], button[aria-label*="menu" i], .menu-button, button:has(svg)')
-            .first();
-        await menuButtonWithoutChannel.click();
-        await page.waitForTimeout(500);
-
-        // Check if Delete is enabled
-        const deleteMenuItemWithoutChannel = page.getByRole('menuitem', {name: /delete/i});
-        const isDeleteEnabled = !(await deleteMenuItemWithoutChannel.isDisabled());
-
-        expect(isDeleteEnabled).toBe(true);
-
-        // Click Delete
-        await deleteMenuItemWithoutChannel.click();
-        await page.waitForTimeout(500);
-
-        // Handle confirmation modal if it appears
-        const confirmDeleteButton = page.getByRole('button', {name: /delete|confirm/i});
-        if (await confirmDeleteButton.isVisible({timeout: 2000})) {
-            await confirmDeleteButton.click();
-            await page.waitForTimeout(1000);
-        }
-
-        await page.waitForLoadState('networkidle');
-
-        // Verify the policy was deleted
-        await searchInput.clear();
-        await searchInput.fill(policyWithoutChannelName);
-        await page.waitForTimeout(1000);
-
-        const policyStillExists = await page
-            .locator('tr.clickable, .DataGrid_row')
-            .filter({hasText: policyWithoutChannelName})
-            .isVisible({timeout: 3000});
-        expect(policyStillExists).toBe(false);
+        // * The policy is gone
+        await expect(withoutChannel).toHaveCount(0);
+        await policies.searchTextbox.fill(policyWithChannelName);
+        await expect(withChannel).toBeVisible();
     });
 });

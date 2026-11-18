@@ -181,6 +181,7 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
         const item = (
             <Menu.Item
                 id={`attribute-external-source-${source}`}
+                data-testid={`admin.attribute.external_source.link_menu.source:${source}--menuitem`}
                 key={source}
                 leadingElement={<SyncIcon size={18}/>}
                 onClick={() => openLinkModal(source)}
@@ -206,7 +207,7 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
                 title={blockedTooltip}
                 isVertical={false}
             >
-                <div data-testid={`attributeExternalSourceBlocked-${source}`}>
+                <div data-testid={`admin.attribute.external_source.link_menu.blocked:${source}`}>
                     {item}
                 </div>
             </WithTooltip>
@@ -216,7 +217,7 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
     return (
         <div
             className='AttributeExternalSource'
-            data-testid='attributeExternalSource'
+            data-testid='admin.attribute.external_source'
         >
             {linkedSources.length === 0 && (
                 <Divider className='AttributeExternalSource__divider'/>
@@ -224,7 +225,7 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
             {linkedSources.length > 0 && (
                 <div
                     className='AttributeExternalSource__synced'
-                    data-testid='attributeExternalSourceSynced'
+                    data-testid='admin.attribute.external_source.synced'
                 >
                     <span className='AttributeExternalSource__syncedLabel'>
                         <FormattedMessage {...messages.syncedWith}/>
@@ -255,10 +256,11 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
                                 children: (
                                     <FormattedMessage {...messages.triggerLabel}/>
                                 ),
-                                dataTestId: 'attributeExternalSourceTrigger',
+                                dataTestId: 'admin.attribute.external_source.link--button',
                             }}
                             menu={{
                                 id: 'attribute-external-source-menu',
+                                testId: 'admin.attribute.external_source.link_menu',
                                 'aria-label': formatMessage(messages.triggerLabel),
                             }}
                         >
@@ -271,7 +273,7 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
                                 // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled trigger is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                                 tabIndex={0}
                                 className='AttributeExternalSource__triggerLockWrap'
-                                data-testid='attributeExternalSourceTriggerLockWrap'
+                                data-testid='admin.attribute.external_source.link_locked'
                             >
                                 {trigger}
                             </span>
@@ -282,7 +284,7 @@ function AttributeExternalSource({links, fieldType, onLink, disabled = false, di
             <span
                 role='status'
                 className='sr-only'
-                data-testid='attributeExternalSourceStatus'
+                data-testid='admin.attribute.external_source.status--status'
             >
                 {statusMessage}
             </span>
@@ -308,16 +310,19 @@ function ExternalSourceChip({source, value, onEdit, onRemove, disabled = false}:
     return (
         <span
             className='AttributeExternalSource__chip'
-            data-testid={`attributeExternalSourceChip-${source}`}
+            data-testid={`admin.attribute.external_source.source:${source}`}
         >
-            <SyncIcon size={16}/>
+            <SyncIcon
+                size={16}
+                data-testid='admin.attribute.external_source.source.icon'
+            />
             <span className='AttributeExternalSource__chipLabel'>
                 {formatMessage(messages.chipLabel, {source: sourceTitle, value})}
             </span>
             <button
                 type='button'
                 className='AttributeExternalSource__chipAction'
-                data-testid={`attributeExternalSourceChip-${source}-edit`}
+                data-testid='admin.attribute.external_source.source.edit--button'
                 onClick={onEdit}
                 disabled={disabled}
                 aria-label={editLabel}
@@ -327,7 +332,7 @@ function ExternalSourceChip({source, value, onEdit, onRemove, disabled = false}:
             <button
                 type='button'
                 className='AttributeExternalSource__chipAction'
-                data-testid={`attributeExternalSourceChip-${source}-remove`}
+                data-testid='admin.attribute.external_source.source.remove--button'
                 onClick={onRemove}
                 disabled={disabled}
                 aria-label={removeLabel}

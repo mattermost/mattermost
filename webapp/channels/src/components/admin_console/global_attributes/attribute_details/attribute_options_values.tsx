@@ -59,7 +59,7 @@ const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, rea
         return (
             <div
                 className='attribute-options-values attribute-options-values--readOnly'
-                data-testid='attributeOptionsValues'
+                data-testid='admin.attribute.values'
             >
                 {options.length > 0 && (
                     <ul
@@ -69,16 +69,13 @@ const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, rea
                             defaultMessage: 'Options',
                         })}
                     >
-                        {options.map((option) => (
+                        {options.map((option, index) => (
                             <li
                                 key={option.id || option.name}
                                 className='attribute-options-values__chip'
-                                data-testid='attributeOptionsValues__chip'
+                                data-testid={`admin.attribute.values.option:${index}`}
                             >
-                                <span
-                                    className='attribute-options-values__chip-label attribute-options-values__chip-label--static'
-                                    data-testid='attributeOptionsValues__chipLabel'
-                                >{option.name}</span>
+                                <span className='attribute-options-values__chip-label attribute-options-values__chip-label--static'>{option.name}</span>
                             </li>
                         ))}
                     </ul>
@@ -90,7 +87,7 @@ const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, rea
     return (
         <div
             className='attribute-options-values'
-            data-testid='attributeOptionsValues'
+            data-testid='admin.attribute.values'
         >
             {/* eslint-disable-next-line jsx-a11y/no-static-element-interactions -- mousedown only forwards focus to the keyboard-accessible add input */}
             <div
@@ -119,7 +116,7 @@ const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, rea
                         ref={addInputRef}
                         type='text'
                         className='attribute-options-values__add-input'
-                        data-testid='attributeOptionsValues__addInput'
+                        data-testid='admin.attribute.values.add--textbox'
                         value={query}
                         maxLength={maxOptionNameLength}
                         aria-label={placeholderText}
@@ -135,6 +132,7 @@ const AttributeOptionsValues = ({options, onOptionsChange, disabled = false, rea
                 <span
                     className='attribute-options-values__danger-text'
                     role='alert'
+                    data-testid='admin.attribute.values.unique_error--alert'
                 >
                     {formatMessage({
                         id: 'admin.global_attributes.attribute_details.options.values_unique',
@@ -199,7 +197,7 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
     return (
         <span
             className='attribute-options-values__chip'
-            data-testid='attributeOptionsValues__chip'
+            data-testid={`admin.attribute.values.option:${index}`}
         >
             <Menu.Container
                 menuButton={{
@@ -209,10 +207,10 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
                     children: (
                         <span
                             className='attribute-options-values__chip-label'
-                            data-testid='attributeOptionsValues__chipLabel'
+                            data-testid='admin.attribute.values.option.label--text'
                         >{option.name}</span>
                     ),
-                    dataTestId: chipId,
+                    dataTestId: 'admin.attribute.values.option.edit--button',
                 }}
                 menu={{
                     id: `${chipId}-popover`,
@@ -226,6 +224,7 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
                 <Menu.InputItem
                     key='label'
                     id={`${chipId}-label`}
+                    testId='admin.attribute.values.option_menu.label'
                     type='text'
                     customStyles={labelInputCustomStyles}
                     value={label}
@@ -281,7 +280,7 @@ const OptionChip = ({option, index, total, maxOptionNameLength, nameCollidesWith
             <button
                 type='button'
                 className='attribute-options-values__chip-remove'
-                data-testid={`${chipId}-remove`}
+                data-testid='admin.attribute.values.option.remove--button'
                 onClick={() => onRemove(index)}
                 aria-label={removeLabel}
                 disabled={disabled}

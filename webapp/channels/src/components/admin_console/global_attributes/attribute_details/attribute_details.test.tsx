@@ -94,40 +94,40 @@ describe('AttributeDetails', () => {
 
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
         renderComponent();
-        expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveTextContent('Unique name:');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('—');
+        expect(screen.getByTestId('admin.attribute.unique_name.caption--text')).toHaveTextContent('Unique name:');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('—');
     });
 
     it('updates the auto-slug caption live as the display name is typed', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
 
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute');
     });
 
     it('shows an inline error for an auto-slugged reserved word without clicking Edit, and disables Save', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'For');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'For');
 
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('for');
-        expect(screen.getByTestId('attributeUniqueNameError')).toHaveTextContent('reserved word');
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('for');
+        expect(screen.getByTestId('admin.attribute.unique_name.error--alert')).toHaveTextContent('reserved word');
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
     });
 
     it('disables Save while the display name is empty', () => {
         renderComponent();
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
     });
 
     it('reveals a focused editable Name input seeded with the current slug when Edit is clicked', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         expect(nameInput).toHaveValue('my_attribute');
         expect(nameInput).toHaveFocus();
     });
@@ -135,215 +135,215 @@ describe('AttributeDetails', () => {
     it('swaps the Edit link to Done while editing, and back to Edit (keeping the typed value) when Done is clicked', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Edit');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveTextContent('Edit');
 
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Done');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveTextContent('Done');
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'custom_name');
 
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Edit');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveTextContent('Edit');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('custom_name');
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
 
         // Re-opening Edit must not re-seed from the (now stale) auto-slug.
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        expect(screen.getByTestId('attributeNameInput')).toHaveValue('custom_name');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        expect(screen.getByTestId('admin.attribute.unique_name.input--textbox')).toHaveValue('custom_name');
     });
 
     it('keeps auto-derivation live if Done is clicked without changing the seeded value', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute');
 
         // Auto-derivation must still be live -- opening and closing Edit without
         // an actual change must not freeze the Name to the seeded snapshot.
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute_two');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' Two');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute_two');
     });
 
     it('exits edit mode on blur without pinning if the seeded value was not changed', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.display_name--textbox'));
 
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Edit');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveTextContent('Edit');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute');
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute_two');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' Two');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute_two');
     });
 
     it('commits a typed Name on blur and stops auto-derivation', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'custom_name');
-        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
+        await userEvent.click(screen.getByTestId('admin.attribute.display_name--textbox'));
 
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('custom_name');
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' Two');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('custom_name');
     });
 
     it('reverts to auto-derived mode if Done is clicked with an empty field on the very first edit', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        await userEvent.clear(screen.getByTestId('attributeNameInput'));
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        await userEvent.clear(screen.getByTestId('admin.attribute.unique_name.input--textbox'));
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute');
 
         // Auto-derivation should be live again -- further Display name edits update it.
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute_two');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' Two');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute_two');
     });
 
     it('restores the previously-committed Name if Done is clicked with an empty field on a later edit', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        await userEvent.clear(screen.getByTestId('attributeNameInput'));
-        await userEvent.type(screen.getByTestId('attributeNameInput'), 'custom_name');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        await userEvent.clear(screen.getByTestId('admin.attribute.unique_name.input--textbox'));
+        await userEvent.type(screen.getByTestId('admin.attribute.unique_name.input--textbox'), 'custom_name');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
         // Second edit session: clear it again and click Done.
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        await userEvent.clear(screen.getByTestId('attributeNameInput'));
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        await userEvent.clear(screen.getByTestId('admin.attribute.unique_name.input--textbox'));
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('custom_name');
 
         // Manual override must stay in effect -- further Display name edits do not overwrite it.
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' Two');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('custom_name');
     });
 
     it('shows an inline error for a charset-invalid or reserved-word Name after Edit, and disables Save', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'for');
 
         expect(screen.getByText(/reserved word/)).toBeInTheDocument();
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
     });
 
     it('refuses to commit an invalid Name via Done, Enter, or blur, keeping the editor open', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'for');
 
-        const doneLink = screen.getByTestId('attributeNameEditLink');
+        const doneLink = screen.getByTestId('admin.attribute.unique_name.edit--button');
         expect(doneLink).toHaveAttribute('aria-disabled', 'true');
         expect(doneLink).toHaveAttribute('aria-describedby', 'attribute-unique-name-error');
 
         await userEvent.click(doneLink);
-        expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
-        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Done');
+        expect(screen.getByTestId('admin.attribute.unique_name.input--textbox')).toHaveValue('for');
+        expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveTextContent('Done');
 
-        await userEvent.type(screen.getByTestId('attributeNameInput'), '{Enter}');
-        expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
-        expect(screen.getByTestId('attributeUniqueNameError')).toHaveTextContent('reserved word');
+        await userEvent.type(screen.getByTestId('admin.attribute.unique_name.input--textbox'), '{Enter}');
+        expect(screen.getByTestId('admin.attribute.unique_name.input--textbox')).toHaveValue('for');
+        expect(screen.getByTestId('admin.attribute.unique_name.error--alert')).toHaveTextContent('reserved word');
 
-        await userEvent.click(screen.getByTestId('attributeDisplayNameInput'));
-        expect(screen.getByTestId('attributeNameInput')).toHaveValue('for');
-        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Done');
+        await userEvent.click(screen.getByTestId('admin.attribute.display_name--textbox'));
+        expect(screen.getByTestId('admin.attribute.unique_name.input--textbox')).toHaveValue('for');
+        expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveTextContent('Done');
     });
 
     it('commits the Name once the invalid value is corrected', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'for');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        expect(screen.getByTestId('attributeNameInput')).toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        expect(screen.getByTestId('admin.attribute.unique_name.input--textbox')).toBeInTheDocument();
 
         await userEvent.type(nameInput, '_each');
 
-        const doneLink = screen.getByTestId('attributeNameEditLink');
+        const doneLink = screen.getByTestId('admin.attribute.unique_name.edit--button');
         expect(doneLink).not.toHaveAttribute('aria-disabled');
 
         await userEvent.click(doneLink);
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('for_each');
-        expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('for_each');
+        expect(screen.queryByTestId('admin.attribute.unique_name.error--alert')).not.toBeInTheDocument();
     });
 
     it('lets Done through on an emptied field even after an invalid value was typed, applying the usual revert', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'for');
         await userEvent.clear(nameInput);
 
         // An empty field has no validation error, so Done is live again -- this
         // is the escape hatch that keeps the blocked Done from being a trap.
-        const doneLink = screen.getByTestId('attributeNameEditLink');
+        const doneLink = screen.getByTestId('admin.attribute.unique_name.edit--button');
         expect(doneLink).not.toHaveAttribute('aria-disabled');
 
         await userEvent.click(doneLink);
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute');
     });
 
     it('lets Escape out of an edit session left in an invalid state', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'for{Escape}');
 
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
-        expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute');
+        expect(screen.queryByTestId('admin.attribute.unique_name.error--alert')).not.toBeInTheDocument();
     });
 
     it('opens the Type menu showing Text, Phone, URL, Select, Multiselect, and Ranked, with Text checked and Email hidden', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
 
         expect(screen.getByRole('menuitemradio', {name: 'Text'})).toHaveAttribute('aria-checked', 'true');
 
@@ -358,36 +358,36 @@ describe('AttributeDetails', () => {
     it('selecting Select from the Type menu updates the button label and swaps in the options chip editor', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
 
-        expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
-        expect(screen.getByTestId('attributeOptionsValues')).toBeInTheDocument();
-        expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Select');
+        expect(screen.getByTestId('admin.attribute.values')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.options.help--text')).not.toBeInTheDocument();
     });
 
     it('selecting Rank from the Type menu swaps in the rank chip editor', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: /Ranked/}));
 
-        expect(screen.getByTestId('attributeOptionsRankValues')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.ranks')).toBeInTheDocument();
     });
 
     it('selecting Phone or URL from the Type menu writes attrs.value_type on create and keeps the free-text options help', async () => {
         const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Work phone');
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Work phone');
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Phone'}));
 
-        expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Phone');
-        expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
-        expect(screen.queryByTestId('attributeOptionsValues')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Phone');
+        expect(screen.getByTestId('admin.attribute.options.help--text')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.values')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
         await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
         expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
             type: 'text',
@@ -399,10 +399,10 @@ describe('AttributeDetails', () => {
         const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Homepage');
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Homepage');
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'URL'}));
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
         expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
@@ -414,16 +414,16 @@ describe('AttributeDetails', () => {
     it('preserves already-entered options across a Select -> Text -> Select round-trip', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Engineering{Enter}');
         expect(screen.getByText('Engineering')).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Text'}));
-        expect(screen.queryByTestId('attributeOptionsValues')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.values')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
         expect(screen.getByText('Engineering')).toBeInTheDocument();
     });
@@ -431,66 +431,66 @@ describe('AttributeDetails', () => {
     it('assigns rank = index + 1 to every existing option when switching into Rank', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Low{Enter}');
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'High{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Low{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'High{Enter}');
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: /Ranked/}));
 
-        const chips = screen.getAllByTestId('attributeOptionsRankValues__chipLabel');
+        const chips = screen.getAllByTestId('admin.attribute.ranks.option.label--text');
         expect(chips.map((chip) => chip.textContent)).toEqual(['Low', 'High']);
-        expect(screen.getAllByTestId('rank-badge').map((badge) => badge.textContent)).toEqual(['1', '2']);
+        expect(screen.getAllByTestId('admin.attribute.ranks.option.badge--text').map((badge) => badge.textContent)).toEqual(['1', '2']);
     });
 
     it('disables Save with an inline "at least one option is required" message for an option-bearing type with no options', async () => {
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
 
-        expect(screen.getByTestId('attributeOptionsRequiredError')).toHaveTextContent('At least one option is required');
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.options.required--alert')).toHaveTextContent('At least one option is required');
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
-        expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
-        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Engineering{Enter}');
+        expect(screen.queryByTestId('admin.attribute.options.required--alert')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
     });
 
     it('typing an option without pressing Enter or Tab leaves Save disabled', async () => {
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
 
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering');
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Engineering');
 
-        expect(screen.getByTestId('attributeOptionsRequiredError')).toBeInTheDocument();
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
-        expect(screen.queryAllByTestId('attributeOptionsValues__chip')).toHaveLength(0);
+        expect(screen.getByTestId('admin.attribute.options.required--alert')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
+        expect(screen.queryAllByTestId(/^admin\.attribute\.values\.option:/)).toHaveLength(0);
     });
 
     it('a duplicate option name shows the inline uniqueness error and does not add a second chip', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Engineering{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Engineering{Enter}');
 
         expect(screen.getByText('Values must be unique.')).toBeInTheDocument();
-        expect(screen.getAllByTestId('attributeOptionsValues__chip')).toHaveLength(1);
+        expect(screen.getAllByTestId(/^admin\.attribute\.values\.option:/)).toHaveLength(1);
     });
 
     it('calls createAttributeField with the expected shape and navigates to the list on success', async () => {
         const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
 
@@ -511,10 +511,10 @@ describe('AttributeDetails', () => {
         }));
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
         resolveCreate({} as PropertyField);
         await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
@@ -524,12 +524,12 @@ describe('AttributeDetails', () => {
         const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Department');
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Department');
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
-        await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Engineering{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Sales{Enter}');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
         expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
@@ -547,12 +547,12 @@ describe('AttributeDetails', () => {
         const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
-        await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance');
+        await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: /Ranked/}));
-        await userEvent.type(screen.getByTestId('attributeOptionsRankValues__addInput'), 'Low{Enter}');
-        await userEvent.type(screen.getByTestId('attributeOptionsRankValues__addInput'), 'High{Enter}');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.ranks.add--textbox'), 'Low{Enter}');
+        await userEvent.type(screen.getByTestId('admin.attribute.ranks.add--textbox'), 'High{Enter}');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
         expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
@@ -580,7 +580,7 @@ describe('AttributeDetails', () => {
         it('is not offered without the PostAttributes feature flag', async () => {
             withState(mergeObjects(ALL_RESOURCES_STATE, {entities: {general: {config: {FeatureFlagPostAttributes: 'false'}}}}));
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
 
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Channels']);
         });
@@ -589,12 +589,12 @@ describe('AttributeDetails', () => {
         it('is offered with the PostAttributes feature flag, and adds a Posts row', async () => {
             withState({entities: {general: {config: {FeatureFlagPostAttributes: 'true'}}}});
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users', 'Posts']);
 
             await userEvent.click(screen.getByRole('menuitem', {name: 'Posts'}));
 
-            expect(await screen.findByTestId('attributeAppliesToRow-post')).toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attribute.applies_to.post')).toBeInTheDocument();
         });
     });
 
@@ -609,15 +609,15 @@ describe('AttributeDetails', () => {
         const template = {id: 'template_id_1234567890abcdef', name: 'my_attribute', type: 'text', target_type: 'system', target_id: ''} as PropertyField;
 
         const addChannels = async () => {
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: 'Channels'}));
-            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument());
+            await waitFor(() => expect(screen.getByTestId('admin.attribute.applies_to.channel')).toBeInTheDocument());
         };
 
         it('is not offered without the feature flag and an Enterprise Advanced licence', async () => {
             withoutChannelAttributes();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
 
             expect(screen.getAllByRole('menuitem').map((item) => item.textContent)).toEqual(['Users']);
         });
@@ -626,8 +626,8 @@ describe('AttributeDetails', () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(createPropertyField).toHaveBeenCalledTimes(1);
@@ -637,12 +637,12 @@ describe('AttributeDetails', () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addChannels();
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-            await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
-            await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
+            await userEvent.click(screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
@@ -660,9 +660,9 @@ describe('AttributeDetails', () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addChannels();
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
@@ -674,9 +674,9 @@ describe('AttributeDetails', () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addChannels();
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
@@ -692,13 +692,13 @@ describe('AttributeDetails', () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(template);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addChannels();
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-            await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-remove'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.remove--button'));
             await addChannels();
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
@@ -717,12 +717,12 @@ describe('AttributeDetails', () => {
         jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError(serverErrorId, message));
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         expect(await screen.findByText(new RegExp(expectedText, 'i'))).toBeInTheDocument();
         expect(mockHistoryPush).not.toHaveBeenCalled();
-        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
     });
 
     it('renders the server\'s own message for a name conflict, since it names the specific field and level', async () => {
@@ -732,98 +732,98 @@ describe('AttributeDetails', () => {
         );
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Classification');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Classification');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         expect(await screen.findByText(serverMessage)).toBeInTheDocument();
         expect(mockHistoryPush).not.toHaveBeenCalled();
-        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
     });
 
     it('renders the generic fallback for an unmapped or non-AppError failure and leaves the form usable', async () => {
         jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(new Error('network error'));
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
-        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
     });
 
     it('dispatches setNavigationBlocked(true) on display name edits', async () => {
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
         expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
     });
 
     it('shows a warning and disables Save when a non-empty Display name auto-slugs to nothing usable', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), '!!!');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), '!!!');
 
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('—');
-        expect(screen.getByTestId('attributeUniqueNameEmptyWarning')).toHaveTextContent("Couldn't generate a unique name");
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('—');
+        expect(screen.getByTestId('admin.attribute.unique_name.empty--alert')).toHaveTextContent("Couldn't generate a unique name");
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
     });
 
     it('pressing Enter in the manual Name input commits the value, same as clicking Done', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'custom_name{Enter}');
 
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('custom_name');
-        expect(screen.getByTestId('attributeNameEditLink')).toHaveTextContent('Edit');
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('custom_name');
+        expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveTextContent('Edit');
     });
 
     it('pressing Escape in the manual Name input discards the edit and exits edit mode', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        const nameInput = screen.getByTestId('attributeNameInput');
+        const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'discarded_name{Escape}');
 
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
 
         // Reverts to the auto-derived slug, since this was the first-ever edit session.
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('my_attribute');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('my_attribute');
     });
 
     it('pressing Escape after a manual name was already committed restores the committed value, not the auto-derived slug', async () => {
         renderComponent();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-        let nameInput = screen.getByTestId('attributeNameInput');
+        let nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'committed_name{Enter}');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('committed_name');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('committed_name');
 
         // Reopen the editor and change the value, then discard via Escape.
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        nameInput = screen.getByTestId('attributeNameInput');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'discarded_name{Escape}');
 
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
 
         // Restores the previously-committed manual name, not the auto-derived slug.
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('committed_name');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('committed_name');
 
         // Still manually edited: a further Display name change must not
         // silently re-derive the Name back from it.
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Extra');
-        expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('committed_name');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' Extra');
+        expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('committed_name');
     });
 
     it('disables the Display name input and Edit link while saving', async () => {
@@ -833,14 +833,14 @@ describe('AttributeDetails', () => {
         }));
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         // Clicking Save blurs the Name input first, which commits like Done.
-        expect(screen.getByTestId('attributeDisplayNameInput')).toBeDisabled();
-        expect(screen.queryByTestId('attributeNameInput')).not.toBeInTheDocument();
-        expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.display_name--textbox')).toBeDisabled();
+        expect(screen.queryByTestId('admin.attribute.unique_name.input--textbox')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toBeDisabled();
 
         resolveCreate({} as PropertyField);
         await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
@@ -854,8 +854,8 @@ describe('AttributeDetails', () => {
         jest.spyOn(Client4, 'createPropertyField').mockReturnValue(createPromise);
 
         const {unmount} = renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         unmount();
         resolveCreate({} as PropertyField);
@@ -873,12 +873,12 @@ describe('AttributeDetails', () => {
         jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error', 'An attribute with this name already exists.'));
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
 
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Two');
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' Two');
 
         expect(screen.queryByText(/already exists/i)).not.toBeInTheDocument();
     });
@@ -887,20 +887,20 @@ describe('AttributeDetails', () => {
         jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error', 'An attribute with this name already exists.'));
 
         renderComponent();
-        await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-        await userEvent.type(screen.getByTestId('attributeNameInput'), '2');
+        await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+        await userEvent.type(screen.getByTestId('admin.attribute.unique_name.input--textbox'), '2');
 
         expect(screen.queryByText(/already exists/i)).not.toBeInTheDocument();
     });
 
     it('exposes the unique name caption as a live region so the auto-slug is announced as it changes', () => {
         renderComponent();
-        expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveAttribute('aria-live', 'polite');
+        expect(screen.getByTestId('admin.attribute.unique_name.caption--text')).toHaveAttribute('aria-live', 'polite');
     });
 
     describe('external source linking', () => {
@@ -911,7 +911,7 @@ describe('AttributeDetails', () => {
         // link/edit action in the same test can open a new modal while the
         // first is still mid-exit, racing react-overlays' focus trap.
         const linkViaMenu = async (sourceNameRegex: RegExp, value: string) => {
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: sourceNameRegex}));
             await userEvent.type(await screen.findByPlaceholderText('department'), value);
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -919,33 +919,33 @@ describe('AttributeDetails', () => {
         };
 
         const addResourceAndExpand = async (label: string, type: string) => {
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: label}));
-            await waitFor(() => expect(screen.getByTestId(`attributeAppliesToRow-${type}`)).toBeInTheDocument());
-            await userEvent.click(screen.getByTestId(`attributeAppliesToRow-${type}-toggle`));
+            await waitFor(() => expect(screen.getByTestId(`admin.attribute.applies_to.${type}`)).toBeInTheDocument());
+            await userEvent.click(screen.getByTestId(`admin.attribute.applies_to.${type}.toggle--button`));
         };
 
         it('names the linked source as the Users resource\'s Managed-by value, and drops the row once the link is removed', async () => {
             renderComponent();
             await addResourceAndExpand('Users', 'user');
 
-            expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.applies_to.user.managed_by--button')).not.toBeInTheDocument();
 
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
 
-            const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
+            const managedBy = screen.getByTestId('admin.attribute.applies_to.user.managed_by--button');
             expect(managedBy).toHaveTextContent('AD/LDAP');
             expect(screen.getByText('Not editable in Mattermost.')).toBeInTheDocument();
 
             // Compared against the Definition block's chip rather than a hard-coded
             // path, so the two glyphs cannot drift apart unnoticed.
-            const chipIcon = screen.getByTestId('attributeExternalSourceChip-ldap').querySelector('svg path');
+            const chipIcon = screen.getByTestId('admin.attribute.external_source.source:ldap').querySelector('svg path');
             expect(chipIcon).not.toBeNull();
             expect(managedBy.querySelector('svg path')).toHaveAttribute('d', chipIcon!.getAttribute('d'));
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+            await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.remove--button'));
 
-            expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.applies_to.user.managed_by--button')).not.toBeInTheDocument();
             expect(screen.queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
         });
 
@@ -954,11 +954,11 @@ describe('AttributeDetails', () => {
             await addResourceAndExpand('Users', 'user');
             await linkViaMenu(/^SAML/, 'position');
 
-            const managedBy = screen.getByTestId('attributeAppliesToUserManagedBy');
+            const managedBy = screen.getByTestId('admin.attribute.applies_to.user.managed_by--button');
             expect(managedBy).toHaveTextContent('SAML');
             expect(managedBy).not.toHaveTextContent('AD/LDAP');
 
-            const chipIcon = screen.getByTestId('attributeExternalSourceChip-saml').querySelector('svg path');
+            const chipIcon = screen.getByTestId('admin.attribute.external_source.source:saml').querySelector('svg path');
             expect(chipIcon).not.toBeNull();
             expect(managedBy.querySelector('svg path')).toHaveAttribute('d', chipIcon!.getAttribute('d'));
         });
@@ -969,11 +969,11 @@ describe('AttributeDetails', () => {
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
             await linkViaMenu(/^SAML/, 'position');
 
-            expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('AD/LDAP');
+            expect(screen.getByTestId('admin.attribute.applies_to.user.managed_by--button')).toHaveTextContent('AD/LDAP');
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+            await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.remove--button'));
 
-            expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('SAML');
+            expect(screen.getByTestId('admin.attribute.applies_to.user.managed_by--button')).toHaveTextContent('SAML');
         });
 
         it('reports the source on the Users card alone, leaving the Channels and Posts cards unmarked', async () => {
@@ -983,92 +983,92 @@ describe('AttributeDetails', () => {
             await addResourceAndExpand('Channels', 'channel');
             await addResourceAndExpand('Posts', 'post');
 
-            expect(within(screen.getByTestId('attributeAppliesToRow-user-body')).getByTestId('attributeAppliesToUserManagedBy')).toBeInTheDocument();
-            expect(within(screen.getByTestId('attributeAppliesToRow-channel-body')).queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
-            expect(within(screen.getByTestId('attributeAppliesToRow-post-body')).queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.attribute.applies_to.user.body--region')).getByTestId('admin.attribute.applies_to.user.managed_by--button')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.attribute.applies_to.channel.body--region')).queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.attribute.applies_to.post.body--region')).queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
             expect(screen.getAllByText('Not editable in Mattermost.')).toHaveLength(1);
         });
 
         it('linking a source keeps a type the source can populate, and hands its options to the sync', async () => {
             renderComponent();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-            expect(screen.getByTestId('attributeOptionsValues__addInput')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.values.add--textbox')).toBeInTheDocument();
             mockSetNavigationBlocked.mockClear();
 
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
-            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName('Type: Select. Locked while linked to an external source.');
-            expect(screen.getByTestId('attributeExternalSourceSynced')).toHaveTextContent(/^Synced with/);
-            expect(screen.getByTestId('attributeOptionsSyncedHelp')).toHaveTextContent('Options are managed by the AD/LDAP sync.');
-            expect(screen.queryByTestId('attributeOptionsValues__addInput')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Select');
+            expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName('Type: Select. Locked while linked to an external source.');
+            expect(screen.getByTestId('admin.attribute.external_source.synced')).toHaveTextContent(/^Synced with/);
+            expect(screen.getByTestId('admin.attribute.options.synced_help--text')).toHaveTextContent('Options are managed by the AD/LDAP sync.');
+            expect(screen.queryByTestId('admin.attribute.values.add--textbox')).not.toBeInTheDocument();
 
             // The sync provisions the options, so an empty list does not block Save.
-            expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.options.required--alert')).not.toBeInTheDocument();
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
         });
 
         it('holds Save on a synced Select until it applies to Users, whose sync provides its options', async () => {
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Department');
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Department');
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
             await linkViaMenu(/AD\/LDAP/, 'department');
 
-            expect(screen.getByTestId('attributeOptionsNeedUsersError')).toHaveTextContent('Add Users under Applies to. The AD/LDAP sync creates these options from the values it syncs to users.');
-            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.options.need_users--alert')).toHaveTextContent('Add Users under Applies to. The AD/LDAP sync creates these options from the values it syncs to users.');
+            expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
             await addResourceAndExpand('Users', 'user');
 
-            expect(screen.queryByTestId('attributeOptionsNeedUsersError')).not.toBeInTheDocument();
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.queryByTestId('admin.attribute.options.need_users--alert')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
         });
 
         it('keeps Multiselect when a source is linked, naming SAML as the owner of its options', async () => {
             renderComponent();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Multiselect'}));
             await linkViaMenu(/^SAML/, 'memberOf');
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Multiselect');
-            expect(screen.getByTestId('attributeOptionsSyncedHelp')).toHaveTextContent('Options are managed by the SAML sync.');
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Multiselect');
+            expect(screen.getByTestId('admin.attribute.options.synced_help--text')).toHaveTextContent('Options are managed by the SAML sync.');
         });
 
         it('linking a source converts a type it cannot populate to Text and marks the page dirty', async () => {
             renderComponent();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Ranked'}));
             mockSetNavigationBlocked.mockClear();
 
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
-            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
-            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('attributeOptionsSyncedHelp')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Text');
+            expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
+            expect(screen.queryByTestId('admin.attribute.options.help--text')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.options.synced_help--text')).not.toBeInTheDocument();
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
         });
 
         it('warns in the link modal only for a type the source cannot populate', async () => {
             renderComponent();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: /AD\/LDAP/}));
             await screen.findByPlaceholderText('department');
             expect(screen.queryByText(/will be converted to a TEXT attribute/)).not.toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
             await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Ranked'}));
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: /AD\/LDAP/}));
             await screen.findByPlaceholderText('department');
             expect(screen.getByText(/will be converted to a TEXT attribute/)).toBeInTheDocument();
@@ -1080,45 +1080,45 @@ describe('AttributeDetails', () => {
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
             await linkViaMenu(/^SAML/, 'position');
 
-            expect(screen.getByTestId('attributeExternalSourceChip-ldap')).toBeInTheDocument();
-            expect(screen.getByTestId('attributeExternalSourceChip-saml')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.external_source.source:ldap')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.external_source.source:saml')).toBeInTheDocument();
         });
 
         it('disables the Type menu while a source is linked, and re-enables it after the last chip is removed', async () => {
             renderComponent();
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
-            expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.options.help--text')).toBeInTheDocument();
 
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
-            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Text');
-            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Text');
+            expect(screen.queryByTestId('admin.attribute.options.help--text')).not.toBeInTheDocument();
 
             await linkViaMenu(/^SAML/, 'position');
-            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
 
             // Removing one of two links must keep Type locked
-            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
-            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+            await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.remove--button'));
+            expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-saml-remove'));
-            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
-            expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
-            expect(screen.queryByTestId('attributeExternalSourceSynced')).not.toBeInTheDocument();
+            await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:saml')).getByTestId('admin.attribute.external_source.source.remove--button'));
+            expect(screen.getByTestId('admin.attribute.type--button')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.options.help--text')).toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.external_source.synced')).not.toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Select');
         });
 
         it('shows a dedicated tooltip for the external-source type lock, not the accessible name', async () => {
             renderComponent();
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName('Type: Text. Locked while linked to an external source.');
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName('Type: Text. Locked while linked to an external source.');
 
-            await userEvent.hover(screen.getByTestId('attributeTypeLockWrap'));
+            await userEvent.hover(screen.getByTestId('admin.attribute.type_locked'));
             const tooltip = await screen.findByRole('tooltip', {}, {timeout: 1000});
             expect(tooltip).toHaveTextContent('Type cannot be changed while this attribute is linked to an external source.');
             expect(tooltip).not.toHaveTextContent('Type: Text.');
@@ -1130,7 +1130,7 @@ describe('AttributeDetails', () => {
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
             mockSetNavigationBlocked.mockClear();
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-edit'));
+            await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.edit--button'));
             await screen.findByPlaceholderText('department');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
             await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
@@ -1153,11 +1153,11 @@ describe('AttributeDetails', () => {
                     },
                 }),
             );
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Country');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Country');
 
             await linkViaMenu(/^OpenID Connect/, 'address.country');
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             const attrs = createPropertyField.mock.calls[0][2].attrs as Record<string, unknown>;
@@ -1170,11 +1170,11 @@ describe('AttributeDetails', () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
 
             await linkViaMenu(/AD\/LDAP/, 'employeeID');
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(createPropertyField).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({
@@ -1187,7 +1187,7 @@ describe('AttributeDetails', () => {
 
     describe('hierarchical type', () => {
         function getGraphRow(optionName: string, parentName = '') {
-            const row = screen.getAllByTestId('attributeOptionsGraphRow').find(
+            const row = screen.getAllByTestId(/^admin\.attribute\.graph\.row:/).find(
                 (el) => el.getAttribute('data-option-name') === optionName && el.getAttribute('data-parent-name') === parentName,
             );
             if (!row) {
@@ -1198,7 +1198,7 @@ describe('AttributeDetails', () => {
 
         it('hides Hierarchical in the type menu when PropertyFieldGraph is off', async () => {
             renderComponent(false);
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             expect(screen.queryByRole('menuitemradio', {name: 'Hierarchical'})).not.toBeInTheDocument();
             for (const label of ['Text', 'Phone', 'URL', 'Select', 'Multiselect', 'Ranked']) {
                 expect(screen.getByRole('menuitemradio', {name: new RegExp(`^${label}$`)})).toBeInTheDocument();
@@ -1207,21 +1207,21 @@ describe('AttributeDetails', () => {
 
         it('shows Hierarchical in the type menu when PropertyFieldGraph is on', async () => {
             renderComponent(true);
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             expect(screen.getByRole('menuitemradio', {name: 'Hierarchical'})).toBeInTheDocument();
         });
 
         it('selecting Hierarchical shows the empty graph canvas, hides External source, and does not show optionsRequired', async () => {
             renderComponent(true);
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
-            expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
-            expect(screen.queryByTestId('attributeOptionsValues')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('attributeOptionsHelp')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Hierarchical');
+            expect(screen.getByTestId('admin.attribute.graph.empty')).toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.values')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.options.help--text')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.external_source')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.options.required--alert')).not.toBeInTheDocument();
             expect(screen.queryByText('At least one option is required')).not.toBeInTheDocument();
             expect(screen.queryByText('List settings')).not.toBeInTheDocument();
         });
@@ -1229,48 +1229,48 @@ describe('AttributeDetails', () => {
         it('clears select options when switching to Hierarchical, and clears graph options when switching away', async () => {
             renderComponent(true);
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
+            await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Engineering{Enter}');
             expect(screen.getByText('Engineering')).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
             expect(screen.queryByText('Engineering')).not.toBeInTheDocument();
-            expect(screen.getByTestId('attributeOptionsGraphEmpty')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.graph.empty')).toBeInTheDocument();
 
-            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
-            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
-            expect(screen.queryByTestId('attributeOptionsGraphEmpty')).not.toBeInTheDocument();
+            await userEvent.type(screen.getByTestId('admin.attribute.graph.empty.name--textbox'), 'Root');
+            await userEvent.click(screen.getByTestId('admin.attribute.graph.empty.add--button'));
+            expect(screen.queryByTestId('admin.attribute.graph.empty')).not.toBeInTheDocument();
             expect(screen.getByText('Root')).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
             expect(screen.queryByText('Root')).not.toBeInTheDocument();
-            expect(screen.queryAllByTestId('attributeOptionsValues__chip')).toHaveLength(0);
+            expect(screen.queryAllByTestId(/^admin\.attribute\.values\.option:/)).toHaveLength(0);
         });
 
         it('disables Save at 0 graph options with no extra copy, and enables Save after the first value', async () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
             renderComponent(true);
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
 
-            expect(screen.getByTestId('saveSetting')).toBeDisabled();
-            expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.save--button')).toBeDisabled();
+            expect(screen.queryByTestId('admin.attribute.options.required--alert')).not.toBeInTheDocument();
             expect(screen.queryByText('At least one option is required')).not.toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             expect(createPropertyField).not.toHaveBeenCalled();
             expect(mockHistoryPush).not.toHaveBeenCalled();
 
-            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
-            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            await userEvent.type(screen.getByTestId('admin.attribute.graph.empty.name--textbox'), 'Root');
+            await userEvent.click(screen.getByTestId('admin.attribute.graph.empty.add--button'));
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
             expect(createPropertyField).not.toHaveBeenCalled();
         });
 
@@ -1278,18 +1278,18 @@ describe('AttributeDetails', () => {
             const createPropertyField = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({} as PropertyField);
 
             renderComponent(true);
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Org chart');
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Org chart');
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Hierarchical'}));
 
-            await userEvent.type(screen.getByTestId('attributeOptionsGraphEmpty__nameInput'), 'Root');
-            await userEvent.click(screen.getByTestId('attributeOptionsGraphEmpty__addButton'));
+            await userEvent.type(screen.getByTestId('admin.attribute.graph.empty.name--textbox'), 'Root');
+            await userEvent.click(screen.getByTestId('admin.attribute.graph.empty.add--button'));
 
-            await userEvent.click(within(getGraphRow('Root')).getByTestId('attributeOptionsGraphRow__addChild'));
-            await userEvent.type(await screen.findByTestId('attributeOptionsGraphRow__childNameInput'), 'Child');
-            await userEvent.click(screen.getByTestId('attributeOptionsGraphRow__childAddButton'));
+            await userEvent.click(within(getGraphRow('Root')).getByTestId('admin.attribute.graph.row.add_child--button'));
+            await userEvent.type(await screen.findByTestId('admin.attribute.graph.child_draft.name--textbox'), 'Child');
+            await userEvent.click(screen.getByTestId('admin.attribute.graph.child_draft.add--button'));
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
 
@@ -1319,9 +1319,9 @@ describe('AttributeDetails', () => {
         // close transition (menu_item.tsx), so callers must await the row
         // actually appearing rather than asserting immediately after the click.
         const addResource = async (label: string, resourceType: string) => {
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: label}));
-            await waitFor(() => expect(screen.getByTestId(`attributeAppliesToRow-${resourceType}`)).toBeInTheDocument());
+            await waitFor(() => expect(screen.getByTestId(`admin.attribute.applies_to.${resourceType}`)).toBeInTheDocument());
         };
 
         it('creates one linked field per selected resource, in selection order, with linked_field_id and attrs populated', async () => {
@@ -1331,10 +1331,10 @@ describe('AttributeDetails', () => {
                 mockResolvedValueOnce({id: 'channel-field-id'} as PropertyField);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
             await addResource('Channels', 'channel');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
@@ -1362,11 +1362,11 @@ describe('AttributeDetails', () => {
                 mockResolvedValueOnce({id: 'user-field-id'} as PropertyField);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Work phone');
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Work phone');
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Phone'}));
             await addResource('Users', 'user');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(createPropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'template', expect.objectContaining({
@@ -1386,13 +1386,13 @@ describe('AttributeDetails', () => {
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField');
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.profile_display:always--togglebutton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(createPropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'user', expect.objectContaining({
@@ -1415,10 +1415,10 @@ describe('AttributeDetails', () => {
             // so if appliesTo were missing from the dependency array,
             // handleSave would still close over the empty array it captured
             // on an earlier render.
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
             await addResource('Channels', 'channel');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(createPropertyField).toHaveBeenCalledTimes(3);
@@ -1432,17 +1432,17 @@ describe('AttributeDetails', () => {
                 mockRejectedValueOnce(new Error('boom'));
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
             await addResource('Channels', 'channel');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field-id'));
             await waitFor(() => expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id'));
 
-            expect(await screen.findByTestId('attributeSaveError')).toHaveTextContent('Channels');
+            expect(await screen.findByTestId('admin.attribute.save_error--alert')).toHaveTextContent('Channels');
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
         });
 
         it('continues rolling back every linked field even if one delete fails, skips the template delete, and names the survivor', async () => {
@@ -1456,22 +1456,22 @@ describe('AttributeDetails', () => {
                 mockRejectedValueOnce(new Error('boom'));
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
             await addResource('Channels', 'channel');
             await addResource('Posts', 'post');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(deletePropertyField).toHaveBeenCalledTimes(2));
             expect(deletePropertyField).toHaveBeenNthCalledWith(1, 'access_control', 'user', 'user-field-id');
             expect(deletePropertyField).toHaveBeenNthCalledWith(2, 'access_control', 'channel', 'channel-field-id');
             expect(deletePropertyField).not.toHaveBeenCalledWith('access_control', 'template', 'template-id');
 
-            const banner = await screen.findByTestId('attributeSaveError');
+            const banner = await screen.findByTestId('admin.attribute.save_error--alert');
             expect(banner).toHaveTextContent('My Attribute');
             expect(banner).toHaveTextContent('Users');
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
         });
 
         it.each([
@@ -1485,13 +1485,13 @@ describe('AttributeDetails', () => {
                 mockRejectedValueOnce(makeClientError(serverErrorId, 'server message'));
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             expect(await screen.findByText(expectedText)).toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
 
             // Rollback still runs even when the very first linked-field
             // create is the one that fails (createdLinkedFields is empty,
@@ -1507,11 +1507,11 @@ describe('AttributeDetails', () => {
                 mockRejectedValueOnce(makeClientError('app.property_field.create.name_conflict.app_error', 'server message'));
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Channels', 'channel');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
-            const banner = await screen.findByTestId('attributeSaveError');
+            const banner = await screen.findByTestId('admin.attribute.save_error--alert');
             expect(banner).toHaveTextContent('Channels');
             expect(banner).toHaveTextContent('Nothing was saved');
             expect(banner).not.toHaveTextContent('User Attribute');
@@ -1526,26 +1526,26 @@ describe('AttributeDetails', () => {
                 mockRejectedValueOnce(new Error('boom'));
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Channels', 'channel');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
-            const banner = await screen.findByTestId('attributeSaveError');
+            const banner = await screen.findByTestId('admin.attribute.save_error--alert');
             expect(banner).toHaveTextContent('My Attribute');
             expect(banner).toHaveTextContent('could not be cleaned up');
             expect(banner).not.toHaveTextContent('Nothing was saved');
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
         });
 
         it('leaves Save enabled with zero Applies-to resources selected (unchanged from current behavior)', async () => {
             jest.spyOn(Client4, 'createPropertyField').mockResolvedValue({id: 'template-id'} as PropertyField);
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
         });
 
@@ -1553,20 +1553,20 @@ describe('AttributeDetails', () => {
             renderComponent();
             await addResource('Users', 'user');
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
-            expect(screen.queryByTestId('attributeTypeLockWrap')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).not.toBeDisabled();
+            expect(screen.queryByTestId('admin.attribute.type_locked')).not.toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Select');
         });
 
         it('calls markDirty (navigation-blocked, error cleared) when a resource is added', async () => {
             jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error', 'already exists'));
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
 
             mockSetNavigationBlocked.mockClear();
@@ -1580,14 +1580,14 @@ describe('AttributeDetails', () => {
             jest.spyOn(Client4, 'createPropertyField').mockRejectedValue(makeClientError('app.property_field.create.name_conflict.app_error', 'already exists'));
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             expect(await screen.findByText(/already exists/i)).toBeInTheDocument();
 
             mockSetNavigationBlocked.mockClear();
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
 
             expect(mockSetNavigationBlocked).toHaveBeenCalledWith(true);
             expect(screen.queryByText(/already exists/i)).not.toBeInTheDocument();
@@ -1597,10 +1597,10 @@ describe('AttributeDetails', () => {
             renderComponent();
             await addResource('Users', 'user');
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
 
-            await waitFor(() => expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toHaveFocus());
+            await waitFor(() => expect(screen.getByTestId('admin.attribute.applies_to.add--button')).toHaveFocus());
         });
 
         it('moves focus to the just-added row after adding the 3rd (last) resource, since both triggers unmount in that same render', async () => {
@@ -1609,9 +1609,9 @@ describe('AttributeDetails', () => {
             await addResource('Channels', 'channel');
             await addResource('Posts', 'post');
 
-            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
-            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-post-toggle')).toHaveFocus());
+            expect(screen.queryByTestId('admin.attribute.applies_to.add--button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.applies_to.add_inline--button')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId('admin.attribute.applies_to.post.toggle--button')).toHaveFocus());
         });
 
         it('does not skip the linked-field loop or rollback when unmounted mid-save, on a failing save', async () => {
@@ -1625,10 +1625,10 @@ describe('AttributeDetails', () => {
                 mockRejectedValueOnce(new Error('boom'));
 
             const {unmount} = renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
             await addResource('Channels', 'channel');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             // Unmount while the first linked-field create is still pending --
             // the rest of the sequence (this create resolving, the second
@@ -1658,9 +1658,9 @@ describe('AttributeDetails', () => {
                 mockReturnValueOnce(userCreatePromise);
 
             const {unmount} = renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'My Attribute');
             await addResource('Users', 'user');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             unmount();
             resolveUserCreate({id: 'user-field-id'} as PropertyField);
@@ -1760,9 +1760,9 @@ describe('AttributeDetails', () => {
             );
 
             await renderCreate();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance');
 
-            const warning = await screen.findByTestId('attributeNameConflictWarning');
+            const warning = await screen.findByTestId('admin.attribute.unique_name.conflict--status');
             expect(warning).toHaveTextContent('Another attribute already uses this name.');
 
             // An exact match is the case the server rejects, so the notice reads
@@ -1793,11 +1793,11 @@ describe('AttributeDetails', () => {
             });
 
             renderComponent();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
-            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance');
+            expect(screen.queryByTestId('admin.attribute.unique_name.conflict--status')).not.toBeInTheDocument();
 
             resolveUserFields([makeUserField('clearance')]);
-            expect(await screen.findByTestId('attributeNameConflictWarning')).toBeVisible();
+            expect(await screen.findByTestId('admin.attribute.unique_name.conflict--status')).toBeVisible();
         });
 
         it('shows no warning for a name no user field holds, and clears it again when a conflicting name is changed', async () => {
@@ -1805,41 +1805,41 @@ describe('AttributeDetails', () => {
 
             await renderCreate();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Cost Centre');
-            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Cost Centre');
+            expect(screen.queryByTestId('admin.attribute.unique_name.conflict--status')).not.toBeInTheDocument();
 
-            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
-            expect(await screen.findByTestId('attributeNameConflictWarning')).toBeVisible();
+            await userEvent.clear(screen.getByTestId('admin.attribute.display_name--textbox'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance');
+            expect(await screen.findByTestId('admin.attribute.unique_name.conflict--status')).toBeVisible();
 
             // The warning tracks the name currently in the form, rather than
             // latching on the first collision seen.
-            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance Level');
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance_level');
-            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+            await userEvent.clear(screen.getByTestId('admin.attribute.display_name--textbox'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance Level');
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('clearance_level');
+            expect(screen.queryByTestId('admin.attribute.unique_name.conflict--status')).not.toBeInTheDocument();
         });
 
         it('warns on a case-only difference but leaves Users addable, since only an exact match collides on the server', async () => {
             mockConflictFields([makeUserField('clearance')]);
 
             await renderCreate();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance Level');
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-            const nameInput = screen.getByTestId('attributeNameInput');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance Level');
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+            const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
             await userEvent.clear(nameInput);
             await userEvent.type(nameInput, 'Clearance');
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('Clearance');
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('Clearance');
 
-            const warning = await screen.findByTestId('attributeNameConflictWarning');
+            const warning = await screen.findByTestId('admin.attribute.unique_name.conflict--status');
             expect(warning).toHaveTextContent('Another attribute already uses this name.');
 
             // A case-only match does not collide on the server, so the notice
             // reads as a warning rather than a danger and Users stays addable.
             expect(warning.querySelector('[class*="section-notice--type-warning"]')).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             const users = screen.getByRole('menuitem', {name: /^Users/});
             expect(users).not.toHaveAttribute('aria-disabled', 'true');
             expect(users).not.toHaveTextContent('Name already in use');
@@ -1849,10 +1849,10 @@ describe('AttributeDetails', () => {
             mockConflictFields([makeUserField('clearance')]);
 
             await renderCreate();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
-            await screen.findByTestId('attributeNameConflictWarning');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance');
+            await screen.findByTestId('admin.attribute.unique_name.conflict--status');
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             const users = screen.getByRole('menuitem', {name: /^Users/});
             expect(users).toHaveAttribute('aria-disabled', 'true');
             expect(users).toHaveTextContent('Name already in use');
@@ -1864,48 +1864,48 @@ describe('AttributeDetails', () => {
             await userEvent.click(users, {pointerEventsCheck: 0});
             await userEvent.keyboard('{Escape}');
             await waitFor(() => expect(screen.queryByRole('menuitem')).not.toBeInTheDocument());
-            expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument();
         });
 
         it('disables Save only for the Users row, and re-enables it for Channels alone under the same name', async () => {
             mockConflictFields([makeUserField('clearance')]);
 
             await renderCreate();
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance Level');
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance Level');
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: 'Channels'}));
-            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument());
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await waitFor(() => expect(screen.getByTestId('admin.attribute.applies_to.channel')).toBeInTheDocument());
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: 'Users'}));
-            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument());
+            await waitFor(() => expect(screen.getByTestId('admin.attribute.applies_to.user')).toBeInTheDocument());
 
             // Everything else the form needs is already in place under a name
             // nothing holds, so the rename below is the only thing that changes.
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
 
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-            const nameInput = screen.getByTestId('attributeNameInput');
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+            const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
             await userEvent.clear(nameInput);
             await userEvent.type(nameInput, 'clearance');
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance');
-            expect(await screen.findByTestId('attributeNameConflictWarning')).toBeVisible();
-            expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
-            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('clearance');
+            expect(await screen.findByTestId('admin.attribute.unique_name.conflict--status')).toBeVisible();
+            expect(screen.queryByTestId('admin.attribute.unique_name.error--alert')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
             // Only the Users row is unsaveable: a template applied to Channels
             // becomes resource.attributes.clearance, which CEL keeps apart from
             // the user.attributes.clearance the existing field holds. So dropping
             // Users is a repair on its own -- the name need not change.
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
 
-            expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
-            expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument();
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance');
-            expect(screen.getByTestId('attributeNameConflictWarning')).toBeVisible();
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.applies_to.channel')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('clearance');
+            expect(screen.getByTestId('admin.attribute.unique_name.conflict--status')).toBeVisible();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
         });
 
         it('leaves the form fully usable when the listing the warning is built from fails', async () => {
@@ -1924,22 +1924,22 @@ describe('AttributeDetails', () => {
 
             // The name every other case in this describe collides on, so the
             // silence below is the failed listing rather than a free name.
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Clearance');
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Clearance');
 
-            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.queryByTestId('admin.attribute.unique_name.conflict--status')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
 
             // Users is the only resource an exact collision withholds, so it is
             // the one an unanswered listing would strand if the page treated
             // "not known" as "conflicting".
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             const users = screen.getByRole('menuitem', {name: /^Users/});
             expect(users).not.toHaveAttribute('aria-disabled', 'true');
             expect(users).not.toHaveTextContent('Name already in use');
 
             await userEvent.click(users);
-            expect(await screen.findByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(await screen.findByTestId('admin.attribute.applies_to.user')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
 
             consoleSpy.mockRestore();
         });
@@ -1949,9 +1949,9 @@ describe('AttributeDetails', () => {
         const FIELD_ID = 'abcdefghijklmnopqrstuvwxyz';
 
         const addResource = async (label: string, resourceType: string) => {
-            await userEvent.click(screen.getByTestId('attributeAppliesToAddResourceButtonHeader'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.add--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: label}));
-            await waitFor(() => expect(screen.getByTestId(`attributeAppliesToRow-${resourceType}`)).toBeInTheDocument());
+            await waitFor(() => expect(screen.getByTestId(`admin.attribute.applies_to.${resourceType}`)).toBeInTheDocument());
         };
 
         function makeTemplate(overrides: Partial<PropertyField> = {}): PropertyField {
@@ -2060,7 +2060,7 @@ describe('AttributeDetails', () => {
             });
         }
 
-        const waitForForm = () => waitFor(() => expect(screen.getByTestId('attributeDetails')).toBeInTheDocument());
+        const waitForForm = () => waitFor(() => expect(screen.getByTestId('admin.attribute')).toBeInTheDocument());
 
         it('prefills Definition and Applies-to from the loaded field without marking the page dirty', async () => {
             mockLoadedField(makeTemplate({
@@ -2076,11 +2076,11 @@ describe('AttributeDetails', () => {
             await waitForForm();
 
             expect(screen.getByRole('heading', {name: 'Edit Department Attribute'})).toBeInTheDocument();
-            expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
-            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
-            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.display_name--textbox')).toHaveValue('Department');
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Select');
+            expect(screen.getByTestId('admin.attribute.applies_to.user')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.save--button')).toBeDisabled();
             expect(mockSetNavigationBlocked).not.toHaveBeenCalled();
         });
 
@@ -2093,8 +2093,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Phone');
-            expect(screen.getByTestId('attributeOptionsHelp')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Phone');
+            expect(screen.getByTestId('admin.attribute.options.help--text')).toBeInTheDocument();
         });
 
         it('names an API-created email field Email and does not offer Email in the type menu', async () => {
@@ -2106,8 +2106,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Email');
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Email');
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             expect(screen.queryByRole('menuitemradio', {name: 'Email'})).not.toBeInTheDocument();
         });
 
@@ -2118,9 +2118,9 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'URL'}));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
@@ -2134,10 +2134,10 @@ describe('AttributeDetails', () => {
 
             renderEdit();
             await waitForForm();
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
 
-            expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-always')).toHaveAttribute('aria-pressed', 'true');
-            expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeChecked();
+            expect(screen.getByTestId('admin.attribute.applies_to.user.profile_display:always--togglebutton')).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio')).toBeChecked();
         });
 
         it('falls back to When set for an unexpected persisted visibility value, rather than leaving every segment unpressed', async () => {
@@ -2145,9 +2145,9 @@ describe('AttributeDetails', () => {
 
             renderEdit();
             await waitForForm();
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
 
-            expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-when_set')).toHaveAttribute('aria-pressed', 'true');
+            expect(screen.getByTestId('admin.attribute.applies_to.user.profile_display:when_set--togglebutton')).toHaveAttribute('aria-pressed', 'true');
         });
 
         it('does not move focus to an Applies-to row when loading a field that already applies to every resource type', async () => {
@@ -2160,8 +2160,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await waitFor(() => expect(screen.getByTestId('attributeDisplayNameInput')).toHaveFocus());
-            expect(screen.getByTestId('attributeAppliesToRow-post-toggle')).not.toHaveFocus();
+            await waitFor(() => expect(screen.getByTestId('admin.attribute.display_name--textbox')).toHaveFocus());
+            expect(screen.getByTestId('admin.attribute.applies_to.post.toggle--button')).not.toHaveFocus();
         });
 
         it('does not re-slug Unique name when Display name changes', async () => {
@@ -2169,10 +2169,10 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'New Label');
+            await userEvent.clear(screen.getByTestId('admin.attribute.display_name--textbox'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'New Label');
 
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
         });
 
         it('does not unpin Unique name after a no-op Edit/Done round-trip, even when the loaded name matches the current auto-slug', async () => {
@@ -2185,14 +2185,14 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
 
-            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Cost Centre');
+            await userEvent.clear(screen.getByTestId('admin.attribute.display_name--textbox'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Cost Centre');
 
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
         });
 
         it('does not unpin Unique name after a no-op Edit/Escape round-trip', async () => {
@@ -2200,14 +2200,14 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
             await userEvent.keyboard('{Escape}');
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
 
-            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Cost Centre');
+            await userEvent.clear(screen.getByTestId('admin.attribute.display_name--textbox'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Cost Centre');
 
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
         });
 
         it('skips name validation while Unique name is unchanged, then validates once it changes', async () => {
@@ -2215,14 +2215,14 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.queryByTestId('attributeUniqueNameError')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.unique_name.error--alert')).not.toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-            const nameInput = screen.getByTestId('attributeNameInput');
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+            const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
             await userEvent.clear(nameInput);
             await userEvent.type(nameInput, 'if');
 
-            expect(screen.getByTestId('attributeUniqueNameError')).toHaveTextContent('reserved word');
+            expect(screen.getByTestId('admin.attribute.unique_name.error--alert')).toHaveTextContent('reserved word');
         });
 
         it('PATCHes the existing field and does not POST a new template', async () => {
@@ -2233,8 +2233,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(createPropertyField).not.toHaveBeenCalled();
@@ -2254,9 +2254,9 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Select');
+            expect(screen.getByTestId('admin.attribute.display_name--textbox')).toHaveValue('Department');
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Select');
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
@@ -2277,7 +2277,7 @@ describe('AttributeDetails', () => {
             renderEdit({entities: {general: {config: {FeatureFlagChannelAttributes: 'false'}, license: {SkuShortName: 'professional'}}}});
             await waitForForm();
 
-            expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
+            expect(screen.getByTestId('admin.attribute.display_name--textbox')).toHaveValue('Department');
             expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
         });
@@ -2303,9 +2303,9 @@ describe('AttributeDetails', () => {
             renderEdit({entities: {general: {config: {FeatureFlagChannelAttributes: 'false'}, license: {SkuShortName: 'professional'}}}});
             await waitForForm();
 
-            expect(screen.getByTestId('attributeDisplayNameInput')).toHaveValue('Department');
-            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
-            expect(screen.queryByTestId('attributeAppliesToRow-channel')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.display_name--textbox')).toHaveValue('Department');
+            expect(screen.getByTestId('admin.attribute.applies_to.user')).toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.applies_to.channel')).not.toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
             expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'channel')).toBe(true);
         });
@@ -2341,8 +2341,8 @@ describe('AttributeDetails', () => {
             renderEdit({entities: {general: {config: {FeatureFlagPostAttributes: 'false'}}}});
             await waitForForm();
 
-            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
-            expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.applies_to.user')).toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.applies_to.post')).not.toBeInTheDocument();
             expect(getPropertyFields.mock.calls.every((call) => call[1] !== 'post')).toBe(true);
         });
 
@@ -2355,8 +2355,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', FIELD_ID, expect.objectContaining({
@@ -2377,10 +2377,10 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.profile_display:hidden--togglebutton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
             expect(patchPropertyField).toHaveBeenCalledTimes(1);
@@ -2397,13 +2397,13 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
-            expect(await screen.findByTestId('attributeSaveError')).toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attribute.save_error--alert')).toBeInTheDocument();
             expect(patchPropertyField).toHaveBeenCalledTimes(1);
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
         });
 
         describe('non-template field applies-to', () => {
@@ -2413,11 +2413,11 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
-                expect(screen.queryByTestId('attributeAppliesToRow-channel')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user')).toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.channel')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.post')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.add--button')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.add_inline--button')).not.toBeInTheDocument();
             });
 
             it('shows the Channels row for a non-template channel field', async () => {
@@ -2426,9 +2426,9 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-channel')).toBeInTheDocument();
-                expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('attributeAppliesToRow-post')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.channel')).toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.post')).not.toBeInTheDocument();
             });
 
             it('seeds the locked Channels row summary from the field, not the default config', async () => {
@@ -2439,7 +2439,7 @@ describe('AttributeDetails', () => {
 
                 // required:true parses to "Required"; the default config is "Optional",
                 // so this proves the row reflects the field rather than the default.
-                expect(screen.getByTestId('attributeAppliesToRow-channel-summary')).toHaveTextContent('Required');
+                expect(screen.getByTestId('admin.attribute.applies_to.channel.summary--text')).toHaveTextContent('Required');
             });
 
             it('leaves a standalone user field\'s row toggle, Profile display and Who can set the value enabled, with Remove locked', async () => {
@@ -2448,15 +2448,15 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeEnabled();
-                expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.toggle--button')).toBeEnabled();
+                expect(screen.queryByTestId('admin.attribute.applies_to.user.toggle_locked')).not.toBeInTheDocument();
 
-                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-                expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
-                expect(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden')).toBeEnabled();
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+                expect(screen.getByTestId('admin.attribute.applies_to.user.remove--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.remove_locked')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.profile_display:hidden--togglebutton')).toBeEnabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio')).toBeEnabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.member--radio')).toBeEnabled();
             });
 
             it('keeps a standalone post field\'s row toggle disabled behind an explanatory lock tooltip', async () => {
@@ -2465,8 +2465,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-post-toggle')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToRow-post-toggleLockWrap')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.post.toggle--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.post.toggle_locked')).toBeInTheDocument();
             });
 
             it('leaves a standalone channel field\'s row toggle and settings enabled, with Remove locked', async () => {
@@ -2475,13 +2475,13 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-channel-toggle')).toBeEnabled();
-                expect(screen.queryByTestId('attributeAppliesToRow-channel-toggleLockWrap')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button')).toBeEnabled();
+                expect(screen.queryByTestId('admin.attribute.applies_to.channel.toggle_locked')).not.toBeInTheDocument();
 
-                await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-                expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToRow-channel-removeLockWrap')).toBeInTheDocument();
-                expect(screen.getByTestId('channelsResourceLocation-display_label_header')).toBeEnabled();
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+                expect(screen.getByTestId('admin.attribute.applies_to.channel.remove--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.channel.remove_locked')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.channel.settings.location:display_label_header--checkbox')).toBeEnabled();
             });
 
             it('saves a standalone channel field\'s row settings in the same PATCH as the definition', async () => {
@@ -2491,9 +2491,9 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-                await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
-                await userEvent.click(screen.getByTestId('saveSetting'));
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch'));
+                await userEvent.click(screen.getByTestId('admin.save--button'));
 
                 await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
                 expect(patchPropertyField).toHaveBeenCalledTimes(1);
@@ -2515,8 +2515,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-                await userEvent.click(screen.getByTestId('saveSetting'));
+                await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+                await userEvent.click(screen.getByTestId('admin.save--button'));
 
                 await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
                 expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', FIELD_ID, expect.objectContaining({
@@ -2532,8 +2532,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.toggle--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.toggle_locked')).toBeInTheDocument();
             });
 
             it('keeps a plugin-created standalone channel field\'s row toggle disabled', async () => {
@@ -2544,8 +2544,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-channel-toggle')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToRow-channel-toggleLockWrap')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.channel.toggle_locked')).toBeInTheDocument();
             });
 
             it('leaves Type editable -- the single-resource lock must not regress the earlier applies-to-stays-editable guard', async () => {
@@ -2554,8 +2554,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
-                expect(screen.queryByTestId('attributeTypeLockWrap')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.type--button')).not.toBeDisabled();
+                expect(screen.queryByTestId('admin.attribute.type_locked')).not.toBeInTheDocument();
             });
 
             it('leaves a loaded template\'s Applies-to row enabled with its Add-resource trigger present', async () => {
@@ -2564,9 +2564,9 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).not.toBeDisabled();
-                expect(screen.queryByTestId('attributeAppliesToRow-user-toggleLockWrap')).not.toBeInTheDocument();
-                expect(screen.getByTestId('attributeAppliesToAddResourceButtonHeader')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.toggle--button')).not.toBeDisabled();
+                expect(screen.queryByTestId('admin.attribute.applies_to.user.toggle_locked')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.add--button')).toBeInTheDocument();
             });
         });
 
@@ -2577,7 +2577,7 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.external_source')).not.toBeInTheDocument();
             });
 
             it('does not render the external-source editor for a non-template post field', async () => {
@@ -2586,7 +2586,7 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.external_source')).not.toBeInTheDocument();
             });
 
             it('renders the external-source editor for a non-template user field', async () => {
@@ -2595,7 +2595,7 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.external_source')).toBeInTheDocument();
             });
 
             it('leaves a loaded template\'s external-source editor rendered with no resources applied', async () => {
@@ -2604,7 +2604,7 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.external_source')).toBeInTheDocument();
             });
 
             it('names the persisted attrs.saml source as the loaded Users row\'s Managed-by value', async () => {
@@ -2615,9 +2615,9 @@ describe('AttributeDetails', () => {
 
                 renderEdit();
                 await waitForForm();
-                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
 
-                expect(screen.getByTestId('attributeAppliesToUserManagedBy')).toHaveTextContent('SAML');
+                expect(screen.getByTestId('admin.attribute.applies_to.user.managed_by--button')).toHaveTextContent('SAML');
                 expect(screen.getByText('Not editable in Mattermost.')).toBeInTheDocument();
             });
 
@@ -2626,10 +2626,10 @@ describe('AttributeDetails', () => {
 
                 renderEdit();
                 await waitForForm();
-                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
 
-                expect(screen.getByTestId('attributeAppliesToRow-user-body')).toBeInTheDocument();
-                expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.body--region')).toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.user.managed_by--button')).not.toBeInTheDocument();
             });
         });
 
@@ -2646,8 +2646,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
@@ -2662,15 +2662,15 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
-            expect(screen.getByTestId('attributeTypeLockWrap')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.type_locked')).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
 
-            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
-            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
-            expect(screen.queryByTestId('attributeTypeLockWrap')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument());
+            expect(screen.getByTestId('admin.attribute.type--button')).not.toBeDisabled();
+            expect(screen.queryByTestId('admin.attribute.type_locked')).not.toBeInTheDocument();
         });
 
         it('locks adding an external source while a pending Applies-to resource is on the form, so linking cannot silently change the type', async () => {
@@ -2678,15 +2678,15 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByTestId('attributeExternalSourceTrigger')).toBeDisabled();
-            expect(screen.getByTestId('attributeExternalSourceTriggerLockWrap')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.external_source.link--button')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.external_source.link_locked')).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
 
-            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
-            expect(screen.getByTestId('attributeExternalSourceTrigger')).not.toBeDisabled();
-            expect(screen.queryByTestId('attributeExternalSourceTriggerLockWrap')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument());
+            expect(screen.getByTestId('admin.attribute.external_source.link--button')).not.toBeDisabled();
+            expect(screen.queryByTestId('admin.attribute.external_source.link_locked')).not.toBeInTheDocument();
         });
 
         it('keeps adding an external source available on an applied attribute whose type the source can populate', async () => {
@@ -2694,8 +2694,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByTestId('attributeExternalSourceTrigger')).not.toBeDisabled();
-            expect(screen.queryByTestId('attributeExternalSourceTriggerLockWrap')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.external_source.link--button')).not.toBeDisabled();
+            expect(screen.queryByTestId('admin.attribute.external_source.link_locked')).not.toBeInTheDocument();
         });
 
         it('lists a synced attribute\'s options read-only and leaves them out of the save, so the sync keeps owning them', async () => {
@@ -2707,15 +2707,15 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            const chips = screen.getAllByTestId('attributeOptionsValues__chipLabel');
+            const chips = screen.getAllByTestId(/^admin\.attribute\.values\.option:/);
             expect(chips.map((chip) => chip.textContent)).toEqual(['Engineering', 'Sales']);
-            expect(screen.queryByTestId('attributeOptionsValues__addInput')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.values.add--textbox')).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'Remove option'})).not.toBeInTheDocument();
 
-            const displayName = screen.getByTestId('attributeDisplayNameInput');
+            const displayName = screen.getByTestId('admin.attribute.display_name--textbox');
             await userEvent.clear(displayName);
             await userEvent.type(displayName, 'Departments');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(patchPropertyField).toHaveBeenCalled());
             const attrs = patchPropertyField.mock.calls[0][3].attrs as Record<string, unknown>;
@@ -2732,12 +2732,12 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: /AD\/LDAP/}));
             await userEvent.type(await screen.findByPlaceholderText('department'), 'department');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
             await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(patchPropertyField).toHaveBeenCalled());
             expect(patchPropertyField.mock.calls[0][3]).toEqual(expect.objectContaining({
@@ -2757,17 +2757,17 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
 
-            expect(screen.getByTestId('attributeOptionsNeedUsersError')).toBeInTheDocument();
-            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.options.need_users--alert')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
+            await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.remove--button'));
 
-            expect(screen.queryByTestId('attributeOptionsNeedUsersError')).not.toBeInTheDocument();
-            expect(screen.getByTestId('attributeOptionsValues__addInput')).toBeInTheDocument();
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.queryByTestId('admin.attribute.options.need_users--alert')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.values.add--textbox')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
         });
 
         it('locks Name editing while the attribute is currently applied to a resource', async () => {
@@ -2775,8 +2775,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
-            expect(screen.getByTestId('attributeNameEditLinkLockWrap')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.unique_name.edit_locked')).toBeInTheDocument();
         });
 
         it('does not DELETE a persisted resource until Save, then DELETEs only removed types', async () => {
@@ -2788,12 +2788,12 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
-            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
+            await waitFor(() => expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument());
             expect(deletePropertyField).not.toHaveBeenCalled();
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
@@ -2810,17 +2810,17 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
-            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
+            await waitFor(() => expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument());
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             await userEvent.click(await screen.findByRole('button', {name: /^cancel$/i}));
 
             expect(deletePropertyField).not.toHaveBeenCalled();
             expect(patchPropertyField).not.toHaveBeenCalled();
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
         });
 
         it('POSTs only newly added resource types and skips types that were already persisted', async () => {
@@ -2832,7 +2832,7 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
             await addResource('Channels', 'channel');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(createPropertyField).toHaveBeenCalledTimes(1);
@@ -2853,15 +2853,15 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
             await addResource('Users', 'user');
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-always'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.profile_display:always--togglebutton'));
             await addResource('Channels', 'channel');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
-            expect(await screen.findByTestId('attributeSaveError')).toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attribute.save_error--alert')).toBeInTheDocument();
             expect(createPropertyField.mock.calls.filter((call) => call[1] === 'user')).toHaveLength(1);
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
             expect(patchPropertyField).not.toHaveBeenCalledWith('access_control', 'user', expect.anything(), expect.anything());
@@ -2878,12 +2878,12 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
-            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
+            await waitFor(() => expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument());
             await addResource('Users', 'user');
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
 
             expect(deletePropertyField).not.toHaveBeenCalled();
@@ -2905,8 +2905,8 @@ describe('AttributeDetails', () => {
 
             // Dirty the page via Options only -- display name and Users config stay
             // put, so the linked Users row must not be patched.
-            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledTimes(1);
@@ -2923,8 +2923,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
@@ -2942,8 +2942,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledTimes(1);
@@ -2994,8 +2994,8 @@ describe('AttributeDetails', () => {
             });
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(store.getState().entities.general.customProfileAttributes['user-field']).toEqual(refreshedUser);
@@ -3032,8 +3032,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Sales{Enter}');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Sales{Enter}');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
         });
@@ -3047,8 +3047,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'channel', 'channel-field', {
@@ -3065,8 +3065,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             const channelPatch = patchPropertyField.mock.calls.find((call) => call[1] === 'channel');
@@ -3083,8 +3083,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'post', 'post-field', {
@@ -3101,10 +3101,10 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.profile_display:hidden--togglebutton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
@@ -3123,22 +3123,20 @@ describe('AttributeDetails', () => {
                 [makeLinked('user', 'user-field', {attrs: {display_name: 'Department', ldap: 'oldDept'}})],
             );
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
-                Promise.resolve(objectType === 'user' ?
-                    makeLinked('user', 'user-field', {attrs: {ldap: 'newDept'}}) :
-                    makeTemplate({attrs: {display_name: 'Department', ldap: 'newDept'}}))
+                Promise.resolve(objectType === 'user' ? makeLinked('user', 'user-field', {attrs: {ldap: 'newDept'}}) : makeTemplate({attrs: {display_name: 'Department', ldap: 'newDept'}}))
             ));
 
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-edit'));
+            await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.edit--button'));
             const input = await screen.findByPlaceholderText('department');
             await userEvent.clear(input);
             await userEvent.type(input, 'newDept');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
             await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
@@ -3155,9 +3153,7 @@ describe('AttributeDetails', () => {
                 [makeLinked('user', 'user-field', {type: 'multiselect', attrs: {display_name: 'Groups'}})],
             );
             const patchPropertyField = jest.spyOn(Client4, 'patchPropertyField').mockImplementation((_group, objectType) => (
-                Promise.resolve(objectType === 'user' ?
-                    makeLinked('user', 'user-field', {attrs: {openid: 'groups'}}) :
-                    makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups', openid: 'groups'}}))
+                Promise.resolve(objectType === 'user' ? makeLinked('user', 'user-field', {attrs: {openid: 'groups'}}) : makeTemplate({type: 'multiselect', attrs: {display_name: 'Groups', openid: 'groups'}}))
             ));
 
             renderEdit({
@@ -3168,16 +3164,16 @@ describe('AttributeDetails', () => {
             });
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceTrigger'));
+            await userEvent.click(screen.getByTestId('admin.attribute.external_source.link--button'));
             await userEvent.click(screen.getByRole('menuitem', {name: /^OpenID Connect/}));
             await userEvent.type(await screen.findByPlaceholderText('department'), 'groups');
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
             await waitFor(() => expect(screen.queryByPlaceholderText('department')).not.toBeInTheDocument());
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Multiselect');
-            expect(screen.getByTestId('attributeOptionsSyncedHelp')).toHaveTextContent('Options are managed by the OpenID Connect sync.');
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Multiselect');
+            expect(screen.getByTestId('admin.attribute.options.synced_help--text')).toHaveTextContent('Options are managed by the OpenID Connect sync.');
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
@@ -3200,8 +3196,8 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeExternalSourceChip-ldap-remove'));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(within(screen.getByTestId('admin.attribute.external_source.source:ldap')).getByTestId('admin.attribute.external_source.source.remove--button'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
@@ -3218,15 +3214,15 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin'));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
-            const banner = await screen.findByTestId('attributeSaveError');
+            const banner = await screen.findByTestId('admin.attribute.save_error--alert');
             expect(banner).toHaveTextContent('Users');
             expect(banner).toHaveTextContent('settings');
             expect(banner).not.toHaveTextContent('be applied');
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
         });
 
         it('renders a display-name update banner (not Profile display / Who can set) when only the linked display_name cascade fails', async () => {
@@ -3238,15 +3234,15 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
-            const banner = await screen.findByTestId('attributeSaveError');
+            const banner = await screen.findByTestId('admin.attribute.save_error--alert');
             expect(banner).toHaveTextContent('Users');
             expect(banner).toHaveTextContent('display name');
             expect(banner).not.toHaveTextContent('Profile display');
             expect(banner).not.toHaveTextContent('be applied');
-            expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+            expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
         });
 
         it('DELETEs removed resources before PATCHing when type also changes', async () => {
@@ -3264,14 +3260,14 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
-            await waitFor(() => expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled());
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
+            await waitFor(() => expect(screen.getByTestId('admin.attribute.type--button')).not.toBeDisabled());
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-            await userEvent.type(screen.getByTestId('attributeOptionsValues__addInput'), 'Engineering{Enter}');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.type(screen.getByTestId('admin.attribute.values.add--textbox'), 'Engineering{Enter}');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
@@ -3295,14 +3291,14 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
-            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
+            await waitFor(() => expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument());
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
 
-            expect(await screen.findByTestId('attributeSaveError')).toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attribute.save_error--alert')).toBeInTheDocument();
             expect(patchPropertyField).toHaveBeenCalledTimes(1);
             expect(deletePropertyField).not.toHaveBeenCalled();
             expect(callOrder).toEqual(['patch']);
@@ -3317,18 +3313,18 @@ describe('AttributeDetails', () => {
             renderEdit();
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-            await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
-            await waitFor(() => expect(screen.queryByTestId('attributeAppliesToRow-user')).not.toBeInTheDocument());
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+            await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
+            await waitFor(() => expect(screen.queryByTestId('admin.attribute.applies_to.user')).not.toBeInTheDocument());
 
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
             await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
 
             expect(patchPropertyField).toHaveBeenCalledTimes(1);
             expect(deletePropertyField).toHaveBeenCalledTimes(1);
             expect(mockHistoryPush).not.toHaveBeenCalled();
 
-            const banner = await screen.findByTestId('attributeSaveError');
+            const banner = await screen.findByTestId('admin.attribute.save_error--alert');
             expect(banner).toHaveTextContent('The attribute was saved');
             expect(banner).not.toHaveTextContent('Nothing else was saved');
         });
@@ -3372,15 +3368,15 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeDisplayNameInput')).toBeDisabled();
-                expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
-                expect(screen.getByTestId('attributeOptionsValues__addInput')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.display_name--textbox')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.values.add--textbox')).toBeDisabled();
 
                 // A plugin-supplied template's options came from the plugin API, not
                 // this form -- they aren't guaranteed to satisfy this UI's own shape
                 // rules (duplicate names, here), and this page has no controls to act
                 // on such an error anyway.
-                expect(screen.queryByTestId('attributeOptionsRequiredError')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.options.required--alert')).not.toBeInTheDocument();
             });
 
             it('shows the plugin-owned Type lock reason (not "applies to a resource") when the field has zero applied resources', async () => {
@@ -3390,7 +3386,7 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/managed by a plugin/);
+                expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName(/managed by a plugin/);
             });
 
             it('shows the plugin-owned Unique Name lock reason when the field has zero applied resources', async () => {
@@ -3400,8 +3396,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
-                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/managed by a plugin/);
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveAccessibleName(/managed by a plugin/);
             });
 
             it('renders AttributePluginSource instead of AttributeExternalSource, resolving the same plugin name the listing would show', async () => {
@@ -3411,8 +3407,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
-                const pluginSource = await screen.findByTestId('attributePluginSource');
+                expect(screen.queryByTestId('admin.attribute.external_source')).not.toBeInTheDocument();
+                const pluginSource = await screen.findByTestId('admin.attribute.plugin_source');
                 expect(pluginSource).toHaveTextContent('Example Plugin');
             });
 
@@ -3423,8 +3419,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonHeader')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('attributeAppliesToAddResourceButtonInline')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.add--button')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.add_inline--button')).not.toBeInTheDocument();
             });
 
             it('keeps existing Applies-to rows visible but disables their toggle', async () => {
@@ -3434,13 +3430,13 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
-                expect(screen.getByTestId('attributeAppliesToRow-user-toggle')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.toggle--button')).toBeDisabled();
 
                 // The lock is permanent (not the transient `saving` case), so it
                 // gets an explanatory tooltip, matching the Type/Unique-Name
                 // lock convention elsewhere on this page.
-                expect(screen.getByTestId('attributeAppliesToRow-user-toggleLockWrap')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.toggle_locked')).toBeInTheDocument();
             });
 
             it('does not show Managed by when leftover ldap/saml attrs are present on a plugin-owned field', async () => {
@@ -3452,7 +3448,7 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.queryByTestId('attributeAppliesToUserManagedBy')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.user.managed_by--button')).not.toBeInTheDocument();
                 expect(screen.queryByText('Managed by')).not.toBeInTheDocument();
                 expect(screen.queryByText('Not editable in Mattermost.')).not.toBeInTheDocument();
             });
@@ -3472,9 +3468,9 @@ describe('AttributeDetails', () => {
                 // forces every other canSave clause true -- non-empty display name,
                 // dirty, not saving, no validation/options error -- isolating
                 // effectiveDisabled as the one remaining clause keeping Save disabled.
-                fireEvent.change(screen.getByTestId('attributeDisplayNameInput'), {target: {value: 'Renamed'}});
+                fireEvent.change(screen.getByTestId('admin.attribute.display_name--textbox'), {target: {value: 'Renamed'}});
 
-                expect(screen.getByTestId('saveSetting')).toBeDisabled();
+                expect(screen.getByTestId('admin.save--button')).toBeDisabled();
             });
 
             it('stays fully locked when the owning plugin is orphaned, and shows the orphaned Managed-by copy with no link', async () => {
@@ -3484,12 +3480,12 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                const pluginSource = await screen.findByTestId('attributePluginSource');
+                const pluginSource = await screen.findByTestId('admin.attribute.plugin_source');
                 await waitFor(() => expect(pluginSource).toHaveTextContent('no longer installed'));
-                expect(screen.queryByTestId('attributePluginSourceLink')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.plugin_source.settings--link')).not.toBeInTheDocument();
 
-                expect(screen.getByTestId('attributeDisplayNameInput')).toBeDisabled();
-                expect(screen.getByTestId('saveSetting')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.display_name--textbox')).toBeDisabled();
+                expect(screen.getByTestId('admin.save--button')).toBeDisabled();
             });
 
             it('switches the Type and Unique Name lock reasons to the orphaned copy, not the plain "managed by a plugin" text', async () => {
@@ -3498,11 +3494,11 @@ describe('AttributeDetails', () => {
 
                 renderEdit();
                 await waitForForm();
-                await waitFor(() => expect(screen.getByTestId('attributePluginSource')).toHaveTextContent('no longer installed'));
+                await waitFor(() => expect(screen.getByTestId('admin.attribute.plugin_source')).toHaveTextContent('no longer installed'));
 
-                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/no longer installed/);
-                expect(screen.getByTestId('attributeTypeMenuButton')).not.toHaveAccessibleName(/managed by a plugin\./);
-                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/no longer installed/);
+                expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName(/no longer installed/);
+                expect(screen.getByTestId('admin.attribute.type--button')).not.toHaveAccessibleName(/managed by a plugin\./);
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveAccessibleName(/no longer installed/);
             });
 
             it('keeps the Applies-to row locked (toggle disabled, Remove unreachable) when orphaned, even though the server would permit that delete', async () => {
@@ -3511,17 +3507,17 @@ describe('AttributeDetails', () => {
 
                 renderEdit();
                 await waitForForm();
-                await waitFor(() => expect(screen.getByTestId('attributePluginSource')).toHaveTextContent('no longer installed'));
+                await waitFor(() => expect(screen.getByTestId('admin.attribute.plugin_source')).toHaveTextContent('no longer installed'));
 
                 // Remove is only rendered once the row is expanded, and expanding it
                 // requires clicking this same toggle -- asserting it stays disabled
                 // (and that a click on it doesn't expand the row) is a stronger
                 // guarantee than asserting Remove's own disabled attribute, since it
                 // proves Remove can never even be reached in the DOM.
-                const toggle = screen.getByTestId('attributeAppliesToRow-user-toggle');
+                const toggle = screen.getByTestId('admin.attribute.applies_to.user.toggle--button');
                 expect(toggle).toBeDisabled();
                 await userEvent.click(toggle);
-                expect(screen.queryByTestId('attributeAppliesToRow-user-remove')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.applies_to.user.remove--button')).not.toBeInTheDocument();
             });
         });
 
@@ -3548,8 +3544,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                const typeButton = screen.getByTestId('attributeTypeMenuButton');
-                const nameLink = screen.getByTestId('attributeNameEditLink');
+                const typeButton = screen.getByTestId('admin.attribute.type--button');
+                const nameLink = screen.getByTestId('admin.attribute.unique_name.edit--button');
                 await waitFor(() => expect(typeButton).toHaveAccessibleName(/managed by SCIM/));
                 expect(typeButton).toBeDisabled();
                 expect(nameLink).toBeDisabled();
@@ -3566,10 +3562,10 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                await waitFor(() => expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/managed by SCIM/));
-                expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
-                expect(screen.getByTestId('attributeNameEditLink')).toBeDisabled();
-                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/managed by SCIM/);
+                await waitFor(() => expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName(/managed by SCIM/));
+                expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveAccessibleName(/managed by SCIM/);
             });
 
             it('stays locked and names the plugin ID when the owner plugin is not installed', async () => {
@@ -3579,9 +3575,9 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
-                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(new RegExp(`managed by ${SCIM_ID}`));
-                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(new RegExp(`managed by ${SCIM_ID}`));
+                expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName(new RegExp(`managed by ${SCIM_ID}`));
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveAccessibleName(new RegExp(`managed by ${SCIM_ID}`));
             });
 
             it('names a service owner by its ID', async () => {
@@ -3590,8 +3586,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/managed by svc-sync/);
-                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/managed by svc-sync/);
+                expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName(/managed by svc-sync/);
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveAccessibleName(/managed by svc-sync/);
             });
 
             it('keeps display name and options editable, and lets a display name change enable Save', async () => {
@@ -3604,11 +3600,11 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
-                expect(screen.getByTestId('attributeOptionsValues__addInput')).toBeEnabled();
+                expect(screen.getByTestId('admin.attribute.display_name--textbox')).toBeEnabled();
+                expect(screen.getByTestId('admin.attribute.values.add--textbox')).toBeEnabled();
 
-                await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' Renamed');
-                expect(screen.getByTestId('saveSetting')).toBeEnabled();
+                await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' Renamed');
+                expect(screen.getByTestId('admin.save--button')).toBeEnabled();
             });
 
             it('keeps the plugin-created reasons when the linked Users field also has owners', async () => {
@@ -3618,8 +3614,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/managed by a plugin/);
-                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/managed by a plugin/);
+                expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName(/managed by a plugin/);
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveAccessibleName(/managed by a plugin/);
             });
 
             it('keeps the applies-to reasons when the linked Users field has no owners', async () => {
@@ -3628,8 +3624,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/applies to a resource/);
-                expect(screen.getByTestId('attributeNameEditLink')).toHaveAccessibleName(/applies to a resource/);
+                expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName(/applies to a resource/);
+                expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toHaveAccessibleName(/applies to a resource/);
             });
 
             it('shows the owners note beside the external-source editor on an owned template', async () => {
@@ -3639,9 +3635,9 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                await waitFor(() => expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent('Managed by SCIM'));
-                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
-                expect(screen.queryByTestId('attributePluginSource')).not.toBeInTheDocument();
+                await waitFor(() => expect(screen.getByTestId('admin.attribute.owners_source.managed_by--text')).toHaveTextContent('Managed by SCIM'));
+                expect(screen.getByTestId('admin.attribute.external_source')).toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.plugin_source')).not.toBeInTheDocument();
             });
 
             it('locks Who can set the value and names the owners on Remove for an owned standalone user field', async () => {
@@ -3650,14 +3646,14 @@ describe('AttributeDetails', () => {
 
                 renderEdit();
                 await waitForForm();
-                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
 
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).toBeInTheDocument();
-                expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.member--radio')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set_locked')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.remove--button')).toBeDisabled();
 
-                await userEvent.hover(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap'));
+                await userEvent.hover(screen.getByTestId('admin.attribute.applies_to.user.remove_locked'));
                 expect(await screen.findByText(/managed by SCIM/)).toBeInTheDocument();
             });
 
@@ -3668,8 +3664,8 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributeOwnersSource')).toBeInTheDocument();
-                expect(screen.getByTestId('attributeExternalSource')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.owners_source')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.external_source')).toBeInTheDocument();
             });
 
             it('shows no owners note when the linked Users field has no owners', async () => {
@@ -3678,7 +3674,7 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.queryByTestId('attributeOwnersSource')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.owners_source')).not.toBeInTheDocument();
             });
 
             it('shows only the plugin note, without the external-source editor, for a plugin-created template', async () => {
@@ -3688,9 +3684,9 @@ describe('AttributeDetails', () => {
                 renderEdit();
                 await waitForForm();
 
-                expect(screen.getByTestId('attributePluginSource')).toBeInTheDocument();
-                expect(screen.queryByTestId('attributeOwnersSource')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('attributeExternalSource')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.plugin_source')).toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.owners_source')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('admin.attribute.external_source')).not.toBeInTheDocument();
             });
 
             it('locks Who can set the value on an owned template while Profile display stays editable', async () => {
@@ -3699,19 +3695,19 @@ describe('AttributeDetails', () => {
 
                 renderEdit();
                 await waitForForm();
-                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
 
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeChecked();
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeDisabled();
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio')).toBeChecked();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.member--radio')).toBeDisabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set_locked')).toBeInTheDocument();
 
-                const hidden = screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden');
+                const hidden = screen.getByTestId('admin.attribute.applies_to.user.profile_display:hidden--togglebutton');
                 expect(hidden).toBeEnabled();
-                expect(screen.getByTestId('saveSetting')).toBeDisabled();
+                expect(screen.getByTestId('admin.save--button')).toBeDisabled();
                 await userEvent.click(hidden);
                 expect(hidden).toHaveAttribute('aria-pressed', 'true');
-                expect(screen.getByTestId('saveSetting')).toBeEnabled();
+                expect(screen.getByTestId('admin.save--button')).toBeEnabled();
             });
 
             it('leaves Who can set the value editable when the linked Users field has no owners', async () => {
@@ -3719,11 +3715,11 @@ describe('AttributeDetails', () => {
 
                 renderEdit();
                 await waitForForm();
-                await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
+                await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
 
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-admin')).toBeEnabled();
-                expect(screen.getByTestId('attributeAppliesToUserWhoCanSet-member')).toBeEnabled();
-                expect(screen.queryByTestId('attributeAppliesToUserWhoCanSet-lockWrap')).not.toBeInTheDocument();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.admin--radio')).toBeEnabled();
+                expect(screen.getByTestId('admin.attribute.applies_to.user.who_can_set.member--radio')).toBeEnabled();
+                expect(screen.queryByTestId('admin.attribute.applies_to.user.who_can_set_locked')).not.toBeInTheDocument();
             });
 
             describe('Remove lock and save', () => {
@@ -3745,12 +3741,12 @@ describe('AttributeDetails', () => {
                     renderEdit();
                     await waitForForm();
 
-                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-                    expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeDisabled();
-                    expect(screen.getByTestId('attributeAppliesToRow-user-removeLockWrap')).toBeInTheDocument();
+                    await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+                    expect(screen.getByTestId('admin.attribute.applies_to.user.remove--button')).toBeDisabled();
+                    expect(screen.getByTestId('admin.attribute.applies_to.user.remove_locked')).toBeInTheDocument();
 
-                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-channel-toggle'));
-                    expect(screen.getByTestId('attributeAppliesToRow-channel-remove')).toBeEnabled();
+                    await userEvent.click(screen.getByTestId('admin.attribute.applies_to.channel.toggle--button'));
+                    expect(screen.getByTestId('admin.attribute.applies_to.channel.remove--button')).toBeEnabled();
                 });
 
                 it('unlocks Remove and deletes the Users field on save once the owner plugin is uninstalled', async () => {
@@ -3762,10 +3758,10 @@ describe('AttributeDetails', () => {
                     renderEdit();
                     await waitForForm();
 
-                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-                    await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled());
-                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-remove'));
-                    await userEvent.click(screen.getByTestId('saveSetting'));
+                    await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+                    await waitFor(() => expect(screen.getByTestId('admin.attribute.applies_to.user.remove--button')).toBeEnabled());
+                    await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.remove--button'));
+                    await userEvent.click(screen.getByTestId('admin.save--button'));
                     await userEvent.click(await screen.findByRole('button', {name: /remove and save/i}));
 
                     await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
@@ -3778,9 +3774,9 @@ describe('AttributeDetails', () => {
                     renderEdit();
                     await waitForForm();
 
-                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-                    expect(screen.getByTestId('attributeAppliesToRow-user-remove')).toBeEnabled();
-                    expect(screen.queryByTestId('attributeAppliesToRow-user-removeLockWrap')).not.toBeInTheDocument();
+                    await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+                    expect(screen.getByTestId('admin.attribute.applies_to.user.remove--button')).toBeEnabled();
+                    expect(screen.queryByTestId('admin.attribute.applies_to.user.remove_locked')).not.toBeInTheDocument();
                 });
 
                 it('saves a Profile display change without sending owners or deleting the Users field', async () => {
@@ -3792,9 +3788,9 @@ describe('AttributeDetails', () => {
                     renderEdit();
                     await waitForForm();
 
-                    await userEvent.click(screen.getByTestId('attributeAppliesToRow-user-toggle'));
-                    await userEvent.click(screen.getByTestId('attributeAppliesToUserProfileDisplay-hidden'));
-                    await userEvent.click(screen.getByTestId('saveSetting'));
+                    await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.toggle--button'));
+                    await userEvent.click(screen.getByTestId('admin.attribute.applies_to.user.profile_display:hidden--togglebutton'));
+                    await userEvent.click(screen.getByTestId('admin.save--button'));
 
                     await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
                     expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
@@ -3813,8 +3809,8 @@ describe('AttributeDetails', () => {
                     renderEdit();
                     await waitForForm();
 
-                    await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), ' 2');
-                    await userEvent.click(screen.getByTestId('saveSetting'));
+                    await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), ' 2');
+                    await userEvent.click(screen.getByTestId('admin.save--button'));
 
                     await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
                     expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'user', 'user-field', {
@@ -3854,24 +3850,24 @@ describe('AttributeDetails', () => {
             await waitForForm();
             await runPostRenderAct(3);
 
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
-            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
+            expect(screen.queryByTestId('admin.attribute.unique_name.conflict--status')).not.toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
-            const nameInput = screen.getByTestId('attributeNameInput');
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
+            const nameInput = screen.getByTestId('admin.attribute.unique_name.input--textbox');
             await userEvent.clear(nameInput);
             await userEvent.type(nameInput, 'clearance');
-            await userEvent.click(screen.getByTestId('attributeNameEditLink'));
+            await userEvent.click(screen.getByTestId('admin.attribute.unique_name.edit--button'));
 
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('clearance');
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('clearance');
 
-            const warning = await screen.findByTestId('attributeNameConflictWarning');
+            const warning = await screen.findByTestId('admin.attribute.unique_name.conflict--status');
             expect(warning).toHaveTextContent('Another attribute already uses this name.');
             expect(warning.querySelector('[class*="section-notice--type-danger"]')).toBeInTheDocument();
 
             // Still saveable: this template applies to nothing, so the rename
             // creates no second user field for the server to reject.
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
         });
 
         it('does not warn about the template\'s own linked user field, which shares its name by design', async () => {
@@ -3884,16 +3880,16 @@ describe('AttributeDetails', () => {
             // field load -- let it settle before concluding nothing was flagged.
             await runPostRenderAct(3);
 
-            expect(screen.getByTestId('attributeUniqueNameValue')).toHaveTextContent('department');
-            expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument();
-            expect(screen.queryByTestId('attributeNameConflictWarning')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.unique_name.value--text')).toHaveTextContent('department');
+            expect(screen.getByTestId('admin.attribute.applies_to.user')).toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute.unique_name.conflict--status')).not.toBeInTheDocument();
         });
 
         it('redirects to the listing when the field is Classification Markings', async () => {
             mockLoadedField(makeTemplate({name: 'classification', type: 'rank'}));
             renderEdit();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
-            expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute')).not.toBeInTheDocument();
         });
 
         it('opens a wrong-typed template named classification here, since it is an ordinary attribute', async () => {
@@ -3901,20 +3897,20 @@ describe('AttributeDetails', () => {
             // points at: the name is only reserved for the rank-typed definition.
             mockLoadedField(makeTemplate({name: 'classification', type: 'text'}));
             renderEdit();
-            expect(await screen.findByTestId('attributeDetails')).toBeInTheDocument();
+            expect(await screen.findByTestId('admin.attribute')).toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
 
             // Reachable is not enough: the collision is on the unique name, so the
             // repair is renaming that, not the display name.
-            expect(screen.getByTestId('attributeDisplayNameInput')).toBeEnabled();
-            expect(screen.getByTestId('attributeNameEditLink')).toBeEnabled();
+            expect(screen.getByTestId('admin.attribute.display_name--textbox')).toBeEnabled();
+            expect(screen.getByTestId('admin.attribute.unique_name.edit--button')).toBeEnabled();
         });
 
         it('redirects to the listing when the field is missing', async () => {
             jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
             renderEdit();
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/manage_attributes'));
-            expect(screen.queryByTestId('attributeDetails')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.attribute')).not.toBeInTheDocument();
         });
 
         it('loads a graph field for edit when PropertyFieldGraph is off', async () => {
@@ -3937,12 +3933,12 @@ describe('AttributeDetails', () => {
             await waitForForm();
 
             expect(screen.getByRole('heading', {name: 'Edit Org chart Attribute'})).toBeInTheDocument();
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Hierarchical');
 
             // The lock comes from the server constraint, not the flag, so
             // turning PropertyFieldGraph off must not hand back a Type menu
             // whose every entry the server would reject.
-            expect(screen.getByTestId('attributeTypeMenuButton')).toBeDisabled();
+            expect(screen.getByTestId('admin.attribute.type--button')).toBeDisabled();
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
@@ -3967,10 +3963,10 @@ describe('AttributeDetails', () => {
 
             expect(getPropertyFieldOptions).toHaveBeenCalled();
             expect(screen.getByRole('heading', {name: 'Edit Org chart Attribute'})).toBeInTheDocument();
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveTextContent('Hierarchical');
-            expect(screen.getByTestId('attributeOptionsGraphValues')).toBeInTheDocument();
-            expect(screen.getAllByTestId('attributeOptionsGraphRow__name').map((el) => el.textContent)).toEqual(['Air', 'Fighter']);
-            expect(screen.queryByTestId('attributeExternalSourceTrigger')).not.toBeInTheDocument();
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveTextContent('Hierarchical');
+            expect(screen.getByTestId('admin.attribute.graph')).toBeInTheDocument();
+            expect(screen.getAllByTestId(/^admin\.attribute\.graph\.row\.(?:name|rename)--/).map((el) => el.textContent)).toEqual(['Air', 'Fighter']);
+            expect(screen.queryByTestId('admin.attribute.external_source.link--button')).not.toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
         });
 
@@ -3989,8 +3985,8 @@ describe('AttributeDetails', () => {
             renderEdit({}, true);
             await waitForForm();
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).not.toBeDisabled();
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            expect(screen.getByTestId('admin.attribute.type--button')).not.toBeDisabled();
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
 
             expect(screen.queryByRole('menuitemradio', {name: 'Hierarchical'})).not.toBeInTheDocument();
             expect(screen.getAllByRole('menuitemradio').map((item) => item.textContent)).toEqual(['Text', 'Phone', 'URL', 'Select', 'Multiselect', 'Ranked']);
@@ -4009,9 +4005,9 @@ describe('AttributeDetails', () => {
             renderEdit({}, true);
             await waitForForm();
 
-            await userEvent.click(screen.getByTestId('attributeTypeMenuButton'));
+            await userEvent.click(screen.getByTestId('admin.attribute.type--button'));
             await userEvent.click(screen.getByRole('menuitemradio', {name: 'Select'}));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({
@@ -4038,12 +4034,12 @@ describe('AttributeDetails', () => {
             renderEdit({}, true);
             await waitForForm();
 
-            const typeButton = screen.getByTestId('attributeTypeMenuButton');
+            const typeButton = screen.getByTestId('admin.attribute.type--button');
             expect(typeButton).toHaveTextContent('Hierarchical');
             expect(typeButton).toBeDisabled();
             expect(typeButton).toHaveAccessibleName('Type: Hierarchical. Locked because a hierarchical attribute cannot be converted to another type.');
 
-            await userEvent.hover(screen.getByTestId('attributeTypeLockWrap'));
+            await userEvent.hover(screen.getByTestId('admin.attribute.type_locked'));
             const tooltip = await screen.findByRole('tooltip', {}, {timeout: 1000});
             expect(tooltip).toHaveTextContent('Type cannot be changed — a hierarchical attribute cannot be converted to another type. Create a new attribute of the type you need instead.');
         });
@@ -4065,10 +4061,10 @@ describe('AttributeDetails', () => {
 
             renderEdit({}, true);
             await waitForForm();
-            await waitFor(() => expect(screen.getByTestId('attributeAppliesToRow-user')).toBeInTheDocument());
+            await waitFor(() => expect(screen.getByTestId('admin.attribute.applies_to.user')).toBeInTheDocument());
 
-            expect(screen.getByTestId('attributeTypeMenuButton')).toHaveAccessibleName(/hierarchical attribute cannot be converted/);
-            expect(screen.getByTestId('attributeTypeMenuButton')).not.toHaveAccessibleName(/applies to a resource/);
+            expect(screen.getByTestId('admin.attribute.type--button')).toHaveAccessibleName(/hierarchical attribute cannot be converted/);
+            expect(screen.getByTestId('admin.attribute.type--button')).not.toHaveAccessibleName(/applies to a resource/);
         });
 
         it('keeps a graph field otherwise editable, PATCHing a renamed display name back as a graph field', async () => {
@@ -4088,9 +4084,9 @@ describe('AttributeDetails', () => {
             renderEdit({}, true);
             await waitForForm();
 
-            await userEvent.clear(screen.getByTestId('attributeDisplayNameInput'));
-            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'Reporting chart');
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.clear(screen.getByTestId('admin.attribute.display_name--textbox'));
+            await userEvent.type(screen.getByTestId('admin.attribute.display_name--textbox'), 'Reporting chart');
+            await userEvent.click(screen.getByTestId('admin.save--button'));
 
             await waitFor(() => expect(mockHistoryPush).toHaveBeenCalled());
             expect(patchPropertyField).toHaveBeenCalledWith('access_control', 'template', FIELD_ID, expect.objectContaining({

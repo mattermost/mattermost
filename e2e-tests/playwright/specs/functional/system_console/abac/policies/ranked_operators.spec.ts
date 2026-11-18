@@ -9,58 +9,73 @@
  * (is exactly, is not, is at least, is greater than, is at most, is less than).
  */
 
-import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserProfile} from '@mattermost/types/users';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, getRandomId, test} from '@mattermost/playwright-lib';
+import {deleteAccessControlPoliciesNamed, expect, getRandomId, test, type App, Msg} from '@mattermost/playwright-lib';
 
 import {deleteCustomProfileAttributes} from '../../../channels/custom_profile_attributes/helpers';
 import {assertAccessControlAutocompleteContains} from '../support';
+import {MEMBERSHIP_POLICIES_PATH, openMembershipPolicies, openPolicy, policyIdByName, savePolicy} from '../surface';
 
-// Filter + real click so an off-screen ranked field is selected; click the
-// policy name to dismiss a leftover MUI overlay (the filter swallows Escape).
-async function selectAttributeInEditor(page: Page, attributeName: string) {
-    const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
-    const attributeButton = page.locator('[data-testid="attributeSelectorMenuButton"]').first();
+const RANKED_OPERATORS = [
+    'is exactly',
+    'is not',
+    'is at least',
+    'is greater than',
+    'is at most',
+    'is less than',
+] as const;
+const STANDARD_OPERATORS = ['is', 'in', 'has any of', 'has all of', 'starts with', 'ends with', 'contains'] as const;
 
-    if (!(await attributeMenu.isVisible({timeout: 2000}).catch(() => false))) {
-        await attributeButton.click();
-    }
-    await expect(attributeMenu).toBeVisible();
-
-    const filterInput = attributeMenu.locator('.attribute-selector-search input');
-    await filterInput.waitFor({state: 'visible'});
-    await filterInput.fill(attributeName);
-
-    const option = attributeMenu.getByRole('menuitemradio', {name: attributeName, exact: true});
-    await expect(option).toBeVisible();
-    await option.click();
-
-    await expect(attributeButton).toContainText(attributeName);
-
-    if (await attributeMenu.isVisible().catch(() => false)) {
-        await page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName').click();
-    }
-    await expect(attributeMenu).toBeHidden();
+/** Opens a new policy, names it, and adds a rule on the attribute; returns the rule's row. */
+async function newPolicyWithAttribute(app: App, name: string, attribute: UserPropertyField) {
+    const policies = await openMembershipPolicies(app);
+    await policies.addButton.click();
+    const {policy} = app.admin.accessControl;
+    await expect(policy.editPolicy.name.valueTextbox).toBeVisible();
+    await policy.editPolicy.name.valueTextbox.fill(name);
+    await expect(policy.editPolicy.name.valueTextbox).toHaveValue(name);
+    const row = policy.rules.row(0);
+    await expect(policy.rules.addButton).toBeEnabled();
+    await policy.rules.addButton.click();
+    await expect(row.attributeMenu.attribute(attribute)).toBeVisible();
+    await row.attributeMenu.attribute(attribute).click();
+    await expect(row.attributeButton).toContainText(attribute.name);
+    return row;
 }
 
 test.describe('System Console - Membership Policy ranked operators', () => {
     let adminClient: Client4;
     let adminUser: UserProfile;
-    let field: UserPropertyField | undefined;
+    const fields: UserPropertyField[] = [];
+    const policyNames: string[] = [];
 
     test.beforeEach(async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
         const clientInfo = await pw.getAdminClient();
+        if (!clientInfo.adminUser) {
+            throw new Error('The admin user could not log in');
+        }
         adminClient = clientInfo.adminClient;
-        adminUser = clientInfo.adminUser!;
+        adminUser = clientInfo.adminUser;
+    });
 
-        // # Create an admin-managed ranked attribute (admin-managed → usable in ABAC)
-        field = await adminClient.createCustomProfileAttributeField({
+    test.afterEach(async () => {
+        for (const policyName of policyNames.splice(0)) {
+            await deleteAccessControlPoliciesNamed(adminClient, policyName);
+        }
+        for (const field of fields.splice(0)) {
+            await deleteCustomProfileAttributes(adminClient, {[field.id]: field});
+        }
+    });
+
+    /** Creates an admin-managed ranked attribute (admin-managed → usable in ABAC) and waits for the policy editor to be able to use it. */
+    async function createRankedField(): Promise<UserPropertyField> {
+        const field = await adminClient.createCustomProfileAttributeField({
             name: `clearance_${getRandomId()}`,
             type: 'rank',
             attrs: {
@@ -73,6 +88,7 @@ test.describe('System Console - Membership Policy ranked operators', () => {
                 ],
             },
         } as any);
+        fields.push(field);
 
         // # Make sure ABAC stays enabled (a concurrent initSetup can reset config)
         await adminClient.patchConfig({
@@ -80,17 +96,8 @@ test.describe('System Console - Membership Policy ranked operators', () => {
         } as any);
 
         await assertAccessControlAutocompleteContains(adminClient, [field.name]);
-    });
-
-    test.afterEach(async () => {
-        if (field) {
-            await deleteCustomProfileAttributes(adminClient, {
-                [field.id]: field,
-                ownedIds: new Set([field.id]),
-            } as any);
-            field = undefined;
-        }
-    });
+        return field;
+    }
 
     /**
      * @objective Selecting a ranked attribute in the policy editor surfaces the
@@ -101,48 +108,27 @@ test.describe('System Console - Membership Policy ranked operators', () => {
      * An admin-managed ranked attribute (Unclassified/Secret/TopSecret) exists.
      */
     test('shows ranked comparison operators for a ranked attribute', {tag: '@abac'}, async ({pw}) => {
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const {page} = systemConsolePage;
+        const {app} = await pw.testBrowser.login(adminUser);
 
-        // # ABAC is already enabled (see beforeEach) — go straight to Membership Policies
-        await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
-
-        // # Open the new-policy editor and name it
-        await page.getByRole('button', {name: 'Add policy'}).click();
-        await page.waitForLoadState('networkidle');
-        const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
-        await nameInput.waitFor({state: 'visible', timeout: 10000});
-        await nameInput.fill(`Ranked Policy ${getRandomId()}`);
-
-        // # Add an attribute row (reload once if attributes haven't loaded yet)
-        const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
-        await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
-        if (await addAttributeButton.isDisabled()) {
-            await page.reload();
-            await page.waitForLoadState('networkidle');
-            await nameInput.fill(`Ranked Policy ${getRandomId()}`);
-            await expect(addAttributeButton).toBeEnabled({timeout: 15000});
-        }
-        await addAttributeButton.click();
-
-        await selectAttributeInEditor(page, field!.name);
+        // # Create a ranked attribute (ABAC is enabled with it), open a new policy, name it, and add a rule on the attribute
+        const field = await createRankedField();
+        const row = await newPolicyWithAttribute(app, `Ranked Policy ${getRandomId()}`, field);
 
         // * The row defaults to the canonical ranked operator, "is at least"
-        const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
-        await expect(operatorButton).toContainText('is at least');
+        await expect(row.operatorButton).toContainMessage(Msg.admin.access_control.table_editor.operator.is_at_least);
 
         // # Open the operator dropdown
-        await operatorButton.click();
+        await row.operatorButton.click();
+        await expect(app.policyRuleOperatorMenu.operator('is at least')).toBeVisible();
 
-        // * All six ranked operators are offered (menu items auto-wait for the open menu)
-        for (const label of ['is exactly', 'is not', 'is at least', 'is greater than', 'is at most', 'is less than']) {
-            await expect(page.getByRole('menuitemradio', {name: label, exact: true})).toBeVisible();
+        // * All six ranked operators are offered
+        for (const operator of RANKED_OPERATORS) {
+            await expect(app.policyRuleOperatorMenu.operator(operator)).toBeVisible();
         }
 
         // * The standard (non-ranked) operators are not offered
-        for (const label of ['is', 'in', 'has any of', 'has all of', 'starts with', 'ends with', 'contains']) {
-            await expect(page.getByRole('menuitemradio', {name: label, exact: true})).toHaveCount(0);
+        for (const operator of STANDARD_OPERATORS) {
+            await expect(app.policyRuleOperatorMenu.operator(operator)).toHaveCount(0);
         }
     });
 
@@ -155,80 +141,44 @@ test.describe('System Console - Membership Policy ranked operators', () => {
      * An admin-managed ranked attribute (Unclassified/Secret/TopSecret) exists.
      */
     test('round-trips an "is at least" ranked rule through save and reopen', {tag: '@abac'}, async ({pw}) => {
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const {page} = systemConsolePage;
+        const {app} = await pw.testBrowser.login(adminUser);
         const policyName = `Ranked RT ${getRandomId()}`;
-        let policyId: string | null = null;
+        policyNames.push(policyName);
 
-        try {
-            await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
+        // # Create a policy and add a ranked attribute rule
+        const field = await createRankedField();
+        const row = await newPolicyWithAttribute(app, policyName, field);
 
-            // # Create a policy and add a ranked attribute row
-            await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
-            const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
-            await nameInput.waitFor({state: 'visible', timeout: 10000});
-            await nameInput.fill(policyName);
+        // * Defaults to "is at least"
+        await expect(row.operatorButton).toContainMessage(Msg.admin.access_control.table_editor.operator.is_at_least);
 
-            const addAttributeButton = page.getByRole('button', {name: /add attribute/i});
-            await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
-            if (await addAttributeButton.isDisabled()) {
-                await page.reload();
-                await page.waitForLoadState('networkidle');
-                await nameInput.fill(policyName);
-                await expect(addAttributeButton).toBeEnabled({timeout: 15000});
-            }
-            await addAttributeButton.click();
+        // # Pick the value "Secret" (the options run Unclassified, Secret, TopSecret)
+        await row.value.container.click();
+        // The menu is portaled; observe its generated option collection before resolving an option by label.
+        await expect(app.policyRuleValueMenu.optionList.locator).toContainText(['Secret']);
+        const option = await app.policyRuleValueMenu.optionList.itemWith({text: /^\s*Secret\s*$/});
+        await expect(option).toBeVisible();
+        await option.click();
+        await expect(row.value.container).toContainText('Secret');
 
-            // # Select the ranked attribute by name
-            await selectAttributeInEditor(page, field!.name);
+        // # Save the policy and reopen it
+        await savePolicy(app, app.admin.accessControl.policy);
+        await expect(app.page).toHavePath(MEMBERSHIP_POLICIES_PATH);
+        const policyId = await policyIdByName(adminClient, policyName);
+        const policy = await openPolicy(app, policyId);
 
-            // * Defaults to "is at least"
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
-                'is at least',
-            );
+        // A simple expression opens in the table editor. The mode toggle is enabled only when
+        // isSimpleExpression accepts the stored expression — proving the marker form rehydrated to
+        // `>= "Secret"` (a non-rehydrated `_rank_ge(...)` marker would disable the toggle).
+        await expect(policy.switchModeButton).toBeEnabled();
 
-            // # Pick the value "Secret"
-            await page.locator('[data-testid="valueSelectorMenuButton"]').first().click();
-            await page.getByRole('menuitemradio', {name: 'Secret', exact: true}).click();
-            await expect(page.locator('[data-testid="valueSelectorMenuButton"]').first()).toContainText('Secret');
-
-            // # Save the policy
-            await page.getByRole('button', {name: 'Save'}).last().click();
-            await page.waitForLoadState('networkidle');
-
-            // # Reopen the policy from the list, searching for it since it may not be on the first page
-            await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
-            const policyRow = await systemConsolePage.membershipPolicies.searchPolicy(policyName);
-            const rowId = await policyRow.getAttribute('id');
-            policyId = rowId?.replace('customDescription-', '') ?? null;
-            await policyRow.click();
-            await page.waitForLoadState('networkidle');
-
-            // Existing policies open in Advanced mode. The "Switch to Simple Mode"
-            // toggle is enabled only when isSimpleExpression accepts the stored
-            // expression — proving the marker form rehydrated to `>= "Secret"`
-            // (a non-rehydrated `_rank_ge(...)` marker would disable the toggle).
-            const toSimpleMode = page.getByRole('button', {name: 'Switch to Simple Mode'});
-            if (await toSimpleMode.isVisible({timeout: 5000}).catch(() => false)) {
-                await expect(toSimpleMode).toBeEnabled();
-                await toSimpleMode.click();
-            }
-
-            // * The table editor re-parses the rehydrated rule to the same operator
-            //   and value (no rank integer surfaced in the value chip)
-            await expect(page.locator('[data-testid="operatorSelectorMenuButton"]').first()).toContainText(
-                'is at least',
-            );
-            const valueButton = page.locator('[data-testid="valueSelectorMenuButton"]').first();
-            await expect(valueButton).toContainText('Secret');
-            await expect(valueButton).not.toContainText('2');
-        } finally {
-            if (policyId) {
-                await adminClient.deleteAccessControlPolicy(policyId).catch(() => {});
-            }
-        }
+        // * The table editor re-parses the rehydrated rule to the same operator
+        //   and value (no rank integer surfaced in the value chip)
+        const reopened = policy.rules.row(0);
+        await expect(reopened.operatorButton).toContainMessage(
+            Msg.admin.access_control.table_editor.operator.is_at_least,
+        );
+        await expect(reopened.value.container).toContainText('Secret');
+        await expect(reopened.value.container).not.toContainText('2');
     });
 });
