@@ -69,16 +69,14 @@ const ChannelInfoButton = ({channel}: Props) => {
         <HeaderIconWrapper
             ariaLabelOverride={ariaLabelOverride}
             active={buttonActive}
-            buttonClass='channel-header__icon channel-header__icon--small'
+            buttonClass={hasMissingValues ? 'channel-header__icon channel-header__icon--small channelInfoButton--missingValues' : 'channel-header__icon channel-header__icon--small'}
             buttonId='channel-info-btn'
             onClick={toggleRHS}
             size='small'
             tooltip={tooltip}
+            unreadBadge={hasMissingValues}
         >
-            <Icon
-                className={hasMissingValues ? 'channelInfoButton__icon--missingValues' : undefined}
-                glyph={<InformationOutlineIcon/>}
-            />
+            <Icon glyph={<InformationOutlineIcon/>}/>
         </HeaderIconWrapper>
     );
 };

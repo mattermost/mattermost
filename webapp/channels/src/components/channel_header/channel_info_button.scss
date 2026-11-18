@@ -1,3 +1,7 @@
-.channelInfoButton__icon--missingValues {
-    color: var(--error-text);
+// The design's badge for this button is larger than IconButton's default and
+// uses the error color; the dot's shape, not just its color, carries the cue.
+.channelInfoButton--missingValues [class*='icon-button__unread-badge'] {
+    width: 8px;
+    height: 8px;
+    background-color: var(--error-text);
 }

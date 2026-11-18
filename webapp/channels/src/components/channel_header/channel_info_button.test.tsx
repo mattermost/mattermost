@@ -89,17 +89,17 @@ describe('components/channel_header/ChannelInfoButton', () => {
             } as DeepPartial<GlobalState>;
         }
 
-        test('shows the icon in red and extends the label for someone who can fix them', () => {
+        test('shows the unread badge and extends the label for someone who can fix them', () => {
             const {container} = renderWithContext(<ChannelInfoButton channel={channel}/>, stateWith({admin: true}));
 
-            expect(container.querySelector('.channelInfoButton__icon--missingValues')).toBeInTheDocument();
+            expect(container.querySelector('.channelInfoButton--missingValues [class*="icon-button__unread-badge"]')).toBeInTheDocument();
             expect(screen.getByLabelText('View Info, channel attribute values are missing')).toBeInTheDocument();
         });
 
         test('shows neither for someone who cannot fix them', () => {
             const {container} = renderWithContext(<ChannelInfoButton channel={channel}/>, stateWith({admin: false}));
 
-            expect(container.querySelector('.channelInfoButton__icon--missingValues')).not.toBeInTheDocument();
+            expect(container.querySelector('[class*="icon-button__unread-badge"]')).not.toBeInTheDocument();
             expect(screen.getByLabelText('View Info')).toBeInTheDocument();
         });
     });
