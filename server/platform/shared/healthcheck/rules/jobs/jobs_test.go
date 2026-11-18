@@ -380,6 +380,42 @@ func TestJobStuck(t *testing.T) {
 			},
 		},
 		{
+			name:     "no activity for just under 48h reports hours",
+			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(50 * time.Hour), LastActivityAt: ago(47 * time.Hour)}),
+			want: jobWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.job_stuck.message",
+				details:   map[string]string{"job_id": "job1", "hours": "47"},
+			},
+		},
+		{
+			name:     "no activity for exactly 48h reports days",
+			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(50 * time.Hour), LastActivityAt: ago(48 * time.Hour)}),
+			want: jobWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.job_stuck.message.days",
+				details:   map[string]string{"job_id": "job1", "hours": "48", "days": "2"},
+			},
+		},
+		{
+			name:     "a partial day is not counted",
+			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(80 * time.Hour), LastActivityAt: ago(71 * time.Hour)}),
+			want: jobWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.job_stuck.message.days",
+				details:   map[string]string{"job_id": "job1", "hours": "71", "days": "2"},
+			},
+		},
+		{
+			name:     "no activity for years reports days and keeps hours",
+			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(830 * 24 * time.Hour), LastActivityAt: ago(823 * 24 * time.Hour)}),
+			want: jobWant{
+				state:     healthcheck.StateFiring,
+				messageID: "health.rule.job_stuck.message.days",
+				details:   map[string]string{"job_id": "job1", "hours": "19752", "days": "823"},
+			},
+		},
+		{
 			name:     "no activity for exactly 24h",
 			snapshot: jobsSnapshot(&model.Job{Id: "job1", Status: model.JobStatusInProgress, StartAt: ago(24 * time.Hour), LastActivityAt: ago(24 * time.Hour)}),
 			want:     resolved,

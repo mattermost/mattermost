@@ -38,6 +38,17 @@ var behind = healthcheck.Rule{
 	Eval:       evalBehind(model.ReleaseLifecycles(), time.Now, healthcheck.TranslationId("health.rule.version_behind.message"), isSeveralBehind),
 }
 
+// latestUnknownReason tells a server that does not fetch the latest release, because
+// EnableSecurityFixAlert is off, from one that failed to fetch it.
+func latestUnknownReason(s *healthcheck.Snapshot) string {
+	if s.Version.Latest == "" {
+		if enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableSecurityFixAlert }); ok && !enabled {
+			return reasonLatestDisabled
+		}
+	}
+	return reasonLatestUnknown
+}
+
 func isOneBehind(n int) bool { return n == 1 }
 
 func isSeveralBehind(n int) bool { return n >= 2 }
@@ -84,7 +95,7 @@ func evalBehind(table []model.ReleaseLifecycle, now func() time.Time, messageID 
 
 		latest, ok := parseLine(s.Version.Latest)
 		if !ok {
-			return healthcheck.UnknownSubject(subject, reasonLatestUnknown)
+			return healthcheck.UnknownSubject(subject, latestUnknownReason(s))
 		}
 
 		n := releasesBehind(table, a.version, latest)
