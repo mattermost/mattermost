@@ -196,21 +196,28 @@ test.describe('ABAC Policy Management - Delete Policies', () => {
         // Click Delete
         await deleteMenuItemWithoutChannel.click();
 
-        // Handle confirmation modal if it appears
-        const confirmDeleteButton = page.getByRole('button', {name: /delete|confirm/i});
-        if (await confirmDeleteButton.isVisible({timeout: 2000})) {
-            await confirmDeleteButton.click();
-            await expect(policyWithoutChannelRow).toBeHidden();
-        }
+        const confirmDeleteButton = page.getByRole('button', {name: 'Delete Policy'});
+        await expect(confirmDeleteButton).toBeVisible();
+        const deleted = page.waitForResponse(
+            (resp) =>
+                /\/api\/v4\/access_control_policies\/[^/]+$/.test(resp.url()) &&
+                resp.request().method() === 'DELETE' &&
+                resp.ok(),
+        );
+        await confirmDeleteButton.click();
+        await deleted;
 
         // Verify the policy was deleted
-        await searchInput.clear();
+        const searched = page.waitForResponse(
+            (resp) =>
+                /\/api\/v4\/access_control_policies\/search$/.test(resp.url()) &&
+                resp.request().method() === 'POST' &&
+                resp.ok(),
+        );
         await searchInput.fill(policyWithoutChannelName);
-
-        const policyStillExists = await page
-            .locator('tr.clickable, .DataGrid_row')
-            .filter({hasText: policyWithoutChannelName})
-            .isVisible({timeout: 3000});
-        expect(policyStillExists).toBe(false);
+        await searched;
+        await expect(
+            page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyWithoutChannelName}),
+        ).toHaveCount(0);
     });
 });
