@@ -578,7 +578,18 @@ type Hooks interface {
 	PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue)
 
 	// EntityLookup asks the plugin for the card of a value it provides.
-	// Return a nil card and a nil error when this plugin does not provide the type.
+	// UserID is always the caller.
+	// When PostID is set, the server has already required that this caller can
+	// read the post. A nil card then falls through to a glossary term or the
+	// built-in card. A shared card is stored once for every reader of that
+	// post, so it must not depend on UserID. A card that does uses cache "user"
+	// or "none".
+	// When PostID is empty, the server has only checked that the caller is
+	// logged in and that a matcher accepts the value. The plugin allows or
+	// refuses. A nil card or an error is a refusal, and the answer is not stored.
+	// A value that is only a glossary term is not asked.
+	// Return a nil card and a nil error when this plugin does not provide the
+	// type. With a post, that falls through. With no post, it is a refusal.
 	//
 	// Minimum server version: 12.2
 	EntityLookup(c *Context, req *model.EntityLookupRequest) (*model.EntityCard, error)

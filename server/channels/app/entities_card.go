@@ -21,18 +21,26 @@ func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.Enti
 		return nil, model.NewAppError("GetEntityCard", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
 
-	// Only a built-in type is described with no post. A glossary term and any
-	// other type stay on the post-scoped routes, and an unknown value of a
-	// plugin type gets the same refusal as a registered one.
+	// A provider is asked even when there is no post, and it is told who is
+	// asking. The plugin allows or refuses. The answer is not cached.
+	// A value that is only a glossary term is not asked: the term has no
+	// hook, and an unknown value gets the same refusal, so the route is not
+	// a dictionary. A matcher that accepts the whole value does ask the plugin.
+	card, remote, err := entities.Prepare(rctx.Context(), typeID, value, 0)
+	if remote != nil && err == nil && entities.PatternCovers(typeID, value) {
+		if rctx.Session().UserId == "" {
+			return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+		}
+		if got := a.lookupEntityProvider(rctx, remote, typeID, value, "", 0); got != nil {
+			return got, nil
+		}
+		return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
+	}
 	if typeID != entities.CoreTimeTypeID {
 		return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 	}
-	card, remote, err := entities.Prepare(rctx.Context(), typeID, value, 0)
 	if err != nil {
 		return nil, model.NewAppError("GetEntityCard", "api.context.invalid_url_param.app_error", map[string]any{"Name": "value"}, err.Error(), http.StatusBadRequest)
-	}
-	if remote != nil {
-		return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 	localizeEntityCard(rctx, card)
 	return card, nil
@@ -206,13 +214,14 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 		return nil
 	}
 	userID := rctx.Session().UserId
-	// A shared card is the same for every reader of the post, so the provider
-	// is not told who is asking. The caller has already shown they can read it.
-	lookupUser := ""
-	if remote.Cache != model.EntityCacheShared {
-		lookupUser = userID
+	// The caller is always named. When postID is set, read access was already
+	// checked. When it is empty, the plugin allows or refuses, and the answer
+	// is not stored. A shared card stored for a post is one value for every
+	// reader, so that stored card must not depend on the caller.
+	key, cacheable := "", false
+	if postID != "" {
+		key, cacheable = entities.CardCacheKey(remote.Provider.String(), remote.Cache, typeID, value, userID, postID, createAt)
 	}
-	key, cacheable := entities.CardCacheKey(remote.Provider.String(), remote.Cache, typeID, value, userID, postID, createAt)
 	cardCache := a.Srv().entityCardCache
 	if cacheable && cardCache != nil {
 		var cached model.EntityCard
@@ -240,7 +249,7 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 			Provider: remote.Provider.Name,
 			Type:     entities.LocalRef(remote.Provider.Owner, typeID),
 			Value:    value,
-			UserID:   lookupUser,
+			UserID:   userID,
 			PostID:   postID,
 			CreateAt: createAt,
 		})

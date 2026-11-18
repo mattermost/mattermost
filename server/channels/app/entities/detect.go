@@ -716,11 +716,8 @@ func protectedUTF16(s string, mask []bool) [][2]int {
 	prefix := utf16Prefix(s)
 	var ranges [][2]int
 	start := -1
-	n := len(mask)
-	if n > len(s) {
-		n = len(s)
-	}
-	for i := 0; i < n; i++ {
+	n := min(len(mask), len(s))
+	for i := range n {
 		if mask[i] && start < 0 {
 			start = i
 		}

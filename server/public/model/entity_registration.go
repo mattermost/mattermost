@@ -42,7 +42,8 @@ const (
 	// EntityCacheNone calls the provider on every open and stores nothing.
 	EntityCacheNone = "none"
 	// EntityCacheShared stores one card per value for every reader of a post
-	// that contains that value. It is not permission to fetch the value with no post.
+	// that contains that value. A lookup with no post is not stored, and this
+	// mode is not permission to fetch it.
 	EntityCacheShared = "shared"
 	// EntityCacheUser stores a separate card for each reader.
 	EntityCacheUser = "user"
@@ -51,9 +52,13 @@ const (
 // EntityProvider is a plugin that can describe values of one or more types.
 // Name is local to the plugin, and each of Types is written as in EntityMatcher.Type.
 // HasCard means the server calls the plugin's EntityLookup hook. Cache selects
-// whether that card is stored: shared, user, or none. An empty Cache is none.
-// Cache is not an access grant. A provider card is returned only for a post
-// the caller can read.
+// whether a card read from a post is stored: shared, user, or none. An empty
+// Cache is none. A shared card is one stored value for every reader of that
+// post, so it must not depend on the caller. A card that depends on who is
+// asking uses user or none. A lookup with no post is not stored, and the
+// plugin decides whether that caller may see it. A glossary term is not sent
+// on that lookup unless a matcher accepts the whole value.
+// Cache is not an access grant.
 // CacheTTLSeconds is the lifetime for a stored card. Zero uses the server default.
 type EntityProvider struct {
 	Name            string   `json:"name"`
@@ -63,20 +68,21 @@ type EntityProvider struct {
 	CacheTTLSeconds int      `json:"cache_ttl_seconds,omitempty"`
 }
 
-// EntityLookupRequest is the value a provider is asked to describe. The
-// server fills it from a value that matched a registered pattern. Provider
-// and Type are written the way the plugin registered them: a bare name for
-// its own, and an id such as "mm:time" for a built-in type.
+// EntityLookupRequest is the value a provider is asked to describe. With no
+// post, Value matched a registered pattern. With a post, it was read from
+// that post. Provider and Type are written the way the plugin registered
+// them: a bare name for its own, and an id such as "mm:time" for a built-in type.
 type EntityLookupRequest struct {
 	Provider string `json:"provider"`
 	Type     string `json:"type"`
 	Value    string `json:"value"`
-	// UserID is set when the card may differ by reader. A shared cache leaves it
-	// empty: the server has already required a post the caller can read, and the
-	// stored card is the same for every such reader.
+	// UserID is always the caller. When PostID is set, the server has already
+	// required that this caller can read the post. When PostID is empty, the
+	// plugin allows or refuses.
 	UserID string `json:"user_id,omitempty"`
 	// PostID and CreateAt identify the post the value was read from.
 	// CreateAt is the reference for a token that omits its month or year.
+	// An empty PostID means the server has not checked access to a post.
 	PostID   string `json:"post_id,omitempty"`
 	CreateAt int64  `json:"create_at,omitempty"`
 }

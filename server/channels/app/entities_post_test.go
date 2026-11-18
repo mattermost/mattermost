@@ -43,7 +43,7 @@ func TestPostContainsEntityRequiresTheValue(t *testing.T) {
 	require.False(t, postContainsEntity(post, "com.example:other", "WX-100"))
 }
 
-func TestProviderEntityCardNeedsAPost(t *testing.T) {
+func TestProviderEntityCardWithoutAnAnswerIsRefused(t *testing.T) {
 	for _, cache := range []string{model.EntityCacheNone, model.EntityCacheShared, model.EntityCacheUser} {
 		t.Run(cache, func(t *testing.T) {
 			pluginID := "com.example.card." + cache
@@ -85,9 +85,9 @@ func TestTermCardNeedsAPost(t *testing.T) {
 
 	app := entityEnabledApp(nil)
 	for _, value := range []string{"MLT", "ZZZ"} {
-		card, err := app.GetEntityCard(request.TestContext(t), typeID, value)
+		card, cardErr := app.GetEntityCard(request.TestContext(t), typeID, value)
 		require.Nil(t, card)
-		appErr := model.AsAppError(err)
+		appErr := model.AsAppError(cardErr)
 		require.NotNil(t, appErr)
 		require.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		require.Equal(t, "api.context.permissions.app_error", appErr.Id)

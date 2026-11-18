@@ -106,7 +106,7 @@ func ReplaceTerms(owner, typeRef string, terms []model.EntityTerm) (string, bool
 		if !termValueOK(term.Value) {
 			return "", false, fmt.Errorf("term is not allowed")
 		}
-		if _, ok := seen[term.Value]; ok {
+		if _, exists := seen[term.Value]; exists {
 			return "", false, fmt.Errorf("term is duplicated")
 		}
 		seen[term.Value] = struct{}{}
@@ -341,6 +341,19 @@ func (r *registry) lookupPlan(typeID string) (*Remote, bool) {
 	}
 	t, ok := r.types[typeID]
 	return remote, ok && t.ref.Owner == CoreOwner
+}
+
+// PatternCovers reports whether a matcher accepts value as a whole token.
+// A glossary term alone does not.
+func PatternCovers(typeID, value string) bool {
+	reg.mu.RLock()
+	defer reg.mu.RUnlock()
+	for _, stored := range reg.matchers {
+		if stored.typeID == typeID && matcherCovers(stored, value) {
+			return true
+		}
+	}
+	return false
 }
 
 func (r *registry) valueMatches(typeID, value string) bool {

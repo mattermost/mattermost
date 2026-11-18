@@ -2002,7 +2002,12 @@ type API interface {
 
 	// RegisterEntityProvider registers this plugin as a source of cards or
 	// links for types it is allowed to provide. HasCard asks the server to
-	// call EntityLookup when a reader opens a value of that type.
+	// call EntityLookup when a reader opens a value of that type. The request
+	// always names the caller. A post id means the server has already checked
+	// that the caller can read the post. No post id means the plugin decides,
+	// and only a value a matcher accepts is asked. A glossary term with no
+	// matching pattern is not asked. A shared card stored for a post must not
+	// depend on the caller. Use cache "user" or "none" when it does.
 	//
 	// Minimum server version: 12.2
 	RegisterEntityProvider(p *model.EntityProvider) *model.AppError

@@ -4,11 +4,16 @@
         - entities
       summary: Get an entity card
       description: >
-        Returns the detail card for a detected entity. Provider cards require a
-        post-scoped lookup (`post_id` plus occurrence `id`, or `post_id` with
-        `type_id` and `value`) and permission to read that post. A bare
-        `type_id` and `value` lookup describes built-in types such as `mm:time`
-        only. Cache mode does not grant access.
+        Returns the detail card for a detected entity. The registering plugin
+        is always told which user is asking. A lookup with `post_id` requires
+        permission to read that post, and that check has already been made
+        before the plugin is called. A bare `type_id` and `value` lookup
+        describes built-in types such as `mm:time`, and asks a plugin whose
+        matcher accepts the whole value. The plugin allows or refuses that
+        caller, and the answer is not cached. A glossary term is not asked
+        unless a matcher accepts it, and an unknown value is refused the same
+        way. Cache mode does not grant access. A shared card stored for a
+        post is the same for every reader of that post.
 
 
         Feature-gated behind `FeatureFlags.Entities` /
@@ -17,8 +22,11 @@
 
         ##### Permissions
 
-        Must be authenticated. Provider cards require permission to read the
-        post's channel.
+        Must be authenticated. A lookup with a post requires permission to read
+        the post's channel. A lookup without a post is allowed when the
+        registering plugin allows that caller. An invalid built-in value is
+        rejected. A refused plugin card and a glossary term without a post are
+        both forbidden.
 
         __Minimum server version__: 12.2
       operationId: GetEntityCard
