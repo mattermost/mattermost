@@ -12957,11 +12957,11 @@
   },
   "admin.plugins.settings.callsVersionAuto": {
     "defaultMessage": "Automatic",
-    "description": "Option in the Calls Version dropdown in System Console Plugin Management meaning the server picks the version from what is already installed."
+    "description": "Option in the Calls Version dropdown in System Console Plugin Management meaning the server chooses the version: v1 while it is prepackaged, otherwise v2."
   },
   "admin.plugins.settings.callsVersionDesc": {
-    "defaultMessage": "Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Switching disconnects users from active calls, and requests made during the switch can fail, so switch during a quiet period. Configure LiveKit in the Calls plugin settings before switching to v2, and make sure your mobile apps support Calls v2.",
-    "description": "Help text for the Calls Version setting in System Console Plugin Management; warns that switching disconnects active calls."
+    "defaultMessage": "Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.",
+    "description": "Help text for the Calls Version setting in System Console Plugin Management; explains Automatic, warns that switching disconnects active calls and to list them first with the /call list-all command, and explains how an uploaded Calls plugin interacts with the setting."
   },
   "admin.plugins.settings.callsVersionV1": {
     "defaultMessage": "v1 (RTC / RTCD)",

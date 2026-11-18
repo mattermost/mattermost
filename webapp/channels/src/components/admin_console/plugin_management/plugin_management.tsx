@@ -229,7 +229,7 @@ const messages = defineMessages({
     automaticPrepackagedPlugins: {id: 'admin.plugins.settings.automaticPrepackagedPlugins', defaultMessage: 'Enable Automatic Prepackaged Plugins:'},
     automaticPrepackagedPluginsDesc: {id: 'admin.plugins.settings.automaticPrepackagedPluginsDesc', defaultMessage: 'When true, automatically installs any prepackaged plugin found to be enabled in the server configuration.'},
     callsVersion: {id: 'admin.plugins.settings.callsVersion', defaultMessage: 'Calls Version:'},
-    callsVersionDesc: {id: 'admin.plugins.settings.callsVersionDesc', defaultMessage: 'Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Switching disconnects users from active calls, and requests made during the switch can fail, so switch during a quiet period. Configure LiveKit in the Calls plugin settings before switching to v2, and make sure your mobile apps support Calls v2.'},
+    callsVersionDesc: {id: 'admin.plugins.settings.callsVersionDesc', defaultMessage: 'Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.'},
     callsVersionAuto: {id: 'admin.plugins.settings.callsVersionAuto', defaultMessage: 'Automatic'},
     callsVersionV1: {id: 'admin.plugins.settings.callsVersionV1', defaultMessage: 'v1 (RTC / RTCD)'},
     callsVersionV2: {id: 'admin.plugins.settings.callsVersionV2', defaultMessage: 'v2 (LiveKit)'},
