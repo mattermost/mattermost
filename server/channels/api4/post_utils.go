@@ -128,3 +128,40 @@ func checkEditFileAttachmentPermission(c *Context, newFileIds []string, original
 		c.SetPermissionError(model.PermissionEditFileAttachment)
 	}
 }
+
+// postAttributeValuesForCreate turns the submitted metadata values into PropertyValues to
+// write with the post.
+//
+// When nothing was submitted this returns (nil, nil) before any lookup, channel or property,
+// which is what keeps createPost byte-identical to its pre-feature behaviour — the reason
+// this is safe to add to the most-used endpoint in the product.
+func postAttributeValuesForCreate(c *Context, post *model.Post) ([]*model.PropertyValue, *model.AppError) {
+	items := post.Metadata.GetPropertyValues()
+	if len(items) == 0 {
+		return nil, nil
+	}
+
+	if !c.App.Config().FeatureFlags.PostAttributes {
+		return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	// Fetched only once there are values to check: the team ID decides which team-scoped
+	// fields apply. CreatePostAsUserWithFlags reads the same channel again a moment later.
+	channel, appErr := c.App.GetChannel(c.AppContext, post.ChannelId)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	values, fields, appErr := c.App.PreparePostPropertyValuesForCreate(c.AppContext, items, channel)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	for _, field := range fields {
+		if !c.App.CanSetPostPropertyValueOnCreate(c.AppContext, c.AppContext.Session().UserId, field, channel) {
+			return nil, model.NewAppError("Api4.createPost", "api.post.create_post.attribute_no_permission.app_error", nil, "", http.StatusForbidden)
+		}
+	}
+
+	return values, nil
+}

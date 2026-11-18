@@ -7500,8 +7500,8 @@
     "description": "Title of the empty Warning tab on the System Console Site health page, shown when no warning finding is firing."
   },
   "admin.health_dashboard.empty.body": {
-    "defaultMessage": "The first health check runs within an hour of enabling the feature.",
-    "description": "Body of the System Console Site health page empty state shown before the first health check has run."
+    "defaultMessage": "The first health check runs within an hour of enabling the feature. To run it now, select Re-run checks.",
+    "description": "Body of the System Console Site health page empty state shown before the first health check has run; Re-run checks is the label of the button above it."
   },
   "admin.health_dashboard.empty.title": {
     "defaultMessage": "Not evaluated yet",
@@ -7582,6 +7582,30 @@
   "admin.health_dashboard.muted.toggle": {
     "defaultMessage": "Muted",
     "description": "Toolbar button next to the tabs on the System Console Site health page that shows the muted findings; followed by their count."
+  },
+  "admin.health_dashboard.run.button": {
+    "defaultMessage": "Re-run checks",
+    "description": "Secondary button in the summary header of the System Console Site health page that runs the health check now instead of waiting for the hourly run."
+  },
+  "admin.health_dashboard.run.failed": {
+    "defaultMessage": "The health check failed: {error}",
+    "description": "Error banner on the System Console Site health page when a health check run failed; {error} is the server's technical reason, in English."
+  },
+  "admin.health_dashboard.run.failed_no_reason": {
+    "defaultMessage": "The health check did not finish.",
+    "description": "Error banner on the System Console Site health page when a health check run failed without a reason from the server, was canceled, or stopped responding."
+  },
+  "admin.health_dashboard.run.reload_error": {
+    "defaultMessage": "The health check results could not be loaded. Reload the page to see them.",
+    "description": "Error banner on the System Console Site health page when the outcome of a health check run could not be fetched: either the run's status or its new findings."
+  },
+  "admin.health_dashboard.run.running": {
+    "defaultMessage": "Running checks…",
+    "description": "Label of the disabled Re-run checks button on the System Console Site health page while a health check run is in progress."
+  },
+  "admin.health_dashboard.run.start_error": {
+    "defaultMessage": "The health check could not be started. Try again.",
+    "description": "Error banner on the System Console Site health page when selecting Re-run checks could not start a health check run."
   },
   "admin.health_dashboard.severity.critical": {
     "defaultMessage": "Critical",
@@ -14936,11 +14960,11 @@
     "description": "Admin console label for a true/false setting enabling automatic certificates from Let's Encrypt (a certificate authority brand name); ends with a colon before the radio buttons."
   },
   "admin.service.useLetsEncryptDescription": {
-    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.",
+    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.",
     "description": "Help text for the Use Let's Encrypt setting on the System Console Web Server page; Let's Encrypt is a certificate authority (keep name)."
   },
   "admin.service.useLetsEncryptDescription.disabled": {
-    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true.",
+    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true.",
     "description": "Help text variant for the Use Let's Encrypt setting shown when it cannot be enabled; contains a markdown link [Forward port 80 to 443](#...) — keep the link target unchanged."
   },
   "admin.service.userAccessTokensDescription": {

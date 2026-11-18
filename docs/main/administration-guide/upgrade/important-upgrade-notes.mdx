@@ -23,6 +23,10 @@ We recommend reviewing the [additional upgrade notes](#additional-upgrade-notes)
 </thead>
 <tbody>
 <tr>
+<td>v12.3</td>
+<td><p>The <a href={useBaseUrl('/administration-guide/manage/site-health-dashboard')}>Site health dashboard</a> will be enabled by default on Entry, Professional, Enterprise, and Enterprise Advanced plans, and will replace <strong>Reporting &gt; Workspace Optimization</strong> for system admins. Its health check will run about once an hour on every server in the deployment, and each run will probe the configured external services, such as SMTP, LDAP, SAML, OAuth, the push notification proxy, Elasticsearch or OpenSearch, and file storage. If outbound traffic from your servers is restricted or monitored, expect these hourly connections after upgrading. To turn the dashboard off, set the <code>MM_FEATUREFLAGS_HEALTHDASHBOARD</code> environment variable to <code>false</code>.</p></td>
+</tr>
+<tr>
 <td>v12.1</td>
 <td><p>Mattermost Desktop App v6.4 (November 2026) requires Boards v9.4.0 or later on servers configured with a subpath in their Site URL. The Desktop App no longer strips the server subpath from paths sent by Boards, a workaround that caused &quot;Team not found&quot; errors when a team name matched the subpath, so older Boards versions may show navigation errors. Update the Boards plugin to v9.4.0 or later <em>before</em> updating the Desktop App, following the <a href={useBaseUrl('/administration-guide/configure/install-boards')}>Boards installation instructions</a>. Deployments without a subpath are unaffected. See the <a href="https://forum.mattermost.com/t/desktop-app-v6-4-requires-boards-v9-4-0-for-subpath-deployments/26064">forum post</a> for full details and migration options.</p></td>
 </tr>

@@ -70,7 +70,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         teamIsGroupConstrained: false,
         creatorName: 'creatorName',
         currentUser: users[0],
-        stats: {},
+        stats: {total_users_count: 20},
         usersLimit: 10,
         isMobileView: false,
         channelKind: 'channel' as const,
@@ -263,6 +263,134 @@ describe('components/post_view/ChannelIntroMessages', () => {
                 modalId: ModalIdentifiers.CHANNEL_NOTIFICATIONS,
                 dialogProps: expect.objectContaining({channel, currentUser: baseProps.currentUser}),
             }));
+        });
+    });
+
+    describe('total user count', () => {
+        const stateWithInvitePermissions = {
+            ...initialState,
+            entities: {
+                ...initialState.entities,
+                users: {
+                    ...initialState.entities.users,
+                    currentUserId: 'test-user-id',
+                    profiles: {
+                        ...initialState.entities.users.profiles,
+                        'test-user-id': TestHelper.getUserMock({id: 'test-user-id', roles: 'system_user'}),
+                    },
+                },
+                teams: {
+                    ...initialState.entities.teams,
+                    currentTeamId: 'team-id',
+                },
+                roles: {
+                    roles: {
+                        system_user: {permissions: [Permissions.ADD_USER_TO_TEAM, Permissions.INVITE_GUEST, Permissions.INVITE_USER]},
+                    },
+                },
+            },
+        } as any;
+
+        const channelsUsingCount = [
+            {name: 'open channel', channel},
+            {name: 'default channel', channel: {...channel, name: Constants.DEFAULT_CHANNEL}},
+            {name: 'off-topic channel', channel: {...channel, name: Constants.OFFTOPIC_CHANNEL}},
+        ];
+
+        for (const testCase of channelsUsingCount) {
+            describe(testCase.name, () => {
+                const props = {...baseProps, channel: testCase.channel, enableUserCreation: true};
+
+                test('should not render any action buttons while the count is unknown', () => {
+                    const {container} = renderWithContext(
+                        <ChannelIntroMessage
+                            {...props}
+                            stats={{}}
+                        />,
+                        stateWithInvitePermissions,
+                    );
+
+                    expect(screen.getByText('test channel')).toBeInTheDocument();
+                    expect(container.querySelector('.channel-intro__actions')).not.toBeInTheDocument();
+                    expect(screen.queryByRole('button')).not.toBeInTheDocument();
+                    expect(container.querySelector('.loading-screen, .fa-spinner')).not.toBeInTheDocument();
+                });
+
+                test('should only render the invite button when there are fewer users than the limit', () => {
+                    renderWithContext(
+                        <ChannelIntroMessage
+                            {...props}
+                            stats={{total_users_count: 3}}
+                        />,
+                        stateWithInvitePermissions,
+                    );
+
+                    expect(screen.getByRole('button', {name: /Invite others to the workspace/})).toBeInTheDocument();
+                    expect(screen.queryByRole('button', {name: 'Favorite'})).not.toBeInTheDocument();
+                    expect(screen.queryByRole('button', {name: 'Notifications'})).not.toBeInTheDocument();
+                });
+
+                test('should render the channel action buttons when there are at least as many users as the limit', () => {
+                    renderWithContext(
+                        <ChannelIntroMessage
+                            {...props}
+                            stats={{total_users_count: 10}}
+                        />,
+                        stateWithInvitePermissions,
+                    );
+
+                    expect(screen.getByRole('button', {name: 'Favorite'})).toBeInTheDocument();
+                    expect(screen.getByRole('button', {name: 'Notifications'})).toBeInTheDocument();
+                    expect(screen.queryByRole('button', {name: /Invite others to the workspace/})).not.toBeInTheDocument();
+                });
+
+                test('should go straight from no action buttons to the final layout once the count loads', () => {
+                    const {rerender} = renderWithContext(
+                        <ChannelIntroMessage
+                            {...props}
+                            stats={{}}
+                        />,
+                        stateWithInvitePermissions,
+                    );
+
+                    expect(screen.queryByRole('button', {name: 'Favorite'})).not.toBeInTheDocument();
+
+                    rerender(
+                        <ChannelIntroMessage
+                            {...props}
+                            stats={{total_users_count: 3}}
+                        />,
+                    );
+
+                    expect(screen.getByRole('button', {name: /Invite others to the workspace/})).toBeInTheDocument();
+                    expect(screen.queryByRole('button', {name: 'Favorite'})).not.toBeInTheDocument();
+                });
+            });
+        }
+
+        test('should request the count on mount only when it is unknown', () => {
+            const getTotalUsersStats = jest.fn();
+            const {unmount} = renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    stats={{}}
+                    actions={{...baseProps.actions, getTotalUsersStats}}
+                />,
+                initialState,
+            );
+            expect(getTotalUsersStats).toHaveBeenCalledTimes(1);
+            unmount();
+
+            getTotalUsersStats.mockClear();
+            renderWithContext(
+                <ChannelIntroMessage
+                    {...baseProps}
+                    stats={{total_users_count: 3}}
+                    actions={{...baseProps.actions, getTotalUsersStats}}
+                />,
+                initialState,
+            );
+            expect(getTotalUsersStats).not.toHaveBeenCalled();
         });
     });
 
