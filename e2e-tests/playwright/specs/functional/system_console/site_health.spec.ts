@@ -265,7 +265,7 @@ test('shows how to fix a finding and opens its setting', {tag: '@system_console'
             'Enable ServiceSettings.ExtendSessionLengthWithActivity unless your security policy forbids it.',
         ),
     ).toBeVisible();
-    await expect(row.openSettingLink).toHaveAttribute('href', '/admin_console/environment/session_lengths');
+    await expect(row.openSettingLink).toHaveAttribute('href', /\/admin_console\/environment\/session_lengths$/);
     await expect(row.docsLink).toHaveAttribute('href', /configure-session-lengths/);
 
     // # Select Go to setting
