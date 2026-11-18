@@ -34,6 +34,7 @@ const VersionBar = ({
     if (buildHashOnAppLoad !== buildHash) {
         return (
             <AnnouncementBar
+                testId='announcement_bars.version'
                 type={AnnouncementBarTypes.ANNOUNCEMENT}
                 message={
                     <>

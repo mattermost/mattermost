@@ -57,6 +57,7 @@ const CreateModalNameInput = ({
             emoji={emoji}
             fileInfo={fileInfo}
             imageUrl={imageUrl}
+            testId='bookmark_modal.icon'
         />
     );
 
@@ -127,6 +128,7 @@ const CreateModalNameInput = ({
                     onKeyDown={handleEmojiKeyDown}
                     aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                     className='channelBookmarksMenuButton emoji-picker__container BookmarkCreateModal__emoji-button'
+                    data-testid='bookmark_modal.emoji--button'
                     {...getReferenceProps()}
                 >
                     {icon}
@@ -140,11 +142,13 @@ const CreateModalNameInput = ({
                     onChange={handleInputChange}
                     value={displayName ?? placeholder ?? ''}
                     placeholder={placeholder}
-                    data-testid='titleInput'
+                    testId='bookmark_modal.title'
                     useLegend={false}
                 />
                 <Clear
                     visible={Boolean(emoji)}
+                    data-testid='bookmark_modal.remove_emoji--button'
+                    role='button'
                     tabIndex={0}
                     onClick={handleEmojiClear}
                     onKeyDown={handleEmojiResetKeyDown}

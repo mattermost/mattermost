@@ -64,13 +64,13 @@ describe('components/common/PaginationButtons', () => {
                 className='paginationButtons'
                 previousButtonClassName='ml-2 prev'
                 nextButtonClassName='next'
-                nextButtonTestId='page-link-next'
+                nextButtonTestId='admin.list.next--button'
             />,
         );
 
         expect(container.querySelector('.paginationButtons')).toBeInTheDocument();
         expect(screen.getByRole('button', {name: 'Previous'})).toHaveClass('ml-2', 'prev');
         expect(screen.getByRole('button', {name: 'Next'})).toHaveClass('next');
-        expect(screen.getByTestId('page-link-next')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.list.next--button')).toBeInTheDocument();
     });
 });

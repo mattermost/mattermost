@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that a user who belongs to multiple teams can switch between them and log out to the sign-in page.
@@ -19,24 +19,25 @@ test('MM-T430 MM-T432 switches between teams and logs out', {tag: '@multi_team'}
     });
     await adminClient.addToTeam(secondTeam.id, user.id);
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'off-topic');
-    await channelsPage.toBeVisible();
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: 'off-topic'});
+    await expect(app.center.postCreate).toBeVisible();
 
     // # Switch to the second team
-    await channelsPage.switchToTeam(secondTeam.name);
+    await app.teamSidebar.team(secondTeam).container.click();
 
     // * Verify the second team is displayed
     await expect.poll(() => page.url(), {timeout: pw.duration.ten_sec}).toContain(`/${secondTeam.name}/`);
 
     // # Switch back to the first team
-    await channelsPage.switchToTeam(team.name);
+    await app.teamSidebar.team(team).container.click();
 
     // * Verify the first team is displayed
     await expect.poll(() => page.url(), {timeout: pw.duration.ten_sec}).toContain(`/${team.name}/`);
 
     // # Log out
-    await channelsPage.logout();
+    await app.globalHeader.openAccountMenuButton.clickTo(app.globalHeader.accountMenu.logOutMenuItem);
+    await settle(app.globalHeader.accountMenu.logOutMenuItem, {wait: Api.Logout}).click();
 
     // * Verify the user is returned to the sign-in page
     await expect.poll(() => page.url(), {timeout: pw.duration.ten_sec}).toContain('/login');
@@ -56,13 +57,14 @@ test('MM-T431 reopens to the previously viewed team and channel', {tag: '@multi_
     });
     await adminClient.addToTeam(secondTeam.id, user.id);
 
-    const {channelsPage, page} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {app, page} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: 'town-square'});
+    await expect(app.center.postCreate).toBeVisible();
 
     // # Switch to the second team and view its Off-Topic channel
-    await channelsPage.switchToTeam(secondTeam.name);
-    await channelsPage.sidebarLeft.goToItem('off-topic');
+    await app.teamSidebar.team(secondTeam).container.click();
+    await expect.poll(() => page.url(), {timeout: pw.duration.ten_sec}).toContain(`/${secondTeam.name}/`);
+    await app.lhs.channelList.channel('off-topic').container.click();
     await expect
         .poll(() => page.url(), {timeout: pw.duration.ten_sec})
         .toContain(`/${secondTeam.name}/channels/off-topic`);
@@ -71,7 +73,7 @@ test('MM-T431 reopens to the previously viewed team and channel', {tag: '@multi_
     await page.goto('/');
 
     // * Verify the app returns to the previously viewed team and channel
-    await channelsPage.toBeVisible();
+    await expect(app.center.postCreate).toBeVisible();
     await expect
         .poll(() => page.url(), {timeout: pw.duration.ten_sec})
         .toContain(`/${secondTeam.name}/channels/off-topic`);
@@ -83,30 +85,32 @@ test('MM-T431 reopens to the previously viewed team and channel', {tag: '@multi_
 test('MM-T440 expands and collapses the RHS reply panel', {tag: '@multi_team'}, async ({pw}) => {
     // # Create and log in as a test user
     const {user, team} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: 'town-square'});
+    await expect(app.center.postCreate).toBeVisible();
 
     // # Post a message and open its thread in the RHS
-    await channelsPage.postMessage(`rhs expand ${pw.random.id()}`);
-    const post = await channelsPage.getLastPost();
-    await post.reply();
-    await channelsPage.sidebarRight.toBeVisible();
+    await app.center.postCreate.message.container.fill(`rhs expand ${pw.random.id()}`);
+    const created = await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    const post = app.center.postList.post(created);
+    await post.container.hover();
+    await post.menu.replyButton.clickTo(app.rhs.thread.header.expandButton);
 
-    // * Verify the RHS starts collapsed with an expand control
-    await expect(channelsPage.sidebarRight.expandButton).toBeVisible();
+    // * Verify the RHS starts collapsed with an expand control (one toggle, named for what it does next)
+    const toggle = app.rhs.thread.header.expandButton;
+    await expect(toggle).toHaveAccessibleName('Expand Sidebar Icon');
 
     // # Expand the RHS
-    await channelsPage.sidebarRight.expand();
+    await toggle.click();
 
     // * Verify the RHS is expanded (a collapse control is now shown)
-    await expect(channelsPage.sidebarRight.collapseButton).toBeVisible();
+    await expect(toggle).toHaveAccessibleName('Collapse Sidebar Icon');
 
     // # Collapse the RHS again
-    await channelsPage.sidebarRight.collapse();
+    await toggle.click();
 
     // * Verify the RHS collapses but stays open, and the center channel is visible again
-    await expect(channelsPage.sidebarRight.expandButton).toBeVisible();
-    await channelsPage.sidebarRight.toBeVisible();
-    await expect(channelsPage.centerView.postCreate.input).toBeVisible();
+    await expect(toggle).toHaveAccessibleName('Expand Sidebar Icon');
+    await expect(app.rhs.container).toBeVisible();
+    await expect(app.center.postCreate.message.container).toBeVisible();
 });

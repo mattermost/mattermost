@@ -119,6 +119,7 @@ export default function CustomRangeModal({initialRange, onConfirm, onExited}: Pr
                 </legend>
                 <DateTimeInput
                     time={from}
+                    testIdScope='admin.server_logs.custom_range.from'
                     handleChange={(time) => time && setFrom(time)}
                     timezone={timezone}
                     setIsInteracting={setIsFromInteracting}
@@ -137,6 +138,7 @@ export default function CustomRangeModal({initialRange, onConfirm, onExited}: Pr
                 </legend>
                 <DateTimeInput
                     time={to}
+                    testIdScope='admin.server_logs.custom_range.to'
                     handleChange={(time) => time && setTo(time)}
                     timezone={timezone}
                     setIsInteracting={setIsToInteracting}

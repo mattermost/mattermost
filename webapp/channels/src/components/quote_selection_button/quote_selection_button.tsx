@@ -229,6 +229,7 @@ const QuoteSelectionButton = () => {
                     ref={setButtonRef}
                     type='button'
                     className='QuoteSelectionButton'
+                    data-testid='quote_selection.quote--button'
                     data-placement={placement}
                     style={floatingStyles}
                     aria-label={formatMessage(quoteSelectionLabel)}

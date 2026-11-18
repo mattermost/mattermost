@@ -92,6 +92,7 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
             <div
                 key={item.id}
                 className='more-modal__row'
+                data-testid={`channel_groups_manage_modal.group:${item.id}`}
             >
                 <img
                     className='more-modal__image'
@@ -101,7 +102,10 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
                     height='32'
                 />
                 <div className='more-modal__details'>
-                    <div className='more-modal__name'>{item.display_name} {'-'}{' '}
+                    <div
+                        className='more-modal__name'
+                        data-testid='channel_groups_manage_modal.group.name--text'
+                    >{item.display_name} {'-'}{' '}
                         <span className='more-modal__name_count'>
                             <FormattedMessage
                                 id='numMembers'
@@ -117,6 +121,7 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
                     <MenuWrapper>
                         <button
                             id={`teamGroupsDropdown_${item.display_name}`}
+                            data-testid='channel_groups_manage_modal.group.role--button'
                             className='dropdown-toggle theme color--link style--none'
                             type='button'
                             aria-expanded='true'
@@ -129,16 +134,19 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
                             ariaLabel={Utils.localizeMessage({id: 'channel_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of channel member'})}
                         >
                             <Menu.ItemAction
+                                testId='channel_groups_manage_modal.group.role_menu.make_admins'
                                 show={!item.scheme_admin}
                                 onClick={() => this.setChannelMemberStatus(item, listModal, true)}
                                 text={Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_admins', defaultMessage: 'Make Channel Admins'})}
                             />
                             <Menu.ItemAction
+                                testId='channel_groups_manage_modal.group.role_menu.make_members'
                                 show={Boolean(item.scheme_admin)}
                                 onClick={() => this.setChannelMemberStatus(item, listModal, false)}
                                 text={Utils.localizeMessage({id: 'channel_members_dropdown.make_channel_members', defaultMessage: 'Make Channel Members'})}
                             />
                             <Menu.ItemAction
+                                testId='channel_groups_manage_modal.group.role_menu.remove'
                                 onClick={() => this.onClickRemoveGroup(item, listModal)}
                                 text={Utils.localizeMessage({id: 'group_list_modal.removeGroupButton', defaultMessage: 'Remove Group'})}
                             />
@@ -160,6 +168,7 @@ class ChannelGroupsManageModal extends React.PureComponent<Props> {
                 onHide={this.onHide}
                 titleBarButtonText={formatMessage({id: 'group_list_modal.addGroupButton', defaultMessage: 'Add Groups'})}
                 titleBarButtonOnClick={this.titleButtonOnClick}
+                testId='channel_groups_manage_modal'
             />
         );
     }

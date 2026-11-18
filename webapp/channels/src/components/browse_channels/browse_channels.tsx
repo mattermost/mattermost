@@ -539,7 +539,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                 <div className='form-group has-error'><label className='control-label'>{serverErrorState}</label></div>;
         }
 
-        const createNewChannelButton = (emphasis: ButtonEmphasis, size: ButtonSize, withLeadingIcon = false) => {
+        const createNewChannelButton = (testId: string, emphasis: ButtonEmphasis, size: ButtonSize, withLeadingIcon = false) => {
             return (
                 <TeamPermissionGate
                     teamId={teamId}
@@ -548,6 +548,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     <Button
                         type='button'
                         id='createNewChannelButton'
+                        data-testid={`${testId}--button`}
                         emphasis={emphasis}
                         size={size}
                         onClick={this.handleNewChannel}
@@ -571,11 +572,11 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                         defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
                     />
                 </p>
-                {createNewChannelButton('primary', 'medium', true)}
+                {createNewChannelButton('browse_channels.no_results.create_channel', 'primary', 'medium', true)}
             </>
         );
 
-        const body = this.state.loading ? <LoadingScreen/> : (
+        const body = this.state.loading ? <LoadingScreen testId='browse_channels.loading'/> : (
             <>
                 <SearchableChannelList
                     channels={this.activeChannels}
@@ -615,10 +616,11 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         return (
             <GenericModal
                 id='browseChannelsModal'
+                testId='browse_channels'
                 onExited={this.handleExit}
                 compassDesign={true}
                 modalHeaderText={title}
-                headerButton={createNewChannelButton('tertiary', 'small')}
+                headerButton={createNewChannelButton('browse_channels.create_channel', 'tertiary', 'small')}
                 autoCloseOnConfirmButton={false}
                 aria-modal={true}
                 enforceFocus={false}

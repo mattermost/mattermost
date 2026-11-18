@@ -332,6 +332,6 @@ describe('components/SearchableChannelList', () => {
         const [boardRow, channelRow] = container.querySelectorAll('.more-modal__row');
         expect(boardRow.querySelector('#channelPurposeContainer')).toHaveAttribute('aria-label', 'Board Information: Membership Indicator: Joined, Member count 0, Purpose: plans');
         expect(channelRow.querySelector('#channelPurposeContainer')).toHaveAttribute('aria-label', 'Channel Information: Membership Indicator: Joined, Member count 0, Purpose: chat');
-        expect(screen.getByTestId('discoverable-indicator')).toHaveAttribute('aria-label', 'Discoverable private board');
+        expect(screen.getByTestId('browse_channels.results.channel.discoverable--text')).toHaveAttribute('aria-label', 'Discoverable private board');
     });
 });

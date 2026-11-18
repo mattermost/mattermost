@@ -61,6 +61,7 @@ function SingleChannelGuestLimitBanner(props: Props) {
     return (
         <AnnouncementBar
             id='single_channel_guest_limit_banner'
+            testId='announcement_bars.single_channel_guest_limit'
             showCloseButton={true}
             handleClose={handleDismiss}
             message={

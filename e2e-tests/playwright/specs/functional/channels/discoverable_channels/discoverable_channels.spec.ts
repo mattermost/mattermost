@@ -38,38 +38,33 @@ test.fixme(
         const channel = await createDiscoverableChannel(adminClient, team.id);
 
         // # Log in as the non-member user and open Browse Channels
-        const {app, page} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
         await app.channelsPage.goto({team, channel: townSquare});
 
-        await app.lhs.header.openBrowseOrAddMenuButton.click();
-
-        await expect(app.lhs.browseOrAddMenu.browseChannelsMenuItem).toBeVisible();
-        await app.lhs.browseOrAddMenu.browseChannelsMenuItem.click();
-        // Browse Channels has no declared scope in this area; keep its accessible dialog and scoped rows.
-        const dialog = app.page.getByRole('dialog', {name: 'Browse Channels'});
-        await expect(dialog).toBeVisible();
+        await app.lhs.header.openBrowseOrAddMenuButton.clickTo(app.lhs.browseOrAddMenu.browseChannelsMenuItem);
+        const browse = await app.lhs.browseOrAddMenu.browseChannelsMenuItem.clickTo(app.browseChannels);
 
         // # Find the discoverable channel
-        await dialog.getByRole('textbox', {name: 'Search channels'}).fill(channel.display_name);
-        await expect(dialog.getByTestId('loading-screen')).toHaveCount(0);
-        const row = dialog.getByRole('search').locator('.more-modal__row').filter({hasText: channel.display_name});
+        await browse.searchTextbox.fill(channel.display_name);
+        await expect(browse.loading).toHaveCount(0);
+        const row = browse.results.channel(channel);
 
         // * The row offers "Request to join" rather than a Join button
-        await expect(row.getByText('Request to join')).toBeVisible();
+        await expect(row.requestButton).toBeVisible();
+        await expect(row.joinButton).not.toBeAttached();
 
         // # Request to join and confirm in the modal
-        await row.getByText('Request to join').click();
-        await expect(page.getByRole('button', {name: 'Send Request'})).toBeVisible();
-        await page.getByRole('button', {name: 'Send Request'}).click();
+        const requestModal = await row.requestButton.clickTo(app.requestJoinChannelModal);
+        await requestModal.confirmButton.click();
 
         // * The row flips to the pending "Withdraw" state
-        await expect(row.getByText('Withdraw', {exact: true})).toBeVisible();
+        await expect(row.withdrawButton).toBeVisible();
 
         // # Withdraw the request
-        await row.getByText('Withdraw', {exact: true}).click();
+        await row.withdrawButton.click();
 
         // * The row returns to the "Request to join" state
-        await expect(row.getByText('Request to join')).toBeVisible();
+        await expect(row.requestButton).toBeVisible();
     },
 );
 
@@ -84,7 +79,7 @@ test(
         const channel = await createDiscoverableChannel(adminClient, team.id);
 
         // # Log in as the non-member user
-        const {app, page} = await pw.testBrowser.login(user);
+        const {app} = await pw.testBrowser.login(user);
         await app.channelsPage.goto({team, channel: townSquare});
 
         // # Open Find Channels (Cmd/Ctrl+K) and locate the discoverable channel
@@ -99,7 +94,7 @@ test(
 
         // * The Request to Join modal opens instead of the legacy private-channel join
         // confirmation, and no "Join private channel" dialog is shown.
-        await expect(page.getByRole('button', {name: 'Send Request'})).toBeVisible();
-        await expect(page.getByText('Are you sure you wish to join')).toHaveCount(0);
+        await expect(app.requestJoinChannelModal.confirmButton).toBeVisible();
+        await expect(app.joinPrivateChannelModal).not.toBeAttached();
     },
 );

@@ -60,6 +60,7 @@ const ViewUserGroupListItem = (props: Props) => {
     return (
         <div
             key={user.id}
+            data-testid={`view_user_group_modal.member:${user.id}`}
             className='group-member-row'
         >
             <span className='status-wrapper'>
@@ -86,6 +87,7 @@ const ViewUserGroupListItem = (props: Props) => {
                         size='small'
                         destructive={true}
                         className='remove-group-member'
+                        data-testid='view_user_group_modal.member.remove--button'
                         icon={<Icon glyph={<TrashCanOutlineIcon/>}/>}
                         aria-label={formatMessage({
                             id: 'view_user_group_list_item.removeUserFromGroup',

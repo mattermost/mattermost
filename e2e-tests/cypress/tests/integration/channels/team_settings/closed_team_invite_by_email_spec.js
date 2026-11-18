@@ -83,7 +83,7 @@ describe('Team Settings', () => {
 
         if (isLicensed) {
             // # Click invite members if needed
-            cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
+            cy.get('.InviteAs').findByTestId('invitation_modal.invite.as_member').click();
         }
 
         cy.findByRole('combobox', {name: 'Invite People'}).type(email, {force: true}).wait(TIMEOUTS.HALF_SEC).type('{enter}', {force: true});

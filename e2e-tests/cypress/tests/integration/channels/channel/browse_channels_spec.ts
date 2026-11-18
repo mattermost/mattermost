@@ -181,13 +181,13 @@ describe('Channels', () => {
 
         cy.get('#browseChannelsModal').should('be.visible').within(() => {
             // * Verify that channel has zero members
-            cy.findByTestId(`channelMemberCount-${newChannel.name}`).should('be.visible').and('contain', 0);
+            cy.get(`[data-testid="browse_channels.results.channel:${newChannel.id}"] [data-testid="browse_channels.results.channel.member_count--text"]`).should('be.visible').and('contain', 0);
 
             // # Click the channel row to join the channel
-            cy.findByTestId(`ChannelRow-${newChannel.name}`).scrollIntoView().should('be.visible').click();
+            cy.findByTestId(`browse_channels.results.channel:${newChannel.id}`).scrollIntoView().should('be.visible').click();
 
             // * Verify that channel has one member
-            cy.findByTestId(`channelMemberCount-${newChannel.name}`).should('be.visible').and('contain', 1);
+            cy.get(`[data-testid="browse_channels.results.channel:${newChannel.id}"] [data-testid="browse_channels.results.channel.member_count--text"]`).should('be.visible').and('contain', 1);
         });
     });
 

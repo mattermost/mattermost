@@ -16,8 +16,20 @@ describe('components/HintToast', () => {
             >{'A hint'}</HintToast>,
         );
 
-        await userEvent.click(screen.getByTestId('dismissHintToast'));
+        await userEvent.click(screen.getByTestId('center.post_list.search_hint.dismiss--button'));
 
         expect(dismissHandler).toHaveBeenCalled();
+    });
+
+    test('names the dismiss control as a button', () => {
+        const dismissHandler = jest.fn();
+        render(
+            <HintToast
+                onDismiss={dismissHandler}
+            >{'A hint'}</HintToast>,
+        );
+
+        const dismiss = screen.getByTestId('center.post_list.search_hint.dismiss--button');
+        expect(dismiss).toHaveAttribute('role', 'button');
     });
 });

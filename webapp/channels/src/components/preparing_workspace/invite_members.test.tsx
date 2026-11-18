@@ -35,7 +35,7 @@ describe('InviteMembers component', () => {
     it('renders invite URL', () => {
         const component = withIntl(<InviteMembers {...defaultProps}/>);
         render(component);
-        const inviteLink = screen.getByTestId('shareLinkInput');
+        const inviteLink = screen.getByTestId('preparing_workspace.invite.link--textbox');
         expect(inviteLink).toHaveAttribute(
             'value',
             'https://my-org.mattermost.com/config/signup_user_complete/?id=1234',

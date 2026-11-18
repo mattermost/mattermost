@@ -54,7 +54,7 @@ describe('Environment', () => {
 
         // Validate that the image is being displayed
         cy.get(`#${testTeam.name}TeamButton`).scrollIntoView().within(() => {
-            cy.findByTestId('teamIconImage').then((imageDiv) => {
+            cy.findByTestId('team_sidebar.team.icon--img').then((imageDiv) => {
                 const url = imageDiv.css('background-image').split('"')[1];
 
                 // # Verify that the response to fetch image is successful and not emmpty
@@ -98,7 +98,7 @@ describe('Environment', () => {
 
         // Validate that the image is being displayed
         cy.get(`#${testTeam.name}TeamButton`).scrollIntoView().within(() => {
-            cy.findByTestId('teamIconImage').then((imageDiv) => {
+            cy.findByTestId('team_sidebar.team.icon--img').then((imageDiv) => {
                 const url = imageDiv.css('background-image').split('"')[1];
 
                 // # Verify that the response to fetch image is successful and not emmpty
@@ -142,7 +142,7 @@ describe('Environment', () => {
 
         // Validate that the image is being displayed
         cy.get(`#${testTeam.name}TeamButton`).scrollIntoView().within(() => {
-            cy.findByTestId('teamIconImage').then((imageDiv) => {
+            cy.findByTestId('team_sidebar.team.icon--img').then((imageDiv) => {
                 const url = imageDiv.css('background-image').split('"')[1];
 
                 // # Verify that the response to fetch image is successful not emmpty

@@ -72,6 +72,7 @@ const SelectTeamItem = ({
             <a
                 href='#'
                 id={Utils.createSafeId(team.display_name)}
+                data-testid={`select_team.team:${team.id}--link`}
                 onClick={canJoin ? handleTeamClick : undefined}
                 className={canJoin ? '' : 'disabled'}
             >
@@ -79,6 +80,7 @@ const SelectTeamItem = ({
                 {team.recommended &&
                     <span
                         className='signup-team-dir__recommended'
+                        data-testid={`select_team.recommended:${team.id}--text`}
                         aria-label={intl.formatMessage({id: 'select_team.recommended.aria', defaultMessage: 'Recommended based on your attributes'})}
                     >
                         <i

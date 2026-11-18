@@ -127,7 +127,7 @@ const UserGroupPopover = ({
     };
 
     return (
-        <Body>
+        <Body data-testid='user_group_popover'>
             <Header>
                 <Heading>
                     <Title
@@ -140,6 +140,7 @@ const UserGroupPopover = ({
                         aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close user group popover'})}
                         onClick={handleClose}
                         ref={closeRef}
+                        data-testid='user_group_popover.close--button'
                     >
                         <i
                             className='icon icon-close'
@@ -162,6 +163,7 @@ const UserGroupPopover = ({
                     aria-label={`${group.display_name} @${group.name} ${formatMessage({id: 'user_group_popover.memberCount', defaultMessage: '{member_count} {member_count, plural, one {Member} other {Members}}'}, {member_count: group.member_count})} ${formatMessage({id: 'user_group_popover.openGroupModal', defaultMessage: 'View full group info'})}`}
                     onClick={openViewGroupModal}
                     className='user-group-popover_header-button'
+                    data-testid='user_group_popover.open_group--button'
                 />
             </Header>
             {group.member_count > 10 ? (
@@ -175,6 +177,8 @@ const UserGroupPopover = ({
                         onChange={handleSearch}
                         clearable={true}
                         onClear={handleClear}
+                        data-testid='user_group_popover.search--textbox'
+                        clearTestId='user_group_popover.search.clear'
                     />
                 </SearchBar>
             ) : null}

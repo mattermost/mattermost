@@ -232,7 +232,7 @@ describe('LDAP guest', () => {
                     cy.get('#invitation_modal_title').should('be.visible');
 
                     // # Option to invite guest should not be visible
-                    cy.findByTestId('inviteGuestLink').should('not.exist');
+                    cy.findByTestId('invitation_modal.invite.as_guest').should('not.exist');
                 });
             });
         });

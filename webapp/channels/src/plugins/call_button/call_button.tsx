@@ -113,6 +113,7 @@ export default function CallButton({pluginCallComponents, currentChannel, channe
             <div
                 style={style.container}
                 className='flex-child'
+                data-testid='channel_header.call--button'
                 onClick={clickEnabled ? clickHandler : undefined}
                 onTouchEnd={clickEnabled ? clickHandler : undefined}
             >

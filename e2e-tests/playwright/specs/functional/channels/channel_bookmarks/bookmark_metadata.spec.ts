@@ -9,23 +9,24 @@ import {expect, test} from '@mattermost/playwright-lib';
  */
 test('MM-T5604 auto-fills the bookmark title from the entered link', {tag: '@channels'}, async ({pw}) => {
     const {user, team} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: 'town-square'});
+    await expect(app.center.postCreate).toBeVisible();
 
     // # Open the bookmark create modal via the channel menu's Bookmarks Bar submenu
-    const channelMenu = await channelsPage.openChannelMenu();
-    await channelMenu.openBookmarksSubmenu();
-    await channelMenu.addBookmarkLink.click();
-    await channelsPage.bookmarkCreateModal.toBeVisible();
+    const bookmarks = app.channelHeader.menu.bookmarks;
+    await app.channelHeader.openMenuButton.clickTo(bookmarks.container);
+    await bookmarks.container.hover();
+    await expect(bookmarks.addLinkMenuItem).toBeVisible();
+    await bookmarks.addLinkMenuItem.clickTo(app.bookmarkModal);
 
     // # Enter a link
-    await channelsPage.bookmarkCreateModal.linkInput.fill('https://www.amazon.com');
+    await app.bookmarkModal.link.container.fill('https://www.amazon.com');
 
     // * Verify the title field is auto-filled from the link
-    await expect(channelsPage.bookmarkCreateModal.titleInput).toHaveValue(/amazon/i);
+    await expect(app.bookmarkModal.title.container).toHaveValue(/amazon/i);
 
     // # Cancel without saving
-    await channelsPage.bookmarkCreateModal.cancelButton.click();
-    await channelsPage.bookmarkCreateModal.notToBeVisible();
+    await app.bookmarkModal.cancelButton.click();
+    await expect(app.bookmarkModal).not.toBeVisible();
 });

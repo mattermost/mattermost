@@ -135,6 +135,7 @@ const UserGroupsList = (props: Props) => {
                     className='group-row'
                     style={style}
                     key={group.id}
+                    data-testid={`user_groups_modal.group:${group.id}--button`}
                     onClick={() => {
                         goToViewGroupModal(group);
                     }}
@@ -163,6 +164,7 @@ const UserGroupsList = (props: Props) => {
                         <Menu.Container
                             menuButton={{
                                 id: `customWrapper-${group.id}`,
+                                dataTestId: 'user_groups_modal.group.menu--button',
                                 as: GroupActionsMenuTrigger,
                                 children: <Icon glyph={<DotsVerticalIcon/>}/>,
                                 'aria-label': menuLabel,
@@ -179,6 +181,7 @@ const UserGroupsList = (props: Props) => {
                         >
                             <Menu.Item
                                 id='view-group'
+                                data-testid='user_groups_modal.group_menu.view--menuitem'
                                 onClick={() => {
                                     goToViewGroupModal(group);
                                 }}
@@ -194,6 +197,7 @@ const UserGroupsList = (props: Props) => {
                             {groupPermissionsMap[group.id].can_delete && (
                                 <Menu.Item
                                     id='archive-group'
+                                    data-testid='user_groups_modal.group_menu.archive--menuitem'
                                     onClick={() => {
                                         archiveGroup(group.id);
                                     }}
@@ -210,6 +214,7 @@ const UserGroupsList = (props: Props) => {
                             {groupPermissionsMap[group.id].can_restore && (
                                 <Menu.Item
                                     id='restore-group'
+                                    data-testid='user_groups_modal.group_menu.restore--menuitem'
                                     onClick={() => {
                                         restoreGroup(group.id);
                                     }}
@@ -228,7 +233,7 @@ const UserGroupsList = (props: Props) => {
             );
         }
         if (loading) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='user_groups_modal.loading'/>;
         }
         return null;
     };

@@ -141,7 +141,7 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                     className={classNames('btn-icon ml-2', 'prev', {disabled: firstPage})}
                     onClick={this.previousPage}
                     disabled={firstPage}
-                    data-testid='page-link-prev'
+                    data-testid='admin.group.users.previous--button'
                 >
                     <PreviousIcon/>
                 </Button>
@@ -152,7 +152,7 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                     className={classNames('btn-icon', 'next', {disabled: lastPage})}
                     onClick={this.nextPage}
                     disabled={lastPage}
-                    data-testid='page-link-next'
+                    data-testid='admin.group.users.next--button'
                 >
                     <NextIcon/>
                 </Button>

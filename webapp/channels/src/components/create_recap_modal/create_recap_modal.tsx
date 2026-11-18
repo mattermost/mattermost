@@ -413,6 +413,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
             <div className='create-recap-modal-header-actions'>
                 <RecapUsageBadge/>
                 <AgentDropdown
+                    testIdScope='create_recap_modal.agent'
                     showLabel={true}
                     selectedBotId={selectedBotId}
                     onBotSelect={handleBotSelect}
@@ -446,6 +447,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                     <Button
                         type='button'
                         emphasis='tertiary'
+                        data-testid='create_recap_modal.previous--button'
                         onClick={handlePrevious}
                         disabled={isSubmitting}
                         leadingIcon={<Icon glyph={<ChevronLeftIcon/>}/>}
@@ -456,6 +458,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
                 <Button
                     type='submit'
                     emphasis='primary'
+                    data-testid='create_recap_modal.confirm--button'
                     onClick={handleConfirmClick}
                     disabled={!canProceed() || isSubmitting}
                     title={currentStep === 3 && runOnce && manualLimitBlockMessage ? manualLimitBlockMessage : undefined}
@@ -473,6 +476,7 @@ const CreateRecapModal = ({onExited, editScheduledRecap}: Props) => {
         <GenericModal
             className='create-recap-modal'
             id='createRecapModal'
+            testId='create_recap_modal'
             onExited={onExited}
             modalHeaderText={headerText}
             enforceFocus={!isAgentMenuOpen}
