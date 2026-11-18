@@ -32,11 +32,11 @@ const (
 
 	SectionStats   WorkspaceSection = "stats"
 	SectionJobs    WorkspaceSection = "jobs"
+	SectionPlugins WorkspaceSection = "plugins"
+	SectionConfig  WorkspaceSection = "config"
+	SectionVersion WorkspaceSection = "version"
 	// SectionJobSummary is collected separately from SectionJobs so a failed summary does not hide the per-type job lists.
 	SectionJobSummary WorkspaceSection = "job_summary"
-	SectionPlugins    WorkspaceSection = "plugins"
-	SectionConfig     WorkspaceSection = "config"
-	SectionVersion    WorkspaceSection = "version"
 )
 
 func AllNodeSections() []NodeSection {
