@@ -31,7 +31,8 @@ type Props = {
     onResizeStart?: (startWidth: number) => void;
     onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
 
-    // Called whenever a drag ends. finalWidth is 0 if the container was hidden at the time; the width is saved only when it is positive.
+    // Called whenever a drag ends. finalWidth is 0 if the container was hidden at the time; the width is saved only when
+    // it is positive and the drag changed it.
     onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;
     onDividerDoubleClick?: (prevWidth: number, cssVarProperty: string) => void;
 };
@@ -248,8 +249,9 @@ function ResizableDivider({
         const onMouseUp = () => {
             const finalWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
 
-            // Only save a measured width, but always let the parent clean up after the drag.
-            if (finalWidth) {
+            // Only save a width the drag changed, so a click on the handle doesn't overwrite the saved
+            // preference with a width the layout is currently capping. Always let the parent clean up.
+            if (finalWidth && finalWidth !== startWidth.current) {
                 setWidth(finalWidth);
             }
             onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);

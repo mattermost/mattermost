@@ -86,4 +86,26 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
 
         expect(onResizeEnd).toHaveBeenCalledWith(0, '--overrideLhsWidth', '0px');
     });
+
+    test('should save the width only when the drag changed it', () => {
+        let width = 400;
+        const getBoundingClientRect = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(() => ({width} as DOMRect));
+        const getSavedWidth = (state: any) => Object.entries(state.storage.storage).find(([key]) => key.startsWith('resizable_test:'))?.[1];
+
+        const {container, store} = renderWithContext(<TestWrapper/>);
+        const divider = container.querySelector(`#${dividerId}`)!;
+
+        // A click without moving keeps whatever was saved
+        fireEvent.mouseDown(divider, {button: 0, clientX: 400});
+        fireEvent.mouseUp(window);
+        expect(getSavedWidth(store.getState())).toBeUndefined();
+
+        // A drag that changes the width saves it
+        fireEvent.mouseDown(divider, {button: 0, clientX: 400});
+        width = 450;
+        fireEvent.mouseUp(window);
+        expect(getSavedWidth(store.getState())).toMatchObject({value: 450});
+
+        getBoundingClientRect.mockRestore();
+    });
 });
