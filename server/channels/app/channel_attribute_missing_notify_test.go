@@ -536,6 +536,44 @@ func TestNotifyNewChannelAdminOfMissingRequiredAttributes(t *testing.T) {
 		assert.Contains(t, post.Message, "/"+team.Name+"/channels/"+channel.Name)
 	})
 
+	for _, home := range []bool{false, true} {
+		name := map[bool]string{false: "a promotion in a channel shared in from another server sends nothing", true: "a promotion in a channel this server shares out messages the member"}[home]
+		t.Run(name, func(t *testing.T) {
+			th := setupMissingAttributes(t)
+			bot, appErr := th.App.GetSystemBot(th.Context)
+			require.Nil(t, appErr)
+			team, member := newAttributesTeamAndMember(t, th)
+			channel := th.CreateChannel(t, team)
+			th.AddUserToChannel(t, member, channel)
+			createMissingAttributesField(t, th, "Program", true, model.PermissionLevelAdmin)
+
+			_, err := th.Server.Store().SharedChannel().Save(&model.SharedChannel{
+				ChannelId: channel.Id,
+				TeamId:    team.Id,
+				Type:      channel.Type,
+				Home:      home,
+				ShareName: "shared" + model.NewId()[:8],
+				CreatorId: th.BasicUser.Id,
+				RemoteId:  model.NewId(),
+			})
+			require.NoError(t, err)
+			channel.Shared = model.NewPointer(true)
+			_, err = th.Server.Store().Channel().Update(th.Context, channel)
+			require.NoError(t, err)
+			th.App.Srv().Store().Channel().InvalidateChannel(channel.Id)
+
+			_, err = th.App.UpdateChannelMemberSchemeRolesAndNotifyNewAdmin(th.Context, channel.Id, member.Id, false, true, true)
+			require.NoError(t, err)
+
+			if home {
+				post := requireOneMissingAttributesPost(t, th, bot.UserId, member.Id)
+				assert.Contains(t, post.Message, "/"+team.Name+"/channels/"+channel.Name)
+			} else {
+				requireNoMissingAttributesPost(t, th, bot.UserId, member.Id)
+			}
+		})
+	}
+
 	t.Run("a promotion in an archived channel sends nothing", func(t *testing.T) {
 		th := setupMissingAttributes(t)
 		bot, appErr := th.App.GetSystemBot(th.Context)

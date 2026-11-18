@@ -258,6 +258,38 @@ describe('ChannelAttributesSettings', () => {
             await waitFor(() => expect(onMissingRequiredChange).toHaveBeenLastCalledWith([{fieldId: field.id, label: 'Program', cleared: true}]));
         });
 
+        test('reports checking until the channel values load', async () => {
+            const field = requiredField();
+            mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});
+            mockUseResolvedChannelAttributes.mockReturnValue([makeResolved(field)]);
+
+            let resolveValues: (values: unknown[]) => void = () => {};
+            const {Client4} = jest.requireMock('mattermost-redux/client');
+            Client4.getPropertyValues.mockReturnValueOnce(new Promise((resolve) => {
+                resolveValues = resolve;
+            }));
+
+            const onMissingRequiredChange = jest.fn();
+            const onCheckingRequiredChange = jest.fn();
+            renderSettings(
+                <ChannelAttributesSettings
+                    channelId='channel1'
+                    onChange={jest.fn()}
+                    onMissingRequiredChange={onMissingRequiredChange}
+                    onCheckingRequiredChange={onCheckingRequiredChange}
+                />,
+                requiredState,
+            );
+
+            await waitFor(() => expect(onCheckingRequiredChange).toHaveBeenLastCalledWith(true));
+            expect(onMissingRequiredChange).not.toHaveBeenCalledWith(expect.arrayContaining([expect.anything()]));
+
+            resolveValues([]);
+
+            await waitFor(() => expect(onCheckingRequiredChange).toHaveBeenLastCalledWith(false));
+            expect(onMissingRequiredChange).toHaveBeenLastCalledWith([{fieldId: field.id, label: 'Program', cleared: false}]);
+        });
+
         test('reports nothing while required enforcement is off', async () => {
             const field = requiredField();
             mockUseChannelAttributes.mockReturnValue({enabled: true, loading: false, failed: false, fields: [field]});

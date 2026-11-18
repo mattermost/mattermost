@@ -116,6 +116,7 @@ interface ChannelDetailsState {
     // Required attributes the attributes section can fill that have no value.
     // While the page isn't archived, they hold back Save.
     missingRequiredChannelAttributes: MissingRequiredChannelAttribute[];
+    checkingRequiredChannelAttributes: boolean;
 
     // Access rules confirmation modal state
     showAccessRulesConfirmModal: boolean;
@@ -203,6 +204,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             attributesLoaded: false,
             channelAttributeValues: {},
             missingRequiredChannelAttributes: [],
+            checkingRequiredChannelAttributes: false,
 
             // Access rules confirmation modal state
             showAccessRulesConfirmModal: false,
@@ -494,7 +496,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         }
 
         // Save is disabled while this holds; this only stops a stray submit.
-        if (this.requiredChannelAttributesBlockSave()) {
+        if (this.requiredChannelAttributesHoldSave()) {
             return;
         }
 
@@ -1118,6 +1120,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
             // and still write the hidden edits.
             newState.channelAttributeValues = {};
             newState.missingRequiredChannelAttributes = [];
+            newState.checkingRequiredChannelAttributes = false;
         } else {
             // Reinstate server errors when unarchiving
             newState.serverError = previousServerError;
@@ -1131,11 +1134,23 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
         this.setState({missingRequiredChannelAttributes: missing});
     };
 
+    private handleCheckingRequiredChannelAttributesChange = (checking: boolean) => {
+        this.setState({checkingRequiredChannelAttributes: checking});
+    };
+
     // A required attribute can't be saved empty from this page, whether it was
     // cleared, never set, or the channel is being unarchived without it: its
     // editor is right here. A channel that stays archived is exempt.
     private requiredChannelAttributesBlockSave = (): boolean => {
         return !this.state.isLocalArchived && Boolean(this.props.channelAttributesEnabled) && this.state.missingRequiredChannelAttributes.length > 0;
+    };
+
+    // Save also waits while the attributes section is still loading, e.g.
+    // right after Unarchive remounts it, so it can't restore the channel
+    // before anything missing has been found.
+    private requiredChannelAttributesHoldSave = (): boolean => {
+        return this.requiredChannelAttributesBlockSave() ||
+            (!this.state.isLocalArchived && Boolean(this.props.channelAttributesEnabled) && this.state.checkingRequiredChannelAttributes);
     };
 
     private handleChannelAttributeValuesChange = (values: Record<string, string | string[] | null>) => {
@@ -1587,6 +1602,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                                 isDisabled={this.props.isDisabled}
                                 onChange={this.handleChannelAttributeValuesChange}
                                 onMissingRequiredChange={this.handleMissingRequiredChannelAttributesChange}
+                                onCheckingRequiredChange={this.handleCheckingRequiredChannelAttributesChange}
                                 showRequiredErrors={attributesBlockSave}
                             />
                         )}
@@ -1618,7 +1634,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                         </>
                     ) : serverError}
                     cancelLink='/admin_console/user_management/channels'
-                    isDisabled={this.props.isDisabled || attributesBlockSave}
+                    isDisabled={this.props.isDisabled || this.requiredChannelAttributesHoldSave()}
                 />
             </div>
         );
