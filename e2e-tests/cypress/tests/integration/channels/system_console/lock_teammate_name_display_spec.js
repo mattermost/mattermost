@@ -25,11 +25,11 @@ describe('System Console', () => {
         cy.visit('/admin_console/site_config/users_and_teams');
 
         // # Set Teammate Name Display dropdown to 'Show nickname if one exists, otherwise show first and last name' and set Lock Teammate Name Display to false
-        cy.findByTestId('TeamSettings.TeammateNameDisplaydropdown').select('nickname_full_name');
-        cy.findByTestId('TeamSettings.LockTeammateNameDisplayfalse').click();
+        cy.get('[data-testid="admin.setting:TeamSettings.TeammateNameDisplay--group"] [data-testid="admin.setting.choice--combobox"]').select('nickname_full_name');
+        cy.get('[data-testid="admin.setting:TeamSettings.LockTeammateNameDisplay--group"] [data-testid="admin.setting.false--radio"]').click();
 
         // * Assert that there exists a description underneath the Teammate Name Display lock setting with the following text
-        cy.findByTestId('TeamSettings.LockTeammateNameDisplayhelp-text').contains('When true, disables users\' ability to change settings under Settings > Display > Teammate Name Display.').should('be.visible');
+        cy.get('[data-testid="admin.setting:TeamSettings.LockTeammateNameDisplay--group"] [data-testid="admin.setting.set_help--text"]').contains('When true, disables users\' ability to change settings under Settings > Display > Teammate Name Display.').should('be.visible');
 
         // # Click save button
         cy.get('#saveSetting').click();
@@ -56,8 +56,8 @@ describe('System Console', () => {
         cy.visit('/admin_console/site_config/users_and_teams');
 
         // # Set Teammate Name Display dropdown to 'Show by username' and set Lock Teammate Name Display to true
-        cy.findByTestId('TeamSettings.TeammateNameDisplaydropdown').select('username');
-        cy.findByTestId('TeamSettings.LockTeammateNameDisplaytrue').click();
+        cy.get('[data-testid="admin.setting:TeamSettings.TeammateNameDisplay--group"] [data-testid="admin.setting.choice--combobox"]').select('username');
+        cy.get('[data-testid="admin.setting:TeamSettings.LockTeammateNameDisplay--group"] [data-testid="admin.setting.true--radio"]').click();
 
         // # Click save button
         cy.uiSave();

@@ -8,7 +8,7 @@ import type {AdminConfig} from '@mattermost/types/config';
 
 import CustomTermsOfServiceSettings from 'components/admin_console/custom_terms_of_service_settings/custom_terms_of_service_settings';
 
-import {renderWithContext, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, within} from 'tests/react_testing_utils';
 
 describe('components/admin_console/CustomTermsOfServiceSettings', () => {
     const getBaseProps = () => ({
@@ -50,10 +50,10 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
         const props = getBaseProps();
         await renderLoaded(props);
 
-        const saveButton = screen.getByTestId('saveSetting');
+        const saveButton = screen.getByTestId('admin.save--button');
         expect(saveButton).toBeDisabled();
 
-        const periodInput = screen.getByTestId('SupportSettings.CustomTermsOfServiceReAcceptancePeriodnumber');
+        const periodInput = within(screen.getByTestId('admin.setting:SupportSettings.CustomTermsOfServiceReAcceptancePeriod--group')).getByTestId('admin.setting.number--spinbutton');
         await user.clear(periodInput);
         await user.type(periodInput, '364');
 
@@ -76,11 +76,11 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
 
         await renderLoaded(props);
 
-        const periodInput = screen.getByTestId('SupportSettings.CustomTermsOfServiceReAcceptancePeriodnumber');
+        const periodInput = within(screen.getByTestId('admin.setting:SupportSettings.CustomTermsOfServiceReAcceptancePeriod--group')).getByTestId('admin.setting.number--spinbutton');
         await user.clear(periodInput);
         await user.type(periodInput, '364');
 
-        await user.click(screen.getByTestId('saveSetting'));
+        await user.click(screen.getByTestId('admin.save--button'));
 
         expect(await screen.findByText('Saving Config...')).toBeInTheDocument();
 
@@ -109,11 +109,11 @@ describe('components/admin_console/CustomTermsOfServiceSettings', () => {
 
         await renderLoaded(props);
 
-        const periodInput = screen.getByTestId('SupportSettings.CustomTermsOfServiceReAcceptancePeriodnumber');
+        const periodInput = within(screen.getByTestId('admin.setting:SupportSettings.CustomTermsOfServiceReAcceptancePeriod--group')).getByTestId('admin.setting.number--spinbutton');
         await user.clear(periodInput);
         await user.type(periodInput, '364');
 
-        await user.click(screen.getByTestId('saveSetting'));
+        await user.click(screen.getByTestId('admin.save--button'));
 
         expect(await screen.findByText('error')).toBeInTheDocument();
 

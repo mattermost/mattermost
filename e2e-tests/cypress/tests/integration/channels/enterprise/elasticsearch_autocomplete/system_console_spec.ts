@@ -74,7 +74,7 @@ describe('Elasticsearch system console', () => {
             errorMsg: 'Reindex did not succeed in time',
         });
 
-        cy.get('[data-testid="jobTable"]').scrollIntoView();
+        cy.get('[data-testid="admin.jobs.table:elasticsearch_post_indexing"]').scrollIntoView();
         cy.get('@firstRow').
             find('.status-icon-success').
             should('be.visible').

@@ -372,8 +372,8 @@ describe('Channel Bookmarks', () => {
         before(() => {
             // # Prep: disable manage bookmarks for users - public and private channels
             cy.uiResetPermissionsToDefault();
-            cy.findByTestId('all_users-public_channel-manage_public_channel_bookmarks-checkbox').click();
-            cy.findByTestId('all_users-private_channel-manage_private_channel_bookmarks-checkbox').click();
+            cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:manage_public_channel_bookmarks--checkbox"] [data-testid="admin.permissions.group.checkbox"]').click();
+            cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:manage_private_channel_bookmarks--checkbox"] [data-testid="admin.permissions.group.checkbox"]').click();
             cy.uiSaveConfig();
             cy.visit(`/${testTeam.name}/channels/${publicChannel.name}`);
         });

@@ -7,7 +7,7 @@ import type {AdminConfig} from '@mattermost/types/config';
 
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 
 jest.mock('actions/admin_actions', () => {
     return {
@@ -104,20 +104,20 @@ describe('components/ElasticSearchSettings', () => {
         );
 
         // Save button should be disabled initially (no changes)
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
         // Enable indexing by clicking the true radio for enableIndexing
-        const enableIndexingTrue = screen.getByTestId('enableIndexingtrue');
+        const enableIndexingTrue = within(screen.getByTestId('admin.setting:enableIndexing--group')).getByTestId('admin.setting.true--radio');
         await userEvent.click(enableIndexingTrue);
 
         // Save button should still be disabled because config hasn't been tested
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
         // Click Test Connection button to test config
         const testButton = screen.getByText('Test Connection');
         await userEvent.click(testButton);
 
         // After successful test, save button should be enabled
-        expect(screen.getByTestId('saveSetting')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.save--button')).not.toBeDisabled();
     });
 });

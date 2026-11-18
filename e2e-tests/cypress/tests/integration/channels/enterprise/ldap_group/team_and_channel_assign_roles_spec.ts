@@ -30,7 +30,7 @@ const changeRole = (type: string, fromRole: string, toRole: string) => {
     });
 
     // * Ensure current role is fromRole then click
-    cy.get(`#${type}_groups`).scrollIntoView().findByTestId('current-role').should('have.text', fromRole).click();
+    cy.get(`#${type}_groups`).scrollIntoView().findByTestId('admin.groups.group.role--button').should('have.text', fromRole).click();
 
     // # Change role
     cy.get('#role-to-be-menu').then((el) => {
@@ -113,7 +113,7 @@ describe('System Console', () => {
         saveAndNavigateBackTo(teamName, teamDisplayName, 'teams');
 
         // * Check to make the the current role text is displayed as Member
-        cy.get('#team_groups').scrollIntoView().findByTestId('current-role').should('have.text', 'Member');
+        cy.get('#team_groups').scrollIntoView().findByTestId('admin.groups.group.role--button').should('have.text', 'Member');
 
         // # Wait for the board group to show up before continuing to next steps
         cy.waitUntil(() => cy.get('.group-row').eq(0).scrollIntoView().find('.group-name').then((el) => {
@@ -162,7 +162,7 @@ describe('System Console', () => {
         saveAndNavigateBackTo(teamName, teamDisplayName, 'teams');
 
         // * Check to make the the current role text is displayed as Team Admin
-        cy.get('#team_groups').scrollIntoView().findByTestId('current-role').should('have.text', 'Team Admin');
+        cy.get('#team_groups').scrollIntoView().findByTestId('admin.groups.group.role--button').should('have.text', 'Team Admin');
     });
 
     it('MM-20646 - System Admin can map roles to groups from Channel Configuration screen', () => {
@@ -194,7 +194,7 @@ describe('System Console', () => {
         saveAndNavigateBackTo(channelName, channelDisplayName, 'channels');
 
         // * Check to make the the current role text is displayed as Member
-        cy.get('#channel_groups').scrollIntoView().findByTestId('current-role').should('have.text', 'Member');
+        cy.get('#channel_groups').scrollIntoView().findByTestId('admin.groups.group.role--button').should('have.text', 'Member');
     });
 
     it('MM-21789 - Add a group and change the role and then save and ensure the role was updated on channel configuration page', () => {
@@ -220,6 +220,6 @@ describe('System Console', () => {
         saveAndNavigateBackTo(channelName, channelDisplayName, 'channels');
 
         // * Check to make the the current role text is displayed as Channel Admin
-        cy.get('#channel_groups').scrollIntoView().findByTestId('current-role').should('have.text', 'Channel Admin');
+        cy.get('#channel_groups').scrollIntoView().findByTestId('admin.groups.group.role--button').should('have.text', 'Channel Admin');
     });
 });

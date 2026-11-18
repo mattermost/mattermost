@@ -37,10 +37,10 @@ describe('Managing bot accounts', () => {
         cy.visit('/admin_console/integrations/bot_accounts');
 
         // # Click 'false' to disable
-        cy.findByTestId('ServiceSettings.DisableBotsWhenOwnerIsDeactivatedfalse', {timeout: TIMEOUTS.ONE_MIN}).click();
+        cy.get('[data-testid="admin.setting:ServiceSettings.DisableBotsWhenOwnerIsDeactivated--group"] [data-testid="admin.setting.false--radio"]', {timeout: TIMEOUTS.ONE_MIN}).click();
 
         // # Save
-        cy.findByTestId('saveSetting').should('be.enabled').click();
+        cy.findByTestId('admin.save--button').should('be.enabled').click();
 
         // # Create another admin account
         cy.apiCreateCustomAdmin().then(({sysadmin}) => {
@@ -89,10 +89,10 @@ describe('Managing bot accounts', () => {
         cy.visit('/admin_console/integrations/bot_accounts');
 
         // # Click 'false' to disable
-        cy.findByTestId('ServiceSettings.EnableBotAccountCreationfalse', {timeout: TIMEOUTS.ONE_MIN}).click();
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableBotAccountCreation--group"] [data-testid="admin.setting.false--radio"]', {timeout: TIMEOUTS.ONE_MIN}).click();
 
         // # Save
-        cy.findByTestId('saveSetting').should('be.enabled').click();
+        cy.findByTestId('admin.save--button').should('be.enabled').click();
 
         // # Visit the integrations
         cy.visit(`/${newTeam.name}/integrations/bots`);

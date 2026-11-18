@@ -71,7 +71,7 @@ describe('Channel Moderation', () => {
 
         // * Ensure all checkboxes are checked
         checkBoxes.forEach((buttonId) => {
-            cy.findByTestId(buttonId).should('be.checked');
+            cy.get(buttonId).should('be.checked');
         });
 
         // # Uncheck all the boxes currently checked
@@ -86,16 +86,16 @@ describe('Channel Moderation', () => {
         // * Ensure all checkboxes have the correct unchecked state
         checkBoxes.forEach((buttonId) => {
             // * Ensure all checkboxes are unchecked
-            cy.findByTestId(buttonId).should('not.be.checked');
+            cy.get(buttonId).should('not.be.checked');
 
             // * Ensure Channel Mentions are disabled due to Create Posts
             if (buttonId.includes('use_channel_mentions')) {
-                cy.findByTestId(buttonId).should('be.disabled');
+                cy.get(buttonId).should('be.disabled');
                 return;
             }
 
             // * Ensure all other check boxes are still enabled
-            cy.findByTestId(buttonId).should('not.be.disabled');
+            cy.get(buttonId).should('not.be.disabled');
         });
     });
 });

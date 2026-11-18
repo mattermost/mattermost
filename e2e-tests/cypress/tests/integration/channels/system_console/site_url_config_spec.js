@@ -20,24 +20,24 @@ describe('Site URL', () => {
         cy.visit('/admin_console/environment/web_server');
 
         // # Note the site URL value
-        cy.findByTestId('ServiceSettings.SiteURLinput').invoke('val').then((originalSiteURLValue) => {
+        cy.get('[data-testid="admin.setting:ServiceSettings.SiteURL--group"] [data-testid="admin.setting.value--textbox"]').invoke('val').then((originalSiteURLValue) => {
             // # Clear the Site URL
-            cy.findByTestId('ServiceSettings.SiteURLinput').clear();
+            cy.get('[data-testid="admin.setting:ServiceSettings.SiteURL--group"] [data-testid="admin.setting.value--textbox"]').clear();
 
             // # Save
-            cy.findAllByTestId('saveSetting').click();
-            cy.waitUntil(() => cy.findAllByTestId('saveSetting').then((el) => {
+            cy.findAllByTestId('admin.save--button').click();
+            cy.waitUntil(() => cy.findAllByTestId('admin.save--button').then((el) => {
                 return el[0].innerText === 'Save';
             }));
 
             // * Check that the error message is present
-            cy.findByTestId('errorMessage').contains('Site URL cannot be cleared.');
+            cy.findByTestId('admin.schema.save_error').contains('Site URL cannot be cleared.');
 
             // # Reload the page
             cy.visit('/admin_console/environment/web_server');
 
             // * Check that the setting is the original value
-            cy.findByTestId('ServiceSettings.SiteURLinput').should('have.value', originalSiteURLValue);
+            cy.get('[data-testid="admin.setting:ServiceSettings.SiteURL--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', originalSiteURLValue);
         });
     });
 });

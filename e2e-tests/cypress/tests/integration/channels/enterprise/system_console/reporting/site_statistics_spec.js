@@ -76,24 +76,24 @@ describe('System Console > Site Statistics', () => {
         cy.get('.admin-console__content .row').should('have.length', 4);
 
         // * Check that the title content for the stats is as expected.
-        cy.findByTestId('totalActiveUsersTitle').should('have.text', 'Total Activated Users');
+        cy.get('[data-testid="admin.statistics.stat:totalActiveUsers--group"] [data-testid="admin.statistics.stat.title--text"]').should('have.text', 'Total Activated Users');
 
         // cy.findByTestId('seatPurchasedTitle').should('contain', 'Total paid users');
-        cy.findByTestId('totalTeamsTitle').should('contain', 'Total Teams');
-        cy.findByTestId('totalChannelsTitle').should('contain', 'Total Channels');
-        cy.findByTestId('totalPostsTitle').should('contain', 'Total Posts');
-        cy.findByTestId('totalSessionsTitle').should('contain', 'Total Sessions');
-        cy.findByTestId('totalCommandsTitle').should('contain', 'Total Commands');
-        cy.findByTestId('incomingWebhooksTitle').should('contain', 'Incoming Webhooks');
-        cy.findByTestId('outgoingWebhooksTitle').should('contain', 'Outgoing Webhooks');
-        cy.findByTestId('dailyActiveUsersTitle').should('contain', 'Daily Active Users');
-        cy.findByTestId('monthlyActiveUsersTitle').should('contain', 'Monthly Active Users');
-        cy.findByTestId('websocketConnsTitle').should('contain', 'WebSocket Conns');
-        cy.findByTestId('masterDbConnsTitle').should('contain', 'Master DB Conns');
-        cy.findByTestId('replicaDbConnsTitle').should('contain', 'Replica DB Conns');
+        cy.get('[data-testid="admin.statistics.stat:totalTeams--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Total Teams');
+        cy.get('[data-testid="admin.statistics.stat:totalChannels--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Total Channels');
+        cy.get('[data-testid="admin.statistics.stat:totalPosts--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Total Posts');
+        cy.get('[data-testid="admin.statistics.stat:totalSessions--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Total Sessions');
+        cy.get('[data-testid="admin.statistics.stat:totalCommands--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Total Commands');
+        cy.get('[data-testid="admin.statistics.stat:incomingWebhooks--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Incoming Webhooks');
+        cy.get('[data-testid="admin.statistics.stat:outgoingWebhooks--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Outgoing Webhooks');
+        cy.get('[data-testid="admin.statistics.stat:dailyActiveUsers--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Daily Active Users');
+        cy.get('[data-testid="admin.statistics.stat:monthlyActiveUsers--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Monthly Active Users');
+        cy.get('[data-testid="admin.statistics.stat:websocketConns--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'WebSocket Conns');
+        cy.get('[data-testid="admin.statistics.stat:masterDbConns--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Master DB Conns');
+        cy.get('[data-testid="admin.statistics.stat:replicaDbConns--group"] [data-testid="admin.statistics.stat.title--text"]').should('contain', 'Replica DB Conns');
 
         statDataTestIds.forEach((locator) => {
-            cy.findByTestId(locator).invoke('text').then(parseFloat).should('be.gte', 0);
+            cy.get(`[data-testid="admin.statistics.stat:${locator}--group"] [data-testid="admin.statistics.stat.value--text"]`).invoke('text').then(parseFloat).should('be.gte', 0);
         });
     });
 
@@ -132,18 +132,18 @@ describe('System Console > Site Statistics', () => {
                         cy.findByTestId('reporting.system_analytics', {timeout: TIMEOUTS.ONE_MIN}).click();
 
                         // * Expand the details
-                        cy.findByTestId('details-expander', {timeout: TIMEOUTS.ONE_MIN}).click();
+                        cy.findByTestId('admin.statistics.details', {timeout: TIMEOUTS.ONE_MIN}).click();
 
                         let totalPostsDataSet;
                         let totalPostsFromBots;
                         let activeUsersWithPosts;
 
                         // # Grab all data from the 3 charts from there data labels
-                        cy.findByTestId('totalPostsLineChart').then((el) => {
+                        cy.get('[data-testid="admin.statistics.chart:totalPostsLineChart--group"] [data-testid="admin.statistics.chart.canvas"]').then((el) => {
                             totalPostsDataSet = el[0].dataset.labels;
-                            cy.findByTestId('totalPostsFromBotsLineChart').then((el2) => {
+                            cy.get('[data-testid="admin.statistics.chart:totalPostsFromBotsLineChart--group"] [data-testid="admin.statistics.chart.canvas"]').then((el2) => {
                                 totalPostsFromBots = el2[0].dataset.labels;
-                                cy.findByTestId('activeUsersWithPostsLineChart').then((el3) => {
+                                cy.get('[data-testid="admin.statistics.chart:activeUsersWithPostsLineChart--group"] [data-testid="admin.statistics.chart.canvas"]').then((el3) => {
                                     activeUsersWithPosts = el3[0].dataset.labels;
 
                                     // * Assert that all the dates are the same
@@ -182,7 +182,7 @@ describe('System Console > Site Statistics', () => {
                     expectedResult = true;
                 }
 
-                cy.findByTestId(id, {timeout: TIMEOUTS.ONE_MIN}).then((el) => {
+                cy.get(`[data-testid="admin.statistics.stat:${id.replace('Title', '')}--group"] [data-testid="admin.statistics.stat.title--text"]`, {timeout: TIMEOUTS.ONE_MIN}).then((el) => {
                     const titleSpan = el[0].childNodes[0];
 
                     // * All the boxes on System Statistics page should have UNTRUNCATED titles when in french except Total Commands, Master DB Conns, and Replica DB Conns.

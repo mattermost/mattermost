@@ -20,7 +20,7 @@ describe('components/admin_console/brand_image_setting', () => {
         unRegisterSaveAction: jest.fn(),
     };
 
-    const deleteButtonTestId = 'remove-image__btn';
+    const deleteButtonTestId = 'admin.brand_image.remove--button';
 
     beforeAll(() => {
         nock(Client4.getBaseRoute()).persist().get('/brand/image').query(true).reply(200);
@@ -57,7 +57,7 @@ describe('components/admin_console/brand_image_setting', () => {
     test('should call setSaveNeeded when a brand image is uploaded', async () => {
         renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        await userEvent.upload(screen.getByTestId('file__upload-input'), new File(['brand_image_file'], 'brand_image_file.png', {type: 'image/png'}));
+        await userEvent.upload(screen.getByTestId('admin.brand_image.upload'), new File(['brand_image_file'], 'brand_image_file.png', {type: 'image/png'}));
 
         expect(baseProps.setSaveNeeded).toHaveBeenCalledTimes(1);
     });
@@ -65,7 +65,7 @@ describe('components/admin_console/brand_image_setting', () => {
     test('should clear the previous preview while a replacement image is still being read', async () => {
         renderWithContext(<BrandImageSetting {...baseProps}/>);
 
-        const fileInput = screen.getByTestId('file__upload-input');
+        const fileInput = screen.getByTestId('admin.brand_image.upload');
 
         await userEvent.upload(fileInput, new File(['first_image'], 'first_image.png', {type: 'image/png'}));
 

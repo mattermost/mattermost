@@ -83,6 +83,7 @@ export default function IPFilteringAddOrEditModal({onExited, onSave, existingRan
                         <div>
                             {formatMessage({id: 'admin.ip_filtering.name', defaultMessage: 'Name'})}
                             <Input
+                                testId='admin.ip_filtering.rule.name'
                                 type='text'
                                 name='name'
                                 onChange={(e) => setName(e.target.value)}
@@ -94,6 +95,7 @@ export default function IPFilteringAddOrEditModal({onExited, onSave, existingRan
                         </div>
                         <div>{formatMessage({id: 'admin.ip_filtering.allow_following_range', defaultMessage: 'Allow the following range of IP Addresses'})}
                             <Input
+                                testId='admin.ip_filtering.rule.ip_range'
                                 type='text'
                                 name='ip_address_range'
                                 onChange={handleCIDRChange}
@@ -133,7 +135,7 @@ export default function IPFilteringAddOrEditModal({onExited, onSave, existingRan
                     {formatMessage({id: 'admin.ip_filtering.cancel', defaultMessage: 'Cancel'})}
                 </Button>
                 <Button
-                    data-testid='save-add-edit-button'
+                    data-testid='admin.ip_filtering.edit_modal.save--button'
                     type='button'
                     emphasis='primary'
                     onClick={handleSave}

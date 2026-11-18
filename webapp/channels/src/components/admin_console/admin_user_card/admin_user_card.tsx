@@ -60,7 +60,7 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                     </div>
                 </div>
                 <div className='noUserBody'>
-                    {isLoading && <LoadingSpinner/>}
+                    {isLoading && <LoadingSpinner testId='admin.user.card.loading_spinner'/>}
                     {!isLoading &&
                         <FormattedMessage
                             id='admin.userManagement.userDetail.notFound'
@@ -78,11 +78,11 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
     return (
         <div
             className='AdminUserCard'
-            data-testid='adminUserCard'
+            data-testid='admin.user.card'
         >
             <header
                 className='AdminUserCard__header'
-                data-testid='adminUserCard-header'
+                data-testid='admin.user.card.header'
             >
                 <div className='AdminUserCard__header-main'>
                     <div className='AdminUserCard__header-start'>
@@ -102,7 +102,7 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                                         accept={Constants.ACCEPT_STATIC_IMAGE}
                                         onChange={handleFileChange}
                                         disabled={props.isUploadingPicture}
-                                        data-testid='adminUserCardPictureInput'
+                                        data-testid='admin.user.card.picture_input'
                                         aria-hidden={true}
                                         tabIndex={-1}
                                     />
@@ -110,13 +110,18 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                                         menuButton={{
                                             id: 'adminUserCardPictureButton',
                                             class: 'AdminUserCard__picture-edit',
-                                            dataTestId: 'adminUserCardPictureButton',
+                                            dataTestId: 'admin.user.card.picture--button',
                                             disabled: props.isUploadingPicture,
                                             'aria-label': formatMessage({
                                                 id: 'admin.userManagement.userDetail.picture.edit',
                                                 defaultMessage: 'Edit profile picture',
                                             }),
-                                            children: props.isUploadingPicture ? <LoadingSpinner legacy={true}/> : <CameraOutlineIcon size={14}/>,
+                                            children: props.isUploadingPicture ? (
+                                                <LoadingSpinner
+                                                    legacy={true}
+                                                    testId='admin.user.card.picture.loading_spinner'
+                                                />
+                                            ) : <CameraOutlineIcon size={14}/>,
                                         }}
                                         menu={{
                                             id: 'adminUserCardPictureMenu',
@@ -128,6 +133,7 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                                     >
                                         <Menu.Item
                                             id='adminUserCardUploadPicture'
+                                            data-testid='admin.user.card.picture_menu.upload--menuitem'
                                             onClick={() => fileInput.current?.click()}
                                             labels={
                                                 <FormattedMessage
@@ -139,6 +145,7 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                                         {props.canRemovePicture && (
                                             <Menu.Item
                                                 id='adminUserCardRemovePicture'
+                                                data-testid='admin.user.card.picture_menu.remove--menuitem'
                                                 isDestructive={true}
                                                 onClick={props.onRemovePicture}
                                                 labels={
@@ -156,19 +163,19 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
                         <div className='AdminUserCard__title-stack'>
                             <h2
                                 className='AdminUserCard__user-info'
-                                data-testid='adminUserCard-userInfo'
+                                data-testid='admin.user.card.info'
                             >
                                 {displayName || props.user.nickname || props.user.username}
                             </h2>
                             <p
                                 className='AdminUserCard__user-id'
-                                data-testid='adminUserCard-userId'
+                                data-testid='admin.user.card.user_id--text'
                             >
                                 {displayName && props.user.nickname && (
                                     <>
                                         <span
                                             className='AdminUserCard__user-nickname'
-                                            data-testid='adminUserCard-userNickname'
+                                            data-testid='admin.user.card.nickname--text'
                                         >
                                             {props.user.nickname}
                                         </span>
@@ -189,13 +196,13 @@ const AdminUserCard = ({isLoading = false, ...props}: Props) => {
             </header>
             <div
                 className='AdminUserCard__body'
-                data-testid='adminUserCard-body'
+                data-testid='admin.user.card.body'
             >
                 {props.body}
             </div>
             <div
                 className='AdminUserCard__footer'
-                data-testid='adminUserCard-footer'
+                data-testid='admin.user.card.footer'
             >
                 {props.footer}
             </div>

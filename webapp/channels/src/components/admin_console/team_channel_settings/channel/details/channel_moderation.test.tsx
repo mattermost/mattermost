@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {ChannelModeration as ChannelPermissions} from '@mattermost/types/channels';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, within} from 'tests/react_testing_utils';
 
 import ChannelModeration from './channel_moderation';
 
@@ -46,9 +46,9 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             );
 
             // No error messages should be present for create_post when all roles are enabled
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-createPosts-disabledGuest')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-createPosts-disabledMember')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-createPosts-disabledBoth')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:create_post')).queryByTestId('admin.channel.moderation.permission.error:disabledGuests--text')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:create_post')).queryByTestId('admin.channel.moderation.permission.error:disabledMembers--text')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:create_post')).queryByTestId('admin.channel.moderation.permission.error:disabledBoth--text')).not.toBeInTheDocument();
         });
 
         test('Should return error message when create_post guests disabled', () => {
@@ -82,7 +82,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 />,
             );
 
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-createPosts-disabledGuest')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:create_post')).getByTestId('admin.channel.moderation.permission.error:disabledGuests--text')).toBeInTheDocument();
         });
 
         test('Should return error message when create_post members disabled', () => {
@@ -116,7 +116,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 />,
             );
 
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-createPosts-disabledMember')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:create_post')).getByTestId('admin.channel.moderation.permission.error:disabledMembers--text')).toBeInTheDocument();
         });
 
         test('Should return 1 error message when create_post members and guests disabled', () => {
@@ -150,7 +150,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 />,
             );
 
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-createPosts-disabledBoth')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:create_post')).getByTestId('admin.channel.moderation.permission.error:disabledBoth--text')).toBeInTheDocument();
         });
 
         test('Should not return error messages for use_channel_mentions', () => {
@@ -203,12 +203,12 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
                 />,
             );
 
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledGuest')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledMember')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledBoth')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledGuestsDueToCreatePosts')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledMemberDueToCreatePosts')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledBothDueToCreatePosts')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).queryByTestId('admin.channel.moderation.permission.error:disabledGuests--text')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).queryByTestId('admin.channel.moderation.permission.error:disabledMembers--text')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).queryByTestId('admin.channel.moderation.permission.error:disabledBoth--text')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).queryByTestId('admin.channel.moderation.permission.error:disabled_guests_due_to_create_posts--text')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).queryByTestId('admin.channel.moderation.permission.error:disabled_members_due_to_create_posts--text')).not.toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).queryByTestId('admin.channel.moderation.permission.error:disabled_both_due_to_create_posts--text')).not.toBeInTheDocument();
         });
 
         test('Should return 2 error messages for use_channel_mentions when guests blocked by create_post and members disabled in scheme', () => {
@@ -262,10 +262,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             );
 
             // Error 1: guests can't use channel mentions because create_post guests value is false
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledGuestsDueToCreatePosts')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).getByTestId('admin.channel.moderation.permission.error:disabled_guests_due_to_create_posts--text')).toBeInTheDocument();
 
             // Error 2: members disabled in scheme (members.enabled=false and createPostsKey is not 'disabledMembersDueToCreatePosts')
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledMember')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).getByTestId('admin.channel.moderation.permission.error:disabledMembers--text')).toBeInTheDocument();
         });
 
         test('Should return 1 error message for use_channel_mentions when both create_post off, public channel', () => {
@@ -319,7 +319,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             );
 
             // Both create_post values are false, so only disabledBothDueToCreatePosts is shown (returns early)
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledBothDueToCreatePosts')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).getByTestId('admin.channel.moderation.permission.error:disabled_both_due_to_create_posts--text')).toBeInTheDocument();
         });
 
         test('Should return 2 error messages for use_channel_mentions when members blocked by create_post and guests disabled in scheme', () => {
@@ -373,10 +373,10 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             );
 
             // Error 1: members can't use channel mentions because create_post members value is false
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledMemberDueToCreatePosts')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).getByTestId('admin.channel.moderation.permission.error:disabled_members_due_to_create_posts--text')).toBeInTheDocument();
 
             // Error 2: guests disabled in scheme (guests.enabled=false and createPostsKey is not 'disabledGuestsDueToCreatePosts')
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledGuest')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).getByTestId('admin.channel.moderation.permission.error:disabledGuests--text')).toBeInTheDocument();
         });
 
         test('Should return 1 error message for use_channel_mention when create_posts is checked and use_channel_mentions is disabled', () => {
@@ -430,7 +430,7 @@ describe('admin_console/team_channel_settings/channel/ChannelModeration', () => 
             );
 
             // Both guests and members are disabled in scheme, and no createPosts errors, so disabledBoth is shown
-            expect(screen.getByTestId('admin-channel_settings-channel_moderation-channelMentions-disabledBoth')).toBeInTheDocument();
+            expect(within(screen.getByTestId('admin.channel.moderation.permission:use_channel_mentions')).getByTestId('admin.channel.moderation.permission.error:disabledBoth--text')).toBeInTheDocument();
         });
     });
 });

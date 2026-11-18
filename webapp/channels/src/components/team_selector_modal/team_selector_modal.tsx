@@ -170,6 +170,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                 key={option.id}
                 ref={isSelected ? this.selectedItemRef : undefined}
                 className={'more-modal__row clickable ' + rowSelected}
+                data-testid={`team_selector_modal.teams.results.team:${option.id}`}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >
@@ -180,6 +181,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                         <TeamIcon
                             content={option.display_name}
                             url={imageURLForTeam(option)}
+                            testIdScope='team_selector_modal.teams.results.team'
                         />
                         <div className='team-data'>
                             <div className='title'>{option.display_name}</div>
@@ -226,6 +228,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
         );
         return (
             <ConfirmModal
+                testId='team_selector_modal.confirm_modal'
                 show={show}
                 title={title}
                 message={message}
@@ -294,7 +297,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                         />
                     </Modal.Title>
                 </Modal.Header>
-                <Modal.Body>
+                <Modal.Body data-testid='team_selector_modal'>
                     {confirmModal}
                     <MultiSelect<TeamValue>
                         testId='team_selector_modal.teams'

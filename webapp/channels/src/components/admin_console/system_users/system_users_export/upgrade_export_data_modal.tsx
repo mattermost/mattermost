@@ -52,6 +52,7 @@ export function UpgradeExportDataModal({onExited}: Props) {
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.upgrade_export_modal'
             title={title}
             message={message}
             confirmButtonText={viewPlansButton}

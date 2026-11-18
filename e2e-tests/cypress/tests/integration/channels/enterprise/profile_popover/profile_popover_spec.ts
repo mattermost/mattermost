@@ -45,7 +45,7 @@ describe('Profile popover', () => {
     });
 
     it('MM-T2 Add user — Error if already in channel', () => {
-        cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are enabled
         verifyPermissionSubSections('all_users', 'public', true);
@@ -82,12 +82,12 @@ describe('Profile popover', () => {
     });
 
     it('MM-T3 Add user — Public ON / Private OFF', () => {
-        cy.findByTestId('all_users-private_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are disabled
         verifyPermissionSubSections('all_users', 'private', false);
 
-        cy.findByTestId('saveSetting').as('saveButton').scrollIntoView();
+        cy.findByTestId('admin.save--button').as('saveButton').scrollIntoView();
         cy.get('@saveButton').should('be.visible').click();
 
         cy.apiLogout();
@@ -114,7 +114,7 @@ describe('Profile popover', () => {
     });
 
     it('MM-T4 Add user — Public OFF / Private ON', () => {
-        cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled
         verifyPermissionSubSections('all_users', 'public', false);
@@ -122,7 +122,7 @@ describe('Profile popover', () => {
         // * Verify that all the sub-checkboxes are enabled
         verifyPermissionSubSections('all_users', 'private', true);
 
-        cy.findByTestId('saveSetting').as('saveButton').scrollIntoView();
+        cy.findByTestId('admin.save--button').as('saveButton').scrollIntoView();
         cy.get('@saveButton').should('be.visible').click();
 
         cy.apiLogout();
@@ -149,9 +149,9 @@ describe('Profile popover', () => {
     });
 
     it('MM-T6 Add User - Channel Admins (Public only)', () => {
-        cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
-        cy.findByTestId('all_users-private_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are disabled
         verifyPermissionSubSections('all_users', 'public', false);
@@ -159,18 +159,18 @@ describe('Profile popover', () => {
         // * Verify that all the sub-checkboxes are enabled
         verifyPermissionSubSections('all_users', 'private', false);
 
-        cy.findByTestId('channel_admin-public_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are enabled.
         verifyPermissionSubSections('channel_admin', 'public', true);
 
         // # Clicking twice to disable it
-        cy.findByTestId('channel_admin-private_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled
         verifyPermissionSubSections('channel_admin', 'private', false);
 
-        cy.findByTestId('saveSetting').as('saveButton').scrollIntoView();
+        cy.findByTestId('admin.save--button').as('saveButton').scrollIntoView();
         cy.get('@saveButton').should('be.visible').click();
 
         // # Remove testUser from channel
@@ -219,32 +219,32 @@ describe('Profile popover', () => {
     });
 
     it('MM-T7 Add User — Team admins (Private only)', () => {
-        cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled
         verifyPermissionSubSections('all_users', 'public', false);
 
-        cy.findByTestId('all_users-private_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are disabled
         verifyPermissionSubSections('all_users', 'private', false);
 
-        cy.findByTestId('channel_admin-private_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are enabled
         verifyPermissionSubSections('channel_admin', 'private', true);
 
         // # Clicking twice to disable it
-        cy.findByTestId('team_admin-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled
         verifyPermissionSubSections('team_admin', 'public', false);
-        cy.findByTestId('team_admin-private_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are enabled
         verifyPermissionSubSections('team_admin', 'private', true);
 
-        cy.findByTestId('saveSetting').as('saveButton').scrollIntoView();
+        cy.findByTestId('admin.save--button').as('saveButton').scrollIntoView();
         cy.get('@saveButton').should('be.visible').click();
 
         // # Remove testUser from channel
@@ -293,7 +293,7 @@ describe('Profile popover', () => {
     });
 
     it('MM-T9 Add User - Any user (can add users)', () => {
-        cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are enabled
         verifyPermissionSubSections('all_users', 'public', true);
@@ -355,37 +355,37 @@ describe('Profile popover', () => {
     });
 
     it('MM-T1 Add User - System Admin only', () => {
-        cy.findByTestId('all_users-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled.
         verifyPermissionSubSections('all_users', 'public', false);
 
-        cy.findByTestId('all_users-private_channel-checkbox').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that all the sub-checkboxes are disabled.
         verifyPermissionSubSections('all_users', 'public', false);
 
-        cy.findByTestId('channel_admin-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled.
         verifyPermissionSubSections('channel_admin', 'public', false);
 
-        cy.findByTestId('channel_admin-private_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled.
         verifyPermissionSubSections('channel_admin', 'private', false);
 
-        cy.findByTestId('team_admin-public_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.group:public_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled.
         verifyPermissionSubSections('team_admin', 'public', false);
 
-        cy.findByTestId('team_admin-private_channel-checkbox').scrollIntoView().should('be.visible').click().click();
+        cy.get('[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.group:private_channel--checkbox"] [data-testid="admin.permissions.group.checkbox"]').scrollIntoView().should('be.visible').click().click();
 
         // * Verify that all the sub-checkboxes are disabled.
         verifyPermissionSubSections('team_admin', 'private', false);
 
-        cy.findByTestId('saveSetting').as('saveButton').scrollIntoView();
+        cy.findByTestId('admin.save--button').as('saveButton').scrollIntoView();
         cy.get('@saveButton').should('be.visible').click();
 
         cy.apiLogout();
@@ -435,14 +435,14 @@ const verifyPermissionSubSections = (category: string, publicOrPrivate: string, 
     cy.get('#' + category + '-' + publicOrPrivate + '_channel > .fa').scrollIntoView().should('be.visible').click();
 
     if (category !== 'channel_admin') {
-        cy.findByTestId(category + '-' + publicOrPrivate + '_channel-create_' + publicOrPrivate + '_channel-checkbox').should(classCondition, 'checked');
+        cy.get(`[data-testid="admin.permissions.role:${category}--group"] [data-testid="admin.permissions.group.row:create_${publicOrPrivate}_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]`).should(classCondition, 'checked');
     }
     if (publicOrPrivate === 'public') {
-        cy.findByTestId(`${category}-public_channel-convert_public_channel_to_private-checkbox`).should(classCondition, 'checked');
+        cy.get(`[data-testid="admin.permissions.role:${category}--group"] [data-testid="admin.permissions.group.row:convert_public_channel_to_private--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]`).should(classCondition, 'checked');
     }
-    cy.findByTestId(`${category}-${publicOrPrivate}_channel-manage_${publicOrPrivate}_channel_properties-checkbox`).should(classCondition, 'checked');
-    cy.findByTestId(`${category}-${publicOrPrivate}_channel-manage_${publicOrPrivate}_channel_members_and_read_groups-checkbox`).should(classCondition, 'checked');
-    cy.findByTestId(`${category}-${publicOrPrivate}_channel-delete_${publicOrPrivate}_channel-checkbox`).should(classCondition, 'checked');
+    cy.get(`[data-testid="admin.permissions.role:${category}--group"] [data-testid="admin.permissions.group.row:manage_${publicOrPrivate}_channel_properties--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]`).should(classCondition, 'checked');
+    cy.get(`[data-testid="admin.permissions.role:${category}--group"] [data-testid="admin.permissions.group:manage_${publicOrPrivate}_channel_members_and_read_groups--checkbox"] [data-testid="admin.permissions.group.checkbox"]`).should(classCondition, 'checked');
+    cy.get(`[data-testid="admin.permissions.role:${category}--group"] [data-testid="admin.permissions.group.row:delete_${publicOrPrivate}_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]`).should(classCondition, 'checked');
 };
 
 const verifyAddToChannel = (user: Cypress.UserProfile, visible = true) => {

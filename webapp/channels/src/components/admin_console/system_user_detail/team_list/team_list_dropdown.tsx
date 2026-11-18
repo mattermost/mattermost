@@ -42,6 +42,7 @@ const TeamListDropdown = ({
             <button
                 type='button'
                 id={`teamListDropdown_${team.id}`}
+                data-testid='admin.user.teams.team.actions--button'
                 className='dropdown-toggle theme color--link style--none'
                 aria-expanded='true'
             >
@@ -49,23 +50,27 @@ const TeamListDropdown = ({
             </button>
             <div>
                 <Menu
+                    testId='admin.user.teams.team.actions_menu'
                     openLeft={true}
                     openUp={false}
                     ariaLabel={intl.formatMessage({id: 'team_members_dropdown.menuAriaLabel', defaultMessage: 'Change the role of a team member'})}
                 >
                     <Menu.ItemAction
                         id='makeTeamAdmin'
+                        testId='admin.user.teams.team.actions_menu.make_admin'
                         show={showMakeTeamAdmin}
                         onClick={makeTeamAdminOnClick}
                         text={intl.formatMessage({id: 'team_members_dropdown.makeAdmin', defaultMessage: 'Make Team Admin'})}
                     />
                     <Menu.ItemAction
+                        testId='admin.user.teams.team.actions_menu.make_member'
                         show={showMakeTeamMember}
                         onClick={makeTeamMemberOnClick}
                         text={intl.formatMessage({id: 'team_members_dropdown.makeMember', defaultMessage: 'Make Team Member'})}
                     />
                     <Menu.ItemAction
                         id='removeFromTeam'
+                        testId='admin.user.teams.team.actions_menu.remove'
                         show={true}
                         onClick={removeUserTeamOnClick}
                         text={intl.formatMessage({id: 'team_members_dropdown.leave_team', defaultMessage: 'Remove from Team'})}

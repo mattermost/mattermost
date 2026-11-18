@@ -103,7 +103,7 @@ export default function SecureConnectionDetail(props: Props) {
     return (
         <div
             className='wrapper--fixed'
-            data-testid='connectedOrganizationDetailsSection'
+            data-testid='admin.secure_connection'
         >
             <AdminHeader withBackButton={true}>
                 <div>
@@ -121,13 +121,13 @@ export default function SecureConnectionDetail(props: Props) {
             <AdminWrapper>
                 <AdminPanel
                     id='connection_detail'
-                    data-testid='connection_detail_section'
+                    data-testid='admin.secure_connection.details'
                     title={panelMessages.detailsTitle}
                     subtitle={panelMessages.detailsSubtitle}
                     button={currentRemoteCluster ? <ConnectionStatusLabel rc={currentRemoteCluster}/> : undefined}
                 >
                     {isPendingState(loading) ? (
-                        <LoadingScreen/>
+                        <LoadingScreen testId='admin.secure_connections.detail.loading_screen'/>
                     ) : (
                         <>
                             <FormField
@@ -142,7 +142,7 @@ export default function SecureConnectionDetail(props: Props) {
                             >
                                 <Input
                                     type='text'
-                                    data-testid='organization-name-input'
+                                    data-testid='admin.secure_connection.name--textbox'
                                     value={remoteCluster?.display_name ?? ''}
                                     onChange={handleNameChange}
                                     autoFocus={isCreating}
@@ -174,7 +174,7 @@ export default function SecureConnectionDetail(props: Props) {
                                 )}
                             >
                                 <TeamSelector
-                                    testId='destination-team-input'
+                                    testId='admin.secure_connection.destination_team'
                                     value={remoteCluster.default_team_id ?? ''}
                                     teamsById={teamsById}
                                     onChange={handleTeamChange}
@@ -192,6 +192,7 @@ export default function SecureConnectionDetail(props: Props) {
             </AdminWrapper>
 
             <SaveChangesPanel
+                testId='admin.secure_connection.save_panel'
                 saving={isCreating ? isPendingState(creating) : isPendingState(saving)}
                 cancelLink='/admin_console/site_config/secure_connections'
                 saveNeeded={hasChanges && isFormValid}
@@ -252,7 +253,7 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
     let content;
 
     if (loading || !props.rc) {
-        content = <LoadingScreen/>;
+        content = <LoadingScreen testId='admin.secure_connections.detail.remotes.loading_screen'/>;
     } else if (data) {
         content = (
             <SharedChannelRemotesTable
@@ -273,7 +274,7 @@ function SharedChannelRemotes(props: {remoteId: string; rc: RemoteCluster | unde
     return (
         <AdminPanel
             id='shared_channels'
-            data-testid='shared_channels_section'
+            data-testid='admin.secure_connection.shared_channels'
             title={panelMessages.sharedChannelsTitle}
             subtitle={panelMessages.sharedChannelsSubtitle}
             button={(
@@ -525,7 +526,10 @@ function SharedChannelRemotesTable(props: {data: SharedChannelRemoteRow[]; filte
     // TODO consider refactoring ChannelList to support shared channel actions and reuse here
     return (
         <TableWrapper>
-            <AdminConsoleListTable<SharedChannelRemoteRow> table={table}/>
+            <AdminConsoleListTable<SharedChannelRemoteRow>
+                table={table}
+                testIdScope='admin.secure_connection.shared_channels'
+            />
         </TableWrapper>
     );
 }

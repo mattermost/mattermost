@@ -21,6 +21,7 @@ type Props = {
 const SyncGroupsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChecked, allowedDomains, onToggle, isDisabled, last}: Props & {last?: boolean}) => (
     <AdminSettingsSwitch
         id='syncGroupSwitch'
+        testId='admin.team.sync_groups'
         disabled={isDisabled}
         checked={syncChecked}
         last={last}
@@ -53,6 +54,7 @@ const AllowAllToggle = ({syncChecked, allAllowedChecked, allowedDomainsChecked, 
     (syncChecked ? null : (
         <AdminSettingsSwitch
             id='allowAllToggleSwitch'
+            testId='admin.team.allow_all'
             disabled={isDisabled}
             checked={allAllowedChecked}
             onChange={() => onToggle(syncChecked, !allAllowedChecked, allowedDomainsChecked, allowedDomains)}
@@ -74,6 +76,7 @@ const AllowedDomainsToggle = ({syncChecked, allAllowedChecked, allowedDomainsChe
     (syncChecked ? null : (
         <AdminSettingsSwitch
             id='allowedDomainsToggleSwitch'
+            testId='admin.team.allowed_domains'
             disabled={isDisabled}
             checked={allowedDomainsChecked}
             last={last}
@@ -123,6 +126,7 @@ type PolicyEnforceToggleProps = {
 const PolicyEnforceToggle = ({syncChecked, policyEnforced, policyEnforcedToggleAvailable, onToggle, isDisabled}: PolicyEnforceToggleProps) => (
     <AdminSettingsSwitch
         id='policy-enforce-toggle'
+        testId='admin.team.policy_enforce'
         disabled={isDisabled || syncChecked || !policyEnforcedToggleAvailable}
         checked={policyEnforced}
 

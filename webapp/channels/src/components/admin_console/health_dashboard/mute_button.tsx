@@ -27,6 +27,7 @@ const MuteButton = ({finding, onMute, onUnmute}: Props) => {
         <button
             type='button'
             className='btn btn-tertiary btn-sm HealthFinding__muteButton'
+            data-testid='admin.health.finding.mute--button'
             onClick={() => (muted ? onUnmute : onMute)(finding.fingerprint)}
         >
             <Icon

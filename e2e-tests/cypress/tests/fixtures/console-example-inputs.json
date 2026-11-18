@@ -4,7 +4,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/about/license",
-                "selector": "remove-button"
+                "selector": "[data-testid=\"admin.license.remove--button\"]"
             }
         ]
     },
@@ -45,7 +45,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/web_server",
-                "selector": "ServiceSettings.ListenAddressinput"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.ListenAddress--group\"] [data-testid=\"admin.setting.value--textbox\"]"
             }
         ]
     },
@@ -54,7 +54,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/customization",
-                "selector": "TeamSettings.SiteNameinput"
+                "selector": "[data-testid=\"admin.setting:TeamSettings.SiteName--group\"] [data-testid=\"admin.setting.value--textbox\"]"
             }
         ]
     },
@@ -63,7 +63,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/localization",
-                "selector": "LocalizationSettings.DefaultServerLocaledropdown"
+                "selector": "[data-testid=\"LocalizationSettings.DefaultServerLocaledropdown\"]"
             }
         ]
     },
@@ -72,7 +72,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/users_and_teams",
-                "selector": "TeamSettings.MaxUsersPerTeamnumber"
+                "selector": "[data-testid=\"admin.setting:TeamSettings.MaxUsersPerTeam--group\"] [data-testid=\"admin.setting.number--spinbutton\"]"
             }
         ]
     },
@@ -81,7 +81,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/environment/notifications",
-                "selector": "TeamSettings.EnableConfirmNotificationsToChanneltrue"
+                "selector": "[data-testid=\"admin.setting:TeamSettings.EnableConfirmNotificationsToChannel--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -90,7 +90,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/announcement_banner",
-                "selector": "AnnouncementSettings.EnableBannertrue"
+                "selector": "[data-testid=\"admin.setting:AnnouncementSettings.EnableBanner--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -99,7 +99,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/emoji",
-                "selector": "ServiceSettings.EnableEmojiPickertrue"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.EnableEmojiPicker--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -108,7 +108,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/posts",
-                "selector": "ServiceSettings.EnableLinkPreviewstrue"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.EnableLinkPreviews--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -117,7 +117,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/file_sharing_downloads",
-                "selector": "FileSettings.EnableFileAttachmentstrue"
+                "selector": "[data-testid=\"admin.setting:FileSettings.EnableFileAttachments--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -126,7 +126,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/public_links",
-                "selector": "FileSettings.EnablePublicLinktrue"
+                "selector": "[data-testid=\"admin.setting:FileSettings.EnablePublicLink--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -135,7 +135,7 @@
         "disabledInputs": [
             {
                 "path": "admin_console/site_config/notices",
-                "selector": "AnnouncementSettings.AdminNoticesEnabledtrue"
+                "selector": "[data-testid=\"admin.setting:AnnouncementSettings.AdminNoticesEnabled--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -144,7 +144,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/database",
-                "selector": "maxIdleConnsinput"
+                "selector": "[data-testid=\"admin.setting:maxIdleConns--group\"] [data-testid=\"admin.setting.value--textbox\"]"
             }
         ]
     },
@@ -153,7 +153,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/elasticsearch",
-                "selector": "enableIndexingtrue"
+                "selector": "[data-testid=\"admin.setting:enableIndexing--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -162,7 +162,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/file_storage",
-                "selector": "FileSettings.DriverNamedropdown"
+                "selector": "[data-testid=\"admin.setting:FileSettings.DriverName--group\"] [data-testid=\"admin.setting.choice--combobox\"]"
             }
         ]
     },
@@ -171,7 +171,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/image_proxy",
-                "selector": "ImageProxySettings.Enabletrue"
+                "selector": "[data-testid=\"admin.setting:ImageProxySettings.Enable--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -180,7 +180,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/smtp",
-                "selector": "ServiceSettings.EnableSecurityFixAlerttrue"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.EnableSecurityFixAlert--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -189,7 +189,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/push_notification_server",
-                "selector": "pushNotificationServerTypedropdown"
+                "selector": "[data-testid=\"admin.setting:pushNotificationServerType--group\"] [data-testid=\"admin.setting.choice--combobox\"]"
             }
         ]
     },
@@ -198,7 +198,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/high_availability",
-                "selector": "Enabletrue"
+                "selector": "[data-testid=\"admin.setting:Enable--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -207,7 +207,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/rate_limiting",
-                "selector": "RateLimitSettings.Enabletrue"
+                "selector": "[data-testid=\"admin.setting:RateLimitSettings.Enable--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -216,7 +216,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/logging",
-                "selector": "LogSettings.ConsoleLeveldropdown"
+                "selector": "[data-testid=\"admin.setting:LogSettings.ConsoleLevel--group\"] [data-testid=\"admin.setting.choice--combobox\"]"
             }
         ]
     },
@@ -225,7 +225,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/session_lengths",
-                "selector": "sessionLengthWebInDaysinput"
+                "selector": "[data-testid=\"sessionLengthWebInDaysinput\"]"
             }
         ]
     },
@@ -234,7 +234,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/performance_monitoring",
-                "selector": "MetricsSettings.ListenAddressinput"
+                "selector": "[data-testid=\"admin.setting:MetricsSettings.ListenAddress--group\"] [data-testid=\"admin.setting.value--textbox\"]"
             }
         ]
     },
@@ -243,7 +243,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/developer",
-                "selector": "ServiceSettings.EnableTestingtrue"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.EnableTesting--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -252,7 +252,7 @@
         "disabledInputs":[
             {
                 "path": "/admin_console/authentication/signup",
-                "selector": "TeamSettings.EnableUserCreationfalse"
+                "selector": "[data-testid=\"admin.setting:TeamSettings.EnableUserCreation--group\"] [data-testid=\"admin.setting.false--radio\"]"
             }
         ]
     },
@@ -261,7 +261,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/authentication/email",
-                "selector": "EmailSettings.EnableSignUpWithEmailfalse"
+                "selector": "[data-testid=\"admin.setting:EmailSettings.EnableSignUpWithEmail--group\"] [data-testid=\"admin.setting.false--radio\"]"
             }
         ]
     },
@@ -270,7 +270,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/authentication/password",
-                "selector": "passwordMinimumLengthinput"
+                "selector": "[data-testid=\"admin.setting:passwordMinimumLength--group\"] [data-testid=\"admin.setting.value--textbox\"]"
             }
         ]
     },
@@ -279,7 +279,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/authentication/mfa",
-                "selector": "ServiceSettings.EnableMultifactorAuthenticationfalse"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.EnableMultifactorAuthentication--group\"] [data-testid=\"admin.setting.false--radio\"]"
             }
         ]
     },
@@ -288,7 +288,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/authentication/ldap",
-                "selector": "LdapSettings.Enablefalse"
+                "selector": "[data-testid=\"admin.setting:LdapSettings.Enable--group\"] [data-testid=\"admin.setting.false--radio\"]"
             }
         ]
     },
@@ -297,7 +297,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/authentication/saml",
-                "selector": "SamlSettings.Enablefalse"
+                "selector": "[data-testid=\"admin.setting:SamlSettings.Enable--group\"] [data-testid=\"admin.setting.false--radio\"]"
             }
         ]
     },
@@ -306,7 +306,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/authentication/openid",
-                "selector": "openidTypedropdown"
+                "selector": "[data-testid=\"admin.setting:openidType--group\"] [data-testid=\"admin.setting.choice--combobox\"]"
             }
         ]
     },
@@ -315,7 +315,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/authentication/guest_access",
-                "selector": "GuestAccountsSettings.Enablefalse"
+                "selector": "[data-testid=\"admin.setting:GuestAccountsSettings.Enable--group\"] [data-testid=\"admin.setting.false--radio\"]"
             }
         ]
     },
@@ -324,7 +324,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/plugins/plugin_management",
-                "selector": "marketplaceUrlinput"
+                "selector": "[data-testid=\"admin.setting:marketplaceUrl--group\"] [data-testid=\"admin.setting.value--textbox\"]"
             }
         ]
     },
@@ -333,7 +333,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/integrations/integration_management",
-                "selector": "ServiceSettings.EnableIncomingWebhookstrue"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.EnableIncomingWebhooks--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -342,7 +342,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/integrations/bot_accounts",
-                "selector": "ServiceSettings.EnableBotAccountCreationtrue"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.EnableBotAccountCreation--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -351,7 +351,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/integrations/gif",
-                "selector": "ServiceSettings.EnableGifPickertrue"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.EnableGifPicker--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -360,7 +360,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/integrations/cors",
-                "selector": "ServiceSettings.AllowCorsFrominput"
+                "selector": "[data-testid=\"admin.setting:ServiceSettings.AllowCorsFrom--group\"] [data-testid=\"admin.setting.value--textbox\"]"
             }
         ]
     },
@@ -373,7 +373,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/compliance/export",
-                "selector": "enableComplianceExporttrue"
+                "selector": "[data-testid=\"admin.setting:enableComplianceExport--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -382,7 +382,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/compliance/monitoring",
-                "selector": "ComplianceSettings.Enabletrue"
+                "selector": "[data-testid=\"admin.setting:ComplianceSettings.Enable--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -391,7 +391,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/compliance/custom_terms_of_service",
-                "selector": "SupportSettings.CustomTermsOfServiceEnabledtrue"
+                "selector": "[data-testid=\"admin.setting:SupportSettings.CustomTermsOfServiceEnabled--group\"] [data-testid=\"admin.setting.true--radio\"]"
             }
         ]
     },
@@ -400,7 +400,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/experimental/features",
-                "selector": "ExperimentalSettings.LinkMetadataTimeoutMillisecondsnumber"
+                "selector": "[data-testid=\"admin.setting:ExperimentalSettings.LinkMetadataTimeoutMilliseconds--group\"] [data-testid=\"admin.setting.number--spinbutton\"]"
             }
         ]
     },

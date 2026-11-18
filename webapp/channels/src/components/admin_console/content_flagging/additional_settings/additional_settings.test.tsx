@@ -43,22 +43,22 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         // Reporter comment required - should be false
-        expect(screen.getByTestId('requireReporterComment_false')).toBeChecked();
-        expect(screen.getByTestId('requireReporterComment_true')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.require_reporter_comment.false--radio')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.require_reporter_comment.true--radio')).not.toBeChecked();
 
         // Reviewer comment required - should be true
-        expect(screen.getByTestId('requireReviewerComment_true')).toBeChecked();
-        expect(screen.getByTestId('requireReviewerComment_false')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.require_reviewer_comment.true--radio')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.require_reviewer_comment.false--radio')).not.toBeChecked();
 
         // Hide flagged posts - should be false
-        expect(screen.getByTestId('setHideFlaggedPosts_false')).toBeChecked();
-        expect(screen.getByTestId('hideFlaggedPosts_true')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.hide_flagged_posts.false--radio')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.hide_flagged_posts.true--radio')).not.toBeChecked();
     });
 
     test('should call onChange when reporter comment requirement changes', async () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
-        await userEvent.click(screen.getByTestId('requireReporterComment_true'));
+        await userEvent.click(screen.getByTestId('admin.content_flagging.additional.require_reporter_comment.true--radio'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
@@ -69,7 +69,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     test('should call onChange when reviewer comment requirement changes', async () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
-        await userEvent.click(screen.getByTestId('requireReviewerComment_false'));
+        await userEvent.click(screen.getByTestId('admin.content_flagging.additional.require_reviewer_comment.false--radio'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
@@ -80,7 +80,7 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
     test('should call onChange when hide flagged content setting changes', async () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
-        await userEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
+        await userEvent.click(screen.getByTestId('admin.content_flagging.additional.hide_flagged_posts.true--radio'));
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
@@ -117,9 +117,9 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
 
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsAllTrue}/>);
 
-        expect(screen.getByTestId('requireReporterComment_true')).toBeChecked();
-        expect(screen.getByTestId('requireReviewerComment_true')).toBeChecked();
-        expect(screen.getByTestId('hideFlaggedPosts_true')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.require_reporter_comment.true--radio')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.require_reviewer_comment.true--radio')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.hide_flagged_posts.true--radio')).toBeChecked();
     });
 
     test('should handle all boolean settings as false', () => {
@@ -135,9 +135,9 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
 
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...propsAllFalse}/>);
 
-        expect(screen.getByTestId('requireReporterComment_false')).toBeChecked();
-        expect(screen.getByTestId('requireReviewerComment_false')).toBeChecked();
-        expect(screen.getByTestId('setHideFlaggedPosts_false')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.require_reporter_comment.false--radio')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.require_reviewer_comment.false--radio')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.additional.hide_flagged_posts.false--radio')).toBeChecked();
     });
 
     test('should render CreatableReactSelect with correct props', () => {
@@ -152,14 +152,14 @@ describe('ContentFlaggingAdditionalSettingsSection', () => {
         renderWithContext(<ContentFlaggingAdditionalSettingsSection {...defaultProps}/>);
 
         // Change reporter comment requirement
-        await userEvent.click(screen.getByTestId('requireReporterComment_true'));
+        await userEvent.click(screen.getByTestId('admin.content_flagging.additional.require_reporter_comment.true--radio'));
         expect(defaultProps.onChange).toHaveBeenLastCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
             ReporterCommentRequired: true,
         });
 
         // Change hide flagged content
-        await userEvent.click(screen.getByTestId('hideFlaggedPosts_true'));
+        await userEvent.click(screen.getByTestId('admin.content_flagging.additional.hide_flagged_posts.true--radio'));
         expect(defaultProps.onChange).toHaveBeenLastCalledWith('ContentFlaggingAdditionalSettings', {
             ...(defaultProps.value as ContentFlaggingAdditionalSettings),
             ReporterCommentRequired: true,

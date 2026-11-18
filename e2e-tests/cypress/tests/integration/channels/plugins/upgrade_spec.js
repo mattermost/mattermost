@@ -83,7 +83,7 @@ describe('Plugin remains enabled when upgraded', () => {
             });
 
         // # Review and confirm overwrite of plugin with same name
-        cy.findByTestId('plugin-upload-overwrite-review').should('be.visible').within(() => {
+        cy.findByTestId('admin.plugins.overwrite_modal.review').should('be.visible').within(() => {
             cy.findByText('This upload upgrades the existing plugin.').should('be.visible');
             cy.findByText(`v${demoPluginOld.version} \u2192 v${demoPlugin.version}`).should('be.visible');
         });
@@ -108,13 +108,13 @@ describe('Plugin remains enabled when upgraded', () => {
         // # Install demo plugin and enable it
         cy.apiUploadAndEnablePlugin({url: pluginUrl, id: pluginId});
         waitForServerStatus(pluginId, version, {isActive: true});
-        cy.findByTestId(pluginId).scrollIntoView().should('be.visible');
+        cy.findByTestId(`admin.plugins.plugin:${pluginId}--group`).scrollIntoView().should('be.visible');
         waitForAlertMessage(pluginId, 'This plugin is running.');
 
         // # Remove demo plugin
         cy.apiRemovePluginById(pluginId);
         waitForServerStatus(pluginId, version, {isInstalled: false});
-        cy.findByTestId(pluginId).should('not.exist');
+        cy.findByTestId(`admin.plugins.plugin:${pluginId}--group`).should('not.exist');
 
         // # Install demo plugin again
         cy.apiInstallPluginFromUrl(demoPlugin.url, true);
@@ -127,14 +127,14 @@ describe('Plugin remains enabled when upgraded', () => {
         });
 
         // * Verify demo plugin is installed but disabled
-        cy.findByTestId(pluginId).scrollIntoView().should('be.visible');
+        cy.findByTestId(`admin.plugins.plugin:${pluginId}--group`).scrollIntoView().should('be.visible');
         waitForAlertMessage(pluginId, 'This plugin is not enabled.');
     });
 });
 
 function doTaskOnPlugin(pluginId, taskCallback) {
     cy.findByText(/Installed Plugins/).scrollIntoView().should('be.visible');
-    cy.findByTestId(pluginId).scrollIntoView().should('be.visible').within(() => {
+    cy.findByTestId(`admin.plugins.plugin:${pluginId}--group`).scrollIntoView().should('be.visible').within(() => {
         // # Perform task
         taskCallback();
     });

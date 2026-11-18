@@ -5,7 +5,7 @@ import React from 'react';
 
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import TeamList from './team_list';
@@ -32,7 +32,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
         );
 
         // Wait for the component to finish loading
-        const teamDisplayNames = await screen.findAllByTestId('team-display-name');
+        const teamDisplayNames = await screen.findAllByTestId('admin.teams.row.name--text');
         expect(actions.getData).toHaveBeenCalled();
 
         // Verify the team name is displayed
@@ -63,7 +63,7 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
         );
 
         // Wait for the component to finish loading
-        const teamDisplayNames = await screen.findAllByTestId('team-display-name');
+        const teamDisplayNames = await screen.findAllByTestId('admin.teams.row.name--text');
         expect(actions.getData).toHaveBeenCalled();
 
         // Verify pagination is working - only first page of teams should be displayed
@@ -251,12 +251,12 @@ describe('admin_console/team_channel_settings/team/TeamList', () => {
         );
 
         // Wait for teams to load
-        const openManagement = await screen.findByTestId('openManagement');
+        const openManagement = await within(await screen.findByTestId('admin.teams.row:1--row')).findByTestId('admin.teams.row.management--text');
         expect(actions.getData).toHaveBeenCalled();
 
         // Verify management type is displayed using testid
-        const inviteManagement = screen.getByTestId('inviteManagement');
-        const policyManagement = screen.getByTestId('policyManagement');
+        const inviteManagement = within(screen.getByTestId('admin.teams.row:2--row')).getByTestId('admin.teams.row.management--text');
+        const policyManagement = within(screen.getByTestId('admin.teams.row:3--row')).getByTestId('admin.teams.row.management--text');
 
         expect(openManagement).toBeInTheDocument();
         expect(openManagement).toHaveTextContent('Anyone Can Join');

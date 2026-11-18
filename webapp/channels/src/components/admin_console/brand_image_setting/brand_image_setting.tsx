@@ -186,7 +186,7 @@ const BrandImageSetting = ({
                     <button
                         type='button'
                         className='remove-image__btn'
-                        data-testid='remove-image__btn'
+                        data-testid='admin.brand_image.remove--button'
                         onClick={handleDeleteButtonPressed}
                     >
                         <span aria-hidden={true}>{'×'}</span>
@@ -242,6 +242,7 @@ const BrandImageSetting = ({
                     emphasis='tertiary'
                     disabled={disabled}
                     onClick={handleSelectClick}
+                    data-testid='admin.brand_image.select--button'
                 >
                     <FormattedMessage
                         id='admin.team.chooseImage'
@@ -250,7 +251,7 @@ const BrandImageSetting = ({
                 </Button>
                 <input
                     ref={fileInputRef}
-                    data-testid='file__upload-input'
+                    data-testid='admin.brand_image.upload'
                     type='file'
                     accept={Constants.ACCEPT_STATIC_IMAGE}
                     disabled={disabled}

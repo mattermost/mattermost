@@ -115,7 +115,7 @@ describe('Slash commands', () => {
         addNewCommand(team1, trigger, 'http://dot.com');
 
         goToSystemScheme();
-        enablePermission('all_users-integrations-manage_slash_commands-checkbox');
+        enablePermission('[data-testid="all_users-integrations-manage_slash_commands-checkbox"]');
         saveConfigForScheme();
 
         // # Login as another user

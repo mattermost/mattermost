@@ -167,6 +167,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
 
         return teamsToDisplay.map((team) => {
             return {
+                testKey: team.id,
                 cells: {
                     id: team.id,
                     name: (
@@ -176,13 +177,14 @@ export default class TeamList extends React.PureComponent<Props, State> {
                         >
                             <div className='TeamList__lowerOpacity'>
                                 <TeamIcon
+                                    testIdScope='admin.data_retention.policy.teams.row'
                                     size='sm'
                                     url={Utils.imageURLForTeam(team)}
                                     content={team.display_name}
                                 />
                             </div>
                             <div className='TeamList__nameText'>
-                                <b data-testid='team-display-name'>
+                                <b data-testid={`admin.data_retention.team_name:${team.id}--text`}>
                                     {team.display_name}
                                 </b>
                             </div>
@@ -245,6 +247,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
         return (
             <div className='PolicyTeamsList'>
                 <DataGrid
+                    testIdScope='admin.data_retention.policy.teams'
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}

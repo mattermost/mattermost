@@ -127,7 +127,7 @@ function TeamFilterDropdown(props: Props) {
                 onChange={handleOnChange}
                 onMenuScrollToBottom={handleMenuScrolledToBottom}
                 components={{
-                    LoadingIndicator: () => <LoadingSpinner/>,
+                    LoadingIndicator: () => <LoadingSpinner testId='admin.filter.team.loading_spinner'/>,
                 }}
             />
         </div>

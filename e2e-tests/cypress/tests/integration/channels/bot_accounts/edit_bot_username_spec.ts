@@ -29,7 +29,7 @@ describe('Edit bot username', () => {
         cy.visit('/admin_console/integrations/bot_accounts');
 
         // # Verify that the setting is enabled
-        cy.findByTestId('ServiceSettings.EnableBotAccountCreationtrue', {timeout: TIMEOUTS.ONE_MIN}).should('be.checked');
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableBotAccountCreation--group"] [data-testid="admin.setting.true--radio"]', {timeout: TIMEOUTS.ONE_MIN}).should('be.checked');
 
         // # Visit the integrations
         goToCreateBot();

@@ -76,7 +76,7 @@ const saveConfig = () => {
 };
 
 const enablePermission = (permissionCheckBoxTestId) => {
-    cy.findByTestId(permissionCheckBoxTestId).then((el) => {
+    cy.get(permissionCheckBoxTestId).then((el) => {
         if (!el.hasClass('checked')) {
             el.click();
         }
@@ -84,7 +84,7 @@ const enablePermission = (permissionCheckBoxTestId) => {
 };
 
 const removePermission = (permissionCheckBoxTestId) => {
-    cy.findByTestId(permissionCheckBoxTestId).then((el) => {
+    cy.get(permissionCheckBoxTestId).then((el) => {
         if (el.hasClass('checked')) {
             el.click();
         }
@@ -138,7 +138,7 @@ const resetPermissionsToDefault = () => {
     cy.visit('/admin_console/user_management/permissions/system_scheme');
 
     // # Click reset to defaults and confirm
-    cy.findByTestId('resetPermissionsToDefault').click();
+    cy.findByTestId('admin.permissions.reset--button').click();
     cy.get('#confirmModalButton').click();
 
     // # Save
@@ -146,10 +146,10 @@ const resetPermissionsToDefault = () => {
 };
 
 const checkChannelPermission = (permissionName, hasChannelPermissionCheckFunc, notHasChannelPermissionCheckFunc, testUser, testTeam, testChannel) => {
-    const guestsTestId = `guests-guest_${permissionName}-checkbox`;
-    const usersTestId = `all_users-posts-${permissionName}-checkbox`;
-    const channelTestId = `channel_admin-posts-${permissionName}-checkbox`;
-    const teamTestId = `team_admin-posts-${permissionName}-checkbox`;
+    const guestsTestId = `[data-testid="admin.permissions.role:guests--group"] [data-testid="admin.permissions.group:guest_${permissionName}--checkbox"] [data-testid="admin.permissions.group.checkbox"]`;
+    const usersTestId = `[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.${permissionName === 'create_post' ? 'group' : 'group.row'}:${permissionName}--checkbox"] [data-testid="admin.permissions.${permissionName === 'create_post' ? 'group' : 'group.row'}.checkbox"]`;
+    const channelTestId = `[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.${permissionName === 'create_post' ? 'group' : 'group.row'}:${permissionName}--checkbox"] [data-testid="admin.permissions.${permissionName === 'create_post' ? 'group' : 'group.row'}.checkbox"]`;
+    const teamTestId = `[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.${permissionName === 'create_post' ? 'group' : 'group.row'}:${permissionName}--checkbox"] [data-testid="admin.permissions.${permissionName === 'create_post' ? 'group' : 'group.row'}.checkbox"]`;
     const testIds = [guestsTestId, usersTestId, channelTestId, teamTestId];
 
     const channelUrl = `/${testTeam.name}/channels/${testChannel.name}`;
@@ -168,7 +168,7 @@ const checkChannelPermission = (permissionName, hasChannelPermissionCheckFunc, n
 
     // * Ensure permission is enabled at each scope by default
     testIds.forEach((testId) => {
-        cy.findByTestId(testId).should('have.class', 'checked');
+        cy.get(testId).should('have.class', 'checked');
     });
 
     // # Remove permission from guests and save
@@ -176,34 +176,34 @@ const checkChannelPermission = (permissionName, hasChannelPermissionCheckFunc, n
     saveConfig();
 
     // * Ensure that the permission removed is now removed
-    cy.findByTestId(guestsTestId).should('not.have.class', 'checked');
+    cy.get(guestsTestId).should('not.have.class', 'checked');
 
     // # Remove permission from all users and save
     removePermission(usersTestId);
     saveConfig();
 
     // * Ensure that the permission is not removed from all roles except All Members
-    cy.findByTestId(usersTestId).should('not.have.class', 'checked');
-    cy.findByTestId(channelTestId).should('have.class', 'checked');
-    cy.findByTestId(teamTestId).should('have.class', 'checked');
+    cy.get(usersTestId).should('not.have.class', 'checked');
+    cy.get(channelTestId).should('have.class', 'checked');
+    cy.get(teamTestId).should('have.class', 'checked');
 
     // # Remove permission for channel admins and save
     removePermission(channelTestId);
     saveConfig();
 
     // * Ensure that the permission is removed from all roles except team admins
-    cy.findByTestId(teamTestId).should('have.class', 'checked');
-    cy.findByTestId(channelTestId).should('not.have.class', 'checked');
-    cy.findByTestId(usersTestId).should('not.have.class', 'checked');
+    cy.get(teamTestId).should('have.class', 'checked');
+    cy.get(channelTestId).should('not.have.class', 'checked');
+    cy.get(usersTestId).should('not.have.class', 'checked');
 
     // # Enable permission for channel admins and save
     enablePermission(channelTestId);
     saveConfig();
 
     // * Ensure that the permission is only removed from regular users
-    cy.findByTestId(teamTestId).should('have.class', 'checked');
-    cy.findByTestId(channelTestId).should('have.class', 'checked');
-    cy.findByTestId(usersTestId).should('not.have.class', 'checked');
+    cy.get(teamTestId).should('have.class', 'checked');
+    cy.get(channelTestId).should('have.class', 'checked');
+    cy.get(usersTestId).should('not.have.class', 'checked');
 
     // # Setup user as a regular channel member
     setUserTeamAndChannelMemberships(testUser, testTeam, testChannel);

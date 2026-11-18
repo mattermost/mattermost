@@ -60,27 +60,27 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should set correct default checked values for checkboxes', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        expect(screen.getByTestId('flagged_reviewers')).toBeChecked();
-        expect(screen.getByTestId('flagged_author')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:flagged_reviewers--checkbox')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:flagged_author--checkbox')).not.toBeChecked();
 
         // Assigned section
-        expect(screen.getByTestId('assigned_reviewers')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:assigned_reviewers--checkbox')).toBeChecked();
 
         // Removed section
-        expect(screen.getByTestId('removed_reviewers')).toBeChecked();
-        expect(screen.getByTestId('removed_author')).toBeChecked();
-        expect(screen.getByTestId('removed_reporter')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_reviewers--checkbox')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_author--checkbox')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_reporter--checkbox')).not.toBeChecked();
 
         // Dismissed section
-        expect(screen.getByTestId('dismissed_reviewers')).toBeChecked();
-        expect(screen.getByTestId('dismissed_author')).not.toBeChecked();
-        expect(screen.getByTestId('dismissed_reporter')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_reviewers--checkbox')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_author--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_reporter--checkbox')).not.toBeChecked();
     });
 
     test('should handle checkbox change when adding a target', async () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        const flaggedAuthorsCheckbox = screen.getByTestId('flagged_author');
+        const flaggedAuthorsCheckbox = screen.getByTestId('admin.content_flagging.notification:flagged_author--checkbox');
         await userEvent.click(flaggedAuthorsCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('test-id', {
@@ -96,7 +96,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should handle checkbox change when removing a target', async () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        const removedAuthorCheckbox = screen.getByTestId('removed_author');
+        const removedAuthorCheckbox = screen.getByTestId('admin.content_flagging.notification:removed_author--checkbox');
         await userEvent.click(removedAuthorCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('test-id', {
@@ -112,21 +112,21 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should disable flagged_reviewers checkbox', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        const flaggedReviewersCheckbox = screen.getByTestId('flagged_reviewers');
+        const flaggedReviewersCheckbox = screen.getByTestId('admin.content_flagging.notification:flagged_reviewers--checkbox');
         expect(flaggedReviewersCheckbox).toBeDisabled();
     });
 
     test('should not disable other checkboxes', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        expect(screen.getByTestId('flagged_author')).not.toBeDisabled();
-        expect(screen.getByTestId('assigned_reviewers')).not.toBeDisabled();
-        expect(screen.getByTestId('removed_reviewers')).not.toBeDisabled();
-        expect(screen.getByTestId('removed_author')).not.toBeDisabled();
-        expect(screen.getByTestId('removed_reporter')).not.toBeDisabled();
-        expect(screen.getByTestId('dismissed_reviewers')).not.toBeDisabled();
-        expect(screen.getByTestId('dismissed_author')).not.toBeDisabled();
-        expect(screen.getByTestId('dismissed_reporter')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.content_flagging.notification:flagged_author--checkbox')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.content_flagging.notification:assigned_reviewers--checkbox')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_reviewers--checkbox')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_author--checkbox')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_reporter--checkbox')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_reviewers--checkbox')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_author--checkbox')).not.toBeDisabled();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_reporter--checkbox')).not.toBeDisabled();
     });
 
     test('should initialize EventTargetMapping if not present', () => {
@@ -138,7 +138,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithoutMapping}/>);
 
         // Use fireEvent.click to test defensive coding in handler (checkbox is disabled)
-        const flaggedReviewersCheckbox = screen.getByTestId('flagged_reviewers');
+        const flaggedReviewersCheckbox = screen.getByTestId('admin.content_flagging.notification:flagged_reviewers--checkbox');
         fireEvent.click(flaggedReviewersCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('test-id', {
@@ -165,7 +165,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
 
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithPartialMapping}/>);
 
-        const assignedReviewersCheckbox = screen.getByTestId('assigned_reviewers');
+        const assignedReviewersCheckbox = screen.getByTestId('admin.content_flagging.notification:assigned_reviewers--checkbox');
         await userEvent.click(assignedReviewersCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('test-id', {
@@ -181,7 +181,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
 
         // Use fireEvent.click to test defensive coding in handler (checkbox is disabled)
         // Try to add 'reviewers' to flagged again (it's already there)
-        const flaggedReviewersCheckbox = screen.getByTestId('flagged_reviewers');
+        const flaggedReviewersCheckbox = screen.getByTestId('admin.content_flagging.notification:flagged_reviewers--checkbox');
         fireEvent.click(flaggedReviewersCheckbox);
         fireEvent.click(flaggedReviewersCheckbox);
 
@@ -199,11 +199,11 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
         // First change: add author to flagged
-        const flaggedAuthorsCheckbox = screen.getByTestId('flagged_author');
+        const flaggedAuthorsCheckbox = screen.getByTestId('admin.content_flagging.notification:flagged_author--checkbox');
         await userEvent.click(flaggedAuthorsCheckbox);
 
         // Second change: add reporter to removed
-        const removedReporterCheckbox = screen.getByTestId('removed_reporter');
+        const removedReporterCheckbox = screen.getByTestId('admin.content_flagging.notification:removed_reporter--checkbox');
         await userEvent.click(removedReporterCheckbox);
 
         expect(defaultProps.onChange).toHaveBeenCalledTimes(2);
@@ -230,7 +230,7 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
     test('should handle unchecking and rechecking the same checkbox', async () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...defaultProps}/>);
 
-        const removedAuthorCheckbox = screen.getByTestId('removed_author');
+        const removedAuthorCheckbox = screen.getByTestId('admin.content_flagging.notification:removed_author--checkbox');
 
         // First click: uncheck (remove author from removed)
         await userEvent.click(removedAuthorCheckbox);
@@ -273,14 +273,14 @@ describe('ContentFlaggingNotificationSettingsSection', () => {
         renderWithContext(<ContentFlaggingNotificationSettingsSection {...propsWithEmptyArrays}/>);
 
         // All checkboxes should be unchecked
-        expect(screen.getByTestId('flagged_reviewers')).not.toBeChecked();
-        expect(screen.getByTestId('flagged_author')).not.toBeChecked();
-        expect(screen.getByTestId('assigned_reviewers')).not.toBeChecked();
-        expect(screen.getByTestId('removed_reviewers')).not.toBeChecked();
-        expect(screen.getByTestId('removed_author')).not.toBeChecked();
-        expect(screen.getByTestId('removed_reporter')).not.toBeChecked();
-        expect(screen.getByTestId('dismissed_reviewers')).not.toBeChecked();
-        expect(screen.getByTestId('dismissed_author')).not.toBeChecked();
-        expect(screen.getByTestId('dismissed_reporter')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:flagged_reviewers--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:flagged_author--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:assigned_reviewers--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_reviewers--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_author--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:removed_reporter--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_reviewers--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_author--checkbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.notification:dismissed_reporter--checkbox')).not.toBeChecked();
     });
 });

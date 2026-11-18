@@ -7,7 +7,7 @@ import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {components} from 'react-select';
-import type {IndicatorsContainerProps, ControlProps, OptionProps, Options, OnChangeValue, StylesConfig} from 'react-select';
+import type {IndicatorsContainerProps, ControlProps, InputProps, OptionProps, Options, OnChangeValue, StylesConfig} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {Team, TeamSearchOpts} from '@mattermost/types/teams';
@@ -27,7 +27,7 @@ const TEAMS_PER_PAGE = 50;
 
 export type OptionType = {
     label: string | ReactElement<any>;
-    value: string;
+    value: Team['id'];
 };
 
 interface Props {
@@ -120,6 +120,7 @@ export function SystemUsersFilterTeam(props: Props) {
     return (
         <div
             className='DropdownInput Input_container'
+            data-testid='admin.users.filters.team'
         >
             <fieldset
                 className={classNames('Input_fieldset Input_fieldset___legend', props.className, {
@@ -153,6 +154,7 @@ export function SystemUsersFilterTeam(props: Props) {
                             LoadingIndicator,
                             Option,
                             Control,
+                            Input,
                         }}
                     />
                 </div>
@@ -216,14 +218,25 @@ const Option = (props: OptionProps<OptionType, false>) => {
                 focused: props.isFocused,
             })}
         >
-            <components.Option {...props}/>
+            <components.Option
+                {...props}
+                innerProps={{...props.innerProps, 'data-testid': `admin.users.filters.team.option:${props.data.value}--option`} as OptionProps<OptionType, false>['innerProps']}
+            />
         </div>
     );
 };
 
+// The search input (react-select's Input takes extra props directly)
+const Input = (props: InputProps<OptionType, false>) => (
+    <components.Input
+        {...props}
+        data-testid='admin.users.filters.team.input--combobox'
+    />
+);
+
 export const LoadingIndicator = () => {
     return (
-        <LoadingSpinner/>
+        <LoadingSpinner testId='admin.users.filters.team.loading_spinner'/>
     );
 };
 

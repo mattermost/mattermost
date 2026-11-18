@@ -19,8 +19,8 @@ export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
     // already in the desired state: a sibling spec can leave this setting already matching,
     // and clicking an already-checked radio doesn't mark the form dirty, so unconditionally
     // waiting for Save to become enabled would time out.
-    checkIfNotAlreadyChecked('ServiceSettings.EnablePostUsernameOverride' + enableUsername);
-    checkIfNotAlreadyChecked('ServiceSettings.EnablePostIconOverride' + enableIcon);
+    checkIfNotAlreadyChecked('[data-testid="admin.setting:ServiceSettings.EnablePostUsernameOverride--group"] [data-testid="admin.setting.' + enableUsername + '--radio"]');
+    checkIfNotAlreadyChecked('[data-testid="admin.setting:ServiceSettings.EnablePostIconOverride--group"] [data-testid="admin.setting.' + enableIcon + '--radio"]');
 
     // # Save the settings only if something actually changed
     cy.get('body').then(($body) => {
@@ -32,7 +32,7 @@ export function enableUsernameAndIconOverrideInt(enableUsername, enableIcon) {
 }
 
 function checkIfNotAlreadyChecked(testId) {
-    cy.findByTestId(testId).then(($el) => {
+    cy.get(testId).then(($el) => {
         if (!$el.prop('checked')) {
             cy.wrap($el).check({force: true});
         }

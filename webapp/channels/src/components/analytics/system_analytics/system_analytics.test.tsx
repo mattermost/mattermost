@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import SystemAnalytics from 'components/analytics/system_analytics';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 import Constants from 'utils/constants';
 
 const StatTypes = Constants.StatTypes;
@@ -57,8 +57,8 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
     test('no data', () => {
         renderWithContext(<SystemAnalytics {...baseProps}/>, initialState, {useMockedStore: true});
 
-        expect(screen.getByTestId('totalPosts')).toHaveTextContent('Loading...');
-        expect(screen.queryByTestId('totalPostsLineChart')).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('admin.statistics.stat:totalPosts--group')).getByTestId('admin.statistics.stat.value--text')).toHaveTextContent('Loading...');
+        expect(within(screen.getByTestId('admin.statistics.chart:totalPostsLineChart--group')).queryByTestId('admin.statistics.chart.canvas')).not.toBeInTheDocument();
     });
 
     test('system data', async () => {
@@ -95,10 +95,10 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
         const detailsElement = screen.getByText('Load Advanced Statistics');
         await userEvent.click(detailsElement);
 
-        await screen.findByTestId('totalPostsLineChart');
+        await within(await screen.findByTestId('admin.statistics.chart:totalPostsLineChart--group')).findByTestId('admin.statistics.chart.canvas');
 
-        expect(screen.getByTestId('totalPosts')).toHaveTextContent('45');
-        expect(screen.getByTestId('totalPostsLineChart')).toBeInTheDocument();
+        expect(within(screen.getByTestId('admin.statistics.stat:totalPosts--group')).getByTestId('admin.statistics.stat.value--text')).toHaveTextContent('45');
+        expect(within(screen.getByTestId('admin.statistics.chart:totalPostsLineChart--group')).getByTestId('admin.statistics.chart.canvas')).toBeInTheDocument();
     });
 
     test('plugins data', async () => {
@@ -239,13 +239,13 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
         const detailsElement = screen.getByText('Load Advanced Statistics');
         await userEvent.click(detailsElement);
 
-        expect(screen.getByTestId('totalPosts')).toHaveTextContent('45');
-        expect(screen.getByTestId('totalPostsLineChart')).toBeInTheDocument();
-        expect(screen.getByTestId('com.mattermost.playbooks.playbook_count')).toHaveTextContent('45');
-        expect(screen.getByTestId('com.mattermost.playbooks.playbook_run_count')).toHaveTextContent('45');
+        expect(within(screen.getByTestId('admin.statistics.stat:totalPosts--group')).getByTestId('admin.statistics.stat.value--text')).toHaveTextContent('45');
+        expect(within(screen.getByTestId('admin.statistics.chart:totalPostsLineChart--group')).getByTestId('admin.statistics.chart.canvas')).toBeInTheDocument();
+        expect(within(screen.getByTestId('admin.statistics.plugin_stat:com.mattermost.playbooks.playbook_count--group')).getByTestId('admin.statistics.plugin_stat.value--text')).toHaveTextContent('45');
+        expect(within(screen.getByTestId('admin.statistics.plugin_stat:com.mattermost.playbooks.playbook_run_count--group')).getByTestId('admin.statistics.plugin_stat.value--text')).toHaveTextContent('45');
 
-        expect(screen.getByTestId('com.mattermost.calls.calls_count')).toHaveTextContent('1000');
-        expect(screen.getByTestId('com.mattermost.calls.calls_sessions_count')).toHaveTextContent('10000');
+        expect(within(screen.getByTestId('admin.statistics.plugin_stat:com.mattermost.calls.calls_count--group')).getByTestId('admin.statistics.plugin_stat.value--text')).toHaveTextContent('1000');
+        expect(within(screen.getByTestId('admin.statistics.plugin_stat:com.mattermost.calls.calls_sessions_count--group')).getByTestId('admin.statistics.plugin_stat.value--text')).toHaveTextContent('10000');
 
         expect(screen.getByText('Calls per channel')).toBeInTheDocument();
         expect(screen.getByText('Calls per day')).toBeInTheDocument();
@@ -288,7 +288,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
-        expect(screen.getByTestId('singleChannelGuests')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.statistics.stat:singleChannelGuests--group')).toBeInTheDocument();
     });
 
     test('does not show single-channel guests card for Entry SKU', () => {
@@ -328,7 +328,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
-        expect(screen.queryByTestId('singleChannelGuests')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.statistics.stat:singleChannelGuests--group')).not.toBeInTheDocument();
     });
 
     test('does not show single-channel guests card when guest accounts disabled', () => {
@@ -368,7 +368,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
-        expect(screen.queryByTestId('singleChannelGuests')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.statistics.stat:singleChannelGuests--group')).not.toBeInTheDocument();
     });
 
     test('shows error status when single-channel guests exceed limit', () => {
@@ -408,7 +408,7 @@ describe('components/analytics/system_analytics/system_analytics.tsx', () => {
 
         renderWithContext(<SystemAnalytics {...baseProps}/>, state, {useMockedStore: true});
 
-        const titleElement = screen.getByTestId('singleChannelGuestsTitle');
+        const titleElement = within(screen.getByTestId('admin.statistics.stat:singleChannelGuests--group')).getByTestId('admin.statistics.stat.title--text');
         expect(titleElement).toHaveClass('team_statistics--error');
     });
 });

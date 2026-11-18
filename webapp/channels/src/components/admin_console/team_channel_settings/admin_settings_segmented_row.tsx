@@ -11,11 +11,15 @@ export type AdminSettingsSegment = {
     label: ReactNode;
     selected: boolean;
     onSelect: () => void;
+
     testId?: string;
 };
 
 type Props = {
     id: string;
+
+    // the row's testid; each segment carries its own
+    testId?: string;
     children: ReactNode;
     secondaryLabel: ReactNode;
     segments: AdminSettingsSegment[];
@@ -39,11 +43,12 @@ const AdminSettingsSegmentedRow = ({
     disabled,
     footer,
     groupAriaLabel,
+    testId,
 }: Props): JSX.Element => (
     <>
         <div
             className='AdminSettingsSegmentedRow'
-            data-testid={id}
+            data-testid={testId}
         >
             <div className='AdminSettingsSegmentedRow__text'>
                 <div className='AdminSettingsSegmentedRow__title'>
@@ -63,7 +68,7 @@ const AdminSettingsSegmentedRow = ({
                         key={segment.id}
                         type='button'
                         id={`${id}-${segment.id}`}
-                        data-testid={segment.testId ?? `${id}-${segment.id}`}
+                        data-testid={segment.testId ? `${segment.testId}--togglebutton` : undefined}
                         className={classNames('AdminSettingsSegmentedRow__segment', {
                             'AdminSettingsSegmentedRow__segment--active': segment.selected,
                         })}

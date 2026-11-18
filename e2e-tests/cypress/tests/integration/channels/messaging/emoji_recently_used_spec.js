@@ -32,7 +32,7 @@ describe('Messaging', () => {
         cy.visit('/admin_console/site_config/emoji');
         cy.get('.admin-console__header').should('be.visible').and('have.text', 'Emoji');
 
-        cy.findByTestId('ServiceSettings.EnableEmojiPickertrue').check();
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableEmojiPicker--group"] [data-testid="admin.setting.true--radio"]').check();
 
         cy.get('#saveSetting').then((btn) => {
             if (btn.is(':enabled')) {
@@ -144,7 +144,7 @@ describe('Messaging', () => {
         cy.visit('/admin_console/site_config/emoji');
         cy.get('.admin-console__header').should('be.visible').and('have.text', 'Emoji');
 
-        cy.findByTestId('ServiceSettings.EnableEmojiPickerfalse').check();
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableEmojiPicker--group"] [data-testid="admin.setting.false--radio"]').check();
 
         cy.get('#saveSetting').then((btn) => {
             if (btn.is(':enabled')) {

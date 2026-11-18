@@ -229,19 +229,21 @@ export default class TeamList extends React.PureComponent<Props, State> {
 
         return teamsToDisplay.map((team) => {
             return {
+                testKey: team.id,
                 cells: {
                     id: team.id,
                     name: (
                         <div className='TeamList_nameColumn'>
                             <div className='TeamList__lowerOpacity'>
                                 <TeamIcon
+                                    testIdScope='admin.teams.row'
                                     size='sm'
                                     url={Utils.imageURLForTeam(team)}
                                     content={team.display_name}
                                 />
                             </div>
                             <div className='TeamList_nameText'>
-                                <b data-testid='team-display-name'>
+                                <b data-testid='admin.teams.row.name--text'>
                                     {team.display_name}
                                     {team.delete_at !== 0 && (
                                         <span className='archived-label'>
@@ -263,18 +265,18 @@ export default class TeamList extends React.PureComponent<Props, State> {
                     ),
                     management: (
                         <span
-                            data-testid={`${team.name}Management`}
+                            data-testid='admin.teams.row.management--text'
                             className='TeamList_managementText'
                         >
                             {this.renderManagementMethodText(team)}
                         </span>
                     ),
                     edit: (
-                        <span
-                            data-testid={`${team.display_name}edit`}
-                            className='group-actions TeamList_editText'
-                        >
-                            <Link to={`/admin_console/user_management/teams/${team.id}`}>
+                        <span className='group-actions TeamList_editText'>
+                            <Link
+                                to={`/admin_console/user_management/teams/${team.id}`}
+                                data-testid='admin.teams.row.edit--link'
+                            >
                                 <FormattedMessage
                                     id='admin.team_settings.team_row.configure'
                                     defaultMessage='Edit'
@@ -390,6 +392,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
         return (
             <div className='TeamsList'>
                 <DataGrid
+                    testIdScope='admin.teams'
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}

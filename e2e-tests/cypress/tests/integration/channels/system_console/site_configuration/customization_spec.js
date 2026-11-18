@@ -28,13 +28,13 @@ describe('Customization', () => {
         cy.apiUpdateConfig({TeamSettings: {EnableCustomBrand: false}});
 
         // * Verify that setting is visible and matches text content
-        cy.findByTestId('TeamSettings.SiteNamelabel').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
 
         // # Update both Site Name and Description to store test values
         const siteName = 'Mattermost_Text';
         const siteDescription = 'This is a testing Mattermost site';
-        cy.findByTestId('TeamSettings.SiteNameinput').clear().type(siteName);
-        cy.findByTestId('TeamSettings.CustomDescriptionTextinput').clear().type(siteDescription);
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').clear().type(siteName);
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomDescriptionText--group"] [data-testid="admin.setting.value--textbox"]').clear().type(siteDescription);
 
         // # Save setting
         saveSetting();
@@ -52,11 +52,11 @@ describe('Customization', () => {
 
     it('MM-T1025 - Site Name - Product Menu ➜ About and About Modal show custom name', () => {
         // * Verify that setting is visible and matches text content
-        cy.findByTestId('TeamSettings.SiteNamelabel').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
 
         // # Update Site Name test value
         const siteName = "A team's instance";
-        cy.findByTestId('TeamSettings.SiteNameinput').clear().type(siteName);
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').clear().type(siteName);
 
         // # Save setting
         saveSetting();
@@ -73,16 +73,16 @@ describe('Customization', () => {
 
     it('MM-T1026 - Custom Branding - Name character limit', () => {
         // * Verify that setting is visible and matches text content
-        cy.findByTestId('TeamSettings.SiteNamelabel').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
 
         // Character limit is 30, and Mattermost is exactly 10 characters long
         const siteName = 'Mattermost'.repeat(3);
 
         // # Type the maximum amount of characters and then some more
-        cy.findByTestId('TeamSettings.SiteNameinput').clear().type(siteName + 'something else');
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').clear().type(siteName + 'something else');
 
         // * Verify that the input field didn't accept more characters than the limit
-        cy.findByTestId('TeamSettings.SiteNameinput').should('have.value', siteName);
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', siteName);
 
         // # Save setting
         saveSetting();
@@ -99,7 +99,7 @@ describe('Customization', () => {
         cy.reload();
 
         // # Set Enable Custom Branding to true
-        cy.findByTestId('TeamSettings.EnableCustomBrandtrue').check();
+        cy.get('[data-testid="admin.setting:TeamSettings.EnableCustomBrand--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Save setting
         saveSetting();
@@ -123,19 +123,19 @@ describe('Customization', () => {
         cy.reload();
 
         // # Enable custom branding
-        cy.findByTestId('TeamSettings.EnableCustomBrandtrue').check();
+        cy.get('[data-testid="admin.setting:TeamSettings.EnableCustomBrand--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Upload the image
-        cy.findByTestId('CustomBrandImage').should('be.visible').within(() => {
+        cy.findByTestId('admin.setting:CustomBrandImage--group').should('be.visible').within(() => {
             cy.get('input').attachFile('mattermost-icon.png');
         });
 
         // * Verify that custom brand image setting is visible and matches text content
-        cy.findByTestId('TeamSettings.CustomBrandTextlabel').scrollIntoView().should('be.visible').and('have.text', 'Custom Brand Text:');
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomBrandText--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Custom Brand Text:');
 
         // # Update custom brand text
         const customBrandText = 'This is a custom brand text';
-        cy.findByTestId('TeamSettings.CustomBrandTextinput').clear().type(customBrandText);
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomBrandText--group"] [data-testid="admin.setting.value--textbox"]').clear().type(customBrandText);
 
         // # Save setting
         saveSetting();
@@ -163,7 +163,7 @@ describe('Customization', () => {
         cy.get('.admin-console__header').should('be.visible').and('have.text', 'Emoji');
 
         // # Set Enable Custom Emoji to true
-        cy.findByTestId('ServiceSettings.EnableCustomEmojitrue').check();
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableCustomEmoji--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Save setting
         saveSetting();
@@ -204,7 +204,7 @@ describe('Customization', () => {
 \`This is inline code\``;
 
         // # Update custom brand text
-        cy.findByTestId('TeamSettings.CustomBrandTextinput').clear().type(customBrandText);
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomBrandText--group"] [data-testid="admin.setting.value--textbox"]').clear().type(customBrandText);
 
         // # Save setting
         saveSetting();
@@ -251,18 +251,18 @@ describe('Customization', () => {
         cy.reload();
 
         // * Verify that setting is visible and matches text content
-        cy.findByTestId('TeamSettings.SiteNamelabel').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Site Name:');
 
         // # Update both Site Name and Description to store default or empty values
         const siteName = 'Mattermost';
-        cy.findByTestId('TeamSettings.SiteNameinput').clear().type(siteName);
-        cy.findByTestId('TeamSettings.CustomDescriptionTextinput').clear();
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').clear().type(siteName);
+        cy.get('[data-testid="admin.setting:TeamSettings.CustomDescriptionText--group"] [data-testid="admin.setting.value--textbox"]').clear();
 
         // # Remove the brand image
         cy.get('button.remove-image__btn').should('be.visible').click();
 
         // # Set Enable Custom Branding to false
-        cy.findByTestId('TeamSettings.EnableCustomBrandfalse').check();
+        cy.get('[data-testid="admin.setting:TeamSettings.EnableCustomBrand--group"] [data-testid="admin.setting.false--radio"]').check();
 
         // # Save setting
         saveSetting();
@@ -288,11 +288,11 @@ describe('Customization', () => {
 
     it('MM-T1282 - Site Name help text matches text field behavior', () => {
         // * Verify that the existing Site Name is empty
-        cy.findByTestId('TeamSettings.SiteNameinput').should('be.empty');
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').should('be.empty');
 
         // # Configure a custom Site Name
         const siteName = 'MM-T1282';
-        cy.findByTestId('TeamSettings.SiteNameinput').clear().type(siteName);
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').clear().type(siteName);
 
         // # Save setting
         saveSetting();
@@ -316,7 +316,7 @@ describe('Customization', () => {
         verifySiteNameInAboutModal(siteName);
 
         // # Empty the Site Name configuration
-        cy.findByTestId('TeamSettings.SiteNameinput').clear();
+        cy.get('[data-testid="admin.setting:TeamSettings.SiteName--group"] [data-testid="admin.setting.value--textbox"]').clear();
 
         // # Save setting
         saveSetting();

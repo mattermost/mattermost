@@ -72,7 +72,7 @@ describe('MM-23102 - Channel Moderation - Manage Members', () => {
         visitChannelConfigPage(testChannel);
 
         // * Assert that Manage Members for Guests does not exist (checkbox is not there)
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
+        cy.get(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
 
         visitChannel(guestUser, testChannel, testTeam);
 
@@ -119,11 +119,11 @@ describe('MM-23102 - Channel Moderation - Manage Members', () => {
 
         // * Assert that Manage Members option should be disabled for a Members.
         // * A message Manage members for members are disabled in the System Scheme should be displayed.
-        cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
+        cy.get('[data-testid="admin.channel.moderation.permission:manage_members"] [data-testid="admin.channel.moderation.permission.error:disabledMembers--text"]').
             should('exist').
             and('have.text', 'Manage members for members are disabled in System Scheme.');
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.disabled');
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
+        cy.get(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.disabled');
+        cy.get(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
 
         visitChannel(regularUser, testChannel, testTeam);
         viewManageChannelMembersRHS();
@@ -141,7 +141,7 @@ describe('MM-23102 - Channel Moderation - Manage Members', () => {
 
         // * Assert that Manage Members option should be enabled for a Members.
         // * A message Manage members for members are enabled in the System Scheme should be displayed.
-        cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
+        cy.get('[data-testid="admin.channel.moderation.permission:manage_members"] [data-testid="admin.channel.moderation.permission.error:disabledMembers--text"]').
             should('not.exist');
 
         visitChannel(regularUser, testChannel, testTeam);
@@ -165,11 +165,11 @@ describe('MM-23102 - Channel Moderation - Manage Members', () => {
 
         // * Assert that Manage Members is disabled for members and a message is displayed
         visitChannelConfigPage(testChannel);
-        cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
+        cy.get('[data-testid="admin.channel.moderation.permission:manage_members"] [data-testid="admin.channel.moderation.permission.error:disabledMembers--text"]').
             should('exist').
             and('have.text', `Manage members for members are disabled in ${teamOverrideSchemeName} Team Scheme.`);
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.disabled');
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
+        cy.get(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.disabled');
+        cy.get(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
 
         visitChannel(regularUser, testChannel, testTeam);
         viewManageChannelMembersRHS();
@@ -184,10 +184,10 @@ describe('MM-23102 - Channel Moderation - Manage Members', () => {
         cy.wait(TIMEOUTS.FIVE_SEC);
 
         visitChannelConfigPage(testChannel);
-        cy.findByTestId('admin-channel_settings-channel_moderation-manageMembers-disabledMember').
+        cy.get('[data-testid="admin.channel.moderation.permission:manage_members"] [data-testid="admin.channel.moderation.permission.error:disabledMembers--text"]').
             should('not.exist');
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.checked');
-        cy.findByTestId(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
+        cy.get(checkboxesTitleToIdMap.MANAGE_MEMBERS_MEMBERS).should('be.checked');
+        cy.get(checkboxesTitleToIdMap.MANAGE_MEMBERS_GUESTS).should('not.exist');
 
         visitChannel(regularUser, testChannel, testTeam);
         viewManageChannelMembersRHS();

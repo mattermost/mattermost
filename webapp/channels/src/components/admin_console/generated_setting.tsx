@@ -77,7 +77,11 @@ const GeneratedSetting = ({
     }
 
     return (
-        <div className='form-group'>
+        <div
+            className='form-group'
+            role='group'
+            data-testid={`admin.setting:${id}--group`}
+        >
             <label
                 className='control-label col-sm-4'
                 htmlFor={id}
@@ -88,6 +92,7 @@ const GeneratedSetting = ({
                 <div
                     className='form-control disabled'
                     id={id}
+                    data-testid='admin.setting.generated--text'
                 >
                     {text}
                 </div>
@@ -98,6 +103,7 @@ const GeneratedSetting = ({
                 <div className='help-text'>
                     <Button
                         type='button'
+                        data-testid='admin.setting.regenerate--button'
                         emphasis='tertiary'
                         onClick={regenerate}
                         disabled={disabled || setByEnv}

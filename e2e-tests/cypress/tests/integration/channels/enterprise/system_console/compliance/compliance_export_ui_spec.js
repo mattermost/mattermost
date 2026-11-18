@@ -145,7 +145,7 @@ describe('Compliance Export', () => {
     it('MM-T1165 - Compliance Export - Fields disabled when disabled', () => {
         // # Go to compliance page and disable export
         cy.uiGoToCompliancePage();
-        cy.findByTestId('enableComplianceExportfalse').click();
+        cy.get('[data-testid="admin.setting:enableComplianceExport--group"] [data-testid="admin.setting.false--radio"]').click();
 
         // * Verify that exported button is disabled
         cy.findByRole('button', {name: /run compliance export job now/i}).should('be.not.enabled');

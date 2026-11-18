@@ -143,7 +143,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
     return (
         <AdminPanel
             id='AutoTranslationSettings'
-            data-testid='autotranslation-section-header'
+            testId='admin.auto_translation.header'
             title={messages.enableAutoTranslationTitle}
             subtitle={messages.enableAutoTranslationDescription}
             showBeta={true}
@@ -172,7 +172,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                         <div className='auto-translation-provider-body'>
                             {providerDescription}
                             <select
-                                data-testid='Providerdropdown'
+                                data-testid='admin.auto_translation.provider--combobox'
                                 className='form-control'
                                 id='Provider'
                                 value={autoTranslationSettings.Provider || 'libretranslate'}
@@ -183,7 +183,10 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                                 <option value='agents'>{'Mattermost Agents'}</option>
                             </select>
                             {showAgentsError && (
-                                <div className='auto-translation-provider-error-message'>
+                                <div
+                                    className='auto-translation-provider-error-message'
+                                    data-testid='admin.auto_translation.agents_error--text'
+                                >
                                     <i className='icon icon-alert-outline'/>
                                     <FormattedMessage
                                         id={agentsBridgeUnavailableReason || 'admin.site.localization.autoTranslationAgentsError'}
@@ -195,6 +198,7 @@ export default function AutoTranslation(props: SystemConsoleCustomSettingsCompon
                                 <Link
                                     to='/admin_console/plugins/plugin_mattermost-ai'
                                     className='agents-config-link'
+                                    data-testid='admin.auto_translation.agents_config--link'
                                 >
                                     <FormattedMessage
                                         id='admin.site.localization.goToAgentsConfig'

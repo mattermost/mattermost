@@ -191,7 +191,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                 <ChannelIcon
                     channel={channel}
                     className='channel-icon'
-                    data-testid={`${channel.name}-archive-icon`}
+                    data-testid='admin.channels.row.icon'
                 />
             );
 
@@ -203,12 +203,13 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
             ) : null;
 
             return {
+                testKey: channel.id,
                 cells: {
                     id: channel.id,
                     name: (
                         <span
                             className='group-name overflow--ellipsis row-content'
-                            data-testid='channel-display-name'
+                            data-testid='admin.channels.row.name--text'
                         >
                             {iconToDisplay}
                             <span className='TeamList_channelDisplayName'>
@@ -237,11 +238,11 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
                         </span>
                     ),
                     edit: (
-                        <span
-                            className='group-actions TeamList_editRow'
-                            data-testid={`${channel.name}edit`}
-                        >
-                            <Link to={`/admin_console/user_management/channels/${channel.id}`} >
+                        <span className='group-actions TeamList_editRow'>
+                            <Link
+                                to={`/admin_console/user_management/channels/${channel.id}`}
+                                data-testid='admin.channels.row.edit--link'
+                            >
                                 <FormattedMessage
                                     id='admin.channel_settings.channel_row.configure'
                                     defaultMessage='Edit'
@@ -398,6 +399,7 @@ export default class ChannelList extends React.PureComponent<ChannelListProps, C
         return (
             <div className='ChannelsList'>
                 <DataGrid
+                    testIdScope='admin.channels'
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}

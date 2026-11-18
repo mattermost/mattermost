@@ -132,7 +132,7 @@ export default function ContentFlaggingContentReviewers({
 
                     <div className='setting-content'>
                         <Radio
-                            data-testid='sameReviewersForAllTeams_true'
+                            data-testid='admin.content_flagging.reviewers.same_for_all_teams.true--radio'
                             id='sameReviewersForAllTeams_true'
                             name='sameReviewersForAllTeams'
                             value='true'
@@ -147,7 +147,7 @@ export default function ContentFlaggingContentReviewers({
                         </Radio>
 
                         <Radio
-                            data-testid='sameReviewersForAllTeams_false'
+                            data-testid='admin.content_flagging.reviewers.same_for_all_teams.false--radio'
                             id='sameReviewersForAllTeams_false'
                             name='sameReviewersForAllTeams'
                             value='false'
@@ -219,6 +219,7 @@ export default function ContentFlaggingContentReviewers({
                         <div className='setting-content'>
                             <CheckboxSetting
                                 id='notifyOnDismissal_reviewers'
+                                testId='admin.content_flagging.reviewers.system_admins'
                                 label={
                                     <FormattedMessage
                                         id='admin.dataSpillage.reviewerSettings.additionalReviewers.systemAdmins'
@@ -235,6 +236,7 @@ export default function ContentFlaggingContentReviewers({
 
                             <CheckboxSetting
                                 id='notifyOnDismissal_author'
+                                testId='admin.content_flagging.reviewers.team_admins'
                                 label={
                                     <FormattedMessage
                                         id='admin.dataSpillage.reviewerSettings.additionalReviewers.teamAdmins'

@@ -89,7 +89,7 @@ const BooleanSetting = ({
         >
             <BooleanRadioGroup>
                 <Radio
-                    data-testid={id + 'true'}
+                    data-testid='admin.setting.true--radio'
                     value='true'
                     id={Utils.createSafeId(id) + 'true'}
                     name={id}
@@ -100,7 +100,7 @@ const BooleanSetting = ({
                     {trueText}
                 </Radio>
                 <Radio
-                    data-testid={id + 'false'}
+                    data-testid='admin.setting.false--radio'
                     value='false'
                     id={Utils.createSafeId(id) + 'false'}
                     name={id}
