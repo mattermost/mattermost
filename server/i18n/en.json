@@ -3324,6 +3324,11 @@
     "description": "Generic lowercase API error for a low-level input/output failure; developer/log audience."
   },
   {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Jobs of this type can't be canceled.",
+    "description": "Admin API error when a request tries to cancel a background job whose type does not support cancellation, such as a health check run."
+  },
+  {
     "id": "api.job.retrieve.nopermissions",
     "translation": "The job type of the job you are trying to retrieve does not have permissions defined.",
     "description": "Admin API error when a background job's type has no permission metadata defined, so access cannot be checked; developer-leaning register."
@@ -8844,6 +8849,16 @@
     "id": "app.group.username_conflict",
     "translation": "user with username \"{{.Username}}\" already exists.",
     "description": "API error returned when a group operation conflicts with an existing account; {{.Username}} is the already-taken username."
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Unable to start a health check run.",
+    "description": "Server error when a system admin asked to run the health check now and the server could neither create a run nor find the one already running."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "A health check run is already starting. Try again in a moment.",
+    "description": "Error when a system admin asked to run the health check now and the run already in the way finished at that moment, so the server could neither start a run nor return the active one."
   },
   {
     "id": "app.health_finding.get.app_error",

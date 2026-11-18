@@ -16,13 +16,14 @@ import (
 
 const schedFreq = time.Hour
 
-// A run can't hang: collecting diagnostics is capped by healthCollectTimeout (3 minutes, in the
+// StaleInProgressAfter is how long an in-progress job may go without activity. A run can't
+// hang: collecting diagnostics is capped by healthCollectTimeout (3 minutes, in the
 // app package), and every later step is a database query bounded by SqlSettings.QueryTimeout, or
 // in-memory work. A run therefore ends within a few minutes, and an in-progress job older than this
 // belongs to a node that died mid-run. It is closed as failed so it neither blocks new runs nor
 // shows as running for ever. Keep this well above healthCollectTimeout if that is raised: closing a
 // run that is still going would let a second run start alongside it.
-const staleInProgressAfter = 15 * time.Minute
+const StaleInProgressAfter = 15 * time.Minute
 
 func isEnabled(cfg *model.Config) bool {
 	return cfg.FeatureFlags.HealthDashboard
@@ -54,20 +55,38 @@ func (s *Scheduler) ScheduleJob(rctx request.CTX, _ *model.Config, pendingJobs b
 		return nil, nil
 	}
 
-	running, err := s.jobServer.Store.Job().GetNewestJobByStatusAndType(model.JobStatusInProgress, model.JobTypeHealthCheck)
-	var nfErr *store.ErrNotFound
-	if err != nil && !errors.As(err, &nfErr) {
-		return nil, model.NewAppError("ScheduleJob", "app.job.get_newest_job_by_status_and_type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	running, appErr := RunningJob(rctx, s.jobServer)
+	if appErr != nil {
+		return nil, appErr
 	}
 	if running != nil {
-		if time.Since(time.UnixMilli(running.LastActivityAt)) < staleInProgressAfter {
-			return nil, nil
-		}
-		rctx.Logger().Warn("Health check job appears to be stuck, closing it as failed", jobs.JobLoggerFields(running)...)
-		if appErr := s.jobServer.SetJobError(running, nil); appErr != nil {
-			return nil, appErr
-		}
+		return nil, nil
 	}
 
 	return s.jobServer.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
+}
+
+// RunningJob returns the health_check job in progress, or nil if there is none. A job in progress
+// with no activity for StaleInProgressAfter belongs to a node that died mid-run: RunningJob closes
+// it as failed and returns nil. The scheduler and on-demand runs share it, so neither can be
+// blocked by a dead run.
+func RunningJob(rctx request.CTX, jobServer *jobs.JobServer) (*model.Job, *model.AppError) {
+	running, err := jobServer.Store.Job().GetNewestJobByStatusAndType(model.JobStatusInProgress, model.JobTypeHealthCheck)
+	if err != nil {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); !ok {
+			return nil, model.NewAppError("RunningJob", "app.job.get_newest_job_by_status_and_type.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+	if running == nil {
+		return nil, nil
+	}
+	if time.Since(time.UnixMilli(running.LastActivityAt)) < StaleInProgressAfter {
+		return running, nil
+	}
+
+	rctx.Logger().Warn("Health check job appears to be stuck, closing it as failed", jobs.JobLoggerFields(running)...)
+	if appErr := jobServer.SetJobError(running, nil); appErr != nil {
+		return nil, appErr
+	}
+	return nil, nil
 }

@@ -92,6 +92,9 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 	case model.JobTypeAccessControlTeamSync:
 		// Route team ABAC jobs to specialized deduplication handler
 		return a.CreateAccessControlTeamSyncJob(rctx, job.Data)
+	case model.JobTypeHealthCheck:
+		// One run at a time: an active run is returned instead of a new one.
+		return a.StartHealthCheckRun(rctx)
 	case model.JobTypeElasticsearchPostIndexing:
 		if _, ok := job.Data["index_files"]; !ok {
 			if job.Data == nil {
@@ -259,6 +262,8 @@ func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.
 		model.JobTypeCleanupExpiredAccessTokens,
 		model.JobTypeNotifyExpiringAccessTokens:
 		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
+	case model.JobTypeHealthCheck:
+		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
 	case model.JobTypeAccessControlTeamSync:
 		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
 			return true, model.PermissionManageSystem

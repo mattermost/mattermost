@@ -4,6 +4,7 @@
 package health_check
 
 import (
+	"errors"
 	"testing"
 	"time"
 
@@ -75,7 +76,7 @@ func TestScheduleJob(t *testing.T) {
 	t.Run("closes an in-progress job from a node that died and creates a new one", func(t *testing.T) {
 		scheduler, mockStore := newScheduler(t, enterpriseLicense)
 		stale := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress,
-			LastActivityAt: time.Now().Add(-staleInProgressAfter - time.Minute).UnixMilli()}
+			LastActivityAt: time.Now().Add(-StaleInProgressAfter - time.Minute).UnixMilli()}
 		expectRunning(mockStore, stale)
 		mockStore.JobStore.On("UpdateStatus", stale.Id, model.JobStatusError).Return(stale, nil).Once()
 		expectSaveOnce(mockStore)
@@ -113,4 +114,51 @@ func TestSchedulerEnabled(t *testing.T) {
 	assert.False(t, scheduler.Enabled(cfg))
 	cfg.FeatureFlags.HealthDashboard = true
 	assert.True(t, scheduler.Enabled(cfg))
+}
+
+func TestRunningJob(t *testing.T) {
+	rctx := request.TestContext(t)
+	newJobServer := func(t *testing.T) (*jobs.JobServer, *storetest.Store) {
+		scheduler, mockStore := newScheduler(t, enterpriseLicense)
+		return scheduler.jobServer, mockStore
+	}
+
+	t.Run("none", func(t *testing.T) {
+		jobServer, mockStore := newJobServer(t)
+		mockStore.JobStore.On("GetNewestJobByStatusAndType", model.JobStatusInProgress, model.JobTypeHealthCheck).Return(nil, store.NewErrNotFound("Job", ""))
+
+		job, appErr := RunningJob(rctx, jobServer)
+		require.Nil(t, appErr)
+		assert.Nil(t, job)
+	})
+
+	t.Run("a job in progress", func(t *testing.T) {
+		jobServer, mockStore := newJobServer(t)
+		running := &model.Job{Id: model.NewId(), Status: model.JobStatusInProgress, LastActivityAt: model.GetMillis()}
+		mockStore.JobStore.On("GetNewestJobByStatusAndType", model.JobStatusInProgress, model.JobTypeHealthCheck).Return(running, nil)
+
+		job, appErr := RunningJob(rctx, jobServer)
+		require.Nil(t, appErr)
+		assert.Equal(t, running, job)
+	})
+
+	t.Run("a stale job is closed as failed", func(t *testing.T) {
+		jobServer, mockStore := newJobServer(t)
+		stale := &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: model.JobStatusInProgress,
+			LastActivityAt: time.Now().Add(-StaleInProgressAfter - time.Minute).UnixMilli()}
+		mockStore.JobStore.On("GetNewestJobByStatusAndType", model.JobStatusInProgress, model.JobTypeHealthCheck).Return(stale, nil)
+		mockStore.JobStore.On("UpdateStatus", stale.Id, model.JobStatusError).Return(stale, nil).Once()
+
+		job, appErr := RunningJob(rctx, jobServer)
+		require.Nil(t, appErr)
+		assert.Nil(t, job)
+	})
+
+	t.Run("store error", func(t *testing.T) {
+		jobServer, mockStore := newJobServer(t)
+		mockStore.JobStore.On("GetNewestJobByStatusAndType", model.JobStatusInProgress, model.JobTypeHealthCheck).Return(nil, errors.New("boom"))
+
+		_, appErr := RunningJob(rctx, jobServer)
+		require.NotNil(t, appErr)
+	})
 }
