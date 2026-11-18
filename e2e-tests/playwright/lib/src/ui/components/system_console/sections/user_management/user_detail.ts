@@ -204,7 +204,6 @@ class AdminUserCard {
 
     /** The combobox input of a select, multiselect or rank CPA field, located by its exact label. */
     getCpaCombobox(labelText: string): Locator {
-        // Match the DOM role. Playwright 1.65's accessibility tree omits this combobox from getByRole.
         return this.getFieldColumn(labelText).locator('[role="combobox"]');
     }
 

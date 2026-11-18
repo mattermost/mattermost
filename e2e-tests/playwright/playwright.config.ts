@@ -84,8 +84,7 @@ export default defineConfig({
             name: 'ipad',
             use: {
                 browserName: 'chromium',
-                // Playwright 1.64 forwards device `screen` into the context. Drop it so iPad
-                // snapshots stay on the previous viewport-only emulation.
+                // Use the device viewport without its screen size.
                 ...withoutDeviceScreen(devices['iPad Pro 11']),
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },

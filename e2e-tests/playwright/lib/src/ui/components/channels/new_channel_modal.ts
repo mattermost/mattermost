@@ -57,8 +57,7 @@ export default class NewChannelModal {
     }
 
     getAttributeCombobox(fieldName: string): Locator {
-        // The test id sits on the combobox shell. aria-expanded and aria-controls are on the inner
-        // input, which Playwright 1.65 does not expose through getByRole('combobox').
+        // The test id is on the combobox, or on the element that wraps it.
         const testId = `channelAttribute-${fieldName}`;
         return this.getAttributeRow(fieldName).locator(
             `[data-testid="${testId}"][role="combobox"], [data-testid="${testId}"] [role="combobox"]`,
