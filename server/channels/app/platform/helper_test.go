@@ -106,19 +106,14 @@ func setupDBStore(tb testing.TB) (store.Store, *model.SqlSettings) {
 }
 
 func Setup(tb testing.TB, options ...Option) *TestHelper {
-	if testing.Short() {
-		tb.SkipNow()
-	}
-
-	dbStore, dbSettings := setupDBStore(tb)
-
-	return setupTestHelper(dbStore, dbSettings, false, true, nil, tb, options...)
+	return SetupConfig(tb, nil, options...)
 }
 
-// SetupConfig is Setup with updateConfig applied to the config before the service starts, for
-// settings the service reads once at start. Changing such a setting on a running service would
-// mean restarting its hubs, and the config listener publishes an event on its own goroutine for
-// every change, which reads the hub slice while the restart replaces it.
+// SetupConfig is Setup with updateConfig applied to the config before the service starts, after
+// the helper's own settings, for settings the service reads once at start. Changing such a
+// setting on a running service would mean restarting its hubs, and the config listener publishes
+// an event on its own goroutine for every change, which reads the hub slice while the restart
+// replaces it.
 func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config), options ...Option) *TestHelper {
 	if testing.Short() {
 		tb.SkipNow()
@@ -193,6 +188,10 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 	*memoryConfig.MetricsSettings.Enable = true
 	*memoryConfig.ServiceSettings.ListenAddress = "localhost:0"
 	*memoryConfig.MetricsSettings.ListenAddress = "localhost:0"
+	// Share same configuration with app.TestHelper
+	*memoryConfig.TeamSettings.MaxUsersPerTeam = 50
+	*memoryConfig.RateLimitSettings.Enable = false
+	*memoryConfig.TeamSettings.EnableOpenServer = true
 	if updateConfig != nil {
 		updateConfig(memoryConfig)
 	}
@@ -228,13 +227,6 @@ func setupTestHelper(dbStore store.Store, dbSettings *model.SqlSettings, enterpr
 		emptyMockStore.On("Status").Return(&statusMock)
 		th.Service.Store = &emptyMockStore
 	}
-
-	// Share same configuration with app.TestHelper
-	th.Service.UpdateConfig(func(cfg *model.Config) {
-		*cfg.TeamSettings.MaxUsersPerTeam = 50
-		*cfg.RateLimitSettings.Enable = false
-		*cfg.TeamSettings.EnableOpenServer = true
-	})
 
 	if enterprise {
 		th.Service.SetLicense(model.NewTestLicense())
