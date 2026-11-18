@@ -35,7 +35,7 @@ const LOG_DEBUG_PROD = {
     fire: {LogSettings: {FileLevel: 'DEBUG'}},
 };
 
-// Never switched on by this spec, so it never has a stored finding.
+// Never switched on by this spec.
 const PLUGIN_HEALTH_OFF_TITLE = 'Plugin health check disabled';
 
 async function getLicenseTier(adminClient: Client4) {
@@ -54,8 +54,22 @@ async function skipUnlessLicensed(pw: PlaywrightExtended, tier: number) {
     );
 }
 
-/** Starts a health check run and waits for it to succeed. */
+/** Waits for any run already queued or running, so the next run starts from the current config. */
+async function waitForIdleHealthCheck(adminClient: Client4) {
+    await expect
+        .poll(
+            async () => {
+                const jobs = await adminClient.getJobsByType('health_check', 0, 10);
+                return jobs.filter((job) => ['pending', 'in_progress'].includes(job.status)).length;
+            },
+            {timeout: 60000},
+        )
+        .toBe(0);
+}
+
+/** Starts a health check run under the current config and waits for it to succeed. */
 async function runHealthCheck(adminClient: Client4) {
+    await waitForIdleHealthCheck(adminClient);
     const job = await adminClient.createJob({type: 'health_check'});
     await expect
         .poll(async () => (await adminClient.getJob(job.id)).status, {timeout: 60000})
@@ -274,6 +288,7 @@ test('moves a fixed finding to Recently resolved', {tag: '@system_console'}, asy
     await adminClient.patchConfig(SESSION_EXTEND_OFF.fire);
     await runHealthCheck(adminClient);
     const firstSeenAt = (await getStoredFinding(adminClient, SESSION_EXTEND_OFF.code))!.first_seen_at;
+    const hadPluginHealthFinding = Boolean(await getStoredFinding(adminClient, 'PLUGIN_HEALTH_OFF'));
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     const siteHealth = systemConsolePage.siteHealth;
@@ -297,9 +312,12 @@ test('moves a fixed finding to Recently resolved', {tag: '@system_console'}, asy
     await resolvedRow.expand();
     await expect(resolvedRow.detail('Severity')).toHaveText('Info');
 
-    // * Verify a check that never fired has no finding and is not listed as resolved
-    expect(await getStoredFinding(adminClient, 'PLUGIN_HEALTH_OFF')).toBeUndefined();
-    await expect(siteHealth.finding(PLUGIN_HEALTH_OFF_TITLE).container).not.toBeVisible();
+    // * Verify a check that never fired has no finding and is not listed as resolved, unless the server already
+    // * had one for it
+    if (!hadPluginHealthFinding) {
+        expect(await getStoredFinding(adminClient, 'PLUGIN_HEALTH_OFF')).toBeUndefined();
+        await expect(siteHealth.finding(PLUGIN_HEALTH_OFF_TITLE).container).not.toBeVisible();
+    }
 
     // # Break the setting again and run the checks
     await adminClient.patchConfig(SESSION_EXTEND_OFF.fire);
@@ -534,6 +552,11 @@ test('never shows internal-only findings', {tag: '@system_console'}, async ({pw}
     await skipUnlessLicensed(pw, ENTERPRISE_TIER);
 
     const {adminUser, adminClient} = await pw.initSetup();
+
+    // # Evaluate with file logging below debug, so the rule fires for the first time in the run under test
+    await adminClient.patchConfig({LogSettings: {FileLevel: 'INFO'}});
+    await runHealthCheck(adminClient);
+
     const startedAt = Date.now();
     await adminClient.patchConfig({...LOG_DEBUG_PROD.fire, ...SESSION_EXTEND_OFF.fire});
 
