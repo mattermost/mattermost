@@ -3,6 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {focusVisible} from '../focus_support';
+
+import {selectorOf} from './support';
+
 /**
  * @objective Verify keyboard navigation works correctly through all interactive elements in the Sidebar settings panel
  */
@@ -11,49 +15,51 @@ test(
     {tag: ['@accessibility', '@settings', '@sidebar_settings']},
     async ({pw}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
-        const sidebarSettings = settingsModal.sidebarSettings;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible and focus should be on the modal
-        await expect(settingsModal.container).toBeVisible();
-        await pw.toBeFocusedWithFocusVisible(settingsModal.container);
+        await expect(settingsModal).toBeVisible();
+        await expect.poll(() => focusVisible(settingsModal)).toBe(true);
 
         // # Press Tab and verify focus is on Close button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(settingsModal.closeButton);
+        await expect.poll(() => focusVisible(settingsModal.closeButton)).toBe(true);
 
         // # Press Tab to move focus to Notifications tab
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(settingsModal.notificationsTab);
+        await expect.poll(() => focusVisible(settingsModal.tabs.tab('notifications'))).toBe(true);
 
         // # Press ArrowDown to navigate to Display tab
         await page.keyboard.press('ArrowDown');
-        await pw.toBeFocusedWithFocusVisible(settingsModal.displayTab);
+        await expect.poll(() => focusVisible(settingsModal.tabs.tab('display'))).toBe(true);
 
         // # Press ArrowDown to navigate to Sidebar tab
         await page.keyboard.press('ArrowDown');
-        await pw.toBeFocusedWithFocusVisible(settingsModal.sidebarTab);
+        await expect.poll(() => focusVisible(settingsModal.tabs.tab('sidebar'))).toBe(true);
 
         // # Press Tab to move focus to Group unread channels separately button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(sidebarSettings.groupUnreadEditButton);
+        await expect
+            .poll(() => focusVisible(app.settings.sidebar.section('showUnreadsCategory').editButton))
+            .toBe(true);
 
         // # Press Tab to move focus to Number of direct messages to show button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(sidebarSettings.limitVisibleDMsEditButton);
+        await expect.poll(() => focusVisible(app.settings.sidebar.section('limitVisibleGMsDMs').editButton)).toBe(true);
     },
 );
 
@@ -65,43 +71,48 @@ test(
     {tag: ['@accessibility', '@settings', '@sidebar_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Sidebar tab
-        await settingsModal.openSidebarTab();
+        await settingsModal.tabs.tab('sidebar').select();
+        await expect(settingsModal.tabs.tab('sidebar')).toBeSelected();
+        await expect(app.settings.panel('sidebar')).toBeVisible();
 
         // * Verify aria snapshot of Sidebar settings tab
-        await expect(settingsModal.sidebarSettings.container).toMatchAriaSnapshot(`
+        await expect(app.settings.panel('sidebar')).toMatchAriaSnapshot(`
           - tabpanel "sidebar":
             - heading "Sidebar Settings" [level=3]
-            - heading "Group unread channels separately" [level=4]
-            - button "Group unread channels separately Edit": Edit
-            - text: "Off"
-            - heading "Number of direct messages to show" [level=4]
-            - button "Number of direct messages to show Edit": Edit
-            - text: "40"
+            - group:
+              - heading "Group unread channels separately" [level=4]
+              - button "Group unread channels separately Edit": Edit
+              - text: "Off"
+            - group:
+              - heading "Number of direct messages to show" [level=4]
+              - button "Number of direct messages to show Edit": Edit
+              - text: "40"
         `);
 
         // * Analyze the Sidebar settings panel for accessibility issues
         const accessibilityScanResults = await axe
             .builder(page, {disableColorContrast: true})
-            .include(settingsModal.sidebarSettings.id)
+            .include(selectorOf(app.settings.panel('sidebar')))
             .analyze();
 
         // * Should have no violation
@@ -117,40 +128,44 @@ test(
     {tag: ['@accessibility', '@settings', '@sidebar_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Sidebar tab
-        await settingsModal.openSidebarTab();
-
-        const sidebarSettings = settingsModal.sidebarSettings;
+        await settingsModal.tabs.tab('sidebar').select();
+        await expect(settingsModal.tabs.tab('sidebar')).toBeSelected();
+        await expect(app.settings.panel('sidebar')).toBeVisible();
 
         // # Click Edit on Group unread channels separately section
-        await sidebarSettings.groupUnreadEditButton.click();
+        await app.settings.sidebar.section('showUnreadsCategory').editButton.click();
 
         // * Verify aria snapshot of Group unread channels separately section when expanded
-        await sidebarSettings.expandedSection.waitFor();
-        await expect(sidebarSettings.expandedSection).toMatchAriaSnapshot({
+        await expect(app.settings.sidebar.section('showUnreadsCategory')).toBeVisible();
+        await expect(app.settings.sidebar.section('showUnreadsCategory')).toMatchAriaSnapshot({
             name: 'group_unread_channels_section.yml',
         });
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe.builder(page).include(sidebarSettings.expandedSectionId).analyze();
+        const accessibilityScanResults = await axe
+            .builder(page)
+            .include(selectorOf(app.settings.sidebar.section('showUnreadsCategory').container))
+            .analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -165,42 +180,43 @@ test(
     {tag: ['@accessibility', '@settings', '@sidebar_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Sidebar tab
-        await settingsModal.openSidebarTab();
-
-        const sidebarSettings = settingsModal.sidebarSettings;
+        await settingsModal.tabs.tab('sidebar').select();
+        await expect(settingsModal.tabs.tab('sidebar')).toBeSelected();
+        await expect(app.settings.panel('sidebar')).toBeVisible();
 
         // # Click Edit on Number of direct messages to show section
-        await sidebarSettings.limitVisibleDMsEditButton.click();
+        await app.settings.sidebar.section('limitVisibleGMsDMs').editButton.click();
 
         // * Verify aria snapshot of Number of direct messages to show section when expanded
-        await sidebarSettings.expandedSection.waitFor();
-        await expect(sidebarSettings.expandedSection).toMatchAriaSnapshot({
+        await expect(app.settings.sidebar.section('limitVisibleGMsDMs')).toBeVisible();
+        await expect(app.settings.sidebar.section('limitVisibleGMsDMs')).toMatchAriaSnapshot({
             name: 'number_of_direct_messages_section.yml',
         });
 
         // # Analyze the expanded section for accessibility issues
         const accessibilityScanResults = await axe
             .builder(page)
-            .include(sidebarSettings.expandedSectionId)
+            .include(selectorOf(app.settings.sidebar.section('limitVisibleGMsDMs').container))
             .exclude('#react-select-2-input') // Exclude react-select input that has a known accessibility issue
             .analyze();
 

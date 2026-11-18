@@ -79,7 +79,7 @@ describe('Teams Suite', () => {
             cy.uiGetLHSTeamMenu().find("li span:contains('Invite people')").should('have.text', 'Invite people').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Check that the Invitation Modal opened up
-            cy.findByTestId('invitationModal', {timeout: TIMEOUTS.HALF_SEC}).should('be.visible');
+            cy.findByTestId('invitation_modal', {timeout: TIMEOUTS.HALF_SEC}).should('be.visible');
 
             cy.get('.users-emails-input__control').should('be.visible').within(($el) => {
                 // # Type the first letters of a user
@@ -93,8 +93,8 @@ describe('Teams Suite', () => {
                 click();
 
             // # Click "Invite Members" button, then "Done" button
-            cy.findByTestId('inviteButton').click();
-            cy.findByTestId('confirm-done').click();
+            cy.findByTestId('invitation_modal.invite.send--button').click();
+            cy.findByTestId('invitation_modal.result.done--button').click();
 
             // * As sysadmin, verify system message posts in Town Square and Off-Topic
             cy.getLastPost().wait(TIMEOUTS.HALF_SEC).then(($el) => {

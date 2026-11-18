@@ -26,6 +26,7 @@ export default function UserSettingsSidebar(props: Props): JSX.Element {
     return (
         <div
             id='sidebarSettings'
+            data-testid='settings.panel:sidebar--tabpanel'
             aria-labelledby='sidebarButton'
             role='tabpanel'
         >

@@ -30,6 +30,7 @@ export default function ProductSwitcherAboutMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.product_menu.about--menuitem'
             leadingElement={<InformationOutlineIcon size={18}/>}
             labels={
                 <FormattedMessage

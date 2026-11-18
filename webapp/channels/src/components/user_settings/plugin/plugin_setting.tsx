@@ -24,11 +24,15 @@ type Props = {
     updateSection: (section: string) => void;
     activeSection: string;
     section: PluginConfigurationSection;
+
+    /** The section's position in the plugin's panel. */
+    index: number;
 };
 
 const PluginSetting = ({
     pluginId,
     section,
+    index,
     activeSection,
     updateSection,
 }: Props) => {
@@ -110,6 +114,8 @@ const PluginSetting = ({
         return (
             <SettingItemMax
                 title={section.title}
+                testId='settings.plugin_panel.section'
+                pluginSectionIndex={index}
                 inputs={inputs}
                 submit={updateSetting}
                 updateSection={updateSection}
@@ -120,6 +126,8 @@ const PluginSetting = ({
     return (
         <SettingItemMin
             section={section.title}
+            testId='settings.plugin_panel.section'
+            testKey={index}
             title={section.title}
             updateSection={updateSection}
             describe={minDescribe}

@@ -42,7 +42,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         // # Click invite members if needed
         cy.get('.InviteAs').findByTestId('inviteMembersLink').click();
 
-        cy.findByTestId('InviteView__copyInviteLink').then((el) => {
+        cy.findByTestId('invitation_modal.invite.copy_link--button').then((el) => {
             const copyInviteLinkAriaLabel = el.attr('aria-label');
             expect(copyInviteLinkAriaLabel).to.match(/^team invite link/i);
         });

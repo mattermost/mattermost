@@ -141,6 +141,7 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
     return (
         <GenericModal
             id='teamSettingsModal'
+            testId='team_settings_modal'
             ariaLabel={modalTitle}
             className='TeamSettingsModal settings-modal'
             show={show}
@@ -164,6 +165,7 @@ const TeamSettingsModal = ({isOpen, onExited, focusOriginElement}: Props) => {
                                 tabs={tabs}
                                 activeTab={activeTab}
                                 updateTab={updateTab}
+                                testIdScope='team_settings_modal'
                             />
                         </React.Suspense>
                     </div>

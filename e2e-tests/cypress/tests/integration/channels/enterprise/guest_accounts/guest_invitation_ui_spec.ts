@@ -83,12 +83,12 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.findByText('Add to channels').should('be.visible');
 
         // * Verify the header has changed in the modal
-        cy.findByTestId('invitationModal').within(() => {
+        cy.findByTestId('invitation_modal').within(() => {
             cy.get('h1').should('have.text', `Invite guests to ${testTeam.display_name}`);
         });
 
         // * Verify Invite Guests button is disabled by default
-        cy.findByTestId('inviteButton').scrollIntoView().should('be.visible').and('be.disabled');
+        cy.findByTestId('invitation_modal.invite.send--button').scrollIntoView().should('be.visible').and('be.disabled');
 
         // * Verify Invite People field
         const email = `temp-${getRandomId()}@mattermost.com`;
@@ -143,15 +143,15 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.uiOpenTeamMenu('Invite people');
 
         // * Verify if Invite Members modal is displayed when guest account feature is disabled
-        cy.findByTestId('invitationModal').find('h1').should('have.text', `Invite people to ${testTeam.display_name}`);
+        cy.findByTestId('invitation_modal').find('h1').should('have.text', `Invite people to ${testTeam.display_name}`);
 
         // * Verify Share Link Header and helper text
-        cy.findByTestId('InviteView__copyInviteLink').should('be.visible').within(() => {
+        cy.findByTestId('invitation_modal.invite.copy_link--button').should('be.visible').within(() => {
             cy.findByText('Copy invite link').should('be.visible');
         });
 
         // # Close the Modal
-        cy.findByTestId('invitationModal').findByRole('button', {name: 'Close'}).should('be.visible').click();
+        cy.findByTestId('invitation_modal').findByRole('button', {name: 'Close'}).should('be.visible').click();
 
         // # Enable Guest Accounts
         // # Disable Email Invitations
@@ -164,7 +164,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         invitePeople(email, 1, email, 'Town Square', false);
 
         // * Verify Invite Guests button is disabled
-        cy.findByTestId('inviteButton').should('be.disabled');
+        cy.findByTestId('invitation_modal.invite.send--button').should('be.disabled');
     });
 
     it('MM-T4449 Invite Guest via Email containing upper case letters', () => {
@@ -200,10 +200,10 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             children().should('have.length', 1).eq(0).should('contain', newUser.username).click();
 
         // # Click Invite Members
-        cy.findByTestId('inviteButton').scrollIntoView().click();
+        cy.findByTestId('invitation_modal.invite.send--button').scrollIntoView().click();
 
         // * Verify the content and error message in the Invitation Modal
-        cy.findByTestId('invitationModal').within(() => {
+        cy.findByTestId('invitation_modal').within(() => {
             cy.get('div.invitation-modal-confirm--sent').should('not.exist');
             cy.get('div.invitation-modal-confirm--not-sent').should('be.visible').within(() => {
                 cy.get('h2 > span').should('have.text', 'Invitations Not Sent');
@@ -224,7 +224,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.findByText('This person is already a member of the workspace. Invite them as a member instead of a guest.').should('be.visible');
 
         // # Click on invite more button
-        cy.findByTestId('invite-more').click();
+        cy.findByTestId('invitation_modal.result.invite_more--button').click();
 
         // * Verify the channel is preselected
         cy.get('.channels-input__control').should('be.visible').within(() => {
@@ -241,10 +241,10 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.get('.users-emails-input__menu').children().should('have.length', 1).eq(0).should('contain', email).click();
 
         // # Click Invite Guests Button
-        cy.findByTestId('inviteButton').scrollIntoView().click();
+        cy.findByTestId('invitation_modal.invite.send--button').scrollIntoView().click();
 
         // * Verify invite more button is present
-        cy.findByTestId('invite-more').should('be.visible');
+        cy.findByTestId('invitation_modal.result.invite_more--button').should('be.visible');
     });
 
     it('hides the copy link button when inviting guests', () => {
@@ -255,6 +255,6 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.findByTestId('inviteGuestLink').should('be.visible').click();
 
         // * The button "Copy invite link" should not exist
-        cy.findByTestId('InviteView__copyInviteLink').should('not.exist');
+        cy.findByTestId('invitation_modal.invite.copy_link--button').should('not.exist');
     });
 });

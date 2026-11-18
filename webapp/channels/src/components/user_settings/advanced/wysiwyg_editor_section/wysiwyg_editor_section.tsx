@@ -73,7 +73,7 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
     }
 
     if (active) {
-        const options = [
+        const wysiwygOptions = [
             {
                 option: 'false',
                 inputId: 'wysiwygEditorMarkdown',
@@ -97,10 +97,11 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                     />
                 </legend>
                 <div className='settings-radio-group'>
-                    {options.map(({option, inputId, messageId, defaultMessage}) => (
+                    {wysiwygOptions.map(({option, inputId, messageId, defaultMessage}) => (
                         <Radio
                             key={option}
                             id={inputId}
+                            data-testid={`settings.advanced.section.wysiwyg_editor.option:${option}--radio`}
                             name='wysiwygEditor'
                             value={option}
                             checked={value === option}
@@ -124,6 +125,7 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
 
         return (
             <SettingItemMax
+                testIdScope='settings.advanced.section'
                 title={
                     <FormattedMessage
                         id='user.settings.display.wysiwygEditorTitle'
@@ -135,12 +137,14 @@ const WysiwygEditorSection: React.FC<Props> = ({active, areAllSectionsInactive, 
                 saving={isSaving}
                 updateSection={handleUpdateSection}
                 disableEnterSubmit={true}
+                testKey='wysiwygEditor'
             />
         );
     }
 
     return (
         <SettingItem
+            testId='settings.advanced.section'
             active={false}
             areAllSectionsInactive={areAllSectionsInactive}
             title={

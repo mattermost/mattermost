@@ -449,7 +449,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
             <>
                 <div className='row bot-profile__section'>
                     <div className='col-md-5 col-sm-8 col-sm-offset-4'>
-                        <strong>
+                        <strong data-testid='integrations.bot_form.default_token_title--text'>
                             <FormattedMessage
                                 id='bot.add.default_token.title'
                                 defaultMessage='Default access token'
@@ -470,6 +470,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                     <div className='col-md-5 col-sm-8'>
                         <TokenExpiryPicker
                             idPrefix='defaultToken'
+                            testId='integrations.bot_form.default_token'
                             expiryPreset={this.state.expiryPreset}
                             customExpiryDate={this.state.customExpiryDate}
                             maxLifetimeDays={this.props.maxLifetimeDays}
@@ -574,6 +575,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                 <div className='backstage-form'>
                     <form
                         className='form-horizontal'
+                        data-testid='integrations.bot_form'
                         onSubmit={this.handleSubmit}
                     >
                         <div className='form-group'>
@@ -589,6 +591,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                             <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='displayName'
+                                    data-testid='integrations.bot_form.display_name--textbox'
                                     type='text'
                                     maxLength={64}
                                     className='form-control'
@@ -616,6 +619,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                             <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='username'
+                                    data-testid='integrations.bot_form.username--textbox'
                                     type='text'
                                     maxLength={22}
                                     className='form-control'
@@ -683,6 +687,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                             <div className='col-md-5 col-sm-8'>
                                 <input
                                     id='description'
+                                    data-testid='integrations.bot_form.description--textbox'
                                     type='text'
                                     maxLength={1024}
                                     className='form-control'
@@ -710,6 +715,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                             <div className='col-md-5 col-sm-8'>
                                 <select
                                     className='form-control'
+                                    data-testid='integrations.bot_form.role--combobox'
                                     value={this.state.role}
                                     disabled={!canEditRoles}
                                     onChange={this.updateRole}
@@ -776,6 +782,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                             <div className='col-md-5 col-sm-8'>
                                 <Checkbox
                                     id='postAll'
+                                    data-testid='integrations.bot_form.post_all--checkbox'
                                     className='backstage-form__checkbox'
                                     checked={this.state.postAll || this.state.role === roleOptionSystemAdmin}
                                     onChange={this.updatePostAll}
@@ -807,6 +814,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                             <div className='col-md-5 col-sm-8'>
                                 <Checkbox
                                     id='postChannels'
+                                    data-testid='integrations.bot_form.post_channels--checkbox'
                                     className='backstage-form__checkbox'
                                     checked={this.state.postChannels || this.state.role === roleOptionSystemAdmin || this.state.postAll}
                                     onChange={this.updatePostChannels}
@@ -830,12 +838,16 @@ export default class AddBot extends React.PureComponent<Props, State> {
                             <FormError
                                 type='backstage'
                                 errors={[this.state.error]}
+                                testId='integrations.bot_form.error'
                             />
                             <Button
                                 asChild={true}
                                 emphasis='tertiary'
                             >
-                                <Link to={`/${this.props.team.name}/integrations/bots`}>
+                                <Link
+                                    to={`/${this.props.team.name}/integrations/bots`}
+                                    data-testid='integrations.bot_form.cancel--link'
+                                >
                                     <FormattedMessage
                                         id='bots.manage.add.cancel'
                                         defaultMessage='Cancel'
@@ -848,6 +860,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                 spinningText={buttonActiveText}
                                 onClick={this.handleSubmit}
                                 id='saveBot'
+                                data-testid='integrations.bot_form.save--button'
                             >
                                 {buttonText}
                             </SpinnerButton>

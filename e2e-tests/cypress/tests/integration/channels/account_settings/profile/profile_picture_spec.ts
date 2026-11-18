@@ -38,7 +38,7 @@ describe('Profile > Profile Settings > Profile Picture', () => {
         cy.get('#pictureEdit').should('be.visible').click();
 
         // # Upload and save profile picture
-        cy.findByTestId('uploadPicture').attachFile('mattermost-icon.png');
+        cy.findByTestId('settings.general.section.picture.upload').attachFile('mattermost-icon.png');
         cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
         // # Close modal
@@ -57,7 +57,7 @@ describe('Profile > Profile Settings > Profile Picture', () => {
         cy.get('#pictureEdit').should('be.visible').click();
 
         // # Remove profile picture
-        cy.findByTestId('removeSettingPicture').click();
+        cy.findByTestId('settings.general.section.picture.remove--button').click();
         cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
         // * Check that we are back in the "General" section of the Profile
@@ -81,7 +81,7 @@ describe('Profile > Profile Settings > Profile Picture', () => {
         cy.get('#pictureEdit').should('be.visible').click();
 
         // # Upload and save profile picture
-        cy.findByTestId('uploadPicture').attachFile('txt-changed-as-png.png');
+        cy.findByTestId('settings.general.section.picture.upload').attachFile('txt-changed-as-png.png');
         cy.uiSave().wait(TIMEOUTS.HALF_SEC);
 
         // # Verify error message

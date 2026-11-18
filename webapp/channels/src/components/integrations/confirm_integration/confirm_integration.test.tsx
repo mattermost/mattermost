@@ -182,7 +182,7 @@ describe('components/integrations/ConfirmIntegration', () => {
 
             expect(screen.getByText(token)).toBeInTheDocument();
             expect(screen.queryByText(otherToken)).not.toBeInTheDocument();
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(replace).not.toHaveBeenCalled();
         });
 
@@ -190,7 +190,7 @@ describe('components/integrations/ConfirmIntegration', () => {
             seedBotToken();
             renderConfirm(botSearch({attributesFailed: true}));
 
-            const banner = screen.getByTestId('botCreateWarnings');
+            const banner = screen.getByTestId('integrations.bot_create_warnings');
             expect(within(banner).getByText(TITLE)).toBeInTheDocument();
             expect(within(banner).getByText(ATTRS)).toBeInTheDocument();
             expect(screen.getByText(token)).toBeInTheDocument();
@@ -212,7 +212,7 @@ describe('components/integrations/ConfirmIntegration', () => {
             expect(params.has('token')).toBe(false);
             expect(params.has(BOT_CREATE_WARNINGS_PARAM)).toBe(false);
 
-            expect(screen.getByTestId('botCreateWarnings')).toBeInTheDocument();
+            expect(screen.getByTestId('integrations.bot_create_warnings')).toBeInTheDocument();
             expect(screen.getByText(token)).toBeInTheDocument();
         });
 
@@ -222,24 +222,24 @@ describe('components/integrations/ConfirmIntegration', () => {
 
             expect(replace).toHaveBeenCalledTimes(1);
             expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}${confirmQuery}`);
-            expect(within(screen.getByTestId('botCreateWarnings')).getByText(ROLES)).toBeInTheDocument();
+            expect(within(screen.getByTestId('integrations.bot_create_warnings')).getByText(ROLES)).toBeInTheDocument();
         });
 
         test('dismissing hides the banner', async () => {
             seedBotToken();
             renderConfirm(botSearch({attributesFailed: true}));
 
-            const banner = screen.getByTestId('botCreateWarnings');
+            const banner = screen.getByTestId('integrations.bot_create_warnings');
             await userEvent.click(within(banner).getByRole('button', {name: 'Close'}));
 
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(screen.getByText(token)).toBeInTheDocument();
         });
 
         test('non-bot confirmation ignores bot warnings', () => {
             renderConfirm(`?type=commands&id=${id}&${withWarnings({attributesFailed: true})}`);
 
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(screen.getByText(token)).toBeInTheDocument();
             expect(replace).not.toHaveBeenCalled();
         });
@@ -247,7 +247,7 @@ describe('components/integrations/ConfirmIntegration', () => {
         test('unknown bot id with warnings only redirects to the error page', () => {
             renderConfirm(`?type=bots&id=unknown&${withWarnings({attributesFailed: true})}`);
 
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(replace).toHaveBeenCalled();
             for (const [path] of replace.mock.calls) {
                 expect(path).toBe(`/error?type=${ErrorPageTypes.PAGE_NOT_FOUND}`);
@@ -261,14 +261,14 @@ describe('components/integrations/ConfirmIntegration', () => {
             expect(cleanedSearch).toBe(confirmQuery);
 
             rerender(confirmElement(cleanedSearch));
-            expect(within(screen.getByTestId('botCreateWarnings')).getByText(ATTRS)).toBeInTheDocument();
+            expect(within(screen.getByTestId('integrations.bot_create_warnings')).getByText(ATTRS)).toBeInTheDocument();
             expect(screen.getByText(token)).toBeInTheDocument();
             expect(replace).toHaveBeenCalledTimes(1);
             unmount();
 
             seedBotToken();
             renderConfirm(cleanedSearch);
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(screen.getByText(token)).toBeInTheDocument();
             expect(replace).toHaveBeenCalledTimes(1);
         });
@@ -277,7 +277,7 @@ describe('components/integrations/ConfirmIntegration', () => {
             seedBotToken();
             renderConfirm(`${botSearch()}&${BOT_CREATE_WARNINGS_PARAM}=foo`);
 
-            expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
+            expect(screen.queryByTestId('integrations.bot_create_warnings')).toBeNull();
             expect(screen.getByText(token)).toBeInTheDocument();
             expect(replace).toHaveBeenCalledTimes(1);
             expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}${confirmQuery}`);

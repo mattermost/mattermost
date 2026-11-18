@@ -44,6 +44,7 @@ export default function UserAccountOutOfOfficeMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.out_of_office--menuitem'
             leadingElement={
                 <CancelIcon
                     size={18}

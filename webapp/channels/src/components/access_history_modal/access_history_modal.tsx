@@ -35,7 +35,7 @@ const AccessHistoryModal = ({
 
     let content;
     if (userAudits.length === 0) {
-        content = (<LoadingScreen/>);
+        content = (<LoadingScreen testId='access_history_modal.loading'/>);
     } else {
         content = (
             <AuditTable
@@ -49,6 +49,7 @@ const AccessHistoryModal = ({
     return (
         <GenericModal
             id='accessHistoryModal'
+            testId='access_history_modal'
             className='a11y__modal access-history-modal modal--scroll'
             modalHeaderText={
                 <FormattedMessage

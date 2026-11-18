@@ -116,6 +116,7 @@ const SendTestNotificationNotice = ({
             <div style={sectionNoticeContainerStyle}>
                 <SectionNotice
                     type='hint'
+                    data-testid='settings.test_notification'
                     icon={<Icon glyph={<LightbulbOutlineIcon/>}/>}
                     title={intl.formatMessage({id: 'user_settings.notifications.test_notification.title', defaultMessage: 'Troubleshooting notifications'})}
                     description={
@@ -128,6 +129,7 @@ const SendTestNotificationNotice = ({
                                 <Button
                                     emphasis='primary'
                                     size='small'
+                                    data-testid='settings.test_notification.primary--button'
                                     onClick={onSendTestNotificationClick}
                                     loading={sendButton.loading}
                                     leadingIcon={sendButton.icon}
@@ -137,6 +139,7 @@ const SendTestNotificationNotice = ({
                                 <Button
                                     emphasis='tertiary'
                                     size='small'
+                                    data-testid='settings.test_notification.tertiary--button'
                                     onClick={onGoToNotificationDocumentation}
                                     trailingIcon={<Icon glyph={<OpenInNewIcon/>}/>}
                                 >

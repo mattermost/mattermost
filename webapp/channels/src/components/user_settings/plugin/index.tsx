@@ -41,6 +41,7 @@ const PluginTab = ({
             id={`${settings.id}Settings`}
             aria-labelledby={`${settings.id}Button`}
             role='tabpanel'
+            data-testid={`settings.plugin_panel:${settings.id}--tabpanel`}
         >
             <SettingMobileHeader
                 closeModal={closeModal}
@@ -51,7 +52,7 @@ const PluginTab = ({
                 <SettingDesktopHeader text={headerText}/>
                 <PluginAction action={settings.action}/>
                 <div className='divider-dark first'/>
-                {settings.sections.map((v) => {
+                {settings.sections.map((v, index) => {
                     let sectionEl;
                     if ('component' in v) {
                         const CustomComponent = v.component;
@@ -68,6 +69,7 @@ const PluginTab = ({
                                 pluginId={settings.id}
                                 activeSection={activeSection}
                                 section={v}
+                                index={index}
                                 updateSection={updateSection}
                             />
                         );

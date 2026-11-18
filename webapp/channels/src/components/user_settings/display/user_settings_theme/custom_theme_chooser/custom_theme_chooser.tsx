@@ -369,6 +369,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     >
                         <ColorChooser
                             id={element.id}
+                            testKey={index}
                             label={<FormattedMessage {...messages[element.id]}/>}
                             value={theme[element.id] || ''}
                             onChange={this.handleColorChange}
@@ -389,6 +390,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     >
                         <ColorChooser
                             id={element.id}
+                            testKey={index}
                             label={<FormattedMessage {...messages[element.id]}/>}
                             value={color || ''}
                             onChange={this.handleColorChange}
@@ -403,6 +405,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     >
                         <ColorChooser
                             id={element.id}
+                            testKey={index}
                             label={<FormattedMessage {...messages[element.id]}/>}
                             value={theme[element.id] || ''}
                             onChange={this.handleColorChange}
@@ -468,6 +471,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                         <button
                             ref={this.sidebarStylesHeaderRef}
                             id='sidebarStylesAccordion'
+                            data-testid='settings.display.section.style_toggle:sidebar--button'
                             onClick={this.toggleSidebarStyles}
                             aria-expanded={false}
                             aria-controls='sidebarStylesSection'
@@ -494,6 +498,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     <div
                         ref={this.sidebarStylesRef}
                         id='sidebarStylesSection'
+                        data-testid='settings.display.section.style_panel:sidebar'
                         aria-labelledby='sidebarStylesAccordion'
                         className='theme-elements__body'
                     >
@@ -505,6 +510,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                         <button
                             ref={this.centerChannelStylesHeaderRef}
                             id='centerChannelStylesAccordion'
+                            data-testid='settings.display.section.style_toggle:center_channel--button'
                             onClick={this.toggleCenterChannelStyles}
                             aria-expanded={false}
                             aria-controls='centerChannelStylesSection'
@@ -531,6 +537,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     <div
                         ref={this.centerChannelStylesRef}
                         id='centerChannelStylesSection'
+                        data-testid='settings.display.section.style_panel:center_channel'
                         className='theme-elements__body'
                         aria-labelledby='centerChannelStylesAccordion'
                     >
@@ -542,6 +549,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                         <button
                             ref={this.linkAndButtonStylesHeaderRef}
                             id='linkAndButtonsStylesAccordion'
+                            data-testid='settings.display.section.style_toggle:link_and_buttons--button'
                             onClick={this.toggleLinkAndButtonStyles}
                             aria-expanded={false}
                             aria-controls='linkAndButtonsStylesSection'
@@ -567,6 +575,7 @@ export class CustomThemeChooser extends React.PureComponent<Props, State> {
                     </h4>
                     <div
                         id='linkAndButtonsStylesSection'
+                        data-testid='settings.display.section.style_panel:link_and_buttons'
                         ref={this.linkAndButtonStylesRef}
                         className='theme-elements__body'
                         aria-labelledby='linkAndButtonsStylesAccordion'

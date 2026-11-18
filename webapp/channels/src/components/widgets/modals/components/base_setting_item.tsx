@@ -34,7 +34,7 @@ function BaseSettingItem({title, description, content, className, error, descrip
 
     const titleComponent = title && (
         <h4
-            data-testid='mm-modal-generic-section-item__title'
+            data-testid={dataTestId ? `${dataTestId}.title--text` : undefined}
             className='mm-modal-generic-section-item__title'
         >
             {title}
@@ -43,7 +43,7 @@ function BaseSettingItem({title, description, content, className, error, descrip
 
     const descriptionComponent = description && (
         <p
-            data-testid='mm-modal-generic-section-item__description'
+            data-testid={dataTestId ? `${dataTestId}.description--text` : undefined}
             className='mm-modal-generic-section-item__description'
         >
             {description}
@@ -52,7 +52,7 @@ function BaseSettingItem({title, description, content, className, error, descrip
 
     const Error = error && (
         <div
-            data-testid='mm-modal-generic-section-item__error'
+            data-testid={dataTestId ? `${dataTestId}.error--text` : undefined}
             className='mm-modal-generic-section-item__error'
         >
             <AlertCircleOutlineIcon/>
@@ -68,7 +68,7 @@ function BaseSettingItem({title, description, content, className, error, descrip
             {titleComponent}
             {descriptionAboveContent ? descriptionComponent : undefined}
             <div
-                data-testid='mm-modal-generic-section-item__content'
+                data-testid={dataTestId ? `${dataTestId}.content` : undefined}
                 className={classNames('mm-modal-generic-section-item__content', {
                     inline: isContentInline,
                 })}

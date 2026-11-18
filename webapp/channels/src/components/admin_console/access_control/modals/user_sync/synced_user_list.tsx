@@ -100,6 +100,7 @@ export const SyncedUserList = ({userIds, noResultsMessageId, noResultsDefaultMes
             }}
             search={handleSearch}
             actionUserProps={{}}
+            testIdScope='user_sync_modal.users'
         />
     );
 };

@@ -255,6 +255,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </label>
                         <div className='col-sm-7'>
                             <Input
+                                testId='settings.security.section.current_password'
                                 id='currentPassword'
                                 name='currentPassword'
                                 autoFocus={true}
@@ -299,6 +300,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </label>
                         <div className='col-sm-7'>
                             <Input
+                                testId='settings.security.section.new_password'
                                 id='newPassword'
                                 name='newPassword'
                                 type='password'
@@ -341,6 +343,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                         </label>
                         <div className='col-sm-7'>
                             <Input
+                                testId='settings.security.section.confirm_password'
                                 id='confirmPassword'
                                 name='confirmPassword'
                                 type='password'
@@ -417,6 +420,8 @@ export class SecurityTab extends React.PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
+                    testIdScope='settings.security.section'
+                    testKey={SECTION_PASSWORD}
                     title={
                         <FormattedMessage
                             id='user.settings.security.password'
@@ -510,6 +515,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
 
         return (
             <SettingItem
+                testId='settings.security.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={
@@ -549,6 +555,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 emphasis='primary'
                             >
                                 <Link
+                                    data-testid='settings.security.section.switch_to:gitlab--link'
                                     to={
                                         '/claim/email_to_oauth?email=' +
                                         encodeURIComponent(user.email) +
@@ -577,6 +584,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 emphasis='primary'
                             >
                                 <Link
+                                    data-testid='settings.security.section.switch_to:google--link'
                                     to={
                                         '/claim/email_to_oauth?email=' +
                                         encodeURIComponent(user.email) +
@@ -605,6 +613,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 emphasis='primary'
                             >
                                 <Link
+                                    data-testid='settings.security.section.switch_to:office365--link'
                                     to={
                                         '/claim/email_to_oauth?email=' +
                                         encodeURIComponent(user.email) +
@@ -633,6 +642,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 emphasis='primary'
                             >
                                 <Link
+                                    data-testid='settings.security.section.switch_to:openid--link'
                                     to={
                                         '/claim/email_to_oauth?email=' +
                                         encodeURIComponent(user.email) +
@@ -661,6 +671,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 emphasis='primary'
                             >
                                 <Link
+                                    data-testid='settings.security.section.switch_to:ldap--link'
                                     to={
                                         '/claim/email_to_ldap?email=' +
                                         encodeURIComponent(user.email)
@@ -685,6 +696,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                                 emphasis='primary'
                             >
                                 <Link
+                                    data-testid='settings.security.section.switch_to:saml--link'
                                     to={
                                         '/claim/email_to_oauth?email=' +
                                         encodeURIComponent(user.email) +
@@ -724,7 +736,10 @@ export class SecurityTab extends React.PureComponent<Props, State> {
                             asChild={true}
                             emphasis='primary'
                         >
-                            <Link to={link}>
+                            <Link
+                                to={link}
+                                data-testid='settings.security.section.switch_to:email--link'
+                            >
                                 <FormattedMessage
                                     id='user.settings.security.switchEmail'
                                     defaultMessage='Switch to Using Email and Password'
@@ -779,6 +794,8 @@ export class SecurityTab extends React.PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
+                    testIdScope='settings.security.section'
+                    testKey={SECTION_SIGNIN}
                     title={this.props.intl.formatMessage({
                         id: 'user.settings.security.method',
                         defaultMessage: 'Sign-in Method',
@@ -854,6 +871,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
 
         return (
             <SettingItem
+                testId='settings.security.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={this.props.intl.formatMessage({
@@ -975,6 +993,8 @@ export class SecurityTab extends React.PureComponent<Props, State> {
 
             max = (
                 <SettingItemMax
+                    testIdScope='settings.security.section'
+                    testKey={SECTION_APPS}
                     title={title}
                     inputs={inputs}
                     serverError={this.state.serverError}
@@ -992,6 +1012,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
 
         return (
             <SettingItem
+                testId='settings.security.section'
                 active={active}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={this.props.intl.formatMessage({
@@ -1055,6 +1076,7 @@ export class SecurityTab extends React.PureComponent<Props, State> {
         return (
             <div
                 id='securitySettings'
+                data-testid='settings.panel:security--tabpanel'
                 aria-labelledby='securityButton'
                 role='tabpanel'
             >

@@ -230,7 +230,7 @@ describe('InviteView', () => {
             state,
         );
 
-        expect(screen.getByTestId('InviteView__guestMagicLinkCheckbox')).toBeInTheDocument();
+        expect(screen.getByTestId('invitation_modal.invite.guest_magic_link--checkbox')).toBeInTheDocument();
     });
 
     it('hides guest magic link checkbox when inviting members', async () => {
@@ -245,7 +245,7 @@ describe('InviteView', () => {
             state,
         );
 
-        expect(screen.queryByTestId('InviteView__guestMagicLinkCheckbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('invitation_modal.invite.guest_magic_link--checkbox')).not.toBeInTheDocument();
     });
 
     it('hides guest magic link checkbox when guest magic link is not enabled', async () => {
@@ -260,7 +260,7 @@ describe('InviteView', () => {
             state,
         );
 
-        expect(screen.queryByTestId('InviteView__guestMagicLinkCheckbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('invitation_modal.invite.guest_magic_link--checkbox')).not.toBeInTheDocument();
     });
 
     it('calls toggleGuestMagicLink when checkbox is clicked', async () => {
@@ -277,7 +277,7 @@ describe('InviteView', () => {
             state,
         );
 
-        const checkbox = screen.getByTestId('InviteView__guestMagicLinkCheckbox');
+        const checkbox = screen.getByTestId('invitation_modal.invite.guest_magic_link--checkbox');
         await userEvent.click(checkbox);
 
         expect(toggleGuestMagicLink).toHaveBeenCalledTimes(1);
@@ -298,7 +298,7 @@ describe('InviteView', () => {
         expect(onChangeUsersEmails).not.toHaveBeenCalledWith([expect.anything()]);
         expect(usersLoader).toHaveBeenCalledWith('unknownperson', expect.any(Function));
         expect(input).toHaveValue('unknownperson');
-        expect(screen.getByTestId('inviteButton')).toBeDisabled();
+        expect(screen.getByTestId('invitation_modal.invite.send--button')).toBeDisabled();
         await waitFor(() => {
             expect(document.querySelector('.users-emails-input__menu-notice')).toHaveTextContent('No one found matching unknownperson. Enter their email to invite them.');
         });
@@ -317,7 +317,7 @@ describe('InviteView', () => {
         });
 
         expect(input).toHaveValue('');
-        expect(screen.getByTestId('inviteButton')).toBeEnabled();
+        expect(screen.getByTestId('invitation_modal.invite.send--button')).toBeEnabled();
     });
 
     it('creates chips for pasted space-separated valid emails and enables invite', async () => {
@@ -342,7 +342,7 @@ describe('InviteView', () => {
         });
 
         expect(input).toHaveValue('');
-        expect(screen.getByTestId('inviteButton')).toBeEnabled();
+        expect(screen.getByTestId('invitation_modal.invite.send--button')).toBeEnabled();
     });
 
     it('does not create a chip prematurely while typing a valid email', async () => {
@@ -356,7 +356,7 @@ describe('InviteView', () => {
         expect(onChangeUsersEmails).not.toHaveBeenCalledWith(['one@example.com']);
         expect(onUsersInputChange).toHaveBeenCalledWith('one@example.com');
         expect(input).toHaveValue('one@example.com');
-        expect(screen.getByTestId('inviteButton')).toBeDisabled();
+        expect(screen.getByTestId('invitation_modal.invite.send--button')).toBeDisabled();
     });
 
     describe('pre-set member profiles', () => {
@@ -368,7 +368,7 @@ describe('InviteView', () => {
                 />,
                 state,
             );
-            expect(screen.queryByTestId('MemberProfileInputs')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('invitation_modal.invite.member_profiles')).not.toBeInTheDocument();
         });
 
         it('shows the profile inputs when the lock setting is enabled', () => {
@@ -380,7 +380,7 @@ describe('InviteView', () => {
                 />,
                 state,
             );
-            expect(screen.getByTestId('MemberProfileInputs')).toBeInTheDocument();
+            expect(screen.getByTestId('invitation_modal.invite.member_profiles')).toBeInTheDocument();
         });
 
         it('hides the profile inputs when inviting guests', () => {
@@ -393,7 +393,7 @@ describe('InviteView', () => {
                 />,
                 state,
             );
-            expect(screen.queryByTestId('MemberProfileInputs')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('invitation_modal.invite.member_profiles')).not.toBeInTheDocument();
         });
 
         it('hides the profile inputs when email invitations are disabled', () => {
@@ -406,7 +406,7 @@ describe('InviteView', () => {
                 />,
                 state,
             );
-            expect(screen.queryByTestId('MemberProfileInputs')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('invitation_modal.invite.member_profiles')).not.toBeInTheDocument();
         });
 
         it('disables invite when a pre-set profile has an invalid username', () => {
@@ -426,7 +426,7 @@ describe('InviteView', () => {
                 />,
                 state,
             );
-            expect(screen.getByTestId('inviteButton')).toBeDisabled();
+            expect(screen.getByTestId('invitation_modal.invite.send--button')).toBeDisabled();
         });
 
         it('keeps invite enabled when pre-set profiles are empty or valid', () => {
@@ -446,7 +446,7 @@ describe('InviteView', () => {
                 />,
                 state,
             );
-            expect(screen.getByTestId('inviteButton')).toBeEnabled();
+            expect(screen.getByTestId('invitation_modal.invite.send--button')).toBeEnabled();
         });
     });
 

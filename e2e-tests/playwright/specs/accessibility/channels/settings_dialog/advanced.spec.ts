@@ -3,6 +3,10 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {focusVisible} from '../focus_support';
+
+import {selectorOf} from './support';
+
 /**
  * @objective Verify keyboard navigation through interactive elements in Advanced settings
  */
@@ -11,64 +15,68 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings']},
     async ({pw}) => {
         // # Create and sign in a new user
-        const {user, adminClient} = await pw.initSetup();
+        const {user, adminClient, team} = await pw.initSetup();
         const config = await adminClient.getConfig();
         const wysiwygEnabled =
             config.FeatureFlags?.WysiwygEditor === true || config.FeatureFlags?.WysiwygEditor === 'true';
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
-        const advancedSettings = settingsModal.advancedSettings;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
+        const advancedSettings = app.settings.panel('advanced');
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible and focus should be on the modal
-        await expect(settingsModal.container).toBeVisible();
-        await pw.toBeFocusedWithFocusVisible(settingsModal.container);
+        await expect(settingsModal).toBeVisible();
+        await expect.poll(() => focusVisible(settingsModal)).toBe(true);
 
         // # Press Tab and verify focus is on Close button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(settingsModal.closeButton);
+        await expect.poll(() => focusVisible(settingsModal.closeButton)).toBe(true);
 
         // # Click on Advanced tab to open it
-        await settingsModal.advancedTab.click();
+        await settingsModal.tabs.tab('advanced').select();
+        await expect(settingsModal.tabs.tab('advanced')).toBeSelected();
 
         // * Advanced Settings panel should be visible
-        await expect(advancedSettings.container).toBeVisible();
+        await expect(advancedSettings).toBeVisible();
 
         // # Press Tab to move focus to Send Messages on CTRL+ENTER button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(advancedSettings.ctrlEnterEditButton);
+        await expect.poll(() => focusVisible(app.settings.advanced.section('advancedCtrlSend').editButton)).toBe(true);
 
         if (wysiwygEnabled) {
             // # Press Tab to move focus to Rich text editing button
             await page.keyboard.press('Tab');
-            await pw.toBeFocusedWithFocusVisible(advancedSettings.wysiwygEditorEditButton);
+            await expect.poll(() => focusVisible(app.settings.advanced.section('wysiwygEditor').editButton)).toBe(true);
         }
 
         // # Press Tab to move focus to Enable Post Formatting button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(advancedSettings.postFormattingEditButton);
+        await expect.poll(() => focusVisible(app.settings.advanced.section('formatting').editButton)).toBe(true);
 
         // # Press Tab to move focus to Enable Join/Leave Messages button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(advancedSettings.joinLeaveEditButton);
+        await expect.poll(() => focusVisible(app.settings.advanced.section('joinLeave').editButton)).toBe(true);
 
         // # Press Tab to move focus to Scroll position button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(advancedSettings.scrollPositionEditButton);
+        await expect
+            .poll(() => focusVisible(app.settings.advanced.section('unread_scroll_position').editButton))
+            .toBe(true);
 
         // # Press Tab to move focus to Allow message drafts to sync button
         await page.keyboard.press('Tab');
-        await pw.toBeFocusedWithFocusVisible(advancedSettings.syncDraftsEditButton);
+        await expect.poll(() => focusVisible(app.settings.advanced.section('syncDrafts').editButton)).toBe(true);
     },
 );
 
@@ -80,66 +88,74 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user, adminClient} = await pw.initSetup();
+        const {user, adminClient, team} = await pw.initSetup();
 
         const config = await adminClient.getConfig();
         const wysiwygEnabled =
             config.FeatureFlags?.WysiwygEditor === true || config.FeatureFlags?.WysiwygEditor === 'true';
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Advanced tab
-        await settingsModal.advancedTab.click();
+        await settingsModal.tabs.tab('advanced').select();
+        await expect(settingsModal.tabs.tab('advanced')).toBeSelected();
 
         // * Advanced Settings panel should be visible
-        await expect(settingsModal.advancedSettings.container).toBeVisible();
+        await expect(app.settings.panel('advanced')).toBeVisible();
 
         const wysiwygSnapshot = wysiwygEnabled
             ? `
-            - heading "Rich text editing (Beta)" [level=4]
-            - button "Rich text editing (Beta) Edit"
-            - text: /(Markdown editing [(]default[)]|Rich text editing.*)/`
+            - group:
+              - heading "Rich text editing (Beta)" [level=4]
+              - button "Rich text editing (Beta) Edit"
+              - text: /(Markdown editing [(]default[)]|Rich text editing.*)/`
             : '';
 
         // * Verify aria snapshot of Advanced settings tab
-        await expect(settingsModal.advancedSettings.container).toMatchAriaSnapshot(`
+        await expect(app.settings.panel('advanced')).toMatchAriaSnapshot(`
           - tabpanel "advanced":
             - heading "Advanced Settings" [level=3]
-            - heading /Send Messages on (CTRL|⌘)\\+ENTER/ [level=4]
-            - button /Send Messages on (CTRL|⌘)\\+ENTER Edit/
-            - text: /(On for all messages|On only for code blocks starting with \`\`\`|Off)/${wysiwygSnapshot}
-            - heading "Enable Post Formatting" [level=4]
-            - button "Enable Post Formatting Edit"
-            - text: /(On|Off)/
-            - heading "Enable Join/Leave Messages" [level=4]
-            - button "Enable Join/Leave Messages Edit"
-            - text: /(On|Off)/
-            - heading "Scroll position when viewing an unread channel" [level=4]
-            - button "Scroll position when viewing an unread channel Edit"
-            - text: /(Start me where I left off|Start me at the newest message)/
-            - heading "Allow message drafts to sync with the server" [level=4]
-            - button "Allow message drafts to sync with the server Edit"
-            - text: /(On|Off)/
+            - group:
+              - heading /Send Messages on (CTRL|⌘)\\+ENTER/ [level=4]
+              - button /Send Messages on (CTRL|⌘)\\+ENTER Edit/
+              - text: /(On for all messages|On only for code blocks starting with \`\`\`|Off)/${wysiwygSnapshot}
+            - group:
+              - heading "Enable Post Formatting" [level=4]
+              - button "Enable Post Formatting Edit"
+              - text: /(On|Off)/
+            - group:
+              - heading "Enable Join/Leave Messages" [level=4]
+              - button "Enable Join/Leave Messages Edit"
+              - text: /(On|Off)/
+            - group:
+              - heading "Scroll position when viewing an unread channel" [level=4]
+              - button "Scroll position when viewing an unread channel Edit"
+              - text: /(Start me where I left off|Start me at the newest message)/
+            - group:
+              - heading "Allow message drafts to sync with the server" [level=4]
+              - button "Allow message drafts to sync with the server Edit"
+              - text: /(On|Off)/
         `);
 
         // * Analyze the Advanced settings panel for accessibility issues
         const accessibilityScanResults = await axe
             .builder(page, {disableColorContrast: true})
-            .include(settingsModal.advancedSettings.id)
+            .include(selectorOf(app.settings.panel('advanced')))
             .analyze();
 
         // * Should have no violation
@@ -155,35 +171,35 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Advanced tab
-        await settingsModal.advancedTab.click();
-
-        const advancedSettings = settingsModal.advancedSettings;
+        await settingsModal.tabs.tab('advanced').select();
+        await expect(settingsModal.tabs.tab('advanced')).toBeSelected();
 
         // # Click Edit on Send Messages section
-        await advancedSettings.ctrlEnterEditButton.click();
+        await app.settings.advanced.section('advancedCtrlSend').editButton.click();
 
         // * Verify aria snapshot of Send Messages section when expanded
-        await advancedSettings.expandedSection.waitFor();
-        await expect(advancedSettings.expandedSection).toMatchAriaSnapshot(`
+        await expect(app.settings.advanced.section('advancedCtrlSend')).toBeVisible();
+        await expect(app.settings.advanced.section('advancedCtrlSend')).toMatchAriaSnapshot(`
           - heading /Send Messages on (CTRL|⌘)\\+ENTER/ [level=4]
           - group /Send Messages on (CTRL|⌘)\\+ENTER/:
             - text: /Send Messages on (CTRL|⌘)\\+ENTER/
@@ -200,7 +216,10 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
+        const accessibilityScanResults = await axe
+            .builder(page)
+            .include(selectorOf(app.settings.advanced.section('advancedCtrlSend').container))
+            .analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -215,35 +234,35 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Advanced tab
-        await settingsModal.advancedTab.click();
-
-        const advancedSettings = settingsModal.advancedSettings;
+        await settingsModal.tabs.tab('advanced').select();
+        await expect(settingsModal.tabs.tab('advanced')).toBeSelected();
 
         // # Click Edit on Enable Post Formatting section
-        await advancedSettings.postFormattingEditButton.click();
+        await app.settings.advanced.section('formatting').editButton.click();
 
         // * Verify aria snapshot of Enable Post Formatting section when expanded
-        await advancedSettings.expandedSection.waitFor();
-        await expect(advancedSettings.expandedSection).toMatchAriaSnapshot(`
+        await expect(app.settings.advanced.section('formatting')).toBeVisible();
+        await expect(app.settings.advanced.section('formatting')).toMatchAriaSnapshot(`
           - heading "Enable Post Formatting" [level=4]
           - group "Enable Post Formatting":
             - radio /(On|Off)/ [checked]
@@ -255,7 +274,10 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
+        const accessibilityScanResults = await axe
+            .builder(page)
+            .include(selectorOf(app.settings.advanced.section('formatting').container))
+            .analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -270,35 +292,35 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Advanced tab
-        await settingsModal.advancedTab.click();
-
-        const advancedSettings = settingsModal.advancedSettings;
+        await settingsModal.tabs.tab('advanced').select();
+        await expect(settingsModal.tabs.tab('advanced')).toBeSelected();
 
         // # Click Edit on Enable Join/Leave Messages section
-        await advancedSettings.joinLeaveEditButton.click();
+        await app.settings.advanced.section('joinLeave').editButton.click();
 
         // * Verify aria snapshot of Enable Join/Leave Messages section when expanded
-        await advancedSettings.expandedSection.waitFor();
-        await expect(advancedSettings.expandedSection).toMatchAriaSnapshot(`
+        await expect(app.settings.advanced.section('joinLeave')).toBeVisible();
+        await expect(app.settings.advanced.section('joinLeave')).toMatchAriaSnapshot(`
           - heading "Enable Join/Leave Messages" [level=4]
           - group "Enable Join/Leave Messages":
             - text: Enable Join/Leave Messages
@@ -313,7 +335,10 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
+        const accessibilityScanResults = await axe
+            .builder(page)
+            .include(selectorOf(app.settings.advanced.section('joinLeave').container))
+            .analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -328,35 +353,35 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Advanced tab
-        await settingsModal.advancedTab.click();
-
-        const advancedSettings = settingsModal.advancedSettings;
+        await settingsModal.tabs.tab('advanced').select();
+        await expect(settingsModal.tabs.tab('advanced')).toBeSelected();
 
         // # Click Edit on Scroll position section
-        await advancedSettings.scrollPositionEditButton.click();
+        await app.settings.advanced.section('unread_scroll_position').editButton.click();
 
         // * Verify aria snapshot of Scroll position section when expanded
-        await advancedSettings.expandedSection.waitFor();
-        await expect(advancedSettings.expandedSection).toMatchAriaSnapshot(`
+        await expect(app.settings.advanced.section('unread_scroll_position')).toBeVisible();
+        await expect(app.settings.advanced.section('unread_scroll_position')).toMatchAriaSnapshot(`
           - heading "Scroll position when viewing an unread channel" [level=4]
           - group "Scroll position when viewing an unread channel":
             - text: Scroll position when viewing an unread channel
@@ -371,7 +396,10 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
+        const accessibilityScanResults = await axe
+            .builder(page)
+            .include(selectorOf(app.settings.advanced.section('unread_scroll_position').container))
+            .analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);
@@ -386,35 +414,35 @@ test(
     {tag: ['@accessibility', '@settings', '@advanced_settings', '@snapshots']},
     async ({pw, axe}) => {
         // # Create and sign in a new user
-        const {user} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
         // # Log in a user in new browser context
-        const {page, channelsPage} = await pw.testBrowser.login(user);
-        const globalHeader = channelsPage.globalHeader;
-        const settingsModal = channelsPage.settingsModal;
+        const {app, page} = await pw.testBrowser.login(user);
+        const globalHeader = app.globalHeader;
+        const settingsModal = app.userSettingsModal;
 
         // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        await app.teamPage.goto({team});
+        await expect(app.center.composer).toBeVisible();
+        await expect(app.center.postCreate.message.container).toBeVisible();
 
         // # Set focus to Settings button and press Enter
         await globalHeader.settingsButton.focus();
         await page.keyboard.press('Enter');
 
         // * Settings modal should be visible
-        await expect(settingsModal.container).toBeVisible();
+        await expect(settingsModal).toBeVisible();
 
         // # Open Advanced tab
-        await settingsModal.advancedTab.click();
-
-        const advancedSettings = settingsModal.advancedSettings;
+        await settingsModal.tabs.tab('advanced').select();
+        await expect(settingsModal.tabs.tab('advanced')).toBeSelected();
 
         // # Click Edit on Allow message drafts to sync section
-        await advancedSettings.syncDraftsEditButton.click();
+        await app.settings.advanced.section('syncDrafts').editButton.click();
 
         // * Verify aria snapshot of Allow message drafts to sync section when expanded
-        await advancedSettings.expandedSection.waitFor();
-        await expect(advancedSettings.expandedSection).toMatchAriaSnapshot(`
+        await expect(app.settings.advanced.section('syncDrafts')).toBeVisible();
+        await expect(app.settings.advanced.section('syncDrafts')).toMatchAriaSnapshot(`
           - heading "Allow message drafts to sync with the server" [level=4]
           - group "Allow message drafts to sync with the server":
             - text: Allow message drafts to sync with the server
@@ -429,7 +457,10 @@ test(
         `);
 
         // # Analyze the expanded section for accessibility issues
-        const accessibilityScanResults = await axe.builder(page).include(advancedSettings.expandedSectionId).analyze();
+        const accessibilityScanResults = await axe
+            .builder(page)
+            .include(selectorOf(app.settings.advanced.section('syncDrafts').container))
+            .analyze();
 
         // * Should have no violation
         expect(accessibilityScanResults.violations).toHaveLength(0);

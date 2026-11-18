@@ -264,6 +264,8 @@ export default class ManageTimezones extends React.PureComponent<Props, State> {
 
         return (
             <SettingItemMax
+                testIdScope='settings.display.section'
+                testKey='timezone'
                 title={
                     <FormattedMessage
                         id='user.settings.display.timezone'

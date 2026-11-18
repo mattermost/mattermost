@@ -59,6 +59,7 @@ export default function UserAccountAwayMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.away--menuitem'
             leadingElement={
                 <ClockIcon
                     size='18'

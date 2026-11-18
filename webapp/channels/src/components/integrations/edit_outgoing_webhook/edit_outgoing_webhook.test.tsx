@@ -139,7 +139,7 @@ describe('components/integrations/EditOutgoingWebhook', () => {
         });
 
         // Click cancel to dismiss the confirm modal
-        await userEvent.click(screen.getByTestId('cancel-button'));
+        await userEvent.click(screen.getByTestId('integrations.edit_outgoing_webhook.confirm_modal.cancel--button'));
 
         await waitFor(() => {
             expect(screen.queryByText('Your changes may break the existing outgoing webhook. Are you sure you would like to update it?')).not.toBeInTheDocument();

@@ -216,7 +216,7 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toHaveAttribute('value', value);
 
         // URL should have been changed according to display name
-        const urlInputLabel = screen.getByTestId('urlInputLabel');
+        const urlInputLabel = screen.getByTestId('new_channel_modal.url.label--text');
         expect(urlInputLabel).toHaveTextContent(cleanUpUrlable(value));
     });
 
@@ -236,7 +236,7 @@ describe('components/new_channel_modal', () => {
         expect(channelNameInput).toHaveAttribute('value', '');
 
         await userEvent.type(channelNameInput, value);
-        const urlInputLabel = screen.getByTestId('urlInputLabel');
+        const urlInputLabel = screen.getByTestId('new_channel_modal.url.label--text');
         expect(urlInputLabel).toHaveTextContent(cleanUpUrlable(value));
 
         // Change URL
@@ -245,7 +245,7 @@ describe('components/new_channel_modal', () => {
 
         await userEvent.click(editUrl);
 
-        const editUrlInput = screen.getByTestId('channelURLInput');
+        const editUrlInput = screen.getByTestId('new_channel_modal.url.value--textbox');
         await userEvent.clear(editUrlInput);
         await userEvent.type(editUrlInput, url);
 
@@ -398,7 +398,7 @@ describe('components/new_channel_modal', () => {
 
         await userEvent.click(editUrl);
 
-        const editUrlInput = screen.getByTestId('channelURLInput');
+        const editUrlInput = screen.getByTestId('new_channel_modal.url.value--textbox');
         await userEvent.clear(editUrlInput);
         await userEvent.type(editUrlInput, 'c-');
 
@@ -529,21 +529,21 @@ describe('components/new_channel_modal', () => {
             renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
 
             // Default state on this fixture is Public — the toggle should be absent.
-            expect(screen.queryByTestId('new-channel-discoverable-section')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('new_channel_modal.discoverable')).not.toBeInTheDocument();
         });
 
         test('does not render when feature flag is off', async () => {
             renderWithContext(<NewChannelModal/>, initialState);
 
             await userEvent.click(screen.getByText('Private Channel'));
-            expect(screen.queryByTestId('new-channel-discoverable-section')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('new_channel_modal.discoverable')).not.toBeInTheDocument();
         });
 
         test('renders once Private is selected and FF is on', async () => {
             renderWithContext(<NewChannelModal/>, stateWithDiscoverable);
 
             await userEvent.click(screen.getByText('Private Channel'));
-            expect(screen.getByTestId('new-channel-discoverable-section')).toBeInTheDocument();
+            expect(screen.getByTestId('new_channel_modal.discoverable')).toBeInTheDocument();
             expect(screen.getByText(/Discoverable \(Users can request to join\)/)).toBeInTheDocument();
             expect(screen.getByText(/Browse Channels, the channel switcher, and shared permalinks/)).toBeInTheDocument();
         });
@@ -557,7 +557,7 @@ describe('components/new_channel_modal', () => {
             await userEvent.click(screen.getByText('Private Channel'));
 
             // Toggle the discoverable switch on
-            await userEvent.click(screen.getByTestId('newChannelDiscoverableToggle'));
+            await userEvent.click(screen.getByTestId('new_channel_modal.discoverable.enabled--switch'));
 
             await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
 
@@ -911,7 +911,7 @@ describe('components/new_channel_modal - plugin channel-type options', () => {
         renderWithContext(<NewChannelModal/>, stateWithOption({onCreate}));
 
         await userEvent.click(screen.getByText('Plugin Channel'));
-        await userEvent.click(screen.getByTestId('channelClassificationToggle-button'));
+        await userEvent.click(screen.getByTestId('new_channel_modal.classification--switch'));
         await userEvent.click(screen.getByRole('combobox'));
         await userEvent.click(screen.getByText('SECRET'));
         await userEvent.type(screen.getByRole('textbox', {name: 'Channel name'}), 'My Channel');

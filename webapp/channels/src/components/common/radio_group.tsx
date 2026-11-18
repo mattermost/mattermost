@@ -73,7 +73,7 @@ const RadioButtonGroup = ({
     return (
         <div
             className='radio-list'
-            data-testid={testId || ''}
+            data-testid={testId}
         >
             {options}
         </div>

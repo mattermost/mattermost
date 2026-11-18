@@ -135,7 +135,7 @@ export default class MemberListChannel extends React.PureComponent<Props, State>
 
     render() {
         if (this.state.loading) {
-            return (<LoadingScreen/>);
+            return (<LoadingScreen testId='member_list_channel.loading_screen'/>);
         }
         const channelIsArchived = this.props.channel.delete_at !== 0;
         return (
@@ -148,6 +148,7 @@ export default class MemberListChannel extends React.PureComponent<Props, State>
                 actions={channelIsArchived ? [] : [ChannelMembersDropdown]}
                 actionUserProps={this.props.actionUserProps}
                 focusOnMount={!UserAgent.isMobile()}
+                testIdScope='channel_members_modal.members'
             />
         );
     }

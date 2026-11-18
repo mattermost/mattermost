@@ -232,19 +232,19 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
 
         cy.get('#profileSettings').then((el) => {
             if (el.find('.profile-img__remove').length > 0) {
-                cy.findByTestId('removeSettingPicture').click();
+                cy.findByTestId('settings.general.section.picture.remove--button').click();
                 cy.uiSave();
                 cy.get('#pictureEdit').click();
             }
         });
 
         // * Check Labels in different buttons
-        cy.findByTestId('inputSettingPictureButton').should('have.attr', 'aria-label', 'Select');
+        cy.findByTestId('settings.general.section.picture.select--button').should('have.attr', 'aria-label', 'Select');
         cy.uiSaveButton().should('have.attr', 'disabled');
-        cy.findByTestId('cancelSettingPicture').should('have.attr', 'aria-label', 'Cancel');
+        cy.findByTestId('settings.general.section.picture.cancel--button').should('have.attr', 'aria-label', 'Cancel');
 
         // # Upload a pic and save
-        cy.findByTestId('uploadPicture').attachFile('mattermost-icon.png');
+        cy.findByTestId('settings.general.section.picture.upload').attachFile('mattermost-icon.png');
         cy.uiSave();
 
         // # Click on Edit Profile Picture
@@ -254,24 +254,24 @@ describe('Verify Accessibility Support in different sections in Settings and Pro
         cy.get('.profile-img').should('have.attr', 'alt', 'profile image');
 
         // # Option to Remove Profile picture should be present
-        cy.findByTestId('removeSettingPicture').should(
+        cy.findByTestId('settings.general.section.picture.remove--button').should(
             'have.attr',
             'aria-label',
             'Remove Profile Picture',
         );
 
         // # Check tab behavior
-        cy.findByTestId('removeSettingPicture').focus().tab({shift: true}).tab();
-        cy.findByTestId('removeSettingPicture').should('have.class', 'a11y--active a11y--focused').tab();
-        cy.findByTestId('inputSettingPictureButton').should('have.class', 'a11y--active a11y--focused').tab();
-        cy.findByTestId('cancelSettingPicture').should('have.class', 'a11y--active a11y--focused');
+        cy.findByTestId('settings.general.section.picture.remove--button').focus().tab({shift: true}).tab();
+        cy.findByTestId('settings.general.section.picture.remove--button').should('have.class', 'a11y--active a11y--focused').tab();
+        cy.findByTestId('settings.general.section.picture.select--button').should('have.class', 'a11y--active a11y--focused').tab();
+        cy.findByTestId('settings.general.section.picture.cancel--button').should('have.class', 'a11y--active a11y--focused');
 
         // # Remove the profile picture and check the tab behavior
-        cy.findByTestId('removeSettingPicture').click().wait(TIMEOUTS.HALF_SEC);
-        cy.findByTestId('inputSettingPictureButton').focus().tab({shift: true}).tab();
-        cy.findByTestId('inputSettingPictureButton').should('have.class', 'a11y--active a11y--focused').tab();
+        cy.findByTestId('settings.general.section.picture.remove--button').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('settings.general.section.picture.select--button').focus().tab({shift: true}).tab();
+        cy.findByTestId('settings.general.section.picture.select--button').should('have.class', 'a11y--active a11y--focused').tab();
         cy.uiSaveButton().should('be.focused').tab();
-        cy.findByTestId('cancelSettingPicture').should('have.class', 'a11y--active a11y--focused');
+        cy.findByTestId('settings.general.section.picture.cancel--button').should('have.class', 'a11y--active a11y--focused');
         cy.uiSave();
     });
 

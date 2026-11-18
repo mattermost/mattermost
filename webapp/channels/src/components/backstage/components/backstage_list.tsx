@@ -26,6 +26,7 @@ type Props = {
     error?: ReactNode;
     loading: boolean;
     searchPlaceholder?: string;
+    testId?: string;
     nextPage?: () => void;
     previousPage?: () => void;
     page?: number;
@@ -70,6 +71,7 @@ const BackstageList = (remainingProps: Props) => {
     if (remainingProps.loading) {
         children = [
             <LoadingScreen
+                testId='backstage_list.loading_screen'
                 key='loading'
             />,
         ];
@@ -162,6 +164,7 @@ const BackstageList = (remainingProps: Props) => {
                         value={filter}
                         onChange={updateFilter}
                         id='searchInput'
+                        data-testid={remainingProps.testId ? `${remainingProps.testId}.search--searchbox` : undefined}
                     />
                 </div>
             </div>

@@ -39,10 +39,10 @@ describe('components/TeamSettings', () => {
     test('should show an error when pdf file is uploaded', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['pdf'], 'pdf.pdf', {type: 'application/pdf'});
-        const input = screen.getByTestId('uploadPicture');
+        const input = screen.getByTestId('team_settings_modal.info.picture.upload');
         await userEvent.upload(input, file, {applyAccept: false});
 
-        const error = screen.getByTestId('mm-modal-generic-section-item__error');
+        const error = screen.getByTestId('team_settings_modal.info.picture_section.error--text');
         expect(error).toBeVisible();
         expect(error).toHaveTextContent('Only BMP, JPG or PNG images may be used for team icons');
     });
@@ -51,10 +51,10 @@ describe('components/TeamSettings', () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
         Object.defineProperty(file, 'size', {value: defaultProps.maxFileSize + 1});
-        const input = screen.getByTestId('uploadPicture');
+        const input = screen.getByTestId('team_settings_modal.info.picture.upload');
         await userEvent.upload(input, file);
 
-        const error = screen.getByTestId('mm-modal-generic-section-item__error');
+        const error = screen.getByTestId('team_settings_modal.info.picture_section.error--text');
         expect(error).toBeVisible();
         expect(error).toHaveTextContent('Unable to upload team icon. File is too large.');
     });
@@ -62,10 +62,10 @@ describe('components/TeamSettings', () => {
     test('should call setTeamIcon when an image is uploaded and saved', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
-        const input = screen.getByTestId('uploadPicture');
+        const input = screen.getByTestId('team_settings_modal.info.picture.upload');
         await userEvent.upload(input, file);
 
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('team_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
         expect(setTeamIcon).toHaveBeenCalledTimes(1);
@@ -75,13 +75,13 @@ describe('components/TeamSettings', () => {
     test('should call setTeamIcon when an image is removed', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
         const file = new File(['test'], 'test.png', {type: 'image/png'});
-        const input = screen.getByTestId('uploadPicture');
+        const input = screen.getByTestId('team_settings_modal.info.picture.upload');
         await userEvent.upload(input, file);
 
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('team_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
-        const removeImageButton = screen.getByTestId('removeImageButton');
+        const removeImageButton = screen.getByTestId('team_settings_modal.info.picture.remove--button');
         await userEvent.click(removeImageButton);
 
         expect(removeTeamIcon).toHaveBeenCalledTimes(1);
@@ -90,36 +90,36 @@ describe('components/TeamSettings', () => {
 
     test('should show an error when team name is empty', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
-        const input = screen.getByTestId('teamNameInput');
+        const input = screen.getByTestId('team_settings_modal.info.name--textbox');
 
         await userEvent.clear(input);
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('team_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
-        const error = screen.getByTestId('mm-modal-generic-section-item__error');
+        const error = screen.getByTestId('team_settings_modal.info.name_section.error--text');
         expect(error).toBeVisible();
         expect(error).toHaveTextContent('This field is required');
     });
 
     test('should show an error when team name is too short', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
-        const input = screen.getByTestId('teamNameInput');
+        const input = screen.getByTestId('team_settings_modal.info.name--textbox');
         await userEvent.clear(input);
         await userEvent.type(input, 'a');
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('team_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
-        const error = screen.getByTestId('mm-modal-generic-section-item__error');
+        const error = screen.getByTestId('team_settings_modal.info.name_section.error--text');
         expect(error).toBeVisible();
         expect(error).toHaveTextContent(`Team Name must be ${Constants.MIN_TEAMNAME_LENGTH} or more characters up to a maximum of ${Constants.MAX_TEAMNAME_LENGTH}. You can add a longer team description.`);
     });
 
     test('should call patchTeam when team name is changed and clicked saved', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
-        const input = screen.getByTestId('teamNameInput');
+        const input = screen.getByTestId('team_settings_modal.info.name--textbox');
         await userEvent.clear(input);
         await userEvent.type(input, 'new_team_name');
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('team_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
         expect(patchTeam).toHaveBeenCalledTimes(1);
@@ -128,10 +128,10 @@ describe('components/TeamSettings', () => {
 
     test('should call patchTeam when team description is changed and clicked saved', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
-        const input = screen.getByTestId('teamDescriptionInput');
+        const input = screen.getByTestId('team_settings_modal.info.description--textbox');
         await userEvent.clear(input);
         await userEvent.type(input, 'new_team_description');
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('team_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
         expect(patchTeam).toHaveBeenCalledTimes(1);
@@ -140,13 +140,13 @@ describe('components/TeamSettings', () => {
 
     test('should call patchTeam when team name and description are change and clicked saved', async () => {
         renderWithContext(<InfoTab {...defaultProps}/>);
-        const nameInput = screen.getByTestId('teamNameInput');
-        const descriptionInput = screen.getByTestId('teamDescriptionInput');
+        const nameInput = screen.getByTestId('team_settings_modal.info.name--textbox');
+        const descriptionInput = screen.getByTestId('team_settings_modal.info.description--textbox');
         await userEvent.clear(nameInput);
         await userEvent.type(nameInput, 'new_team_name');
         await userEvent.clear(descriptionInput);
         await userEvent.type(descriptionInput, 'new_team_description');
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('team_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
         expect(patchTeam).toHaveBeenCalledTimes(1);

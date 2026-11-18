@@ -34,7 +34,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         const {rerender} = renderWithContext(
             <JoinLeaveSection {...defaultProps}/>,
         );
-        expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('settings.advanced.section.save--button')).not.toBeInTheDocument();
         expect(screen.getByText('Enable Join/Leave Messages')).toBeInTheDocument();
 
         rerender(
@@ -43,7 +43,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
                 active={true}
             />,
         );
-        expect(screen.getByTestId('saveSetting')).toBeInTheDocument();
+        expect(screen.getByTestId('settings.advanced.section.save--button')).toBeInTheDocument();
     });
 
     test('should match state on handleOnChange', async () => {
@@ -86,7 +86,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         };
 
         // Click Save with initial joinLeave value 'true'
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('settings.advanced.section.save--button'));
         expect(actions.savePreferences).toHaveBeenCalledTimes(1);
         expect(actions.savePreferences).toHaveBeenCalledWith('current_user_id', [joinLeavePreference]);
         expect(onUpdateSection).toHaveBeenCalledTimes(1);
@@ -94,7 +94,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         // Change to 'false' and save again
         await userEvent.click(screen.getByRole('radio', {name: /off/i}));
         joinLeavePreference.value = 'false';
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('settings.advanced.section.save--button'));
         expect(actions.savePreferences).toHaveBeenCalledTimes(2);
         expect(actions.savePreferences).toHaveBeenCalledWith('current_user_id', [joinLeavePreference]);
     });
@@ -114,7 +114,7 @@ describe('components/user_settings/advanced/JoinLeaveSection', () => {
         expect(screen.getByRole('radio', {name: /off/i})).toBeChecked();
 
         // Click Cancel → handleUpdateSection() resets state and calls onUpdateSection
-        await userEvent.click(screen.getByTestId('cancelButton'));
+        await userEvent.click(screen.getByTestId('settings.advanced.section.cancel--button'));
         expect(onUpdateSection).toHaveBeenCalledTimes(1);
 
         // After cancel, re-render as active to verify the state was reset

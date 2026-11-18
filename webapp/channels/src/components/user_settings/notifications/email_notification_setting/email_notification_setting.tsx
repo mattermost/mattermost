@@ -264,6 +264,8 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                 }
                 describe={description}
                 section={'email'}
+                testId='settings.notifications.section'
+                testKey={'email'}
                 updateSection={this.handleUpdateSection}
             />
         );
@@ -273,6 +275,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
         if (!this.props.sendEmailNotifications) {
             return (
                 <SettingItemMax
+                    testIdScope='settings.notifications.section'
                     title={
                         <FormattedMessage
                             id='user.settings.notifications.emailNotifications'
@@ -307,6 +310,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                     <div className='settings-radio-group'>
                         <Radio
                             id='emailNotificationImmediately'
+                            data-testid='settings.notifications.section.email_batched.option:immediately--radio'
                             name='emailNotifications'
                             checked={newInterval === Preferences.INTERVAL_IMMEDIATE}
                             data-enable-email={'true'}
@@ -320,6 +324,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         </Radio>
                         <Radio
                             id='emailNotificationMinutes'
+                            data-testid='settings.notifications.section.email_batched.option:fifteen_minutes--radio'
                             name='emailNotifications'
                             checked={newInterval === Preferences.INTERVAL_FIFTEEN_MINUTES}
                             data-enable-email={'true'}
@@ -334,6 +339,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         </Radio>
                         <Radio
                             id='emailNotificationHour'
+                            data-testid='settings.notifications.section.email_batched.option:hour--radio'
                             name='emailNotifications'
                             checked={newInterval === Preferences.INTERVAL_HOUR}
                             data-enable-email={'true'}
@@ -347,6 +353,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         </Radio>
                         <Radio
                             id='emailNotificationNever'
+                            data-testid='settings.notifications.section.email_batched.option:never--radio'
                             name='emailNotifications'
                             checked={newInterval === Preferences.INTERVAL_NEVER}
                             data-enable-email={'false'}
@@ -383,6 +390,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                     <div className='settings-radio-group'>
                         <Radio
                             id='emailNotificationImmediately'
+                            data-testid='settings.notifications.section.email_unbatched.option:immediately--radio'
                             name='emailNotifications'
                             checked={newInterval === Preferences.INTERVAL_IMMEDIATE}
                             data-enable-email={'true'}
@@ -396,6 +404,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                         </Radio>
                         <Radio
                             id='emailNotificationNever'
+                            data-testid='settings.notifications.section.email_unbatched.option:never--radio'
                             name='emailNotifications'
                             checked={newInterval === Preferences.INTERVAL_NEVER}
                             data-enable-email={'false'}
@@ -445,6 +454,8 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
 
         return (
             <SettingItemMax
+                testIdScope='settings.notifications.section'
+                testKey='email'
                 title={
                     <FormattedMessage
                         id='user.settings.notifications.emailNotifications'

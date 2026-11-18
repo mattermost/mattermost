@@ -19,6 +19,9 @@ import './public-private-selector.scss';
 
 export type PluginOptionButtonProps = {
     id: string;
+
+    /** The plugin that registered the option: its button's testid is keyed by plugin. */
+    pluginId?: string;
     label: React.ReactNode;
     description: React.ReactNode;
     icon: React.ReactNode;
@@ -37,6 +40,9 @@ type BigButtonSelectorProps = {
     disabled?: boolean;
     locked?: boolean;
     onClick: (id: string) => void;
+
+    /** The button's whole testid. */
+    buttonTestId?: string;
 };
 
 const BigButtonSelector = ({
@@ -52,6 +58,7 @@ const BigButtonSelector = ({
     disabled,
     locked,
     onClick,
+    buttonTestId,
 }: BigButtonSelectorProps) => {
     const handleOnClick = useCallback(
         (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
@@ -64,6 +71,7 @@ const BigButtonSelector = ({
     const button = (
         <button
             id={`public-private-selector-button-${id}`}
+            data-testid={buttonTestId}
             className={classNames('public-private-selector-button', {selected, disabled, locked})}
             onClick={handleOnClick}
         >
@@ -116,6 +124,15 @@ type PublicPrivateSelectorProps = {
     /** Shows only `pluginOptions`, for a modal opened for one plugin's channel types. */
     hideBuiltInOptions?: boolean;
     onChange: (selected: string) => void;
+
+    /** Testid scope (`new_channel_modal.type`): `<scope>.public--button`, `<scope>.private--button`. */
+    testId?: string;
+
+    /**
+     * Plugin types render the published `new_channel_type` slot (`new_channel_modal.type.plugin_type:<plugin>--button`).
+     * Only the new channel modal sets it, so a selector that never offers plugin types (Team Settings) doesn't declare the slot.
+     */
+    pluginTypesSlot?: boolean;
 };
 
 const PublicPrivateSelector = ({
@@ -144,6 +161,8 @@ const PublicPrivateSelector = ({
     pluginOptions,
     hideBuiltInOptions = false,
     onChange,
+    testId,
+    pluginTypesSlot,
 }: PublicPrivateSelectorProps) => {
     const {formatMessage} = useIntl();
 
@@ -182,6 +201,7 @@ const PublicPrivateSelector = ({
                         disabled={disabledPublic}
                         locked={lockedPublic}
                         onClick={handleOnClick}
+                        buttonTestId={testId ? `${testId}.public--button` : undefined}
                     />
                     <BigButtonSelector
                         id={Constants.PRIVATE_CHANNEL as ChannelType}
@@ -196,6 +216,7 @@ const PublicPrivateSelector = ({
                         disabled={disabledPrivate}
                         locked={lockedPrivate}
                         onClick={handleOnClick}
+                        buttonTestId={testId ? `${testId}.private--button` : undefined}
                     />
                 </>
             )}
@@ -210,6 +231,7 @@ const PublicPrivateSelector = ({
                     disabled={false}
                     locked={false}
                     onClick={handleOnClick}
+                    buttonTestId={pluginTypesSlot && option.pluginId ? `new_channel_modal.type.plugin_type:${option.pluginId}--button` : undefined}
                 />
             ))}
         </div>
