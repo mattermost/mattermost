@@ -32,7 +32,7 @@ export default function ErrorStepFooter({action, onSkip, onBack}: FooterProps) {
                     emphasis='tertiary'
                     destructive={true}
                     onClick={onSkip}
-                    data-testid='error-skip-button'
+                    data-testid='flagged_message_modal.error.skip--button'
                 >
                     {skipText}
                 </Button>
@@ -43,7 +43,7 @@ export default function ErrorStepFooter({action, onSkip, onBack}: FooterProps) {
                     className='GenericModal__button'
                     emphasis='tertiary'
                     onClick={onBack}
-                    data-testid='error-step-back-button'
+                    data-testid='flagged_message_modal.error.back--button'
                 >
                     {backText}
                 </Button>
@@ -53,7 +53,7 @@ export default function ErrorStepFooter({action, onSkip, onBack}: FooterProps) {
                     emphasis='primary'
                     destructive={permanentDestructive}
                     disabled={true}
-                    data-testid='error-permanent-button'
+                    data-testid='flagged_message_modal.error.permanent--button'
                 >
                     {permanentText}
                 </Button>

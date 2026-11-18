@@ -4,7 +4,9 @@
 import type {Client4} from '@mattermost/client';
 import type {PropertyField} from '@mattermost/types/properties';
 
-import type {ResourceObjectType} from './global_attributes_helpers';
+import {Api, expect, settle, type App} from '@mattermost/playwright-lib';
+
+import {ignoreNotFound, type ResourceObjectType} from './global_attributes_helpers';
 
 // Canonical values: webapp/channels/src/components/admin_console/global_attributes/constants.ts
 const PROPERTY_GROUP = 'access_control';
@@ -43,6 +45,15 @@ export class ListingSeeder {
     readonly suffix: string;
     private readonly adminClient: Client4;
     private readonly created: SeededField[] = [];
+    private readonly labels = new Map<string, string>();
+
+    idForLabel(label: string): string {
+        const id = this.labels.get(label);
+        if (!id) {
+            throw new Error(`No seeded field has label ${label}`);
+        }
+        return id;
+    }
 
     constructor(adminClient: Client4, suffix: string) {
         this.adminClient = adminClient;
@@ -59,6 +70,8 @@ export class ListingSeeder {
     private async create(objectType: string, field: CreateFieldInput): Promise<PropertyField> {
         const created = await this.adminClient.createPropertyField(PROPERTY_GROUP, objectType, field);
         this.created.push({objectType, id: created.id});
+        const label = created.attrs?.display_name;
+        this.labels.set(typeof label === 'string' && label ? label : created.name, created.id);
         return created;
     }
 
@@ -144,7 +157,7 @@ export class ListingSeeder {
 
     /**
      * Deletes everything this seeder created, dependents first (a template delete is
-     * refused with 409 while a live linked field exists), ignoring fields a test already removed.
+     * refused with 409 while a live linked field exists); a field a test already removed is fine.
      */
     async cleanup() {
         const ordered = [
@@ -152,12 +165,62 @@ export class ListingSeeder {
             ...this.created.filter((field) => field.objectType === 'template'),
         ];
         for (const field of ordered) {
-            try {
-                await this.adminClient.deletePropertyField(PROPERTY_GROUP, field.objectType, field.id);
-            } catch {
-                // Already deleted by the test, or the routes are unavailable.
-            }
+            await ignoreNotFound(() =>
+                this.adminClient.deletePropertyField(PROPERTY_GROUP, field.objectType, field.id),
+            );
         }
         this.created.length = 0;
     }
+}
+
+/** Search is debounced; the named response proves the results reflect this term. */
+export async function searchListing(app: App, term: string) {
+    await settle(app.admin.attributes.search.container, {wait: Api.SearchGlobalAttributes}).fill(term);
+    await expect(app.admin.attributes.search.container).toHaveValue(term);
+}
+
+type SourceKey = Parameters<App['admin']['attributes']['sourceFilter']['menu']['option']>[0];
+type ResourceKey = Parameters<App['admin']['attributes']['resourceTypeFilter']['menu']['option']>[0];
+
+// The labels the filters show, with the option each one's menu item is keyed by.
+const SOURCE_OPTIONS = {
+    All: 'all',
+    'Managed here': 'managed',
+    'AD/LDAP': 'ldap',
+    SAML: 'saml',
+    'OpenID Connect': 'openid',
+    Plugin: 'plugin',
+} satisfies Record<string, SourceKey>;
+const RESOURCE_OPTIONS = {All: 'all', Users: 'user', Channels: 'channel', Posts: 'post'} satisfies Record<
+    string,
+    ResourceKey
+>;
+
+/** Picks an option in the Source or Resource type filter and waits for the search it sends. */
+export async function filterListing(app: App, kind: 'source', label: keyof typeof SOURCE_OPTIONS): Promise<void>;
+export async function filterListing(app: App, kind: 'resource', label: keyof typeof RESOURCE_OPTIONS): Promise<void>;
+export async function filterListing(
+    app: App,
+    kind: 'source' | 'resource',
+    label: keyof typeof SOURCE_OPTIONS | keyof typeof RESOURCE_OPTIONS,
+): Promise<void> {
+    const attributes = app.admin.attributes;
+    if (kind === 'source') {
+        const filter = attributes.sourceFilter;
+        const option = filter.menu.option(SOURCE_OPTIONS[label as keyof typeof SOURCE_OPTIONS]);
+        await filter.container.click();
+        await expect(option).toBeVisible();
+        await settle(option, {wait: Api.SearchGlobalAttributes}).click();
+        await expect(filter.menu).not.toBeVisible();
+        await expect(filter.input.container).toHaveValue(label);
+        return;
+    }
+
+    const filter = attributes.resourceTypeFilter;
+    const option = filter.menu.option(RESOURCE_OPTIONS[label as keyof typeof RESOURCE_OPTIONS]);
+    await filter.container.click();
+    await expect(option).toBeVisible();
+    await settle(option, {wait: Api.SearchGlobalAttributes}).click();
+    await expect(filter.menu).not.toBeVisible();
+    await expect(filter.input.container).toHaveValue(label);
 }

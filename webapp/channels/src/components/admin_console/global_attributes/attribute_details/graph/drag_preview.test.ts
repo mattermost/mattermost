@@ -6,7 +6,7 @@ import {GRAPH_ROW_DRAG_KIND} from './drop_classifier';
 
 function graphRowEl(optionName: string, parentName: string) {
     const li = document.createElement('li');
-    li.setAttribute('data-testid', 'attributeOptionsGraphRow');
+    li.setAttribute('data-testid', 'admin.attribute.graph.row:0');
     li.setAttribute('data-option-name', optionName);
     li.setAttribute('data-parent-name', parentName);
     return li;
@@ -20,7 +20,7 @@ describe('createGraphRowDragPreview', () => {
     test('clones the full row at its laid-out width and strips the menu anchor', () => {
         const row = document.createElement('li');
         row.className = 'attribute-options-graph-values__row';
-        row.setAttribute('data-testid', 'attributeOptionsGraphRow');
+        row.setAttribute('data-testid', 'admin.attribute.graph.row:0');
         row.setAttribute('tabindex', '-1');
         row.style.setProperty('--attribute-options-graph-values-indent', '2');
 
@@ -37,7 +37,7 @@ describe('createGraphRowDragPreview', () => {
 
         const menuAnchor = document.createElement('div');
         menuAnchor.className = 'attribute-options-graph-values__parents-anchor';
-        menuAnchor.setAttribute('data-testid', 'attributeOptionsGraphRow__parentsAnchor');
+        menuAnchor.setAttribute('data-testid', 'admin.attribute.graph.row.menu_anchor--button');
         row.appendChild(menuAnchor);
 
         document.body.appendChild(row);

@@ -150,7 +150,10 @@ function SourceCell({row}: ClassificationAwareCellProps) {
     } else if (kind === 'plugin') {
         content = (
             <>
-                <PowerPlugOutlineIcon size={16}/>
+                <PowerPlugOutlineIcon
+                    size={16}
+                    data-testid='admin.attributes.row.source_plugin_icon'
+                />
                 {pluginDisplayName}
             </>
         );
@@ -160,7 +163,10 @@ function SourceCell({row}: ClassificationAwareCellProps) {
             <>
                 {owners.length > 0 && (
                     <span className='GlobalAttributesTable__source'>
-                        <PowerPlugOutlineIcon size={16}/>
+                        <PowerPlugOutlineIcon
+                            size={16}
+                            data-testid='admin.attributes.row.source_plugin_icon'
+                        />
                         <FormattedMessage
                             {...sourceLabels.ownedBy}
                             values={{owners: ownersLabel}}
@@ -169,7 +175,12 @@ function SourceCell({row}: ClassificationAwareCellProps) {
                 )}
                 {syncSources.length > 0 && (
                     <span className='GlobalAttributesTable__source'>
-                        {SyncKindIcon && <SyncKindIcon size={16}/>}
+                        {SyncKindIcon && (
+                            <SyncKindIcon
+                                size={16}
+                                data-testid='admin.attributes.row.source_sync_icon'
+                            />
+                        )}
                         <FormattedList
                             type='unit'
                             value={syncSources.map((source) => formatMessage(externalSourceMessages[source].title))}
@@ -185,7 +196,7 @@ function SourceCell({row}: ClassificationAwareCellProps) {
     return (
         <span
             className='GlobalAttributesTable__source'
-            data-testid='global-attribute-source'
+            data-testid='admin.attributes.row.source--text'
         >
             {content}
         </span>
@@ -194,13 +205,13 @@ function SourceCell({row}: ClassificationAwareCellProps) {
 
 function AppliesToCell({types}: {types: ResourceObjectType[]}) {
     if (types.length === 0) {
-        return <span data-testid='global-attribute-applies-to'>{'—'}</span>;
+        return <span data-testid='admin.attributes.row.applies_to_none--text'>{'—'}</span>;
     }
 
     return (
         <ul
             className='GlobalAttributesTable__appliesTo'
-            data-testid='global-attribute-applies-to'
+            data-testid='admin.attributes.row.applies_to'
         >
             {types.map((type) => (
                 <li key={type}>
@@ -251,7 +262,7 @@ function AttributeCell({row}: ClassificationAwareCellProps) {
             <span className='GlobalAttributesTable__nameRow'>
                 <span
                     className='GlobalAttributesTable__name'
-                    data-testid='global-attribute-name'
+                    data-testid='admin.attributes.row.name--text'
                 >
                     {getDisplayName(field)}
                 </span>
@@ -267,7 +278,7 @@ function AttributeCell({row}: ClassificationAwareCellProps) {
                             // role that admits a name for aria-label to be announced.
                             role='img'
                             aria-label={conflictText}
-                            data-testid={`global-attribute-name-conflict-${field.id}`}
+                            data-testid='admin.attributes.row.name_conflict--img'
                         >
                             <AlertOutlineIcon
                                 size={16}
@@ -281,7 +292,7 @@ function AttributeCell({row}: ClassificationAwareCellProps) {
                 <span
                     id={classificationSubtitleId(field.id)}
                     className='GlobalAttributesTable__subtitle'
-                    data-testid={`global-attribute-classification-subtitle-${field.id}`}
+                    data-testid='admin.attributes.row.classification_subtitle--text'
                 >
                     <FormattedMessage {...messages.classificationSubtitle}/>
                 </span>
@@ -371,7 +382,7 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
                     className='GlobalAttributesTable__link--classification'
                     aria-label={classificationLinkLabel}
                     aria-describedby={classificationSubtitleId(field.id)}
-                    data-testid={`global-attribute-classification-link-${field.id}`}
+                    data-testid='admin.attributes.row.classification_link--link'
                 >
                     <OpenInNewIcon
                         size={18}
@@ -388,7 +399,7 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
                 id: `${menuId}-button`,
                 class: 'btn btn-transparent GlobalAttributesTable__actionsButton',
                 children: <DotsHorizontalIcon size={18}/>,
-                dataTestId: menuId,
+                dataTestId: 'admin.attributes.row.actions--button',
                 'aria-label': formatMessage(actionsLabels.tooltip),
             }}
             menuButtonTooltip={{text: formatMessage(actionsLabels.tooltip)}}
@@ -401,12 +412,14 @@ function ActionsCell({row, isMobileView, pluginInventoryLoaded, disabled, onDele
         >
             <Menu.Item
                 id={`${menuId}-edit`}
+                data-testid='admin.attributes.actions_menu.edit--menuitem'
                 leadingElement={isViewOnly ? <EyeOutlineIcon size={18}/> : <PencilOutlineIcon size={18}/>}
                 onClick={() => getHistory().push(attributeDetailsRoute(field.id))}
                 labels={<FormattedMessage {...(isViewOnly ? actionsLabels.view : actionsLabels.edit)}/>}
             />
             <Menu.Item
                 id={`${menuId}-delete`}
+                data-testid='admin.attributes.actions_menu.delete--menuitem'
                 disabled={isDeleteDisabled}
                 isDestructive={true}
                 leadingElement={<TrashCanOutlineIcon size={18}/>}
@@ -547,9 +560,12 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
                 return (
                     <span
                         className='GlobalAttributesTable__type'
-                        data-testid='global-attribute-type'
+                        data-testid='admin.attributes.row.type--text'
                     >
-                        <Icon size={16}/>
+                        <Icon
+                            size={16}
+                            data-testid='admin.attributes.row.type_icon'
+                        />
                         <FormattedMessage {...label}/>
                     </span>
                 );
@@ -573,7 +589,7 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
             id: 'options',
             header: () => <FormattedMessage {...messages.options}/>,
             cell: ({row}) => (
-                <span data-testid='global-attribute-options'>
+                <span data-testid='admin.attributes.row.options--text'>
                     <OptionsCell field={row.original.field}/>
                 </span>
             ),
@@ -623,7 +639,7 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
         return (
             <div
                 className='GlobalAttributesTable__empty'
-                data-testid='global-attributes-error'
+                data-testid='admin.attributes.error--text'
             >
                 <FormattedMessage {...messages.loadError}/>
             </div>
@@ -631,7 +647,7 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
     }
 
     if (!loaded) {
-        return <LoadingScreen/>;
+        return <LoadingScreen testId='admin.attributes.loading'/>;
     }
 
     if (rows.length === 0) {
@@ -641,7 +657,7 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
             return (
                 <div
                     className='GlobalAttributesTable__empty'
-                    data-testid='global-attributes-empty'
+                    data-testid='admin.attributes.empty--text'
                 >
                     <FormattedMessage {...messages.empty}/>
                 </div>
@@ -650,14 +666,14 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
         return (
             <div
                 className='GlobalAttributesTable__empty'
-                data-testid='global-attributes-empty-search'
+                data-testid='admin.attributes.empty_search--text'
             >
                 <FormattedMessage {...(isFiltered ? messages.emptyFiltered : messages.emptySearch)}/>
                 {onClearFilters && (
                     <Button
                         emphasis='tertiary'
                         onClick={onClearFilters}
-                        data-testid='global-attributes-clear-filters'
+                        data-testid='admin.attributes.clear_filters--button'
                     >
                         <FormattedMessage {...messages.clearFilters}/>
                     </Button>
@@ -682,13 +698,17 @@ export default function GlobalAttributesTable({searchQuery = '', source, resourc
                 {deleteError && (
                     <AlertBanner
                         id='global-attributes-delete-error'
+                        testId='admin.attributes.delete_error'
                         mode='danger'
                         message={deleteError}
                         onDismiss={() => setDeleteError(null)}
                     />
                 )}
             </div>
-            <AdminConsoleListTable<ListingTableRow> table={table}/>
+            <AdminConsoleListTable<ListingTableRow>
+                table={table}
+                testIdScope='admin.attributes'
+            />
         </div>
     );
 }

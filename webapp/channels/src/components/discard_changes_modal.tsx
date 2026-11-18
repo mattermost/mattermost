@@ -42,6 +42,7 @@ const DiscardChangesModal = ({
 
     return (
         <ConfirmModal
+            testId='discard_changes_modal'
             show={show}
             title={title}
             message={message}

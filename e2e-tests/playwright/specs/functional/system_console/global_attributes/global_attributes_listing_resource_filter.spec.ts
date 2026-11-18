@@ -11,10 +11,10 @@
  * the PostAttributes flag.
  */
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
 
-import {requireGlobalAttributesEnabled} from './global_attributes_helpers';
-import {ListingSeeder} from './listing_helpers';
+import {openAttributeManagement, requireGlobalAttributesEnabled} from './global_attributes_helpers';
+import {ListingSeeder, searchListing, filterListing} from './listing_helpers';
 
 test.describe('System Console - Global Attributes listing resource type filter', {tag: '@system_console'}, () => {
     /**
@@ -53,10 +53,9 @@ test.describe('System Console - Global Attributes listing resource type filter',
             await seeder.unlinkedField('channel', {key: 'res_loose_channel', displayName: looseChannel});
             await seeder.unlinkedField('post', {key: 'res_loose_post', displayName: loosePost});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
-            await globalAttributes.search(suffix);
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
+            await searchListing(app, suffix);
 
             const all = [
                 userTemplate,
@@ -74,28 +73,28 @@ test.describe('System Console - Global Attributes listing resource type filter',
             ];
 
             // * The filter defaults to All, and every seeded row shows
-            await expect(globalAttributes.resourceTypeFilter.getByRole('textbox')).toHaveValue('All');
-            await expect(globalAttributes.rows).toHaveCount(all.length);
+            await expect(attributes.resourceTypeFilter.input.container).toHaveValue('All');
+            await expect(attributes.rowList).toHaveKeyCount(all.length);
 
             for (const {resourceType, shown} of cases) {
                 // # Pick the resource type
-                await globalAttributes.selectResourceTypeFilter(resourceType);
+                await filterListing(app, 'resource', resourceType);
 
                 // * Only that type's rows show, the template linked to nothing never does, and the
                 // filter shows the pick
-                await expect(globalAttributes.rows).toHaveCount(shown.length);
+                await expect(attributes.rowList).toHaveKeyCount(shown.length);
                 for (const label of shown) {
-                    await expect(globalAttributes.rowByLabel(label)).toBeVisible();
+                    await expect(attributes.row(seeder.idForLabel(label))).toBeVisible();
                 }
-                await expect(globalAttributes.rowByLabel(bareTemplate)).toHaveCount(0);
-                await expect(globalAttributes.resourceTypeFilter.getByRole('textbox')).toHaveValue(resourceType);
+                await expect(attributes.row(seeder.idForLabel(bareTemplate))).toHaveCount(0);
+                await expect(attributes.resourceTypeFilter.input.container).toHaveValue(resourceType);
             }
 
             // # Return to All
-            await globalAttributes.selectResourceTypeFilter('All');
+            await filterListing(app, 'resource', 'All');
 
             // * Every seeded row shows again
-            await expect(globalAttributes.rows).toHaveCount(all.length);
+            await expect(attributes.rowList).toHaveKeyCount(all.length);
         } finally {
             await seeder.cleanup();
         }
@@ -135,34 +134,33 @@ test.describe('System Console - Global Attributes listing resource type filter',
             );
             await seeder.linkedChild(otherTemplate, 'channel');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
 
             // # Filter to Channels and AD/LDAP, then search for the shared stem
-            await globalAttributes.selectResourceTypeFilter('Channels');
-            await globalAttributes.selectSourceFilter('AD/LDAP');
-            await globalAttributes.search(`Alpha ${suffix}`);
+            await filterListing(app, 'resource', 'Channels');
+            await filterListing(app, 'source', 'AD/LDAP');
+            await searchListing(app, `Alpha ${suffix}`);
 
             // * Only the LDAP channel row that also matches the term shows
-            await expect(globalAttributes.rows).toHaveCount(1);
-            await expect(globalAttributes.rowByLabel(ldapChannel)).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(1);
+            await expect(attributes.row(seeder.idForLabel(ldapChannel))).toBeVisible();
 
             // # Switch the resource type with the source and term kept
-            await globalAttributes.selectResourceTypeFilter('Users');
+            await filterListing(app, 'resource', 'Users');
 
             // * Now only the LDAP user row matching the term shows
-            await expect(globalAttributes.rows).toHaveCount(1);
-            await expect(globalAttributes.rowByLabel(ldapUser)).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(1);
+            await expect(attributes.row(seeder.idForLabel(ldapUser))).toBeVisible();
 
             // # Switch the source back to All with Channels picked again
-            await globalAttributes.selectResourceTypeFilter('Channels');
-            await globalAttributes.selectSourceFilter('All');
+            await filterListing(app, 'resource', 'Channels');
+            await filterListing(app, 'source', 'All');
 
             // * Both channel rows matching the term show, whatever their source
-            await expect(globalAttributes.rows).toHaveCount(2);
-            await expect(globalAttributes.rowByLabel(ldapChannel)).toBeVisible();
-            await expect(globalAttributes.rowByLabel(managedChannel)).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(2);
+            await expect(attributes.row(seeder.idForLabel(ldapChannel))).toBeVisible();
+            await expect(attributes.row(seeder.idForLabel(managedChannel))).toBeVisible();
         } finally {
             await seeder.cleanup();
         }
@@ -184,31 +182,29 @@ test.describe('System Console - Global Attributes listing resource type filter',
             const template = await seeder.template({key: 'clear_user', displayName: label});
             await seeder.linkedChild(template, 'user');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
-            await globalAttributes.search(suffix);
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
+            await searchListing(app, suffix);
 
             // # Filter to a resource type and a source the row does not match
-            await globalAttributes.selectResourceTypeFilter('Posts');
-            await globalAttributes.selectSourceFilter('Managed here');
+            await filterListing(app, 'resource', 'Posts');
+            await filterListing(app, 'source', 'Managed here');
 
             // * The no-match state shows with Clear filters, not the empty-listing state
-            await expect(globalAttributes.emptySearchState).toContainText(
-                'No attributes match your search or filters.',
-            );
-            await expect(globalAttributes.emptyState).toHaveCount(0);
-            await expect(globalAttributes.clearFiltersButton).toBeVisible();
+            await expect(attributes.emptySearchText).toContainText('No attributes match your search or filters.');
+            await expect(attributes.emptyText).toHaveCount(0);
+            await expect(attributes.clearFiltersButton).toBeVisible();
 
             // # Clear filters
-            await globalAttributes.clearFilters();
+            await settle(attributes.clearFiltersButton, {wait: Api.SearchGlobalAttributes}).click();
+            await expect(attributes.clearFiltersButton).not.toBeVisible();
 
             // * The search is empty, both filters are back to All, and the row shows again
-            await expect(globalAttributes.searchInput).toHaveValue('');
-            await expect(globalAttributes.sourceFilter.getByRole('textbox')).toHaveValue('All');
-            await expect(globalAttributes.resourceTypeFilter.getByRole('textbox')).toHaveValue('All');
-            await expect(globalAttributes.rowByLabel(label)).toBeVisible();
-            await expect(globalAttributes.emptySearchState).toHaveCount(0);
+            await expect(attributes.search.container).toHaveValue('');
+            await expect(attributes.sourceFilter.input.container).toHaveValue('All');
+            await expect(attributes.resourceTypeFilter.input.container).toHaveValue('All');
+            await expect(attributes.row(seeder.idForLabel(label))).toBeVisible();
+            await expect(attributes.emptySearchText).toHaveCount(0);
         } finally {
             await seeder.cleanup();
         }

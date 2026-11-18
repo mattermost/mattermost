@@ -65,7 +65,7 @@ const SelectType = (props: Props) => {
                         <FormattedMessage {...currentTypeDescriptor.label}/>
                     </>
                 ),
-                dataTestId: 'fieldTypeSelectorMenuButton',
+                dataTestId: 'admin.board_attributes.row.type--button',
                 disabled: isDisabled,
             }}
             menu={{
@@ -96,6 +96,7 @@ const SelectType = (props: Props) => {
                     <Menu.Item
                         id={id}
                         key={id}
+                        data-testid={`board_attribute_type_menu.type:${id}--menuitemradio`}
                         role='menuitemradio'
                         forceCloseOnSelect={true}
                         aria-checked={id === currentTypeDescriptor.id}

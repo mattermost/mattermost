@@ -66,7 +66,7 @@ function AttributeAppliesToUserItem({
             aria-expanded={isOpen}
             aria-controls={BODY_ID}
             aria-label={toggleLabel}
-            data-testid='attributeAppliesToRow-user-toggle'
+            data-testid='admin.attribute.applies_to.user.toggle--button'
         >
             <ChevronDownIcon
                 size={16}
@@ -88,7 +88,7 @@ function AttributeAppliesToUserItem({
             className='AttributeAppliesToItem__remove'
             onClick={onRemove}
             disabled={disabled || Boolean(removeLockedTooltip)}
-            data-testid='attributeAppliesToRow-user-remove'
+            data-testid='admin.attribute.applies_to.user.remove--button'
         >
             <FormattedMessage {...messages.removeLabel}/>
         </Button>
@@ -104,7 +104,7 @@ function AttributeAppliesToUserItem({
                     checked={managed === ''}
                     disabled={whoCanSetDisabled}
                     onChange={() => onManagedChange?.('')}
-                    data-testid='attributeAppliesToUserWhoCanSet-member'
+                    data-testid='admin.attribute.applies_to.user.who_can_set.member--radio'
                 />
                 <FormattedMessage {...messages.whoCanSetMemberLabel}/>
             </label>
@@ -115,7 +115,7 @@ function AttributeAppliesToUserItem({
                     checked={managed === 'admin'}
                     disabled={whoCanSetDisabled}
                     onChange={() => onManagedChange?.('admin')}
-                    data-testid='attributeAppliesToUserWhoCanSet-admin'
+                    data-testid='admin.attribute.applies_to.user.who_can_set.admin--radio'
                 />
                 <FormattedMessage {...messages.whoCanSetAdminLabel}/>
             </label>
@@ -125,7 +125,7 @@ function AttributeAppliesToUserItem({
     return (
         <div
             className={classNames('AttributeAppliesToItem', {'AttributeAppliesToItem--open': isOpen})}
-            data-testid='attributeAppliesToRow-user'
+            data-testid='admin.attribute.applies_to.user'
         >
             <div className='AttributeAppliesToItem__header'>
                 {lockedTooltip ? (
@@ -133,7 +133,7 @@ function AttributeAppliesToUserItem({
                         <span
                             // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled toggle is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                             tabIndex={0}
-                            data-testid='attributeAppliesToRow-user-toggleLockWrap'
+                            data-testid='admin.attribute.applies_to.user.toggle_locked'
                         >
                             {toggleButton}
                         </span>
@@ -144,7 +144,7 @@ function AttributeAppliesToUserItem({
                         <span
                             // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Remove is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                             tabIndex={0}
-                            data-testid='attributeAppliesToRow-user-removeLockWrap'
+                            data-testid='admin.attribute.applies_to.user.remove_locked'
                         >
                             {removeButton}
                         </span>
@@ -157,7 +157,7 @@ function AttributeAppliesToUserItem({
                     role='region'
                     aria-label={label}
                     className='AttributeAppliesToItem__body'
-                    data-testid='attributeAppliesToRow-user-body'
+                    data-testid='admin.attribute.applies_to.user.body--region'
                 >
                     {externalSource && (
                         <div className='AttributeAppliesToItem__row'>
@@ -167,12 +167,15 @@ function AttributeAppliesToUserItem({
                             <div className='AttributeAppliesToItem__managedBy'>
                                 <AttributeSelect
                                     idPrefix='attribute-applies-to-user-managed-by'
-                                    dataTestId='attributeAppliesToUserManagedBy'
+                                    testId='admin.attribute.applies_to.user.managed_by'
                                     selected={MANAGED_BY_OPTIONS[externalSource]}
                                     locked={true}
                                     ariaLabel={formatMessage(messages.managedByAriaLabel, {value: formatMessage(externalSourceMessages[externalSource].title)})}
                                 />
-                                <div className='AttributeAppliesToItem__helpText'>
+                                <div
+                                    className='AttributeAppliesToItem__helpText'
+                                    data-testid='admin.attribute.applies_to.user.managed_by_help--text'
+                                >
                                     <FormattedMessage {...messages.managedByHelp}/>
                                 </div>
                             </div>
@@ -196,7 +199,7 @@ function AttributeAppliesToUserItem({
                                     })}
                                     aria-pressed={visibility === value}
                                     disabled={disabled}
-                                    data-testid={`attributeAppliesToUserProfileDisplay-${value}`}
+                                    data-testid={`admin.attribute.applies_to.user.profile_display:${value}--togglebutton`}
                                     onClick={() => onVisibilityChange?.(value)}
                                 >
                                     <FormattedMessage {...profileDisplayValueMessages[value]}/>
@@ -214,7 +217,7 @@ function AttributeAppliesToUserItem({
                                     <span
                                         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled radios are unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                                         tabIndex={0}
-                                        data-testid='attributeAppliesToUserWhoCanSet-lockWrap'
+                                        data-testid='admin.attribute.applies_to.user.who_can_set_locked'
                                     >
                                         {whoCanSetRadioList}
                                     </span>

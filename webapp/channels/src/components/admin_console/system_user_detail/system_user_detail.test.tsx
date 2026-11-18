@@ -690,7 +690,7 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            const labelEl = await screen.findByTestId('user-detail-custom-attribute-label-cpa-1');
+            const labelEl = await screen.findByTestId('admin.user.attribute:cpa-1');
             expect(labelEl).toHaveTextContent('Engineering Department');
             expect(labelEl).not.toHaveTextContent('department');
         });
@@ -707,7 +707,7 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            const labelEl = await screen.findByTestId('user-detail-custom-attribute-label-cpa-1');
+            const labelEl = await screen.findByTestId('admin.user.attribute:cpa-1');
             expect(labelEl).toHaveTextContent('department');
         });
 
@@ -725,10 +725,10 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            expect(screen.getByTestId('user-detail-cpa-field__owner-department-com.mattermost.scim')).toHaveTextContent('com.mattermost.scim: entra');
+            expect(screen.getByTestId('admin.user.attribute.owner:com.mattermost.scim--text')).toHaveTextContent('com.mattermost.scim: entra');
             expect(screen.getByText('Synced with:')).toBeInTheDocument();
 
-            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input');
+            const input = screen.getByTestId('admin.user.attribute:cpa-1').querySelector('input');
             expect(input).toBeDisabled();
         });
 
@@ -744,10 +744,10 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            expect(screen.getByTestId('user-detail-cpa-field__openid-department')).toHaveTextContent('OpenID Connect: org.department');
+            expect(screen.getByTestId('admin.user.attribute.source:openid--text')).toHaveTextContent('OpenID Connect: org.department');
             expect(screen.getByText('Synced with:')).toBeInTheDocument();
 
-            const input = screen.getByTestId('user-detail-custom-attribute-label-cpa-1').querySelector('input');
+            const input = screen.getByTestId('admin.user.attribute:cpa-1').querySelector('input');
             expect(input).toBeDisabled();
         });
 
@@ -772,7 +772,7 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            const fieldContainer = screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
+            const fieldContainer = screen.getByTestId('admin.user.attribute:cpa-1');
             expect(fieldContainer).toHaveTextContent('Alpha');
             expect(fieldContainer).toHaveTextContent('Beta');
             expect(fieldContainer).not.toHaveTextContent('opt-1');
@@ -802,7 +802,7 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            await userEvent.click(screen.getByTestId('cpa-graph-select-cpa-1'));
+            await userEvent.click(screen.getByTestId('admin.user.attribute.graph--button'));
             await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'Gamma'}));
             await userEvent.keyboard('{Escape}');
             await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
@@ -830,7 +830,7 @@ describe('SystemUserDetail', () => {
                     {...overrides}
                 />,
             );
-            const cpaField = () => screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
+            const cpaField = () => screen.getByTestId('admin.user.attribute:cpa-1');
             const cpaInput = () => cpaField().querySelector('input') as HTMLInputElement;
             const fieldAlert = () => within(cpaField()).getByRole('alert');
             const saveButton = () => screen.getByRole('button', {name: 'Save'});
@@ -853,7 +853,7 @@ describe('SystemUserDetail', () => {
                 renderWithField(field, 'opt-1');
                 await waitForLoadingToFinish();
 
-                await userEvent.click(screen.getByTestId('user-detail-custom-attribute-combobox-cpa-1-clear'));
+                await userEvent.click(screen.getByTestId('admin.user.attribute.clear--button'));
 
                 expect(fieldAlert()).toHaveTextContent(REQUIRED);
                 expect(saveButton()).toBeDisabled();
@@ -1004,8 +1004,8 @@ describe('SystemUserDetail', () => {
                 return renderWithContext(<SystemUserDetail {...props}/>);
             };
 
-            const fieldContainer = () => screen.getByTestId('user-detail-custom-attribute-label-cpa-1');
-            const trigger = () => screen.getByTestId('cpa-graph-select-cpa-1');
+            const fieldContainer = () => screen.getByTestId('admin.user.attribute:cpa-1');
+            const trigger = () => screen.getByTestId('admin.user.attribute.graph--button');
 
             const openMenu = async () => {
                 await userEvent.click(trigger());

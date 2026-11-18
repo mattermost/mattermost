@@ -6,7 +6,7 @@
  * @reference MM-69100
  */
 
-import {ChannelsPage, expect, newTestPassword, test} from '@mattermost/playwright-lib';
+import {expect, ignoreMissing, newTestPassword, test, type App, duration} from '@mattermost/playwright-lib';
 
 import {
     enableTeamMembershipABACConfig,
@@ -18,6 +18,16 @@ import {
     setUserAttribute,
     waitForAttributeViewToInclude,
 } from './helpers';
+import {openTeam} from './surface';
+
+/** Opens Invite People from the team menu. */
+async function openInvitePeople(app: App) {
+    await app.lhs.header.openTeamMenuButton.clickTo(app.lhs.teamMenu.invitePeopleMenuItem);
+    const modal = await app.lhs.teamMenu.invitePeopleMenuItem.clickTo(app.invitationModal);
+    await expect(modal).toBeVisible();
+    await expect(modal.invite.users.inputCombobox).toBeVisible();
+    return modal;
+}
 
 test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_membership']}, () => {
     const createdTeamIds: string[] = [];
@@ -26,10 +36,10 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
     test.afterEach(async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
         for (const id of createdTeamIds.splice(0)) {
-            await adminClient.deleteTeam(id).catch(() => {});
+            await ignoreMissing(() => adminClient.deleteTeam(id));
         }
         for (const id of createdUserIds.splice(0)) {
-            await adminClient.updateUserActive(id, false).catch(() => {});
+            await ignoreMissing(() => adminClient.updateUserActive(id, false));
         }
     });
 
@@ -47,30 +57,22 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         // # Create policy (advisory/public team)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
         // # Open Invite People modal
-        await channelsPage.sidebarLeft.teamMenuButton.click();
-        await channelsPage.teamMenu.toBeVisible();
-        await channelsPage.teamMenu.clickInvitePeople();
-
-        const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-        await expect(inviteModal.container).toBeVisible({timeout: 10000});
+        const {invite} = await openInvitePeople(app);
 
         // * Policy banner visible with correct title
-        const banner = inviteModal.container.locator('.InviteView__policyBanner');
-        await expect(banner).toBeVisible({timeout: 10000});
-        await expect(banner.getByText('Team access is restricted by user attributes')).toBeVisible();
+        const banner = invite.policyBannerStatus;
+        await expect(banner).toBeVisible();
+        await expect(banner).toContainText('Team access is restricted by user attributes');
 
         // * Attribute chips are shown (async — wait on the chip text)
-        await expect(inviteModal.container.getByText(/Department:/i)).toBeVisible({timeout: 15000});
+        await expect(banner).toContainText(/Department:/i, {timeout: duration.half_min});
 
         // * Invite-link warning visible
-        const linkWarning = inviteModal.container.locator('.InviteView__inviteLinkWarning');
-        await expect(linkWarning).toBeVisible({timeout: 10000});
+        const linkWarning = invite.linkWarningStatus;
+        await expect(linkWarning).toBeVisible();
         await expect(linkWarning).toHaveText(/People who use this link must meet the membership requirements to join/i);
     });
 
@@ -116,7 +118,7 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         // so isStrictlyFilteredTeam() is correct at componentDidMount.
         await expect
             .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
-                timeout: 60_000,
+                timeout: duration.one_min,
                 intervals: [1000, 2000, 5000, 5000, 5000],
                 message: 'team should show policy_enforced=true before opening the invite modal',
             })
@@ -134,37 +136,28 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
             teamAdmin.id,
         ]);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
         // # Open Invite People
-        await channelsPage.sidebarLeft.teamMenuButton.click();
-        await channelsPage.teamMenu.toBeVisible();
-        await channelsPage.teamMenu.clickInvitePeople();
-
-        const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-        await expect(inviteModal.container).toBeVisible({timeout: 10000});
+        const {invite} = await openInvitePeople(app);
 
         // The modal container is visible before the team policy fetch completes.
         // Wait for the policy banner — it only renders after the async policy fetch
         // returns — so that strict filtering is active before we search.  Typing
         // before this resolves causes the first search to fire in non-strict mode;
         // strict mode then activates mid-search and clears the results.
-        await expect(inviteModal.container.locator('.InviteView__policyBanner')).toBeVisible({timeout: 15000});
+        await expect(invite.policyBannerStatus).toBeVisible({timeout: duration.half_min});
 
         // # Search with the shared prefix to surface both users (strict filter will keep only qualifiers)
-        await inviteModal.inviteInput.click();
-        await inviteModal.inviteInput.pressSequentially(userPrefix);
-        const listbox = inviteModal.container.getByRole('listbox');
-        await expect(listbox).toBeVisible({timeout: 10000});
+        await invite.users.inputCombobox.press('ArrowDown');
+        await expect(invite.users.inputCombobox).toHaveAttribute('aria-expanded', 'true');
+        await invite.users.inputCombobox.type(userPrefix);
 
         // * eng1 is an option (qualifies — Department=Engineering)
-        await expect(listbox.getByRole('option', {name: `@${eng1.username}`})).toBeVisible({timeout: 30000});
+        await expect(invite.users.user(eng1)).toBeVisible({timeout: duration.half_min});
 
         // * mkt1 is NOT in the list at all (strict filtering strips non-qualifiers from the DOM)
-        await expect(listbox.getByRole('option', {name: `@${mkt1.username}`})).not.toBeAttached();
+        await expect(invite.users.user(mkt1)).toHaveCount(0);
     });
 
     test('MM-69100_32 PUBLIC governed team does NOT filter candidates (advisory)', async ({pw}) => {
@@ -204,38 +197,29 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         // # Advisory policy (public team)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
         // # Open Invite People
-        await channelsPage.sidebarLeft.teamMenuButton.click();
-        await channelsPage.teamMenu.toBeVisible();
-        await channelsPage.teamMenu.clickInvitePeople();
-
-        const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-        await expect(inviteModal.container).toBeVisible({timeout: 10000});
+        const {invite} = await openInvitePeople(app);
 
         // * Banner still shown (governed) but with softened advisory copy
-        const banner = inviteModal.container.locator('.InviteView__policyBanner');
-        await expect(banner).toBeVisible({timeout: 10000});
-        await expect(banner.getByText('This team has membership requirements')).toBeVisible();
-        await expect(banner.getByText(/can still join, but will not be automatically added/i)).toBeVisible();
-        await expect(banner.getByText('Team access is restricted by user attributes')).toHaveCount(0);
+        const banner = invite.policyBannerStatus;
+        await expect(banner).toBeVisible();
+        await expect(banner).toContainText('This team has membership requirements');
+        await expect(banner).toContainText(/can still join, but will not be automatically added/i);
+        // The same visible banner must omit the strict-enforcement title
+        await expect(banner).not.toContainText('Team access is restricted by user attributes');
 
         // * Invite-link warning uses the advisory wording (no join block)
-        const linkWarning = inviteModal.container.locator('.InviteView__inviteLinkWarning');
+        const linkWarning = invite.linkWarningStatus;
         await expect(linkWarning).toHaveText(/can join even if they do not meet the membership requirements/i);
 
         // # Search with the shared prefix to surface both users
-        await inviteModal.inviteInput.pressSequentially(userPrefix);
-        const listbox = inviteModal.container.getByRole('listbox');
-        await expect(listbox).toBeVisible({timeout: 10000});
+        await invite.users.inputCombobox.type(userPrefix);
 
         // * Both eng1 AND mkt1 appear (advisory = no filtering)
-        await expect(listbox.getByRole('option', {name: `@${eng1.username}`})).toBeVisible({timeout: 15000});
-        await expect(listbox.getByRole('option', {name: `@${mkt1.username}`})).toBeVisible({timeout: 15000});
+        await expect(invite.users.user(eng1)).toBeVisible({timeout: duration.half_min});
+        await expect(invite.users.user(mkt1)).toBeVisible({timeout: duration.half_min});
     });
 
     test('MM-69100_33 non-policy team behaves normally (regression)', async ({pw}) => {
@@ -246,24 +230,16 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
         const teamAdmin = await createTeamAdmin(adminClient, team.id);
         createdUserIds.push(teamAdmin.id);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
         // # Open Invite People
-        await channelsPage.sidebarLeft.teamMenuButton.click();
-        await channelsPage.teamMenu.toBeVisible();
-        await channelsPage.teamMenu.clickInvitePeople();
-
-        const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-        await expect(inviteModal.container).toBeVisible({timeout: 10000});
+        const {invite} = await openInvitePeople(app);
 
         // * Policy banner NOT present
-        await expect(inviteModal.container.locator('.InviteView__policyBanner')).not.toBeVisible({timeout: 5000});
+        await expect(invite.policyBannerStatus).not.toBeVisible();
 
         // * Normal invite input present
-        await expect(inviteModal.inviteInput).toBeVisible();
+        await expect(invite.users.inputCombobox).toBeVisible();
     });
 
     test('MM-69100_34 PRIVATE governed team narrows candidates by the typed term server-side', async ({pw}) => {
@@ -304,7 +280,7 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
 
         await expect
             .poll(async () => (await adminClient.getTeam(team.id)).policy_enforced, {
-                timeout: 60_000,
+                timeout: duration.one_min,
                 intervals: [1000, 2000, 5000, 5000, 5000],
                 message: 'team should show policy_enforced=true before opening the invite modal',
             })
@@ -316,31 +292,22 @@ test.describe('Invite People - Team Membership Policy', {tag: ['@abac', '@team_m
             teamAdmin.id,
         ]);
 
-        const {page} = await pw.testBrowser.login(teamAdmin);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const app = await openTeam(pw, teamAdmin, team);
 
         // # Open Invite People
-        await channelsPage.sidebarLeft.teamMenuButton.click();
-        await channelsPage.teamMenu.toBeVisible();
-        await channelsPage.teamMenu.clickInvitePeople();
-
-        const inviteModal = await channelsPage.getInvitePeopleModal(team.display_name);
-        await expect(inviteModal.container).toBeVisible({timeout: 10000});
-        await expect(inviteModal.container.locator('.InviteView__policyBanner')).toBeVisible({timeout: 15000});
+        const {invite} = await openInvitePeople(app);
+        await expect(invite.policyBannerStatus).toBeVisible({timeout: duration.half_min});
 
         // # Search a term that matches only engAlpha
-        await inviteModal.inviteInput.click();
-        await inviteModal.inviteInput.pressSequentially(`${userPrefix}engalpha`);
-        const listbox = inviteModal.container.getByRole('listbox');
-        await expect(listbox).toBeVisible({timeout: 10000});
+        await invite.users.inputCombobox.press('ArrowDown');
+        await expect(invite.users.inputCombobox).toHaveAttribute('aria-expanded', 'true');
+        await invite.users.inputCombobox.type(`${userPrefix}engalpha`);
 
         // * engAlpha is returned by the server-side policy-scoped search
-        await expect(listbox.getByRole('option', {name: `@${engAlpha.username}`})).toBeVisible({timeout: 30000});
+        await expect(invite.users.user(engAlpha)).toBeVisible({timeout: duration.half_min});
 
         // * engBeta — also a qualifier — is excluded by the term, proving the
         //   search is applied server-side rather than dumping a buffered set
-        await expect(listbox.getByRole('option', {name: `@${engBeta.username}`})).not.toBeAttached();
+        await expect(invite.users.user(engBeta)).toHaveCount(0);
     });
 });

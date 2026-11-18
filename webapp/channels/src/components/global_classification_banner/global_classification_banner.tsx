@@ -137,7 +137,7 @@ export default function GlobalClassificationBanner({position}: Props) {
         <div
             className={`global-classification-banner global-classification-banner--${position}`}
             style={{backgroundColor: color || undefined, color: textColor || undefined}}
-            data-testid={`global-classification-banner-${position}`}
+            data-testid={position === 'top' ? 'classification_banner.top' : 'classification_banner.bottom'}
         >
             <span className='global-classification-banner__text'>
                 {levelName}

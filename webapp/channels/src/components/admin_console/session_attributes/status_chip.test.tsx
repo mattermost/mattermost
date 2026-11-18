@@ -9,18 +9,28 @@ import StatusChip from './status_chip';
 
 describe('StatusChip', () => {
     it('renders the enabled state', () => {
-        renderWithContext(<StatusChip enabled={true}/>);
+        renderWithContext(
+            <StatusChip
+                enabled={true}
+                testId='admin.session_attributes.status:x'
+            />,
+        );
 
-        const chip = screen.getByTestId('session-attribute-status');
+        const chip = screen.getByTestId('admin.session_attributes.status:x--text');
         expect(chip).toHaveTextContent('Enabled');
         expect(chip).toHaveAttribute('data-enabled', 'true');
         expect(chip.querySelector('svg')).toBeInTheDocument();
     });
 
     it('renders the disabled state', () => {
-        renderWithContext(<StatusChip enabled={false}/>);
+        renderWithContext(
+            <StatusChip
+                enabled={false}
+                testId='admin.session_attributes.status:x'
+            />,
+        );
 
-        const chip = screen.getByTestId('session-attribute-status');
+        const chip = screen.getByTestId('admin.session_attributes.status:x--text');
         expect(chip).toHaveTextContent('Disabled');
         expect(chip).toHaveAttribute('data-enabled', 'false');
         expect(chip.querySelector('svg')).toBeInTheDocument();

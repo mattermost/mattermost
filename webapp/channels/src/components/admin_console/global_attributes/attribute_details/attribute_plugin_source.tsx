@@ -40,14 +40,14 @@ function AttributePluginSource({pluginId, isOrphaned, pluginInventoryLoaded}: Pr
     return (
         <div
             className='AttributePluginSource'
-            data-testid='attributePluginSource'
+            data-testid='admin.attribute.plugin_source'
         >
             <div className='AttributePluginSource__managedBy'>
                 <PowerPlugOutlineIcon
                     size={16}
                     aria-hidden={true}
                 />
-                <span data-testid='attributePluginSourceManagedBy'>
+                <span data-testid='admin.attribute.plugin_source.managed_by--text'>
                     {isOrphaned ? (
                         <FormattedMessage
                             {...messages.managedByOrphaned}
@@ -64,7 +64,7 @@ function AttributePluginSource({pluginId, isOrphaned, pluginInventoryLoaded}: Pr
                     <Link
                         to={`/admin_console/plugins/plugin_${pluginId}`}
                         className='AttributePluginSource__link'
-                        data-testid='attributePluginSourceLink'
+                        data-testid='admin.attribute.plugin_source.settings--link'
                     >
                         <FormattedMessage {...messages.pluginSettingsLink}/>
                         <OpenInNewIcon
@@ -76,7 +76,7 @@ function AttributePluginSource({pluginId, isOrphaned, pluginInventoryLoaded}: Pr
             </div>
             <p
                 className='AttributePluginSource__helperText'
-                data-testid='attributePluginSourceHelperText'
+                data-testid='admin.attribute.plugin_source.help--text'
             >
                 {formatMessage(messages.helperText)}
             </p>

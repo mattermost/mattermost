@@ -28,7 +28,7 @@ export function SkipConfirmStepFooter({submitting, onBack, onPrimary}: FooterPro
                     className='GenericModal__button'
                     emphasis='tertiary'
                     onClick={onBack}
-                    data-testid='skip-confirm-back-button'
+                    data-testid='flagged_message_modal.skip_confirm.back--button'
                 >
                     {backText}
                 </Button>
@@ -39,7 +39,7 @@ export function SkipConfirmStepFooter({submitting, onBack, onPrimary}: FooterPro
                     destructive={true}
                     onClick={onPrimary}
                     disabled={submitting}
-                    data-testid='skip-confirm-primary-button'
+                    data-testid='flagged_message_modal.skip_confirm.primary--button'
                 >
                     {primaryText}
                 </Button>

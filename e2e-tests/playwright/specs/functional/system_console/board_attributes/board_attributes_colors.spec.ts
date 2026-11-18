@@ -6,9 +6,20 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, test} from '@mattermost/playwright-lib';
 
-import {COLOR_TOKEN_NAMES, SERVER_COLOR_BY_UI_LABEL, setupBoardAttributesTest, cleanupCustomBoardFields} from './setup';
+import {
+    addAttribute,
+    addOption,
+    changeType,
+    cleanupCustomBoardFields,
+    closeOptionMenu,
+    fieldByName,
+    openBoardAttributes,
+    optionByName,
+    save,
+    setupBoardAttributesTest,
+} from './setup';
 
 test.describe('Board Attributes - option color picker', {tag: '@board_attributes'}, () => {
     test.afterEach(async () => {
@@ -16,84 +27,80 @@ test.describe('Board Attributes - option color picker', {tag: '@board_attributes
     });
 
     test('assigns a color token to an option and the server persists the value', async ({pw}) => {
-        const {adminClient, systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
-
-        await ba.goto();
-        await ba.toBeVisible();
-
-        const attrName = `Color_${Date.now()}`;
-        const optionName = 'Tagged';
+        const {adminClient, app} = await setupBoardAttributesTest(pw);
+        const ba = await openBoardAttributes(app);
 
         // # Add a select attribute with one option, save baseline
-        const row = await ba.addAttribute(attrName);
-        await ba.changeTypeInRow(row, 'Select');
-        await ba.addOptionInRow(row, optionName);
-        await ba.saveAndWaitForSettled();
+        const attrName = `Color_${Date.now()}`;
+        const optionName = 'Tagged';
+        const row = await addAttribute(ba, attrName);
+        await changeType(row, 'select');
+        await addOption(row, optionName);
+        await save(ba, Api.CreatePropertyField);
 
         // # Assign the Green color
-        await ba.setOptionColor(optionName, 'Green');
-        await ba.saveAndWaitForSettled();
+        const field = await fieldByName(adminClient, attrName);
+        const savedRow = ba.row(field.id);
+        await savedRow.option(optionByName(field, optionName)).editButton.click();
+        await expect(app.boardAttributeOptionMenu.nameTextbox).toBeVisible();
+        await app.boardAttributeOptionMenu.color('green').click();
+        await expect(app.boardAttributeOptionMenu.color('green')).toHaveAttribute('aria-checked', 'true');
+        await closeOptionMenu(savedRow);
+        await save(ba, Api.UpdatePropertyField);
 
         // * Server reflects the color token
-        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
-        const updated = (fields ?? []).find((f) => f.name === attrName);
-        const option = ((updated!.attrs as {options?: Array<{name: string; color?: string}>})?.options ?? []).find(
-            (o) => o.name === optionName,
-        );
-        expect(option?.color).toBe(SERVER_COLOR_BY_UI_LABEL.Green);
+        expect(optionByName(await fieldByName(adminClient, attrName), optionName).color).toBe('green');
     });
 
     test('color assignment persists across reload and the picker shows the correct checked state', async ({pw}) => {
-        const {systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
-
-        await ba.goto();
-        await ba.toBeVisible();
-
-        const attrName = `Persist_${Date.now()}`;
+        const {adminClient, app} = await setupBoardAttributesTest(pw);
+        let ba = await openBoardAttributes(app);
 
         // # Add a select attribute with one option, save baseline
-        const row = await ba.addAttribute(attrName);
-        await ba.changeTypeInRow(row, 'Select');
-        await ba.addOptionInRow(row, 'Colored');
-        await ba.saveAndWaitForSettled();
+        const attrName = `Persist_${Date.now()}`;
+        const row = await addAttribute(ba, attrName);
+        await changeType(row, 'select');
+        await addOption(row, 'Colored');
+        await save(ba, Api.CreatePropertyField);
 
         // # Assign the Red color and save
-        await ba.setOptionColor('Colored', 'Red');
-        await ba.saveAndWaitForSettled();
+        const field = await fieldByName(adminClient, attrName);
+        const option = optionByName(field, 'Colored');
+        await ba.row(field.id).option(option).editButton.click();
+        await expect(app.boardAttributeOptionMenu.nameTextbox).toBeVisible();
+        await app.boardAttributeOptionMenu.color('red').click();
+        await expect(app.boardAttributeOptionMenu.color('red')).toHaveAttribute('aria-checked', 'true');
+        await closeOptionMenu(ba.row(field.id));
+        await save(ba, Api.UpdatePropertyField);
 
         // # Reload
-        await ba.goto();
-        await ba.toBeVisible();
+        ba = await openBoardAttributes(app);
+        const savedRow = ba.row(field.id);
 
         // * Chip is still rendered
-        await expect(ba.optionChip('Colored')).toBeVisible();
+        await expect(savedRow.option(option)).toHaveText('Colored');
 
         // * The picker reflects the correct checked color
-        await ba.openOptionMenu('Colored');
-        const checkedColor = ba.container.page().getByRole('menuitemradio', {name: 'Red', exact: true});
-        await expect(checkedColor).toHaveAttribute('aria-checked', 'true');
+        await savedRow.option(option).editButton.click();
+        await expect(app.boardAttributeOptionMenu.color('red')).toHaveAttribute('aria-checked', 'true');
+        await expect(app.boardAttributeOptionMenu.color('default')).toHaveAttribute('aria-checked', 'false');
     });
 
     test('color picker exposes all nine color tokens', async ({pw}) => {
-        const {systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
-
-        await ba.goto();
-        await ba.toBeVisible();
-
-        const attrName = `Picker_${Date.now()}`;
+        const {app} = await setupBoardAttributesTest(pw);
+        const ba = await openBoardAttributes(app);
 
         // # Add a select with one option, open its menu
-        const row = await ba.addAttribute(attrName);
-        await ba.changeTypeInRow(row, 'Select');
-        await ba.addOptionInRow(row, 'Pick me');
-        await ba.openOptionMenu('Pick me');
+        const row = await addAttribute(ba, `Picker_${Date.now()}`);
+        await changeType(row, 'select');
+        const id = await addOption(row, 'Pick me');
+        await row.option({id}).editButton.click();
 
         // * Every named color token is offered
-        for (const uiColor of COLOR_TOKEN_NAMES) {
-            await expect(ba.container.page().getByRole('menuitemradio', {name: uiColor, exact: true})).toBeVisible();
+        const colors = ['blue', 'brown', 'default', 'green', 'orange', 'pink', 'purple', 'red', 'yellow'] as const;
+        await expect(app.boardAttributeOptionMenu.colorList).toHaveKeyCount(colors.length);
+        for (const color of colors) {
+            await expect(app.boardAttributeOptionMenu.color(color)).toBeVisible();
         }
     });
 });

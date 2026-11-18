@@ -3,7 +3,7 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {createPost, verifyAuthorNotification, setupContentFlagging} from './../support';
+import {createPost, setupContentFlagging, verifyReport} from './../support';
 
 /**
  * @objective Verify that when the author deletes a flagged message before review,
@@ -41,9 +41,6 @@ test.skip('should not be able to restore flagged messages when author deletes me
     // Verify the delete_at timestamp is set (indicating deletion)
     expect(flagReport.delete_at).not.toBe(0);
 
-    const {channelsPage, contentReviewPage} = await pw.testBrowser.login(reviewerUser);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
-    await verifyAuthorNotification(post.id, channelsPage, contentReviewPage, team.name, message, 'Removed');
+    const {app} = await pw.testBrowser.login(reviewerUser);
+    await verifyReport(pw, app, reviewerUser, team, post.id, message, 'Removed');
 });

@@ -56,6 +56,7 @@ export const UserListModal = ({channelId, channelName, syncResults, resourceType
         <GenericModal
             className='a11y__modal more-modal'
             id='user-list-modal-dialog'
+            testId='user_sync_modal'
             onExited={onClose}
             show={true}
             onHide={onClose}

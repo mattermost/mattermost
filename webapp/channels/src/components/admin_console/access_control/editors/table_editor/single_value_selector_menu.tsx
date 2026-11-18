@@ -220,7 +220,7 @@ const SingleValueSelector = ({
                     <Menu.InputItem
                         key='filter_values'
                         id='filter_values'
-                        testId={testId ? `${testId}.value_menu.filter` : undefined}
+                        testId={testId ? 'policy_rule_value_menu.filter' : undefined}
                         type='text'
                         placeholder={formatMessage(allowCreateValue ? {
                             id: 'admin.access_control.table_editor.selector.filter_or_create',
@@ -238,7 +238,7 @@ const SingleValueSelector = ({
                     <Menu.InputItem
                         key='value_text'
                         id='value_text'
-                        testId={testId ? `${testId}.value_menu.value` : undefined}
+                        testId={testId ? 'policy_rule_value_menu.value' : undefined}
                         type='text'
                         placeholder={placeholder || formatMessage({
                             id: 'admin.access_control.table_editor.value.placeholder',
@@ -275,7 +275,7 @@ const SingleValueSelector = ({
                         <Menu.Item
                             id={`value-option-${id}`}
                             key={id}
-                            data-testid={testId ? `${testId}.value_menu.option:${option.id}--menuitemradio` : undefined}
+                            data-testid={testId ? `policy_rule_value_menu.option:${option.id}--menuitemradio` : undefined}
                             role='menuitemradio'
                             forceCloseOnSelect={true}
                             aria-checked={isSelected}
@@ -291,7 +291,7 @@ const SingleValueSelector = ({
                     <Menu.Item
                         id='create-value-option'
                         key='create-value-option'
-                        data-testid={testId ? `${testId}.value_menu.create--menuitem` : undefined}
+                        data-testid={testId ? 'policy_rule_value_menu.create--menuitem' : undefined}
                         onClick={() => handleCreateValue(filter)}
                         labels={<span>
                             {formatMessage({

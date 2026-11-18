@@ -7,10 +7,12 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Client4} from '@mattermost/client';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, getRandomId, test} from '@mattermost/playwright-lib';
+import {expect, getRandomId, ignoreMissing, test} from '@mattermost/playwright-lib';
 
 import type {CpaFieldsMap, CustomProfileAttribute} from './helpers';
 import {
+    getFieldIdByName,
+    openOwnPopover,
     setupCustomProfileAttributeFields,
     setupCustomProfileAttributeValues,
     verifyAttributeInPopover,
@@ -113,14 +115,19 @@ test.beforeEach(async ({pw}) => {
     fieldsMap.ownedIds.forEach((id) => createdFieldIds.add(id));
     attributeFieldsMap = fieldsMap;
 
+    // Fields are reused across runs by name, and tests here change their visibility (MM-T5776 hides Department,
+    // MM-T5777 shows Title always): reset each to the default so a test doesn't inherit another run's
+    for (const attribute of customAttributes) {
+        await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, attribute.name, 'when_set');
+    }
+
     // Login as the test user
     const {page} = await pw.testBrowser.login(user);
 
     // Set up initial values for custom profile attributes
     await setupCustomProfileAttributeValues(userClient, customAttributes, attributeFieldsMap);
 
-    // The setup helpers log and swallow API errors, which otherwise surfaces
-    // as a popover timeout far from the cause.
+    // Check the setup landed here, rather than as a popover timeout far from the cause.
     expect(
         Object.values(attributeFieldsMap)
             .map((field) => field.name)
@@ -138,12 +145,7 @@ test.afterAll(async () => {
         return;
     }
     for (const id of createdFieldIds) {
-        try {
-            await adminClient.deleteCustomProfileAttributeField(id);
-        } catch (error) {
-            // eslint-disable-next-line no-console
-            console.log(`Failed to delete field ${id}:`, error);
-        }
+        await ignoreMissing(() => adminClient.deleteCustomProfileAttributeField(id));
     }
 });
 
@@ -158,20 +160,16 @@ test.afterAll(async () => {
  */
 test('MM-T5773 Display custom profile attributes in profile popover @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: testChannel});
 
     // 2. Post a message to make the user visible in the channel
-    await channelsPage.postMessage(TEST_MESSAGE);
-
-    // 3. Open the profile popover for the user's post
-    const lastPost = await channelsPage.getLastPost();
-    await channelsPage.openProfilePopover(lastPost);
+    await openOwnPopover(app, TEST_MESSAGE);
 
     // * Verify each custom attribute is displayed correctly
     for (const attribute of customAttributes) {
         if (attribute.value) {
-            await verifyAttributeInPopover(channelsPage, attribute.name, attribute.value);
+            await verifyAttributeInPopover(app, attributeFieldsMap, attribute.name, attribute.value);
         }
     }
 });
@@ -188,19 +186,15 @@ test('MM-T5773 Display custom profile attributes in profile popover @custom_prof
  */
 test('MM-T5774 Do not display custom profile attributes if none exist @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the other user
-    const {channelsPage} = await pw.testBrowser.login(otherUser);
-    await channelsPage.goto();
+    const {app} = await pw.testBrowser.login(otherUser);
+    await app.channelsPage.goto({team, channel: testChannel});
 
     // 2. Post a message to make the user visible in the channel
-    await channelsPage.postMessage(TEST_MESSAGE);
-
-    // 3. Open the profile popover for the user's post
-    const lastPost = await channelsPage.getLastPost();
-    await channelsPage.openProfilePopover(lastPost);
+    await openOwnPopover(app, TEST_MESSAGE);
 
     // * Verify custom attributes are not displayed
     for (const attribute of customAttributes) {
-        await verifyAttributeNotInPopover(channelsPage, attribute.name);
+        await verifyAttributeNotInPopover(app, attributeFieldsMap, attribute.name);
     }
 });
 
@@ -216,25 +210,22 @@ test('MM-T5774 Do not display custom profile attributes if none exist @custom_pr
  */
 test('MM-T5775 Update custom profile attributes when changed @custom_profile_attributes', async ({pw}) => {
     // 1. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: testChannel});
 
     // 2. Post a message to make the user visible in the channel
-    await channelsPage.postMessage(TEST_MESSAGE);
-
-    // 3. Open the profile popover for the user's post
-    const lastPost = await channelsPage.getLastPost();
-    await channelsPage.openProfilePopover(lastPost);
+    const postId = await openOwnPopover(app, TEST_MESSAGE);
 
     // * Verify each custom attribute is displayed correctly
     for (const attribute of customAttributes) {
         if (attribute.value) {
-            await verifyAttributeInPopover(channelsPage, attribute.name, attribute.value);
+            await verifyAttributeInPopover(app, attributeFieldsMap, attribute.name, attribute.value);
         }
     }
 
     // 4. Close the profile popover
-    await channelsPage.page.click('body', {position: {x: 10, y: 10}});
+    await app.page.keyboard.press('Escape');
+    await expect(app.profilePopover).not.toBeVisible();
 
     // 5. Update custom profile attributes
     const updatedAttributes: CustomProfileAttribute[] = [
@@ -251,18 +242,19 @@ test('MM-T5775 Update custom profile attributes when changed @custom_profile_att
     ];
     await setupCustomProfileAttributeValues(userClient, updatedAttributes, attributeFieldsMap);
 
-    // 6. Open the profile popover again
-    await channelsPage.openProfilePopover(lastPost);
+    // 6. Open the profile popover again, from the same post's avatar
+    await app.center.postList.post({id: postId}).avatar.container.click();
+    await expect(app.profilePopover).toBeVisible();
 
     // * Verify updated attributes are displayed correctly
     for (const attribute of updatedAttributes) {
         if (attribute.value) {
-            await verifyAttributeInPopover(channelsPage, attribute.name, attribute.value);
+            await verifyAttributeInPopover(app, attributeFieldsMap, attribute.name, attribute.value);
         }
     }
 
     // * Verify non-updated attribute is still displayed correctly
-    await verifyAttributeInPopover(channelsPage, FIELD_NAMES.title, TEST_TITLE);
+    await verifyAttributeInPopover(app, attributeFieldsMap, FIELD_NAMES.title, TEST_TITLE);
 });
 
 /**
@@ -282,21 +274,17 @@ test('MM-T5776 Hide custom profile attributes when visibility is set to hidden @
     await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, FIELD_NAMES.department, 'hidden');
 
     // 2. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: testChannel});
 
     // 3. Post a message to make the user visible in the channel
-    await channelsPage.postMessage(TEST_MESSAGE);
-
-    // 4. Open the profile popover for the user's post
-    const lastPost = await channelsPage.getLastPost();
-    await channelsPage.openProfilePopover(lastPost);
+    await openOwnPopover(app, TEST_MESSAGE);
 
     // * Verify the Department attribute is not displayed
-    await verifyAttributeNotInPopover(channelsPage, FIELD_NAMES.department);
+    await verifyAttributeNotInPopover(app, attributeFieldsMap, FIELD_NAMES.department);
 
     // * Verify other attributes are still displayed
-    await verifyAttributeInPopover(channelsPage, FIELD_NAMES.location, TEST_LOCATION);
+    await verifyAttributeInPopover(app, attributeFieldsMap, FIELD_NAMES.location, TEST_LOCATION);
 });
 
 /**
@@ -316,25 +304,22 @@ test('MM-T5777 Always display custom profile attributes with visibility set to a
     await updateCustomProfileAttributeVisibility(adminClient, attributeFieldsMap, FIELD_NAMES.title, 'always');
 
     // 2. Login as the other user
-    const {channelsPage} = await pw.testBrowser.login(otherUser);
-    await channelsPage.goto();
+    const {app} = await pw.testBrowser.login(otherUser);
+    await app.channelsPage.goto({team, channel: testChannel});
 
     // 3. Post a message to make the user visible in the channel
-    await channelsPage.postMessage(TEST_MESSAGE);
-
-    // 4. Open the profile popover for the user's post
-    const lastPost = await channelsPage.getLastPost();
-    await channelsPage.openProfilePopover(lastPost);
+    await openOwnPopover(app, TEST_MESSAGE);
 
     // * Verify custom attributes are displayed correctly
     for (const attribute of customAttributes) {
         if (attribute.name === FIELD_NAMES.title) {
             // * Verify the Title attribute is displayed even though it has no value
-            const popover = channelsPage.userProfilePopover.container;
-            const nameElement = popover.getByText(FIELD_NAMES.title, {exact: false});
-            await expect(nameElement).toBeVisible();
+            const title = app.profilePopover.attribute({
+                id: getFieldIdByName(attributeFieldsMap, FIELD_NAMES.title),
+            }).locator;
+            await expect(title).toContainText(FIELD_NAMES.title);
         } else {
-            await verifyAttributeNotInPopover(channelsPage, attribute.name);
+            await verifyAttributeNotInPopover(app, attributeFieldsMap, attribute.name);
         }
     }
 });
@@ -353,21 +338,17 @@ test('MM-T5778 Display phone and URL type custom profile attributes correctly @c
     pw,
 }) => {
     // 1. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: testChannel});
 
     // 2. Post a message to make the user visible in the channel
-    await channelsPage.postMessage(TEST_MESSAGE);
-
-    // 3. Open the profile popover for the other user
-    const lastPost = await channelsPage.getLastPost();
-    await channelsPage.openProfilePopover(lastPost);
+    await openOwnPopover(app, TEST_MESSAGE);
 
     // * Verify the Phone attribute is displayed correctly
-    await verifyAttributeInPopover(channelsPage, FIELD_NAMES.phone, TEST_PHONE);
+    await verifyAttributeInPopover(app, attributeFieldsMap, FIELD_NAMES.phone, TEST_PHONE);
 
     // * Verify the Website attribute is displayed correctly
-    await verifyAttributeInPopover(channelsPage, FIELD_NAMES.website, TEST_URL);
+    await verifyAttributeInPopover(app, attributeFieldsMap, FIELD_NAMES.website, TEST_URL);
 });
 
 /**
@@ -384,22 +365,16 @@ test('MM-T5779 Verify phone and URL attributes are clickable in profile popover 
     pw,
 }) => {
     // 1. Login as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto();
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: testChannel});
 
     // 2. Post a message to make the user visible in the channel
-    await channelsPage.postMessage(TEST_MESSAGE);
-
-    // 3. Open the profile popover for the other user
-    const lastPost = await channelsPage.getLastPost();
-    await channelsPage.openProfilePopover(lastPost);
+    await openOwnPopover(app, TEST_MESSAGE);
 
     // * Verify the Phone attribute has a clickable link with tel: protocol
-    const popover = channelsPage.userProfilePopover.container;
-    const phoneLink = popover.getByText(TEST_PHONE, {exact: false});
-    await expect(phoneLink).toHaveAttribute('href', new RegExp('^tel:'));
+    const link = (name: string) => app.profilePopover.attributeLink(getFieldIdByName(attributeFieldsMap, name));
+    await expect(link(FIELD_NAMES.phone)).toHaveAttribute('href', new RegExp('^tel:'));
 
     // * Verify the Website attribute has a clickable link with https: protocol
-    const urlLink = popover.getByText(TEST_URL, {exact: false});
-    await expect(urlLink).toHaveAttribute('href', new RegExp('^https:'));
+    await expect(link(FIELD_NAMES.website)).toHaveAttribute('href', new RegExp('^https:'));
 });

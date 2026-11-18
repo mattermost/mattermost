@@ -3,7 +3,7 @@
 
 import {test} from '@mattermost/playwright-lib';
 
-import {createPost, verifyAuthorNotification, setupContentFlagging} from './../support';
+import {createPost, setupContentFlagging, verifyReport} from './../support';
 
 /** @objective Verify Post message is updated for the reviewer, if author updates the post before reviewer's action
  * @testcase
@@ -61,17 +61,9 @@ test("Verify Post message is updated for the reviewer, if author updates the pos
         metadata: post.metadata,
     });
 
-    const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =
-        await pw.testBrowser.login(secondUser);
+    const {app} = await pw.testBrowser.login(secondUser);
 
     // The edited post will have Edited indicator automatically added by the system
     updatedMessage = `${updatedMessage} Edited`;
-    await verifyAuthorNotification(
-        post.id,
-        secondChannelsPage,
-        secondContentReviewPage,
-        team.name,
-        updatedMessage,
-        'Pending',
-    );
+    await verifyReport(pw, app, secondUser, team, post.id, updatedMessage, 'Pending');
 });

@@ -26,6 +26,7 @@ export default function LevelNameCell({value, id, updateLevel, label, disabled, 
         <BorderlessInput
             type='text'
             aria-label={label}
+            data-testid='admin.classification.levels.row.name--textbox'
             $strong={true}
             value={localValue}
             readOnly={disabled}

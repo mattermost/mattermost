@@ -28,9 +28,9 @@ describe('AppliesToCard', () => {
             />,
         );
 
-        expect(screen.getByTestId('appliesToEmpty')).toBeInTheDocument();
-        expect(screen.getByTestId('appliesToAddResource')).toBeInTheDocument();
-        expect(screen.queryByTestId('channelsResourceRow')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.empty--text')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.add--button')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.channel')).not.toBeInTheDocument();
     });
 
     it('adds a Channels resource with the server defaults', async () => {
@@ -42,7 +42,7 @@ describe('AppliesToCard', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('appliesToAddResource'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.add--button'));
 
         expect(onChannelResourceChange).toHaveBeenCalledWith(DEFAULT_CHANNEL_RESOURCE_CONFIG);
     });
@@ -55,10 +55,10 @@ describe('AppliesToCard', () => {
             />,
         );
 
-        expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.channel')).toBeInTheDocument();
 
         // Channels is the only resource type this card offers.
-        expect(screen.queryByTestId('appliesToAddResource')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.add--button')).not.toBeInTheDocument();
     });
 
     it('clears the resource when the row is removed', async () => {
@@ -70,7 +70,7 @@ describe('AppliesToCard', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('channelsResourceRowRemove'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.remove--button'));
 
         expect(onChannelResourceChange).toHaveBeenCalledWith(null);
     });
@@ -89,7 +89,7 @@ describe('AppliesToCard', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('channelsResourceRowRemove'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.remove--button'));
 
         expect(onChannelResourceRemove).toHaveBeenCalled();
         expect(onChannelResourceChange).not.toHaveBeenCalled();
@@ -105,7 +105,7 @@ describe('AppliesToCard', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('appliesToAddResource'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.add--button'));
 
         expect(onChannelResourceChange).not.toHaveBeenCalled();
     });
@@ -124,7 +124,7 @@ describe('AppliesToCard', () => {
             />,
         );
 
-        const rows = within(screen.getByTestId('appliesToReadOnlyResources')).getAllByRole('listitem');
+        const rows = within(screen.getByTestId('admin.classification.applies_to.read_only--list')).getAllByRole('listitem');
         expect(rows).toHaveLength(2);
         expect(rows[0]).toHaveTextContent('Applied to Users as clearance');
         expect(rows[1]).toHaveTextContent('Applied to Posts as post_marking');
@@ -154,7 +154,7 @@ describe('AppliesToCard', () => {
         expect(screen.queryByText('This attribute does not apply to any resource yet.')).not.toBeInTheDocument();
 
         // Channels is still unclaimed, so it can still be added.
-        expect(screen.getByTestId('appliesToAddResource')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.add--button')).toBeInTheDocument();
     });
 
     it('still calls itself empty when there is no resource of either kind', () => {
@@ -167,7 +167,7 @@ describe('AppliesToCard', () => {
         );
 
         expect(screen.getByText('This attribute does not apply to any resource yet.')).toBeInTheDocument();
-        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.read_only--list')).not.toBeInTheDocument();
     });
 
     it('shows the channels row alongside the read-only rows', () => {
@@ -179,9 +179,9 @@ describe('AppliesToCard', () => {
             />,
         );
 
-        expect(within(screen.getByTestId('appliesToReadOnlyResources')).getByRole('listitem')).
+        expect(within(screen.getByTestId('admin.classification.applies_to.read_only--list')).getByRole('listitem')).
             toHaveTextContent('Applied to Users as clearance');
-        expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.channel')).toBeInTheDocument();
         expect(screen.queryByText('This attribute does not apply to any resource yet.')).not.toBeInTheDocument();
     });
 });

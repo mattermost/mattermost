@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, runCleanups, test} from '@mattermost/playwright-lib';
 
 import {enableUserManagedAttributes} from '../support';
 import {enableTeamMembershipPolicies} from '../teams/helpers';
@@ -10,7 +10,7 @@ import {
     createChannelTextField,
     createParentPolicyViaAPI,
     deleteParentPolicy,
-    deletePropertyFieldQuietly,
+    deletePropertyFieldIfPresent,
     expectAssignTeamsDenied,
 } from './helpers';
 
@@ -34,10 +34,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
         // Reverse order, so a policy goes before the fields its rules reference: while
         // attribute-value masking is on, deleting a policy whose field is already gone
         // is refused outright and the policy can no longer be removed at all.
-        for (const cleanup of cleanups.reverse()) {
-            await cleanup().catch(() => {});
-        }
-        cleanups.length = 0;
+        await runCleanups(cleanups);
     });
 
     test('accepts a parent policy mixing user and resource attributes', async ({pw}) => {
@@ -52,7 +49,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
         const attr = `region${pw.random.id()}`;
         const channelFieldId = await createChannelTextField(adminClient, attr);
-        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
+        cleanups.push(() => deletePropertyFieldIfPresent(adminClient, 'channel', channelFieldId));
 
         // Save succeeds and returns a policy id — the round-trip accepts a
         // mixed user/resource expression on a parent policy.
@@ -76,7 +73,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
         const attr = `region${pw.random.id()}`;
         const channelFieldId = await createChannelTextField(adminClient, attr);
-        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
+        cleanups.push(() => deletePropertyFieldIfPresent(adminClient, 'channel', channelFieldId));
 
         // Absence is handled by deny-on-miss, so has() guards on resource
         // attributes are rejected. cel/check surfaces the error to the editor.
@@ -98,7 +95,7 @@ test.describe('ABAC resource.attributes - authoring', {tag: ['@abac', '@abac_res
 
         const attr = `region${pw.random.id()}`;
         const channelFieldId = await createChannelTextField(adminClient, attr);
-        cleanups.push(() => deletePropertyFieldQuietly(adminClient, 'channel', channelFieldId));
+        cleanups.push(() => deletePropertyFieldIfPresent(adminClient, 'channel', channelFieldId));
 
         const policyId = await createParentPolicyViaAPI(adminClient, {
             name: `Team Boundary ${pw.random.id()}`,

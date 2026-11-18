@@ -33,7 +33,7 @@ export function GeneratingStepFooter({action, onSkip, onBack}: FooterProps) {
                     emphasis='tertiary'
                     destructive={true}
                     onClick={onSkip}
-                    data-testid='generating-skip-button'
+                    data-testid='flagged_message_modal.generating.skip--button'
                 >
                     {skipText}
                 </Button>
@@ -44,7 +44,7 @@ export function GeneratingStepFooter({action, onSkip, onBack}: FooterProps) {
                     className='GenericModal__button'
                     emphasis='tertiary'
                     onClick={onBack}
-                    data-testid='generating-back-button'
+                    data-testid='flagged_message_modal.generating.back--button'
                 >
                     {backText}
                 </Button>
@@ -54,7 +54,7 @@ export function GeneratingStepFooter({action, onSkip, onBack}: FooterProps) {
                     emphasis='primary'
                     destructive={permanentDestructive}
                     disabled={true}
-                    data-testid='generating-permanent-button'
+                    data-testid='flagged_message_modal.generating.permanent--button'
                 >
                     {permanentText}
                 </Button>

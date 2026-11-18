@@ -4,7 +4,7 @@
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import ReactSelect, {type StylesConfig} from 'react-select';
+import ReactSelect, {components, type InputProps, type SingleValueProps, type StylesConfig} from 'react-select';
 
 import {GenericModal} from '@mattermost/components';
 import type {ServerError} from '@mattermost/types/errors';
@@ -24,6 +24,24 @@ import AdvancedTextbox from 'components/widgets/advanced_textbox/advanced_textbo
 import type {GlobalState} from 'types/store';
 
 import './flag_post_modal.scss';
+
+type ReasonOption = {value: string; label: string};
+
+// react-select renders the input; its testid goes in through the part's props
+const ReasonInput = (props: InputProps<ReasonOption, false>) => (
+    <components.Input
+        {...props}
+        data-testid='flag_post_modal.reason--combobox'
+    />
+);
+
+// react-select renders the chosen label outside its input; its testid goes in through the part's props
+const ReasonValue = (props: SingleValueProps<ReasonOption, false>) => (
+    <components.SingleValue
+        {...props}
+        innerProps={{...props.innerProps, 'data-testid': 'flag_post_modal.reason_value--text'} as typeof props.innerProps}
+    />
+);
 
 const noop = () => {};
 
@@ -164,6 +182,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
     return (
         <GenericModal
             id='FlagPostModal'
+            testId='flag_post_modal'
             className='flag-post-modal'
             ariaLabel={label}
             modalHeaderText={label}
@@ -186,11 +205,9 @@ export default function FlagPostModal({postId, onExited}: Props) {
                             defaultMessage='Message to be quarantined'
                         />
                     </div>
-                    <div
-                        className='post forward-post__post-preview--override'
-                        data-testid='FlagPostModal__post-preview_container'
-                    >
+                    <div className='post forward-post__post-preview--override'>
                         <PostMessagePreview
+                            testIdScope='flag_post_modal.post_preview'
                             metadata={previewMetadata}
                             handleFileDropdownOpened={noop}
                             preventClickAction={true}
@@ -215,6 +232,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                         styles={reactStyles}
                         onChange={handleOptionChange}
                         placeholder={reasonSelectPlaceholder}
+                        components={{Input: ReasonInput, SingleValue: ReasonValue}}
                     />
                     {reasonError &&
                         <div className='FlagPostModal__reason__error-message'>
@@ -227,13 +245,14 @@ export default function FlagPostModal({postId, onExited}: Props) {
                 <div className='FlagPostModal__section FlagPostModal__comment'>
                     <div
                         className='FlagPostModal__section_title'
-                        data-testid='FlagPostModal__comment_section_title'
+                        data-testid='flag_post_modal.comment_title--text'
                     >
                         {contentFlaggingSettings?.reporter_comment_required ? requiredCommentSectionTitle : optionalCommentSectionTitle}
                     </div>
 
                     <AdvancedTextbox
                         id='FlagPostModal__comment'
+                        testId='flag_post_modal.comment'
                         channelId={post.channel_id}
                         value={comment}
                         onChange={handleCommentChange}
@@ -250,7 +269,7 @@ export default function FlagPostModal({postId, onExited}: Props) {
                 {requestError &&
                     <div className='FlagPostModal__request-error'>
                         <i className='icon icon-alert-outline'/>
-                        <span data-testid='flag-post-request-error-text'>{requestError}</span>
+                        <span data-testid='flag_post_modal.request_error--text'>{requestError}</span>
                     </div>
                 }
             </div>

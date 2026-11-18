@@ -3,7 +3,7 @@
 
 import {test} from '@mattermost/playwright-lib';
 
-import {setupContentFlagging, createPost, verifyAuthorNotification} from './../support';
+import {createPost, setupContentFlagging, verifyReport} from './../support';
 
 /** @objective Verify that multiple reviewers receive the same flag notification
  * @testcase
@@ -46,11 +46,9 @@ test('Verify multiple reviewers receive same flagged post', async ({pw}) => {
     });
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
-    const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =
-        await pw.testBrowser.login(secondUser);
-    await verifyAuthorNotification(post.id, secondChannelsPage, secondContentReviewPage, team.name, message, 'Pending');
+    const {app: secondApp} = await pw.testBrowser.login(secondUser);
+    await verifyReport(pw, secondApp, secondUser, team, post.id, message, 'Pending');
 
-    const {channelsPage: channelsPageThird, contentReviewPage: contentReviewPageThird} =
-        await pw.testBrowser.login(thirdUser);
-    await verifyAuthorNotification(post.id, channelsPageThird, contentReviewPageThird, team.name, message, 'Pending');
+    const {app: thirdApp} = await pw.testBrowser.login(thirdUser);
+    await verifyReport(pw, thirdApp, thirdUser, team, post.id, message, 'Pending');
 });

@@ -10,30 +10,50 @@ import PlatformIcons from './platform_icons';
 
 describe('PlatformIcons', () => {
     it('always renders the three platforms in fixed order', () => {
-        renderWithContext(<PlatformIcons platforms={[]}/>);
+        renderWithContext(
+            <PlatformIcons
+                platforms={[]}
+                testId='admin.session_attributes.platforms:x'
+            />,
+        );
 
-        const slots = screen.getByTestId('session-attribute-platforms').querySelectorAll('[data-platform]');
+        const slots = screen.getByTestId('admin.session_attributes.platforms:x').querySelectorAll('[data-platform]');
         expect(Array.from(slots).map((slot) => slot.getAttribute('data-platform'))).toEqual(['desktop', 'mobile', 'browser']);
     });
 
     it('marks present platforms active and absent platforms inactive', () => {
-        renderWithContext(<PlatformIcons platforms={['desktop', 'browser']}/>);
+        renderWithContext(
+            <PlatformIcons
+                platforms={['desktop', 'browser']}
+                testId='admin.session_attributes.platforms:x'
+            />,
+        );
 
-        const row = screen.getByTestId('session-attribute-platforms');
+        const row = screen.getByTestId('admin.session_attributes.platforms:x');
         expect(row.querySelector('[data-platform="desktop"]')).toHaveAttribute('data-active', 'true');
         expect(row.querySelector('[data-platform="browser"]')).toHaveAttribute('data-active', 'true');
         expect(row.querySelector('[data-platform="mobile"]')).toHaveAttribute('data-active', 'false');
     });
 
     it('marks all platforms inactive when none are present', () => {
-        renderWithContext(<PlatformIcons platforms={[]}/>);
+        renderWithContext(
+            <PlatformIcons
+                platforms={[]}
+                testId='admin.session_attributes.platforms:x'
+            />,
+        );
 
-        const slots = screen.getByTestId('session-attribute-platforms').querySelectorAll('[data-active]');
+        const slots = screen.getByTestId('admin.session_attributes.platforms:x').querySelectorAll('[data-active]');
         expect(Array.from(slots).every((slot) => slot.getAttribute('data-active') === 'false')).toBe(true);
     });
 
     it('conveys active/inactive state in each icon accessible name', () => {
-        renderWithContext(<PlatformIcons platforms={['desktop']}/>);
+        renderWithContext(
+            <PlatformIcons
+                platforms={['desktop']}
+                testId='admin.session_attributes.platforms:x'
+            />,
+        );
 
         expect(screen.getByLabelText('Desktop (active)')).toBeInTheDocument();
         expect(screen.getByLabelText('Mobile (inactive)')).toBeInTheDocument();
@@ -45,7 +65,12 @@ describe('PlatformIcons', () => {
         ['mobile', 'Mobile'],
         ['browser', 'Browser'],
     ])('reveals the %s platform tooltip on hover', async (_platform, tooltipText) => {
-        renderWithContext(<PlatformIcons platforms={['desktop', 'mobile', 'browser']}/>);
+        renderWithContext(
+            <PlatformIcons
+                platforms={['desktop', 'mobile', 'browser']}
+                testId='admin.session_attributes.platforms:x'
+            />,
+        );
 
         expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
 

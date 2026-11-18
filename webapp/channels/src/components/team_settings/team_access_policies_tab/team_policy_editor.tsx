@@ -441,10 +441,14 @@ export default function TeamPolicyEditor({
     const nameErrorMessage: CustomMessageInputType = nameHasError ? {type: 'error', value: formatMessage({id: 'team_settings.policy_editor.name_required', defaultMessage: 'A policy name is required.'})} : null;
 
     return (
-        <div className='TeamPolicyEditor'>
+        <div
+            className='TeamPolicyEditor'
+            data-testid='team_settings_modal.access_policies.editor'
+        >
             <div className='TeamPolicyEditor__header'>
                 <button
                     className='style--none TeamPolicyEditor__back-btn'
+                    data-testid='team_settings_modal.access_policies.editor.back--button'
                     onClick={() => {
                         if (hasUnsavedChanges) {
                             setBackClicked(true);
@@ -467,6 +471,7 @@ export default function TeamPolicyEditor({
                 <Input
                     name='policyName'
                     type='text'
+                    testId='team_settings_modal.access_policies.editor.name'
                     value={policyName}
                     label={formatMessage({id: 'team_settings.policy_editor.name_label', defaultMessage: 'Membership policy name'})}
                     placeholder={formatMessage({id: 'team_settings.policy_editor.name_placeholder', defaultMessage: 'Add a unique policy name'})}
@@ -529,6 +534,7 @@ export default function TeamPolicyEditor({
                     </div>
                 )}
                 <TableEditor
+                    testId='team_settings_modal.access_policies.editor.rules'
                     value={expression}
                     onChange={handleExpressionChange}
                     onValidate={() => {}}
@@ -570,6 +576,7 @@ export default function TeamPolicyEditor({
                     <Button
                         emphasis='primary'
                         onClick={() => setAddChannelOpen(true)}
+                        data-testid='team_settings_modal.access_policies.editor.add_channels--button'
                     >
                         <FormattedMessage
                             id='admin.access_control.policy.edit_policy.channel_selector.addChannels'
@@ -587,6 +594,7 @@ export default function TeamPolicyEditor({
                     saving={saving}
                     hideTeamColumn={true}
                     teamId={teamId}
+                    testIdScope='team_settings_modal.access_policies.editor.channels'
                 />
                 {hasMixedChannels && (
                     <div className='TeamPolicyEditor__mixed-channels-notice'>
@@ -637,6 +645,7 @@ export default function TeamPolicyEditor({
                                 destructive={true}
                                 onClick={() => setShowDeleteModal(true)}
                                 disabled={hasChannels() || hasMaskedRows}
+                                data-testid='team_settings_modal.access_policies.editor.delete--button'
                             >
                                 <FormattedMessage
                                     id='admin.access_control.policy.edit_policy.delete_policy.delete'
@@ -677,6 +686,7 @@ export default function TeamPolicyEditor({
             {showDeleteModal && (
                 <GenericModal
                     className='TeamPolicyEditor__delete-modal'
+                    testId='team_settings_modal.access_policies.editor.delete_modal'
                     show={true}
                     isStacked={true}
                     onExited={() => setShowDeleteModal(false)}
@@ -695,6 +705,7 @@ export default function TeamPolicyEditor({
                                 type='button'
                                 emphasis='tertiary'
                                 onClick={() => setShowDeleteModal(false)}
+                                data-testid='team_settings_modal.access_policies.editor.delete_modal.cancel--button'
                             >
                                 {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.cancel', defaultMessage: 'Cancel'})}
                             </Button>
@@ -702,6 +713,7 @@ export default function TeamPolicyEditor({
                                 type='button'
                                 destructive={true}
                                 onClick={handleDelete}
+                                data-testid='team_settings_modal.access_policies.editor.delete_modal.confirm--button'
                             >
                                 {formatMessage({id: 'team_settings.policy_editor.delete_confirmation.confirm', defaultMessage: 'Delete'})}
                             </Button>
@@ -721,6 +733,7 @@ export default function TeamPolicyEditor({
 
             {(shouldShowPanel || backClicked) && (
                 <SaveChangesPanel
+                    testId='team_settings_modal.save_panel'
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}

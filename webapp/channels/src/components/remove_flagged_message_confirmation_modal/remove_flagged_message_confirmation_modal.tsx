@@ -284,7 +284,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
     return (
         <GenericModal
             className='KeepRemoveFlaggedMessageConfirmationModal'
-            dataTestId='keep-remove-flagged-message-confirmation-modal'
+            testId='flagged_message_modal'
             ariaLabel={label}
             modalHeaderText={label}
             compassDesign={true}
@@ -299,7 +299,7 @@ export default function KeepRemoveFlaggedMessageConfirmationModal({action, onExi
                 {requestError && (
                     <div
                         className='request_error'
-                        data-testid='keep-remove-flagged-message-request-error'
+                        data-testid='flagged_message_modal.request_error'
                     >
                         <i className='icon icon-alert-outline'/>
                         <span>{requestError}</span>

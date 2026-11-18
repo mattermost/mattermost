@@ -196,7 +196,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                 emphasis='primary'
                 disabled={toggleDisabled}
                 onClick={handleToggleMode}
-                data-testid='team-rules-editor-mode-toggle'
+                data-testid='admin.team.access_rules.switch_mode--button'
             >
                 {editorMode === 'table' ? (
                     <FormattedMessage
@@ -229,7 +229,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                             checked={effectiveAutoSync}
                             onChange={handleAutoSyncToggle}
                             disabled={autoSyncDisabled}
-                            data-testid='team-auto-add-members-checkbox'
+                            data-testid='admin.team.auto_add_members--checkbox'
                         />
                         <label
                             htmlFor='teamAutoAddMembersCheckbox'
@@ -265,6 +265,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
         <>
             <AdminPanel
                 id='team_level_access_rules'
+                testId='admin.team.access_rules'
                 title={defineMessage({
                     id: 'admin.team_settings.team_detail.rules.title',
                     defaultMessage: 'Team-specific membership rules',
@@ -281,7 +282,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                         <div
                             className='team-access-rules__locked-notice'
                             role='status'
-                            data-testid='team-rules-advanced-locked'
+                            data-testid='admin.team.access_rules.advanced_locked--text'
                         >
                             <i className='icon icon-information-outline'/>
                             <FormattedMessage
@@ -292,6 +293,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                     )}
                     {editorMode === 'cel' ? (
                         <CELEditor
+                            testId='admin.team.access_rules.rules'
                             value={expression}
                             onChange={handleExpressionChange}
                             onValidate={setCelValid}
@@ -304,6 +306,7 @@ const TeamLevelAccessRules: React.FC<TeamLevelAccessRulesProps> = ({
                         />
                     ) : (
                         <TableEditor
+                            testId='admin.team.access_rules.rules'
                             value={expression}
                             onChange={handleExpressionChange}
                             onValidate={() => setFormError('')}

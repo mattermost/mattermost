@@ -85,6 +85,7 @@ function ConfirmRemoveAppliesToModal({resourceTypes, onConfirm, onCancel, onExit
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
+            testId='admin.attribute.remove_applies_to_modal'
         >
             <FormattedMessage
                 id='admin.global_attributes.confirm.remove_applies_to.body'

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, Msg} from '@mattermost/playwright-lib';
 
 import {
     CLASSIFICATION_MARKINGS_ADMIN_PATH,
@@ -9,9 +9,9 @@ import {
 } from '../site_configuration/classification_markings_helpers';
 
 import {
-    GLOBAL_ATTRIBUTES_ADMIN_PATH,
     createGlobalAttributeField,
     deleteGlobalAttributeFieldIfExists,
+    openAttributeManagement,
     requireGlobalAttributesEnabled,
 } from './global_attributes_helpers';
 
@@ -55,7 +55,7 @@ test.describe('System Console - Global Attributes listing (Classification Markin
                 // # Seed the real classification field: name 'classification', type 'rank',
                 // matching classification_markings/utils/index.ts's saveCreateField exactly —
                 // not the select-based shape some older, test-only e2e helpers use.
-                await createGlobalAttributeField(adminClient, 'classification', {
+                const classification = await createGlobalAttributeField(adminClient, 'classification', {
                     type: 'rank',
                     attrs: {
                         display_name: classificationDisplayName,
@@ -68,7 +68,7 @@ test.describe('System Console - Global Attributes listing (Classification Markin
 
                 // # Seed an unrelated field that shares the same 'rank' type, to prove the
                 // predicate keys on name/object_type/group_id, not on type.
-                await createGlobalAttributeField(adminClient, unrelatedRankName, {
+                const unrelated = await createGlobalAttributeField(adminClient, unrelatedRankName, {
                     type: 'rank',
                     attrs: {
                         display_name: unrelatedRankDisplayName,
@@ -79,62 +79,52 @@ test.describe('System Console - Global Attributes listing (Classification Markin
                     },
                 });
 
-                const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
-
-                const classificationRow = systemConsolePage.page.locator('tr', {
-                    has: systemConsolePage.page
-                        .getByTestId('global-attribute-name')
-                        .filter({hasText: classificationDisplayName}),
-                });
-                await classificationRow.waitFor();
+                const {app} = await pw.testBrowser.login(adminUser);
+                let attributes = await openAttributeManagement(app);
+                await expect(attributes.row(classification.id).nameText).toHaveText(classificationDisplayName);
 
                 // * The read-only subtitle renders under the attribute name
-                await expect(classificationRow.getByText('Read-only')).toBeVisible();
+                await expect(attributes.row(classification.id).classificationSubtitleText).toContainText(/read-only/i);
 
                 // * The Source column identifies this row's true source, not the generic
                 // "Managed here" every other native field gets
-                await expect(classificationRow.getByTestId('global-attribute-source')).toContainText(
-                    'Classification Markings',
+                await expect(attributes.row(classification.id).sourceText).toContainMessage(
+                    Msg.admin.global_attributes.table.source.classification_markings,
                 );
 
                 // * The rightmost cell carries only an open-in-new link to the
                 // Classification Markings admin page — no Edit/More-actions menu
-                const openInNewLink = classificationRow.getByRole('link', {name: 'Open Classification Markings'});
+                const openInNewLink = attributes.row(classification.id).classificationLinkLink;
                 await expect(openInNewLink).toBeVisible();
                 await expect(openInNewLink).toHaveHrefPath(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-                await expect(classificationRow.getByRole('button', {name: 'More actions'})).toHaveCount(0);
+                await expect(attributes.row(classification.id).actionsButton).toHaveCount(0);
 
                 // # Clicking the link actually navigates to the Classification Markings page
                 await openInNewLink.click();
                 // * Navigation lands on the Classification Markings admin page
-                await expect(systemConsolePage.page).toHaveURL(new RegExp(CLASSIFICATION_MARKINGS_ADMIN_PATH));
+                await expect(app.page).toHavePath(
+                    `${app.adminConsolePage.pathFor()}/site_config/classification_markings`,
+                );
 
-                await systemConsolePage.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                attributes = await openAttributeManagement(app);
 
                 // * An unrelated 'rank'-type field is unaffected: ordinary dot-menu, no subtitle
-                const unrelatedRow = systemConsolePage.page.locator('tr', {
-                    has: systemConsolePage.page
-                        .getByTestId('global-attribute-name')
-                        .filter({hasText: unrelatedRankDisplayName}),
-                });
-                await unrelatedRow.waitFor();
-                await expect(unrelatedRow.getByRole('button', {name: 'More actions'})).toBeVisible();
-                await expect(unrelatedRow.getByText('Read-only')).toHaveCount(0);
-                await expect(unrelatedRow.getByRole('link', {name: 'Open Classification Markings'})).toHaveCount(0);
-                await expect(unrelatedRow.getByTestId('global-attribute-source')).toContainText('Managed here');
+                await expect(attributes.row(unrelated.id).nameText).toHaveText(unrelatedRankDisplayName);
+                await expect(attributes.row(unrelated.id).actionsButton).toBeVisible();
+                await expect(attributes.row(unrelated.id).classificationSubtitleText).toHaveCount(0);
+                await expect(attributes.row(unrelated.id).classificationLinkLink).toHaveCount(0);
+                await expect(attributes.row(unrelated.id).sourceText).toContainMessage(
+                    Msg.admin.global_attributes.table.source.managed,
+                );
 
                 // * Classification's name renders at the same contrast as any other row's:
                 // a definition that lives on another page must not read as a disabled
                 // attribute. Compared against the sibling row rather than a literal colour
                 // so it holds under every theme.
-                const unrelatedNameColor = await unrelatedRow
-                    .getByTestId('global-attribute-name')
-                    .evaluate((el) => getComputedStyle(el).color);
-                await expect(classificationRow.getByTestId('global-attribute-name')).toHaveCSS(
-                    'color',
-                    unrelatedNameColor,
-                );
+                const unrelatedNameColor = await attributes
+                    .row(unrelated.id)
+                    .nameText.locator.evaluate((el) => getComputedStyle(el).color);
+                await expect(attributes.row(classification.id).nameText).toHaveCSS('color', unrelatedNameColor);
             } finally {
                 await deleteClassificationMarkingsFieldIfExists(adminClient);
                 await deleteGlobalAttributeFieldIfExists(adminClient, unrelatedRankName);

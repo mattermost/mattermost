@@ -57,7 +57,7 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                 cell: ({getValue}) => (
                     <span
                         className='SessionAttributes__display-name'
-                        data-testid='session-attribute-display-name'
+                        data-testid='admin.session_attributes.row.name--text'
                     >
                         {getValue()}
                     </span>
@@ -84,7 +84,7 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                             >
                                 <span
                                     className='SessionAttributes__server-badge'
-                                    data-testid='session-attribute-server-label'
+                                    data-testid='admin.session_attributes.row.server_label--text'
                                 >
                                     <FormattedMessage
                                         id='admin.session_attributes.table.server_label'
@@ -116,7 +116,7 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                     return (
                         <span
                             className='SessionAttributes__type-cell'
-                            data-testid='session-attribute-type'
+                            data-testid='admin.session_attributes.row.type--text'
                         >
                             <Icon size={16}/>
                             <FormattedMessage {...typeLabels[displayType]}/>
@@ -138,7 +138,10 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                     </div>
                 ),
                 cell: ({row}) => (
-                    <PlatformIcons platforms={getSessionAttrs(row.original).platforms}/>
+                    <PlatformIcons
+                        platforms={getSessionAttrs(row.original).platforms}
+                        testId='admin.session_attributes.row.platforms'
+                    />
                 ),
                 enableHiding: false,
                 enableSorting: false,
@@ -157,7 +160,7 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                 cell: ({row}) => (
                     <span
                         className='SessionAttributes__duration'
-                        data-testid='session-attribute-ttl'
+                        data-testid='admin.session_attributes.row.ttl--text'
                     >
                         {isServerSourced(row.original.name) ? '—' : formatDuration(getSessionAttrs(row.original).ttl_seconds)}
                     </span>
@@ -179,7 +182,7 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                 cell: ({row}) => (
                     <span
                         className='SessionAttributes__duration'
-                        data-testid='session-attribute-grace'
+                        data-testid='admin.session_attributes.row.grace--text'
                     >
                         {isServerSourced(row.original.name) ? '—' : formatDuration(getSessionAttrs(row.original).grace_period_seconds)}
                     </span>
@@ -203,7 +206,10 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
                     </div>
                 ),
                 cell: ({row}) => (
-                    <StatusChip enabled={getSessionAttrs(row.original).enabled}/>
+                    <StatusChip
+                        enabled={getSessionAttrs(row.original).enabled}
+                        testId='admin.session_attributes.row.status'
+                    />
                 ),
                 enableHiding: false,
                 enableSorting: false,
@@ -252,7 +258,10 @@ export default function SessionAttributesTable({data, onStageChange, disabled = 
             className='SessionAttributes__table-wrapper'
             style={{'--session-attributes-table-min-width': `${table.getTotalSize()}px`} as CSSProperties}
         >
-            <AdminConsoleListTable<SessionAttributeField> table={table}/>
+            <AdminConsoleListTable<SessionAttributeField>
+                table={table}
+                testIdScope='admin.session_attributes'
+            />
         </div>
     );
 }

@@ -800,6 +800,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                         values={attributeValues}
                         onChange={handleAttributeChange}
                         disabled={isSubmitting}
+                        testId='new_channel_modal.attributes'
                     />
                 )}
                 {activePluginOption?.extraContent && (

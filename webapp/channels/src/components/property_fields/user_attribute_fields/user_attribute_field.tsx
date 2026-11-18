@@ -61,14 +61,16 @@ type FieldControl = {
     onNameClick?: () => void;
 };
 
+// Literal per source so the testids stay statically readable.
 type CpaFieldManagementIndicatorProps = {
     field: UserPropertyField;
+    testIdScope: string;
 
     omitLocksField: boolean;
     adminManagedLocked: boolean;
 };
 
-const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, omitLocksField, adminManagedLocked}) => {
+const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = ({field, testIdScope, omitLocksField, adminManagedLocked}) => {
     const pluginsById = useSelector((state: GlobalState) => state.plugins?.plugins ?? {});
     const owners = field.attrs?.owners ?? [];
     const syncSources = getPropertyFieldSyncSources(field);
@@ -97,7 +99,7 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
                 <span
                     className='user-detail-cpa-field__chip'
                     key={key}
-                    data-testid={`user-detail-cpa-field__owner-${field.name}-${owner.id}`}
+                    data-testid={`${testIdScope}.owner:${owner.id}--text`}
                 >
                     {content}
                 </span>
@@ -109,7 +111,7 @@ const CpaFieldManagementIndicator: React.FC<CpaFieldManagementIndicatorProps> = 
                 <span
                     className='user-detail-cpa-field__chip'
                     key={`${field.name}-${source}`}
-                    data-testid={`user-detail-cpa-field__${source}-${field.name}`}
+                    data-testid={`${testIdScope}.source:${source}--text`}
                 >
                     <FormattedMessage
                         {...syncSourceChipMessages[source]}
@@ -183,7 +185,8 @@ export type UserAttributeFieldProps = {
     onChange: (fieldId: string, value: UserAttributeValue) => void;
     disabled?: boolean;
     canEditAdminManaged: boolean;
-    testIdPrefix?: string;
+
+    testIdScope: string;
     trailing?: React.ReactNode;
 };
 
@@ -194,7 +197,7 @@ export default function UserAttributeField({
     onChange,
     disabled = false,
     canEditAdminManaged,
-    testIdPrefix = 'user-detail-custom-attribute',
+    testIdScope,
     trailing,
 }: UserAttributeFieldProps) {
     const intl = useIntl();
@@ -205,7 +208,7 @@ export default function UserAttributeField({
     const errorId = field.id + '-error';
     const describedErrorId = error ? errorId : undefined;
     const fieldLabel = getUserPropertyFieldLabel(field);
-    const inputId = `${testIdPrefix}-input-${field.id}`;
+    const inputId = `${testIdScope}-input-${field.id}`;
     const joinValues = (values: string[]) => values.join(intl.formatMessage(messages.arrayValueSeparator));
 
     const {control, controlId, onNameClick} = ((): FieldControl => {
@@ -229,7 +232,7 @@ export default function UserAttributeField({
         case 'select':
         case 'multiselect':
         case 'rank': {
-            const comboboxId = `${testIdPrefix}-combobox-${field.id}`;
+            const comboboxId = `${testIdScope}-combobox-${field.id}`;
             const multiple = field.type === 'multiselect';
             return {
                 controlId: comboboxId,
@@ -237,7 +240,7 @@ export default function UserAttributeField({
                     <AttributeCombobox
                         type={field.type}
                         id={comboboxId}
-                        testId={comboboxId}
+                        testIdScope={testIdScope}
                         label={fieldLabel}
                         options={field.attrs?.options || []}
                         value={value}
@@ -269,7 +272,8 @@ export default function UserAttributeField({
                         disabled={isDisabled}
                         menuId={`cpa-graph-menu-${field.id}`}
                         buttonId={buttonId}
-                        buttonDataTestId={`cpa-graph-select-${field.id}`}
+                        buttonDataTestId={`${testIdScope}.graph--button`}
+                        testIdScope='user_attribute_graph_menu'
                         placeholder={intl.formatMessage(propertyFieldMessages.selectOptions)}
                         ariaLabel={fieldLabel}
                         invalid={Boolean(error)}
@@ -289,6 +293,7 @@ export default function UserAttributeField({
                             error,
                         })}
                         type={getInputTypeFromValueType(field.attrs?.value_type)}
+                        data-testid={`${testIdScope}.value_input--textbox`}
                         value={Array.isArray(value) ? joinValues(value) : value}
                         onChange={(e) => onChange(field.id, e.target.value)}
                         disabled={isDisabled}
@@ -300,7 +305,8 @@ export default function UserAttributeField({
         }
     })();
 
-    const testId = `${testIdPrefix}-label-${field.id}`;
+    // With trailing controls the row is the field's root, so they are parts of it.
+    const testId = trailing ? undefined : `${testIdScope}:${field.id}`;
 
     // The name is its own <label htmlFor> rather than a <label> root: a label
     // forwards clicks inside it to its first labelable descendant, which would
@@ -314,6 +320,7 @@ export default function UserAttributeField({
                 className='UserAttributeField__name'
                 htmlFor={controlId}
                 onClick={onNameClick}
+                data-testid={`${testIdScope}.name--text`}
             >
                 <FormattedMessage
                     id='admin.userManagement.userDetail.cpaField'
@@ -326,7 +333,7 @@ export default function UserAttributeField({
                 <div
                     id={errorId}
                     className='field-error'
-                    data-testid='fieldError'
+                    data-testid={`${testIdScope}.error--alert`}
                     role='alert'
                     aria-live='polite'
                 >
@@ -335,6 +342,7 @@ export default function UserAttributeField({
             )}
             <CpaFieldManagementIndicator
                 field={field}
+                testIdScope={testIdScope}
                 omitLocksField={omitLocksField}
                 adminManagedLocked={isAdminManagedLocked(field, lockOpts)}
             />
@@ -346,7 +354,10 @@ export default function UserAttributeField({
     }
 
     return (
-        <div className='UserAttributeField__row'>
+        <div
+            className='UserAttributeField__row'
+            data-testid={`${testIdScope}:${field.id}`}
+        >
             {root}
             <div className='UserAttributeField__trailing'>{trailing}</div>
         </div>

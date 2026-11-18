@@ -34,14 +34,14 @@ test.describe('System Console - Classification markings (feature flag off)', () 
             }
 
             // # Open system console and navigate directly to the classification markings path
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.goto();
-            await systemConsolePage.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            const {app} = await pw.testBrowser.login(adminUser);
+            await app.page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
 
-            // * User is redirected away from the hidden route (no Route registered)
-            await expect(systemConsolePage.page).not.toHaveURL(/classification_markings/);
-            // * Classification markings page title is not shown
-            await expect(systemConsolePage.page.getByText('Classification Markings').first()).not.toBeVisible();
+            // * User is redirected away from the hidden route (no Route registered) to another System Console page,
+            // which isn't Classification Markings
+            await expect(app.page).not.toHavePath(CLASSIFICATION_MARKINGS_ADMIN_PATH);
+            await expect(app.admin.header).toBeVisible();
+            await expect(app.admin.header).not.toContainText('Classification Markings');
         },
     );
 });

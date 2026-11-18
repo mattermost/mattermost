@@ -121,21 +121,21 @@ describe('ClassificationAttribute', () => {
         render();
 
         expect(await screen.findByRole('heading', {name: 'Edit Classification Attribute'})).toBeInTheDocument();
-        expect(await screen.findByTestId('classificationAttributeName')).toHaveValue('Classification');
-        expect(screen.getByTestId('classificationAttributeName')).toBeDisabled();
-        expect(screen.getByTestId('classificationAttributeUniqueName')).toHaveTextContent('classification');
-        expect(screen.getByTestId('classificationAttributeType')).toHaveTextContent('Ranked');
-        expect(screen.getByTestId('classificationAttributeType')).toBeDisabled();
-        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('1');
-        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('UNCLASSIFIED');
-        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('2');
-        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('SECRET');
+        expect(await screen.findByTestId('admin.classification.name--textbox')).toHaveValue('Classification');
+        expect(screen.getByTestId('admin.classification.name--textbox')).toBeDisabled();
+        expect(screen.getByTestId('admin.classification.unique_name--text')).toHaveTextContent('classification');
+        expect(screen.getByTestId('admin.classification.type--button')).toHaveTextContent('Ranked');
+        expect(screen.getByTestId('admin.classification.type--button')).toBeDisabled();
+        expect(screen.getByTestId('admin.classification.levels--list')).toHaveTextContent('1');
+        expect(screen.getByTestId('admin.classification.levels--list')).toHaveTextContent('UNCLASSIFIED');
+        expect(screen.getByTestId('admin.classification.levels--list')).toHaveTextContent('2');
+        expect(screen.getByTestId('admin.classification.levels--list')).toHaveTextContent('SECRET');
         expect(screen.getByText('Presets and marking colors are configured on Classification Markings.')).toBeInTheDocument();
-        expect(screen.getByTestId('classificationAttributeMarkingsLink')).toHaveAttribute(
+        expect(screen.getByTestId('admin.classification.markings--link')).toHaveAttribute(
             'href',
             '/admin_console/site_config/classification_markings',
         );
-        expect(screen.getByTestId('classificationAttributeMarkingsLink')).toHaveTextContent('Open');
+        expect(screen.getByTestId('admin.classification.markings--link')).toHaveTextContent('Open');
     });
 
     it('paints option chips with contrasting text so a bright marking stays readable', async () => {
@@ -166,8 +166,8 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('classificationAttributeMissing')).toBeInTheDocument();
-        expect(screen.queryByTestId('classificationAttributeName')).not.toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.missing--text')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.name--textbox')).not.toBeInTheDocument();
     });
 
     it('refuses to describe a wrong-typed template named classification', async () => {
@@ -180,11 +180,11 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('classificationAttributeConflict')).toHaveTextContent(
+        expect(await screen.findByTestId('admin.classification.conflict--alert')).toHaveTextContent(
             'An attribute named "classification" already exists but is not part of classification.',
         );
-        expect(screen.queryByTestId('classificationAttributeType')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.type--button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.save--button')).not.toBeInTheDocument();
     });
 
     it('refuses to adopt a channel field named classification that is linked elsewhere', async () => {
@@ -194,9 +194,9 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('classificationAttributeConflict')).toBeInTheDocument();
-        expect(screen.queryByTestId('channelsResourceRow')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('saveSetting')).not.toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.conflict--alert')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.channel')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.save--button')).not.toBeInTheDocument();
     });
 
     it('treats a 404 from the property routes as absent rather than broken', async () => {
@@ -212,8 +212,8 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('classificationAttributeMissing')).toBeInTheDocument();
-        expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.missing--text')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.load_error--alert')).not.toBeInTheDocument();
     });
 
     it('shows the channel field as absent when only that lookup 404s', async () => {
@@ -232,8 +232,8 @@ describe('ClassificationAttribute', () => {
         render();
 
         // Classification exists, it just does not apply to channels yet.
-        expect(await screen.findByTestId('appliesToAddResource')).toBeInTheDocument();
-        expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.applies_to.add--button')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.load_error--alert')).not.toBeInTheDocument();
     });
 
     it('surfaces the server message when a load genuinely fails', async () => {
@@ -249,7 +249,7 @@ describe('ClassificationAttribute', () => {
         render();
 
         // The canned copy cannot say which call failed, so the reason is shown.
-        expect(await screen.findByTestId('classificationAttributeLoadError')).toHaveTextContent('Property group not found.');
+        expect(await screen.findByTestId('admin.classification.load_error--alert')).toHaveTextContent('Property group not found.');
 
         consoleSpy.mockRestore();
     });
@@ -259,9 +259,9 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('channelsResourceRow')).toBeInTheDocument();
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header');
-        expect(screen.getByTestId('channelsResourceLocation-display_label_header')).toBeChecked();
+        expect(await screen.findByTestId('admin.classification.applies_to.channel')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.channel.summary--text')).toHaveTextContent('Required · Display: Header');
+        expect(screen.getByTestId('admin.classification.applies_to.channel.settings.location:display_label_header--checkbox')).toBeChecked();
     });
 
     it('offers Add resource when classification does not apply to channels', async () => {
@@ -269,8 +269,8 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('appliesToAddResource')).toBeInTheDocument();
-        expect(screen.queryByTestId('channelsResourceRow')).not.toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.applies_to.add--button')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.channel')).not.toBeInTheDocument();
     });
 
     it('gives the linked user field a home under the name it actually carries', async () => {
@@ -280,7 +280,7 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        const rows = within(await screen.findByTestId('appliesToReadOnlyResources')).getAllByRole('listitem');
+        const rows = within(await screen.findByTestId('admin.classification.applies_to.read_only--list')).getAllByRole('listitem');
         expect(rows).toHaveLength(1);
         expect(rows[0]).toHaveTextContent('Applied to Users as clearance');
 
@@ -293,7 +293,7 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('channelsResourceRow')).toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.applies_to.channel')).toBeInTheDocument();
 
         // A check on the fixture rather than on behaviour: channel is among the
         // scopes the linked-field lookup lists (that call passes no target id,
@@ -301,7 +301,7 @@ describe('ClassificationAttribute', () => {
         // really does come back and really is being excluded below.
         expect(getPropertyFields).toHaveBeenCalledWith('access_control', 'channel', expect.objectContaining({targetType: 'system'}));
 
-        const rows = within(screen.getByTestId('appliesToReadOnlyResources')).getAllByRole('listitem');
+        const rows = within(screen.getByTestId('admin.classification.applies_to.read_only--list')).getAllByRole('listitem');
         expect(rows).toHaveLength(1);
         expect(rows[0]).toHaveTextContent('Applied to Users as clearance');
     });
@@ -311,8 +311,8 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('appliesToEmpty')).toBeInTheDocument();
-        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.applies_to.empty--text')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.read_only--list')).not.toBeInTheDocument();
     });
 
     it('treats a 404 from the linked-field listing as nothing linked', async () => {
@@ -339,9 +339,9 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        expect(await screen.findByTestId('appliesToEmpty')).toBeInTheDocument();
-        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.applies_to.empty--text')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.read_only--list')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.load_error--alert')).not.toBeInTheDocument();
         expect(consoleSpy).not.toHaveBeenCalled();
     });
 
@@ -380,17 +380,17 @@ describe('ClassificationAttribute', () => {
         // Everything the page is for, none of which the failed listing has any say
         // over. Spelled out rather than left to the load-error check alone, because
         // the error screen is not the only way this could go wrong.
-        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('UNCLASSIFIED');
-        expect(screen.getByTestId('classificationAttributeLevels')).toHaveTextContent('SECRET');
-        expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument();
-        expect(screen.getByTestId('channelsResourceRowSummary')).toHaveTextContent('Required · Display: Header');
-        expect(screen.getByTestId('saveSetting')).toBeInTheDocument();
-        expect(screen.getByTestId('classificationAttributeCancelLink')).toBeInTheDocument();
-        expect(screen.queryByTestId('classificationAttributeLoadError')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.levels--list')).toHaveTextContent('UNCLASSIFIED');
+        expect(screen.getByTestId('admin.classification.levels--list')).toHaveTextContent('SECRET');
+        expect(screen.getByTestId('admin.classification.applies_to.channel')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.channel.summary--text')).toHaveTextContent('Required · Display: Header');
+        expect(screen.getByTestId('admin.save--button')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.cancel--link')).toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.load_error--alert')).not.toBeInTheDocument();
 
         // The only casualty. The same fixture plus a listed user field produces the
         // row in the test above, so its absence here is the failure and nothing else.
-        expect(screen.queryByTestId('appliesToReadOnlyResources')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.applies_to.read_only--list')).not.toBeInTheDocument();
         expect(screen.queryByText(/Applied to Users as/)).not.toBeInTheDocument();
 
         consoleSpy.mockRestore();
@@ -402,9 +402,9 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        await userEvent.click(await screen.findByTestId('appliesToAddResource'));
-        await userEvent.click(screen.getByTestId('channelsResourceLocation-display_label_header'));
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(await screen.findByTestId('admin.classification.applies_to.add--button'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.settings.location:display_label_header--checkbox'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         await waitFor(() => {
             expect(createSpy).toHaveBeenCalledWith(
@@ -427,17 +427,17 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        await waitFor(() => expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument());
-        expect(screen.getByTestId('saveSetting')).toBeDisabled();
+        await waitFor(() => expect(screen.getByTestId('admin.classification.applies_to.channel')).toBeInTheDocument());
+        expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
-        await userEvent.click(screen.getByTestId('channelsResourceRequired-button'));
-        expect(screen.getByTestId('saveSetting')).toBeEnabled();
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.settings.required--switch'));
+        expect(screen.getByTestId('admin.save--button')).toBeEnabled();
 
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         // Back to inert once the write lands, which is what the e2e helper waits on.
         await waitFor(() => expect(patchSpy).toHaveBeenCalled());
-        await waitFor(() => expect(screen.getByTestId('saveSetting')).toBeDisabled());
+        await waitFor(() => expect(screen.getByTestId('admin.save--button')).toBeDisabled());
     });
 
     it('patches an existing field rather than creating a second one', async () => {
@@ -449,9 +449,9 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        await userEvent.click(await screen.findByTestId('channelsResourceRequired-button'));
-        await userEvent.click(screen.getByTestId('channelsResourceLocation-display_label_header'));
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(await screen.findByTestId('admin.classification.applies_to.channel.settings.required--switch'));
+        await userEvent.click(screen.getByTestId('admin.classification.applies_to.channel.settings.location:display_label_header--checkbox'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         await waitFor(() => {
             expect(patchSpy).toHaveBeenCalledWith(
@@ -470,14 +470,14 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        await userEvent.click(await screen.findByTestId('channelsResourceRowRemove'));
+        await userEvent.click(await screen.findByTestId('admin.classification.applies_to.channel.remove--button'));
 
         expect(await screen.findByText('Stop applying Classification to channels?')).toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', {name: 'Cancel'}));
 
         expect(deleteSpy).not.toHaveBeenCalled();
-        expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.channel')).toBeInTheDocument();
     });
 
     it('deletes the channel field once the removal is confirmed', async () => {
@@ -486,14 +486,14 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        await userEvent.click(await screen.findByTestId('channelsResourceRowRemove'));
+        await userEvent.click(await screen.findByTestId('admin.classification.applies_to.channel.remove--button'));
         await userEvent.click(await screen.findByRole('button', {name: 'Remove and delete values'}));
 
         await waitFor(() => {
             expect(deleteSpy).toHaveBeenCalledWith('access_control', 'channel', 'channel_field_id_1234567890');
         });
         await waitFor(() => {
-            expect(screen.queryByTestId('channelsResourceRow')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.classification.applies_to.channel')).not.toBeInTheDocument();
         });
     });
 
@@ -503,10 +503,10 @@ describe('ClassificationAttribute', () => {
 
         render();
 
-        await userEvent.click(await screen.findByTestId('channelsResourceRequired-button'));
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(await screen.findByTestId('admin.classification.applies_to.channel.settings.required--switch'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
-        expect(await screen.findByTestId('classificationAttributeSaveError')).toBeInTheDocument();
-        expect(screen.getByTestId('channelsResourceRow')).toBeInTheDocument();
+        expect(await screen.findByTestId('admin.classification.save_error--alert')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.applies_to.channel')).toBeInTheDocument();
     });
 });

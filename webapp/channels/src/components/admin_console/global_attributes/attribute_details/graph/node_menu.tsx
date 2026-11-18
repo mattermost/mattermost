@@ -55,7 +55,7 @@ export function NodeMenu({
             {disabled ? (
                 <div
                     className='attribute-graph-parents-pane__name'
-                    data-testid='attributeGraphParentsPane__name'
+                    data-testid='admin.attribute.graph.pane.name'
                 >
                     {optionName}
                 </div>
@@ -95,10 +95,8 @@ export function NodeMenu({
                         }}
                         maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                         hasError={renameIsDuplicate}
-                        customMessage={renameIsDuplicate ?
-                            {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmedName})} :
-                            null}
-                        data-testid='attributeGraphParentsPane__nameInput'
+                        customMessage={renameIsDuplicate ? {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmedName})} : null}
+                        testId='admin.attribute.graph.pane.name_input'
                         autoFocus={true}
                     />
                 </div>
@@ -106,7 +104,7 @@ export function NodeMenu({
             <Menu.Separator className='attribute-graph-parents-pane__divider'/>
             <Menu.Item
                 id='attributeGraphParentsPane__openParents'
-                data-testid='attributeGraphParentsPane__openParents'
+                data-testid='admin.attribute.graph.pane.parents--menuitem'
                 disableCloseOnSelect={true}
                 onClick={onOpenParents}
                 leadingElement={
@@ -134,7 +132,7 @@ export function NodeMenu({
             />
             <Menu.Item
                 id='attributeGraphParentsPane__openChildren'
-                data-testid='attributeGraphParentsPane__openChildren'
+                data-testid='admin.attribute.graph.pane.children--menuitem'
                 disableCloseOnSelect={true}
                 onClick={onOpenChildren}
                 leadingElement={

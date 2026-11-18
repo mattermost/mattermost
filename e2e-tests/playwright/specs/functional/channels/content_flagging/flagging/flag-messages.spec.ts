@@ -1,7 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, DefaultChannel} from '@mattermost/playwright-lib';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {
+    DefaultChannel,
+    expect,
+    Msg,
+    settle,
+    test,
+    type App,
+    type PlaywrightExtended,
+    Api,
+} from '@mattermost/playwright-lib';
 
 // NOTE: No global afterAll disabling content flagging here. A global afterAll
 // that writes shared server config races with reviewer-* tests running in a
@@ -19,50 +30,63 @@ const FLAG_COMMENT: string = 'This message contains misclassified data';
 const systemMessageForUser = (username: string): string =>
     `The message from @${username} has been quarantined for review. You will be notified once it is reviewed by a Reviewer.`;
 
-// Helper to login and navigate to channel
-async function loginAndNavigate(pw: any, user: any, teamName?: string, channelName?: string): Promise<any> {
-    const {channelsPage, app} = await pw.testBrowser.login(user);
-    if (teamName && channelName) {
-        await channelsPage.goto(teamName, channelName);
-    } else {
-        await channelsPage.goto();
-    }
-    await expect(app.center.composer.locator).toBeVisible();
-    return channelsPage;
+// Logs the user in and opens the team's Town Square.
+async function loginAndNavigate(pw: PlaywrightExtended, user: UserProfile, team: {name: string}): Promise<App> {
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
+    return app;
 }
 
-// Helper to post a message and get post info
-async function postMessage(channelsPage: any, message: string): Promise<{post: any; postId: any}> {
-    await channelsPage.postMessage(message);
-    const post = await channelsPage.getLastPost();
-    const postId = await channelsPage.centerView.getLastPostID();
-    return {post, postId};
+// The center channel's last post id (waits for there to be one).
+async function lastPostId(app: App): Promise<string> {
+    await expect.poll(async () => (await app.center.postList.postList.keys()).length).toBeGreaterThan(0);
+    const keys = await app.center.postList.postList.keys();
+    return keys[keys.length - 1];
 }
 
-// Helper to flag a post
+// Posts a message from the composer and returns the post (by id) once it shows.
+async function postMessage(app: App, message: string) {
+    await app.center.postCreate.message.container.fill(message);
+    await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    await expect
+        .poll(async () => app.center.postList.post({id: await lastPostId(app)}).message.container.text())
+        .toBe(message);
+    const postId = await lastPostId(app);
+    return {post: app.center.postList.post({id: postId}), postId};
+}
+
+type CenterPost = ReturnType<App['center']['postList']['post']>;
+
+// Opens a post's dot menu.
+async function openPostDotMenu(app: App, post: CenterPost) {
+    await post.container.hover();
+    await post.menu.dotMenuButton.click();
+    await expect(app.postDotMenu.container).toBeVisible();
+    return app.postDotMenu;
+}
+
+// Opens the quarantine dialog from a post's dot menu.
+async function openFlagDialog(app: App, post: CenterPost) {
+    const dialog = await (await openPostDotMenu(app, post)).flagMenuItem.clickTo(app.flagPostModal);
+    await expect(dialog.confirmButton).toBeVisible();
+    return dialog;
+}
+
+// Flags a post through the quarantine dialog.
 async function flagPostFlow(
-    post: any,
-    channelsPage: any,
+    app: App,
+    post: CenterPost,
     message: string,
     reason: string = FLAG_REASON_CLASSIFICATION_MISMATCH,
     comment: string = FLAG_COMMENT,
 ): Promise<void> {
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(reason);
-    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(comment);
-    await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
-}
-
-// Helper to open the dot menu for a given post
-async function openPostDotMenu(post: any, channelsPage: any): Promise<void> {
-    await post.hover();
-    await post.postMenu.toBeVisible();
-    await post.postMenu.dotMenuButton.click();
-    await channelsPage.postDotMenu.toBeVisible();
+    const dialog = await openFlagDialog(app, post);
+    await expect(dialog.postPreview.message.container).toContainText(message);
+    await dialog.reasonCombobox.choose(reason);
+    await expect(dialog.reasonValueText).toHaveText(reason);
+    await dialog.comment.container.fill(comment);
+    await settle(dialog.confirmButton, {wait: Api.PostCFPostFlag}).click();
+    await expect(dialog.confirmButton).not.toBeVisible();
 }
 
 /**
@@ -75,7 +99,7 @@ async function openPostDotMenu(post: any, channelsPage: any): Promise<void> {
  * 4. Verify the message is hidden and a system message is shown
  */
 test('Verify flagged message is hidden by default', async ({pw}) => {
-    const {user, adminClient} = await pw.initSetup();
+    const {user, adminClient, team} = await pw.initSetup();
     // Explicitly set HideFlaggedContent: true — a parallel worker may have set it
     // to false (e.g. author-deletes-message-before-review.spec.ts). Without an
     // explicit value this test would fail intermittently under PW_WORKERS=2.
@@ -89,9 +113,9 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
         },
     });
 
-    const channelsPage = await loginAndNavigate(pw, user);
+    const app = await loginAndNavigate(pw, user, team);
     const message = 'This is a test message to be flagged';
-    const {post, postId} = await postMessage(channelsPage, message);
+    const {post, postId} = await postMessage(app, message);
     // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
@@ -105,21 +129,19 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
     });
 
     // Cancel flagging the message
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.cancelButton.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
+    const flagDialog = await openFlagDialog(app, post);
+    await expect(flagDialog.postPreview.message.container).toContainText(message);
+    await flagDialog.cancelButton.click();
+    await expect(flagDialog.confirmButton).not.toBeVisible();
 
     // Flag the message
-    await flagPostFlow(post, channelsPage, message, FLAG_REASON_CLASSIFICATION_MISMATCH);
+    await flagPostFlow(app, post, message, FLAG_REASON_CLASSIFICATION_MISMATCH);
 
     // Verify the message is flagged
-    const flaggedPost = await channelsPage.centerView.getPostById(postId);
-    await flaggedPost.toContainText('(message deleted)');
-    const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(systemMessageForUser(user.username));
+    await expect(app.center.postList.post({id: postId})).toContainMessage(Msg.post_body.deleted);
+    await expect
+        .poll(async () => app.center.postList.post({id: await lastPostId(app)}).locator.textContent())
+        .toContain(systemMessageForUser(user.username));
 });
 
 /**
@@ -132,7 +154,7 @@ test('Verify flagged message is hidden by default', async ({pw}) => {
  * 4. Verify the message is not hidden
  */
 test('Verify Post is not hidden after flagging if HideFlaggedContent is false', async ({pw}) => {
-    const {user, adminClient} = await pw.initSetup();
+    const {user, adminClient, team} = await pw.initSetup();
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: true,
@@ -143,10 +165,10 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
         },
     });
 
-    const channelsPage = await loginAndNavigate(pw, user);
+    const app = await loginAndNavigate(pw, user, team);
     const message = 'This is a test message to be flagged';
-    const {post, postId} = await postMessage(channelsPage, message);
-    await post.toBeVisible();
+    const {post, postId} = await postMessage(app, message);
+    await expect(post).toBeVisible();
 
     // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
     await adminClient.patchConfig({
@@ -157,21 +179,19 @@ test('Verify Post is not hidden after flagging if HideFlaggedContent is false', 
     });
 
     // Cancel flagging the message
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.cancelButton.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.notToBeVisible();
+    const flagDialog = await openFlagDialog(app, post);
+    await expect(flagDialog.postPreview.message.container).toContainText(message);
+    await flagDialog.cancelButton.click();
+    await expect(flagDialog.confirmButton).not.toBeVisible();
 
     // Flag the message
-    await flagPostFlow(post, channelsPage, message);
+    await flagPostFlow(app, post, message);
 
     // Verify the message is flagged
-    const originaltext = await channelsPage.centerView.getPostById(postId);
-    await expect(originaltext.body).toContainText(message);
-    const systemMessage = await channelsPage.getLastPost();
-    await expect(systemMessage.body).toContainText(systemMessageForUser(user.username));
+    await expect(app.center.postList.post({id: postId}).message.container).toContainText(message);
+    await expect
+        .poll(async () => app.center.postList.post({id: await lastPostId(app)}).locator.textContent())
+        .toContain(systemMessageForUser(user.username));
 });
 
 /**
@@ -222,9 +242,9 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     await adminClient.flagPost(postToBeflagged.id, FLAG_REASON_CLASSIFICATION_MISMATCH, FLAG_COMMENT);
 
     // Login as the second user
-    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, DefaultChannel.TownSquare);
+    const app = await loginAndNavigate(pw, secondUser, team);
     // Town Square may show join/system posts above the target — select by post id.
-    const post = await channelsPage.centerView.getPostById(postToBeflagged.id);
+    const post = app.center.postList.post({id: postToBeflagged.id});
 
     // Re-apply guard immediately before dot-menu: login takes 3-5 s during which a
     // concurrent initSetup() can reset EnableContentFlagging to false.
@@ -240,14 +260,15 @@ test('Verify user cannot flag already flagged message', async ({pw}) => {
     });
 
     // Try to flag already flagged post
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
-    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
-    await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.cannotFlagAlreadyFlaggedPostToBeVisible();
+    const flagDialog = await openFlagDialog(app, post);
+    await flagDialog.reasonCombobox.choose(FLAG_REASON_CLASSIFICATION_MISMATCH);
+    await expect(flagDialog.reasonValueText).toHaveText(FLAG_REASON_CLASSIFICATION_MISMATCH);
+    await flagDialog.comment.container.fill(FLAG_COMMENT);
+    await flagDialog.confirmButton.click();
+    await expect(flagDialog.confirmButton).toBeVisible();
+    await expect(flagDialog.requestErrorText).toHaveText(
+        'Cannot quarantine this post as it is already quarantined for review.',
+    );
 });
 
 /**
@@ -332,19 +353,20 @@ test('Verify user cannot flag a message that was previously retained', async ({p
     });
 
     // Login as the second user
-    const channelsPage = await loginAndNavigate(pw, secondUser, team.name, DefaultChannel.TownSquare);
-    const post = await channelsPage.centerView.getPostById(postToBeflagged.id);
+    const app = await loginAndNavigate(pw, secondUser, team);
+    const post = app.center.postList.post({id: postToBeflagged.id});
 
     // Try to flag previously retained post
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
-    await channelsPage.centerView.flagPostConfirmationDialog.fillFlagComment(FLAG_COMMENT);
-    await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.cannotFlagPreviouslyRetainedPostToBeVisible();
+    const flagDialog = await openFlagDialog(app, post);
+    await expect(flagDialog.postPreview.message.container).toContainText(message);
+    await flagDialog.reasonCombobox.choose(FLAG_REASON_CLASSIFICATION_MISMATCH);
+    await expect(flagDialog.reasonValueText).toHaveText(FLAG_REASON_CLASSIFICATION_MISMATCH);
+    await flagDialog.comment.container.fill(FLAG_COMMENT);
+    await flagDialog.confirmButton.click();
+    await expect(flagDialog.confirmButton).toBeVisible();
+    await expect(flagDialog.requestErrorText).toHaveText(
+        'Cannot quarantine this post as it was retained in a previous review.',
+    );
 });
 
 /**
@@ -355,16 +377,16 @@ test('Verify user cannot flag a message that was previously retained', async ({p
  * 3. Verify that flag message option is not available in the post menu
  */
 test('Verify the Quarantine for Review option is not available when feature is disabled', async ({pw}) => {
-    const {user, adminClient} = await pw.initSetup();
+    const {user, adminClient, team} = await pw.initSetup();
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: false,
         },
     });
 
-    const channelsPage = await loginAndNavigate(pw, user);
+    const app = await loginAndNavigate(pw, user, team);
     const message = 'This is a test message to be flagged';
-    const {post} = await postMessage(channelsPage, message);
+    const {post} = await postMessage(app, message);
 
     // Re-apply guard: parallel tests often turn flagging back on; the menu item only hides when false.
     await adminClient.patchConfig({
@@ -377,8 +399,9 @@ test('Verify the Quarantine for Review option is not available when feature is d
         return cfg.ContentFlaggingSettings?.EnableContentFlagging === false;
     });
 
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItemNotToBeVisible();
+    const dotMenu = await openPostDotMenu(app, post);
+    await expect(dotMenu.copyLinkMenuItem).toBeVisible();
+    await expect(dotMenu.flagMenuItem).not.toBeVisible();
 });
 
 /**
@@ -400,9 +423,9 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
         },
     });
 
-    const channelsPage = await loginAndNavigate(pw, user, team.name, DefaultChannel.TownSquare);
+    const app = await loginAndNavigate(pw, user, team);
     const message = 'This is a test message to be flagged';
-    const {post} = await postMessage(channelsPage, message);
+    const {post} = await postMessage(app, message);
 
     // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
     await adminClient.patchConfig({
@@ -414,11 +437,10 @@ test('Verify Flagging reason dropdown', async ({pw}) => {
         },
     });
 
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
+    const flagDialog = await openFlagDialog(app, post);
+    await expect(flagDialog.postPreview.message.container).toContainText(message);
+    await flagDialog.reasonCombobox.choose(FLAG_REASON_CLASSIFICATION_MISMATCH);
+    await expect(flagDialog.reasonValueText).toHaveText(FLAG_REASON_CLASSIFICATION_MISMATCH);
 });
 
 /**
@@ -441,9 +463,9 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
         },
     });
 
-    const channelsPage = await loginAndNavigate(pw, user, team.name, DefaultChannel.TownSquare);
+    const app = await loginAndNavigate(pw, user, team);
     const message = 'This is a test message to be flagged';
-    const {post} = await postMessage(channelsPage, message);
+    const {post} = await postMessage(app, message);
 
     // Re-apply guard: concurrent initSetup() may reset EnableContentFlagging: false.
     await adminClient.patchConfig({
@@ -456,14 +478,13 @@ test('Verify Comments are required for Flagging', async ({pw}) => {
         },
     });
 
-    await openPostDotMenu(post, channelsPage);
-    await channelsPage.postDotMenu.flagMessageMenuItem.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.toContainPostText(message);
-    await channelsPage.centerView.flagPostConfirmationDialog.selectFlagReason(FLAG_REASON_CLASSIFICATION_MISMATCH);
-    await channelsPage.centerView.flagPostConfirmationDialog.submitButton.click();
-    await channelsPage.centerView.flagPostConfirmationDialog.toBeVisible();
-    await channelsPage.centerView.flagPostConfirmationDialog.requireCommentsForFlaggingPost();
+    const flagDialog = await openFlagDialog(app, post);
+    await expect(flagDialog.postPreview.message.container).toContainText(message);
+    await flagDialog.reasonCombobox.choose(FLAG_REASON_CLASSIFICATION_MISMATCH);
+    await expect(flagDialog.reasonValueText).toHaveText(FLAG_REASON_CLASSIFICATION_MISMATCH);
+    await flagDialog.confirmButton.click();
+    await expect(flagDialog.confirmButton).toBeVisible();
+    await expect(flagDialog.comment.errorText).toHaveMessage(Msg.quarantine_message_modal.empty_comment_error);
 });
 
 /**
@@ -525,7 +546,7 @@ test('Verify message is removed from channel if the reviewer removed the message
     await adminClient.removeFlaggedPost(postToBeflagged.id, 'Removing this post after review');
 
     // Login as the user
-    const channelsPage = await loginAndNavigate(pw, user, team.name, DefaultChannel.TownSquare);
-    const lastPostId = await channelsPage.centerView.getLastPostID();
-    expect(lastPostId).not.toBe(postToBeflagged.id);
+    const app = await loginAndNavigate(pw, user, team);
+    expect(await lastPostId(app)).not.toBe(postToBeflagged.id);
+    await expect(app.center.postList.post(postToBeflagged)).toHaveCount(0);
 });

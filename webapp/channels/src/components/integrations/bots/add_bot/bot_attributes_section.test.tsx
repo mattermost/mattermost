@@ -40,6 +40,8 @@ const FIELDS = [
     buildField({id: 'hidden', name: 'hidden'}, {display_name: 'Hidden', sort_order: 7, access_mode: 'source_only'}),
 ];
 
+const removeButton = (fieldId: string) => within(screen.getByTestId(`integrations.bot_form.attributes.attribute:${fieldId}`)).queryByTestId('integrations.bot_form.attributes.attribute.remove--button');
+
 describe('components/integrations/bots/add_bot/BotAttributesSection', () => {
     const historyMock = getHistory();
 
@@ -76,33 +78,33 @@ describe('components/integrations/bots/add_bot/BotAttributesSection', () => {
 
         expect(screen.getByText('Attributes')).toBeInTheDocument();
         expect(screen.getByText('Configure attributes and values for this bot')).toBeInTheDocument();
-        expect(screen.queryByTestId('bot-attribute-list')).not.toBeInTheDocument();
+        expect(document.querySelector('.UserAttributeFields')).not.toBeInTheDocument();
         expect(getTrigger()).toBeEnabled();
     });
 
     test('renders rows in sort order and skips hidden fields', () => {
         const {container} = renderSection({rows: ['dept', 'skills', 'hidden']});
 
-        const labels = Array.from(container.querySelectorAll('[data-testid^="bot-attribute-label-"]')).map((el) => el.getAttribute('data-testid'));
-        expect(labels).toEqual(['bot-attribute-label-skills', 'bot-attribute-label-dept']);
+        const labels = Array.from(container.querySelectorAll('[data-testid^="integrations.bot_form.attributes.attribute:"]')).map((el) => el.getAttribute('data-testid'));
+        expect(labels).toEqual(['integrations.bot_form.attributes.attribute:skills', 'integrations.bot_form.attributes.attribute:dept']);
     });
 
     test('shows formatted errors on their rows', () => {
         renderSection({rows: ['dept'], errors: {dept: {id: 'x', defaultMessage: 'Bad value'}}});
 
-        expect(within(screen.getByTestId('bot-attribute-label-dept')).getByRole('alert')).toHaveTextContent('Bad value');
+        expect(within(screen.getByTestId('integrations.bot_form.attributes.attribute:dept')).getByRole('alert')).toHaveTextContent('Bad value');
     });
 
     test('shows trash only on removable, unlocked rows', () => {
         const {unmount} = renderSection({rows: ['dept', 'clearance', 'badge'], initialValues: {clearance: 'c1', badge: 'x'}});
 
-        expect(screen.getByTestId('bot-attribute-remove-dept')).toBeInTheDocument();
-        expect(screen.queryByTestId('bot-attribute-remove-clearance')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('bot-attribute-remove-badge')).not.toBeInTheDocument();
+        expect(removeButton('dept')).toBeInTheDocument();
+        expect(removeButton('clearance')).not.toBeInTheDocument();
+        expect(removeButton('badge')).not.toBeInTheDocument();
         unmount();
 
         renderSection({rows: ['dept', 'clearance', 'badge'], initialValues: {}});
-        expect(screen.getByTestId('bot-attribute-remove-clearance')).toBeInTheDocument();
+        expect(removeButton('clearance')).toBeInTheDocument();
     });
 
     test('remove calls onRemove and focuses the Add trigger', async () => {
@@ -173,7 +175,7 @@ describe('components/integrations/bots/add_bot/BotAttributesSection', () => {
         renderSection({status: 'loading', rows: ['dept']});
 
         expect(getTrigger()).toBeDisabled();
-        expect(screen.queryByTestId('bot-attribute-list')).not.toBeInTheDocument();
+        expect(document.querySelector('.UserAttributeFields')).not.toBeInTheDocument();
     });
 
     test('error shows the load error and a retry button, and no menu', async () => {
@@ -182,7 +184,7 @@ describe('components/integrations/bots/add_bot/BotAttributesSection', () => {
 
         expect(screen.getByRole('alert')).toHaveTextContent('Attributes could not be loaded.');
         expect(screen.queryByRole('button', {name: 'Add attribute'})).not.toBeInTheDocument();
-        expect(screen.queryByTestId('bot-attribute-list')).not.toBeInTheDocument();
+        expect(document.querySelector('.UserAttributeFields')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', {name: 'Try again'}));
         expect(onRetry).toHaveBeenCalledTimes(1);

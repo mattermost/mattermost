@@ -1,11 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Client4} from '@mattermost/client';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
 
-import {expect, test} from '@mattermost/playwright-lib';
-
-import {setupContentFlagging, createPost} from './../support';
+import {
+    createPost,
+    expectReport,
+    openContentReview,
+    openReportDetails,
+    reportPostId,
+    setupContentFlagging,
+} from './../support';
 
 /**
  * @objective Verify that a deletion report summary is posted to the reviewer's content review thread after removing a flagged post
@@ -35,73 +40,53 @@ test('Reviewer receives a deletion report summary after removing a flagged post'
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message contains sensitive data');
 
     // # Login as reviewer and navigate to content review DM
-    const {app, contentReviewPage} = await pw.testBrowser.login(reviewerUser);
-    await app.channelsPage.goto({team, path: 'messages', channel: '@content-review'});
-    await expect(app.center.postCreate.message.container).toBeVisible();
+    const {app} = await pw.testBrowser.login(reviewerUser);
+    await openContentReview(app, team);
+    const reportId = await reportPostId(pw, reviewerUser, post.id);
+    await expectReport(app.center.postList.post({id: reportId}).spillageReport.card, {status: 'Pending', message});
 
-    const {client: reviewerClient} = await pw.makeClient(reviewerUser);
-    const reportId = await reviewReportId(reviewerClient, post.id);
-    const flaggedPost = app.center.postList.post({id: reportId});
-    await expect(flaggedPost).toContainText(message);
+    // # Remove the post via the UI. The remove flow still routes through the skip-confirm step (destructive
+    // action), unlike the keep flow which now bypasses it.
+    await openReportDetails(app, reportId);
+    const reviewDialog = await app.rhs.thread
+        .post({id: reportId})
+        .spillageReport.actions.removeButton.clickTo(app.flaggedMessageModal);
+    await reviewDialog.form.comment.container.fill('Removing: data spillage confirmed');
+    await reviewDialog.form.downloadReportCheckbox.set(false);
+    await expect(reviewDialog.form.downloadReportCheckbox).not.toBeChecked();
+    await reviewDialog.form.primaryButton.click();
+    await expect(reviewDialog.skipConfirm.primaryButton).toBeVisible();
+    await settle(reviewDialog.skipConfirm.primaryButton, {wait: Api.RemoveCFPost}).click();
+    await expect(reviewDialog.skipConfirm.primaryButton).not.toBeVisible();
 
-    // # Remove the post via the UI. The remove flow still routes through the
-    // skip-confirm step (destructive action), unlike the keep flow which now
-    // bypasses it.
-    await flaggedPost.spillageReport.footer.viewDetailsButton.click();
-    const rhsReport = app.rhs.thread.post({id: reportId});
-    await expect(rhsReport.spillageReport.card).toBeVisible();
-    await rhsReport.spillageReport.actions.removeButton.click();
-    await expect(contentReviewPage.postActionConformationModal).toBeVisible();
-    await contentReviewPage.enterConfirmationComment('Removing: data spillage confirmed');
-    await expect(contentReviewPage.confirmationModalComment).toHaveValue('Removing: data spillage confirmed');
-    await contentReviewPage.confirmRemoveWithoutReport();
-    await expect(contentReviewPage.postActionConformationModal).not.toBeVisible();
-
-    await app.channelsPage.goto({team, path: 'messages', channel: '@content-review'});
-    await expect(app.center.postCreate.message.container).toBeVisible();
+    await openContentReview(app, team);
 
     // * Verify the removed stub is in the content-review thread
     const removedPost = app.center.postList.post({id: reportId});
-    await expect(removedPost).toBeVisible();
     await expect(removedPost).toContainText('Content deleted as part of Content Flagging review process');
 
-    // # Open the thread — the deletion report is posted as a reply, not on the
-    // view-details property card.
-    await expect(removedPost.threadFooter.container).toBeVisible();
+    // # Open the thread: the deletion report is posted as a reply, not on the view-details property card.
     await removedPost.threadFooter.replyButton.click();
-    await expect(app.rhs.thread.scroller).toBeVisible();
+    const thread = app.rhs.thread.scroller;
 
     // * Verify the async deletion-report file is in the thread before table headers
-    await expect(app.rhs.thread.scroller).toContainText(expectedFileName);
+    await expect(thread).toContainText(expectedFileName);
 
     // * Verify the summary table headers are present (rendered as markdown table)
-    await expect(app.rhs.thread.scroller).toContainText('Step');
-    await expect(app.rhs.thread.scroller).toContainText('Status');
-    await expect(app.rhs.thread.scroller).toContainText('Detail');
-
-    await expect(app.rhs.thread.scroller).toContainText('File attachments');
-    await expect(app.rhs.thread.scroller).toContainText('File attachment records');
-    await expect(app.rhs.thread.scroller).toContainText('Edit history');
-    await expect(app.rhs.thread.scroller).toContainText('Priority metadata');
-    await expect(app.rhs.thread.scroller).toContainText('Persistent notifications');
-    await expect(app.rhs.thread.scroller).toContainText('Acknowledgements');
-    await expect(app.rhs.thread.scroller).toContainText('Reminders');
-    await expect(app.rhs.thread.scroller).toContainText('Thread, replies, and reactions');
-    await expect(app.rhs.thread.scroller).toContainText('Post record');
+    for (const text of [
+        'Step',
+        'Status',
+        'Detail',
+        'File attachments',
+        'File attachment records',
+        'Edit history',
+        'Priority metadata',
+        'Persistent notifications',
+        'Acknowledgements',
+        'Reminders',
+        'Thread, replies, and reactions',
+        'Post record',
+    ]) {
+        await expect(thread).toContainText(text);
+    }
 });
-
-// Match the review bot's host post through its reported-post identity; keep the native confirmation-modal helpers.
-async function reviewReportId(client: Client4, flaggedPostId: string) {
-    const me = await client.getMe();
-    const bot = await client.getUserByUsername('content-review');
-    const dm = await client.createDirectChannel([me.id, bot.id]);
-    let id = '';
-    await expect
-        .poll(async () => {
-            const {posts} = await client.getPosts(dm.id, 0, 60);
-            id = Object.values(posts).find((post) => post.props?.reported_post_id === flaggedPostId)?.id ?? '';
-            return id;
-        })
-        .not.toBe('');
-    return id;
-}

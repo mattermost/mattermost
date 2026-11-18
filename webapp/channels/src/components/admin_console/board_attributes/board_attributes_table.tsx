@@ -59,7 +59,7 @@ export const useBoardAttributesTable = (): SectionHook => {
     };
 
     const content = readIO.loading ? (
-        <LoadingScreen/>
+        <LoadingScreen testId='admin.board_attributes.loading'/>
     ) : (
         <>
             <BoardAttributesTable
@@ -71,7 +71,10 @@ export const useBoardAttributesTable = (): SectionHook => {
                 reorderField={itemOps.reorder}
             />
             {canCreate && (
-                <LinkButton onClick={create}>
+                <LinkButton
+                    onClick={create}
+                    data-testid='admin.board_attributes.add_attribute--button'
+                >
                     <PlusIcon size={16}/>
                     <FormattedMessage
                         id='admin.board_attributes.add_attribute'
@@ -133,7 +136,6 @@ export function BoardAttributesTable({
                     if (warningId === ValidationWarningNameRequired) {
                         warning = (
                             <FormattedMessage
-                                tagName={DangerText}
                                 id='admin.board_attributes.table.validation.name_required'
                                 defaultMessage='Please enter an attribute name.'
                             />
@@ -141,7 +143,6 @@ export function BoardAttributesTable({
                     } else if (warningId === ValidationWarningNameUnique) {
                         warning = (
                             <FormattedMessage
-                                tagName={DangerText}
                                 id='admin.board_attributes.table.validation.name_unique'
                                 defaultMessage='Attribute names must be unique.'
                             />
@@ -149,7 +150,6 @@ export function BoardAttributesTable({
                     } else if (warningId === ValidationWarningNameTaken) {
                         warning = (
                             <FormattedMessage
-                                tagName={DangerText}
                                 id='admin.board_attributes.table.validation.name_taken'
                                 defaultMessage='Attribute name already taken.'
                             />
@@ -164,13 +164,17 @@ export function BoardAttributesTable({
                                 label={formatMessage({id: 'admin.board_attributes.table.property_name.input.name', defaultMessage: 'Attribute Name'})}
                                 deleted={toDelete}
                                 disabled={isProtected || toDelete}
-                                testid='board-attribute-field-input'
+                                testid='admin.board_attributes.row.name--textbox'
                                 autoFocus={isCreatePending(row.original) && !supportsOptions(row.original)}
                                 setValue={(value: string) => {
                                     updateField({...row.original, name: value.trim()});
                                 }}
                             />
-                            {!toDelete && warning}
+                            {!toDelete && warning && (
+                                <DangerText data-testid='admin.board_attributes.row.name_error--text'>
+                                    {warning}
+                                </DangerText>
+                            )}
                         </>
                     );
                 },
@@ -282,7 +286,10 @@ export function BoardAttributesTable({
 
     return (
         <div className='BoardAttributesTable'>
-            <AdminConsoleListTable<BoardsPropertyField> table={table}/>
+            <AdminConsoleListTable<BoardsPropertyField>
+                table={table}
+                testIdScope='admin.board_attributes'
+            />
         </div>
     );
 }

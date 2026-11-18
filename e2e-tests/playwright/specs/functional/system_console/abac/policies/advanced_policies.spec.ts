@@ -1,19 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
-
 import {
     expect,
     test,
-    enableABAC,
-    navigateToABACPage,
-    runSyncJob,
     verifyUserInChannel,
     createUserWithAttributes,
     getAdminClient,
     TestBrowser,
     getRandomId,
+    type App,
+    duration,
 } from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
@@ -21,20 +18,27 @@ import {
     deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
 } from '../../../channels/custom_profile_attributes/helpers';
+import {waitForAttributeViewToInclude} from '../../../channels/team_settings/helpers';
 import {deleteParentPolicy} from '../resource_attributes/helpers';
 import {
     ensureUserAttributes,
     createUserForABAC,
-    testAccessRule,
     createPrivateChannelForABAC,
-    createAdvancedPolicy,
     activatePolicy,
-    waitForLatestSyncJob,
     waitForPolicySyncJob,
-    getJobDetailsFromRecentJobs,
     enableUserManagedAttributes,
     assertAccessControlAutocompleteContains,
 } from '../support';
+import {
+    createMembershipPolicy,
+    expectAccessTest,
+    openMembershipPolicies,
+    openPolicy,
+    policyIdByName,
+    runSyncJob,
+    setAbacEnabled,
+    waitForSyncJob,
+} from '../surface';
 
 /**
  * ABAC Policies - Advanced Policies
@@ -55,7 +59,7 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
     let licensed = true;
 
     test.beforeAll(async ({browser}) => {
-        test.setTimeout(240000);
+        test.setTimeout(duration.four_min);
 
         const {adminClient, adminUser} = await getAdminClient();
         if (!adminUser) {
@@ -93,8 +97,11 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
         await adminClient.addToTeam(team.id, user2.id);
         await adminClient.addToTeam(team.id, user3.id);
 
-        // Attribute indexing settle
-        await new Promise((resolve) => setTimeout(resolve, 2000));
+        // Wait until the server's attribute view has the new users' attributes
+        await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department == "Engineering"', [
+            user1.id,
+            user2.id,
+        ]);
 
         privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(user2.id, privateChannel.id);
@@ -102,59 +109,29 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
 
         // Drive policy creation via the system-console UI exactly once.
         const tb = new TestBrowser(browser);
-        try {
-            const {systemConsolePage} = await tb.login(adminUser);
-            await navigateToABACPage(systemConsolePage.page);
-            await enableABAC(systemConsolePage.page);
+        const {app} = await tb.login(adminUser);
+        await setAbacEnabled(app, true);
 
-            const policyName = `Multi-Attr Policy ${getRandomId()}`;
-            const celExpression = 'user.attributes.Department == "Engineering"';
+        const policyName = `Multi-Attr Policy ${getRandomId()}`;
+        await createMembershipPolicy(app, {
+            name: policyName,
+            cel: 'user.attributes.Department == "Engineering"',
+            channels: [privateChannel],
+            autoAdd: true,
+        });
+        const policyId = await policyIdByName(adminClient, policyName);
+        createdPolicyId = policyId;
 
-            await createAdvancedPolicy(systemConsolePage.page, {
-                name: policyName,
-                celExpression,
-                autoSync: true,
-                channels: [privateChannel.display_name],
-            });
+        await activatePolicy(adminClient, policyId);
+        await waitForPolicySyncJob(adminClient, policyId);
 
-            await systemConsolePage.page.waitForTimeout(1000);
-            const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-            await searchInput.waitFor({state: 'visible', timeout: 5000});
-            const idMatch = policyName.match(/([a-z0-9]+)$/i);
-            const uniqueId = idMatch ? idMatch[1] : policyName;
-            await searchInput.fill(uniqueId);
-            await systemConsolePage.page.waitForTimeout(1000);
-
-            const policyRow = systemConsolePage.page.locator('.policy-name').first();
-            const policyElementId = await policyRow.getAttribute('id');
-            const policyId = policyElementId?.replace('customDescription-', '');
-            if (!policyId) {
-                throw new Error('Could not get policy ID');
-            }
-            await searchInput.clear();
-            createdPolicyId = policyId;
-
-            await activatePolicy(adminClient, policyId);
-            await waitForPolicySyncJob(adminClient, policyId);
-            const jobId1 = await runSyncJob(systemConsolePage.page);
-            await waitForLatestSyncJob(systemConsolePage.page, 10, jobId1);
-
-            try {
-                await getJobDetailsFromRecentJobs(systemConsolePage.page, privateChannel.display_name);
-            } catch {
-                // non-fatal
-            }
-
-            // Optional extra sync if user1 not added yet
-            const added = await verifyUserInChannel(adminClient, user1.id, privateChannel.id);
-            if (!added) {
-                const jobId2 = await runSyncJob(systemConsolePage.page);
-                await waitForLatestSyncJob(systemConsolePage.page, 10, jobId2);
-                await systemConsolePage.page.waitForTimeout(2000);
-            }
-        } finally {
-            await tb.close().catch(() => {});
-        }
+        // Sync until the qualifying user outside the channel has been added: a sync that runs before the policy is
+        // active can leave it out.
+        await expect(async () => {
+            await waitForSyncJob(adminClient, await runSyncJob(app));
+            expect(await verifyUserInChannel(adminClient, user1.id, privateChannel.id)).toBe(true);
+        }).toPass({timeout: duration.two_min});
+        await tb.close();
     });
 
     test.afterAll(async () => {
@@ -168,11 +145,11 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
     });
 
     test('MM-T5785_a auto-adds qualifying user who was not in channel', async () => {
-        test.setTimeout(60000);
+        test.setTimeout(duration.one_min);
         test.skip(!licensed, 'No ABAC license');
         await expect
             .poll(async () => verifyUserInChannel(sharedAdminClient, user1.id, privateChannel.id), {
-                timeout: 30_000,
+                timeout: duration.half_min,
                 intervals: [500, 1000, 2000],
                 message: 'user1 should be auto-added to channel',
             })
@@ -180,11 +157,11 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
     });
 
     test('MM-T5785_b keeps qualifying user who was already in channel', async () => {
-        test.setTimeout(60000);
+        test.setTimeout(duration.one_min);
         test.skip(!licensed, 'No ABAC license');
         await expect
             .poll(async () => verifyUserInChannel(sharedAdminClient, user2.id, privateChannel.id), {
-                timeout: 30_000,
+                timeout: duration.half_min,
                 intervals: [500, 1000, 2000],
                 message: 'user2 should stay in channel',
             })
@@ -192,11 +169,11 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5785 all attribute types 
     });
 
     test('MM-T5785_c auto-removes non-qualifying user who was in channel', async () => {
-        test.setTimeout(60000);
+        test.setTimeout(duration.one_min);
         test.skip(!licensed, 'No ABAC license');
         await expect
             .poll(async () => verifyUserInChannel(sharedAdminClient, user3.id, privateChannel.id), {
-                timeout: 30_000,
+                timeout: duration.half_min,
                 intervals: [500, 1000, 2000],
                 message: 'user3 should be auto-removed from channel',
             })
@@ -228,12 +205,12 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
     // policy list does not fill up with them: a spec that finds its own policy by
     // scanning that list starts failing once a newer one is off the first page.
     const policyCleanups: Array<() => Promise<void>> = [];
-    let systemConsolePage: {page: Page};
+    let app: App;
     let sharedTestBrowser: TestBrowser | null = null;
     let licensed = true;
 
     test.beforeAll(async ({browser}) => {
-        test.setTimeout(180000);
+        test.setTimeout(duration.four_min);
 
         const {adminClient, adminUser} = await getAdminClient();
         if (!adminUser) {
@@ -283,15 +260,13 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         await adminClient.addToTeam(sharedTeamId, salesUser.id);
 
         sharedTestBrowser = new TestBrowser(browser);
-        const loggedIn = await sharedTestBrowser.login(adminUser);
-        systemConsolePage = loggedIn.systemConsolePage;
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
+        app = (await sharedTestBrowser.login(adminUser)).app;
+        await setAbacEnabled(app, true);
     });
 
     test.afterEach(async () => {
         for (const cleanup of policyCleanups.reverse()) {
-            await cleanup().catch(() => {});
+            await cleanup();
         }
         policyCleanups.length = 0;
     });
@@ -302,71 +277,47 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
         // one's. deleteCustomProfileAttributes only removes what this run created,
         // so a field it reused instead survives.
         if (sharedAttributeFieldsMap) {
-            await deleteCustomProfileAttributes(sharedAdminClient, sharedAttributeFieldsMap).catch(() => {});
+            await deleteCustomProfileAttributes(sharedAdminClient, sharedAttributeFieldsMap);
             sharedAttributeFieldsMap = undefined;
         }
-        await sharedTestBrowser?.close().catch(() => {});
+        await sharedTestBrowser?.close();
     });
 
-    async function runOperatorCase(celExpression: string, namePrefix: string, searchTerm: string) {
+    async function runOperatorCase(celExpression: string, namePrefix: string) {
         const channel = await createPrivateChannelForABAC(sharedAdminClient, sharedTeamId);
         await sharedAdminClient.addToChannel(salesUser.id, channel.id);
 
-        await navigateToABACPage(systemConsolePage.page);
-
         const policyName = `${namePrefix} Policy ${getRandomId()}`;
-        await createAdvancedPolicy(systemConsolePage.page, {
+        await createMembershipPolicy(app, {
             name: policyName,
-            celExpression: celExpression.replaceAll('user.attributes.Department', `user.attributes.${deptFieldName}`),
-            autoSync: true,
-            channels: [channel.display_name],
+            cel: celExpression.replaceAll('user.attributes.Department', `user.attributes.${deptFieldName}`),
+            channels: [channel],
+            autoAdd: true,
+        });
+        const policyId = await policyIdByName(sharedAdminClient, policyName);
+        policyCleanups.push(() => deleteParentPolicy(sharedAdminClient, policyId, [channel.id]));
+
+        // * Testing the rule lists the engineer, not the sales user
+        await expectAccessTest(app, await openPolicy(app, policyId), {
+            client: sharedAdminClient,
+            matching: [engineerUser],
+            notMatching: [salesUser],
         });
 
-        await systemConsolePage.page.waitForTimeout(1000);
-        const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-        if (await policyRowForTest.isVisible({timeout: 3000})) {
-            await policyRowForTest.click();
-            await systemConsolePage.page.waitForLoadState('networkidle');
-            await testAccessRule(systemConsolePage.page, {
-                expectedMatchingUsers: [engineerUser.username],
-                expectedNonMatchingUsers: [salesUser.username],
-            });
-            await navigateToABACPage(systemConsolePage.page);
-        }
-
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        await searchInput.fill(searchTerm);
-        // Wait for the exact policy row to appear instead of grabbing .first() blindly.
-        // Under parallel load the grid update may be delayed, and .first() can return a
-        // policy created by another concurrent test.
-        const policyRow = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-        await expect
-            .poll(() => policyRow.isVisible(), {
-                timeout: 45_000,
-                intervals: [200, 500, 1000, 2000],
-                message: `policy row for "${policyName}" should appear in search results`,
-            })
-            .toBe(true);
-        const policyId = (await policyRow.getAttribute('id'))?.replace('customDescription-', '');
-        if (policyId) {
-            policyCleanups.push(() => deleteParentPolicy(sharedAdminClient, policyId, [channel.id]));
-            await activatePolicy(sharedAdminClient, policyId);
-            const jobId3 = await runSyncJob(systemConsolePage.page);
-            await waitForLatestSyncJob(systemConsolePage.page, 15, jobId3);
-        }
-        await searchInput.clear();
+        await activatePolicy(sharedAdminClient, policyId);
+        await waitForSyncJob(sharedAdminClient, await runSyncJob(app));
 
         // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
         await expect
             .poll(async () => verifyUserInChannel(sharedAdminClient, engineerUser.id, channel.id), {
-                timeout: 90_000,
+                timeout: duration.two_min,
                 intervals: [500, 1000, 2000, 4000],
                 message: 'engineerUser should be in channel',
             })
             .toBe(true);
         await expect
             .poll(async () => verifyUserInChannel(sharedAdminClient, salesUser.id, channel.id), {
-                timeout: 90_000,
+                timeout: duration.two_min,
                 intervals: [500, 1000, 2000, 4000],
                 message: 'salesUser should not be in channel',
             })
@@ -374,33 +325,33 @@ test.describe('ABAC Policies - Advanced Policies - MM-T5786 operator variants', 
     }
 
     test('MM-T5786_a is-not (!=) operator', async () => {
-        test.setTimeout(90000);
+        test.setTimeout(duration.two_min);
         test.skip(!licensed, 'No ABAC license');
-        await runOperatorCase('user.attributes.Department != "Sales"', 'IsNot', 'IsNot');
+        await runOperatorCase('user.attributes.Department != "Sales"', 'IsNot');
     });
 
     test('MM-T5786_b in operator', async () => {
-        test.setTimeout(90000);
+        test.setTimeout(duration.two_min);
         test.skip(!licensed, 'No ABAC license');
-        await runOperatorCase('user.attributes.Department in ["Engineering", "DevOps"]', 'In', 'In Policy');
+        await runOperatorCase('user.attributes.Department in ["Engineering", "DevOps"]', 'In');
     });
 
     test('MM-T5786_c starts-with operator', async () => {
-        test.setTimeout(90000);
+        test.setTimeout(duration.two_min);
         test.skip(!licensed, 'No ABAC license');
-        await runOperatorCase('user.attributes.Department.startsWith("Eng")', 'StartsWith', 'StartsWith');
+        await runOperatorCase('user.attributes.Department.startsWith("Eng")', 'StartsWith');
     });
 
     test('MM-T5786_d ends-with operator', async () => {
-        test.setTimeout(90000);
+        test.setTimeout(duration.two_min);
         test.skip(!licensed, 'No ABAC license');
-        await runOperatorCase('user.attributes.Department.endsWith("ing")', 'EndsWith', 'EndsWith');
+        await runOperatorCase('user.attributes.Department.endsWith("ing")', 'EndsWith');
     });
 
     test('MM-T5786_e contains operator', async () => {
-        test.setTimeout(90000);
+        test.setTimeout(duration.two_min);
         test.skip(!licensed, 'No ABAC license');
-        await runOperatorCase('user.attributes.Department.contains("gineer")', 'Contains', 'Contains');
+        await runOperatorCase('user.attributes.Department.contains("gineer")', 'Contains');
     });
 });
 
@@ -416,13 +367,13 @@ test.describe('ABAC Policies - Advanced Policies', () => {
 
     test.afterEach(async () => {
         for (const cleanup of cleanups.reverse()) {
-            await cleanup().catch(() => {});
+            await cleanup();
         }
         cleanups.length = 0;
     });
 
     test('MM-T5787 Test policy with complex rules in Advanced Mode', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
 
         await pw.skipIfNoLicense();
 
@@ -469,66 +420,46 @@ test.describe('ABAC Policies - Advanced Policies', () => {
         const channel = await createPrivateChannelForABAC(adminClient, team.id);
         await adminClient.addToChannel(salesOfficeUser.id, channel.id);
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await navigateToABACPage(systemConsolePage.page);
-        await enableABAC(systemConsolePage.page);
-
-        await systemConsolePage.page.reload();
-        await systemConsolePage.page.waitForLoadState('networkidle');
+        const {app} = await pw.testBrowser.login(adminUser);
+        await setAbacEnabled(app, true);
 
         const policyName = `Complex Policy ${pw.random.id()}`;
         const complexExpression = `user.attributes.${deptFieldName} == "Engineering" || (user.attributes.${deptFieldName} == "Sales" && user.attributes.${locationFieldName} == "Remote")`;
 
-        await createAdvancedPolicy(systemConsolePage.page, {
+        await createMembershipPolicy(app, {
             name: policyName,
-            celExpression: complexExpression,
-            autoSync: true,
-            channels: [channel.display_name],
+            cel: complexExpression,
+            channels: [channel],
+            autoAdd: true,
         });
 
-        await navigateToABACPage(systemConsolePage.page);
-        await systemConsolePage.page.waitForTimeout(500);
-
-        const searchInput = systemConsolePage.page.locator('input[placeholder*="Search" i]').first();
-        const policyIdMatch = policyName.match(/([a-z0-9]+)$/i);
-        const searchTerm = policyIdMatch ? policyIdMatch[1] : policyName;
-
-        await searchInput.fill(searchTerm);
-        await systemConsolePage.page.waitForTimeout(500);
-
-        const foundPolicy = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-        await expect
-            .poll(() => foundPolicy.isVisible(), {
-                timeout: 15_000,
-                message: `policy "${policyName}" should appear after search`,
-            })
-            .toBe(true);
-        const policyId = (await foundPolicy.getAttribute('id'))?.replace('customDescription-', '');
-        expect(policyId, 'policy row should expose id').toBeTruthy();
-        cleanups.push(() => deleteParentPolicy(adminClient, policyId!, [channel.id]));
-        await activatePolicy(adminClient, policyId!);
-        const jobId4 = await runSyncJob(systemConsolePage.page);
-        await waitForLatestSyncJob(systemConsolePage.page, 5, jobId4);
-        await searchInput.clear();
+        const policyId = await policyIdByName(adminClient, policyName);
+        const policies = await openMembershipPolicies(app);
+        await policies.searchTextbox.fill(policyName);
+        await expect(policies.row(policyId).cell('name')).toBeVisible();
+        await expect(policies.row(policyId).cell('name')).toHaveText(policyName);
+        cleanups.push(() => deleteParentPolicy(adminClient, policyId, [channel.id]));
+        await activatePolicy(adminClient, policyId);
+        await waitForSyncJob(adminClient, await runSyncJob(app));
 
         // Poll under PW_WORKERS>=2: another shard's sync job may interleave.
         await expect
             .poll(async () => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
-                timeout: 90_000,
+                timeout: duration.two_min,
                 intervals: [500, 1000, 2000, 4000],
                 message: 'engineerUser should be in channel',
             })
             .toBe(true);
         await expect
             .poll(async () => verifyUserInChannel(adminClient, salesRemoteUser.id, channel.id), {
-                timeout: 90_000,
+                timeout: duration.two_min,
                 intervals: [500, 1000, 2000, 4000],
                 message: 'salesRemoteUser should be in channel',
             })
             .toBe(true);
         await expect
             .poll(async () => verifyUserInChannel(adminClient, salesOfficeUser.id, channel.id), {
-                timeout: 90_000,
+                timeout: duration.two_min,
                 intervals: [500, 1000, 2000, 4000],
                 message: 'salesOfficeUser should not be in channel',
             })

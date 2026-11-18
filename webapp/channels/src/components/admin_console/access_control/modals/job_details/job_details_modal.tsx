@@ -265,6 +265,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
     return (
         <GenericModal
             id='job-details-modal'
+            testId='job_details_modal'
             onExited={onExited}
             compassDesign={true}
             modalHeaderText={
@@ -358,6 +359,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                 <div className='tabs'>
                     <button
                         className={`tab-button ${activeTab === 'channels' ? 'active' : ''}`}
+                        data-testid='job_details_modal.tab:channels--button'
                         onClick={() => setActiveTab('channels')}
                     >
                         <FormattedMessage
@@ -367,6 +369,7 @@ export default function JobDetailsModal({job, onExited}: Props): JSX.Element {
                     </button>
                     <button
                         className={`tab-button ${activeTab === 'teams' ? 'active' : ''}`}
+                        data-testid='job_details_modal.tab:teams--button'
                         onClick={() => setActiveTab('teams')}
                     >
                         <FormattedMessage

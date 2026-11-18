@@ -303,7 +303,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
     return (
         <div
             className='wrapper--fixed ClassificationAttribute'
-            data-testid='classificationAttribute'
+            data-testid='admin.classification'
         >
             <AdminHeader withBackButton={true}>
                 <div>
@@ -312,7 +312,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                             to={GLOBAL_ATTRIBUTES_LIST_ROUTE}
                             className='ClassificationAttribute__backButton'
                             aria-label={formatMessage(messages.backLink)}
-                            data-testid='classificationAttributeBackLink'
+                            data-testid='admin.classification.back--link'
                         >
                             <ChevronLeftIcon
                                 size={28}
@@ -335,11 +335,11 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
-                    {loadState === 'loading' && <LoadingScreen/>}
+                    {loadState === 'loading' && <LoadingScreen testId='admin.classification.loading'/>}
                     {loadState === 'missing' && (
                         <p
                             className='ClassificationAttribute__notice'
-                            data-testid='classificationAttributeMissing'
+                            data-testid='admin.classification.missing--text'
                         >
                             <FormattedMessage
                                 {...messages.notConfigured}
@@ -362,7 +362,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                         <p
                             className='ClassificationAttribute__notice'
                             role='alert'
-                            data-testid='classificationAttributeConflict'
+                            data-testid='admin.classification.conflict--alert'
                         >
                             <FormattedMessage
                                 {...messages.nameConflict}
@@ -374,7 +374,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                         <p
                             className='ClassificationAttribute__notice'
                             role='alert'
-                            data-testid='classificationAttributeLoadError'
+                            data-testid='admin.classification.load_error--alert'
                         >
                             {serverErrorMessage ?? formatMessage(messages.loadFailed)}
                         </p>
@@ -401,14 +401,14 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                             aria-label={formatMessage(messages.displayNameLabel)}
                                             value={displayName}
                                             disabled={true}
-                                            data-testid='classificationAttributeName'
+                                            testId='admin.classification.name'
                                         />
                                         <div className='ClassificationAttribute__uniqueName'>
                                             <span className='ClassificationAttribute__uniqueNameCaption'>
                                                 <span className='ClassificationAttribute__uniqueNamePrefix'>
                                                     <FormattedMessage {...messages.uniqueNamePrefix}/>
                                                 </span>
-                                                <span data-testid='classificationAttributeUniqueName'>
+                                                <span data-testid='admin.classification.unique_name--text'>
                                                     {template.name}
                                                 </span>
                                             </span>
@@ -428,7 +428,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                             className='ClassificationAttribute__typeButton'
                                             disabled={true}
                                             aria-label={formatMessage(messages.typeFieldAriaLabel, {value: formatMessage(messages.typeRanked)})}
-                                            data-testid='classificationAttributeType'
+                                            data-testid='admin.classification.type--button'
                                         >
                                             <span className='ClassificationAttribute__typeButtonInner'>
                                                 <SortAscendingIcon size={18}/>
@@ -445,7 +445,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                     <div className='ClassificationAttribute__fieldControl'>
                                         <ul
                                             className='ClassificationAttribute__options'
-                                            data-testid='classificationAttributeLevels'
+                                            data-testid='admin.classification.levels--list'
                                         >
                                             {levels.map((level) => (
                                                 <li key={level.id}>
@@ -478,10 +478,12 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                                                     emphasis='tertiary'
                                                     size='small'
                                                     className='ClassificationAttribute__markingsOpen'
-                                                    data-testid='classificationAttributeMarkingsLink'
                                                     trailingIcon={<Icon glyph={<OpenInNewIcon/>}/>}
                                                 >
-                                                    <Link to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}>
+                                                    <Link
+                                                        to={CLASSIFICATIONS_MARKINGS_ADMIN_URL}
+                                                        data-testid='admin.classification.markings--link'
+                                                    >
                                                         <FormattedMessage {...messages.openMarkings}/>
                                                     </Link>
                                                 </Button>
@@ -508,6 +510,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
             {loadState === 'ready' && (
                 <div className='admin-console-save'>
                     <SaveButton
+                        testId='admin.save'
                         disabled={!canSave}
                         saving={saving}
                         onClick={handleSave}
@@ -516,9 +519,11 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                     <Button
                         asChild={true}
                         emphasis='tertiary'
-                        data-testid='classificationAttributeCancelLink'
                     >
-                        <BlockableLink to={GLOBAL_ATTRIBUTES_LIST_ROUTE}>
+                        <BlockableLink
+                            to={GLOBAL_ATTRIBUTES_LIST_ROUTE}
+                            data-testid='admin.classification.cancel--link'
+                        >
                             <FormattedMessage {...messages.cancel}/>
                         </BlockableLink>
                     </Button>
@@ -526,7 +531,7 @@ export default function ClassificationAttribute({disabled = false}: Props): JSX.
                         <span
                             className='ClassificationAttribute__error'
                             role='alert'
-                            data-testid='classificationAttributeSaveError'
+                            data-testid='admin.classification.save_error--alert'
                         >
                             <i className='icon icon-alert-outline'/>
                             {serverErrorMessage ?? formatMessage(messages.saveFailed)}

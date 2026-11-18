@@ -674,7 +674,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                     <FormattedMessage {...msg.pageTitle}/>
                 </AdminHeader>
                 <AdminWrapper>
-                    <LoadingScreen/>
+                    <LoadingScreen testId='admin.classification.markings.loading'/>
                 </AdminWrapper>
             </div>
         );
@@ -767,7 +767,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                                 <DropdownInput
                                     className='classificationPresetDropdownFieldset'
                                     name='classificationPreset'
-                                    testId='classificationPreset'
+                                    testId='admin.classification.preset'
                                     options={presetDropdownOptions}
                                     value={presetDropdownValue}
                                     onChange={handlePresetDropdownChange}
@@ -792,7 +792,7 @@ export default function ClassificationMarkings({disabled}: Props) {
                             setByEnv={false}
                         >
                             <Checkbox
-                                data-testid='clearanceAttributeCheckbox'
+                                data-testid='admin.classification.clearance_attribute--checkbox'
                                 checked={clearanceEnabled}
                                 onChange={handleClearanceChange}
                                 disabled={readOnly || clearanceConflict !== null}
@@ -859,6 +859,8 @@ export default function ClassificationMarkings({disabled}: Props) {
             </AdminWrapper>
 
             <SaveChangesPanel
+
+                testId='admin.classification.save_panel'
                 saving={saving}
                 saveNeeded={hasChanges}
                 onClick={handleSave}
@@ -868,6 +870,7 @@ export default function ClassificationMarkings({disabled}: Props) {
             />
 
             <ConfirmModal
+                testId='admin.classification.switch_preset_modal'
                 show={confirmPresetSwitch !== null}
                 title={formatMessage({id: 'admin.classification_markings.preset_switch.title', defaultMessage: 'Change classification preset?'})}
                 message={formatMessage({id: 'admin.classification_markings.preset_switch.message', defaultMessage: 'Changing the classification preset will affect all existing classifications across the system. Any channels, files, or other resources marked with the current classification levels may lose their markings.'})}

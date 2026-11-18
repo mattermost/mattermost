@@ -8,9 +8,6 @@
 
 import {expect, test, licenseTier} from '@mattermost/playwright-lib';
 
-const TOP_BANNER_SELECTOR = '[data-testid="global-classification-banner-top"]';
-const BOTTOM_BANNER_SELECTOR = '[data-testid="global-classification-banner-bottom"]';
-
 test.describe('Global Classification Banner (feature flag off)', () => {
     test.beforeEach(async ({pw}) => {
         await pw.skipIfNoLicense();
@@ -27,14 +24,15 @@ test.describe('Global Classification Banner (feature flag off)', () => {
         {tag: ['@classification_markings', '@global_banner']},
         async ({pw}) => {
             await pw.ensureFeatureFlag('ClassificationMarkings', false);
-            const {adminUser} = await pw.initSetup();
+            const {adminUser, team, townSquare} = await pw.initSetup();
 
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await app.channelsPage.goto({team, channel: townSquare});
 
-            await expect(channelsPage.page.locator(TOP_BANNER_SELECTOR)).not.toBeVisible();
-            await expect(channelsPage.page.locator(BOTTOM_BANNER_SELECTOR)).not.toBeVisible();
+            // * The app is up, with neither banner
+            await expect(app.center.postCreate.message.container).toBeVisible();
+            await expect(app.classificationBanner.top).toHaveCount(0);
+            await expect(app.classificationBanner.bottom).toHaveCount(0);
         },
     );
 });

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, navigateToABACPage, runSyncJob, verifyUserInChannel} from '@mattermost/playwright-lib';
+import {expect, test, verifyUserInChannel, duration} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {setupCustomProfileAttributeFields} from '../../../channels/custom_profile_attributes/helpers';
@@ -9,13 +9,11 @@ import {waitForAttributeViewToInclude} from '../../../channels/team_settings/hel
 import {
     ensureUserAttributes,
     createUserForABAC,
-    testAccessRule,
     createPrivateChannelForABAC,
-    createAdvancedPolicy,
     activatePolicy,
     waitForPolicySyncJob,
-    getPolicyIdByName,
 } from '../support';
+import {createMembershipPolicy, expectAccessTest, openPolicy, policyIdByName, runSyncJob} from '../surface';
 
 /**
  * MM-T5786 (1/5): "is not" (!=) operator — Department != "Sales" with auto-add
@@ -23,7 +21,7 @@ import {
  * @reference https://github.com/mattermost/mattermost-test-management/blob/main/data/test-cases/channels/abac-attribute-based-access/abac-system-admin/MM-T5786.md
  */
 test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
-    test.setTimeout(120000);
+    test.setTimeout(duration.two_min);
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
@@ -40,42 +38,35 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
     await adminClient.addToTeam(team.id, engineerUser.id);
     await adminClient.addToTeam(team.id, salesUser.id);
 
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await navigateToABACPage(systemConsolePage.page);
+    const {app} = await pw.testBrowser.login(adminUser);
 
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
     await ensureUserAttributes(adminClient);
-    const policyName = `IsNot Policy ${await pw.random.id()}`;
-    await createAdvancedPolicy(systemConsolePage.page, {
+    const policyName = `IsNot Policy ${pw.random.id()}`;
+    await createMembershipPolicy(app, {
         name: policyName,
-        celExpression: 'user.attributes.Department != "Sales"',
-        autoSync: true,
-        channels: [channel.display_name],
+        cel: 'user.attributes.Department != "Sales"',
+        channels: [channel],
+        autoAdd: true,
     });
-    const policyId = (await getPolicyIdByName(adminClient, policyName))!;
+    const policyId = await policyIdByName(adminClient, policyName);
 
-    await systemConsolePage.page.waitForTimeout(1000);
-    const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-    if (await policyRowForTest.isVisible({timeout: 3000})) {
-        await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
-        await testAccessRule(systemConsolePage.page, {
-            expectedMatchingUsers: [engineerUser.username],
-            expectedNonMatchingUsers: [salesUser.username],
-        });
-        await navigateToABACPage(systemConsolePage.page);
-    }
+    await expectAccessTest(app, await openPolicy(app, policyId), {
+        client: adminClient,
+        matching: [engineerUser],
+        notMatching: [salesUser],
+    });
 
     await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department != "Sales"', [engineerUser.id]);
     await activatePolicy(adminClient, policyId);
-    await runSyncJob(systemConsolePage.page);
+    await runSyncJob(app);
     await waitForPolicySyncJob(adminClient, policyId);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
-            timeout: 15_000,
+            timeout: duration.half_min,
             intervals: [500, 1000, 2000],
             message: 'engineerUser should be in channel after sync',
         })
@@ -89,7 +80,7 @@ test('MM-T5786 Test "is not" (!=) operator in Simple mode', async ({pw}) => {
  * @reference https://github.com/mattermost/mattermost-test-management/blob/main/data/test-cases/channels/abac-attribute-based-access/abac-system-admin/MM-T5786.md
  */
 test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
-    test.setTimeout(120000);
+    test.setTimeout(duration.two_min);
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
@@ -106,44 +97,37 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
     await adminClient.addToTeam(team.id, engineerUser.id);
     await adminClient.addToTeam(team.id, salesUser.id);
 
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await navigateToABACPage(systemConsolePage.page);
+    const {app} = await pw.testBrowser.login(adminUser);
 
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
     await ensureUserAttributes(adminClient);
-    const policyName = `In Policy ${await pw.random.id()}`;
-    await createAdvancedPolicy(systemConsolePage.page, {
+    const policyName = `In Policy ${pw.random.id()}`;
+    await createMembershipPolicy(app, {
         name: policyName,
-        celExpression: 'user.attributes.Department in ["Engineering", "DevOps"]',
-        autoSync: true,
-        channels: [channel.display_name],
+        cel: 'user.attributes.Department in ["Engineering", "DevOps"]',
+        channels: [channel],
+        autoAdd: true,
     });
-    const policyId = (await getPolicyIdByName(adminClient, policyName))!;
+    const policyId = await policyIdByName(adminClient, policyName);
 
-    await systemConsolePage.page.waitForTimeout(1000);
-    const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-    if (await policyRowForTest.isVisible({timeout: 3000})) {
-        await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
-        await testAccessRule(systemConsolePage.page, {
-            expectedMatchingUsers: [engineerUser.username],
-            expectedNonMatchingUsers: [salesUser.username],
-        });
-        await navigateToABACPage(systemConsolePage.page);
-    }
+    await expectAccessTest(app, await openPolicy(app, policyId), {
+        client: adminClient,
+        matching: [engineerUser],
+        notMatching: [salesUser],
+    });
 
     await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department in ["Engineering", "DevOps"]', [
         engineerUser.id,
     ]);
     await activatePolicy(adminClient, policyId);
-    await runSyncJob(systemConsolePage.page);
+    await runSyncJob(app);
     await waitForPolicySyncJob(adminClient, policyId);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
-            timeout: 15_000,
+            timeout: duration.half_min,
             intervals: [500, 1000, 2000],
             message: 'engineerUser should be in channel after sync',
         })
@@ -157,7 +141,7 @@ test('MM-T5786 Test "in" operator in Simple mode', async ({pw}) => {
  * @reference https://github.com/mattermost/mattermost-test-management/blob/main/data/test-cases/channels/abac-attribute-based-access/abac-system-admin/MM-T5786.md
  */
 test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
-    test.setTimeout(120000);
+    test.setTimeout(duration.two_min);
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, team} = await pw.initSetup();
@@ -174,42 +158,35 @@ test('MM-T5786 Test "starts with" operator in Simple mode', async ({pw}) => {
     await adminClient.addToTeam(team.id, engineerUser.id);
     await adminClient.addToTeam(team.id, salesUser.id);
 
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await navigateToABACPage(systemConsolePage.page);
+    const {app} = await pw.testBrowser.login(adminUser);
 
     const channel = await createPrivateChannelForABAC(adminClient, team.id);
     await adminClient.addToChannel(salesUser.id, channel.id);
 
     await ensureUserAttributes(adminClient);
-    const policyName = `StartsWith Policy ${await pw.random.id()}`;
-    await createAdvancedPolicy(systemConsolePage.page, {
+    const policyName = `StartsWith Policy ${pw.random.id()}`;
+    await createMembershipPolicy(app, {
         name: policyName,
-        celExpression: 'user.attributes.Department.startsWith("Eng")',
-        autoSync: true,
-        channels: [channel.display_name],
+        cel: 'user.attributes.Department.startsWith("Eng")',
+        channels: [channel],
+        autoAdd: true,
     });
-    const policyId = (await getPolicyIdByName(adminClient, policyName))!;
+    const policyId = await policyIdByName(adminClient, policyName);
 
-    await systemConsolePage.page.waitForTimeout(1000);
-    const policyRowForTest = systemConsolePage.page.locator('.policy-name').filter({hasText: policyName}).first();
-    if (await policyRowForTest.isVisible({timeout: 3000})) {
-        await policyRowForTest.click();
-        await systemConsolePage.page.waitForLoadState('networkidle');
-        await testAccessRule(systemConsolePage.page, {
-            expectedMatchingUsers: [engineerUser.username],
-            expectedNonMatchingUsers: [salesUser.username],
-        });
-        await navigateToABACPage(systemConsolePage.page);
-    }
+    await expectAccessTest(app, await openPolicy(app, policyId), {
+        client: adminClient,
+        matching: [engineerUser],
+        notMatching: [salesUser],
+    });
 
     await waitForAttributeViewToInclude(adminClient, 'user.attributes.Department.startsWith("Eng")', [engineerUser.id]);
     await activatePolicy(adminClient, policyId);
-    await runSyncJob(systemConsolePage.page);
+    await runSyncJob(app);
     await waitForPolicySyncJob(adminClient, policyId);
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, engineerUser.id, channel.id), {
-            timeout: 15_000,
+            timeout: duration.half_min,
             intervals: [500, 1000, 2000],
             message: 'engineerUser should be in channel after sync',
         })

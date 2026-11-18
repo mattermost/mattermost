@@ -5,12 +5,14 @@ import React from 'react';
 
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import {getHistory} from 'utils/browser_history';
 import {TestHelper} from 'utils/test_helper';
 
 import AddBot from './add_bot';
 import type {Props} from './add_bot';
+
+const removeButton = (fieldId: string) => within(screen.getByTestId(`integrations.bot_form.attributes.attribute:${fieldId}`)).queryByTestId('integrations.bot_form.attributes.attribute.remove--button');
 
 describe('components/integrations/bots/AddBot', () => {
     const team = TestHelper.getTeamMock();
@@ -273,7 +275,7 @@ describe('components/integrations/bots/AddBot', () => {
             test('does not render the section or fetch when attributes are disabled', () => {
                 const {actions: botActions} = renderAddBot({attributesEnabled: false, attributeFields: []});
 
-                expect(screen.queryByTestId('botAttributesSection')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('integrations.bot_form.attributes')).not.toBeInTheDocument();
                 expect(botActions.getCustomProfileAttributeFields).not.toHaveBeenCalled();
                 expect(botActions.getCustomProfileAttributeValues).not.toHaveBeenCalled();
             });
@@ -284,7 +286,7 @@ describe('components/integrations/bots/AddBot', () => {
             ])('create: fetches fields when %s loaded', async (_, attributeFields) => {
                 const {actions: botActions} = renderAddBot({attributeFields});
 
-                expect(screen.getByTestId('botAttributesSection')).toBeInTheDocument();
+                expect(screen.getByTestId('integrations.bot_form.attributes')).toBeInTheDocument();
                 expect(screen.getByRole('button', {name: 'Add attribute'})).toBeDisabled();
                 await waitForAttributesReady();
                 expect(botActions.getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
@@ -297,7 +299,7 @@ describe('components/integrations/bots/AddBot', () => {
                     {getCustomProfileAttributeFields: jest.fn().mockResolvedValue({error: {message: 'x'}})},
                 );
 
-                await screen.findByTestId('botAttributesLoadError');
+                await screen.findByTestId('integrations.bot_form.attributes.load_error--alert');
                 typeUsername();
                 submit('Create Bot Account');
 
@@ -312,30 +314,30 @@ describe('components/integrations/bots/AddBot', () => {
             test('seeds rows from the bot\'s values', async () => {
                 const {actions: botActions} = renderEdit({dept: 'Eng', skills: ['s1'], hidden: 'h', gone: 'x'});
 
-                await screen.findByTestId('bot-attribute-label-dept');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:dept');
                 expect(botActions.getCustomProfileAttributeValues).toHaveBeenCalledWith('bot-user-id');
                 expect(botActions.getCustomProfileAttributeFields).toHaveBeenCalledTimes(1);
                 expect(screen.getByRole('textbox', {name: 'Department'})).toHaveValue('Eng');
-                expect(screen.getByTestId('bot-attribute-label-skills')).toBeInTheDocument();
-                expect(screen.queryByTestId('bot-attribute-label-hidden')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('bot-attribute-label-gone')).not.toBeInTheDocument();
+                expect(screen.getByTestId('integrations.bot_form.attributes.attribute:skills')).toBeInTheDocument();
+                expect(screen.queryByTestId('integrations.bot_form.attributes.attribute:hidden')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('integrations.bot_form.attributes.attribute:gone')).not.toBeInTheDocument();
                 expect(screen.getByRole('button', {name: 'Add attribute'})).not.toHaveFocus();
             });
 
             test('locked and required-with-value rows have no trash', async () => {
                 renderEdit({badge: 'B', clearance: 'c1', dept: 'Eng'});
 
-                await screen.findByTestId('bot-attribute-label-dept');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:dept');
                 expect(screen.getByRole('textbox', {name: /Badge/})).toBeDisabled();
-                expect(screen.queryByTestId('bot-attribute-remove-badge')).not.toBeInTheDocument();
-                expect(screen.queryByTestId('bot-attribute-remove-clearance')).not.toBeInTheDocument();
-                expect(screen.getByTestId('bot-attribute-remove-dept')).toBeInTheDocument();
+                expect(removeButton('badge')).not.toBeInTheDocument();
+                expect(removeButton('clearance')).not.toBeInTheDocument();
+                expect(removeButton('dept')).toBeInTheDocument();
             });
 
             test('removing rows sends cleared values and navigates', async () => {
                 const {actions: botActions} = renderEdit({dept: 'Eng', skills: ['s1']});
 
-                await screen.findByTestId('bot-attribute-label-dept');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:dept');
                 await userEvent.click(screen.getByRole('button', {name: 'Remove Department'}));
                 await userEvent.click(screen.getByRole('button', {name: 'Remove Skills'}));
                 submit('Update');
@@ -347,7 +349,7 @@ describe('components/integrations/bots/AddBot', () => {
             test('an unchanged form makes no attributes call', async () => {
                 const {actions: botActions} = renderEdit({dept: 'Eng'});
 
-                await screen.findByTestId('bot-attribute-label-dept');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:dept');
                 submit('Update');
 
                 await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(LIST_URL));
@@ -360,7 +362,7 @@ describe('components/integrations/bots/AddBot', () => {
                     mockResolvedValueOnce({data: {dept: 'Ops'}});
                 renderEdit({dept: 'Eng'}, {}, {updateUserCustomProfileAttributeValues});
 
-                await screen.findByTestId('bot-attribute-label-dept');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:dept');
                 fireEvent.change(screen.getByRole('textbox', {name: 'Department'}), {target: {value: 'Ops'}});
                 submit('Update');
 
@@ -381,7 +383,7 @@ describe('components/integrations/bots/AddBot', () => {
                     mockResolvedValueOnce({data: true});
                 const {container, actions: botActions} = renderEdit({dept: 'Eng'}, {roles: 'system_user'}, {updateUserRoles});
 
-                await screen.findByTestId('bot-attribute-label-dept');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:dept');
                 fireEvent.change(screen.getByRole('textbox', {name: 'Department'}), {target: {value: 'Ops'}});
                 setRoleSelect(container, 'System Admin');
                 submit('Update');
@@ -405,7 +407,7 @@ describe('components/integrations/bots/AddBot', () => {
                     },
                 );
 
-                await screen.findByTestId('bot-attribute-label-dept');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:dept');
                 fireEvent.change(screen.getByRole('textbox', {name: 'Department'}), {target: {value: 'Ops'}});
                 setRoleSelect(container, 'System Admin');
                 submit('Update');
@@ -418,7 +420,7 @@ describe('components/integrations/bots/AddBot', () => {
             test('a patchBot failure stops before roles and attributes', async () => {
                 const {actions: botActions} = renderEdit({dept: 'Eng'}, {roles: 'system_user'}, {patchBot: jest.fn().mockResolvedValue({error: {message: 'Patch failed'}})});
 
-                await screen.findByTestId('bot-attribute-label-dept');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:dept');
                 fireEvent.change(screen.getByRole('textbox', {name: 'Department'}), {target: {value: 'Ops'}});
                 submit('Update');
 
@@ -431,7 +433,7 @@ describe('components/integrations/bots/AddBot', () => {
             test('values load error blocks attribute writes but saves the bot', async () => {
                 const {actions: botActions} = renderEdit({}, {}, {getCustomProfileAttributeValues: jest.fn().mockResolvedValue({error: {message: 'x'}})});
 
-                await screen.findByTestId('botAttributesLoadError');
+                await screen.findByTestId('integrations.bot_form.attributes.load_error--alert');
                 submit('Update');
 
                 await waitFor(() => expect(historyMock.push).toHaveBeenCalledWith(LIST_URL));
@@ -448,7 +450,7 @@ describe('components/integrations/bots/AddBot', () => {
                 await userEvent.click(await screen.findByRole('button', {name: 'Try again'}));
 
                 expect(await screen.findByRole('textbox', {name: 'Department'})).toHaveValue('Eng');
-                expect(screen.queryByTestId('botAttributesLoadError')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('integrations.bot_form.attributes.load_error--alert')).not.toBeInTheDocument();
                 expect(getCustomProfileAttributeValues).toHaveBeenCalledTimes(2);
                 await waitFor(() => expect(screen.getByRole('button', {name: 'Add attribute'})).toHaveFocus());
             });
@@ -460,8 +462,8 @@ describe('components/integrations/bots/AddBot', () => {
                 await userEvent.click(await screen.findByRole('button', {name: 'Try again'}));
 
                 await waitFor(() => expect(getCustomProfileAttributeValues).toHaveBeenCalledTimes(2));
-                expect(await screen.findByTestId('botAttributesLoadError')).toBeInTheDocument();
-                expect(screen.queryByTestId('bot-attribute-list')).not.toBeInTheDocument();
+                expect(await screen.findByTestId('integrations.bot_form.attributes.load_error--alert')).toBeInTheDocument();
+                expect(document.querySelector('.UserAttributeFields')).not.toBeInTheDocument();
                 await waitFor(() => expect(screen.getByRole('button', {name: 'Try again'})).toHaveFocus());
             });
 
@@ -672,7 +674,7 @@ describe('components/integrations/bots/AddBot', () => {
 
                 typeUsername();
                 await addAttribute('Clearance');
-                await screen.findByTestId('bot-attribute-label-clearance');
+                await screen.findByTestId('integrations.bot_form.attributes.attribute:clearance');
                 submit('Create Bot Account');
 
                 expect(await screen.findByText('This attribute is required.')).toBeInTheDocument();

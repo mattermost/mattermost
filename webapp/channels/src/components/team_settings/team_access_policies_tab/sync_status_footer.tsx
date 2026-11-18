@@ -132,24 +132,34 @@ export default function SyncStatusFooter({teamId, hasPolicies}: Props) {
     const timeText = getRelativeTime(lastSyncedAt, formatMessage);
 
     return (
-        <div className='SyncStatusFooter'>
+        <div
+            className='SyncStatusFooter'
+            data-testid='team_settings_modal.access_policies.sync_status'
+        >
             <i className='icon icon-information-outline SyncStatusFooter__icon'/>
-            <span className='SyncStatusFooter__text'>
+            <span
+                className='SyncStatusFooter__text'
+                data-testid='team_settings_modal.access_policies.sync_status.time--text'
+            >
                 {timeText}
             </span>
             {syncing ? (
                 <>
-                    <span className='SyncStatusFooter__syncing'>
+                    <span
+                        className='SyncStatusFooter__syncing'
+                        data-testid='team_settings_modal.access_policies.sync_status.syncing--text'
+                    >
                         {formatMessage({
                             id: 'team_settings.sync_status.syncing',
                             defaultMessage: 'Syncing...',
                         })}
                     </span>
-                    <LoadingSpinner/>
+                    <LoadingSpinner testId='team_settings_modal.access_policies.sync_status.loading_spinner'/>
                 </>
             ) : (
                 <button
                     className='style--none SyncStatusFooter__link'
+                    data-testid='team_settings_modal.access_policies.sync_status.sync_now--button'
                     onClick={handleSyncNow}
                 >
                     {formatMessage({

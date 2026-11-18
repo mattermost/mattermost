@@ -1,20 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Api, waitForApi, expect, test, enableABAC, duration, type App} from '@mattermost/playwright-lib';
+import {Api, expect, test, enableABAC, duration, settle, Msg} from '@mattermost/playwright-lib';
 
+import {ensureUserAttributes, deletePermissionPolicyByName} from '../support';
 import {
-    ensureUserAttributes,
+    PERMISSION_POLICIES_PATH,
     createPermissionPolicy,
-    deletePermissionPolicyByName,
-    navigateToPermissionPoliciesPage,
-} from '../support';
-
-/** The policy panel bounds controls that have no generated parts. */
-function policyList(app: App) {
-    // Policy controls have no generated parts; the declared Permission Policies screen bounds them.
-    return app.admin.screen('PermissionPolicies').locator;
-}
+    openPermissionPolicies,
+    permissionPolicyIdByName,
+} from '../surface';
 
 /**
  * Permission Policies - System Console (MM-64508)
@@ -41,19 +36,16 @@ test.describe('Permission Policies - List Page', () => {
 
         // # Click Permission Policies in the sidebar
         await app.admin.sidebar.category('system_attributes').section('permission_policies').titleLink.click();
-        await expect(app.page).toHaveURL(/permission_policies/);
-        await app.page.waitForLoadState('networkidle');
 
         // * Correct URL and heading
-        await expect(app.page).toHaveURL(/permission_policies/);
-        // The list controls have no generated parts; query their accessible names and native grid inside the declared screen.
-        await expect(policyList(app).getByRole('heading', {name: 'Permission Policies'})).toBeVisible();
+        await expect(app.page).toHavePath(PERMISSION_POLICIES_PATH);
+        const list = app.admin.permissionPolicies;
+        await expect(list.titleText).toHaveMessage(Msg.admin.permission_policies.title);
 
         // * List columns are present
-        const section = policyList(app);
-        await expect(section.getByText('Name')).toBeVisible();
-        await expect(section.getByText('Role')).toBeVisible();
-        await expect(section.getByText('Permissions', {exact: true})).toBeVisible();
+        await expect(list.header).toContainMessage(Msg.admin.permission_policies.name);
+        await expect(list.header).toContainMessage(Msg.admin.permission_policies.role._);
+        await expect(list.header).toContainMessage(Msg.admin.permission_policies.policy_actions);
     });
 
     test('MM-T5802 Permission Policies list page has Add policy button and search input', async ({pw}) => {
@@ -63,11 +55,10 @@ test.describe('Permission Policies - List Page', () => {
         const {app} = await pw.testBrowser.login(adminUser);
 
         await enableABAC(app.page);
-        await navigateToPermissionPoliciesPage(app.page);
+        const list = await openPermissionPolicies(app);
 
-        // The list controls have no generated parts; query their accessible names and native grid inside the declared screen.
-        await expect(policyList(app).getByRole('button', {name: 'Add policy'})).toBeVisible();
-        await expect(policyList(app).getByPlaceholder('Search')).toBeVisible();
+        await expect(list.addButton).toHaveMessage(Msg.admin.permission_policies.add_policy);
+        await expect(list.searchTextbox).toBeVisible();
     });
 
     test('MM-T5803 Permission Policies list page subtitle describes the attribute-based scope', async ({pw}) => {
@@ -77,14 +68,9 @@ test.describe('Permission Policies - List Page', () => {
         const {app} = await pw.testBrowser.login(adminUser);
 
         await enableABAC(app.page);
-        await navigateToPermissionPoliciesPage(app.page);
+        const list = await openPermissionPolicies(app);
 
-        // The list controls have no generated parts; query their accessible names and native grid inside the declared screen.
-        await expect(
-            policyList(app).getByText('Create policies to control what users can do, based on their attributes', {
-                exact: false,
-            }),
-        ).toBeVisible();
+        await expect(list.subtitleText).toHaveMessage(Msg.admin.permission_policies.description);
     });
 });
 
@@ -99,30 +85,26 @@ test.describe('Permission Policies - Manage Existing Policies', () => {
         await enableABAC(app.page);
 
         const policyName = `PP Delete ${pw.random.id()}`;
-        await createPermissionPolicy(app.page, {
+        const list = await createPermissionPolicy(app, {
             name: policyName,
-            celExpression: 'user.attributes.Department == "Delete"',
-            permissions: ['Download Files'],
+            cel: 'user.attributes.Department == "Delete"',
+            permissions: ['download_file_attachment'],
         });
+        const policyId = await permissionPolicyIdByName(adminClient, policyName);
+        const row = list.row(policyId);
+        await expect(row.cell('name')).toHaveText(policyName);
 
-        // The list controls have no generated parts; query their accessible names and native grid inside the declared screen.
-        await expect(policyList(app).getByText(policyName)).toBeVisible();
-
-        // # Open the row's action menu and delete
-        // The list has no generated row parts; match the native grid row within the declared policy screen.
-        const policyRow = policyList(app).locator('.DataGrid_row').filter({hasText: policyName});
-        await policyRow.locator('button[id*="policy-menu"], button[aria-label*="menu" i], button').last().click();
-
-        // The row-action menu is portalled outside the undeclared policy panel and has no generated menu scope.
-        const deleteOption = app.page.getByRole('menuitem', {name: /delete/i});
-        await expect(deleteOption).toBeVisible();
-        await Promise.all([waitForApi(app.page, Api.DeleteAccessControlPolicy), deleteOption.click()]);
-
-        // # Deletion from the list fires immediately — no confirmation modal
-        await app.page.waitForLoadState('networkidle');
+        // # Open the row's action menu and delete: deletion from the list fires immediately, with no confirmation modal
+        await row.openMenuButton.click();
+        const rowMenu = app.permissionPolicyRowMenu;
+        await expect(rowMenu.deleteMenuItem).toBeVisible();
+        await settle(rowMenu.deleteMenuItem, {
+            wait: Api.DeleteAccessControlPolicy,
+            params: {policy_id: policyId},
+        }).click();
 
         // * Policy no longer in list
-        await expect(policyList(app).getByText(policyName)).not.toBeVisible();
+        await expect(row.container).toHaveCount(0);
 
         // # Safety net: API cleanup in case UI deletion failed
         await deletePermissionPolicyByName(adminClient, policyName);
@@ -139,20 +121,19 @@ test.describe('Permission Policies - Manage Existing Policies', () => {
 
         const policyName = `PP Search ${pw.random.id()}`;
         try {
-            await createPermissionPolicy(app.page, {
+            const list = await createPermissionPolicy(app, {
                 name: policyName,
-                celExpression: 'user.attributes.Department == "Search"',
-                permissions: ['Download Files'],
+                cel: 'user.attributes.Department == "Search"',
+                permissions: ['download_file_attachment'],
             });
+            const policyId = await permissionPolicyIdByName(adminClient, policyName);
 
             // # Search by the exact name
-            // The list controls have no generated parts; query their accessible names and native grid inside the declared screen.
-            await policyList(app).getByPlaceholder('Search').fill(policyName);
-            await expect(policyList(app).getByPlaceholder('Search')).toHaveValue(policyName);
-            await app.page.waitForLoadState('networkidle');
+            await list.searchTextbox.fill(policyName);
+            await expect(list.searchTextbox).toHaveValue(policyName);
 
             // * Only the matching policy is visible
-            await expect(policyList(app).getByText(policyName)).toBeVisible();
+            await expect(list.rowList).toHaveKeys([policyId]);
         } finally {
             await deletePermissionPolicyByName(adminClient, policyName);
         }

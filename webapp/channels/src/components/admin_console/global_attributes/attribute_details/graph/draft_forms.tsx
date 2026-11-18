@@ -51,7 +51,7 @@ export const AddTopLevelForm = ({
 }: AddTopLevelFormProps) => {
     const {formatMessage} = useIntl();
     const placeholder = formatMessage(isEmptyCanvas ? messages.namePlaceholder : messages.addTopLevel);
-    const testIdPrefix = isEmptyCanvas ? 'attributeOptionsGraphEmpty' : 'attributeOptionsGraphAddTop';
+    const testIdScope = isEmptyCanvas ? 'admin.attribute.graph.empty' : 'admin.attribute.graph.add_top';
 
     // Read-only (plugin-synced) lists hide the add field; atMax still shows it disabled.
     if (disabled) {
@@ -80,10 +80,8 @@ export const AddTopLevelForm = ({
                 disabled={atMax}
                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                 hasError={isDuplicate}
-                customMessage={isDuplicate ?
-                    {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})} :
-                    null}
-                data-testid={`${testIdPrefix}__nameInput`}
+                customMessage={isDuplicate ? {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})} : null}
+                testId={`${testIdScope}.name`}
             />
             <Button
                 type='button'
@@ -91,7 +89,7 @@ export const AddTopLevelForm = ({
                 size={isEmptyCanvas ? 'small' : 'medium'}
                 onClick={onCommit}
                 disabled={!canAdd}
-                data-testid={`${testIdPrefix}__addButton`}
+                data-testid={`${testIdScope}.add--button`}
                 leadingIcon={<Icon glyph={<PlusIcon/>}/>}
             >
                 <FormattedMessage {...messages.addValue}/>
@@ -120,7 +118,7 @@ export function ChildDraftRow({
         <li
             className='attribute-options-graph-values__row attribute-options-graph-values__row--draft'
             style={{['--attribute-options-graph-values-indent' as string]: depth}}
-            data-testid='attributeOptionsGraphRow__childDraft'
+            data-testid='admin.attribute.graph.child_draft'
             data-depth={String(depth)}
         >
             <span
@@ -154,10 +152,8 @@ export function ChildDraftRow({
                 disabled={disabled || atMax}
                 maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_LENGTH}
                 hasError={isDuplicate}
-                customMessage={isDuplicate ?
-                    {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})} :
-                    null}
-                data-testid='attributeOptionsGraphRow__childNameInput'
+                customMessage={isDuplicate ? {type: 'error', value: formatMessage(messages.duplicateName, {name: trimmed})} : null}
+                testId='admin.attribute.graph.child_draft.name'
                 autoFocus={true}
             />
             <Button
@@ -166,7 +162,7 @@ export function ChildDraftRow({
                 size='small'
                 onClick={onCommit}
                 disabled={!canAdd}
-                data-testid='attributeOptionsGraphRow__childAddButton'
+                data-testid='admin.attribute.graph.child_draft.add--button'
             >
                 <FormattedMessage {...messages.add}/>
             </Button>
@@ -175,7 +171,7 @@ export function ChildDraftRow({
                 emphasis='tertiary'
                 size='small'
                 onClick={onCancel}
-                data-testid='attributeOptionsGraphRow__childCancelButton'
+                data-testid='admin.attribute.graph.child_draft.cancel--button'
             >
                 <FormattedMessage {...messages.cancel}/>
             </Button>
