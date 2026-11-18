@@ -211,13 +211,19 @@ func (h *AccessControlHook) resolveFieldMasking(rctx request.CTX, field *model.P
 		if err != nil {
 			return fieldMasking{}, errors.Wrapf(err, "failed to resolve holdings field %q for field %q", fm.holdingsFieldID, field.ID)
 		}
-		// A linked field reads its template's option list, any other field its own.
-		// A deleted holdings field, or one unlinked from the template, does not read
-		// its list. The service refuses both while the masking names the field, but
-		// the store does not re-check the masking when the holdings field changes.
-		fm.holdingsListDiffers = holdings.DeleteAt != 0 || (holdings.ID != target.ID && holdings.LinkSourceID() != target.ID)
+		fm.holdingsListDiffers = !ReadsOptionList(holdings, target.ID)
 	}
 	return fm, nil
+}
+
+// ReadsOptionList reports whether holdings is live and reads the option list
+// owned by listOwnerID: it is that field, or linked to it (a linked field reads
+// its template's list, any other field its own). A deleted holdings field, or one
+// unlinked from the template, does not read its list. The service refuses both
+// while the masking names the field, but the store does not re-check the masking
+// when the holdings field changes.
+func ReadsOptionList(holdings *model.PropertyField, listOwnerID string) bool {
+	return holdings.DeleteAt == 0 && (holdings.ID == listOwnerID || holdings.LinkSourceID() == listOwnerID)
 }
 
 // holdingsFieldIDFor returns the field ID whose values masking treats as the
