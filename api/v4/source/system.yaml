@@ -1589,6 +1589,11 @@
       description: >
         Retrieves metadata about the latest Mattermost server release from GitHub.
 
+        The server caches a successful lookup for 24 hours and a failed one for
+        6 hours. Toggling `ServiceSettings.EnableSecurityFixAlert` clears both.
+        While that setting is off, the server makes no request to GitHub and
+        returns 501.
+
         ##### Permissions
         Must have `manage_system` permission.
       operationId: GetLatestVersion
@@ -1620,6 +1625,8 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
   /api/v4/system/schema/version:
     get:
       tags:
