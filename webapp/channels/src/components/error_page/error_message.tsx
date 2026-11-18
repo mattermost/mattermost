@@ -10,19 +10,20 @@ import ErrorLink from './error_link';
 import CloudArchived from './messages/cloud_archived';
 
 type Props = {
+    testId?: string;
     type?: string | null;
     message?: string;
     service?: string;
     isGuest?: boolean;
 };
 
-const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props) => {
+const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest, testId}: Props) => {
     let errorMessage = null;
     if (type) {
         switch (type) {
         case ErrorPageTypes.LOCAL_STORAGE:
             errorMessage = (
-                <div>
+                <div data-testid={testId ? `${testId}--text` : undefined}>
                     <FormattedMessage
                         id='error.local_storage.message'
                         defaultMessage='Mattermost was unable to load because a setting in your browser prevents the use of its local storage features. To allow Mattermost to load, try the following actions:'
@@ -52,7 +53,7 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             break;
         case ErrorPageTypes.PERMALINK_NOT_FOUND:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     <FormattedMessage
                         id='permalink.error.access'
                         defaultMessage='Permalink belongs to a deleted message or to a channel to which you do not have access.'
@@ -62,7 +63,7 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             break;
         case ErrorPageTypes.POST_NOT_FOUND:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     <FormattedMessage
                         id='post.error.access'
                         defaultMessage="The post you're requesting is private or does not exist."
@@ -72,14 +73,14 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             break;
         case ErrorPageTypes.CLOUD_ARCHIVED:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     <CloudArchived/>
                 </p>
             );
             break;
         case ErrorPageTypes.TEAM_NOT_FOUND:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     <FormattedMessage
                         id='error.team_not_found.message'
                         defaultMessage="The team you're requesting is private or does not exist. Please contact your Administrator for an invitation."
@@ -89,7 +90,7 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             break;
         case ErrorPageTypes.CHANNEL_NOT_FOUND:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     {isGuest ? (
                         <FormattedMessage
                             id='error.channel_not_found.message_guest'
@@ -107,7 +108,7 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             break;
         case ErrorPageTypes.OAUTH_MISSING_CODE:
             errorMessage = (
-                <div>
+                <div data-testid={testId ? `${testId}--text` : undefined}>
                     <p>
                         <FormattedMessage
                             id='error.oauth_missing_code'
@@ -190,7 +191,7 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
             break;
         case ErrorPageTypes.OAUTH_ACCESS_DENIED:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     <FormattedMessage
                         id='error.oauth_access_denied'
                         defaultMessage='You must authorize Mattermost to log in with {service}.'
@@ -204,14 +205,14 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
         case ErrorPageTypes.OAUTH_INVALID_REDIRECT_URL:
         case ErrorPageTypes.OAUTH_INVALID_PARAM:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     {message}
                 </p>
             );
             break;
         case ErrorPageTypes.MAGIC_LINK_ALREADY_LOGGED_IN:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     <FormattedMessage
                         id='error.magic_link_already_logged_in.message'
                         defaultMessage='You are already logged in. Log out and try again.'
@@ -222,7 +223,7 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
         case ErrorPageTypes.PAGE_NOT_FOUND:
         default:
             errorMessage = (
-                <p>
+                <p data-testid={testId ? `${testId}--text` : undefined}>
                     <FormattedMessage
                         id='error.not_found.message'
                         defaultMessage='The page you were trying to reach does not exist'
@@ -232,13 +233,13 @@ const ErrorMessage: React.FC<Props> = ({type, message, service, isGuest}: Props)
         }
     } else if (message) {
         errorMessage = (
-            <p>
+            <p data-testid={testId ? `${testId}--text` : undefined}>
                 {message}
             </p>
         );
     } else {
         errorMessage = (
-            <p>
+            <p data-testid={testId ? `${testId}--text` : undefined}>
                 <FormattedMessage
                     id='error.generic.message'
                     defaultMessage='An error has occurred.'

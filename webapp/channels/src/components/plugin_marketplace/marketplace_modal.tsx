@@ -141,6 +141,7 @@ const MarketplaceModal = () => {
     return (
         <GenericModal
             id='marketplace-modal'
+            testId='marketplace_modal'
             className={classNames('marketplace-modal', 'streamlined-marketplace', {
                 'with-web-marketplace-link': !isCloud,
             })}
@@ -165,7 +166,10 @@ const MarketplaceModal = () => {
             appendedContent={getAppendedContent()}
         >
             {loading ? (
-                <LoadingScreen className='loading'/>
+                <LoadingScreen
+                    className='loading'
+                    testId='marketplace_modal.loading'
+                />
             ) : (
                 <MarketplaceList
                     listRef={listRef}

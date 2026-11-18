@@ -63,7 +63,7 @@ describe('Interactive Dialog - Checkbox Elements', () => {
 
         cy.get('#appsModal').within(() => {
             cy.get('.modal-body').within(() => {
-                cy.get('[data-testid="waiver_group_label_before"]').within(() => {
+                cy.get('[data-testid="apps_form.field:waiver_group_label_before--group"]').within(() => {
                     cy.get('label.control-label').should('contain', 'Group A: label before');
                     cy.get('.checkbox').should('have.length', 3);
 
@@ -80,7 +80,7 @@ describe('Interactive Dialog - Checkbox Elements', () => {
                     cy.get('input[type="checkbox"]').eq(2).should('be.checked');
                 });
 
-                cy.get('[data-testid="waiver_group_label_after"]').within(() => {
+                cy.get('[data-testid="apps_form.field:waiver_group_label_after--group"]').within(() => {
                     cy.get('label.control-label').should('contain', 'Group B: label after');
                     cy.get('.checkbox').should('have.length', 3);
                     cy.get('.checkbox label').each(($label) => {
@@ -98,7 +98,7 @@ describe('Interactive Dialog - Checkbox Elements', () => {
         openCheckboxDemoDialog();
 
         cy.get('#appsModal').within(() => {
-            cy.get('[data-testid="severity_multiple"]').within(() => {
+            cy.get('[data-testid="apps_form.field:severity_multiple--group"]').within(() => {
                 // The demo dialog is taller than the modal body; scroll the matrix
                 // into view before asserting visibility (be.visible does not auto-scroll).
                 cy.get('table.checkbox-matrix').scrollIntoView().should('be.visible');
@@ -120,7 +120,7 @@ describe('Interactive Dialog - Checkbox Elements', () => {
         openCheckboxDemoDialog();
 
         cy.get('#appsModal').within(() => {
-            cy.get('[data-testid="priority_single"]').within(() => {
+            cy.get('[data-testid="apps_form.field:priority_single--group"]').within(() => {
                 cy.get('table.checkbox-matrix tbody tr').should('have.length', 3);
                 cy.get('input[type="radio"]').should('have.length', 9);
 
@@ -138,7 +138,7 @@ describe('Interactive Dialog - Checkbox Elements', () => {
         openCheckboxDemoDialog();
 
         cy.get('#appsModal').within(() => {
-            cy.get('[data-testid="department"]').within(() => {
+            cy.get('[data-testid="apps_form.field:department--group"]').within(() => {
                 cy.get('input[type="radio"][value="sales"]').should('be.checked');
                 cy.get('.radio-setting__clear').scrollIntoView().should('be.visible').click();
                 cy.get('input[type="radio"]:checked').should('not.exist');
@@ -150,12 +150,12 @@ describe('Interactive Dialog - Checkbox Elements', () => {
         openCheckboxDemoDialog();
 
         cy.get('#appsModal').within(() => {
-            cy.get('[data-testid="waiver_group_label_before"]').within(() => {
+            cy.get('[data-testid="apps_form.field:waiver_group_label_before--group"]').within(() => {
                 cy.get('input[type="checkbox"]').uncheck({force: true});
             });
 
             cy.get('#appsModalSubmit').click();
-            cy.get('[data-testid="waiver_group_label_before"]').find('.error-text').should('be.visible');
+            cy.get('[data-testid="apps_form.field:waiver_group_label_before--group"]').find('.error-text').should('be.visible');
         });
     });
 
@@ -163,13 +163,13 @@ describe('Interactive Dialog - Checkbox Elements', () => {
         openCheckboxDemoDialog();
 
         cy.get('#appsModal').within(() => {
-            cy.get('[data-testid="acknowledged"]').within(() => {
+            cy.get('[data-testid="apps_form.field:acknowledged--group"]').within(() => {
                 cy.get('label.control-label').should('contain', 'Acknowledgement');
                 cy.get('.inline-choice-setting__text').should('contain', 'I understand the waiver terms');
                 cy.get('input[type="checkbox"]').should('exist');
             });
 
-            cy.get('[data-testid="waiver_group_label_after"]').within(() => {
+            cy.get('[data-testid="apps_form.field:waiver_group_label_after--group"]').within(() => {
                 cy.get('label.control-label').should('contain', '(optional)');
             });
         });

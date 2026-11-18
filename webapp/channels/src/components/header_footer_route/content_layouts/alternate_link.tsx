@@ -12,9 +12,11 @@ type AlternateLinkProps = {
     alternateMessage?: string;
     alternateLinkPath?: string;
     alternateLinkLabel?: string;
+
+    testId?: string;
 };
 
-const AlternateLink = ({className, alternateMessage, alternateLinkPath, alternateLinkLabel}: AlternateLinkProps) => {
+const AlternateLink = ({className, alternateMessage, alternateLinkPath, alternateLinkLabel, testId}: AlternateLinkProps) => {
     if (!alternateMessage && !alternateLinkPath && !alternateLinkLabel) {
         return null;
     }
@@ -22,16 +24,20 @@ const AlternateLink = ({className, alternateMessage, alternateLinkPath, alternat
     return (
         <div
             className={classNames('alternate-link', className)}
-            data-testid='alternate-link'
+            data-testid={testId}
         >
             {alternateMessage && (
-                <span className='alternate-link__message'>
+                <span
+                    className='alternate-link__message'
+                    data-testid={testId ? `${testId}.message--text` : undefined}
+                >
                     {alternateMessage}
                 </span>
             )}
             {alternateLinkPath && alternateLinkLabel && (
                 <Link
                     className='alternate-link__link'
+                    data-testid={testId ? `${testId}.action--link` : undefined}
                     to={{
                         pathname: alternateLinkPath,
                         search: location.search,

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, logInWithKeycloak, openLogin, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a wrong password on Keycloak's hosted login page never creates a Mattermost
@@ -10,7 +10,7 @@ import {expect, test} from '@mattermost/playwright-lib';
  * @precondition
  * A Keycloak realm with the mattermost-openid client, reachable at OpenIdSettings endpoints.
  */
-test('login fails gracefully with wrong Keycloak credentials', {tag: '@openid'}, async ({pw}) => {
+test('login fails gracefully with wrong Keycloak credentials', {tag: '@openid'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
     await pw.ensureKeycloakOpenId();
@@ -21,13 +21,9 @@ test('login fails gracefully with wrong Keycloak credentials', {tag: '@openid'},
     await pw.createKeycloakUser(keycloakUser);
 
     // # Submit the wrong password on Keycloak's hosted form
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.openIdLoginButton.click();
-    await pw.keycloakLoginPage.login(keycloakUser.username, 'WrongPassword1');
+    await logInWithKeycloak(pw, page, 'openid', {username: keycloakUser.username, password: 'WrongPassword1'});
 
-    // * Verify Keycloak rejects the login
+    // * Verify Keycloak rejects the login and keeps its form up
     await expect(pw.keycloakLoginPage.errorMessage).toBeVisible();
     await expect(pw.keycloakLoginPage.usernameInput).toBeVisible();
 
@@ -41,7 +37,7 @@ test('login fails gracefully with wrong Keycloak credentials', {tag: '@openid'},
  * @precondition
  * A Keycloak realm with the mattermost-openid client, reachable at OpenIdSettings endpoints.
  */
-test('suspended Keycloak user cannot log in via OpenID', {tag: '@openid'}, async ({pw}) => {
+test('suspended Keycloak user cannot log in via OpenID', {tag: '@openid'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
     await pw.ensureKeycloakOpenId();
@@ -53,11 +49,7 @@ test('suspended Keycloak user cannot log in via OpenID', {tag: '@openid'}, async
     await pw.suspendKeycloakUser(keycloakUserId);
 
     // # Submit valid credentials for the suspended user
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.openIdLoginButton.click();
-    await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+    await logInWithKeycloak(pw, page, 'openid', keycloakUser);
 
     // * Verify Keycloak keeps the user on its disabled-account page
     await expect(pw.keycloakLoginPage.accountDisabledMessage).toBeVisible();
@@ -72,29 +64,26 @@ test('suspended Keycloak user cannot log in via OpenID', {tag: '@openid'}, async
  * @precondition
  * A Keycloak realm with the mattermost-openid client, reachable at OpenIdSettings endpoints.
  */
-test('OpenID button visibility follows config', {tag: '@openid'}, async ({pw}) => {
+test('OpenID button visibility follows config', {tag: '@openid'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
     const {adminClient} = await pw.getAdminClient();
-    await pw.hasSeenLandingPage();
 
     try {
         // # Disable OpenID and load the login page
         await adminClient.patchConfig({OpenIdSettings: {Enable: false}});
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
+        const app = await openLogin(pw, page);
 
         // * Verify the button is hidden
-        await expect(pw.loginPage.openIdLoginButton).toBeHidden();
+        await expect(app.login.external('openid')).toBeHidden();
     } finally {
         await pw.ensureKeycloakOpenId();
     }
 
     // # Reload with OpenID enabled
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
+    const app = await openLogin(pw, page);
 
     // * Verify the button is visible
-    await expect(pw.loginPage.openIdLoginButton).toBeVisible();
+    await expect(app.login.external('openid')).toBeVisible();
 });

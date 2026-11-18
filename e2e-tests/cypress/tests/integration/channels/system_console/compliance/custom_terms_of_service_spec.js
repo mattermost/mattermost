@@ -54,7 +54,7 @@ describe('Custom Terms of Service', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // * Ensure that the terms of service text shows as expected
-        cy.findByTestId('termsOfService').should('be.visible').and('contain.text', customTermsOfServiceText);
+        cy.findByTestId('terms_of_service.terms').should('be.visible').and('contain.text', customTermsOfServiceText);
 
         // * Ensure that the accept terms button is visible and click it
         cy.get('#acceptTerms').should('be.visible').click();
@@ -105,7 +105,7 @@ describe('Custom Terms of Service', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // * Ensure that the first terms of service is visible
-        cy.findByTestId('termsOfService').should('be.visible').and('contain.text', firstTOS);
+        cy.findByTestId('terms_of_service.terms').should('be.visible').and('contain.text', firstTOS);
 
         // # Login as admin
         cy.apiAdminLogin();
@@ -120,7 +120,7 @@ describe('Custom Terms of Service', () => {
         cy.get('#saveSetting').click();
 
         // * Ensure that the terms of service text shows as expected
-        cy.findByTestId('termsOfService').should('be.visible').and('contain.text', secondTOS);
+        cy.findByTestId('terms_of_service.terms').should('be.visible').and('contain.text', secondTOS);
 
         // # Accept the terms as sysadmin
         cy.get('#acceptTerms').should('be.visible').click();
@@ -135,7 +135,7 @@ describe('Custom Terms of Service', () => {
         cy.visit(`/${testTeam.name}/channels/town-square`);
 
         // * Ensure that the new terms of service is visible
-        cy.findByTestId('termsOfService').should('be.visible').and('contain.text', secondTOS);
+        cy.findByTestId('terms_of_service.terms').should('be.visible').and('contain.text', secondTOS);
 
         // * Ensure that the accept terms button is visible and click it
         cy.get('#acceptTerms').should('be.visible').click();

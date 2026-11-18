@@ -7,7 +7,7 @@ import type {AppField, AppFormValues} from '@mattermost/types/apps';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
-import {renderWithContext, screen, waitFor, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor, userEvent, within} from 'tests/react_testing_utils';
 
 import {AppsForm} from './apps_form_component';
 import type {Props} from './apps_form_component';
@@ -1889,7 +1889,7 @@ describe('AppsFormComponent', () => {
             );
 
             // grab the nested text field to put input
-            const formFieldInput = screen.getByTestId('innerinput');
+            const formFieldInput = within(screen.getByTestId('apps_form.field:inner--group')).getByTestId('apps_form.field.value--textbox');
 
             await userEvent.type(formFieldInput, 'test text');
 
@@ -1907,7 +1907,7 @@ describe('AppsFormComponent', () => {
                 />,
             );
 
-            expect(screen.getByTestId('topinput')).toHaveFocus();
+            expect(within(screen.getByTestId('apps_form.field:top--group')).getByTestId('apps_form.field.value--textbox')).toHaveFocus();
         });
 
         it('forwards autoFocus to the first child when the first top-level field is a collapsible', () => {
@@ -1936,7 +1936,7 @@ describe('AppsFormComponent', () => {
                 />,
             );
 
-            expect(screen.getByTestId('innerinput')).toHaveFocus();
+            expect(within(screen.getByTestId('apps_form.field:inner--group')).getByTestId('apps_form.field.value--textbox')).toHaveFocus();
         });
     });
 
@@ -2741,10 +2741,10 @@ describe('AppsFormComponent', () => {
                 const error = await screen.findByText('Enter a weight of 0 or more');
                 const cell = error.closest('td');
                 expect(cell).not.toBeNull();
-                expect(cell).toContainElement(screen.getByTestId('r2_weightinput'));
+                expect(cell).toContainElement(within(screen.getByTestId('apps_form.field:r2_weight--group')).getByTestId('apps_form.field.value--textbox'));
 
                 // The matching cell of the other row is left alone.
-                expect(screen.getByTestId('r1_weightinput').closest('td')).not.toHaveTextContent('Enter a weight of 0 or more');
+                expect(within(screen.getByTestId('apps_form.field:r1_weight--group')).getByTestId('apps_form.field.value--textbox').closest('td')).not.toHaveTextContent('Enter a weight of 0 or more');
             });
 
             test('shows a required cell as required and keeps the dialog open', async () => {
@@ -2820,7 +2820,7 @@ describe('AppsFormComponent', () => {
             const tables = screen.getAllByRole('table');
             expect(tables).toHaveLength(2);
             expect(tables[1].closest('td')).toBe(tables[0].querySelector('td:last-of-type'));
-            expect(screen.getByTestId('i1_qtyinput')).toBeInTheDocument();
+            expect(within(screen.getByTestId('apps_form.field:i1_qty--group')).getByTestId('apps_form.field.value--textbox')).toBeInTheDocument();
         });
     });
 });

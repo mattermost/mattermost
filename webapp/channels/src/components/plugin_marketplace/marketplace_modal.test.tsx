@@ -32,7 +32,7 @@ function mockFetchListingError() {
 
 async function waitForListingToLoad() {
     await waitFor(() => {
-        expect(screen.queryByTestId('loading-screen')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('marketplace_modal.loading')).not.toBeInTheDocument();
     });
 }
 
@@ -121,7 +121,7 @@ describe('components/marketplace/', () => {
             mockState,
         );
 
-        expect(screen.getByTestId('loading-screen')).toBeInTheDocument();
+        expect(screen.getByTestId('marketplace_modal.loading')).toBeInTheDocument();
 
         await waitForListingToLoad();
     });

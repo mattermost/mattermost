@@ -3,17 +3,23 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
+import {expectSignedIn, logIn} from '../support';
+
+import {logInToTeam, switchSignInTo} from './support';
+
 /**
- * @objective Verify an email/password user can switch their sign-in method to AD/LDAP.
+ * @objective Verify an email account can be switched to AD/LDAP and then log in with its LDAP credentials.
  *
  * @precondition
- * A licensed server with OpenLDAP configured and authentication transfer enabled.
+ * A licensed server with OpenLDAP.
  */
-test('switches an email account to AD/LDAP', {tag: '@authentication'}, async ({pw}) => {
+test('switches an email account to AD/LDAP', {tag: '@authentication'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
+
     const {adminClient, user, team} = await pw.initSetup();
     await pw.ensureOpenldap();
+
     const ldapUser = {
         username: `ldap${pw.random.id()}`,
         password: 'Password1',
@@ -22,36 +28,26 @@ test('switches an email account to AD/LDAP', {tag: '@authentication'}, async ({p
         lastname: user.last_name || 'Last',
     };
 
-    try {
-        await pw.createLdapUser(ldapUser);
+    await pw.createTestLdapUser(ldapUser);
 
-        // # Log in as the email user and open Switch to AD/LDAP
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.login(user);
-        await pw.channelsPage.goto(team.name);
-        await pw.channelsPage.toBeVisible();
+    // # Log in with email and open the switch to AD/LDAP
+    const app = await logInToTeam(pw, page, user.username, user.password, team);
+    await switchSignInTo(app, 'ldap');
 
-        const profileModal = await pw.channelsPage.openProfileModal();
-        await profileModal.openSecurityTab();
-        await profileModal.securityTab.clickSwitchToLdap();
-        await pw.emailToLdapPage.toBeVisible();
+    // # Switch the account to AD/LDAP
+    const claim = app.claim.emailToLdap;
+    await claim.passwordTextbox.fill(user.password);
+    await claim.ldapIdTextbox.fill(ldapUser.username);
+    await claim.ldapPasswordTextbox.fill(ldapUser.password);
+    await claim.submitButton.click();
 
-        // # Confirm the email password and the matching LDAP credentials
-        await pw.emailToLdapPage.submit(user.password, ldapUser.username, ldapUser.password);
+    // * Verify the account now signs in with AD/LDAP
+    await expect(page).toHavePath(app.loginPage.pathFor());
+    expect((await adminClient.getUser(user.id)).auth_service).toBe('ldap');
 
-        // * Verify the account now authenticates through LDAP
-        await pw.loginPage.expectOnLoginPage();
-        const switched = await adminClient.getUser(user.id);
-        expect(switched.auth_service).toBe('ldap');
+    // # Log in with the LDAP credentials
+    await logIn(app, ldapUser.username, ldapUser.password);
 
-        // # Log in with the LDAP username and password
-        await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
-
-        // * Verify LDAP login succeeds
-        await pw.loginPage.expectNotOnLoginPage();
-    } finally {
-        await pw.deleteLdapUser(ldapUser.username).catch(() => undefined);
-    }
+    // * Verify the login succeeds
+    await expectSignedIn(page);
 });

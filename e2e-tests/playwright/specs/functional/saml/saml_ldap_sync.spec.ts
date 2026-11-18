@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {duration, expect, test} from '@mattermost/playwright-lib';
+import {duration, expect, expectSignedIn, logInWithKeycloak, test} from '@mattermost/playwright-lib';
 
 import {runLdapSyncAndWait} from './ldap_sync_wait';
 
@@ -15,7 +15,7 @@ import {runLdapSyncAndWait} from './ldap_sync_wait';
 test(
     'MM-T3013_2 SAML login syncs profile attributes from the LDAP directory when enabled',
     {tag: '@saml'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
@@ -44,12 +44,8 @@ test(
         });
 
         // # Log in through SAML to provision the account
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.samlLoginButton.click();
-        await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
-        await pw.loginPage.expectNotOnLoginPage();
+        await logInWithKeycloak(pw, page, 'saml', {username: sharedUsername, password: 'Password1'});
+        await expectSignedIn(page);
 
         // # Change the name in LDAP only and run a sync
         await pw.updateLdapUser(sharedUsername, {firstname: 'UpdatedFirstname', lastname: 'UpdatedLastname'});
@@ -72,7 +68,7 @@ test(
  * @precondition
  * Keycloak and OpenLDAP running, with matching users in both directories.
  */
-test('MM-T3013_1 SAML login keeps SAML attributes when LDAP sync is disabled', {tag: '@saml'}, async ({pw}) => {
+test('MM-T3013_1 SAML login keeps SAML attributes when LDAP sync is disabled', {tag: '@saml'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
@@ -101,12 +97,8 @@ test('MM-T3013_1 SAML login keeps SAML attributes when LDAP sync is disabled', {
     });
 
     // # Log in through SAML to provision the account
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.samlLoginButton.click();
-    await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
-    await pw.loginPage.expectNotOnLoginPage();
+    await logInWithKeycloak(pw, page, 'saml', {username: sharedUsername, password: 'Password1'});
+    await expectSignedIn(page);
 
     // # Change the name in LDAP only and run a sync
     await pw.updateLdapUser(sharedUsername, {firstname: 'LdapFirstname', lastname: 'LdapLastname'});
@@ -128,7 +120,7 @@ test('MM-T3013_1 SAML login keeps SAML attributes when LDAP sync is disabled', {
  * @precondition
  * Keycloak and OpenLDAP running, with matching users in both directories.
  */
-test('MM-T3666 SAML LDAP sync uses a custom ID Attribute mapping', {tag: '@saml'}, async ({pw}) => {
+test('MM-T3666 SAML LDAP sync uses a custom ID Attribute mapping', {tag: '@saml'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
 
@@ -161,12 +153,8 @@ test('MM-T3666 SAML LDAP sync uses a custom ID Attribute mapping', {tag: '@saml'
     });
 
     // # Log in through SAML to provision the account
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.samlLoginButton.click();
-    await pw.keycloakLoginPage.login(sharedUsername, 'Password1');
-    await pw.loginPage.expectNotOnLoginPage();
+    await logInWithKeycloak(pw, page, 'saml', {username: sharedUsername, password: 'Password1'});
+    await expectSignedIn(page);
 
     // # Change the name in LDAP only and run a sync
     await pw.updateLdapUser(sharedUsername, {firstname: 'IdUpdatedFirst', lastname: 'IdUpdatedLast'});

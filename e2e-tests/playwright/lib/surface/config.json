@@ -49,6 +49,19 @@
                     "reason": "A classification level is identified by its own id."
                 },
                 {
+                    "entity": "AppSelectOption",
+                    "field": "value",
+                    "value": "button",
+                    "reason": "An app names each of a form's submit buttons by the value it submits."
+                },
+                {
+                    "entity": "AppField",
+                    "field": "name",
+                    "value": "setting",
+                    "freeForm": true,
+                    "reason": "An apps form field is identified by its name, unique within the form; its row is keyed like the other setting rows."
+                },
+                {
                     "entity": "ChannelSettingsTabComponent",
                     "module": "types/store/plugins",
                     "field": "id",
@@ -60,6 +73,18 @@
                     "field": "key",
                     "module": "components/admin_console/access_control/editors/table_editor/operator_selector_menu",
                     "reason": "An operator menu section is identified by its key: the operator groups the menu lists, which a spec addresses by name."
+                },
+                {
+                    "entity": "PluginManifest",
+                    "field": "id",
+                    "freeForm": true,
+                    "reason": "A plugin is identified by its manifest id, as it is in the marketplace listing."
+                },
+                {
+                    "entity": "AppManifest",
+                    "field": "app_id",
+                    "freeForm": true,
+                    "reason": "An app is identified by its manifest app id, as it is in the marketplace listing."
                 },
                 {
                     "entity": "PluginComponent",
@@ -396,6 +421,7 @@
             "template": "lhs.team_menu.plugin:{key}--menuitem",
             "registry": ["registerMainMenuAction"]
         },
+        "marketplace_plugin_item": {"template": "marketplace_modal.plugin:{key}--region"},
         "post_menu_item": {
             "template": "*.actions_menu.plugin:{key}--menuitem",
             "registry": ["registerPostDropdownMenuAction"]

@@ -1,7 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import {
+    expectLoginHeading,
+    expectSignedIn,
+    logIn,
+    App,
+    expect,
+    test,
+    systemConsolePath,
+} from '@mattermost/playwright-lib';
+
+/** Opens a user's System Console profile and checks its authentication method. */
+async function expectAuthMethod(app: App, userId: string, method: string) {
+    await app.page.goto(systemConsolePath(`user_management/user/${userId}`));
+    await expect(app.admin.user.authMethodText).toHaveText(method);
+}
 
 /**
  * @objective Verify an LDAP-provisioned user's System Console profile shows Authentication Method LDAP.
@@ -12,7 +26,7 @@ import {test} from '@mattermost/playwright-lib';
 test(
     'MM-T953_3 shows LDAP as the authentication method for a directory user',
     {tag: '@authentication'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
@@ -23,19 +37,20 @@ test(
 
         // # Provision the directory user through the login form
         await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.submitCredentials(ldapUser.username, ldapUser.password);
-        await pw.loginPage.expectNotOnLoginPage();
+        const login = new App(page);
+        await login.loginPage.goto();
+
+        await expectLoginHeading(login);
+        await expect(login.login.loginId.container).toBeVisible();
+        await expect(login.login.password.container).toBeVisible();
+        await logIn(login, ldapUser.username, ldapUser.password);
+        await expectSignedIn(page);
 
         const provisionedUser = await adminClient.getUserByUsername(ldapUser.username);
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
-        // # Open the LDAP user's System Console profile
-        await systemConsolePage.gotoUser(provisionedUser.id);
-
-        // * Verify the authentication method is LDAP
-        await systemConsolePage.users.userDetail.userCard.expectAuthenticationMethod('LDAP');
+        // * The user's System Console profile shows the authentication method
+        await expectAuthMethod(app, provisionedUser.id, 'LDAP');
     },
 );
 
@@ -50,13 +65,12 @@ test('MM-T953_4 shows SAML as the authentication method for a SAML user', {tag: 
     await pw.skipIfNoLicense();
 
     const {adminUser, adminClient, user} = await pw.initSetup();
+
+    // # Switch the user to SAML authentication and log in as the admin
     await adminClient.updateUserAuth(user.id, {auth_service: 'saml', auth_data: user.email});
 
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
 
-    // # Open the SAML user's System Console profile
-    await systemConsolePage.gotoUser(user.id);
-
-    // * Verify the authentication method is SAML
-    await systemConsolePage.users.userDetail.userCard.expectAuthenticationMethod('SAML');
+    // * The user's System Console profile shows the authentication method
+    await expectAuthMethod(app, user.id, 'SAML');
 });

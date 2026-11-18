@@ -829,6 +829,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 <form
                     onSubmit={this.handleSubmit}
                     autoComplete={'off'}
+                    data-testid='apps_form'
                 >
                     <Modal.Header
                         closeButton={true}
@@ -837,6 +838,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                         <Modal.Title
                             componentClass='h1'
                             id={this.elementId('appsModalLabel')}
+                            data-testid='apps_form.title--text'
                         >
                             {this.renderHeader()}
                         </Modal.Title>
@@ -849,7 +851,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
                                         bodyClassNames
                                     }
                                 >
-                                    <LoadingSpinner size='24'/>
+                                    <LoadingSpinner
+                                        size='24'
+                                        testId='apps_form.loading_spinner'
+                                    />
                                 </div>
                             </Fade>
                             {this.renderBody()}
@@ -1021,6 +1026,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
             <SpinnerButton
                 id={this.elementId('appsModalSubmit')}
                 key='submit'
+                data-testid='apps_form.submit--button'
                 type='submit'
                 autoFocus={flattenFields(fields).length === 0}
                 spinning={Boolean(this.state.submitting)}
@@ -1041,6 +1047,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     <SpinnerButton
                         id={this.elementId('appsModalSubmit' + o.value)}
                         key={o.value}
+                        data-testid={`apps_form.submit:${o.value}--button`}
                         type='submit'
                         spinning={this.state.submitting === o.value}
                         disabled={this.state.uploadingFields.size > 0}
@@ -1060,7 +1067,10 @@ export class AppsForm extends React.PureComponent<Props, State> {
             <div className='apps-form-footer'>
                 {this.state.formError && (
                     <div className='apps-form-footer__error'>
-                        <div className='error-text'>
+                        <div
+                            className='error-text'
+                            data-testid='apps_form.error--text'
+                        >
                             <Markdown message={this.state.formError}/>
                         </div>
                     </div>
@@ -1068,6 +1078,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                 <div className='apps-form-footer__buttons'>
                     <Button
                         id={this.elementId('appsModalCancel')}
+                        data-testid='apps_form.cancel--button'
                         type='button'
                         emphasis='tertiary'
                         onClick={this.onHide}

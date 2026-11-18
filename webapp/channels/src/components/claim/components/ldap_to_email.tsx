@@ -123,7 +123,7 @@ const LDAPToEmail = (props: Props) => {
     }
     return (
         <>
-            <h3>
+            <h3 data-testid='claim.ldap_to_email.title--text'>
                 <FormattedMessage
                     id='claim.ldap_to_email.title'
                     defaultMessage='Switch AD/LDAP Account to Email/Password'
@@ -151,12 +151,16 @@ const LDAPToEmail = (props: Props) => {
                         type='password'
                         className='form-control'
                         name='ldapPassword'
+                        data-testid='claim.ldap_to_email.ldap_password--textbox'
                         ref={ldapPasswordInput}
                         placeholder={formatMessage({id: 'claim.ldap_to_email.ldapPwd', defaultMessage: 'AD/LDAP Password'})}
                         spellCheck='false'
                     />
                 </div>
-                <ErrorLabel errorText={ldapPasswordError}/>
+                <ErrorLabel
+                    testId='claim.ldap_to_email.ldap_password_error'
+                    errorText={ldapPasswordError}
+                />
                 <p>
                     <FormattedMessage
                         id='claim.ldap_to_email.enterPwd'
@@ -169,24 +173,33 @@ const LDAPToEmail = (props: Props) => {
                         type='password'
                         className='form-control'
                         name='password'
+                        data-testid='claim.ldap_to_email.password--textbox'
                         placeholder={formatMessage({id: 'claim.ldap_to_email.pwd', defaultMessage: 'Password'})}
                         spellCheck='false'
                     />
                 </div>
-                <ErrorLabel errorText={passwordError}/>
+                <ErrorLabel
+                    testId='claim.ldap_to_email.password_error'
+                    errorText={passwordError}
+                />
                 <div className={classNames('form-group', {'has-error': confirmError})}>
                     <input
                         ref={passwordConfirmInput}
                         type='password'
                         className='form-control'
                         name='passwordconfirm'
+                        data-testid='claim.ldap_to_email.confirm--textbox'
                         placeholder={formatMessage({id: 'claim.ldap_to_email.confirm', defaultMessage: 'Confirm Password'})}
                         spellCheck='false'
                     />
                 </div>
-                <ErrorLabel errorText={confirmError}/>
+                <ErrorLabel
+                    testId='claim.ldap_to_email.confirm_error'
+                    errorText={confirmError}
+                />
                 <Button
                     type='submit'
+                    data-testid='claim.ldap_to_email.submit--button'
                     emphasis='primary'
                 >
                     <FormattedMessage
@@ -194,7 +207,10 @@ const LDAPToEmail = (props: Props) => {
                         defaultMessage='Switch account to email/password'
                     />
                 </Button>
-                <ErrorLabel errorText={serverError}/>
+                <ErrorLabel
+                    testId='claim.ldap_to_email.server_error'
+                    errorText={serverError}
+                />
             </form>
         </>
     );

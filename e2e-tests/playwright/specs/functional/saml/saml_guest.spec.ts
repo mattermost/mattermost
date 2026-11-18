@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, expectSignedIn, logInWithKeycloak, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a directory user that does not match SamlSettings.GuestAttribute is
@@ -14,7 +14,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 test(
     'MM-T1426_1 SAML login provisions a member when the guest attribute does not match',
     {tag: '@saml'},
-    async ({pw}) => {
+    async ({pw, page}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
         await pw.ensureKeycloak();
@@ -29,14 +29,10 @@ test(
         await pw.createKeycloakUser(keycloakUser);
 
         // # Log in via SAML with a user that does not match the guest attribute
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.samlLoginButton.click();
-        await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+        await logInWithKeycloak(pw, page, 'saml', keycloakUser);
 
         // * Verify the user was provisioned as a regular member
-        await pw.loginPage.expectNotOnLoginPage();
+        await expectSignedIn(page);
         const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
         expect(provisionedUser.roles.split(' ')).not.toContain('system_guest');
     },
@@ -50,7 +46,7 @@ test(
  * A Keycloak realm reachable at SamlSettings.IdpURL, with a SAML client matching
  * ServiceProviderIdentifier.
  */
-test('MM-T1426_2 SAML guest attribute provisions the user as a guest', {tag: '@saml'}, async ({pw}) => {
+test('MM-T1426_2 SAML guest attribute provisions the user as a guest', {tag: '@saml'}, async ({pw, page}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
     await pw.ensureKeycloak();
@@ -64,14 +60,10 @@ test('MM-T1426_2 SAML guest attribute provisions the user as a guest', {tag: '@s
     });
 
     // # Log in via SAML with a user that matches the guest attribute
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.samlLoginButton.click();
-    await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+    await logInWithKeycloak(pw, page, 'saml', keycloakUser);
 
     // * Verify the user was provisioned as a guest
-    await pw.loginPage.expectNotOnLoginPage();
+    await expectSignedIn(page);
     const provisionedUser = await adminClient.getUserByUsername(keycloakUser.username);
     expect(provisionedUser.roles.split(' ')).toContain('system_guest');
 });
