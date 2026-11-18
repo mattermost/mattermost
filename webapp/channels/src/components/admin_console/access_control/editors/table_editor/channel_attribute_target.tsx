@@ -54,7 +54,7 @@ export function channelAttributeMenuItems(
             <Menu.Item
                 id={`channel-attr-${field.id}`}
                 key={`channel-attr-${field.id}`}
-                data-testid={testId ? `${testId}.value_menu.channel_attribute:${field.id}--menuitemradio` : undefined}
+                data-testid={testId ? `policy_rule_value_menu.channel_attribute:${field.id}--menuitemradio` : undefined}
                 role='menuitemradio'
                 forceCloseOnSelect={true}
                 aria-checked={isSelected}

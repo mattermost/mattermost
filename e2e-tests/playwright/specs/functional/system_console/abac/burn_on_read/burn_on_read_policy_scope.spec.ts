@@ -16,8 +16,12 @@
  * UI path that produces a 403 anyway.
  */
 
-import {expect, test, getRandomId, licenseTier} from '@mattermost/playwright-lib';
+import type {Client4} from '@mattermost/client';
+import type {Team} from '@mattermost/types/teams';
 
+import {type App, expect, getRandomId, licenseTier, openChannel, test} from '@mattermost/playwright-lib';
+
+import {sendBorMessage} from '../../../channels/burn_on_read/support';
 import {createPrivateChannelForABAC, createUserForABAC} from '../support';
 
 import {
@@ -33,7 +37,24 @@ import {
 
 let systemPolicyId = '';
 let channelPolicyId = '';
-let savedAdminClient: any;
+let savedAdminClient: Client4 | undefined;
+
+/** Opens a channel, DM (`@username`) or GM in the same session, waiting for the composer. */
+async function gotoChannel(app: App, team: Team, channel: string, path: 'channels' | 'messages' = 'channels') {
+    await app.channelsPage.goto({team, path, channel});
+}
+
+/**
+ * The burn-on-read control is hidden by not being rendered at all, so this asserts absence from the DOM rather
+ * than invisibility: a control rendered disabled should not pass.
+ */
+async function expectBurnOnReadWithheld(app: App) {
+    await expect(app.center.postCreate.burnOnReadButton).not.toBeAttached();
+}
+
+async function expectBurnOnReadOffered(app: App) {
+    await expect(app.center.postCreate.burnOnReadButton).toBeVisible();
+}
 
 test.beforeEach(async ({pw}) => {
     await pw.ensureLicense();
@@ -78,7 +99,7 @@ test(
     async ({pw}) => {
         test.setTimeout(pw.duration.four_min);
 
-        const {adminClient, team} = await pw.initSetup();
+        const {adminClient, team, townSquare} = await pw.initSetup();
         savedAdminClient = adminClient;
         await ensureBurnOnReadEnabled(adminClient);
         await ensureABACEnabled(adminClient);
@@ -101,30 +122,24 @@ test(
         await ensureABACEnabled(adminClient);
 
         // # View town-square as the user the policy matches
-        const {channelsPage: allowedPage} = await pw.testBrowser.login(allowedUser);
-        await allowedPage.goto(team.name, 'town-square');
-        await allowedPage.toBeVisible();
+        const allowed = await openChannel(pw, allowedUser, {team, channel: townSquare});
 
         // * Verify the control is offered
-        await allowedPage.centerView.postCreate.toHaveBurnOnReadVisible();
+        await expectBurnOnReadOffered(allowed);
 
         // # Send a burn-on-read message
         const message = `bor allowed ${getRandomId()}`;
-        await allowedPage.centerView.postCreate.toggleBurnOnRead();
-        await allowedPage.postMessage(message);
+        const {post} = await sendBorMessage(allowed, message);
 
         // * Verify it posted as burn-on-read rather than being silently downgraded
-        const posted = await allowedPage.getLastPost();
-        await expect(posted.body).toContainText(message);
-        await expect(posted.burnOnReadBadge.container).toBeVisible();
+        await expect(post.body).toContainText(message);
+        await expect(post.burnOnReadButton).toBeVisible();
 
         // # View the same channel as the user the policy does not match
-        const {channelsPage: deniedPage} = await pw.testBrowser.login(deniedUser);
-        await deniedPage.goto(team.name, 'town-square');
-        await deniedPage.toBeVisible();
+        const denied = await openChannel(pw, deniedUser, {team, channel: townSquare});
 
         // * Verify the control is withheld, so no burn-on-read post can be composed
-        await deniedPage.centerView.postCreate.toHaveBurnOnReadHidden();
+        await expectBurnOnReadWithheld(denied);
     },
 );
 
@@ -144,7 +159,7 @@ test(
 test('governs burn-on-read in DMs and GMs under a system-scoped policy', {tag: '@abac_burn_on_read'}, async ({pw}) => {
     test.setTimeout(pw.duration.four_min);
 
-    const {adminClient, team} = await pw.initSetup();
+    const {adminClient, team, townSquare} = await pw.initSetup();
     savedAdminClient = adminClient;
     await ensureBurnOnReadEnabled(adminClient);
     await ensureABACEnabled(adminClient);
@@ -167,16 +182,14 @@ test('governs burn-on-read in DMs and GMs under a system-scoped policy', {tag: '
     });
     await ensureABACEnabled(adminClient);
 
-    const {channelsPage} = await pw.testBrowser.login(sender);
+    const app = await openChannel(pw, sender, {team, channel: townSquare});
 
     // * Verify the control is offered in the DM and in the GM while granted
-    await channelsPage.goto(team.name, `@${other1.username}`);
-    await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.toHaveBurnOnReadVisible();
+    await gotoChannel(app, team, `@${other1.username}`, 'messages');
+    await expectBurnOnReadOffered(app);
 
-    await channelsPage.goto(team.name, gm.name);
-    await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.toHaveBurnOnReadVisible();
+    await gotoChannel(app, team, gm.name, 'messages');
+    await expectBurnOnReadOffered(app);
 
     // # Tighten the SAME policy to deny everyone. Replacing it in place rather than
     // adding a second policy keeps the AND-ing of same-role rules out of the picture.
@@ -188,13 +201,11 @@ test('governs burn-on-read in DMs and GMs under a system-scoped policy', {tag: '
     await ensureABACEnabled(adminClient);
 
     // * Verify the control is withdrawn in both
-    await channelsPage.goto(team.name, `@${other1.username}`);
-    await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.toHaveBurnOnReadHidden();
+    await gotoChannel(app, team, `@${other1.username}`, 'messages');
+    await expectBurnOnReadWithheld(app);
 
-    await channelsPage.goto(team.name, gm.name);
-    await channelsPage.toBeVisible();
-    await channelsPage.centerView.postCreate.toHaveBurnOnReadHidden();
+    await gotoChannel(app, team, gm.name, 'messages');
+    await expectBurnOnReadWithheld(app);
 });
 
 /**
@@ -245,16 +256,13 @@ test(
         });
         await ensureABACEnabled(adminClient);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
+        const app = await openChannel(pw, user, {team, channel: governed.name});
 
         // * Verify the control is withheld in the channel the policy is pinned to
-        await channelsPage.goto(team.name, governed.name);
-        await channelsPage.toBeVisible();
-        await channelsPage.centerView.postCreate.toHaveBurnOnReadHidden();
+        await expectBurnOnReadWithheld(app);
 
         // * Verify the policy did not reach the channel it was not pinned to
-        await channelsPage.goto(team.name, ungoverned.name);
-        await channelsPage.toBeVisible();
-        await channelsPage.centerView.postCreate.toHaveBurnOnReadVisible();
+        await gotoChannel(app, team, ungoverned.name);
+        await expectBurnOnReadOffered(app);
     },
 );

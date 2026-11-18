@@ -4,6 +4,10 @@
 import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
+import {expect, type App} from '@mattermost/playwright-lib';
+
+import {createMembershipPolicy, openPolicy, policyIdByName, setAbacEnabled} from '../surface';
+
 import {deleteFieldFromDB} from './masking_db_setup';
 
 export async function enableMaskingFlag(client: Client4): Promise<void> {
@@ -100,88 +104,30 @@ export async function setUserAttribute(client: Client4, userId: string, fieldId:
 }
 
 /**
- * Create a membership policy using the Advanced (CEL) editor in the UI.
- * Does NOT add channels so there is no "Apply policy" gate to click through.
- * Returns the policy ID extracted from the URL after saving.
+ * Turns attribute-based access on and creates a membership policy in the CEL editor, with no channels so there is
+ * no "Apply policy" step. Returns its id.
  */
-export async function createPolicyWithCEL(page: Page, name: string, celExpression: string): Promise<string> {
-    await page.goto('/admin_console/system_attributes/membership_policies');
-    await page.waitForLoadState('networkidle');
-
-    const addPolicyBtn = page.getByRole('button', {name: 'Add policy'});
-    await addPolicyBtn.waitFor({state: 'visible', timeout: 15000});
-    await addPolicyBtn.click();
-    await page.waitForLoadState('networkidle');
-
-    const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
-    await nameInput.waitFor({state: 'visible', timeout: 10000});
-    await nameInput.fill(name);
-
-    const advancedBtn = page.getByRole('button', {name: /advanced/i});
-    await advancedBtn.waitFor({state: 'visible', timeout: 5000});
-    await advancedBtn.click();
-    await page.waitForTimeout(1000);
-
-    const editorLines = page.locator('.monaco-editor .view-lines').first();
-    await editorLines.waitFor({state: 'visible', timeout: 5000});
-    await editorLines.click({force: true});
-    await page.waitForTimeout(300);
-    const isMac = process.platform === 'darwin';
-    await page.keyboard.press(isMac ? 'Meta+a' : 'Control+a');
-    await page.keyboard.type(celExpression, {delay: 10});
-    await page.waitForTimeout(1000);
-
-    const saveBtn = page.getByRole('button', {name: 'Save'});
-    await saveBtn.waitFor({state: 'visible', timeout: 5000});
-    const savePromise = page.waitForResponse(
-        (resp) =>
-            /\/api\/v4\/access_control_policies(\/[A-Za-z0-9]+)?$/.test(resp.url()) &&
-            resp.request().method() === 'PUT' &&
-            resp.ok(),
-        {timeout: 15000},
-    );
-    await saveBtn.click();
-    const saveResp = await savePromise;
-    const saved = await saveResp.json();
-    await page.waitForLoadState('networkidle');
-
-    const id = (saved?.id ?? saved?.ID ?? '') as string;
-    if (!/^[A-Za-z0-9]{26}$/.test(id)) {
-        throw new Error(
-            `createPolicyWithCEL: save response did not include a valid policy id (got ${JSON.stringify(id)})`,
-        );
-    }
-    return id;
+export async function createPolicyWithCEL(app: App, client: Client4, name: string, cel: string): Promise<string> {
+    await setAbacEnabled(app, true);
+    await createMembershipPolicy(app, {name, cel});
+    return policyIdByName(client, name);
 }
 
 /**
- * Navigate to the membership-policies list and open the editor for the named policy.
+ * Opens a policy's editor and waits for its first rule row, which the editor fills in once it has loaded (and masked)
+ * the policy. Returns the editor and that row.
  */
-export async function openExistingPolicy(page: Page, policyName: string): Promise<void> {
-    await page.goto('/admin_console/system_attributes/membership_policies');
-    await page.waitForLoadState('networkidle');
-
-    const searchInput = page.locator('input[placeholder*="Search" i]').first();
-    await searchInput.waitFor({state: 'visible', timeout: 10000});
-
-    const searchResponse = page.waitForResponse(
-        (resp) =>
-            /\/api\/v4\/access_control_policies\/search$/.test(resp.url()) &&
-            resp.request().method() === 'POST' &&
-            resp.ok(),
-        {timeout: 15000},
-    );
-    await searchInput.fill(policyName);
-    await searchResponse.catch(() => {
-        // debounced search may settle from cache
-    });
-    await page.waitForLoadState('networkidle');
-
-    const policyRow = page.locator('tr.clickable, .DataGrid_row').filter({hasText: policyName}).first();
-    await policyRow.waitFor({state: 'visible', timeout: 20000});
-    await policyRow.click();
-    await page.waitForLoadState('networkidle');
-    await page.waitForTimeout(500);
+export async function openMaskedPolicy(
+    app: App,
+    policyId: string,
+): Promise<{
+    policy: App['admin']['accessControl']['policy'];
+    row: ReturnType<App['admin']['accessControl']['policy']['rules']['row']>;
+}> {
+    const policy = await openPolicy(app, policyId);
+    const row = policy.rules.row(0);
+    await expect(row.attributeButton).toBeVisible();
+    return {policy, row};
 }
 
 export async function getRawPolicyExpression(page: Page, policyId: string): Promise<string> {
@@ -245,21 +191,4 @@ export async function searchPoliciesExpression(page: Page, term: string): Promis
     }, term);
     const policies = data?.policies ?? (Array.isArray(data) ? data : []);
     return (policies[0]?.rules?.[0]?.expression ?? '') as string;
-}
-
-/**
- * Extract the policy ID from the current URL after the editor has opened.
- * The route is `/admin_console/system_attributes/membership_policies/edit_policy/{id}`
- */
-export async function getPolicyIdFromURL(page: Page): Promise<string> {
-    const url = page.url();
-    const editMatch = url.match(/edit_policy\/([A-Za-z0-9]{26})(?:[/?#]|$)/);
-    if (editMatch) {
-        return editMatch[1];
-    }
-    const fallback = url.match(/membership_policies\/([A-Za-z0-9]{26})/);
-    if (fallback) {
-        return fallback[1];
-    }
-    throw new Error(`getPolicyIdFromURL: could not extract policy id from URL ${JSON.stringify(url)}`);
 }

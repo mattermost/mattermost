@@ -23,7 +23,8 @@ type Props<T extends string> = {
     // Button id is `${idPrefix}-menu-button`, menu id `${idPrefix}-menu` and
     // each option's id `${idPrefix}-${option.id}`.
     idPrefix: string;
-    dataTestId: string;
+
+    testId: string;
 
     // What the trigger shows. Kept separate from `options` because a value can
     // outlive its menu entry -- an attribute whose type is hidden from, or no
@@ -52,7 +53,7 @@ type Props<T extends string> = {
 // a `locked` state.
 function AttributeSelect<T extends string>({
     idPrefix,
-    dataTestId,
+    testId,
     selected,
     options = [],
     ariaLabel,
@@ -65,8 +66,14 @@ function AttributeSelect<T extends string>({
     const buttonId = `${idPrefix}-menu-button`;
 
     const value = (
-        <span className='AttributeSelect__value'>
-            <SelectedIcon size={18}/>
+        <span
+            className='AttributeSelect__value'
+            data-testid={`${testId}.value`}
+        >
+            <SelectedIcon
+                size={18}
+                data-testid={`${testId}.icon`}
+            />
             <FormattedMessage {...selected.label}/>
         </span>
     );
@@ -79,7 +86,7 @@ function AttributeSelect<T extends string>({
                 className='AttributeSelect'
                 disabled={true}
                 aria-label={ariaLabel}
-                data-testid={dataTestId}
+                data-testid={`${testId}--button`}
             >
                 {value}
             </button>
@@ -96,10 +103,13 @@ function AttributeSelect<T extends string>({
                 children: (
                     <>
                         {value}
-                        <i className='icon icon-chevron-down'/>
+                        <i
+                            className='icon icon-chevron-down'
+                            data-testid={`${testId}.chevron`}
+                        />
                     </>
                 ),
-                dataTestId,
+                dataTestId: `${testId}--button`,
             }}
             menu={{
                 id: `${idPrefix}-menu`,
@@ -112,6 +122,7 @@ function AttributeSelect<T extends string>({
                 return (
                     <Menu.Item
                         id={`${idPrefix}-${option.id}`}
+                        data-testid={`${testId}.option:${option.id}--menuitemradio`}
                         key={option.id}
                         role='menuitemradio'
                         forceCloseOnSelect={true}

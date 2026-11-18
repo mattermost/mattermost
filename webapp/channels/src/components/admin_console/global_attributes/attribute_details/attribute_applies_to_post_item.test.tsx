@@ -27,29 +27,29 @@ describe('AttributeAppliesToPostItem', () => {
 
     it('renders the Posts label', () => {
         renderComponent();
-        expect(screen.getByTestId('attributeAppliesToRow-post')).toHaveTextContent('Posts');
+        expect(screen.getByTestId('admin.attribute.applies_to.post')).toHaveTextContent('Posts');
     });
 
     it('starts collapsed, with no Remove button, and clicking the toggle reveals the placeholder body and Remove', async () => {
         renderComponent();
 
-        expect(screen.queryByTestId('attributeAppliesToRow-post-body')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attributeAppliesToRow-post-remove')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.applies_to.post.body--region')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.applies_to.post.remove--button')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
-        expect(screen.getByTestId('attributeAppliesToRow-post-body')).toHaveTextContent('No additional settings for this resource yet.');
-        expect(screen.getByTestId('attributeAppliesToRow-post-remove')).toBeVisible();
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.post.toggle--button'));
+        expect(screen.getByTestId('admin.attribute.applies_to.post.body--region')).toHaveTextContent('No additional settings for this resource yet.');
+        expect(screen.getByTestId('admin.attribute.applies_to.post.remove--button')).toBeVisible();
 
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
-        expect(screen.queryByTestId('attributeAppliesToRow-post-body')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attributeAppliesToRow-post-remove')).not.toBeInTheDocument();
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.post.toggle--button'));
+        expect(screen.queryByTestId('admin.attribute.applies_to.post.body--region')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.applies_to.post.remove--button')).not.toBeInTheDocument();
     });
 
     it('calls onRemove exactly once when Remove is clicked, once expanded', async () => {
         renderComponent();
 
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-remove'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.post.toggle--button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.post.remove--button'));
         expect(onRemove).toHaveBeenCalledTimes(1);
     });
 
@@ -58,12 +58,12 @@ describe('AttributeAppliesToPostItem', () => {
 
         // Expand while enabled, then disable -- isOpen is local state, so it survives
         // the prop change, letting Remove's own disabled state be asserted directly.
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.post.toggle--button'));
         const disabledProps = {onRemove, disabled: true};
         rerender(<AttributeAppliesToPostItem {...disabledProps}/>);
 
-        expect(screen.getByTestId('attributeAppliesToRow-post-toggle')).toBeDisabled();
-        expect(screen.getByTestId('attributeAppliesToRow-post-remove')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.applies_to.post.toggle--button')).toBeDisabled();
+        expect(screen.getByTestId('admin.attribute.applies_to.post.remove--button')).toBeDisabled();
     });
 
     it('makes no Client4 calls and no data-mutating dispatch', async () => {
@@ -71,8 +71,8 @@ describe('AttributeAppliesToPostItem', () => {
         const deletePropertyField = jest.spyOn(Client4, 'deletePropertyField');
 
         renderComponent();
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-toggle'));
-        await userEvent.click(screen.getByTestId('attributeAppliesToRow-post-remove'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.post.toggle--button'));
+        await userEvent.click(screen.getByTestId('admin.attribute.applies_to.post.remove--button'));
 
         expect(createPropertyField).not.toHaveBeenCalled();
         expect(deletePropertyField).not.toHaveBeenCalled();

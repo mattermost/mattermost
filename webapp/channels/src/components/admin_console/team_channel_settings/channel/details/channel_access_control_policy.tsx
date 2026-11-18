@@ -113,6 +113,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
         return (
             <AdminPanelWithButton
                 id='channel_access_control_policy'
+                buttonTestId='admin.channel.access_policy.link'
                 title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Membership policy'})}
                 subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_description', defaultMessage: 'Select a membership policy for this channel.'})}
                 buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.link_policy', defaultMessage: 'Link to a policy'})}
@@ -135,6 +136,7 @@ export const ChannelAccessControl: React.FC<Props> = (props: Props): JSX.Element
     return (
         <AdminPanelWithButton
             id='channel_access_control_with_policy'
+            buttonTestId='admin.channel.access_policy.remove_all'
             title={defineMessage({id: 'admin.channel_settings.channel_detail.access_control_policy_title', defaultMessage: 'Membership policy'})}
             subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.policy_following', defaultMessage: 'This channel is currently using the following membership policy.'})}
             buttonText={defineMessage({id: 'admin.channel_settings.channel_detail.remove_policy', defaultMessage: 'Remove all'})}

@@ -6,9 +6,21 @@
 // - [*] indicates an assertion (e.g. * Check the title)
 // ***************************************************************
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, test, Msg} from '@mattermost/playwright-lib';
 
-import {setupBoardAttributesTest, cleanupCustomBoardFields} from './setup';
+import {
+    addAttribute,
+    addOption,
+    changeType,
+    cleanupCustomBoardFields,
+    fieldByName,
+    openBoardAttributes,
+    optionByName,
+    optionsOf,
+    renameOption,
+    save,
+    setupBoardAttributesTest,
+} from './setup';
 
 test.describe('Board Attributes - select option values', {tag: '@board_attributes'}, () => {
     test.afterEach(async () => {
@@ -16,135 +28,122 @@ test.describe('Board Attributes - select option values', {tag: '@board_attribute
     });
 
     test('adds options and renames one — persists across reload', async ({pw}) => {
-        const {adminClient, systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
-
-        await ba.goto();
-        await ba.toBeVisible();
-
-        const attrName = `Opts_${Date.now()}`;
+        const {adminClient, app} = await setupBoardAttributesTest(pw);
+        let ba = await openBoardAttributes(app);
 
         // # Add a select attribute with three options
-        const row = await ba.addAttribute(attrName);
-        await ba.changeTypeInRow(row, 'Select');
-        await ba.addOptionInRow(row, 'Low');
-        await ba.addOptionInRow(row, 'Medium');
-        await ba.addOptionInRow(row, 'High');
-        await ba.saveAndWaitForSettled();
+        const attrName = `Opts_${Date.now()}`;
+        const row = await addAttribute(ba, attrName);
+        await changeType(row, 'select');
+        await addOption(row, 'Low');
+        await addOption(row, 'Medium');
+        await addOption(row, 'High');
+        await save(ba, Api.CreatePropertyField);
 
         // # Rename "Medium" → "Mid" and save
-        await ba.renameOption('Medium', 'Mid');
-        await expect(ba.optionChip('Mid')).toBeVisible();
-        await expect(ba.optionChip('Medium')).toHaveCount(0);
-        await ba.saveAndWaitForSettled();
+        let field = await fieldByName(adminClient, attrName);
+        const savedRow = ba.row(field.id);
+        const medium = optionByName(field, 'Medium');
+        await renameOption(savedRow, medium.id, 'Mid');
+        await expect(savedRow.optionList.locator).toHaveText(['Low', 'Mid', 'High']);
+        await save(ba, Api.UpdatePropertyField);
 
         // * Server reflects the create and rename
-        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
-        const created = (fields ?? []).find((f) => f.name === attrName);
-        expect(created).toBeDefined();
-        const optionNames = ((created!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
+        field = await fieldByName(adminClient, attrName);
+        const optionNames = optionsOf(field).map((o) => o.name);
         expect(optionNames).toEqual(expect.arrayContaining(['Low', 'Mid', 'High']));
         expect(optionNames).not.toContain('Medium');
 
         // # Reload
-        await ba.goto();
-        await ba.toBeVisible();
+        ba = await openBoardAttributes(app);
 
         // * Persisted state renders correctly
-        await expect(ba.optionChip('Low')).toBeVisible();
-        await expect(ba.optionChip('Mid')).toBeVisible();
-        await expect(ba.optionChip('High')).toBeVisible();
+        for (const option of optionsOf(field)) {
+            await expect(ba.row(field.id).option(option)).toBeVisible();
+            await expect(ba.row(field.id).option(option)).toHaveText(option.name);
+        }
     });
 
     test('deletes an option via the inline X button and persists across reload', async ({pw}) => {
-        const {adminClient, systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
-
-        await ba.goto();
-        await ba.toBeVisible();
-
-        const attrName = `Del_${Date.now()}`;
+        const {adminClient, app} = await setupBoardAttributesTest(pw);
+        let ba = await openBoardAttributes(app);
 
         // # Add a select attribute with two options, save baseline
-        const row = await ba.addAttribute(attrName);
-        await ba.changeTypeInRow(row, 'Select');
-        await ba.addOptionInRow(row, 'KeepMe');
-        await ba.addOptionInRow(row, 'DeleteMe');
-        await ba.saveAndWaitForSettled();
+        const attrName = `Del_${Date.now()}`;
+        const row = await addAttribute(ba, attrName);
+        await changeType(row, 'select');
+        await addOption(row, 'KeepMe');
+        await addOption(row, 'DeleteMe');
+        await save(ba, Api.CreatePropertyField);
 
         // # Delete one option
-        await ba.deleteOptionViaXButton('DeleteMe');
-        await expect(ba.optionChip('DeleteMe')).toHaveCount(0);
-        await expect(ba.optionChip('KeepMe')).toBeVisible();
-        await ba.saveAndWaitForSettled();
+        let field = await fieldByName(adminClient, attrName);
+        const keep = optionByName(field, 'KeepMe');
+        const remove = optionByName(field, 'DeleteMe');
+        await ba.row(field.id).option(remove).deleteButton.click();
+        await expect(ba.row(field.id).option(remove)).toHaveCount(0);
+        await expect(ba.row(field.id).option(keep)).toHaveText('KeepMe');
+        await save(ba, Api.UpdatePropertyField);
 
         // * Server reflects the deletion
-        const fields = await adminClient.getPropertyFields('boards', 'post', {targetType: 'system'});
-        const updated = (fields ?? []).find((f) => f.name === attrName);
-        const optionNames = ((updated!.attrs as {options?: Array<{name: string}>})?.options ?? []).map((o) => o.name);
+        field = await fieldByName(adminClient, attrName);
+        const optionNames = optionsOf(field).map((o) => o.name);
         expect(optionNames).toContain('KeepMe');
         expect(optionNames).not.toContain('DeleteMe');
 
         // # Reload
-        await ba.goto();
-        await ba.toBeVisible();
+        ba = await openBoardAttributes(app);
 
         // * Only the kept option renders
-        await expect(ba.optionChip('KeepMe')).toBeVisible();
-        await expect(ba.optionChip('DeleteMe')).toHaveCount(0);
+        await expect(ba.row(field.id).optionList.locator).toHaveText(['KeepMe']);
     });
 
     test('shows an in-menu duplicate-name warning while typing an existing option name', async ({pw}) => {
-        const {systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
+        const {app} = await setupBoardAttributesTest(pw);
+        const ba = await openBoardAttributes(app);
 
-        await ba.goto();
-        await ba.toBeVisible();
+        // # Add a select attribute with two distinct options
+        const row = await addAttribute(ba, `Dup_${Date.now()}`);
+        await changeType(row, 'select');
+        const alpha = await addOption(row, 'Alpha');
+        await addOption(row, 'Beta');
 
-        const attrName = `Dup_${Date.now()}`;
+        // # Open Alpha's menu and type a new name
+        await row.option({id: alpha}).editButton.click();
+        const optionMenu = app.boardAttributeOptionMenu;
+        await expect(optionMenu.nameTextbox).toHaveValue('Alpha');
+        await optionMenu.nameTextbox.fill('Gamma');
 
-        // # Add a select attribute with two distinct options, save baseline
-        const row = await ba.addAttribute(attrName);
-        await ba.changeTypeInRow(row, 'Select');
-        await ba.addOptionInRow(row, 'Alpha');
-        await ba.addOptionInRow(row, 'Beta');
-        await ba.saveAndWaitForSettled();
+        // * No warning shows for a distinct name
+        await expect(optionMenu.nameErrorAlert).not.toBeVisible();
+        await expect(optionMenu.nameTextbox).toHaveAttribute('aria-invalid', 'false');
 
-        // # Open Alpha's menu and type "Beta"
-        await ba.openOptionMenu('Alpha');
-        const renameInput = ba.container.page().getByPlaceholder('Option name');
-        await renameInput.fill('Beta');
+        // # Type "Beta"
+        await optionMenu.nameTextbox.fill('Beta');
 
         // * In-menu duplicate warning appears
-        await expect(
-            ba.container.page().getByText('A value with this name already exists.', {exact: true}),
-        ).toBeVisible();
+        await expect(optionMenu.nameErrorAlert).toHaveMessage(Msg.admin.board_attributes.values.rename_duplicate);
 
         // * aria-invalid is set on the input
-        await expect(renameInput).toHaveAttribute('aria-invalid', 'true');
+        await expect(optionMenu.nameTextbox).toHaveAttribute('aria-invalid', 'true');
     });
 
     test('appends a unique default name when adding multiple unnamed options in a row', async ({pw}) => {
-        const {systemConsolePage} = await setupBoardAttributesTest(pw);
-        const ba = systemConsolePage.boardAttributes;
-
-        await ba.goto();
-        await ba.toBeVisible();
-
-        const attrName = `Auto_${Date.now()}`;
+        const {app} = await setupBoardAttributesTest(pw);
+        const ba = await openBoardAttributes(app);
 
         // # Add a select attribute
-        const row = await ba.addAttribute(attrName);
-        await ba.changeTypeInRow(row, 'Select');
+        const row = await addAttribute(ba, `Auto_${Date.now()}`);
+        await changeType(row, 'select');
 
         // # Click Add value three times without naming the options
-        await row.getByRole('button', {name: 'Add value'}).click();
-        await row.getByRole('button', {name: 'Add value'}).click();
-        await row.getByRole('button', {name: 'Add value'}).click();
+        await row.addValueButton.click();
+        await expect(row.optionList.locator).toHaveText(['Option 1']);
+        await row.addValueButton.click();
+        await expect(row.optionList.locator).toHaveText(['Option 1', 'Option 2']);
+        await row.addValueButton.click();
 
         // * Three default-named option chips appear with auto-incrementing suffixes
-        await expect(ba.optionChip('Option 1')).toBeVisible();
-        await expect(ba.optionChip('Option 2')).toBeVisible();
-        await expect(ba.optionChip('Option 3')).toBeVisible();
+        await expect(row.optionList.locator).toHaveText(['Option 1', 'Option 2', 'Option 3']);
     });
 });

@@ -58,13 +58,14 @@ export function FormStepBody({
             <div className='section comment_section'>
                 <div
                     className='section_title'
-                    data-testid='keep-remove-flagged-message-comment-title'
+                    data-testid='flagged_message_modal.form.comment_title--text'
                 >
                     {sectionTitle}
                 </div>
 
                 <AdvancedTextbox
                     id='RemoveFlaggedMessageConfirmationModal__comment'
+                    testId='flagged_message_modal.form.comment'
                     channelId={flaggedPost.channel_id}
                     value={comment}
                     onChange={onCommentChange}

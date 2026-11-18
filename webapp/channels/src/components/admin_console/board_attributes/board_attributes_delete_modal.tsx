@@ -69,6 +69,7 @@ function RemoveBoardAttributeFieldModal({
 
     return (
         <GenericModal
+            testId='admin.board_attributes.delete_modal'
             confirmButtonText={confirmButtonText}
             destructive={true}
             handleCancel={onCancel}

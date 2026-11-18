@@ -4,7 +4,7 @@
 import React from 'react';
 import {createIntl} from 'react-intl';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import SearchableSyncJobTeamList from './searchable_sync_job_team_list';
@@ -38,19 +38,19 @@ describe('SearchableSyncJobTeamList', () => {
     test('renders team rows with added/removed summary', () => {
         renderWithContext(<SearchableSyncJobTeamList {...baseProps}/>);
 
-        expect(screen.getByTestId('TeamRow-engineering')).toBeInTheDocument();
-        expect(screen.getByTestId('TeamRow-marketing')).toBeInTheDocument();
-        expect(screen.getByTestId('TeamRow-engineering')).toHaveTextContent('+2 / -1');
-        expect(screen.getByTestId('TeamRow-marketing')).toHaveTextContent('+0 / -6');
+        expect(screen.getByTestId('job_details_modal.teams.team:team1--button')).toBeInTheDocument();
+        expect(screen.getByTestId('job_details_modal.teams.team:team2--button')).toBeInTheDocument();
+        expect(screen.getByTestId('job_details_modal.teams.team:team1--button')).toHaveTextContent('+2 / -1');
+        expect(screen.getByTestId('job_details_modal.teams.team:team2--button')).toHaveTextContent('+0 / -6');
     });
 
     test('shows mass-removal warning indicator only on rows with MassRemovalWarning true', () => {
         renderWithContext(<SearchableSyncJobTeamList {...baseProps}/>);
 
-        const marketingRow = screen.getByTestId('TeamRow-marketing');
+        const marketingRow = screen.getByTestId('job_details_modal.teams.team:team2--button');
         expect(marketingRow.querySelector('.mass-removal-warning')).toBeInTheDocument();
 
-        const engineeringRow = screen.getByTestId('TeamRow-engineering');
+        const engineeringRow = screen.getByTestId('job_details_modal.teams.team:team1--button');
         expect(engineeringRow.querySelector('.mass-removal-warning')).not.toBeInTheDocument();
     });
 
@@ -63,8 +63,29 @@ describe('SearchableSyncJobTeamList', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('TeamRow-engineering'));
+        await userEvent.click(screen.getByTestId('job_details_modal.teams.team:team1--button'));
 
+        expect(onViewDetails).toHaveBeenCalledWith('team1', 'Engineering', syncResults.team1);
+    });
+
+    test('opens the details when the row is activated with Enter', async () => {
+        const onViewDetails = jest.fn();
+        renderWithContext(
+            <SearchableSyncJobTeamList
+                {...baseProps}
+                onViewDetails={onViewDetails}
+            />,
+        );
+
+        const row = screen.getByTestId('job_details_modal.teams.team:team1--button');
+        expect(row).toHaveAttribute('role', 'button');
+
+        fireEvent.keyDown(row, {key: ' '});
+        fireEvent.keyDown(row, {key: 'a'});
+        expect(onViewDetails).not.toHaveBeenCalled();
+
+        fireEvent.keyDown(row, {key: 'Enter', code: 'Enter', keyCode: 13});
+        expect(onViewDetails).toHaveBeenCalledTimes(1);
         expect(onViewDetails).toHaveBeenCalledWith('team1', 'Engineering', syncResults.team1);
     });
 

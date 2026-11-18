@@ -83,7 +83,6 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
         URL.createObjectURL = jest.fn().mockReturnValue('blob:mock-url');
         URL.revokeObjectURL = jest.fn();
 
-        // eslint-disable-next-line no-console
         console.error = jest.fn();
     });
 
@@ -103,7 +102,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            expect(screen.getByTestId('keep-remove-flagged-message-confirmation-modal')).toBeVisible();
+            expect(screen.getByTestId('flagged_message_modal')).toBeVisible();
             expect(screen.getByRole('heading', {name: 'Remove message from channel'})).toBeVisible();
 
             // Default form step shows the "Continue" primary button (download checkbox is on by default)
@@ -125,7 +124,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const subtext = screen.getByTestId('keep-remove-flagged-message-subtext');
+            const subtext = screen.getByTestId('flagged_message_modal.message.subtext--text');
             expect(subtext).toBeVisible();
             expect(subtext).toHaveTextContent(/a notification will be sent to the reporter/);
         });
@@ -140,7 +139,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const subtext = screen.getByTestId('keep-remove-flagged-message-subtext');
+            const subtext = screen.getByTestId('flagged_message_modal.message.subtext--text');
             expect(subtext).toBeVisible();
             expect(subtext).toHaveTextContent(/the message will be removed from the channel. This action cannot be reverted./);
         });
@@ -168,7 +167,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             });
 
             await waitFor(() => {
-                expect(screen.getByTestId('generated-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generated')).toBeVisible();
             });
 
             await userEvent.click(screen.getByRole('button', {name: 'Remove permanently'}));
@@ -189,13 +188,13 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.form.download_report--checkbox'));
 
             // Button label changes to "Remove message" when checkbox unchecked
             await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.skip_confirm')).toBeVisible();
             });
 
             await userEvent.click(screen.getByRole('button', {name: 'Remove without report'}));
@@ -221,15 +220,15 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('error-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.error')).toBeVisible();
             });
 
             // Switch to success and retry
             mockReportSuccess();
-            await userEvent.click(screen.getByTestId('error-retry-button'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.error.retry--button'));
 
             await waitFor(() => {
-                expect(screen.getByTestId('generated-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generated')).toBeVisible();
             });
         });
     });
@@ -245,7 +244,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            expect(screen.getByTestId('keep-remove-flagged-message-confirmation-modal')).toBeVisible();
+            expect(screen.getByTestId('flagged_message_modal')).toBeVisible();
             expect(screen.getByRole('button', {name: 'Continue'})).toBeVisible();
         });
 
@@ -264,7 +263,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const subtext = screen.getByTestId('keep-remove-flagged-message-subtext');
+            const subtext = screen.getByTestId('flagged_message_modal.message.subtext--text');
             expect(subtext).toBeVisible();
             expect(subtext).toHaveTextContent(/a notification will be sent to the reporter/);
         });
@@ -279,7 +278,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const subtext = screen.getByTestId('keep-remove-flagged-message-subtext');
+            const subtext = screen.getByTestId('flagged_message_modal.message.subtext--text');
             expect(subtext).toBeVisible();
             expect(subtext).toHaveTextContent(/the message will be visible to all channel members./);
         });
@@ -297,7 +296,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('generated-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generated')).toBeVisible();
             });
 
             await userEvent.click(screen.getByRole('button', {name: 'Keep permanently'}));
@@ -318,13 +317,13 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.form.download_report--checkbox'));
             await userEvent.click(screen.getByRole('button', {name: 'Keep message'}));
 
             await waitFor(() => {
                 expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
             });
-            expect(screen.queryByTestId('skip-confirm-body')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('flagged_message_modal.skip_confirm')).not.toBeInTheDocument();
             expect(Client4.generateFlaggedPostReport).not.toHaveBeenCalled();
         });
 
@@ -343,15 +342,15 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('generating-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generating')).toBeVisible();
             });
 
-            await userEvent.click(screen.getByTestId('generating-skip-button'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.generating.skip--button'));
 
             await waitFor(() => {
                 expect(Client4.keepFlaggedPost).toHaveBeenCalledWith(flaggedPost.id, '');
             });
-            expect(screen.queryByTestId('skip-confirm-body')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('flagged_message_modal.skip_confirm')).not.toBeInTheDocument();
         });
     });
 
@@ -366,7 +365,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const commentTitle = screen.getByTestId('keep-remove-flagged-message-comment-title');
+            const commentTitle = screen.getByTestId('flagged_message_modal.form.comment_title--text');
             expect(commentTitle).toBeVisible();
             expect(commentTitle).toHaveTextContent('Comment (optional)');
         });
@@ -386,7 +385,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            const commentTitle = screen.getByTestId('keep-remove-flagged-message-comment-title');
+            const commentTitle = screen.getByTestId('flagged_message_modal.form.comment_title--text');
             expect(commentTitle).toBeVisible();
             expect(commentTitle).toHaveTextContent('Comment (required)');
         });
@@ -432,7 +431,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('generated-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generated')).toBeVisible();
             });
             await userEvent.click(screen.getByRole('button', {name: 'Remove permanently'}));
 
@@ -453,17 +452,17 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
 
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
             await waitFor(() => {
-                expect(screen.getByTestId('generated-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generated')).toBeVisible();
             });
             const initialCallCount = (Client4.generateFlaggedPostReport as jest.Mock).mock.calls.length;
 
-            await userEvent.click(screen.getByTestId('generated-download-again-button'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.generated.download_again--button'));
 
             await waitFor(() => {
                 expect((Client4.generateFlaggedPostReport as jest.Mock).mock.calls.length).toBeGreaterThan(initialCallCount);
             });
             await waitFor(() => {
-                expect(screen.getByTestId('generated-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generated')).toBeVisible();
             });
         });
 
@@ -483,15 +482,15 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('generating-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generating')).toBeVisible();
             });
 
-            await userEvent.click(screen.getByTestId('generating-skip-button'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.generating.skip--button'));
 
             await waitFor(() => {
-                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.skip_confirm')).toBeVisible();
             });
-            expect(screen.queryByTestId('generated-section')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('flagged_message_modal.generated')).not.toBeInTheDocument();
         });
 
         test('back from skip-confirm returns to form step', async () => {
@@ -504,14 +503,14 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.form.download_report--checkbox'));
             await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.skip_confirm')).toBeVisible();
             });
 
-            await userEvent.click(screen.getByTestId('skip-confirm-back-button'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.skip_confirm.back--button'));
 
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: 'Remove message'})).toBeVisible();
@@ -535,7 +534,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('generated-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generated')).toBeVisible();
             });
 
             await userEvent.click(screen.getByRole('button', {name: 'Remove permanently'}));
@@ -566,11 +565,11 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
                 {useMockedStore: true},
             );
 
-            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.form.download_report--checkbox'));
             await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.skip_confirm')).toBeVisible();
             });
 
             await userEvent.click(screen.getByRole('button', {name: 'Remove without report'}));
@@ -599,7 +598,7 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Continue'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('generated-section')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.generated')).toBeVisible();
             });
 
             await userEvent.click(screen.getByRole('button', {name: 'Keep permanently'}));
@@ -629,18 +628,18 @@ describe('KeepRemoveFlaggedMessageConfirmationModal', () => {
             );
 
             // Skip download path so we go directly to API call
-            await userEvent.click(screen.getByTestId('download-report-checkbox'));
+            await userEvent.click(screen.getByTestId('flagged_message_modal.form.download_report--checkbox'));
             await userEvent.click(screen.getByRole('button', {name: 'Remove message'}));
 
             await waitFor(() => {
-                expect(screen.getByTestId('skip-confirm-body')).toBeVisible();
+                expect(screen.getByTestId('flagged_message_modal.skip_confirm')).toBeVisible();
             });
 
             await userEvent.click(screen.getByRole('button', {name: 'Remove without report'}));
 
             await waitFor(() => {
                 const errorElement = screen.getByTestId(
-                    'keep-remove-flagged-message-request-error',
+                    'flagged_message_modal.request_error',
                 );
                 expect(errorElement).toBeVisible();
                 expect(errorElement).toHaveTextContent(errorMessage);

@@ -69,6 +69,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
 
     const removePolicyConfirmModal = (
         <ConfirmModal
+            testId='admin.team.remove_policy_modal'
             show={policyPendingRemoval !== null}
             title={
                 <FormattedMessage
@@ -105,12 +106,17 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
         return (
             <AdminPanelWithButton
                 id='team_access_control_policy'
+                testId='admin.team.access_policy'
+                buttonTestId='admin.team.access_policy.link'
                 title={defineMessage({id: 'admin.team_settings.team_detail.access_control_policy_title', defaultMessage: 'Membership policies'})}
                 subtitle={defineMessage({id: 'admin.team_settings.team_detail.access_control_policy_description', defaultMessage: 'Manage attribute based membership policies applicable to this team'})}
                 buttonText={defineMessage({id: 'admin.team_settings.team_detail.link_policy', defaultMessage: 'Link to a policy'})}
                 onButtonClick={handleOpenPolicyModal}
             >
-                <div className='team-policy-list__empty'>
+                <div
+                    className='team-policy-list__empty'
+                    data-testid='admin.team.access_policy.empty--text'
+                >
                     <FormattedMessage
                         id='admin.team_settings.team_detail.no_policy_assigned'
                         defaultMessage='No membership policy assigned. <link>Manage membership policies</link>.'
@@ -129,13 +135,18 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
     return (
         <AdminPanelWithButton
             id='team_access_control_with_policy'
+            testId='admin.team.access_policy'
+            buttonTestId='admin.team.access_policy.add'
             title={defineMessage({id: 'admin.team_settings.team_detail.access_control_policy_title', defaultMessage: 'Membership policies'})}
             subtitle={defineMessage({id: 'admin.team_settings.team_detail.policy_following', defaultMessage: 'Manage attribute based membership policies applicable to this team'})}
             buttonText={defineMessage({id: 'admin.team_settings.team_detail.add_policy', defaultMessage: '+ Add policy'})}
             onButtonClick={handleOpenPolicyModal}
         >
             <div className='team-policy-list'>
-                <div className='team-policy-list__header'>
+                <div
+                    className='team-policy-list__header'
+                    data-testid='admin.team.access_policy.header'
+                >
                     <span className='team-policy-list__col-name'>
                         <FormattedMessage
                             id='admin.team_settings.team_detail.access_control_policy_name'
@@ -154,14 +165,19 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                     <div
                         key={policy.id}
                         className='team-policy-list__row'
+                        data-testid={`admin.team.access_policy.policy:${policy.id}`}
                     >
-                        <span className='team-policy-list__col-name team-policy-list__policy-name policy-name'>
+                        <span
+                            className='team-policy-list__col-name team-policy-list__policy-name policy-name'
+                            data-testid='admin.team.access_policy.policy.name--text'
+                        >
                             {policy.name}
                         </span>
                         <span className='team-policy-list__col-actions'>
                             <Link
                                 to={'/admin_console/system_attributes/membership_policies/edit_policy/' + policy.id}
                                 className='team-policy-list__action-btn'
+                                data-testid='admin.team.access_policy.policy.open--link'
                                 aria-label={intl.formatMessage({
                                     id: 'admin.team_settings.team_detail.go_to_policy.aria_label',
                                     defaultMessage: 'Go to the policy',
@@ -171,6 +187,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                             </Link>
                             <button
                                 className='team-policy-list__action-btn team-policy-list__action-remove'
+                                data-testid='admin.team.access_policy.policy.remove--button'
                                 aria-label={intl.formatMessage({
                                     id: 'admin.team_settings.team_detail.remove_policy.aria_label',
                                     defaultMessage: 'Remove policy',
@@ -184,12 +201,16 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                 ))}
 
                 <div className='team-policy-list__footer'>
-                    <span className='team-policy-list__pagination-count'>
+                    <span
+                        className='team-policy-list__pagination-count'
+                        data-testid='admin.team.access_policy.pagination--text'
+                    >
                         {`${startCount} - ${endCount} of ${total}`}
                     </span>
                     <button
                         className='team-policy-list__pagination-btn'
                         disabled={page === 0}
+                        data-testid='admin.team.access_policy.previous--button'
                         onClick={() => setPage((p) => p - 1)}
                         aria-label={intl.formatMessage({id: 'admin.team_settings.team_detail.prev_page', defaultMessage: 'Previous page'})}
                     >
@@ -198,6 +219,7 @@ export const TeamAccessControl: React.FC<Props> = (props: Props): JSX.Element =>
                     <button
                         className='team-policy-list__pagination-btn'
                         disabled={endCount >= total}
+                        data-testid='admin.team.access_policy.next--button'
                         onClick={() => setPage((p) => p + 1)}
                         aria-label={intl.formatMessage({id: 'admin.team_settings.team_detail.next_page', defaultMessage: 'Next page'})}
                     >

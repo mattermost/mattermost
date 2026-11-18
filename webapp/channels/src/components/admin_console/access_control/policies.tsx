@@ -42,6 +42,9 @@ type Props = {
     hideHeader?: boolean;
     hideDeleteAction?: boolean;
     showRefreshButton?: boolean;
+
+    // The list's grid; the System Console page's when unset.
+    testIdScope?: string;
     actions: {
         searchPolicies: (term: string, type: string, after: string, limit: number) => Promise<ActionResult>;
         deletePolicy: (id: string) => Promise<ActionResult>;
@@ -250,6 +253,8 @@ export default function PolicyList(props: Props): JSX.Element {
         fetchPolicies(search);
     }, [pendingDeletePolicy, search, intl]);
 
+    const testIdScope = props.testIdScope ?? 'admin.access_control.policies';
+
     const getRows = (): Row[] => {
         const policyMenuLabel = intl.formatMessage({
             id: 'admin.access_control.policies.menu.aria_label',
@@ -260,6 +265,7 @@ export default function PolicyList(props: Props): JSX.Element {
             const descriptionId = `customDescription-${policy.id}`;
             const appliedToId = `customAppliedTo-${policy.id}`;
             return {
+                testKey: policy.id,
                 cells: {
                     name: (
                         <div
@@ -284,6 +290,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                     menuButton={{
                                         id: `policy-menu-${policy.id}`,
                                         as: PolicyMenuTrigger,
+                                        dataTestId: testIdScope ? `${testIdScope}.row.open_menu--button` : undefined,
                                         'aria-label': policyMenuLabel,
                                         children: <Icon glyph={<DotsVerticalIcon/>}/>,
                                     }}
@@ -297,6 +304,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                 >
                                     <Menu.Item
                                         id={`policy-menu-edit-${policy.id}`}
+                                        data-testid={testIdScope ? 'access_policy_row_menu.edit--menuitem' : undefined}
                                         onClick={() => {
                                             if (props.onPolicySelected) {
                                                 props.onPolicySelected(policy, getAutoAddFromRules(policy.rules));
@@ -315,6 +323,7 @@ export default function PolicyList(props: Props): JSX.Element {
                                     {!props.hideDeleteAction && (
                                         <Menu.Item
                                             id={`policy-menu-delete-${policy.id}`}
+                                            data-testid={testIdScope ? 'access_policy_row_menu.delete--menuitem' : undefined}
                                             onClick={() => initiateDelete(policy)}
                                             leadingElement={<i className='icon icon-trash-can-outline'/>}
                                             labels={
@@ -448,6 +457,7 @@ export default function PolicyList(props: Props): JSX.Element {
 
     const dataGrid = (
         <DataGrid
+            testIdScope={testIdScope}
             columns={columns}
             rows={rows}
             loading={loading}
@@ -475,6 +485,7 @@ export default function PolicyList(props: Props): JSX.Element {
 
     const deleteModal = pendingDeletePolicy && (
         <GenericModal
+            testId={testIdScope ? `${testIdScope}.delete_modal` : undefined}
             onExited={() => {
                 setPendingDeletePolicy(null);
                 setDeleteError(null);
@@ -540,6 +551,7 @@ export default function PolicyList(props: Props): JSX.Element {
             button={
                 <Button
                     emphasis='primary'
+                    data-testid={testIdScope ? `${testIdScope}.add--button` : undefined}
                     onClick={() => {
                         history.push('/admin_console/system_attributes/membership_policies/edit_policy');
                     }}

@@ -2,20 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {expect, test, Msg} from '@mattermost/playwright-lib';
-import type {App} from '@mattermost/playwright-lib';
 
 import {
-    GLOBAL_ATTRIBUTES_ADMIN_PATH,
     createGlobalAttributeField,
     deleteGlobalAttributeFieldIfExists,
     requireHierarchicalAttributesEnabled,
+    openAttributeManagement,
 } from './global_attributes_helpers';
-
-/** Bounds the native listing controls to their Attribute Management panel. */
-function attributeListing(app: App) {
-    // This panel has no generated scope; its existing root id bounds its rows and search controls.
-    return app.page.getByTestId('globalAttributes');
-}
 
 test.describe('System Console - Global Attributes listing', {tag: '@system_console'}, () => {
     test.describe('listing', () => {
@@ -32,7 +25,7 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
             const displayName = `E2E Hierarchical Attribute ${timestamp}`;
 
             try {
-                await createGlobalAttributeField(adminClient, name, {
+                const field = await createGlobalAttributeField(adminClient, name, {
                     type: 'graph',
                     attrs: {
                         display_name: displayName,
@@ -44,23 +37,17 @@ test.describe('System Console - Global Attributes listing', {tag: '@system_conso
                 });
 
                 const {app} = await pw.testBrowser.login(adminUser);
-                await app.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+                const attributes = await openAttributeManagement(app);
 
-                // The attributes table declares no parts for its rows: addressed by the legacy global-attribute-name / -type testids.
-                const row = attributeListing(app).locator('tr', {
-                    has: app.page.getByTestId('global-attribute-name').filter({hasText: displayName}),
-                });
-
-                await expect(row.getByTestId('global-attribute-name')).toHaveText(displayName);
-                await expect(row.getByTestId('global-attribute-type')).toContainMessage(
+                await expect(attributes.row(field.id).nameText).toHaveText(displayName);
+                await expect(attributes.row(field.id).typeText).toContainMessage(
                     Msg.admin.global_attributes.table.type.graph,
                 );
-                // The type icon has no generated part; inspect the SVG within this attribute type cell.
-                await expect(row.getByTestId('global-attribute-type').locator('svg')).toBeVisible();
-                await expect(row.getByTestId('global-attribute-source')).toContainMessage(
+                await expect(attributes.row(field.id).typeIcon).toBeVisible();
+                await expect(attributes.row(field.id).sourceText).toContainMessage(
                     Msg.admin.global_attributes.table.source.managed,
                 );
-                await expect(row.getByTestId('global-attribute-options')).toContainText('2 options');
+                await expect(attributes.row(field.id).optionsText).toContainText('2 options');
             } finally {
                 await deleteGlobalAttributeFieldIfExists(adminClient, name);
             }

@@ -6,7 +6,9 @@
  * @reference MM-69100
  */
 
-import {expect, newTestPassword, test} from '@mattermost/playwright-lib';
+import type {Team} from '@mattermost/types/teams';
+
+import {expect, newTestPassword, test, type App, duration, Msg} from '@mattermost/playwright-lib';
 
 import {
     enableTeamMembershipABACConfig,
@@ -20,8 +22,17 @@ import {
 
 import {enableTeamMembershipPolicies} from './helpers';
 
+/** Opens System Console > Teams > the team's page and its Add Members dialog. */
+async function openAddMembers(app: App, team: Team) {
+    await app.page.goto(`/admin_console/user_management/teams/${team.id}`);
+    const modal = await app.admin.team.addMembersButton.clickTo(app.addUsersToTeamModal);
+    await expect(modal).toBeVisible();
+    await expect(modal.users.searchCombobox).toBeVisible();
+    return modal.users;
+}
+
 test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@team_membership']}, () => {
-    test.setTimeout(120000);
+    test.setTimeout(duration.two_min);
 
     let createdTeamIds: string[] = [];
     let createdUserIds: string[] = [];
@@ -87,40 +98,29 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
 
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
-        // # Log in as system admin and navigate to the per-team console page
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const {page} = systemConsolePage;
-        await page.goto(`/admin_console/user_management/teams/${team.id}`);
-
-        // # Click "Add Members" button
-        await page.locator('#addTeamMembers').click();
-
-        const addModal = page.locator('#addUsersToTeamModal');
-        await expect(addModal).toBeVisible({timeout: 10000});
-
-        // MultiSelect uses React-Select which renders the input as a combobox role, not
-        // a plain <input placeholder="...">.  Use getByRole to match the accessible name.
-        const searchInput = addModal.getByRole('combobox', {name: 'Search for people'});
-        await expect(searchInput).toBeVisible({timeout: 10000});
+        // # Log in as system admin and open the team's Add Members dialog
+        const {app} = await pw.testBrowser.login(adminUser);
+        const users = await openAddMembers(app, team);
 
         // # Search for eng1 — qualifying candidate
-        await searchInput.pressSequentially(eng1.username.slice(0, 8));
-        const eng1Row = addModal.locator('.more-modal__row', {hasText: eng1.username});
-        await expect(eng1Row).toBeVisible({timeout: 10000});
+        await users.searchCombobox.locator.pressSequentially(eng1.username.slice(0, 8));
+        const eng1Row = users.results.user(eng1);
+        await expect(eng1Row).toBeVisible();
 
         // * eng1's row is NOT disabled
-        await expect(eng1Row).not.toHaveClass(/more-modal__row--disabled/);
-        await expect(eng1Row.locator('.more-modal__error')).not.toBeVisible();
+        await expect(eng1Row).toHaveAttribute('aria-disabled', 'false');
+        await expect(eng1Row.deniedText).toHaveCount(0);
 
         // # Search for mkt1 — non-qualifying candidate
-        await searchInput.clear();
-        await searchInput.pressSequentially(mkt1.username.slice(0, 8));
-        const mkt1Row = addModal.locator('.more-modal__row', {hasText: mkt1.username});
-        await expect(mkt1Row).toBeVisible({timeout: 10000});
+        await users.searchCombobox.clear();
+        await expect(users.searchCombobox).toHaveValue('');
+        await users.searchCombobox.locator.pressSequentially(mkt1.username.slice(0, 8));
+        const mkt1Row = users.results.user(mkt1);
+        await expect(mkt1Row).toBeVisible();
 
         // * mkt1's row is disabled with the blocking message
-        await expect(mkt1Row).toHaveClass(/more-modal__row--disabled/);
-        await expect(mkt1Row.locator('.more-modal__error')).toHaveText('Does not meet membership requirements');
+        await expect(mkt1Row).toHaveAttribute('aria-disabled', 'true');
+        await expect(mkt1Row.deniedText).toHaveMessage(Msg.add_users_to_team.policy_denied);
     });
 
     test('MM-68846-T8 PUBLIC governed team does NOT block candidates (advisory)', async ({pw}) => {
@@ -165,27 +165,17 @@ test.describe('ABAC - Add members to team (System Console)', {tag: ['@abac', '@t
         // # Advisory policy (public team)
         await createTeamMembershipPolicy(adminClient, team.id, 'user.attributes.Department == "Engineering"', false);
 
-        // # Log in as system admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const {page} = systemConsolePage;
-        await page.goto(`/admin_console/user_management/teams/${team.id}`);
-
-        // # Click "Add Members" button
-        await page.locator('#addTeamMembers').click();
-
-        const addModal = page.locator('#addUsersToTeamModal');
-        await expect(addModal).toBeVisible({timeout: 10000});
-
-        const searchInput = addModal.getByRole('combobox', {name: 'Search for people'});
-        await expect(searchInput).toBeVisible({timeout: 10000});
+        // # Log in as system admin and open the team's Add Members dialog
+        const {app} = await pw.testBrowser.login(adminUser);
+        const users = await openAddMembers(app, team);
 
         // # Search for mkt1 — non-qualifying but advisory = no block
-        await searchInput.pressSequentially(mkt1.username.slice(0, 8));
-        const mkt1Row = addModal.locator('.more-modal__row', {hasText: mkt1.username});
-        await expect(mkt1Row).toBeVisible({timeout: 10000});
+        await users.searchCombobox.locator.pressSequentially(mkt1.username.slice(0, 8));
+        const mkt1Row = users.results.user(mkt1);
+        await expect(mkt1Row).toBeVisible();
 
         // * Row is NOT disabled
-        await expect(mkt1Row).not.toHaveClass(/more-modal__row--disabled/);
-        await expect(mkt1Row.locator('.more-modal__error')).not.toBeVisible();
+        await expect(mkt1Row).toHaveAttribute('aria-disabled', 'false');
+        await expect(mkt1Row.deniedText).toHaveCount(0);
     });
 });

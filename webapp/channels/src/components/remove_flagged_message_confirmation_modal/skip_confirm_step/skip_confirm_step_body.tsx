@@ -29,7 +29,7 @@ export function SkipConfirmStepBody({
     return (
         <div
             className='section'
-            data-testid='skip-confirm-body'
+            data-testid='flagged_message_modal.skip_confirm'
         >
             <BodyMainActionText
                 action='remove'

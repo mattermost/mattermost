@@ -74,7 +74,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
     const PLAIN_DEPT = customField('u-dept', 'department', {managed: 'admin'});
 
     const editTable = (value: string) => act(() => lastTableProps().onChange(value));
-    const clickSave = () => userEvent.click(screen.getByTestId('saveSetting'));
+    const clickSave = () => userEvent.click(screen.getByTestId('admin.save--button'));
     const savedPayload = (index = mockCreatePolicy.mock.calls.length - 1) => mockCreatePolicy.mock.calls[index][0];
 
     const deferred = <T, >() => {
@@ -220,7 +220,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
             expect(await screen.findByText(/There are errors in the form above: Invalid expression/)).toBeInTheDocument();
             expect(checkExpressionSpy).not.toHaveBeenCalled();
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
         });
 
         test('an empty rule keeps the expression-required error', async () => {
@@ -244,13 +244,13 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
             await clickSave();
             expect(lastTableProps().disabled).toBe(true);
-            expect(screen.getByTestId('saveSetting')).toBeDisabled();
+            expect(screen.getByTestId('admin.save--button')).toBeDisabled();
 
             await act(async () => save.resolve({error: {message: 'boom'}}));
 
             expect(await screen.findByText(/There are errors in the form above: boom/)).toBeInTheDocument();
             expect(lastTableProps().disabled).toBe(false);
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
         });
 
         test('a second Save click while the first is in flight does not save again', async () => {
@@ -290,7 +290,7 @@ describe('components/admin_console/permission_policies/policy_details/Permission
 
             expect(await screen.findByText(/There are errors in the form above: boom/)).toBeInTheDocument();
             expect(mockHistoryPush).not.toHaveBeenCalled();
-            expect(screen.getByTestId('saveSetting')).toBeEnabled();
+            expect(screen.getByTestId('admin.save--button')).toBeEnabled();
         });
     });
 

@@ -4,8 +4,8 @@
 import type {Client4} from '@mattermost/client';
 import type {PropertyField, PropertyFieldOptionPage} from '@mattermost/types/properties';
 
-import {getAdminClient, licenseTier, test} from '@mattermost/playwright-lib';
-import type {PlaywrightExtended} from '@mattermost/playwright-lib';
+import {Api, expect, getAdminClient, licenseTier, settle, test} from '@mattermost/playwright-lib';
+import type {App, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GLOBAL_ATTRIBUTES_ADMIN_PATH = '/admin_console/system_attributes/manage_attributes';
 
@@ -48,6 +48,65 @@ export async function requireGlobalAttributesEnabled(pw: PlaywrightExtended) {
     );
 
     return {adminUser, adminClient};
+}
+
+/** Opens System Console > Attribute Management, waiting for its page frame. */
+export async function openAttributeManagement(app: App): Promise<App['admin']['attributes']> {
+    await app.page.goto(GLOBAL_ATTRIBUTES_ADMIN_PATH);
+    await expect(app.admin.attributes.subtitleText).toBeVisible();
+    return app.admin.attributes;
+}
+
+/** The listed attribute showing `displayName`: rows are keyed by field id. */
+export async function listedAttribute(attributes: App['admin']['attributes'], displayName: string) {
+    await expect(attributes.rowList.locator.filter({hasText: displayName})).toHaveCount(1);
+    for (const id of await attributes.rowList.keys()) {
+        if ((await attributes.row(id).nameText.text()) === displayName) {
+            return {id};
+        }
+    }
+    throw new Error(`No listed attribute shows ${displayName}`);
+}
+
+/** Opens the New attribute form. */
+export async function openNewAttribute(app: App): Promise<App['admin']['attribute']> {
+    await app.page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/attribute_details`);
+    await expect(app.admin.attribute.displayName.container).toBeVisible();
+    return app.admin.attribute;
+}
+
+/** Opens classification's own attribute page, whose definition is read-only; only its Applies to card is editable. */
+export async function openClassificationAttribute(app: App): Promise<App['admin']['classification']> {
+    await app.page.goto(`${GLOBAL_ATTRIBUTES_ADMIN_PATH}/classification`);
+    await expect(app.admin.classification.name.container).toBeVisible();
+    return app.admin.classification;
+}
+
+/**
+ * Saves edits to classification's existing linked channel field before reading its persisted settings.
+ */
+export async function saveInPlace(app: App) {
+    const {saveButton} = app.admin.classification.savePanel;
+    await expect(saveButton).toBeEnabled();
+    await settle(saveButton, {
+        wait: Api.UpdatePropertyField,
+        params: {group_name: 'access_control', object_type: 'channel'},
+    }).click();
+    await expect(saveButton).toBeSaved();
+}
+
+/** Adds the Channels resource to the form's Applies to card and opens its settings, which start collapsed. */
+export async function addChannelResource(
+    form: App['admin']['attribute'],
+): Promise<App['admin']['attribute']['appliesTo']['channel']['settings']> {
+    await form.appliesTo.add.container.click();
+    await expect(form.appliesTo.add.resource('channel')).toBeVisible();
+    await form.appliesTo.add.resource('channel').click();
+    const {channel} = form.appliesTo;
+    await expect(channel).toBeVisible();
+    await channel.toggleButton.click();
+    await expect(channel.settings).toBeVisible();
+    return channel.settings;
 }
 
 /**

@@ -133,24 +133,34 @@ export default function TeamMembershipSyncFooter({teamId, hasAbacPolicy}: Props)
 
     return (
         <div className='TeamMembershipSyncFooter'>
-            <div className='SyncStatusFooter'>
+            <div
+                className='SyncStatusFooter'
+                data-testid='admin.team.access_rules.sync_status'
+            >
                 <i className='icon icon-information-outline SyncStatusFooter__icon'/>
-                <span className='SyncStatusFooter__text'>
+                <span
+                    className='SyncStatusFooter__text'
+                    data-testid='admin.team.access_rules.sync_status.time--text'
+                >
                     {timeText}
                 </span>
                 {syncing ? (
                     <>
-                        <span className='SyncStatusFooter__syncing'>
+                        <span
+                            className='SyncStatusFooter__syncing'
+                            data-testid='admin.team.access_rules.sync_status.syncing--text'
+                        >
                             {formatMessage({
                                 id: 'team_settings.sync_status.syncing',
                                 defaultMessage: 'Syncing...',
                             })}
                         </span>
-                        <LoadingSpinner/>
+                        <LoadingSpinner testId='admin.team.access_rules.sync_status.loading_spinner'/>
                     </>
                 ) : (
                     <button
                         className='style--none SyncStatusFooter__link'
+                        data-testid='admin.team.access_rules.sync_status.sync_now--button'
                         onClick={handleSyncNow}
                     >
                         {formatMessage({

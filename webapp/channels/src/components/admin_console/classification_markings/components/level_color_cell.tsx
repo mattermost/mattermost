@@ -31,6 +31,7 @@ export default function LevelColorCell({value, id, updateLevel, swatchAriaLabel}
         >
             <ClassificationColorInput
                 id={`classification-color-${id}`}
+                testId='admin.classification.levels.row.color'
                 value={localColor}
                 onChange={setLocalColor}
                 swatchAriaLabel={swatchAriaLabel}

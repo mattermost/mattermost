@@ -46,6 +46,7 @@ const AttributeModal = ({
     return (
         <GenericModal
             id='attributeModal'
+            testId='attribute_modal'
             modalHeaderText={modalHeaderText}
             confirmButtonText={
                 <FormattedMessage
@@ -66,6 +67,8 @@ const AttributeModal = ({
                 autoFocus={true}
                 className='form-control filter-textbox'
                 placeholder={'department'}
+                data-testid='attribute_modal.value--textbox'
+                clearTestId='attribute_modal.value_clear'
                 type='text'
                 value={value}
                 clearable={true}
@@ -79,6 +82,7 @@ const AttributeModal = ({
                 <div
                     className='alert alert-warning'
                     style={{marginTop: '12px'}}
+                    data-testid='attribute_modal.type_warning--text'
                 >
                     <FormattedMessage
                         id='admin.customProfileAttribWarning'

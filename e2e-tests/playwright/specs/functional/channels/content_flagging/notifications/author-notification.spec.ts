@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import type {Client4} from '@mattermost/client';
 
-import {createPost} from './../support';
+import {test} from '@mattermost/playwright-lib';
 
-async function setupContentFlagging(adminClient: any, userIds: string[], enable = true) {
+import {createPost, verifyReporterNotification} from './../support';
+
+async function setupContentFlagging(adminClient: Client4, userIds: string[], enable = true) {
     await adminClient.patchConfig({
         ContentFlaggingSettings: {
             EnableContentFlagging: enable,
@@ -31,14 +33,6 @@ async function setupContentFlagging(adminClient: any, userIds: string[], enable 
     return adminClient;
 }
 
-async function verifyAuthorNotification(channelsPage: any, teamName: string, expectedMessage: string) {
-    await channelsPage.goto(teamName, '@content-review');
-    await channelsPage.toBeVisible();
-
-    const lastPostId = await channelsPage.centerView.getLastPostID();
-    const post = await channelsPage.centerView.getPostById(lastPostId);
-    await expect(post.body).toContainText(expectedMessage);
-}
 /**
  * @objective Verify Author is notified if the post is flagged in a channel
  */
@@ -50,9 +44,9 @@ test('Verify Author is notified if the post is flagged in a channel', async ({pw
     const {post, townSquare} = await createPost(adminClient, userClient, team, user, message);
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
 
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
     const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} has been quarantined for review.`;
-    await verifyAuthorNotification(channelsPage, team.name, expected);
+    await verifyReporterNotification(app, team, expected);
 });
 
 /**
@@ -67,9 +61,9 @@ test('Verify Author is notified if flagged post is Retained in a channel', async
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
     await adminClient.keepFlaggedPost(post.id, 'Retaining this post after review');
 
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
     const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} which was quarantined for review has been restored by a reviewer.`;
-    await verifyAuthorNotification(channelsPage, team.name, expected);
+    await verifyReporterNotification(app, team, expected);
 });
 
 /**
@@ -84,7 +78,7 @@ test('Verify Author is notified if flagged post is Removed from a channel', asyn
     await adminClient.flagPost(post.id, 'Classification mismatch', 'This message is inappropriate');
     await adminClient.removeFlaggedPost(post.id, 'Removing this post after review');
 
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
     const expected = `Your post having ID ${post.id} in the channel ${townSquare.display_name} which was quarantined for review has been permanently removed by a reviewer.`;
-    await verifyAuthorNotification(channelsPage, team.name, expected);
+    await verifyReporterNotification(app, team, expected);
 });

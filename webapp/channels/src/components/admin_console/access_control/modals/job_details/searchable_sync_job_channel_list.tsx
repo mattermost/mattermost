@@ -102,11 +102,17 @@ const SearchableSyncJobChannelList = (props: Props) => {
         const syncChangesDisplay = channelSyncData ? (
             <div className='changes-cell'>
                 <span className='changes-summary'>
-                    <span className='added'>
+                    <span
+                        className='added'
+                        data-testid='job_details_modal.channels.channel.added--text'
+                    >
                         {'+' + (channelSyncData.MembersAdded?.length || 0)}
                     </span>
                     {' / '}
-                    <span className='removed'>
+                    <span
+                        className='removed'
+                        data-testid='job_details_modal.channels.channel.removed--text'
+                    >
                         {'-' + (channelSyncData.MembersRemoved?.length || 0)}
                     </span>
                 </span>
@@ -118,8 +124,9 @@ const SearchableSyncJobChannelList = (props: Props) => {
                 className='more-modal__row job-sync-row'
                 key={channel.id}
                 id={`ChannelRow-${channel.name}`}
-                data-testid={`ChannelRow-${channel.name}`}
+                data-testid={`job_details_modal.channels.channel:${channel.id}--button`}
                 aria-label={ariaLabel}
+                role='button'
                 onClick={() => handleRowClick(channel)}
                 tabIndex={0}
             >
@@ -190,7 +197,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
     let previousButton;
 
     if (props.loading && channels.length === 0) {
-        listContent = <LoadingScreen/>;
+        listContent = <LoadingScreen testId='job_details_modal.channels.loading'/>;
     } else if (channels.length === 0) {
         listContent = (
             <div
@@ -256,6 +263,7 @@ const SearchableSyncJobChannelList = (props: Props) => {
             </span>
             <QuickInput
                 id='searchChannelsTextbox'
+                clearTestId='job_details_modal.channels.search_clear'
                 className='form-control filter-textbox'
                 placeholder={props.intl.formatMessage({id: 'filtered_channels_list.search', defaultMessage: 'Search channels'})}
                 onInput={handleChange}

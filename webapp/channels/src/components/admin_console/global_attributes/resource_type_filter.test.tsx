@@ -26,7 +26,7 @@ describe('ResourceTypeFilter', () => {
         );
     }
 
-    const trigger = () => screen.getByTestId('global-attributes-resource-type-filter');
+    const trigger = () => screen.getByTestId('admin.attributes.resource_type_filter--button');
     const shownValue = () => screen.getByRole('textbox', {hidden: true});
 
     test('shows the current selection under the Resource type label', () => {

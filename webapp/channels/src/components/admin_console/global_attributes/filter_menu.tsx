@@ -39,13 +39,14 @@ export default function FilterMenu<T extends string>({id, testId, label, menuBut
                 menuButton={{
                     id: `${id}Button`,
                     class: 'inputWithMenu',
-                    dataTestId: testId,
+                    dataTestId: `${testId}--button`,
                     'aria-label': formatMessage(menuButtonAriaLabel),
                     as: 'div',
                     children: (
                         <Input
                             label={formatMessage(label)}
                             name={id}
+                            testId={`${testId}.input`}
                             value={formatMessage(selected.label)}
                             readOnly={true}
                             tabIndex={-1}

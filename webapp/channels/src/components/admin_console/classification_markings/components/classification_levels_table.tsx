@@ -120,6 +120,7 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
                         <WithTooltip title={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}>
                             <DeleteButton
                                 aria-label={formatMessage({id: 'admin.classification_markings.levels.table.delete', defaultMessage: 'Delete level'})}
+                                data-testid='admin.classification.levels.row.delete--button'
                                 onClick={() => deleteLevel(row.original.id)}
                             >
                                 <TrashCanOutlineIcon
@@ -152,7 +153,10 @@ export default function ClassificationLevelsTable({levels, updateLevel, deleteLe
 
     return (
         <TableWrapper>
-            <AdminConsoleListTable<ClassificationLevel> table={table}/>
+            <AdminConsoleListTable<ClassificationLevel>
+                table={table}
+                testIdScope='admin.classification.levels'
+            />
         </TableWrapper>
     );
 }

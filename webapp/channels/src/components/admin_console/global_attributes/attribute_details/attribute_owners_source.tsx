@@ -33,7 +33,7 @@ function OwnerSettingsLink({pluginId}: {pluginId: string}): JSX.Element {
         <Link
             to={`/admin_console/plugins/plugin_${pluginId}`}
             className='AttributePluginSource__link'
-            data-testid={`attributeOwnersSourceLink-${pluginId}`}
+            data-testid={`admin.attribute.owners_source.settings:${pluginId}--link`}
         >
             <FormattedMessage
                 {...messages.settingsLink}
@@ -56,14 +56,14 @@ function AttributeOwnersSource({owners, pluginInventoryLoaded}: Props): JSX.Elem
     return (
         <div
             className='AttributePluginSource'
-            data-testid='attributeOwnersSource'
+            data-testid='admin.attribute.owners_source'
         >
             <div className='AttributePluginSource__managedBy'>
                 <PowerPlugOutlineIcon
                     size={16}
                     aria-hidden={true}
                 />
-                <span data-testid='attributeOwnersSourceManagedBy'>
+                <span data-testid='admin.attribute.owners_source.managed_by--text'>
                     {formatMessage(messages.managedBy, {owners: scopedOwnersLabel})}
                 </span>
                 {pluginInventoryLoaded && owners.map((owner) => (
@@ -77,7 +77,7 @@ function AttributeOwnersSource({owners, pluginInventoryLoaded}: Props): JSX.Elem
             </div>
             <p
                 className='AttributePluginSource__helperText'
-                data-testid='attributeOwnersSourceHelperText'
+                data-testid='admin.attribute.owners_source.help--text'
             >
                 {formatMessage(messages.helperText, {owners: ownersLabel})}
             </p>

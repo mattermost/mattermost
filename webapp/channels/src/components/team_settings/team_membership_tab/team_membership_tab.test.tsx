@@ -495,7 +495,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
         // While saving: the panel button reads "Saving..." and is disabled
         await waitFor(() => expect(screen.getByText('Saving...')).toBeInTheDocument());
-        expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeDisabled();
+        expect(screen.getByTestId('team_settings_modal.save_panel.save--button')).toBeDisabled();
 
         // Finish the save
         resolveSave({data: {id: 'team_id'}});
@@ -734,7 +734,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
             renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
 
-            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(await screen.findByTestId('team_settings_modal.membership.locked_rules')).toBeInTheDocument();
             expect(mockActions.getVisualAST).toHaveBeenCalledWith(complexRule);
             expect(screen.getByRole('status')).toHaveTextContent('can only be edited in the System Console');
             expect(screen.getByText(complexRule)).toBeInTheDocument();
@@ -779,7 +779,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
 
             renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
 
-            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(await screen.findByTestId('team_settings_modal.membership.locked_rules')).toBeInTheDocument();
             expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
         });
 
@@ -792,14 +792,14 @@ describe('components/team_settings/TeamMembershipTab', () => {
             renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
 
             expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
-            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('team_settings_modal.membership.locked_rules')).not.toBeInTheDocument();
         });
 
         it('re-checks when another team\'s rule loads', async () => {
             mockLoadedRule(complexRule, false);
 
             const {rerender} = renderWithContext(<TeamMembershipTab {...baseProps}/>, initialState);
-            expect(await screen.findByTestId('team-membership-locked-rules')).toBeInTheDocument();
+            expect(await screen.findByTestId('team_settings_modal.membership.locked_rules')).toBeInTheDocument();
 
             mockLoadedRule('user.attributes.department == "Sales"');
             rerender(
@@ -810,7 +810,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
             );
 
             expect(await screen.findByTestId('table-editor')).toBeInTheDocument();
-            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('team_settings_modal.membership.locked_rules')).not.toBeInTheDocument();
         });
 
         it('a table parse error shows inline and never locks the tab', async () => {
@@ -821,7 +821,7 @@ describe('components/team_settings/TeamMembershipTab', () => {
             await userEvent.click(await screen.findByTestId('table-editor-parse-error'));
             await userEvent.click(screen.getByTestId('table-editor-change'));
 
-            expect(screen.queryByTestId('team-membership-locked-rules')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('team_settings_modal.membership.locked_rules')).not.toBeInTheDocument();
             expect(await screen.findByText('Invalid expression format')).toBeInTheDocument();
         });
     });

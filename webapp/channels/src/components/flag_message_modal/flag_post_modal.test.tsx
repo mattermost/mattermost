@@ -60,8 +60,8 @@ describe('components/FlagPostModal', () => {
         expect(screen.getByText('Reason 2')).toBeVisible();
         expect(screen.getByText('Reason 3')).toBeVisible();
 
-        expect(screen.getByTestId('FlagPostModal__post-preview_container')).toHaveTextContent('Test message');
-        expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (required)');
+        expect(screen.getByTestId('flag_post_modal.post_preview')).toHaveTextContent('Test message');
+        expect(screen.getByTestId('flag_post_modal.comment_title--text')).toHaveTextContent('Comment (required)');
     });
 
     it('should render "required" title when comment is required', () => {
@@ -73,7 +73,7 @@ describe('components/FlagPostModal', () => {
             baseState,
         );
 
-        expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (required)');
+        expect(screen.getByTestId('flag_post_modal.comment_title--text')).toHaveTextContent('Comment (required)');
     });
 
     it('should render "optional" title when comment is not required', () => {
@@ -87,7 +87,7 @@ describe('components/FlagPostModal', () => {
             state,
         );
 
-        expect(screen.getByTestId('FlagPostModal__comment_section_title')).toHaveTextContent('Comment (optional)');
+        expect(screen.getByTestId('flag_post_modal.comment_title--text')).toHaveTextContent('Comment (optional)');
     });
 
     it('should call Client4.flagPost when submit button is clicked with valid form data', async () => {

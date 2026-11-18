@@ -58,7 +58,7 @@ describe('BoardAttributes (top-level screen)', () => {
 
         renderWithContext(<BoardAttributes disabled={false}/>);
 
-        expect(screen.getByTestId('boardAttributes')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.board_attributes')).toBeInTheDocument();
         expect(screen.getAllByText(/board attributes/i).length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText(/customize the attributes available by default/i)).toBeInTheDocument();
         expect(screen.getByTestId('table-content')).toBeInTheDocument();

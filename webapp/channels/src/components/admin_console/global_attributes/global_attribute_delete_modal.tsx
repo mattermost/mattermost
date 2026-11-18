@@ -85,6 +85,7 @@ function GlobalAttributeDeleteModal({name, onConfirm, onExited, isOrphaned = fal
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
+            testId='admin.attributes.delete_modal'
         >
             {/* An uninstalled plugin leaves no manifest behind to resolve a display
                 name from, so the raw plugin ID (source_plugin_id or an owner's ID) is the

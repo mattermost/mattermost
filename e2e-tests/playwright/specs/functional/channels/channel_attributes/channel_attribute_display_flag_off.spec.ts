@@ -14,6 +14,7 @@ import {
     optionId,
     setChannelValue,
 } from './helpers';
+import {openChannel, openChannelInfo} from './surface';
 
 test.describe('Channel attribute display and editing (flag off)', {tag: ['@channel_attributes']}, () => {
     /**
@@ -43,16 +44,14 @@ test.describe('Channel attribute display and editing (flag off)', {tag: ['@chann
             await adminClient.addToChannel(user.id, channel.id);
             await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'HIDDEN'));
 
-            const {page, channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channel.name);
-            await channelsPage.toBeVisible();
+            const app = await openChannel(pw, user, team, channel);
 
             // The value stays in the database; only the surfaces disappear.
-            await expect(page.getByTestId('channelAttributeLabels-info-header')).toHaveCount(0);
-            await expect(page.getByText('HIDDEN')).toHaveCount(0);
+            await expect(app.channelHeader.infoButton).toBeVisible();
+            await expect(app.channelHeader.attributes).toHaveCount(0);
 
-            await page.locator('#channel-info-btn').click();
-            await expect(page.getByTestId('channelInfoAttributes')).toHaveCount(0);
+            await openChannelInfo(app);
+            await expect(app.rhs.channelInfo.about.attributes).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
         }

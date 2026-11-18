@@ -77,6 +77,8 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
     };
 
     const COMBOBOX_ID = 'customProfileAttribute_field1';
+    const TEST_ID_SCOPE = 'settings.custom_attribute';
+    const COMBOBOX_TEST_ID = `${TEST_ID_SCOPE}.value_choice--combobox`;
     const OPTIONS = [
         {id: 'opt1', name: 'Option 1', color: ''},
         {id: 'opt2', name: 'Option 2', color: ''},
@@ -125,8 +127,8 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
 
             const combobox = getCombobox();
             expect(combobox).toHaveAttribute('id', COMBOBOX_ID);
-            expect(combobox).toHaveAttribute('data-testid', COMBOBOX_ID);
-            expect(screen.getByTestId(COMBOBOX_ID)).toBe(combobox);
+            expect(combobox).toHaveAttribute('data-testid', COMBOBOX_TEST_ID);
+            expect(screen.getByTestId(COMBOBOX_TEST_ID)).toBe(combobox);
             expect(document.getElementById(`${COMBOBOX_ID}_input`)).toBeNull();
 
             await userEvent.click(combobox);
@@ -134,8 +136,8 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expect(screen.getByRole('listbox')).toHaveAttribute('id', `${COMBOBOX_ID}-listbox`);
             const option = screen.getByRole('option', {name: 'Option 1'});
             expect(option).toHaveAttribute('id', `${COMBOBOX_ID}-listbox-option-opt1`);
-            expect(option).toHaveAttribute('data-testid', `${COMBOBOX_ID}-option-opt1`);
-            expect(screen.getByTestId(`${COMBOBOX_ID}-option-opt3`)).toHaveAccessibleName('Option 3');
+            expect(option).toHaveAttribute('data-testid', `${TEST_ID_SCOPE}.choice:opt1--option`);
+            expect(screen.getByTestId(`${TEST_ID_SCOPE}.choice:opt3--option`)).toHaveAccessibleName('Option 3');
         });
 
         test('lists options in definition order', async () => {
@@ -149,10 +151,10 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
         test('a select field without ranks shows no rank text or badge', async () => {
             renderEditor(buildField('select'), 'opt1');
 
-            expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(/^settings\.custom_attribute\.(choice\.)?badge--text$/)).not.toBeInTheDocument();
             await userEvent.click(getCombobox());
 
-            expect(screen.queryByTestId('rank-badge')).not.toBeInTheDocument();
+            expect(screen.queryByTestId(/^settings\.custom_attribute\.(choice\.)?badge--text$/)).not.toBeInTheDocument();
             expect(screen.queryByText(/Rank/)).not.toBeInTheDocument();
             expect(screen.getByRole('option', {name: 'Option 1'})).toBeInTheDocument();
         });
@@ -161,7 +163,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             renderEditor(buildField('select', {display_name: 'Friendly Name'}), 'opt1');
 
             expect(getCombobox('Friendly Name')).toHaveValue('Option 1');
-            expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toHaveAccessibleName('Clear Friendly Name');
+            expect(screen.getByTestId(`${TEST_ID_SCOPE}.clear--button`)).toHaveAccessibleName('Clear Friendly Name');
             expect(screen.queryByRole('combobox', {name: 'Test Attribute'})).not.toBeInTheDocument();
         });
 
@@ -182,9 +184,9 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
 
             const combobox = getCombobox();
             expect(combobox).toHaveValue('Junior');
-            expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toBeInTheDocument();
+            expect(screen.getByTestId(`${TEST_ID_SCOPE}.clear--button`)).toBeInTheDocument();
             expect(screen.queryByRole('toolbar')).not.toBeInTheDocument();
-            expect(within(container).getByTestId('rank-badge')).toHaveTextContent('1');
+            expect(within(container).getByTestId(/^settings\.custom_attribute\.(choice\.)?badge--text$/)).toHaveTextContent('1');
             expect(combobox).toHaveAccessibleDescription('Rank 1');
 
             await userEvent.click(combobox);
@@ -193,9 +195,9 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
                 `${COMBOBOX_ID}-listbox-option-mid`,
                 `${COMBOBOX_ID}-listbox-option-junior`,
             ]);
-            const midRow = screen.getByTestId(`${COMBOBOX_ID}-option-mid`);
+            const midRow = screen.getByTestId(`${TEST_ID_SCOPE}.choice:mid--option`);
             expect(midRow).toHaveAccessibleName('Mid, Rank 2');
-            expect(within(midRow).getByTestId('rank-badge')).toHaveTextContent('2');
+            expect(within(midRow).getByTestId(/^settings\.custom_attribute\.(choice\.)?badge--text$/)).toHaveTextContent('2');
             expect(midRow).not.toHaveTextContent(/Rank/);
             await userEvent.click(screen.getByRole('option', {name: 'Mid, Rank 2'}));
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
@@ -231,14 +233,14 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
 
             expect(getCombobox()).toHaveValue('');
             expect(getCombobox()).toHaveAttribute('placeholder', 'Select an option');
-            expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${TEST_ID_SCOPE}.clear--button`)).not.toBeInTheDocument();
         });
 
         test('shows the first id of an array draft on a single field', () => {
             renderEditor(buildField('select'), ['opt1', 'opt2']);
 
             expect(getCombobox()).toHaveValue('Option 1');
-            expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toBeInTheDocument();
+            expect(screen.getByTestId(`${TEST_ID_SCOPE}.clear--button`)).toBeInTheDocument();
         });
 
         test('saves the shown first id of an array draft on a single field when the user saves without changes', async () => {
@@ -253,7 +255,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             const {saveCustomProfileAttribute} = renderEditor(buildField('select'), 'gone');
 
             expect(getCombobox()).toHaveValue('gone');
-            expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toBeInTheDocument();
+            expect(screen.getByTestId(`${TEST_ID_SCOPE}.clear--button`)).toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', 'gone');
@@ -289,7 +291,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
 
             expect(getCombobox()).toHaveAttribute('placeholder', 'Select options');
             expect(getChipLabels()).toEqual([]);
-            expect(screen.queryByTestId(`${COMBOBOX_ID}-clear`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(`${TEST_ID_SCOPE}.clear--button`)).not.toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
             expect(saveCustomProfileAttribute).toHaveBeenCalledWith('user_id', 'field1', []);
@@ -476,7 +478,7 @@ describe('components/user_settings/general/UserSettingsGeneral custom attribute 
             expect(getCombobox()).toHaveFocus();
 
             await user.tab();
-            expect(screen.getByTestId(`${COMBOBOX_ID}-clear`)).toHaveFocus();
+            expect(screen.getByTestId(`${TEST_ID_SCOPE}.clear--button`)).toHaveFocus();
 
             await user.keyboard('{Enter}');
 

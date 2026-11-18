@@ -36,9 +36,9 @@ describe('AttributePluginSource', () => {
     it('renders the resolved plugin name and a settings link when not orphaned', () => {
         renderComponent({isOrphaned: false}, 'Test Plugin');
 
-        expect(screen.getByTestId('attributePluginSourceManagedBy')).toHaveTextContent('Managed by Test Plugin');
+        expect(screen.getByTestId('admin.attribute.plugin_source.managed_by--text')).toHaveTextContent('Managed by Test Plugin');
 
-        const link = screen.getByTestId('attributePluginSourceLink');
+        const link = screen.getByTestId('admin.attribute.plugin_source.settings--link');
         expect(link).toHaveAttribute('href', '/admin_console/plugins/plugin_test-plugin');
         expect(link).toHaveTextContent('Plugin settings');
     });
@@ -46,29 +46,29 @@ describe('AttributePluginSource', () => {
     it('renders the orphaned copy with no settings link when orphaned', () => {
         renderComponent({isOrphaned: true}, 'Test Plugin');
 
-        expect(screen.getByTestId('attributePluginSourceManagedBy')).toHaveTextContent('Managed by Test Plugin (no longer installed)');
-        expect(screen.queryByTestId('attributePluginSourceLink')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.plugin_source.managed_by--text')).toHaveTextContent('Managed by Test Plugin (no longer installed)');
+        expect(screen.queryByTestId('admin.attribute.plugin_source.settings--link')).not.toBeInTheDocument();
     });
 
     it('renders the read-only helper text regardless of orphan status', () => {
         renderComponent({isOrphaned: false});
-        expect(screen.getByTestId('attributePluginSourceHelperText')).toHaveTextContent('Name, type, and values are owned by the plugin and are read-only here.');
+        expect(screen.getByTestId('admin.attribute.plugin_source.help--text')).toHaveTextContent('Name, type, and values are owned by the plugin and are read-only here.');
 
         renderComponent({isOrphaned: true});
-        expect(screen.getAllByTestId('attributePluginSourceHelperText')[1]).toHaveTextContent('Name, type, and values are owned by the plugin and are read-only here.');
+        expect(screen.getAllByTestId('admin.attribute.plugin_source.help--text')[1]).toHaveTextContent('Name, type, and values are owned by the plugin and are read-only here.');
     });
 
     it('suppresses the settings link until the plugin inventory has settled, even for a not-actually-orphaned plugin', () => {
         renderComponent({isOrphaned: false, pluginInventoryLoaded: false}, 'Test Plugin');
 
-        expect(screen.getByTestId('attributePluginSourceManagedBy')).toHaveTextContent('Managed by Test Plugin');
-        expect(screen.queryByTestId('attributePluginSourceLink')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.plugin_source.managed_by--text')).toHaveTextContent('Managed by Test Plugin');
+        expect(screen.queryByTestId('admin.attribute.plugin_source.settings--link')).not.toBeInTheDocument();
     });
 
     it('falls back to the raw plugin id when the plugin name cannot be resolved', () => {
         renderComponent({pluginId: 'unresolved-plugin', isOrphaned: false});
 
-        expect(screen.getByTestId('attributePluginSourceManagedBy')).toHaveTextContent('Managed by unresolved-plugin');
+        expect(screen.getByTestId('admin.attribute.plugin_source.managed_by--text')).toHaveTextContent('Managed by unresolved-plugin');
     });
 
     it('makes no Client4 or data-mutating dispatch calls', () => {

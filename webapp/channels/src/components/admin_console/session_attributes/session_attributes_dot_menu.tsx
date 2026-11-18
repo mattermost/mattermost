@@ -51,11 +51,11 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
         }));
     };
 
-    const renderPresets = (current: number, testIdPrefix: string, apply: (seconds: number) => void) => DURATION_PRESETS_SECONDS.map((seconds) => (
+    const renderPresets = (current: number, idPrefix: string, testIdScope: 'admin.session_attributes.actions_menu.ttl' | 'admin.session_attributes.actions_menu.grace', apply: (seconds: number) => void) => DURATION_PRESETS_SECONDS.map((seconds) => (
         <Menu.Item
             key={seconds}
-            id={`${testIdPrefix}-${seconds}`}
-            data-testid={`${testIdPrefix}-${seconds}`}
+            id={`${idPrefix}-${seconds}`}
+            data-testid={`${testIdScope}:${seconds}--menuitemradio`}
             role='menuitemradio'
             forceCloseOnSelect={true}
             aria-checked={current === seconds}
@@ -79,7 +79,7 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
                 as: SessionAttributesMenuTrigger,
                 'aria-label': buttonLabel,
                 children: <Icon glyph={<DotsVerticalIcon/>}/>,
-                dataTestId: menuId,
+                dataTestId: 'admin.session_attributes.row.actions--button',
                 disabled,
             }}
             menuButtonTooltip={{
@@ -94,6 +94,7 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
                 <Menu.SubMenu
                     key={`${menuId}-ttl`}
                     id={`${menuId}-ttl`}
+                    data-testid='admin.session_attributes.actions_menu.ttl_options--menuitem'
                     menuId={`${menuId}-ttl-menu`}
                     leadingElement={<UpdateIcon size={18}/>}
                     labels={(
@@ -109,11 +110,12 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
                         </>
                     )}
                 >
-                    {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, handleTtlChange)}
+                    {renderPresets(attrs.ttl_seconds, `session-attribute-ttl-option-${field.id}`, 'admin.session_attributes.actions_menu.ttl', handleTtlChange)}
                 </Menu.SubMenu>,
                 <Menu.SubMenu
                     key={`${menuId}-grace`}
                     id={`${menuId}-grace`}
+                    data-testid='admin.session_attributes.actions_menu.grace_options--menuitem'
                     menuId={`${menuId}-grace-menu`}
                     leadingElement={<AlertCircleOutlineIcon size={18}/>}
                     labels={(
@@ -129,14 +131,14 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
                         </>
                     )}
                 >
-                    {renderPresets(attrs.grace_period_seconds, `session-attribute-grace-option-${field.id}`, (seconds) => onStageChange(field.id, {grace_period_seconds: seconds}))}
+                    {renderPresets(attrs.grace_period_seconds, `session-attribute-grace-option-${field.id}`, 'admin.session_attributes.actions_menu.grace', (seconds) => onStageChange(field.id, {grace_period_seconds: seconds}))}
                 </Menu.SubMenu>,
                 <Menu.Separator key={`${menuId}-separator`}/>,
             ])}
             {attrs.enabled ? (
                 <Menu.Item
                     id={`session-attribute-disable-${field.id}`}
-                    data-testid={`session-attribute-disable-${field.id}`}
+                    data-testid='admin.session_attributes.actions_menu.disable--menuitem'
                     isDestructive={true}
                     leadingElement={<CancelIcon size={18}/>}
                     onClick={openDisableModal}
@@ -150,7 +152,7 @@ export default function SessionAttributesDotMenu({field, onStageChange, disabled
             ) : (
                 <Menu.Item
                     id={`session-attribute-enable-${field.id}`}
-                    data-testid={`session-attribute-enable-${field.id}`}
+                    data-testid='admin.session_attributes.actions_menu.enable--menuitem'
                     leadingElement={<CheckCircleOutlineIcon size={18}/>}
                     onClick={() => onStageChange(field.id, {enabled: true})}
                     labels={(

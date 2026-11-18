@@ -198,7 +198,7 @@ const MultiValueSelector = ({
                 <Menu.InputItem
                     key='filter_values'
                     id='filter_values'
-                    testId={testId ? `${testId}.value_menu.filter` : undefined}
+                    testId={testId ? 'policy_rule_value_menu.filter' : undefined}
                     type='text'
                     placeholder={formatMessage(actualAllowCreateForMenu ? {
                         id: 'admin.access_control.table_editor.selector.filter_or_create',
@@ -229,7 +229,7 @@ const MultiValueSelector = ({
                         <Menu.Item
                             id={`value-option-${id}`}
                             key={id}
-                            data-testid={testId ? `${testId}.value_menu.multi_option:${option.id}--menuitemcheckbox` : undefined}
+                            data-testid={testId ? `policy_rule_value_menu.multi_option:${option.id}--menuitemcheckbox` : undefined}
                             role='menuitemcheckbox'
                             forceCloseOnSelect={false}
                             aria-checked={isSelected}
@@ -245,7 +245,7 @@ const MultiValueSelector = ({
                     <Menu.Item
                         id='create-value-option'
                         key='create-value-option'
-                        data-testid={testId ? `${testId}.value_menu.create--menuitem` : undefined}
+                        data-testid={testId ? 'policy_rule_value_menu.create--menuitem' : undefined}
                         onClick={() => handleCreateValue(filter)}
                         labels={<span>
                             {formatMessage({

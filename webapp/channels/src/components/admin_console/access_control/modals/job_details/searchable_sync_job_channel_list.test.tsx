@@ -94,7 +94,7 @@ describe('SearchableSyncJobChannelList', () => {
         });
 
         it('reverts to the neutral message when the search term is cleared', async () => {
-            renderWithContext(
+            const {container} = renderWithContext(
                 <SearchableSyncJobChannelList {...emptyProps}/>,
                 baseState,
             );
@@ -102,7 +102,8 @@ describe('SearchableSyncJobChannelList', () => {
             await userEvent.type(screen.getByPlaceholderText('Search channels'), 'nomatch');
             expect(screen.getByText('No results for "nomatch"')).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('input-clear'));
+            // the clear button has no accessible name or test id, so it is found by its class
+            await userEvent.click(container.querySelector('button.input-clear')!);
 
             expect(screen.getByText('No channels were affected by this job.')).toBeInTheDocument();
             expect(screen.queryByText('No channels match your search or filter.')).not.toBeInTheDocument();

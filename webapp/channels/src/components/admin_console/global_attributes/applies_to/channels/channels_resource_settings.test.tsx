@@ -38,6 +38,7 @@ describe('ChannelsResourceSettings', () => {
             <ChannelsResourceSettings
                 value={value}
                 onChange={onChange}
+                testIdScope='admin.attribute.applies_to.channel.settings'
                 disabled={props.disabled}
             />,
             state,
@@ -49,14 +50,14 @@ describe('ChannelsResourceSettings', () => {
     it('hides the Required toggle by default (ChannelAttributesRequired off)', () => {
         renderSettings();
 
-        expect(screen.queryByTestId('channelsResourceRequired-button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.attribute.applies_to.channel.settings.required--switch')).not.toBeInTheDocument();
         expect(screen.queryByText('Required')).not.toBeInTheDocument();
     });
 
     it('shows the Required toggle when ChannelAttributesRequired is on', () => {
         renderSettings(DEFAULT_CHANNEL_RESOURCE_CONFIG, requiredEnabledState);
 
-        expect(screen.getByTestId('channelsResourceRequired-button')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch')).toBeInTheDocument();
         expect(screen.getByText('Required')).toBeInTheDocument();
     });
 
@@ -73,8 +74,8 @@ describe('ChannelsResourceSettings', () => {
             displayLocations: [DISPLAY_LABEL_HEADER],
         });
 
-        const header = screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`);
-        const banner = screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`);
+        const header = screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`);
+        const banner = screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_BANNER_TOP}--checkbox`);
 
         expect(header).toBeChecked();
         expect(banner).not.toBeChecked();
@@ -88,7 +89,7 @@ describe('ChannelsResourceSettings', () => {
             displayLocations: [],
         });
 
-        await userEvent.click(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`));
+        await userEvent.click(screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`));
 
         expect(onChange).toHaveBeenCalledWith(expect.objectContaining({
             displayLocations: [DISPLAY_LABEL_HEADER],
@@ -98,13 +99,13 @@ describe('ChannelsResourceSettings', () => {
     it('disables location checkboxes when disabled', () => {
         renderSettings(DEFAULT_CHANNEL_RESOURCE_CONFIG, undefined, {disabled: true});
 
-        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_LABEL_HEADER}`)).toBeDisabled();
-        expect(screen.getByTestId(`channelsResourceLocation-${DISPLAY_BANNER_TOP}`)).toBeDisabled();
+        expect(screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_LABEL_HEADER}--checkbox`)).toBeDisabled();
+        expect(screen.getByTestId(`admin.attribute.applies_to.channel.settings.location:${DISPLAY_BANNER_TOP}--checkbox`)).toBeDisabled();
     });
 
     it('keeps the Required control as a switch, not a Compass Checkbox', () => {
         renderSettings(DEFAULT_CHANNEL_RESOURCE_CONFIG, requiredEnabledState);
 
-        expect(screen.getByTestId('channelsResourceRequired-button')).toHaveAttribute('role', 'switch');
+        expect(screen.getByTestId('admin.attribute.applies_to.channel.settings.required--switch')).toHaveAttribute('role', 'switch');
     });
 });

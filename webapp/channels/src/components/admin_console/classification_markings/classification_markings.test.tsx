@@ -764,7 +764,7 @@ describe('ClassificationMarkings component', () => {
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
         const checkbox = await screen.findByRole('checkbox', {name: 'Enable clearance attribute'});
 
-        expect(checkbox).toHaveAttribute('data-testid', 'clearanceAttributeCheckbox');
+        expect(checkbox).toHaveAttribute('data-testid', 'admin.classification.clearance_attribute--checkbox');
         expect(checkbox).toBeChecked();
         expect(
             screen.queryByRole('heading', {name: 'Classification markings are informational only'}),
@@ -783,7 +783,7 @@ describe('ClassificationMarkings component', () => {
         mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByTestId('clearanceAttributeCheckbox');
+        await screen.findByTestId('admin.classification.clearance_attribute--checkbox');
 
         await userEvent.setup().click(screen.getByText('membership policy'));
         expect(mockHistoryPush).toHaveBeenCalledWith('/admin_console/system_attributes/membership_policies');
@@ -797,7 +797,7 @@ describe('ClassificationMarkings component', () => {
         mockFieldsByObjectType({[CLASSIFICATIONS_TEMPLATE_OBJECT_TYPE]: [field]});
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByTestId('clearanceAttributeCheckbox');
+        await screen.findByTestId('admin.classification.clearance_attribute--checkbox');
         await waitForClearanceNameListing();
 
         expect(within(screen.getByTestId('admin.setting:clearanceAttribute--group')).getByTestId('admin.setting.help--text')).toHaveTextContent(
@@ -978,7 +978,7 @@ describe('ClassificationMarkings component', () => {
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
-        const colorInput = screen.getByTestId('color-inputColorValue');
+        const colorInput = screen.getByTestId('admin.classification.levels.row.color--textbox');
 
         await act(async () => {
             await user.clear(colorInput);
@@ -1021,7 +1021,7 @@ describe('ClassificationMarkings component', () => {
         await screen.findByText('Classification levels');
 
         const user = userEvent.setup();
-        const colorInput = screen.getByTestId('color-inputColorValue');
+        const colorInput = screen.getByTestId('admin.classification.levels.row.color--textbox');
 
         await user.clear(colorInput);
         await user.type(colorInput, '#1a2b3c');
@@ -1266,7 +1266,7 @@ describe('GlobalClassificationIndicators section', () => {
         const user = userEvent.setup();
 
         // Change the level color.
-        const colorInput = screen.getByTestId('color-inputColorValue');
+        const colorInput = screen.getByTestId('admin.classification.levels.row.color--textbox');
         await user.clear(colorInput);
         await user.type(colorInput, '#112233');
         await user.tab();
@@ -1677,10 +1677,10 @@ describe('Channel classification linked field branches', () => {
         const createSpy = jest.spyOn(Client4, 'createPropertyField').mockResolvedValue(createdClearance);
 
         const {store} = renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByTestId('clearanceAttributeCheckbox');
+        await screen.findByTestId('admin.classification.clearance_attribute--checkbox');
 
         const user = userEvent.setup();
-        await user.click(screen.getByTestId('clearanceAttributeCheckbox'));
+        await user.click(screen.getByTestId('admin.classification.clearance_attribute--checkbox'));
         await user.click(await screen.findByText('Save'));
 
         await waitFor(() => {
@@ -1729,10 +1729,10 @@ describe('Channel classification linked field branches', () => {
         const deleteSpy = jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByTestId('clearanceAttributeCheckbox');
+        await screen.findByTestId('admin.classification.clearance_attribute--checkbox');
 
         const user = userEvent.setup();
-        const checkbox = screen.getByTestId('clearanceAttributeCheckbox');
+        const checkbox = screen.getByTestId('admin.classification.clearance_attribute--checkbox');
         expect(checkbox).toBeChecked();
         await user.click(checkbox);
         await user.click(await screen.findByText('Save'));
@@ -2122,7 +2122,7 @@ describe('Custom preset caching and dropdown visibility', () => {
             await user.tab();
 
             // Select the new level for the global banner using the level dropdown.
-            const levelDropdownWrapper = screen.getByTestId('globalBannerLevel');
+            const levelDropdownWrapper = screen.getByTestId('admin.classification.global_banner_level');
             const levelControl = levelDropdownWrapper.querySelector('.DropDown__control')!;
             await act(async () => {
                 await user.click(levelControl);
@@ -2255,7 +2255,7 @@ describe('Conflicting same-named fields', () => {
 
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
 
-        const checkbox = await screen.findByTestId('clearanceAttributeCheckbox');
+        const checkbox = await screen.findByTestId('admin.classification.clearance_attribute--checkbox');
         expect(checkbox).toBeDisabled();
         expect(checkbox).not.toBeChecked();
         expect(screen.getByRole('heading', {name: 'Clearance attribute cannot be created'})).toBeInTheDocument();
@@ -2284,7 +2284,7 @@ describe('Clearance name shared with another attribute', () => {
 
     async function renderClearanceSection() {
         renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-        await screen.findByTestId('clearanceAttributeCheckbox');
+        await screen.findByTestId('admin.classification.clearance_attribute--checkbox');
         await waitForClearanceNameListing();
         return within(screen.getByTestId('admin.setting:clearanceAttribute--group'));
     }
@@ -2311,8 +2311,8 @@ describe('Clearance name shared with another attribute', () => {
         // The half that matters: this one warns, it does not block. The server
         // accepts the user field this page creates, so the admin is still allowed
         // to create it — unlike the same-named user field below.
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).not.toBeChecked();
+        expect(screen.getByTestId('admin.classification.clearance_attribute--checkbox')).toBeEnabled();
+        expect(screen.getByTestId('admin.classification.clearance_attribute--checkbox')).not.toBeChecked();
         expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
     });
 
@@ -2327,13 +2327,13 @@ describe('Clearance name shared with another attribute', () => {
 
         const section = await renderClearanceSection();
 
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeChecked();
+        expect(screen.getByTestId('admin.classification.clearance_attribute--checkbox')).toBeChecked();
         expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
         expect(section.getByText(WARNING_TEXT)).toBeInTheDocument();
 
         // Still not a block: the checkbox stays live so clearance can be turned
         // back off, which is the only action the warning leaves to take.
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+        expect(screen.getByTestId('admin.classification.clearance_attribute--checkbox')).toBeEnabled();
         expect(section.queryByRole('heading', {name: 'Clearance attribute cannot be created'})).not.toBeInTheDocument();
     });
 
@@ -2348,7 +2348,7 @@ describe('Clearance name shared with another attribute', () => {
 
         expect(section.getByRole('heading', {name: 'Another attribute already uses this name'})).toBeInTheDocument();
         expect(section.getByText(/Rename "CLEARANCE" in Attribute Management/)).toBeInTheDocument();
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+        expect(screen.getByTestId('admin.classification.clearance_attribute--checkbox')).toBeEnabled();
     });
 
     test('should stay quiet about an attribute whose name is something else', async () => {
@@ -2372,7 +2372,7 @@ describe('Clearance name shared with another attribute', () => {
 
         expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
         expect(section.queryByText(/in Attribute Management so it isn't mistaken/)).not.toBeInTheDocument();
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+        expect(screen.getByTestId('admin.classification.clearance_attribute--checkbox')).toBeEnabled();
     });
 
     test('should drop the warning while the blocking user-field conflict is showing', async () => {
@@ -2385,7 +2385,7 @@ describe('Clearance name shared with another attribute', () => {
 
         const section = await renderClearanceSection();
 
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeDisabled();
+        expect(screen.getByTestId('admin.classification.clearance_attribute--checkbox')).toBeDisabled();
         expect(section.getByRole('heading', {name: 'Clearance attribute cannot be created'})).toBeInTheDocument();
         expect(section.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
     });
@@ -2424,7 +2424,7 @@ describe('Clearance name listing failures', () => {
         try {
             mockFieldsByObjectTypeWithFailingTemplateListing(fixture, error);
             renderWithContext(<ClassificationMarkings/>, ABAC_STATE);
-            await screen.findByTestId('clearanceAttributeCheckbox');
+            await screen.findByTestId('admin.classification.clearance_attribute--checkbox');
             await waitForClearanceNameListing();
         } finally {
             console.error = origError;
@@ -2444,9 +2444,9 @@ describe('Clearance name listing failures', () => {
         expect(screen.getByText('Classification levels')).toBeInTheDocument();
         expect(screen.getByText('Add level')).toBeInTheDocument();
 
-        expect(screen.getByTestId('classificationPreset')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.classification.preset')).toBeInTheDocument();
 
-        expect(screen.getByTestId('clearanceAttributeCheckbox')).toBeEnabled();
+        expect(screen.getByTestId('admin.classification.clearance_attribute--checkbox')).toBeEnabled();
 
         expect(screen.queryByText(/Failed to load classification markings/)).not.toBeInTheDocument();
     }
@@ -2504,7 +2504,7 @@ describe('Clearance name listing failures', () => {
         expect(templateCalls).toHaveLength(1);
         expect(templateListingCalls()).toHaveLength(0);
 
-        expect(screen.queryByTestId('clearanceAttributeCheckbox')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.classification.clearance_attribute--checkbox')).not.toBeInTheDocument();
         expect(screen.queryByRole('heading', {name: 'Another attribute already uses this name'})).not.toBeInTheDocument();
     });
 });

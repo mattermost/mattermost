@@ -37,7 +37,7 @@ describe('SelectType (board attributes type menu)', () => {
             />,
         );
 
-        expect(screen.getByTestId('fieldTypeSelectorMenuButton')).toHaveTextContent(/select/i);
+        expect(screen.getByTestId('admin.board_attributes.row.type--button')).toHaveTextContent(/select/i);
     });
 
     it('disables the trigger button when the field is protected', () => {
@@ -48,7 +48,7 @@ describe('SelectType (board attributes type menu)', () => {
             />,
         );
 
-        expect(screen.getByTestId('fieldTypeSelectorMenuButton')).toBeDisabled();
+        expect(screen.getByTestId('admin.board_attributes.row.type--button')).toBeDisabled();
     });
 
     it('disables the trigger button when the field is flagged for delete', () => {
@@ -59,7 +59,7 @@ describe('SelectType (board attributes type menu)', () => {
             />,
         );
 
-        expect(screen.getByTestId('fieldTypeSelectorMenuButton')).toBeDisabled();
+        expect(screen.getByTestId('admin.board_attributes.row.type--button')).toBeDisabled();
     });
 
     it('exposes all five known field types when the menu opens', async () => {
@@ -70,7 +70,7 @@ describe('SelectType (board attributes type menu)', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('fieldTypeSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.type--button'));
 
         // The menu surfaces all the supported types
         expect(screen.getByRole('menuitemradio', {name: /text/i})).toBeInTheDocument();
@@ -88,7 +88,7 @@ describe('SelectType (board attributes type menu)', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('fieldTypeSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.type--button'));
 
         const selectItem = screen.getByRole('menuitemradio', {name: /^select$/i});
         expect(selectItem).toHaveAttribute('aria-checked', 'true');
@@ -108,7 +108,7 @@ describe('SelectType (board attributes type menu)', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('fieldTypeSelectorMenuButton'));
+        await userEvent.click(screen.getByTestId('admin.board_attributes.row.type--button'));
         await userEvent.click(screen.getByRole('menuitemradio', {name: /^select$/i}));
 
         expect(updateField).toHaveBeenCalledTimes(1);

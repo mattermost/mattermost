@@ -873,6 +873,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                 <UserAttributeField
                     key={field.id}
                     field={field}
+                    testIdScope='admin.user.attribute'
                     value={this.state.customProfileAttributeValues[field.id]}
                     error={cpaErrors[field.id]}
                     onChange={this.handleCpaValueChange}

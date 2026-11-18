@@ -41,13 +41,12 @@ export function FormStepFooter({
             <div className='ModalFooterRow__left'>
                 <label
                     className='download_report_checkbox'
-                    data-testid='download-report-checkbox-label'
                 >
                     <input
                         type='checkbox'
                         checked={downloadReport}
                         onChange={onToggleDownloadReport}
-                        data-testid='download-report-checkbox'
+                        data-testid='flagged_message_modal.form.download_report--checkbox'
                     />
                     <span>
                         <FormattedMessage
@@ -63,7 +62,7 @@ export function FormStepFooter({
                     className='GenericModal__button'
                     emphasis='tertiary'
                     onClick={onCancel}
-                    data-testid='form-cancel-button'
+                    data-testid='flagged_message_modal.form.cancel--button'
                 >
                     {cancelText}
                 </Button>
@@ -74,7 +73,7 @@ export function FormStepFooter({
                     destructive={primaryDestructive}
                     onClick={onPrimary}
                     disabled={submitting}
-                    data-testid='form-primary-button'
+                    data-testid='flagged_message_modal.form.primary--button'
                 >
                     {primaryText}
                 </Button>

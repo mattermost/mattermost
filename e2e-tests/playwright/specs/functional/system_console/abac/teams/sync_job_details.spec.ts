@@ -6,7 +6,7 @@
  * @reference MM-69100
  */
 
-import {expect, newTestPassword, test} from '@mattermost/playwright-lib';
+import {expect, newTestPassword, test, App, duration} from '@mattermost/playwright-lib';
 
 import {
     enableTeamMembershipABACConfig,
@@ -16,11 +16,33 @@ import {
     setUserAttribute,
     waitForAttributeViewToInclude,
 } from '../../../channels/team_settings/helpers';
+import {MEMBERSHIP_POLICIES_PATH} from '../surface';
 
 import {enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
 
+/** Opens System Console > Membership Policies, waiting for its sync jobs section. */
+async function openSyncJobs(app: App) {
+    await app.page.goto(MEMBERSHIP_POLICIES_PATH);
+    await expect(app.admin.accessControl.syncJobsTitleText).toBeVisible();
+}
+
+/** The most recent sync job's row (the table lists newest first). */
+async function latestSyncJob(app: App) {
+    const table = app.admin.jobs.table('access_control_sync');
+    await expect(await table.jobList.first()).toBeVisible();
+    return table.job({id: (await table.jobList.keys())[0]});
+}
+
+/** Opens a sync job's details on its Teams tab. */
+async function openTeamsTab(job: Awaited<ReturnType<typeof latestSyncJob>>) {
+    const details = await job.viewDetailsButton.clickTo(new App(job.page).jobDetailsModal);
+    await details.tab('teams').click();
+    await expect(details.teams.teamList.locator).not.toHaveCount(0);
+    return details.teams;
+}
+
 test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership']}, () => {
-    test.setTimeout(120000);
+    test.setTimeout(duration.two_min);
 
     let createdTeamIds: string[] = [];
     let createdUserIds: string[] = [];
@@ -96,40 +118,28 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         // # Trigger sync and wait for completion
         await triggerSyncJobAndPoll(adminClient, team.id);
 
-        // # Log in and navigate to sync jobs page
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const {page} = systemConsolePage;
-        await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
+        // # Log in and open the sync jobs section
+        const {app} = await pw.testBrowser.login(adminUser);
+        await openSyncJobs(app);
 
-        // * Section title is "Membership sync jobs" (capital S verified in en.json)
-        await expect(page.getByText(/Membership sync jobs/i)).toBeVisible({timeout: 10000});
+        // * Section title is "Membership Sync Jobs"
+        await expect(app.admin.accessControl.syncJobsTitleText).toHaveText(/Membership sync jobs/i);
 
-        // # Open the most recent job's details (the channel sync chained from the team sync)
-        const jobRow = page.locator('.job-table__access-control tr.clickable').first();
-        await expect(jobRow).toBeVisible({timeout: 10000});
+        // # Open the most recent job's details (the channel sync chained from the team sync). The row
+        // exposes a visible "View details" affordance (MM-69827 finding 12).
+        const job = await latestSyncJob(app);
+        await expect(job.viewDetailsButton).toBeVisible();
+        const teams = await openTeamsTab(job);
 
-        // * Row exposes a visible "View details" affordance (MM-69827 finding 12)
-        await expect(jobRow.getByText('View details')).toBeVisible();
+        // * Our team's row shows one removal (mkt1), not enough for the mass-removal warning
+        const teamRow = teams.team(team);
+        await expect(teamRow).toBeVisible();
+        await expect(teamRow.removedText).toHaveText(/-1/);
+        await expect(teamRow.massRemovalWarning).toHaveCount(0);
 
-        await jobRow.click();
-
-        const detailsModal = page.locator('#job-details-modal');
-        await expect(detailsModal).toBeVisible({timeout: 15000});
-
-        // # Switch to the Teams tab where the team membership changes are surfaced
-        await detailsModal.getByRole('button', {name: 'Teams'}).click();
-
-        // * Team row present for our team
-        const teamRow = page.getByTestId(`TeamRow-${team.name}`);
-        await expect(teamRow).toBeVisible({timeout: 10000});
-
-        // * Removed count shows -1 (mkt1 removed)
-        await expect(teamRow.locator('.changes-cell .removed')).toHaveText(/-1/);
-
-        // # Click team row to open the user drill-down modal
-        await teamRow.click();
-        await expect(page.locator('#user-list-modal-dialog')).toBeVisible({timeout: 10000});
+        // # Click the team row to open the user drill-down
+        await teamRow.container.click();
+        await expect(app.userSyncModal.closeButton).toBeVisible();
     });
 
     test('MM-69827-T1 Membership Sync Jobs names the channel scope and points to team sync when team ABAC is on', async ({
@@ -143,17 +153,17 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         await enableTeamMembershipABACConfig(adminClient);
         await enableTeamMembershipPolicies(adminClient);
 
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const {page} = systemConsolePage;
-        await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
+        const {app} = await pw.testBrowser.login(adminUser);
+        await openSyncJobs(app);
+        const {accessControl} = app.admin;
 
         // * Button names its scope so a green success isn't mistaken for a team re-sync
-        await expect(page.getByRole('button', {name: /Run Channel Sync/i})).toBeVisible({timeout: 10000});
+        await expect(accessControl.runSyncButton).toHaveText(/Run Channel Sync/i);
 
-        // * A note points admins to where team-membership sync actually lives
-        await expect(page.getByText(/This syncs channel membership only/i)).toBeVisible({timeout: 10000});
-        await expect(page.getByText(/Team Settings/i)).toBeVisible();
+        // * The description says so too, and a note points admins to where team-membership sync actually lives
+        await expect(accessControl.syncJobsDescriptionText).toContainText(/channel membership/i);
+        await expect(accessControl.teamSyncNote).toContainText(/This syncs channel membership only/i);
+        await expect(accessControl.teamSyncNote).toContainText(/Team Settings/i);
     });
 
     test('MM-69100-T5 sync job details shows mass-removal warning when >50% of members are removed', async ({pw}) => {
@@ -206,27 +216,14 @@ test.describe('ABAC - Sync Job Details Modal', {tag: ['@abac', '@team_membership
         // # Trigger sync and wait for completion
         await triggerSyncJobAndPoll(adminClient, team.id);
 
-        // # Navigate to sync jobs page
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        const {page} = systemConsolePage;
-        await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
-
-        // # Open the most recent job's details (the channel sync chained from the team sync)
-        const jobRow = page.locator('.job-table__access-control tr.clickable').first();
-        await expect(jobRow).toBeVisible({timeout: 10000});
-        await jobRow.click();
-
-        const detailsModal = page.locator('#job-details-modal');
-        await expect(detailsModal).toBeVisible({timeout: 15000});
-
-        // # Switch to the Teams tab where the team membership changes are surfaced
-        await detailsModal.getByRole('button', {name: 'Teams'}).click();
-
-        const teamRow = page.getByTestId(`TeamRow-${team.name}`);
-        await expect(teamRow).toBeVisible({timeout: 10000});
+        // # Open the most recent job's details (the channel sync chained from the team sync) on its Teams tab
+        const {app} = await pw.testBrowser.login(adminUser);
+        await openSyncJobs(app);
+        const teams = await openTeamsTab(await latestSyncJob(app));
 
         // * Mass-removal warning indicator present (>50% removed)
-        await expect(teamRow.locator('.mass-removal-warning')).toBeVisible({timeout: 10000});
+        const teamRow = teams.team(team);
+        await expect(teamRow).toBeVisible();
+        await expect(teamRow.massRemovalWarning).toBeVisible();
     });
 });
