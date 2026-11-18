@@ -5,15 +5,17 @@ import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 
 import * as Menu from 'components/menu';
+import {MenuContext} from 'components/menu/menu_context';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import Constants from 'utils/constants';
@@ -55,6 +57,11 @@ const AIActionsMenu = ({
     parentOpen = false,
 }: AIActionsMenuProps): JSX.Element | null => {
     const {formatMessage} = useIntl();
+    const parentMenu = useContext(MenuContext);
+    const submenuMenuContext = useMemo(() => ({
+        ...parentMenu,
+        compass: true,
+    }), [parentMenu]);
     const {activeRow, claimRow} = useComposerSubmenuHover();
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -197,6 +204,7 @@ const AIActionsMenu = ({
         'menu_menuStyled',
         'AsSubMenu',
         'ai-actions-submenu',
+        'menu_menuStyled--compass',
         {
             'ai-actions-submenu-rewrite': isRewriteSubmenu,
         },
@@ -279,6 +287,12 @@ const AIActionsMenu = ({
             slotProps={{
                 paper: {
                     ref: panelRef,
+                    style: {
+                        overflow: 'visible',
+                        background: 'transparent',
+                        boxShadow: 'none',
+                        maxHeight: 'none',
+                    },
                     onMouseEnter: cancelClose,
                     onMouseLeave: handlePanelLeave,
                 },
@@ -287,53 +301,62 @@ const AIActionsMenu = ({
             {/* pointer-events wrapper: AsSubMenu disables pointer-events on the popover root,
                 so we re-enable on the content div to make everything inside clickable */}
             <div style={{pointerEvents: 'auto'}}>
-                {isRewriteSubmenu && rewriteMenuProps && (
-                    <>
-                        <RewriteSubMenuHeader
-                            isProcessing={rewriteMenuProps.isProcessing}
-                            draftMessage={rewriteMenuProps.draftMessage}
-                            originalMessage={rewriteMenuProps.originalMessage}
-                            prompt={rewriteMenuProps.prompt}
-                            setPrompt={rewriteMenuProps.setPrompt}
-                            selectedAgentId={rewriteMenuProps.selectedAgentId}
-                            setSelectedAgentId={rewriteMenuProps.setSelectedAgentId}
-                            agents={rewriteMenuProps.agents}
-                            onCustomPromptKeyDown={rewriteMenuProps.onCustomPromptKeyDown}
-                            onCancelProcessing={rewriteMenuProps.onCancelProcessing}
-                            customPromptRef={rewriteMenuProps.customPromptRef}
-                        />
-                        <MuiMenuList
-                            sx={{py: 0}}
-                        >
-                            <RewriteSubmenu
-                                isProcessing={rewriteMenuProps.isProcessing}
-                                draftMessage={rewriteMenuProps.draftMessage}
-                                onMenuAction={rewriteMenuProps.onMenuAction}
-                            />
-                        </MuiMenuList>
-                        <RewriteSubMenuFooter
-                            isProcessing={rewriteMenuProps.isProcessing}
-                            originalMessage={rewriteMenuProps.originalMessage}
-                            lastAction={rewriteMenuProps.lastAction}
-                            onUndoMessage={rewriteMenuProps.onUndoMessage}
-                            onRegenerateMessage={rewriteMenuProps.onRegenerateMessage}
-                        />
-                    </>
-                )}
-                {activePluginItem?.component && (() => {
-                    const PluginComponent = activePluginItem.component;
-                    return (
-                        <PluggableErrorBoundary pluginId={activePluginItem.pluginId}>
-                            <PluginComponent
-                                draft={draft}
-                                getSelectedText={getSelectedText}
-                                updateText={updateText}
-                                channelId={channelId}
-                                isRHS={isRHS}
-                            />
-                        </PluggableErrorBoundary>
-                    );
-                })()}
+                <MenuContext.Provider value={submenuMenuContext}>
+                    <PopoverMenu
+                        variant='child'
+                        className='menu_menuStyled__surface'
+                    >
+                        {isRewriteSubmenu && rewriteMenuProps && (
+                            <>
+                                <RewriteSubMenuHeader
+                                    isProcessing={rewriteMenuProps.isProcessing}
+                                    draftMessage={rewriteMenuProps.draftMessage}
+                                    originalMessage={rewriteMenuProps.originalMessage}
+                                    prompt={rewriteMenuProps.prompt}
+                                    setPrompt={rewriteMenuProps.setPrompt}
+                                    selectedAgentId={rewriteMenuProps.selectedAgentId}
+                                    setSelectedAgentId={rewriteMenuProps.setSelectedAgentId}
+                                    agents={rewriteMenuProps.agents}
+                                    onCustomPromptKeyDown={rewriteMenuProps.onCustomPromptKeyDown}
+                                    onCancelProcessing={rewriteMenuProps.onCancelProcessing}
+                                    customPromptRef={rewriteMenuProps.customPromptRef}
+                                />
+                                <MuiMenuList
+                                    className='menu_menuStyled__list--compass'
+                                    component='div'
+                                    sx={{py: 0}}
+                                >
+                                    <RewriteSubmenu
+                                        isProcessing={rewriteMenuProps.isProcessing}
+                                        draftMessage={rewriteMenuProps.draftMessage}
+                                        onMenuAction={rewriteMenuProps.onMenuAction}
+                                    />
+                                </MuiMenuList>
+                                <RewriteSubMenuFooter
+                                    isProcessing={rewriteMenuProps.isProcessing}
+                                    originalMessage={rewriteMenuProps.originalMessage}
+                                    lastAction={rewriteMenuProps.lastAction}
+                                    onUndoMessage={rewriteMenuProps.onUndoMessage}
+                                    onRegenerateMessage={rewriteMenuProps.onRegenerateMessage}
+                                />
+                            </>
+                        )}
+                        {activePluginItem?.component && (() => {
+                            const PluginComponent = activePluginItem.component;
+                            return (
+                                <PluggableErrorBoundary pluginId={activePluginItem.pluginId}>
+                                    <PluginComponent
+                                        draft={draft}
+                                        getSelectedText={getSelectedText}
+                                        updateText={updateText}
+                                        channelId={channelId}
+                                        isRHS={isRHS}
+                                    />
+                                </PluggableErrorBoundary>
+                            );
+                        })()}
+                    </PopoverMenu>
+                </MenuContext.Provider>
             </div>
         </MuiPopover>
     );
@@ -375,6 +398,7 @@ const AIActionsMenu = ({
                     className: 'ai-actions-menu',
                     onToggle: handleToggle,
                     isMenuOpen,
+                    compass: true,
                 }}
                 anchorOrigin={{
                     vertical: 'top',

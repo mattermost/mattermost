@@ -154,6 +154,7 @@ export default function RewriteMenu({
                             defaultBotId={defaultAgent?.id}
                             disabled={isProcessing}
                             showLabel={true}
+                            compass={true}
                         />
                     )}
                     {isProcessing &&
@@ -213,6 +214,7 @@ export default function RewriteMenu({
                 className: 'rewrite-menu',
                 onToggle: setIsMenuOpen,
                 isMenuOpen,
+                compass: true,
             }}
             menuFooter={!isProcessing && originalMessage && lastAction &&
                 <div className='rewrite-menu-footer'>
@@ -362,6 +364,7 @@ export function RewriteSubMenuHeader({
                     defaultBotId={defaultAgent?.id}
                     disabled={isProcessing}
                     showLabel={true}
+                    compass={true}
                 />
             )}
             {isProcessing &&

@@ -7,6 +7,7 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
+import {PopoverMenuTitle} from '@mattermost/compass-ui/components/popover-menu';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {openModal} from 'actions/views/modals';
@@ -82,7 +83,16 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             }}
             menu={{
                 id: 'dropdown_send_post_options',
+                compass: true,
             }}
+            menuHeader={(
+                <PopoverMenuTitle>
+                    <FormattedMessage
+                        id='create_post_button.option.schedule_message.options.header'
+                        defaultMessage='Schedule message'
+                    />
+                </PopoverMenuTitle>
+            )}
             transformOrigin={{
                 horizontal: 'right',
                 vertical: 'bottom',
@@ -92,16 +102,6 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
                 horizontal: 'right',
             }}
         >
-            <Menu.Item
-                disabled={true}
-                labels={
-                    <FormattedMessage
-                        id='create_post_button.option.schedule_message.options.header'
-                        defaultMessage='Schedule message'
-                    />
-                }
-            />
-
             <CoreMenuOptions
                 handleOnSelect={handleOnSelect}
                 channelId={channelId}

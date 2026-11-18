@@ -9,6 +9,7 @@ import {useSelector} from 'react-redux';
 
 import {AlertCircleOutlineIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
@@ -50,6 +51,10 @@ function PostPriorityPicker({
 }: Props) {
     const {formatMessage} = useIntl();
     const menu = useContext(MenuContext);
+    const compassMenu = useMemo(() => ({
+        ...menu,
+        compass: true,
+    }), [menu]);
     const {activeRow, claimRow} = useComposerSubmenuHover();
     const panelRef = useRef<HTMLDivElement>(null);
 
@@ -323,6 +328,8 @@ function PostPriorityPicker({
                     id: 'post_priority.picker.header',
                     defaultMessage: 'Message priority',
                 })}
+                className='menu_menuStyled__list--compass'
+                component='div'
                 sx={{py: 0}}
             >
                 {menuItems}
@@ -366,7 +373,7 @@ function PostPriorityPicker({
                     anchorEl={itemAnchor}
                     anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
                     transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
-                    className='menu_menuStyled AsSubMenu'
+                    className='menu_menuStyled AsSubMenu menu_menuStyled--compass'
                     disableAutoFocus={true}
                     disableEnforceFocus={true}
                     disableRestoreFocus={true}
@@ -376,13 +383,26 @@ function PostPriorityPicker({
                     slotProps={{
                         paper: {
                             ref: panelRef,
+                            style: {
+                                overflow: 'visible',
+                                background: 'transparent',
+                                boxShadow: 'none',
+                                maxHeight: 'none',
+                            },
                             onMouseEnter: cancelClose,
                             onMouseLeave: (event) => closeItemUnlessInside(event.relatedTarget, itemAnchor),
                         },
                     }}
                 >
                     <div style={{pointerEvents: 'auto'}}>
-                        {pickerBody}
+                        <MenuContext.Provider value={compassMenu}>
+                            <PopoverMenu
+                                variant='child'
+                                className='menu_menuStyled__surface'
+                            >
+                                {pickerBody}
+                            </PopoverMenu>
+                        </MenuContext.Provider>
                     </div>
                 </MuiPopover>
             </CompassDesignProvider>
@@ -405,6 +425,7 @@ function PostPriorityPicker({
                 width: 'max-content',
                 onToggle: setPickerOpen,
                 isMenuOpen: pickerOpen,
+                compass: true,
             }}
             menuButtonTooltip={{
                 text: messagePriority,

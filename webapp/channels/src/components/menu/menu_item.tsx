@@ -8,6 +8,7 @@ import cloneDeep from 'lodash/cloneDeep';
 import React, {
     Children,
     forwardRef,
+    isValidElement,
     useContext,
     useRef,
 } from 'react';
@@ -19,6 +20,8 @@ import type {
     AriaRole,
 } from 'react';
 import {useSelector} from 'react-redux';
+
+import {MenuItem as CompassMenuItem} from '@mattermost/compass-ui/components/menu-item';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
@@ -168,7 +171,7 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
     // ref is naturally cleared when a new event comes through.
     const lastHandledEventRef = useRef<Event | null>(null);
 
-    function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+    function handleClick(event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
             // Closing on keydown unmounts an <a> before the browser can follow href.
             // Activate the link first; the resulting click event closes the menu.
@@ -202,13 +205,13 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
                 // (mobile modal, checkbox/radio, or disableCloseOnSelect).
                 // Otherwise defer to after the close animation.
                 if (isMobileView || isRoleCheckboxOrRadio(role) || disableCloseOnSelect) {
-                    onClick(event);
+                    onClick(event as MouseEvent<HTMLLIElement>);
                 } else {
                     // Clone the event since we delay the click handler until after the menu has closed.
                     const clonedEvent = cloneDeep(event);
 
                     menuContext.addOnClosedListener(() => {
-                        onClick(clonedEvent);
+                        onClick(clonedEvent as MouseEvent<HTMLLIElement>);
                     });
                 }
             }
@@ -221,6 +224,36 @@ export const MenuItem = forwardRef<HTMLLIElement, Props>((props, ref) => {
         labels.props &&
         labels.props.children &&
         Children.count(Children.toArray(labels.props.children)) === 2;
+
+    if (menuContext.compass) {
+        const item = renderCompassMenuItem({
+            labels,
+            hasSecondaryLabel,
+            leadingElement,
+            trailingElements,
+            isDestructive,
+            role,
+            otherProps,
+            children,
+            onKeyDown: (event) => {
+                if (otherProps.onKeyDown) {
+                    otherProps.onKeyDown(event as unknown as KeyboardEvent<HTMLLIElement>);
+                    return;
+                }
+
+                // A native button also clicks on Enter/Space. Handle it once here,
+                // and keep Space from being treated as menu typeahead.
+                if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+                handleClick(event);
+            },
+            onClick: handleClick,
+            ref,
+        });
+        return item;
+    }
 
     return (
         <MenuItemStyled
@@ -360,15 +393,101 @@ export const MenuItemStyled = styled(MuiMenuItem, {
  * Checks if the menu item was activated per WAI-ARIA guidelines.
  * Returns true for primary mouse click or Enter/Space keydown.
  */
-function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
+function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLElement> | KeyboardEvent<HTMLElement>) {
     if (event.type === EventTypes.KEY_DOWN) {
-        const keyboardEvent = event as KeyboardEvent<HTMLLIElement>;
+        const keyboardEvent = event as KeyboardEvent<HTMLElement>;
         return isKeyPressed(keyboardEvent, Constants.KeyCodes.ENTER) || isKeyPressed(keyboardEvent, Constants.KeyCodes.SPACE);
     }
     if (event.type === EventTypes.CLICK) {
-        return (event as MouseEvent<HTMLLIElement>).button === 0;
+        return (event as MouseEvent<HTMLElement>).button === 0;
     }
     return false;
+}
+
+const COMPASS_PASSTHROUGH = new Set([
+    'id',
+    'className',
+    'autoFocus',
+    'onMouseEnter',
+    'onMouseLeave',
+    'onMouseDown',
+    'onFocus',
+    'onBlur',
+    'title',
+]);
+
+function renderCompassMenuItem({
+    labels,
+    hasSecondaryLabel,
+    leadingElement,
+    trailingElements,
+    isDestructive,
+    role,
+    otherProps,
+    children,
+    onKeyDown,
+    onClick,
+    ref,
+}: {
+    labels?: ReactElement<{children?: ReactNode}>;
+    hasSecondaryLabel: boolean;
+    leadingElement?: ReactNode;
+    trailingElements?: ReactNode;
+    isDestructive?: boolean;
+    role: AriaRole;
+    otherProps: Omit<Props, 'leadingElement' | 'labels' | 'trailingElements' | 'isDestructive' | 'isLabelsRowLayout' | 'children' | 'onClick' | 'role' | 'forceCloseOnSelect' | 'disableCloseOnSelect'>;
+    children?: ReactNode;
+    onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => void;
+    onClick: (event: MouseEvent<HTMLElement>) => void;
+    ref: React.ForwardedRef<HTMLLIElement>;
+}) {
+    let primaryLabel: ReactNode = labels;
+    let secondaryLabel: ReactNode;
+    if (hasSecondaryLabel && labels) {
+        const parts = Children.toArray(labels.props.children);
+        primaryLabel = parts[0];
+        secondaryLabel = parts[1];
+    }
+
+    const passthrough: Partial<React.ComponentProps<typeof CompassMenuItem>> = {};
+    for (const [key, value] of Object.entries(otherProps)) {
+        if (key.startsWith('aria-') || key.startsWith('data-') || COMPASS_PASSTHROUGH.has(key)) {
+            (passthrough as Record<string, unknown>)[key] = value;
+        }
+    }
+
+    const expanded = otherProps['aria-expanded'];
+    const item = (
+        <CompassMenuItem
+            {...passthrough}
+            ref={ref as React.Ref<HTMLButtonElement>}
+            role={role}
+            tabIndex={otherProps.tabIndex ?? -1}
+            label={primaryLabel ?? ''}
+            secondaryLabel={secondaryLabel}
+            leadingElement={isValidElement(leadingElement)}
+            leadingVisual={isValidElement(leadingElement) ? leadingElement : undefined}
+            trailingElement={isValidElement(trailingElements)}
+            trailingVisual={isValidElement(trailingElements) ? trailingElements : undefined}
+            destructive={isDestructive}
+            active={expanded === true || expanded === 'true'}
+            disabled={otherProps.disabled ? true : undefined}
+            aria-disabled={otherProps.disabled ? true : undefined}
+            onClick={onClick}
+            onKeyDown={onKeyDown}
+        />
+    );
+
+    if (!children) {
+        return item;
+    }
+
+    return (
+        <>
+            {item}
+            {children}
+        </>
+    );
 }
 
 function isRoleCheckboxOrRadio(role: AriaRole) {

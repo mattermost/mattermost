@@ -25,6 +25,28 @@ a.MuiMenuItem-root {
     }
 }
 
+// Compass menus paint their own surface. The MUI paper stays in place for
+// positioning and must not add a second shadow, fill, or clip.
+.MuiPopover-root.MuiModal-root.menu_menuStyled.menu_menuStyled--compass {
+    & .MuiPaper-root {
+        overflow: visible;
+        min-width: 0;
+        max-width: none;
+        max-height: none;
+        background-color: transparent;
+        box-shadow: none;
+    }
+}
+
+.menu_menuStyled__surface {
+    overflow: auto;
+    max-height: 80vh;
+}
+
+.menu_menuStyled__list--compass.MuiList-root {
+    padding: 0;
+}
+
 .modal-dialog.menuModal {
     pointer-events: none;
 }

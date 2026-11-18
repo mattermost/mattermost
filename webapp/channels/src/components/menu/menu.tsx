@@ -9,6 +9,7 @@ import React, {
     useState,
     useEffect,
     useCallback,
+    useMemo,
 } from 'react';
 import type {
     ButtonHTMLAttributes,
@@ -20,6 +21,7 @@ import type {
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
+import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 import {GenericModal} from '@mattermost/components';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
@@ -137,10 +139,49 @@ type MenuProps = {
      * the modal and the popover fight over focus.
      */
     container?: PopoverProps['container'];
+
+    /**
+     * Render the menu surface and rows with Compass PopoverMenu and MenuItem.
+     * Positioning, keyboard movement, and close behavior stay with this menu.
+     */
+    compass?: boolean;
 };
 
 const defaultAnchorOrigin = {vertical: 'bottom', horizontal: 'left'} as PopoverOrigin;
 const defaultTransformOrigin = {vertical: 'top', horizontal: 'left'} as PopoverOrigin;
+
+function renderMenuSurface({
+    compass,
+    header,
+    footer,
+    list,
+}: {
+    compass: boolean;
+    header?: ReactNode;
+    footer?: ReactNode;
+    list: ReactNode;
+}) {
+    if (!compass) {
+        return (
+            <>
+                {header}
+                {list}
+                {footer}
+            </>
+        );
+    }
+
+    return (
+        <PopoverMenu
+            variant='parent'
+            className='menu_menuStyled__surface'
+        >
+            {header}
+            {list}
+            {footer}
+        </PopoverMenu>
+    );
+}
 
 interface Props {
     menuButton: MenuButtonProps;
@@ -292,6 +333,7 @@ export function Menu(props: Props) {
                         onKeyDown: props.menu.onKeyDown,
                         menuHeader: props.menuHeader,
                         menuFooter: props.menuFooter,
+                        compass: props.menu.compass,
                     },
                 }),
             );
@@ -377,8 +419,9 @@ export function Menu(props: Props) {
         }
     }, [isMenuOpen]);
 
-    const providerValue = useMenuContextValue(closeMenu, isMenuOpen);
+    const providerValue = useMenuContextValue(closeMenu, isMenuOpen, Boolean(props.menu.compass));
     const pointerEventsPassThrough = Boolean(props.menu.hideBackdrop || props.menu.allowTriggerInteraction);
+    const compass = Boolean(props.menu.compass);
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -399,7 +442,9 @@ export function Menu(props: Props) {
                         onClose={handleMenuClose}
                         onClick={handleMenuClick}
                         onKeyDown={handleMenuKeyDown}
-                        className={classNames(A11yClassNames.POPUP, 'menu_menuStyled')}
+                        className={classNames(A11yClassNames.POPUP, 'menu_menuStyled', {
+                            'menu_menuStyled--compass': compass,
+                        })}
                         marginThreshold={0}
                         anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
                         transformOrigin={props.transformOrigin || defaultTransformOrigin}
@@ -411,7 +456,17 @@ export function Menu(props: Props) {
                         // so the trigger behind it stays usable. Paper stays
                         // interactive so the list itself still receives them.
                         style={pointerEventsPassThrough ? {pointerEvents: 'none'} : undefined}
-                        PaperProps={pointerEventsPassThrough ? {style: {pointerEvents: 'auto'}} : undefined}
+                        PaperProps={compass || pointerEventsPassThrough ? {
+                            style: {
+                                ...(pointerEventsPassThrough ? {pointerEvents: 'auto' as const} : undefined),
+                                ...(compass ? {
+                                    overflow: 'visible',
+                                    background: 'transparent',
+                                    boxShadow: 'none',
+                                    maxHeight: 'none',
+                                } : undefined),
+                            },
+                        } : undefined}
                         TransitionProps={{
                             mountOnEnter: true,
                             unmountOnExit: true,
@@ -435,23 +490,31 @@ export function Menu(props: Props) {
                         }}
                         onTransitionExited={providerValue.handleClosed}
                     >
-                        {props.menuHeader}
-                        <MuiMenuList
-                            id={props.menu.id}
-                            aria-label={props.menu?.['aria-label']}
-                            aria-labelledby={props.menu['aria-labelledby']}
-                            className={props.menu.className}
-                            style={{
-                                width: props.menu.width,
-                                minWidth: props.menu.minWidth,
-                                maxWidth: props.menu.maxWidth,
-                            }}
-                            autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
-                            onKeyDown={handleMenuListKeyDown}
-                        >
-                            {props.children}
-                        </MuiMenuList>
-                        {props.menuFooter}
+                        {renderMenuSurface({
+                            compass,
+                            header: props.menuHeader,
+                            footer: props.menuFooter,
+                            list: (
+                                <MuiMenuList
+                                    id={props.menu.id}
+                                    aria-label={props.menu?.['aria-label']}
+                                    aria-labelledby={props.menu['aria-labelledby']}
+                                    component={compass ? 'div' : 'ul'}
+                                    className={classNames(props.menu.className, {
+                                        'menu_menuStyled__list--compass': compass,
+                                    })}
+                                    style={{
+                                        width: props.menu.width,
+                                        minWidth: props.menu.minWidth,
+                                        maxWidth: props.menu.maxWidth,
+                                    }}
+                                    autoFocusItem={(props.menu.autoFocusItem ?? true) && isMenuOpen}
+                                    onKeyDown={handleMenuListKeyDown}
+                                >
+                                    {props.children}
+                                </MuiMenuList>
+                            ),
+                        })}
                     </MuiPopover>
                 )}
             </MenuContext.Provider>
@@ -469,10 +532,21 @@ interface MenuModalProps {
     onKeyDown?: MenuProps['onKeyDown'];
     menuHeader?: Props['menuHeader'];
     menuFooter?: Props['menuFooter'];
+    compass?: boolean;
 }
 
 function MenuModal(props: MenuModalProps) {
     const theme = useSelector(getTheme);
+    const compass = Boolean(props.compass);
+
+    // Mobile closes from the list click, not from context.close. Giving the
+    // modal a close() here would unmount the row before that click finishes.
+    const compassContext = useMemo(() => ({
+        isOpen: true,
+        compass: true,
+        addOnClosedListener: () => {},
+        handleClosed: () => {},
+    }), []);
 
     function closeMenuModal() {
         props.onModalClose(props.menuId);
@@ -497,6 +571,32 @@ function MenuModal(props: MenuModalProps) {
         }
     }
 
+    const list = (
+        <MuiMenuList // serves as backdrop for modals
+            component='div'
+            aria-labelledby={props.menuButtonId}
+            onClick={handleModalClickCapture}
+            className={classNames(props.className, {
+                'menu_menuStyled__list--compass': compass,
+            })}
+        >
+            {compass ? null : props.menuHeader}
+            {props.children}
+            {compass ? null : props.menuFooter}
+        </MuiMenuList>
+    );
+
+    const body = compass ? (
+        <MenuContext.Provider value={compassContext}>
+            {renderMenuSurface({
+                compass: true,
+                header: props.menuHeader,
+                footer: props.menuFooter,
+                list,
+            })}
+        </MenuContext.Provider>
+    ) : list;
+
     return (
         <CompassDesignProvider theme={theme}>
             <GenericModal
@@ -508,16 +608,7 @@ function MenuModal(props: MenuModalProps) {
                 enforceFocus={false}
                 handleKeydown={handleKeydown}
             >
-                <MuiMenuList // serves as backdrop for modals
-                    component='div'
-                    aria-labelledby={props.menuButtonId}
-                    onClick={handleModalClickCapture}
-                    className={props.className}
-                >
-                    {props.menuHeader}
-                    {props.children}
-                    {props.menuFooter}
-                </MuiMenuList>
+                {body}
             </GenericModal>
         </CompassDesignProvider>
     );

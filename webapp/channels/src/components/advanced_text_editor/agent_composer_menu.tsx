@@ -204,6 +204,7 @@ const AgentComposerMenuContents = ({
                     id: COMPOSER_PLUS_MENU_ID,
                     'aria-label': label,
                     onToggle: handleToggle,
+                    compass: true,
                 }}
                 anchorOrigin={{vertical: 'top', horizontal: 'left'}}
                 transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
