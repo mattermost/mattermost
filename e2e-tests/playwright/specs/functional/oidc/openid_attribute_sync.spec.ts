@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Page} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 
-import {expect, test, type PlaywrightExtended} from '@mattermost/playwright-lib';
+import {expect, loginPageUrl, logInWithKeycloak, test, type PlaywrightExtended} from '@mattermost/playwright-lib';
 
 // Claims the realm's mattermost-openid client releases from user attributes (see the protocol
 // mappers in keycloak-realm-export.json): a nested claim, an array claim, and a claim that only the
@@ -13,13 +14,9 @@ const DEPARTMENT_CLAIM = 'org.department';
 const CLEARANCES_CLAIM = 'clearances';
 const EMPLOYEE_ID_CLAIM = 'employee_id';
 
-async function signInWithOpenId(pw: PlaywrightExtended, username: string, password: string) {
-    await pw.hasSeenLandingPage();
-    await pw.loginPage.goto();
-    await pw.loginPage.toBeVisible();
-    await pw.loginPage.openIdLoginButton.click();
-    await pw.keycloakLoginPage.loginIfFormShown(username, password);
-    await pw.loginPage.expectNotOnLoginPage();
+async function signInWithOpenId(pw: PlaywrightExtended, page: Page, username: string, password: string) {
+    await logInWithKeycloak(pw, page, 'openid', {username, password}, {ifFormShown: true});
+    await expect(page).not.toHaveURL(loginPageUrl);
 }
 
 /** The user's synced values keyed by field name, with multiselect option IDs resolved to names. */
@@ -68,7 +65,7 @@ async function isChannelMember(adminClient: Client4, channelId: string, userId: 
  * attributes to the org.department, clearances and (ID token only) employee_id claims, and the
  * server configured from Keycloak's discovery document so it can verify ID tokens.
  */
-test('syncs user attributes from OpenID Connect claims at every sign-in', {tag: '@openid'}, async ({pw}) => {
+test('syncs user attributes from OpenID Connect claims at every sign-in', {tag: '@openid'}, async ({page, pw}) => {
     await pw.ensureLicense();
     await pw.skipIfNoLicense();
     await pw.ensureKeycloakOpenId({discovery: true});
@@ -107,7 +104,7 @@ test('syncs user attributes from OpenID Connect claims at every sign-in', {tag: 
         keycloakUserId = await pw.createKeycloakUser(keycloakUser);
 
         // # Sign in for the first time, which creates the account
-        await signInWithOpenId(pw, keycloakUser.username, keycloakUser.password);
+        await signInWithOpenId(pw, page, keycloakUser.username, keycloakUser.password);
         const user = await adminClient.getUserByUsername(keycloakUser.username);
         expect(user.auth_service).toBe('openid');
 
@@ -154,7 +151,7 @@ test('syncs user attributes from OpenID Connect claims at every sign-in', {tag: 
         // # Remove the department and a clearance at the provider, then sign in again
         await pw.setKeycloakUserAttributes(keycloakUserId, {clearances: ['secret'], employeeId: ['E-1001']});
         await pw.keycloakLoginPage.logout();
-        await signInWithOpenId(pw, keycloakUser.username, keycloakUser.password);
+        await signInWithOpenId(pw, page, keycloakUser.username, keycloakUser.password);
 
         // * Verify the claims the provider stopped sending are gone from Mattermost
         expect(await attributeValues(adminClient, user.id, fields)).toEqual({

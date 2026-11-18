@@ -159,7 +159,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
 
     render(): JSX.Element {
         if (this.state.loading) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='terms_of_service.loading'/>;
         }
 
         let termsMarkdownClasses = 'terms-of-service__markdown';
@@ -187,7 +187,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                     <div className={termsMarkdownClasses}>
                         <div
                             className='medium-center'
-                            data-testid='termsOfService'
+                            data-testid='terms_of_service.terms'
                         >
                             {messageHtmlToComponent(this.formattedText(this.state.customTermsOfServiceText), {mentions: false})}
                         </div>

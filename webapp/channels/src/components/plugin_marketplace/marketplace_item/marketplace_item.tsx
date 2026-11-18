@@ -53,6 +53,9 @@ export const Label = ({name, description, url}: MarketplaceLabel): JSX.Element =
 
 export type MarketplaceItemProps = {
     id: string;
+
+    // The item's scope: it is `<testId>:<id>--region`.
+    testId?: string;
     name: string;
     description?: string;
     iconSource?: string;
@@ -191,6 +194,9 @@ export default class MarketplaceItem extends React.PureComponent <MarketplaceIte
                     className={classNames('more-modal__row', 'more-modal__row--link', {item_error: this.props.error})}
                     key={this.props.id}
                     id={'marketplace-plugin-' + this.props.id}
+                    role='region'
+                    aria-label={this.props.name}
+                    data-testid={this.props.testId ? `${this.props.testId}:${this.props.id}--region` : undefined}
                 >
                     {icon}
                     <div className='more-modal__details'>

@@ -178,7 +178,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         // # Open time menu and select time
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Meeting Time').within(() => {
-                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+                cy.get('.dateTime__time button[data-testid="apps_form.field.time--button"]').click();
             });
         });
 
@@ -248,7 +248,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         // # Open time menu
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Custom Interval Time').within(() => {
-                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+                cy.get('.dateTime__time button[data-testid="apps_form.field.time--button"]').click();
             });
         });
 
@@ -347,7 +347,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
         // # Open time menu
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Meeting Time').within(() => {
-                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+                cy.get('.dateTime__time button[data-testid="apps_form.field.time--button"]').click();
             });
         });
 
@@ -395,7 +395,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         cy.get('#appsModal').within(() => {
             cy.contains('.form-group', 'Meeting Time').within(() => {
-                cy.get('.dateTime__time button[data-testid="time_button"]').click();
+                cy.get('.dateTime__time button[data-testid="apps_form.field.time--button"]').click();
             });
         });
 
@@ -504,7 +504,7 @@ describe('Interactive Dialog - Date and DateTime Fields', () => {
 
         // # Open time dropdown
         cy.contains('.form-group', 'London Office Hours (Dropdown)').within(() => {
-            cy.get('.dateTime__time button[data-testid="time_button"]').click();
+            cy.get('.dateTime__time button[data-testid="apps_form.field.time--button"]').click();
         });
 
         // * Verify dropdown shows times starting at midnight (London time)

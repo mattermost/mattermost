@@ -204,7 +204,7 @@ describe('components/signup/Signup', () => {
         expect(usernameInput).toHaveValue('dave.roberts');
         expect(usernameInput).toBeDisabled();
         expect(screen.getByText('Your username was chosen by your admin.')).toBeInTheDocument();
-        expect(screen.getByTestId('signup-body-card-preset-name')).toHaveTextContent("You'll join as Dave Roberts.");
+        expect(screen.getByTestId('signup.card.preset_name--text')).toHaveTextContent("You'll join as Dave Roberts.");
     });
 
     it('should focus the first editable field when signup values are pre-set', () => {
@@ -261,7 +261,7 @@ describe('components/signup/Signup', () => {
         );
 
         expect(screen.getByLabelText('Choose a Username')).not.toBeDisabled();
-        expect(screen.getByTestId('signup-body-card-preset-name')).toHaveTextContent("You'll join as Dave.");
+        expect(screen.getByTestId('signup.card.preset_name--text')).toHaveTextContent("You'll join as Dave.");
     });
 
     it('should keep the username editable without pre-set profile data', () => {
@@ -275,7 +275,7 @@ describe('components/signup/Signup', () => {
         );
 
         expect(screen.getByLabelText('Choose a Username')).not.toBeDisabled();
-        expect(screen.queryByTestId('signup-body-card-preset-name')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('signup.card.preset_name--text')).not.toBeInTheDocument();
         expect(screen.getByText('You can use lowercase letters, numbers, periods, dashes, and underscores.')).toBeInTheDocument();
     });
 

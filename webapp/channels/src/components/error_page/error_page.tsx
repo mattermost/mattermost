@@ -67,7 +67,10 @@ export default class ErrorPage extends React.PureComponent<Props> {
         let backButton;
         if (type === ErrorPageTypes.PERMALINK_NOT_FOUND && returnTo) {
             backButton = (
-                <Link to={returnTo}>
+                <Link
+                    data-testid='error_view.back--link'
+                    to={returnTo}
+                >
                     <FormattedMessage
                         id='error.generic.link'
                         defaultMessage='Back to Mattermost'
@@ -76,7 +79,10 @@ export default class ErrorPage extends React.PureComponent<Props> {
             );
         } else if (type === ErrorPageTypes.CLOUD_ARCHIVED && returnTo) {
             backButton = (
-                <Link to={returnTo}>
+                <Link
+                    data-testid='error_view.back--link'
+                    to={returnTo}
+                >
                     <FormattedMessage
                         id='error.generic.link'
                         defaultMessage='Back to Mattermost'
@@ -85,7 +91,10 @@ export default class ErrorPage extends React.PureComponent<Props> {
             );
         } else if (type === ErrorPageTypes.TEAM_NOT_FOUND) {
             backButton = (
-                <Link to='/'>
+                <Link
+                    data-testid='error_view.back--link'
+                    to='/'
+                >
                     <FormattedMessage
                         id='error.generic.siteLink'
                         defaultMessage='Back to {siteName}'
@@ -97,7 +106,10 @@ export default class ErrorPage extends React.PureComponent<Props> {
             );
         } else if (type === ErrorPageTypes.CHANNEL_NOT_FOUND && isGuest) {
             backButton = (
-                <Link to='/'>
+                <Link
+                    data-testid='error_view.back--link'
+                    to='/'
+                >
                     <FormattedMessage
                         id='error.channelNotFound.guest_link'
                         defaultMessage='Back'
@@ -106,7 +118,10 @@ export default class ErrorPage extends React.PureComponent<Props> {
             );
         } else if (type === ErrorPageTypes.CHANNEL_NOT_FOUND) {
             backButton = (
-                <Link to={returnTo}>
+                <Link
+                    data-testid='error_view.back--link'
+                    to={returnTo}
+                >
                     <FormattedMessage
                         id='error.channelNotFound.link'
                         defaultMessage='Back to {defaultChannelName}'
@@ -118,7 +133,10 @@ export default class ErrorPage extends React.PureComponent<Props> {
             );
         } else if (type === ErrorPageTypes.OAUTH_ACCESS_DENIED || type === ErrorPageTypes.OAUTH_MISSING_CODE) {
             backButton = (
-                <Link to='/'>
+                <Link
+                    data-testid='error_view.back--link'
+                    to='/'
+                >
                     <FormattedMessage
                         id='error.generic.link_login'
                         defaultMessage='Back to Login Page'
@@ -129,7 +147,10 @@ export default class ErrorPage extends React.PureComponent<Props> {
             backButton = null;
         } else {
             backButton = (
-                <Link to='/'>
+                <Link
+                    data-testid='error_view.back--link'
+                    to='/'
+                >
                     <FormattedMessage
                         id='error.generic.siteLink'
                         defaultMessage='Back to {siteName}'
@@ -143,11 +164,14 @@ export default class ErrorPage extends React.PureComponent<Props> {
 
         const errorPage = (
             <div className='container-fluid'>
-                <div className='error__container'>
+                <div
+                    className='error__container'
+                    data-testid='error_view'
+                >
                     <div className='error__icon'>
                         <WarningIcon/>
                     </div>
-                    <h2 data-testid='errorMessageTitle'>
+                    <h2 data-testid='error_view.title--text'>
                         <ErrorTitle
                             type={type}
                             title={title}
@@ -158,6 +182,7 @@ export default class ErrorPage extends React.PureComponent<Props> {
                         message={message}
                         service={service}
                         isGuest={isGuest}
+                        testId='error_view.message'
                     />
                     {backButton}
                 </div>

@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {StylesConfig} from 'react-select';
-import ReactSelect from 'react-select';
+import type {InputProps, StylesConfig} from 'react-select';
+import ReactSelect, {components} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import type {AppField, AppSelectOption} from '@mattermost/types/apps';
@@ -47,12 +47,24 @@ const reactStyles = {
     }),
 } satisfies StylesConfig<AppSelectOption | UserProfile | Channel >;
 
+// react-select passes extra props through to its <input>: the field's search box is `apps_form.field.select--combobox`
+// (its label is `apps_form.field.select_label--text`: the other fields' labels come from the settings widgets)
+function SelectInput<T>(props: InputProps<T, boolean>) {
+    return (
+        <components.Input
+            {...props}
+            data-testid='apps_form.field.select--combobox'
+        />
+    );
+}
+
 const commonComponents = {
     MultiValueLabel: (props: {data: {label: string}}) => (
         <div className='react-select__padded-component'>
             {props.data.label}
         </div>
     ),
+    Input: SelectInput,
 };
 
 const commonProps = {
@@ -227,11 +239,13 @@ export default class AppsFormSelectField extends React.PureComponent<Props, Stat
 
         return (
             <div
-                data-testid={this.props.id}
+                role='group'
+                aria-label={(field.modal_label || field.label) as string}
+                data-testid={`apps_form.field:${this.props.field.name}--group`}
                 className='form-group'
             >
                 {label && (
-                    <label>
+                    <label data-testid='apps_form.field.select_label--text'>
                         {label}
                     </label>
                 )}

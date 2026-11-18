@@ -23,6 +23,9 @@ type Props = {
     value: string | null;
     onChange: (name: string, value: string | null) => void;
     setIsInteracting?: (isInteracting: boolean) => void;
+
+    // Passed to the picker (`.calendar`, and the time menu for date and time fields).
+    testIdScope?: string;
 };
 
 // Helper to get timezone abbreviation (e.g., "MST", "EDT")
@@ -46,6 +49,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
     value,
     onChange,
     setIsInteracting,
+    testIdScope,
 }) => {
     const userTimezone = useSelector(getCurrentTimezone);
 
@@ -115,6 +119,7 @@ const AppsFormDateTimeField: React.FC<Props> = ({
                 </div>
             )}
             <DateTimeInput
+                testIdScope={testIdScope}
                 time={momentValue}
                 handleChange={handleDateTimeChange}
                 timezone={timezone}

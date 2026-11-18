@@ -1,72 +1,91 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {Api, expect, settle, test} from '@mattermost/playwright-lib';
+
+import {expectOnSelectTeam, openAdminConsole, openSignup} from './support';
+
+const LENGTH_ERROR =
+    /Minimum password length must be a whole number greater than or equal to (5|14) and less than or equal to 72\./;
 
 /**
- * @objective Verify Minimum password length rejects values outside 5-72 (or 14-72 on FIPS).
+ * @objective Verify an out-of-range minimum password length is rejected.
  */
 test('MM-T1771 rejects a minimum password length outside the allowed range', {tag: '@authentication'}, async ({pw}) => {
     const {adminUser} = await pw.initSetup();
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
 
-    await systemConsolePage.gotoPasswordSettings();
+    await openAdminConsole(app, '/authentication/password');
+    const minimumLength = app.admin.setting('passwordMinimumLength').valueTextbox;
 
-    // # Save a length above the maximum
-    await systemConsolePage.passwordSettings.minimumLength.fill('88');
-    await systemConsolePage.passwordSettings.save();
+    // # Save a minimum length above the maximum
+    await minimumLength.fill('88');
+    await expect(minimumLength).toHaveValue('88');
+    await settle(app.admin.saveButton, {wait: Api.PatchConfig, status: 400}).click();
 
-    // * Verify the range error is shown
-    await expect(systemConsolePage.passwordSettings.lengthError).toBeVisible();
+    // * Verify the length error is shown
+    await expect(app.admin.saveError).toBeVisible();
+    await expect(app.admin.saveError).toHaveText(LENGTH_ERROR);
 
-    // # Save a length below the minimum
-    await systemConsolePage.passwordSettings.minimumLength.fill('3');
-    await systemConsolePage.passwordSettings.save();
+    // # Save a minimum length below the minimum
+    await minimumLength.fill('3');
+    await expect(minimumLength).toHaveValue('3');
+    await settle(app.admin.saveButton, {wait: Api.PatchConfig, status: 400}).click();
 
-    // * Verify the range error is shown
-    await expect(systemConsolePage.passwordSettings.lengthError).toBeVisible();
+    // * Verify the length error is shown
+    await expect(app.admin.saveError).toBeVisible();
+    await expect(app.admin.saveError).toHaveText(LENGTH_ERROR);
 });
 
 /**
- * @objective Verify changing minimum password length updates signup help text and validation.
+ * @objective Verify a new minimum password length is applied on signup.
  */
-test('MM-T1772 applies a new minimum password length on signup', {tag: '@authentication'}, async ({pw}) => {
+test('MM-T1772 applies a new minimum password length on signup', {tag: '@authentication'}, async ({pw, page}) => {
     const {adminUser} = await pw.initSetup();
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
 
-    await systemConsolePage.gotoPasswordSettings();
+    // # Set the minimum password length to 15
+    await openAdminConsole(app, '/authentication/password');
+    await app.admin.setting('passwordMinimumLength').valueTextbox.fill('15');
+    await expect(app.admin.setting('passwordMinimumLength').valueTextbox).toHaveValue('15');
+    await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
 
-    // # Set the minimum length to 15
-    await systemConsolePage.passwordSettings.minimumLength.fill('15');
-    await systemConsolePage.passwordSettings.save();
-    await expect(systemConsolePage.passwordSettings.sampleHelpText).toHaveText(
-        'Your password must be 15-72 characters long.',
-    );
+    // * Verify the preview reflects the new length
+    await expect(app.admin.password.previewText).toHaveText('Your password must be 15-72 characters long.');
 
-    await pw.hasSeenLandingPage();
-    await pw.signupPage.goto();
-    await pw.signupPage.toBeVisible();
-    await pw.signupPage.emailInput.fill(`test-${pw.random.id()}@example.com`);
-    await pw.signupPage.usernameInput.fill(`user${pw.random.id()}`);
-    await pw.signupPage.termsAndPrivacyCheckBox.check();
+    // # Try to sign up with a short password, in the test's own browser (not logged in)
+    const signup = await openSignup(pw, page);
+    const card = signup.signup.card;
+    const email = `test-${pw.random.id()}@example.com`;
+    await card.email.container.fill(email);
+    await expect(card.email.container).toHaveValue(email);
+    const username = `user${pw.random.id()}`;
+    await card.username.container.fill(username);
+    await expect(card.username.container).toHaveValue(username);
+    await card.termsCheckbox.set(true);
+    await expect(card.termsCheckbox).toBeChecked();
+    await card.password.container.fill('less');
+    await expect(card.password.container).toHaveValue('less');
+    await card.createAccountButton.click();
 
-    // # Submit a password that is too short
-    await pw.signupPage.passwordInput.fill('less');
-    await pw.signupPage.createAccountButton.click();
-    await expect(pw.signupPage.passwordLengthError).toBeVisible();
+    // * Verify the length error is shown
+    await expect(card.password.validationAlert).toBeVisible();
+    await expect(card.password.validationAlert).toHaveText(/Your password must be \d+-72 characters long\.$/);
 
-    // # Submit a password that meets the new minimum
-    await pw.signupPage.passwordInput.fill('GreaterThan15Chr!');
-    await pw.signupPage.termsAndPrivacyCheckBox.check();
-    await pw.signupPage.createAccountButton.click();
+    // # Sign up with a long enough password
+    await card.password.container.fill('GreaterThan15Chr!');
+    await expect(card.password.container).toHaveValue('GreaterThan15Chr!');
+    await expect(card.password.validationAlert).toHaveCount(0);
+    await card.termsCheckbox.set(true);
+    await expect(card.termsCheckbox).toBeChecked();
+    await settle(card.createAccountButton, {wait: Api.CreateUser}).click();
 
-    // * Verify signup succeeds
-    await pw.selectTeamPage.toBeVisible();
+    // * Verify the account is created
+    await expectOnSelectTeam(page);
 });
 
 /**
- * @objective Verify clearing Minimum password length resets it to the server default on regular
- * builds, and is rejected as below the FIPS-enforced minimum (14) on FIPS builds.
+ * @objective Verify clearing the minimum password length resets it to the default.
  */
 test(
     'MM-T1773 resets Minimum password length to the default after clearing it',
@@ -74,36 +93,37 @@ test(
     async ({pw}) => {
         const {adminUser, adminClient} = await pw.initSetup();
         const originalMinimumLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
-
-        // # The field always falls back to 5 when cleared; that is below the FIPS minimum (14)
         const isFips = (await adminClient.getClientConfig()).IsFipsEnabled === 'true';
         const customLength = originalMinimumLength === 20 ? 21 : 20;
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
-        await systemConsolePage.gotoPasswordSettings();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await openAdminConsole(app, '/authentication/password');
+        const minimumLength = app.admin.setting('passwordMinimumLength').valueTextbox;
 
-        // # Save a custom minimum length
-        await systemConsolePage.passwordSettings.minimumLength.fill(String(customLength));
-        await systemConsolePage.passwordSettings.save();
-        await systemConsolePage.passwordSettings.reload();
-        await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(customLength));
+        // # Save a custom minimum length and reload
+        await minimumLength.fill(String(customLength));
+        await expect(minimumLength).toHaveValue(String(customLength));
+        const saved = await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
+        expect(saved.PasswordSettings.MinimumLength).toBe(customLength);
+        await app.page.reload();
+        await expect(minimumLength).toHaveValue(String(customLength));
 
-        // # Clear the field and save
-        await systemConsolePage.passwordSettings.minimumLength.clear();
-        await systemConsolePage.passwordSettings.save();
+        // # Clear the minimum length and save
+        await minimumLength.clear();
+        await expect(minimumLength).toHaveValue('');
 
         if (isFips) {
-            // * Verify the fallback value (5) is rejected as below the FIPS minimum (14)
-            await expect(systemConsolePage.passwordSettings.lengthError).toBeVisible();
-            const unchangedLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
-            expect(unchangedLength).toBe(customLength);
+            // * Verify FIPS rejects the empty value and keeps the custom length
+            await settle(app.admin.saveButton, {wait: Api.PatchConfig, status: 400}).click();
+            await expect(app.admin.saveError).toBeVisible();
+            await expect(app.admin.saveError).toHaveText(LENGTH_ERROR);
+            expect((await adminClient.getConfig()).PasswordSettings.MinimumLength).toBe(customLength);
         } else {
-            await systemConsolePage.passwordSettings.reload();
-
-            // * Verify the saved value resets to the compiled default, not the on-prem override
-            const resetLength = (await adminClient.getConfig()).PasswordSettings.MinimumLength;
-            expect(resetLength).toBe(5);
-            await expect(systemConsolePage.passwordSettings.minimumLength).toHaveValue(String(resetLength));
+            // * Verify the length resets to the default
+            const reset = await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
+            expect(reset.PasswordSettings.MinimumLength).toBe(5);
+            await app.page.reload();
+            await expect(minimumLength).toHaveValue('5');
         }
     },
 );

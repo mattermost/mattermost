@@ -204,6 +204,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
             >
                 <a
                     href={UserAgent.isMobile() ? '#' : this.state.nativeLocation}
+                    data-testid='linking_landing.open_app--link'
                     onMouseDown={() => {
                         this.setPreference(LandingPreferenceTypes.MATTERMOSTAPP, true);
                     }}
@@ -421,6 +422,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                     >
                         <a
                             href={this.state.location}
+                            data-testid='linking_landing.open_browser--link'
                             onMouseDown={() => {
                                 this.setPreference(LandingPreferenceTypes.BROWSER, true);
                             }}
@@ -441,6 +443,7 @@ export default class LinkingLandingPage extends PureComponent<Props, State> {
                         type='checkbox'
                         checked={this.state.rememberChecked}
                         className='get-app__checkbox'
+                        data-testid='linking_landing.remember_preference--checkbox'
                         onChange={this.handleChecked}
                     />
                     <FormattedMessage

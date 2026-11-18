@@ -45,7 +45,7 @@ describe('Signup Email page', () => {
 
     it('should match elements, back button', () => {
         // * Check elements in the header with back button
-        cy.findByTestId('back_button').
+        cy.findByTestId('public.header.back--link').
             should('be.visible').
             and('have.text', 'Back');
         cy.get('#back_button_icon').

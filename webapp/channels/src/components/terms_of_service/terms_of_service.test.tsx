@@ -43,7 +43,7 @@ describe('components/terms_of_service/TermsOfService', () => {
         const props = {...baseProps};
         renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
-            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+            expect(screen.getByTestId('terms_of_service.terms')).toBeInTheDocument();
         });
     });
 
@@ -63,7 +63,7 @@ describe('components/terms_of_service/TermsOfService', () => {
         };
         renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
-            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+            expect(screen.getByTestId('terms_of_service.terms')).toBeInTheDocument();
         });
         await userEvent.click(screen.getByText('I Agree'));
     });
@@ -78,7 +78,7 @@ describe('components/terms_of_service/TermsOfService', () => {
         };
         renderWithContext(<TermsOfService {...props}/>);
         await waitFor(() => {
-            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+            expect(screen.getByTestId('terms_of_service.terms')).toBeInTheDocument();
         });
         await userEvent.click(screen.getByText('I Disagree'));
     });
@@ -86,7 +86,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     test('should call updateTermsOfServiceStatus on registerUserAction', async () => {
         renderWithContext(<TermsOfService {...baseProps}/>);
         await waitFor(() => {
-            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+            expect(screen.getByTestId('terms_of_service.terms')).toBeInTheDocument();
         });
         await userEvent.click(screen.getByText('I Agree'));
         expect(baseProps.actions.updateMyTermsOfServiceStatus).toHaveBeenCalledTimes(1);
@@ -95,7 +95,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     test('should match state and call updateTermsOfServiceStatus on handleAcceptTerms', async () => {
         renderWithContext(<TermsOfService {...baseProps}/>);
         await waitFor(() => {
-            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+            expect(screen.getByTestId('terms_of_service.terms')).toBeInTheDocument();
         });
         await userEvent.click(screen.getByText('I Agree'));
         expect(baseProps.actions.updateMyTermsOfServiceStatus).toHaveBeenCalledTimes(1);
@@ -104,7 +104,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     test('should match state and call updateTermsOfServiceStatus on handleRejectTerms', async () => {
         renderWithContext(<TermsOfService {...baseProps}/>);
         await waitFor(() => {
-            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+            expect(screen.getByTestId('terms_of_service.terms')).toBeInTheDocument();
         });
         await userEvent.click(screen.getByText('I Disagree'));
         expect(baseProps.actions.updateMyTermsOfServiceStatus).toHaveBeenCalledTimes(1);
@@ -113,7 +113,7 @@ describe('components/terms_of_service/TermsOfService', () => {
     test('should call emitUserLoggedOutEvent on handleLogoutClick', async () => {
         renderWithContext(<TermsOfService {...baseProps}/>);
         await waitFor(() => {
-            expect(screen.getByTestId('termsOfService')).toBeInTheDocument();
+            expect(screen.getByTestId('terms_of_service.terms')).toBeInTheDocument();
         });
         await userEvent.click(screen.getByText('Logout'));
         expect(emitUserLoggedOutEvent).toHaveBeenCalledTimes(1);

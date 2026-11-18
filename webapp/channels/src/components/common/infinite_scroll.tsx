@@ -56,6 +56,9 @@ type Props = {
      */
 
     loaderStyle?: CSSProperties;
+
+    // The loader's test id; without it the loader has the LoadingScreen's legacy default.
+    testId?: string;
 };
 
 type State = {
@@ -141,7 +144,7 @@ export default class InfiniteScroll extends React.PureComponent<Props, State> {
     debounceHandleScroll = debounce(this.handleScroll, DEBOUNCE_WAIT_TIME);
 
     render(): React.ReactNode {
-        const {children, endOfDataMessage, styleClass, loaderStyle} = this.props;
+        const {children, endOfDataMessage, styleClass, loaderStyle, testId} = this.props;
         const {isEndofData, isFetching} = this.state;
         const showLoader = !isEndofData && isFetching; // show loader if fetching and end of data is not reached.
         return (
@@ -155,6 +158,7 @@ export default class InfiniteScroll extends React.PureComponent<Props, State> {
                         <LoadingScreen
                             style={loaderStyle}
                             message=' '
+                            testId={testId}
                         />
                     )}
                     {!showLoader && endOfDataMessage}

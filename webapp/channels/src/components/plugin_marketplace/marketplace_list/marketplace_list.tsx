@@ -99,7 +99,7 @@ const MarketplaceList = ({
                 <Button
                     className='no_plugins__action'
                     onClick={noResultsAction.onClick}
-                    data-testid='Install-Plugins-button'
+                    data-testid='marketplace_modal.no_results.action--button'
                 >
                     {noResultsAction.label}
                 </Button>

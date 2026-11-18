@@ -102,6 +102,7 @@ const OAuthToEmail = (props: Props) => {
                         type='password'
                         className='form-control'
                         name='password'
+                        data-testid='claim.oauth_to_email.password--textbox'
                         ref={passwordInput}
                         placeholder={intl.formatMessage({
                             id: 'claim.oauth_to_email.newPwd',
@@ -115,6 +116,7 @@ const OAuthToEmail = (props: Props) => {
                         type='password'
                         className='form-control'
                         name='passwordconfirm'
+                        data-testid='claim.oauth_to_email.confirm--textbox'
                         ref={passwordConfirmInput}
                         placeholder={intl.formatMessage({
                             id: 'claim.oauth_to_email.confirm',
@@ -123,9 +125,13 @@ const OAuthToEmail = (props: Props) => {
                         spellCheck='false'
                     />
                 </div>
-                <ErrorLabel errorText={error}/>
+                <ErrorLabel
+                    testId='claim.oauth_to_email.error'
+                    errorText={error}
+                />
                 <Button
                     type='submit'
+                    data-testid='claim.oauth_to_email.submit--button'
                     emphasis='primary'
                 >
                     <FormattedMessage
