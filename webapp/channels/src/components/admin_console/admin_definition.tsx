@@ -1667,9 +1667,11 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'FileSettings.AzureSSL',
                             label: defineMessage({id: 'admin.image.azureSSLTitle', defaultMessage: 'Enable Secure Azure Blob Storage Connections:'}),
                             help_text: defineMessage({id: 'admin.image.azureSSLDescription', defaultMessage: 'When false, allow insecure connections to Azure Blob Storage. Defaults to secure connections only. Ignored for the Custom Endpoint cloud (the scheme is part of the endpoint URL).'}),
-
-                            // Bool settings are saved as false while disabled, so only hide this one when it doesn't apply.
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
+                                it.stateEquals('FileSettings.AzureCloud', AZURE_CLOUD_CUSTOM),
+                            ),
                             isHidden: it.any(
                                 it.not(it.stateEquals('FileSettings.DriverName', FILE_STORAGE_DRIVER_AZURE)),
                                 it.stateEquals('FileSettings.AzureCloud', AZURE_CLOUD_CUSTOM),

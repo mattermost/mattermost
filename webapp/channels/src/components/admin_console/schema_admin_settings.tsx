@@ -1446,7 +1446,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         // clone config so that we aren't modifying data in the stores
         let config = JSON.parse(JSON.stringify(this.props.config));
-        config = getConfigFromState(config, this.state, this.props.schema, this.isDisabled);
+        config = getConfigFromState(config, this.state, this.props.schema);
 
         const {error} = await this.props.patchConfig(config);
         if (error) {
@@ -1734,14 +1734,7 @@ export const getSettingValue = (
     setting: AdminDefinitionSetting,
     state: any,
     config: Partial<AdminConfig>,
-    isDisabled: (setting: AdminDefinitionSetting) => boolean,
 ) => {
-    // Force boolean values to false when disabled.
-    if (setting.type === Constants.SettingsTypes.TYPE_BOOL) {
-        if (isDisabled(setting)) {
-            return false;
-        }
-    }
     if (!setting.key) {
         return undefined;
     }
@@ -1763,7 +1756,6 @@ export const getConfigFromState = (
     config: Partial<AdminConfig>,
     state: any,
     schema: AdminDefinitionSubSectionSchema,
-    isDisabled: (setting: AdminDefinitionSetting) => boolean,
 ) => {
     if (schema) {
         const settings = getSchemaSettings(schema);
@@ -1792,7 +1784,7 @@ export const getConfigFromState = (
                 return;
             }
 
-            let value = getSettingValue(setting, state, config, isDisabled);
+            let value = getSettingValue(setting, state, config);
             const previousValue = SchemaAdminSettings.getConfigValue(config, setting.key);
 
             if ('onConfigSave' in setting && setting.onConfigSave) {

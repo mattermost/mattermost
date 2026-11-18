@@ -212,7 +212,7 @@ const LDAPWizard = (props: Props) => {
 
     const buildButtonSetting = (setting: AdminDefinitionSetting | LDAPDefinitionSettingButton) => {
         let config = JSON.parse(JSON.stringify(props.config));
-        config = getConfigFromState(config, state, schema, isDisabled);
+        config = getConfigFromState(config, state, schema);
         var testResultsHandler;
         if (setting.key === 'LdapSettings.TestFilters') {
             testResultsHandler = (results: TestLdapFiltersResponse) => handleTestResults(results, 'filter');
@@ -386,7 +386,7 @@ const LDAPWizard = (props: Props) => {
 
         // clone config so that we aren't modifying data in the stores
         let config = JSON.parse(JSON.stringify(props.config));
-        config = getConfigFromState(config, state, schema, isDisabled);
+        config = getConfigFromState(config, state, schema);
 
         const {error} = await props.patchConfig(config);
         if (error) {
