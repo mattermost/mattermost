@@ -32717,7 +32717,7 @@
   },
   "textbox.agent_menu": {
     "defaultMessage": "Message options",
-    "description": "Accessible name of the + button on the agent composer. Opens a menu of attach, emoji, attributes, and formatting."
+    "description": "Accessible name of the + button on the composer. Opens a menu of attach, emoji, attributes, priority, burn-on-read, skills, rewrite, and formatting."
   },
   "textbox.agent_menu.attach": {
     "defaultMessage": "Attach files",
