@@ -15,14 +15,18 @@ func TestMaskURLCredentials(t *testing.T) {
 	t.Parallel()
 
 	for in, want := range map[string]string{
-		"http://search.example.com:9200":                 "http://search.example.com:9200",
-		"http://user:pass@search.example.com:9200":       "http://****@search.example.com:9200",
-		"https://token@search.example.com":               "https://****@search.example.com",
-		"https://user:p@ss@search.example.com/x@y":       "https://****@search.example.com/x@y",
-		"https://user:password@push.example.com/version": "https://****@push.example.com/version",
-		"https://user:p@ss@push.example.com/version":     "https://****@push.example.com/version",
-		"a http://u:p@one.example.com b ftp://x@two":     "a http://****@one.example.com b ftp://****@two",
-		"no url here, user@example.com":                  "no url here, user@example.com",
+		"http://search.example.com:9200":                   "http://search.example.com:9200",
+		"http://user:pass@search.example.com:9200":         "http://****@search.example.com:9200",
+		"https://token@search.example.com":                 "https://****@search.example.com",
+		"https://user:p@ss@search.example.com/x@y":         "https://****@search.example.com/x@y",
+		"https://user:password@push.example.com/version":   "https://****@push.example.com/version",
+		"https://user:p@ss@push.example.com/version":       "https://****@push.example.com/version",
+		"a http://u:p@one.example.com b ftp://x@two":       "a http://****@one.example.com b ftp://****@two",
+		"no url here, user@example.com":                    "no url here, user@example.com",
+		"https://api.example.com?email=ops@example.net":    "https://api.example.com?email=ops@example.net",
+		"https://api.example.com/v1?email=ops@example.net": "https://api.example.com/v1?email=ops@example.net",
+		"https://api.example.com#ops@example.net":          "https://api.example.com#ops@example.net",
+		"https://user:p@ss@api.example.com?email=a@b.c":    "https://****@api.example.com?email=a@b.c",
 	} {
 		assert.Equal(t, want, MaskURLCredentials(in), in)
 	}

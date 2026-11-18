@@ -11,7 +11,7 @@ import (
 // server log under the job's id.
 const maxJobErrorRunes = 500
 
-var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/]+@`)
+var urlCredentials = regexp.MustCompile(`([A-Za-z][A-Za-z0-9+.-]*://)[^\s/?#]+@`)
 
 // MaskURLCredentials removes URL userinfo from an error. Hostnames and secrets in query strings are kept.
 func MaskURLCredentials(s string) string {
