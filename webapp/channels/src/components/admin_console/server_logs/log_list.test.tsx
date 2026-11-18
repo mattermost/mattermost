@@ -766,7 +766,7 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(timeHandle).toHaveAttribute('aria-orientation', 'vertical');
             expect(timeHandle).toHaveAttribute('tabindex', '0');
             expect(timeHandle).toHaveAttribute('aria-valuemin', '48');
-            expect(timeHandle).toHaveAttribute('aria-valuemax', '400');
+            expect(timeHandle).toHaveAttribute('aria-valuemax', '240');
             expect(timeHandle).toHaveAttribute('aria-valuenow', '96');
         });
 
@@ -825,10 +825,25 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(storedPrefs().columnWidths).toEqual({node: 600});
         });
 
-        test('should explain how to resize and reset in the handle title', () => {
+        test('should explain how to resize and reset in the handle description', () => {
             renderListWith(twoNodeProps);
 
-            expect(handle('Node')).toHaveAttribute('title', 'Drag or use the arrow keys to resize. Double-click or press Enter to reset.');
+            expect(handle('Node')).not.toHaveAttribute('title');
+            expect(handle('Node')).toHaveAccessibleDescription('Drag or use the arrow keys to resize. Double-click or press Enter to reset.');
+        });
+
+        test('should merge a column commit into the widths another tab stored', () => {
+            renderListWith(twoNodeProps);
+
+            // Another tab saved a caller width after this one loaded
+            localStorage.setItem(PREFS_KEY, JSON.stringify({...storedPrefs(), columnWidths: {caller: 300}}));
+
+            fireEvent.keyDown(handle('Node'), {key: 'ArrowRight'});
+            expect(storedPrefs().columnWidths).toEqual({node: 128, caller: 300});
+
+            fireEvent.click(screen.getByRole('button', {name: 'Wrap text'}));
+            expect(storedPrefs().wrapText).toBe(false);
+            expect(storedPrefs().columnWidths).toEqual({node: 128, caller: 300});
         });
 
         test('should resize with the arrow keys and save the committed width', () => {
@@ -915,6 +930,20 @@ describe('components/admin_console/server_logs/LogList', () => {
                 pointer(timeHandle, 'pointerUp', -1000);
 
                 expect(storedPrefs().columnWidths).toEqual({timestamp: 48});
+            });
+
+            test('should keep the automatic width when a drag ends where it started', () => {
+                renderListWith(twoNodeProps);
+                const timeHandle = handle('Time');
+
+                pointer(timeHandle, 'pointerDown', 100);
+                pointer(timeHandle, 'pointerMove', 130);
+                pointer(timeHandle, 'pointerMove', 100);
+                pointer(timeHandle, 'pointerUp', 100);
+
+                expect(storedPrefs().columnWidths).not.toHaveProperty('timestamp');
+                expect(viewer().style.getPropertyValue('--log-timestamp-width')).toBe('');
+                expect(viewer()).not.toHaveClass('LogViewer--resizing');
             });
 
             test('should not set a width when the handle is only pressed', () => {

@@ -118,9 +118,17 @@ type CopyButtonProps = {
 
     // Keeps a duplicate of another button out of the accessibility tree
     ariaHidden?: boolean;
+
+    // A click copies without moving focus onto the button
+    keepFocus?: boolean;
 };
 
-function CopyButton({value, className, tabIndex, label, ariaHidden}: CopyButtonProps) {
+// A click on the row's aria-hidden copy button would otherwise move focus onto a control hidden from assistive tech
+function preventFocus(e: React.MouseEvent) {
+    e.preventDefault();
+}
+
+function CopyButton({value, className, tabIndex, label, ariaHidden, keepFocus}: CopyButtonProps) {
     const intl = useIntl();
     const [status, copy] = useClipboardCopy();
 
@@ -137,6 +145,7 @@ function CopyButton({value, className, tabIndex, label, ariaHidden}: CopyButtonP
             tabIndex={tabIndex}
             aria-hidden={ariaHidden || undefined}
             onClick={handleCopy}
+            onMouseDown={keepFocus ? preventFocus : undefined}
             aria-label={label ?? intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
             <i className={status === 'copied' ? 'icon icon-check' : 'icon icon-content-copy'}/>
@@ -323,6 +332,7 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                                 className='LogRow__node-copy-btn'
                                 tabIndex={-1}
                                 ariaHidden={true}
+                                keepFocus={true}
                                 label={copyNodeLabel}
                             />
                         )}

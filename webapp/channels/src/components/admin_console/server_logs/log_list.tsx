@@ -317,9 +317,11 @@ export default function LogList({
             enabledLevels: Array.from(enabledLevels),
             sortAsc,
             node: selectedNode,
-            columnWidths,
+
+            // Widths are saved per column on commit, so another tab's widths aren't overwritten with this tab's copy
+            columnWidths: loadPrefs().columnWidths,
         });
-    }, [pageSize, wrapText, enabledLevels, sortAsc, selectedNode, columnWidths]);
+    }, [pageSize, wrapText, enabledLevels, sortAsc, selectedNode]);
 
     const handleColumnResize = useCallback((column: ResizableColumn, width: number) => {
         setLiveWidths((prev) => ({...prev, [column]: width}));
@@ -339,7 +341,15 @@ export default function LogList({
 
     // Saved on the spot, as a list that's replaced (the viewer remounts it on reload) wouldn't run its save effect
     const columnWidthsRef = useLatest(columnWidths);
-    const updateColumnWidths = useCallback((next: ColumnWidths) => {
+    const updateColumnWidths = useCallback((column: ResizableColumn, value: number | undefined) => {
+        // Applied to the stored widths, as another tab may have changed its other columns since this one loaded
+        const next = {...loadPrefs().columnWidths};
+        if (value === undefined) {
+            delete next[column];
+        } else {
+            next[column] = value;
+        }
+
         // Set now, as useLatest only catches up after render, and a key press and a release can commit in one batch
         columnWidthsRef.current = next;
         setColumnWidths(next);
@@ -348,17 +358,15 @@ export default function LogList({
 
     const handleColumnCommit = useCallback((column: ResizableColumn, width: number) => {
         clearLiveWidth(column);
-        if (columnWidthsRef.current[column] !== width) {
-            updateColumnWidths({...columnWidthsRef.current, [column]: width});
+        if (columnWidthsRef.current[column] !== width || loadPrefs().columnWidths[column] !== width) {
+            updateColumnWidths(column, width);
         }
     }, [clearLiveWidth, columnWidthsRef, updateColumnWidths]);
 
     const handleColumnReset = useCallback((column: ResizableColumn) => {
         clearLiveWidth(column);
-        if (columnWidthsRef.current[column] !== undefined) {
-            const rest = {...columnWidthsRef.current};
-            delete rest[column];
-            updateColumnWidths(rest);
+        if (columnWidthsRef.current[column] !== undefined || loadPrefs().columnWidths[column] !== undefined) {
+            updateColumnWidths(column, undefined);
         }
     }, [clearLiveWidth, columnWidthsRef, updateColumnWidths]);
 

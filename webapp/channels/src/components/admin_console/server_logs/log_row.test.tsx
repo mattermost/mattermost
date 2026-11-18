@@ -580,6 +580,17 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
         });
 
+        test('should not take focus when the row copy button is pressed', () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            const rowButton = document.querySelector('.LogRow__node-copy-btn')!;
+            const detailsButton = screen.getByRole('button', {name: 'Copy node name'});
+
+            // fireEvent returns false when the default was prevented
+            expect(fireEvent.mouseDown(rowButton)).toBe(false);
+            expect(fireEvent.mouseDown(detailsButton)).toBe(true);
+        });
+
         test('should copy the node from the details with the keyboard without toggling the row', async () => {
             renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
 
@@ -587,8 +598,17 @@ describe('components/admin_console/server_logs/LogRow', () => {
             const button = screen.getByRole('button', {name: 'Copy node name'});
             expect(button.closest('.LogRow__details')).not.toBeNull();
             act(() => {
-                button.focus();
+                screen.getByRole('button', {expanded: true}).focus();
             });
+
+            // The summary is followed by the details' focusable controls, with the node copy button first
+            const focusables = Array.from(document.querySelectorAll<HTMLElement>('button:not([tabindex="-1"]):not([aria-hidden="true"])'));
+            const tabs = focusables.indexOf(button) - focusables.indexOf(screen.getByRole('button', {expanded: true}));
+            expect(tabs).toBeGreaterThan(0);
+            for (let i = 0; i < tabs; i++) {
+                // eslint-disable-next-line no-await-in-loop
+                await userEvent.tab();
+            }
             expect(button).toHaveFocus();
 
             await userEvent.keyboard('{Enter}');

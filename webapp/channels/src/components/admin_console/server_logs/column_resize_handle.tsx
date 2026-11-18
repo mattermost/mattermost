@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
+
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {useLatest} from 'hooks/useLatest';
 
@@ -11,7 +13,10 @@ export type ResizableColumn = 'timestamp' | 'node' | 'caller';
 export type ColumnWidths = Partial<Record<ResizableColumn, number>>;
 
 export const COLUMN_WIDTH_BOUNDS: Record<ResizableColumn, {min: number; max: number; fallback: number}> = {
-    timestamp: {min: 48, max: 400, fallback: 96},
+
+    // The longest format, "YYYY-MM-DD h:mm:ss.SSS A", is 26 chars at 8px = 208px; wider only takes room from
+    // Node, Message and Caller
+    timestamp: {min: 48, max: 240, fallback: 96},
     node: {min: 64, max: 600, fallback: 120},
     caller: {min: 60, max: 600, fallback: 200},
 };
@@ -52,10 +57,14 @@ type Drag = {
     startWidth: number;
     width: number;
     moved: boolean;
+
+    // The width prop turns live on the first move, so whether the column was automatic is noted at the press
+    automatic: boolean;
 };
 
 export default function ColumnResizeHandle({column, label, width, edge, onResize, onCommit, onReset}: Props) {
     const intl = useIntl();
+    const hintId = useId();
     const ref = useRef<HTMLDivElement>(null);
     const drag = useRef<Drag | null>(null);
     const {min, max, fallback} = COLUMN_WIDTH_BOUNDS[column];
@@ -96,11 +105,16 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
     }, []);
 
     // Unmounted mid-drag, as when the list reloads, keeps the width so the viewer doesn't stay in its resizing state
-    const latest = useLatest({column, onCommit});
+    const latest = useLatest({column, onCommit, onReset});
     useEffect(() => () => {
         const current = drag.current;
         if (current?.moved) {
-            latest.current.onCommit(latest.current.column, current.width);
+            const {column: col, onCommit: commit, onReset: reset} = latest.current;
+            if (current.automatic && current.width === current.startWidth) {
+                reset(col);
+            } else {
+                commit(col, current.width);
+            }
         }
     }, [latest]);
 
@@ -120,7 +134,7 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
             return;
         }
         const startWidth = basis();
-        drag.current = {pointerId: e.pointerId, startX: e.clientX, startWidth, width: startWidth, moved: false};
+        drag.current = {pointerId: e.pointerId, startX: e.clientX, startWidth, width: startWidth, moved: false, automatic: width === undefined};
 
         // jsdom and old browsers have no pointer capture
         try {
@@ -128,7 +142,7 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         } catch {
             // ignore
         }
-    }, [basis]);
+    }, [basis, width]);
 
     const endDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         const current = drag.current;
@@ -144,9 +158,14 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
 
         // A plain click keeps the width the column has
         if (current.moved) {
-            onCommit(column, current.width);
+            // Dragged back to where it started, so the column keeps its automatic width instead of saving one
+            if (current.automatic && current.width === current.startWidth) {
+                onReset(column);
+            } else {
+                onCommit(column, current.width);
+            }
         }
-    }, [column, onCommit]);
+    }, [column, onCommit, onReset]);
 
     const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         const current = drag.current;
@@ -213,26 +232,40 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         onReset(column);
     }, [column, onReset]);
 
+    const hint = intl.formatMessage({id: 'admin.logs.header.resizeHint', defaultMessage: 'Drag or use the arrow keys to resize. Double-click or press Enter to reset.'});
+
     return (
-        <div
-            ref={ref}
-            className={`LogViewer__resize-handle LogViewer__resize-handle--${edge}`}
-            role='separator'
-            aria-orientation='vertical'
-            aria-label={intl.formatMessage({id: 'admin.logs.header.resizeColumn', defaultMessage: 'Resize {column} column'}, {column: label})}
-            title={intl.formatMessage({id: 'admin.logs.header.resizeHint', defaultMessage: 'Drag or use the arrow keys to resize. Double-click or press Enter to reset.'})}
-            aria-valuenow={Math.round(measured ?? width ?? fallback)}
-            aria-valuemin={min}
-            aria-valuemax={max}
-            tabIndex={0}
-            onPointerDown={handlePointerDown}
-            onPointerMove={handlePointerMove}
-            onPointerUp={endDrag}
-            onPointerCancel={endDrag}
-            onLostPointerCapture={endDrag}
-            onClick={stop}
-            onDoubleClick={handleDoubleClick}
-            onKeyDown={handleKeyDown}
-        />
+        <>
+            <WithTooltip title={hint}>
+                <div
+                    ref={ref}
+                    className={`LogViewer__resize-handle LogViewer__resize-handle--${edge}`}
+                    role='separator'
+                    aria-orientation='vertical'
+                    aria-label={intl.formatMessage({id: 'admin.logs.header.resizeColumn', defaultMessage: 'Resize {column} column'}, {column: label})}
+                    aria-describedby={hintId}
+                    aria-valuenow={Math.round(measured ?? width ?? fallback)}
+                    aria-valuemin={min}
+                    aria-valuemax={max}
+                    tabIndex={0}
+                    onPointerDown={handlePointerDown}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={endDrag}
+                    onPointerCancel={endDrag}
+                    onLostPointerCapture={endDrag}
+                    onClick={stop}
+                    onDoubleClick={handleDoubleClick}
+                    onKeyDown={handleKeyDown}
+                />
+            </WithTooltip>
+
+            {/* Always in the DOM, as the tooltip only exists while open and a native title isn't shown on keyboard focus */}
+            <span
+                id={hintId}
+                className='sr-only'
+            >
+                {hint}
+            </span>
+        </>
     );
 }
