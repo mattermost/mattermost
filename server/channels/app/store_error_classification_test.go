@@ -125,12 +125,14 @@ func TestIsPasswordValidErrorClassification(t *testing.T) {
 		*cfg.PasswordSettings.MinimumLength = 10
 	})
 
-	appErr := th.App.IsPasswordValid(th.Context, "short")
-	require.NotNil(t, appErr)
+	err := th.App.IsPasswordValid(th.Context, "short")
+	require.Error(t, err)
+	var appErr *model.AppError
+	require.ErrorAs(t, err, &appErr)
 	assert.Equal(t, "model.user.is_valid.pwd_min_length.app_error", appErr.Id)
 	assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 
-	assert.Nil(t, th.App.IsPasswordValid(th.Context, "a-long-enough-password-1A"))
+	assert.NoError(t, th.App.IsPasswordValid(th.Context, "a-long-enough-password-1A"))
 }
 
 func TestCheckPasswordAndAllCriteriaRefundsBackendErrors(t *testing.T) {
