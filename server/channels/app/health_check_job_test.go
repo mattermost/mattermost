@@ -131,15 +131,31 @@ func TestStartHealthCheckRun(t *testing.T) {
 		assert.Equal(t, 0, countJobs(t, th))
 	})
 
-	t.Run("refused without an Enterprise license", func(t *testing.T) {
+	t.Run("creates a pending job on a Professional license", func(t *testing.T) {
 		th := setup(t)
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
-		_, appErr := th.App.StartHealthCheckRun(th.Context)
-		require.NotNil(t, appErr)
-		assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
-		assert.Equal(t, 0, countJobs(t, th))
+		job, appErr := th.App.StartHealthCheckRun(th.Context)
+		require.Nil(t, appErr)
+		require.NotNil(t, job)
+		assert.Equal(t, model.JobStatusPending, job.Status)
+		assert.Equal(t, 1, countJobs(t, th))
 	})
+
+	for name, license := range map[string]*model.License{
+		"refused without a license":            nil,
+		"refused below a Professional license": model.NewTestLicenseSKU(model.LicenseShortSkuE20),
+	} {
+		t.Run(name, func(t *testing.T) {
+			th := setup(t)
+			th.App.Srv().SetLicense(license)
+
+			_, appErr := th.App.StartHealthCheckRun(th.Context)
+			require.NotNil(t, appErr)
+			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+			assert.Equal(t, 0, countJobs(t, th))
+		})
+	}
 
 	t.Run("answers 409 when the run in the way finished before it could be read", func(t *testing.T) {
 		th := setup(t)
