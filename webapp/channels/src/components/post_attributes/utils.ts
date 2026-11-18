@@ -247,7 +247,12 @@ export function useAddableAttributes(
 /**
  * Splits the fields the user can fill in while writing a post into the ones
  * taken into the post — picked from the picker, or given a value — which get a
- * chip each, and the rest, which the picker offers. Both in field order.
+ * chip each, and the rest, which the picker offers.
+ *
+ * Picked chips are in the order they were picked, so a new chip lands at the
+ * end of the row, next to the inline add control that added it. `added` is a
+ * `Set`, which keeps insertion order. A field with a value that was never
+ * picked comes first, in field order. The picker's list stays in field order.
  *
  * `visibility` plays no part. It says where a sent post advertises an
  * attribute, and a post being written has nothing to advertise yet, so a field
@@ -258,7 +263,14 @@ export function splitComposerAttributes(
     values: Array<PropertyValue<unknown>>,
     added: ReadonlySet<string>,
 ): {chips: PostAttribute[]; addable: PropertyField[]} {
-    const chips = zipAttributes(settable, values, (field, value) => added.has(field.id) || chipCount(field, value) > 0);
+    const inFieldOrder = zipAttributes(settable, values, (field, value) => added.has(field.id) || chipCount(field, value) > 0);
+    const pickOrder = new Map([...added].map((fieldId, index) => [fieldId, index]));
+    const chips = [
+        ...inFieldOrder.filter(({field}) => !pickOrder.has(field.id)),
+        ...inFieldOrder.
+            filter(({field}) => pickOrder.has(field.id)).
+            sort((a, b) => pickOrder.get(a.field.id)! - pickOrder.get(b.field.id)!),
+    ];
     const chipIds = new Set(chips.map(({field}) => field.id));
 
     return {chips, addable: settable.filter((field) => !chipIds.has(field.id))};

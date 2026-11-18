@@ -54,6 +54,18 @@ type Props = {
     // Called by `OptionMenu` when its menu closes and the field still has no
     // value. The composer un-stages the field; the modal never passes it.
     onCloseEmpty?: () => void;
+
+    // The option trigger's tooltip, shown on hover and focus. The composer's
+    // option chips show only the value, so they pass the field's name; the
+    // modal's rows label themselves. Text and user controls take none: the
+    // composer shows them only while editing, and its resting chip carries
+    // the tooltip.
+    tooltip?: string;
+
+    // A floor for `OptionMenu`'s menu width, so a menu of short options isn't
+    // narrower than the chip row around it. The composer passes one; the
+    // modal's menus size to their content.
+    menuMinWidth?: string;
 };
 
 /**
@@ -65,7 +77,7 @@ type Props = {
  * websocket — the row reads the store, always. The text control keeps a draft of
  * what is being typed, which is not the same thing — see `TextInput`.
  */
-export default function PostAttributeValueControl({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty}: Props) {
+export default function PostAttributeValueControl({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty, tooltip, menuMinWidth}: Props) {
     switch (field.type) {
     case 'select':
     case 'rank':
@@ -81,6 +93,8 @@ export default function PostAttributeValueControl({field, value, disabled, onCha
                 autoOpen={autoOpen}
                 pendingLabel={pendingLabel}
                 onCloseEmpty={onCloseEmpty}
+                tooltip={tooltip}
+                menuMinWidth={menuMinWidth}
             />
         );
 
@@ -126,7 +140,7 @@ function sameEntries(left: string[], right: string[]): boolean {
 /**
  * A menu of the field's options with a check on each chosen one.
  */
-function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty}: Props) {
+function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, autoOpen, pendingLabel, onCloseEmpty, tooltip, menuMinWidth}: Props) {
     const label = ariaLabel ?? getPropertyFieldLabel(field);
     const isMulti = field.type === 'multiselect';
     const options = getPropertyFieldOptions(field);
@@ -226,11 +240,13 @@ function OptionMenu({field, value, disabled, onChange, ariaLabel, renderValue, a
                 'aria-label': label,
                 children: displayValue,
             }}
+            menuButtonTooltip={tooltip ? {text: tooltip} : undefined}
             menu={{
                 id: `postAttributeValueMenu-${field.id}-${instanceId}`,
                 'aria-label': label,
                 isMenuOpen: isOpen,
                 onToggle: handleToggle,
+                minWidth: menuMinWidth,
             }}
         >
             {options.map((option) => {

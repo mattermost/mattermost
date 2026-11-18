@@ -933,6 +933,18 @@ const AdvancedTextEditor = ({
                     hideRemoteUserHour={showOooWarning}
                 />
             )}
+            {postAttributesEnabled && !isInEditMode && composerAttributes.chips.length > 0 && (
+                <div className='AdvancedTextEditor__attributes'>
+                    <PostAttributesComposer
+                        chips={composerAttributes.chips}
+                        addable={composerAttributes.addable}
+                        justAdded={stagedAttributes.justAdded}
+                        onAdd={stagedAttributes.add}
+                        onChange={stagedAttributes.change}
+                        onRemove={stagedAttributes.remove}
+                    />
+                </div>
+            )}
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
@@ -974,16 +986,6 @@ const AdvancedTextEditor = ({
                                     canRemove={!showPreview}
                                 />
                             </div>
-                        )}
-                        {postAttributesEnabled && !isInEditMode && (
-                            <PostAttributesComposer
-                                chips={composerAttributes.chips}
-                                addable={composerAttributes.addable}
-                                justAdded={stagedAttributes.justAdded}
-                                onAdd={stagedAttributes.add}
-                                onChange={stagedAttributes.change}
-                                onRemove={stagedAttributes.remove}
-                            />
                         )}
                         {wysiwygEnabled ? (
                             <WysiwygEditor

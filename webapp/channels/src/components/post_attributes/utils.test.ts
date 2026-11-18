@@ -715,6 +715,14 @@ describe('composer attributes', () => {
         expect(addableIds([makeValue('SECRET', 'when_set')], new Set(['always']))).toEqual(['hidden']);
     });
 
+    it('draws picked chips in the order they were picked, not in field order', () => {
+        expect(chipIds(NO_VALUES, new Set(['hidden', 'always']))).toEqual(['hidden', 'always']);
+    });
+
+    it('draws a field with a value that was never picked before the picked ones', () => {
+        expect(chipIds([makeValue('SECRET', 'when_set')], new Set(['hidden', 'always']))).toEqual(['when_set', 'hidden', 'always']);
+    });
+
     it('carries the staged value on the chip', () => {
         const value = makeValue('SECRET', 'when_set');
 

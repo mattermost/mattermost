@@ -255,6 +255,17 @@ describe('PostAttributesComposer', () => {
         expect(chip).toHaveClass('PostAttributeChip');
     });
 
+    test('a chip with a value shows only the value; the field name is its tooltip', async () => {
+        renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
+
+        const chip = screen.getByTestId('post-attribute-chip-classification');
+        expect(chip).not.toHaveTextContent('Classification');
+        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveAccessibleName('Classification: SECRET');
+
+        await userEvent.hover(screen.getByTestId('post-attribute-trigger-classification'));
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('Classification');
+    });
+
     test("picking a value writes the composer's state, keyed by field id", async () => {
         renderComposer([makeField()], [{field_id: 'field_1', value: 'opt_secret'}]);
 
@@ -469,11 +480,16 @@ describe('PostAttributesComposer', () => {
         await userEvent.tab();
         await waitFor(() => expect(stagedValues()).toContainEqual({field_id: 'field_1', value: 'hello'}));
 
+        // Left, it rests as a chip; editing it again goes through the chip.
+        await userEvent.click(screen.getByTestId('post-attribute-rest-classification'));
         await userEvent.clear(screen.getByTestId('post-attribute-input-classification'));
         await userEvent.tab();
 
         await waitFor(() => expect(stagedValues()).toEqual([{field_id: 'f_spare', value: 'opt_secret'}]));
         expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+
+        // An emptied text chip rests as the field's name.
+        expect(screen.getByTestId('post-attribute-rest-classification')).toHaveTextContent('Note');
     });
 
     test('picking a text field focuses its input', async () => {
@@ -496,10 +512,47 @@ describe('PostAttributesComposer', () => {
         await waitFor(() => expect(screen.getByTestId('postAttributeValueUser-field_1-input')).toHaveFocus());
     });
 
-    test('a staged text field that was not just picked does not take focus', () => {
+    test('a staged text field that was not just picked rests as a chip and does not take focus', () => {
         renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
 
-        expect(screen.getByTestId('post-attribute-input-classification')).not.toHaveFocus();
+        const rest = screen.getByTestId('post-attribute-rest-classification');
+        expect(rest).not.toHaveFocus();
+        expect(rest).toHaveAccessibleName('Note: hello');
+        expect(within(rest).getByTestId('text-property')).toHaveTextContent('hello');
+        expect(screen.queryByTestId('post-attribute-input-classification')).not.toBeInTheDocument();
+    });
+
+    test('a text chip at rest turns into its input on click, and back into a chip on blur', async () => {
+        renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
+
+        await userEvent.click(screen.getByTestId('post-attribute-rest-classification'));
+
+        const input = screen.getByTestId('post-attribute-input-classification');
+        await waitFor(() => expect(input).toHaveFocus());
+        expect(input).toHaveValue('hello');
+
+        await userEvent.type(input, ' there');
+        await userEvent.tab();
+
+        await waitFor(() => expect(stagedValues()).toEqual([{field_id: 'field_1', value: 'hello there'}]));
+        expect(screen.queryByTestId('post-attribute-input-classification')).not.toBeInTheDocument();
+        expect(screen.getByTestId('post-attribute-rest-classification')).toHaveAccessibleName('Note: hello there');
+    });
+
+    test('a user chip at rest shows the name with no profile popover, and turns into the user picker on click', async () => {
+        renderComposer([makeField({type: 'user', attrs: {display_name: 'Owner'}})], [{field_id: 'field_1', value: CURRENT_USER_ID}]);
+
+        const rest = screen.getByTestId('post-attribute-rest-classification');
+        expect(rest).toHaveAccessibleName(/^Owner: /);
+        expect(within(rest).getByTestId('user-property')).toBeInTheDocument();
+
+        // The name is plain text: a button inside the chip's button would be
+        // invalid, and the click belongs to the chip.
+        expect(within(rest).queryByRole('button')).not.toBeInTheDocument();
+
+        await userEvent.click(rest);
+
+        await waitFor(() => expect(screen.getByTestId('postAttributeValueUser-field_1-input')).toHaveFocus());
     });
 
     test('`permission_values: creator` is writable for any user — there is no post yet, so the author is the composer', () => {

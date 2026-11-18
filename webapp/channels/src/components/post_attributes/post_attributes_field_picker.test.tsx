@@ -199,7 +199,7 @@ describe('PostAttributesFieldPicker', () => {
             const icon = iconIn(screen.getByTestId(`post-attribute-add-${type}`));
 
             expect(icon?.querySelector('path')?.getAttribute('d')).toBe(paths[index]);
-            expect(icon).toHaveAttribute('height', '16');
+            expect(icon).toHaveAttribute('height', '18');
         });
 
         /*
@@ -223,5 +223,110 @@ describe('PostAttributesFieldPicker', () => {
         // run, so the call has not happened yet at the point the click returns.
         await waitFor(() => expect(onSelect).toHaveBeenCalledTimes(1));
         expect(onSelect).toHaveBeenCalledWith('f_b');
+    });
+
+    describe('search', () => {
+        function fiveFields() {
+            return [
+                makeField({id: 'f_a', name: 'alpha', attrs: {display_name: 'Priority'}}),
+                makeField({id: 'f_b', name: 'bravo', attrs: {display_name: 'Risk'}}),
+                makeField({id: 'f_c', name: 'charlie', attrs: {display_name: 'Owner'}}),
+                makeField({id: 'f_d', name: 'delta', attrs: {display_name: 'Tags'}}),
+                makeField({id: 'f_e', name: 'echo', attrs: {display_name: 'Notes'}}),
+            ];
+        }
+
+        test('has no search box below five fields', async () => {
+            renderPicker(fiveFields().slice(0, 4));
+            await openPicker();
+
+            expect(screen.queryByTestId('post-attributes-add-search')).not.toBeInTheDocument();
+        });
+
+        test('from five fields, focuses a search box that filters by label and by name', async () => {
+            renderPicker(fiveFields());
+            await openPicker();
+
+            const search = screen.getByRole('searchbox', {name: 'Search attributes'});
+            await waitFor(() => expect(search).toHaveFocus());
+
+            await userEvent.type(search, 'ri');
+            expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual([
+                'post-attribute-add-alpha',
+                'post-attribute-add-bravo',
+            ]);
+
+            await userEvent.clear(search);
+            await userEvent.type(search, 'ECHO');
+            expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual(['post-attribute-add-echo']);
+        });
+
+        test('ArrowDown moves from the search box into the list', async () => {
+            renderPicker(fiveFields());
+            await openPicker();
+
+            const search = screen.getByRole('searchbox', {name: 'Search attributes'});
+            await waitFor(() => expect(search).toHaveFocus());
+            await userEvent.keyboard('{ArrowDown}');
+
+            expect(screen.getByTestId('post-attribute-add-alpha')).toHaveFocus();
+        });
+
+        test('Escape in the search box closes the menu and picks nothing; reopening starts a fresh search', async () => {
+            const onSelect = jest.fn();
+            renderPicker(fiveFields(), onSelect);
+            await openPicker();
+
+            const search = screen.getByRole('searchbox', {name: 'Search attributes'});
+            await waitFor(() => expect(search).toHaveFocus());
+            await userEvent.type(search, 'risk');
+            await userEvent.keyboard('{Escape}');
+
+            await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+            expect(onSelect).not.toHaveBeenCalled();
+
+            await openPicker();
+            expect(screen.getByRole('searchbox', {name: 'Search attributes'})).toHaveValue('');
+            expect(screen.getAllByRole('menuitem')).toHaveLength(5);
+        });
+    });
+
+    test('inside a dialog, the menu renders in the dialog, so the modal does not take focus back from it', async () => {
+        renderWithContext(
+            <div role='dialog'>
+                <PostAttributesFieldPicker
+                    fields={[makeField({id: 'f_a', name: 'alpha'})]}
+                    onSelect={jest.fn()}
+                />
+            </div>,
+        );
+
+        await openPicker();
+
+        expect(screen.getByRole('dialog')).toContainElement(screen.getByRole('menu', {name: 'Add an attribute'}));
+    });
+
+    test('outside a dialog, the menu renders in the page body', async () => {
+        renderPicker([makeField({id: 'f_a', name: 'alpha'})]);
+        await openPicker();
+
+        expect(screen.getByRole('menu', {name: 'Add an attribute'}).closest('[role="dialog"]')).toBeNull();
+    });
+
+    test('a compact picker draws "Add attribute" as a Compass button that opens the menu', async () => {
+        renderWithContext(
+            <PostAttributesFieldPicker
+                compact={true}
+                fields={[makeField({id: 'f_a', name: 'alpha'})]}
+                onSelect={jest.fn()}
+            />,
+        );
+
+        const button = screen.getByRole('button', {name: 'Add attribute'});
+        expect(button).toHaveAttribute('data-testid', 'post-attributes-add');
+        expect(button).not.toHaveClass('PostAttributesModal__add');
+
+        await userEvent.click(button);
+        expect(screen.getByRole('menu', {name: 'Add an attribute'})).toBeInTheDocument();
     });
 });

@@ -1,10 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useId} from 'react';
-import {useIntl} from 'react-intl';
+import React, {useCallback, useId, useState} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
@@ -78,6 +81,7 @@ export default function PostAttributesComposer({chips, addable, justAdded, onAdd
             {addable.length > 0 && (
                 <PostAttributesFieldPicker
                     id={`postAttributesAdd-${addId}`}
+                    compact={true}
                     fields={addable}
                     onSelect={onAdd}
                 />
@@ -97,14 +101,31 @@ type ChipProps = {
 /**
  * One staged attribute. The value renders through `PostAttributeChip`, as on
  * a sent post, so a staged chip looks like the chip it will become; editing
- * goes through `PostAttributeValueControl`, shared with the modal. The field
- * name is an `aria-hidden` caption, announced through the control's own name.
+ * goes through `PostAttributeValueControl`, shared with the modal. The chip
+ * shows only the value: the field's name is its tooltip, and is in the
+ * control's accessible name.
+ *
+ * A text or user chip is a chip at rest, like every other, and becomes its
+ * input or user picker while the user edits it; leaving the control turns it
+ * back into a chip.
  */
 function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}: ChipProps) {
     const {formatMessage, formatList} = useIntl();
 
     const label = getPropertyFieldLabel(field);
     const isOptionType = field.type === 'select' || field.type === 'rank' || field.type === 'multiselect';
+
+    // A field just picked opens straight into its control.
+    const [editing, setEditing] = useState(!isOptionType && autoOpen);
+    const startEditing = useCallback(() => setEditing(true), []);
+
+    // Focus moving within the control (react-select's input, its menu) keeps
+    // it open; focus leaving it ends the edit.
+    const handleEditorBlur = useCallback((event: React.FocusEvent<HTMLSpanElement>) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+            setEditing(false);
+        }
+    }, []);
 
     // Only an option field needs this: its control is a button whose content
     // is the rendered chip, while a text input or user picker reads out its own
@@ -124,61 +145,100 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
     }
 
     const handleRemove = useCallback(() => onRemove(field.id), [field.id, onRemove]);
+    const removeLabel = formatMessage(
+        {id: 'post_attributes.composer.remove', defaultMessage: 'Remove {attribute}', description: 'Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute\'s name. Verb.'},
+        {attribute: label},
+    );
 
     return (
         <div
             className='PostAttributesComposerChip'
             data-testid={`post-attribute-chip-${field.name}`}
         >
-            <span
-                className='PostAttributesComposerChip__label'
-                aria-hidden='true'
-            >
-                {label}
-            </span>
+            {!isOptionType && !editing ? (
+                <WithTooltip title={label}>
+                    <button
+                        type='button'
+                        className='PostAttributesComposerChip__rest'
+                        data-testid={`post-attribute-rest-${field.name}`}
+                        onClick={startEditing}
+                    >
+                        {value ? (
+                            <>
+                                <span className='sr-only'>
+                                    <FormattedMessage
+                                        id='post_attributes.composer.chip.field'
+                                        defaultMessage='{field}:'
+                                        description="Read by screen readers only, before the value of a text or user attribute chip in the message composer. {field} is the attribute's name."
+                                        values={{field: label}}
+                                    />
+                                </span>
+                                <PostAttributeChip
+                                    field={field}
+                                    value={value}
+                                    interactive={false}
+                                />
+                            </>
+                        ) : (
+                            <span className='PostAttributesComposerChip__pending'>{label}</span>
+                        )}
+                    </button>
+                </WithTooltip>
+            ) : (
+                <span
+                    className='PostAttributesComposerChip__editor'
+                    onBlur={isOptionType ? undefined : handleEditorBlur}
+                >
+                    <PostAttributeValueControl
+                        field={field}
+                        value={value}
+                        disabled={false}
+                        onChange={onChange}
+                        ariaLabel={ariaLabel}
+                        renderValue={renderChipValue}
+                        autoOpen={isOptionType ? autoOpen : true}
 
-            <PostAttributeValueControl
-                field={field}
-                value={value}
-                disabled={false}
-                onChange={onChange}
-                ariaLabel={ariaLabel}
-                renderValue={renderChipValue}
-                autoOpen={autoOpen}
+                        // An option chip with no value shows the field's name, so its
+                        // trigger has a size, and is un-staged when its menu closes
+                        // without a value: an empty chip would be a leftover with
+                        // nothing to click. Text and user chips stay until their ×;
+                        // an empty one rests as the field's name.
+                        pendingLabel={isOptionType ? <span className='PostAttributesComposerChip__pending'>{label}</span> : undefined}
+                        onCloseEmpty={isOptionType ? handleRemove : undefined}
 
-                // An option chip with no value shows the field's name, so its
-                // trigger has a size, and is un-staged when its menu closes
-                // without a value: an empty chip would be a leftover with
-                // nothing to click. Text and user chips are inputs with a size
-                // of their own, and stay until their ×.
-                pendingLabel={isOptionType ? <span className='PostAttributesComposerChip__pending'>{label}</span> : undefined}
-                onCloseEmpty={isOptionType ? handleRemove : undefined}
-            />
+                        // Only a filled option chip: an empty one already reads as
+                        // the field's name, and text and user chips get theirs at rest.
+                        tooltip={isOptionType && value ? label : undefined}
+                        menuMinWidth='180px'
+                    />
+                </span>
+            )}
 
-            <button
-                type='button'
-                className='PostAttributesComposerChip__remove'
-                data-testid={`post-attribute-remove-${field.name}`}
+            <WithTooltip title={removeLabel}>
+                <IconButton
+                    size='x-small'
+                    padding='compact'
+                    className='PostAttributesComposerChip__remove'
+                    data-testid={`post-attribute-remove-${field.name}`}
+                    icon={<Icon glyph={<CloseIcon/>}/>}
 
-                // Named after the attribute, so a row of chips does not
-                // hand a screen reader several buttons called "Remove".
-                aria-label={formatMessage(
-                    {id: 'post_attributes.composer.remove', defaultMessage: 'Remove {attribute}', description: 'Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute\'s name. Verb.'},
-                    {attribute: label},
-                )}
-                onClick={handleRemove}
-            >
-                <CloseIcon size={12}/>
-            </button>
+                    // Named after the attribute, so a row of chips does not
+                    // hand a screen reader several buttons called "Remove".
+                    aria-label={removeLabel}
+                    onClick={handleRemove}
+                />
+            </WithTooltip>
         </div>
     );
 }
 
+// Inside the option menu's trigger button, so the user name is plain text.
 function renderChipValue(field: PropertyField, value: PropertyValue<unknown>) {
     return (
         <PostAttributeChip
             field={field}
             value={value}
+            interactive={false}
         />
     );
 }

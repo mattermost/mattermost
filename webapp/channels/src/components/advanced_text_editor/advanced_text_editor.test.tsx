@@ -1512,6 +1512,24 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByTestId('post-attributes-composer-add')).not.toHaveAttribute('aria-disabled');
         });
 
+        it('draws the chip row above the message box, outside its border', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, spareField]),
+            );
+
+            await pickFromActionRow('priority');
+
+            const row = screen.getByTestId('post-attributes-composer');
+            const box = document.querySelector('.AdvancedTextEditor__body') as HTMLElement;
+
+            expect(box).not.toContainElement(row);
+            expect(row.compareDocumentPosition(box) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(row.closest('.AdvancedTextEditor__attributes')).not.toBeNull();
+        });
+
         it('offers the fields the inline add control offers', async () => {
             renderWithContext(
                 <AdvancedTextEditor
@@ -1595,6 +1613,22 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
         });
 
+        it('adds each picked chip at the end of the row, after the ones already there', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withFields([priorityField, classificationField]),
+            );
+
+            // Field order is priority, classification; pick them the other way round.
+            await pickFromActionRow('classification');
+            await pickFromActionRow('priority');
+
+            const chipNames = screen.getAllByTestId(/^post-attribute-chip-/).map((chip) => chip.dataset.testid);
+            expect(chipNames).toEqual(['post-attribute-chip-classification', 'post-attribute-chip-priority']);
+        });
+
         it('gives the two add controls their own ids and test ids', async () => {
             renderWithContext(
                 <AdvancedTextEditor
@@ -1658,14 +1692,18 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 withFields([priorityField, referenceField]),
             );
 
-            // The same text field is picked in both composers, and each draws an input.
+            // The same text field is picked in both composers. A text chip is
+            // an input only while it is being edited, and picking in the
+            // thread composer moves focus out of the centre one, so the two
+            // inputs are read one after the other.
             await pickFromActionRow('reference', 0);
+            const centreId = screen.getByTestId('post-attribute-input-reference').id;
+
             await pickFromActionRow('reference', 1);
-
             const inputs = screen.getAllByTestId('post-attribute-input-reference');
-            expect(inputs).toHaveLength(2);
+            expect(inputs).toHaveLength(1);
+            const threadId = inputs[0].id;
 
-            const [centreId, threadId] = inputs.map((input) => input.id);
             expect(centreId).toMatch(/^postAttributeValueInput-f_reference/);
             expect(threadId).toMatch(/^postAttributeValueInput-f_reference/);
             expect(centreId).not.toBe(threadId);

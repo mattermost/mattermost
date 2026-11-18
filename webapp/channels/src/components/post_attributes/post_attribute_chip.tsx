@@ -30,6 +30,11 @@ type Props = {
     // How many entries a multi-valued field may draw; the chip row's budget.
     // Undefined draws them all.
     maxItems?: number;
+
+    // False inside another control, such as a composer chip that is itself a
+    // button: the user's name is then plain text rather than the profile
+    // popover's own button. Defaults to true.
+    interactive?: boolean;
 };
 
 /**
@@ -44,7 +49,7 @@ type Props = {
  * into "remove", and the composer needs both to open a chip's value menu. The
  * test ids are the old renderers', so the chip row's tests read the same.
  */
-export default function PostAttributeChip({field, value, maxItems}: Props) {
+export default function PostAttributeChip({field, value, maxItems, interactive = true}: Props) {
     switch (field.type) {
     case 'select':
     case 'rank':
@@ -73,7 +78,12 @@ export default function PostAttributeChip({field, value, maxItems}: Props) {
     }
 
     case 'user':
-        return <UserChip userId={typeof value.value === 'string' ? value.value : ''}/>;
+        return (
+            <UserChip
+                userId={typeof value.value === 'string' ? value.value : ''}
+                interactive={interactive}
+            />
+        );
 
     // One chip per stored id, capped like `multiselect`. Indexed keys: nothing
     // stops a stored array naming the same user twice.
@@ -84,6 +94,7 @@ export default function PostAttributeChip({field, value, maxItems}: Props) {
                     <UserChip
                         key={`${index}:${String(userId)}`}
                         userId={String(userId)}
+                        interactive={interactive}
                     />
                 ))}
             </>
@@ -104,10 +115,10 @@ export default function PostAttributeChip({field, value, maxItems}: Props) {
 
 /**
  * The name keeps `UserProfileComponent`, so clicking it still opens the
- * profile popover. An id whose profile has not arrived renders its "Someone"
- * fallback, as before.
+ * profile popover, unless the chip sits inside another control. An id whose
+ * profile has not arrived renders its "Someone" fallback, as before.
  */
-function UserChip({userId}: {userId: string}) {
+function UserChip({userId, interactive}: {userId: string; interactive: boolean}) {
     const user = useUser(userId);
 
     return (
@@ -117,7 +128,10 @@ function UserChip({userId}: {userId: string}) {
             data-testid='user-property'
             leadingAvatar={user ? {src: imageURLForUser(user.id, user.last_picture_update), alt: ''} : undefined}
         >
-            <UserProfileComponent userId={user?.id || ''}/>
+            <UserProfileComponent
+                userId={user?.id || ''}
+                disablePopover={!interactive}
+            />
         </Chip>
     );
 }
