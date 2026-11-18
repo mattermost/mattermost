@@ -14,7 +14,9 @@ import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/propert
 import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
 import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -144,6 +146,22 @@ describe('ChannelInfoAttributes', () => {
 
         expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
         expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+    });
+
+    test('calls them Channel Attributes on a channel and Board Attributes on a board', () => {
+        const {unmount} = renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            makeState([field('program')], [value('program', 'opt_program')]),
+        );
+        expect(screen.getByText('Channel Attributes')).toBeInTheDocument();
+        unmount();
+
+        renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            mergeObjects(makeState([field('program')], [value('program', 'opt_program')]), boardChannelsState(CHANNEL_ID)),
+        );
+        expect(screen.getByText('Board Attributes')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Attributes')).not.toBeInTheDocument();
     });
 
     test('renders a required attribute with no value as Not set', () => {

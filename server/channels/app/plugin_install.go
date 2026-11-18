@@ -553,7 +553,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	// Disable plugin before removal to make sure this
 	// plugin remains disabled on re-install.
 	if err := ch.disablePlugin(id); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := ch.removePluginLocally(id); err != nil {

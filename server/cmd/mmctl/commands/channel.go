@@ -60,7 +60,9 @@ var DeleteChannelsCmd = &cobra.Command{
 	Use:   "delete [channels]",
 	Short: "Delete channels",
 	Long: `Permanently delete some channels.
-Permanently deletes one or multiple channels along with all related information including posts from the database.`,
+Permanently deletes one or multiple channels along with all related information including posts from the database.
+
+Before deleting a large number of channels, turn off Elasticsearch indexing (ElasticsearchSettings.EnableIndexing) and leave the Elasticsearch or OpenSearch cluster running. After the deletes finish, turn indexing back on and run a bulk index. See https://docs.mattermost.com/administration-guide/configure/environment-configuration-settings#enable-elasticsearch-indexing`,
 	Example: "  channel delete myteam:mychannel",
 	Args:    cobra.MinimumNArgs(1),
 	RunE:    withClient(deleteChannelsCmdF),
@@ -702,7 +704,7 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		if _, err := c.PermanentDeleteChannel(context.TODO(), channel.Id); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to delete channel '%q' error: %w", channel.Name, err))
 		} else {
-			printer.PrintT("Deleted channel '{{.Name}}'", channel)
+			printer.PrintT("Deleted channel '{{.DisplayName}}' (ID: {{.Id}})", channel)
 		}
 	}
 	return result.ErrorOrNil()

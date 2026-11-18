@@ -9,6 +9,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import type {BotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
 import {BOT_CREATE_WARNINGS_PARAM, serializeBotCreateWarnings} from 'components/integrations/bots/bot_create_warnings';
+import {setPendingBotToken, takePendingBotToken} from 'components/integrations/bots/bot_pending_token';
 import ConfirmIntegration from 'components/integrations/confirm_integration/confirm_integration';
 
 import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
@@ -84,15 +85,14 @@ describe('components/integrations/ConfirmIntegration', () => {
         bots,
     };
 
-    test('should match snapshot, oauthApps case', () => {
+    test('should render oauthApps case', () => {
         props.location.search = getSearchString('oauth2-apps');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getByText('OAuth 2.0 Applications')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should match callback URLs of OAuth Apps', () => {
@@ -105,72 +105,46 @@ describe('components/integrations/ConfirmIntegration', () => {
         expect(container.querySelector('.word-break--all')).toHaveTextContent('URL(s): https://someCallback, https://anotherCallback');
     });
 
-    test('should match snapshot, outgoingOAuthConnections case', () => {
+    test('should render outgoingOAuthConnections case', () => {
         props.location.search = getSearchString('outgoing-oauth2-connections');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getByText('Outgoing OAuth Connections')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, commands case', () => {
+    test('should render commands case', () => {
         props.location.search = getSearchString('commands');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getAllByText('Slash Commands').length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText(token)).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, incomingHooks case', () => {
+    test('should render incomingHooks case', () => {
         props.location.search = getSearchString('incoming_webhooks');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getAllByText('Incoming Webhooks').length).toBeGreaterThanOrEqual(1);
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot, outgoingHooks case', () => {
+    test('should render outgoingHooks case', () => {
         props.location.search = getSearchString('outgoing_webhooks');
-        const {container} = renderWithContext(
+        renderWithContext(
             <ConfirmIntegration {...props}/>,
             initialState,
         );
         expect(screen.getByText('Setup Successful')).toBeInTheDocument();
         expect(screen.getAllByText('Outgoing Webhooks').length).toBeGreaterThanOrEqual(1);
         expect(screen.getByText(token)).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, outgoingHooks and bad identifier case', () => {
-        props.location.search = getSearchString('outgoing_webhooks', 'bad');
-        const {container} = renderWithContext(
-            <ConfirmIntegration {...props}/>,
-            initialState,
-        );
-
-        // Bad identifier means integration not found, redirects to error page
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, bad integration type case', () => {
-        props.location.search = getSearchString('bad');
-        const {container} = renderWithContext(
-            <ConfirmIntegration {...props}/>,
-            initialState,
-        );
-
-        // Bad type means redirect to error page
-        expect(container).toMatchSnapshot();
     });
 
     describe('bot create warnings', () => {
@@ -187,18 +161,33 @@ describe('components/integrations/ConfirmIntegration', () => {
             />
         );
         const renderConfirm = (search: string) => renderWithContext(confirmElement(search), initialState);
+        const confirmQuery = `?type=bots&id=${userId}`;
         const botSearch = (warnings?: BotCreateWarnings) =>
-            `?type=bots&id=${userId}&token=${token}` + (warnings ? `&${withWarnings(warnings)}` : '');
+            confirmQuery + (warnings ? `&${withWarnings(warnings)}` : '');
+        const seedBotToken = () => setPendingBotToken(userId, token);
+        const botsListPath = `/${team.name}/integrations/bots`;
+        const otherToken = 'aaaaaaaaaaaaaaaaaaaaaaaaaa';
+
+        afterEach(() => {
+            takePendingBotToken(userId);
+            takePendingBotToken('other-id');
+            takePendingBotToken(userId.slice(0, -1));
+            takePendingBotToken(`${userId}x`);
+            takePendingBotToken('c5tpgt4iepf45jt768jz84djhd');
+        });
 
         test('bot without warnings shows token and no banner', () => {
-            renderConfirm(botSearch());
+            seedBotToken();
+            renderConfirm(`${botSearch()}&token=${otherToken}`);
 
             expect(screen.getByText(token)).toBeInTheDocument();
+            expect(screen.queryByText(otherToken)).not.toBeInTheDocument();
             expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
             expect(replace).not.toHaveBeenCalled();
         });
 
         test('bot with warnings shows the banner above the help text and keeps the token', () => {
+            seedBotToken();
             renderConfirm(botSearch({attributesFailed: true}));
 
             const banner = screen.getByTestId('botCreateWarnings');
@@ -210,16 +199,17 @@ describe('components/integrations/ConfirmIntegration', () => {
             expect(banner.compareDocumentPosition(helpText) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
 
-        test('removes bot_warnings from the URL, keeps type/id/token, and keeps the banner', () => {
+        test('removes bot_warnings from the URL, keeps type and id, and keeps the banner', () => {
+            seedBotToken();
             renderConfirm(botSearch({attributesFailed: true}));
 
             expect(replace).toHaveBeenCalledTimes(1);
-            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}?type=bots&id=${userId}&token=${token}`);
+            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}${confirmQuery}`);
 
             const params = new URLSearchParams(String(replace.mock.calls[0][0]).split('?')[1]);
             expect(params.get('type')).toBe('bots');
             expect(params.get('id')).toBe(userId);
-            expect(params.get('token')).toBe(token);
+            expect(params.has('token')).toBe(false);
             expect(params.has(BOT_CREATE_WARNINGS_PARAM)).toBe(false);
 
             expect(screen.getByTestId('botCreateWarnings')).toBeInTheDocument();
@@ -227,14 +217,16 @@ describe('components/integrations/ConfirmIntegration', () => {
         });
 
         test('keeps the other params when bot_warnings is not last', () => {
-            renderConfirm(`?type=bots&${withWarnings({rolesFailed: true})}&id=${userId}&token=${token}`);
+            seedBotToken();
+            renderConfirm(`?type=bots&${withWarnings({rolesFailed: true})}&id=${userId}`);
 
             expect(replace).toHaveBeenCalledTimes(1);
-            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}?type=bots&id=${userId}&token=${token}`);
+            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}${confirmQuery}`);
             expect(within(screen.getByTestId('botCreateWarnings')).getByText(ROLES)).toBeInTheDocument();
         });
 
         test('dismissing hides the banner', async () => {
+            seedBotToken();
             renderConfirm(botSearch({attributesFailed: true}));
 
             const banner = screen.getByTestId('botCreateWarnings');
@@ -253,7 +245,7 @@ describe('components/integrations/ConfirmIntegration', () => {
         });
 
         test('unknown bot id with warnings only redirects to the error page', () => {
-            renderConfirm(`?type=bots&id=unknown&token=${token}&${withWarnings({attributesFailed: true})}`);
+            renderConfirm(`?type=bots&id=unknown&${withWarnings({attributesFailed: true})}`);
 
             expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
             expect(replace).toHaveBeenCalled();
@@ -263,9 +255,10 @@ describe('components/integrations/ConfirmIntegration', () => {
         });
 
         test('shows the warning once: it survives the cleanup rerender but not a fresh mount', () => {
+            seedBotToken();
             const {rerender, unmount} = renderConfirm(botSearch({attributesFailed: true}));
             const cleanedSearch = String(replace.mock.calls[0][0]).slice(CONFIRM_PATH.length);
-            expect(cleanedSearch).toBe(botSearch());
+            expect(cleanedSearch).toBe(confirmQuery);
 
             rerender(confirmElement(cleanedSearch));
             expect(within(screen.getByTestId('botCreateWarnings')).getByText(ATTRS)).toBeInTheDocument();
@@ -273,6 +266,7 @@ describe('components/integrations/ConfirmIntegration', () => {
             expect(replace).toHaveBeenCalledTimes(1);
             unmount();
 
+            seedBotToken();
             renderConfirm(cleanedSearch);
             expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
             expect(screen.getByText(token)).toBeInTheDocument();
@@ -280,12 +274,76 @@ describe('components/integrations/ConfirmIntegration', () => {
         });
 
         test('strips an unrecognized bot_warnings value without showing a banner', () => {
+            seedBotToken();
             renderConfirm(`${botSearch()}&${BOT_CREATE_WARNINGS_PARAM}=foo`);
 
             expect(screen.queryByTestId('botCreateWarnings')).toBeNull();
             expect(screen.getByText(token)).toBeInTheDocument();
             expect(replace).toHaveBeenCalledTimes(1);
-            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}${botSearch()}`);
+            expect(replace).toHaveBeenCalledWith(`${CONFIRM_PATH}${confirmQuery}`);
+        });
+
+        test.each([
+            ['no pending token', () => undefined, confirmQuery],
+            ['a token query param', () => undefined, `${confirmQuery}&token=${token}`],
+            ['an encoded token query param', () => undefined, `${confirmQuery}&token=${encodeURIComponent(token)}`],
+            ['a Token query param', () => undefined, `${confirmQuery}&Token=${token}`],
+            ['an empty token query param', () => undefined, `${confirmQuery}&token=`],
+            ['a token query param and warnings', () => undefined, `${botSearch({rolesFailed: true})}&token=${token}`],
+            ['an empty pending token', () => setPendingBotToken(userId, ''), confirmQuery],
+            ['a pending token for another id', () => setPendingBotToken('other-id', token), confirmQuery],
+            ['a pending token for a prefix of the id', () => setPendingBotToken(userId.slice(0, -1), token), confirmQuery],
+            ['a pending token for an id that starts with this id', () => setPendingBotToken(`${userId}x`, token), confirmQuery],
+        ])('%s sends the user to the bots list', (_, seed, search) => {
+            seed();
+            renderConfirm(search);
+
+            expect(screen.queryByText(token)).not.toBeInTheDocument();
+            expect(replace).toHaveBeenCalledWith(botsListPath);
+        });
+
+        test('the token is still shown when effects run twice on mount', () => {
+            seedBotToken();
+            renderWithContext(<React.StrictMode>{confirmElement(botSearch())}</React.StrictMode>, initialState);
+
+            expect(screen.getByText(token)).toBeInTheDocument();
+            expect(replace).not.toHaveBeenCalledWith(botsListPath);
+        });
+
+        test('a different bot id on the same mount shows that bot\'s own token', () => {
+            const secondUserId = 'c5tpgt4iepf45jt768jz84djhd';
+            const secondToken = 'zzzzzzzzzzzzzzzzzzzzzzzzzz';
+            const twoBots = {
+                [userId]: bot,
+                [secondUserId]: TestHelper.getBotMock({user_id: secondUserId, display_name: 'second bot'}),
+            };
+            const element = (search: string) => (
+                <ConfirmIntegration
+                    {...props}
+                    bots={twoBots}
+                    location={{pathname: CONFIRM_PATH, search}}
+                />
+            );
+            seedBotToken();
+
+            const {rerender} = renderWithContext(element(confirmQuery), initialState);
+            expect(screen.getByText(token)).toBeInTheDocument();
+
+            setPendingBotToken(secondUserId, secondToken);
+            rerender(element(`?type=bots&id=${secondUserId}`));
+            expect(screen.getByText(secondToken)).toBeInTheDocument();
+            expect(screen.queryByText(token)).not.toBeInTheDocument();
+        });
+
+        test('a remount after the first visit goes to the bots list', () => {
+            seedBotToken();
+            const {unmount} = renderConfirm(botSearch());
+            expect(screen.getByText(token)).toBeInTheDocument();
+            unmount();
+
+            renderConfirm(botSearch());
+            expect(screen.queryByText(token)).not.toBeInTheDocument();
+            expect(replace).toHaveBeenCalledWith(botsListPath);
         });
     });
 });

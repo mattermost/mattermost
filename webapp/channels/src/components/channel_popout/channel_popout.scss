@@ -20,7 +20,7 @@ body.app__body.popout #root .main-wrapper.channel-popout {
     }
 
     .post-right__container .PopoutButton {
-        display: initial;
+        display: inline-flex;
     }
 
     @media screen and (max-width: 768px) {
@@ -57,7 +57,7 @@ body.app__body.popout #root .main-wrapper.channel-popout {
         }
 
         .sidebar--right__close {
-            display: block;
+            display: inline-flex;
         }
     }
 }

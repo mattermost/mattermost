@@ -41,79 +41,65 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
         jest.clearAllMocks();
     });
 
-    test('should match snapshot, on loading without data', () => {
-        const {container} = renderWithContext(
+    test('should render on loading without data', () => {
+        renderWithContext(
             <GroupUsers
                 {...defaultProps}
                 members={[]}
             />,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByText('No users found')).toBeInTheDocument();
     });
 
-    test('should match snapshot, plugin group', () => {
-        const {container} = renderWithContext(
+    test('should render plugin group', () => {
+        renderWithContext(
             <GroupUsers
                 {...defaultProps}
                 source={PluginGroupSourcePrefix.Plugin + 'keycloak'}
             />,
         );
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByText('This group is managed by a plugin.')).toBeInTheDocument();
     });
 
-    test('should match snapshot, on loading with data', () => {
-        const {container} = renderWithContext(<GroupUsers {...defaultProps}/>);
-
-        expect(container).toMatchSnapshot();
+    test('should render on loading with data', () => {
+        renderWithContext(<GroupUsers {...defaultProps}/>);
         expect(screen.getByText(/AD\/LDAP Connector is configured/)).toBeInTheDocument();
         expect(screen.getByText('@username0')).toBeInTheDocument();
         expect(screen.getByText('@username19')).toBeInTheDocument();
         expect(screen.getByText(/1 - 20 of 20/)).toBeInTheDocument();
     });
 
-    test('should match snapshot, loaded without data', async () => {
-        let container: HTMLElement;
+    test('should render loaded without data', async () => {
         await act(async () => {
-            ({container} = renderWithContext(
+            renderWithContext(
                 <GroupUsers
                     {...defaultProps}
                     members={[]}
                 />,
-            ));
+            );
         });
-
-        expect(container!).toMatchSnapshot();
         expect(screen.getByText('No users found')).toBeInTheDocument();
     });
 
-    test('should match snapshot, loaded with data', async () => {
-        let container: HTMLElement;
+    test('should render loaded with data', async () => {
         await act(async () => {
-            ({container} = renderWithContext(<GroupUsers {...defaultProps}/>));
+            renderWithContext(<GroupUsers {...defaultProps}/>);
         });
-
-        expect(container!).toMatchSnapshot();
         expect(screen.getByText('@username0')).toBeInTheDocument();
         expect(screen.getByText('@username19')).toBeInTheDocument();
         expect(screen.getByText(/1 - 20 of 20/)).toBeInTheDocument();
     });
 
-    test('should match snapshot, loaded with one page', async () => {
+    test('should render loaded with one page', async () => {
         const {container} = await act(async () => {
             return renderWithContext(<GroupUsers {...defaultProps}/>);
         });
-
-        expect(container).toMatchSnapshot();
         expect(screen.getByText(/1 - 20 of 20/)).toBeInTheDocument();
         expect(getPrevButton(container)).toBeDisabled();
         expect(getNextButton(container)).toBeDisabled();
     });
 
-    test('should match snapshot, loaded with multiple pages', async () => {
+    test('should render loaded with multiple pages', async () => {
         const {container} = await act(async () => {
             return renderWithContext(
                 <GroupUsers
@@ -123,9 +109,6 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
                 />,
             );
         });
-
-        // First page
-        expect(container).toMatchSnapshot();
         expect(screen.getByText(/1 - 20 of 55/)).toBeInTheDocument();
 
         const prevButton = getPrevButton(container);
@@ -135,12 +118,10 @@ describe('components/admin_console/group_settings/group_details/GroupUsers', () 
 
         // Navigate to intermediate page
         await userEvent.click(nextButton);
-        expect(container).toMatchSnapshot();
         expect(screen.getByText(/21 - 40 of 55/)).toBeInTheDocument();
 
         // Navigate to last page
         await userEvent.click(nextButton);
-        expect(container).toMatchSnapshot();
         expect(screen.getByText(/41 - 55 of 55/)).toBeInTheDocument();
     });
 

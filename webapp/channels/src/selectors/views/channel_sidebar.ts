@@ -20,16 +20,28 @@ import {
     getUnreadChannelIds,
     sortUnreadChannels,
 } from 'mattermost-redux/selectors/entities/channels';
-import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter} from 'selectors/views/product_rail';
 
+import {Preferences} from 'utils/constants';
+
 import type {DraggingState, GlobalState} from 'types/store';
 
 export function isUnreadFilterEnabled(state: GlobalState): boolean {
     return state.views.channelSidebar.unreadFilterEnabled && !shouldShowUnreadsCategory(state);
+}
+
+// When enabled, collapsing a category hides its unread channels too. Only the current channel stays visible.
+export function shouldCollapseCategoryWithUnreads(state: GlobalState): boolean {
+    return getBool(
+        state,
+        Preferences.CATEGORY_DISPLAY_SETTINGS,
+        Preferences.COLLAPSE_CATEGORY_WITH_UNREADS,
+        Preferences.COLLAPSE_CATEGORY_WITH_UNREADS_DEFAULT === 'true',
+    );
 }
 
 export const getCategoriesForCurrentTeam: (state: GlobalState) => ChannelCategory[] = (() => {
@@ -89,7 +101,8 @@ export const getChannelsInCategoryOrder = (() => {
         shouldShowUnreadsCategory,
         getProductRailFilter,
         getBoardChannelIds,
-        (categories, channelsByCategory, currentChannelId, unreadChannelIds, showUnreadsCategory, railSection, boardChannelIds) => {
+        shouldCollapseCategoryWithUnreads,
+        (categories, channelsByCategory, currentChannelId, unreadChannelIds, showUnreadsCategory, railSection, boardChannelIds, collapseCategoryWithUnreads) => {
             return categories.map((category) => {
                 const channels = channelsByCategory[category.id];
 
@@ -109,7 +122,7 @@ export const getChannelsInCategoryOrder = (() => {
 
                     if (category.collapsed) {
                         // Filter out channels that would be hidden by a collapsed category
-                        if (!isUnread && currentChannelId !== channel.id) {
+                        if (currentChannelId !== channel.id && (collapseCategoryWithUnreads || !isUnread)) {
                             return false;
                         }
                     }

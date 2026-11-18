@@ -2,20 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ContentFlaggingNotificationSettings} from '@mattermost/types/config';
 import type {ContentFlaggingEvent, NotificationTarget} from '@mattermost/types/content_flagging';
 
 import CheckboxSetting from 'components/admin_console/checkbox_setting';
 import type {SystemConsoleCustomSettingChangeHandler} from 'components/admin_console/schema_admin_settings';
-import {
-    AdminSection,
-    SectionContent,
-    SectionHeader,
-} from 'components/admin_console/system_properties/controls';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import '../content_flagging_section_base.scss';
+
+const messages = defineMessages({
+    title: {id: 'admin.dataSpillage.notificationSettings.title', defaultMessage: 'Notification Settings'},
+    description: {id: 'admin.dataSpillage.notificationSettings.description', defaultMessage: 'Choose who receives notifications from the System bot when content is quarantined and reviewed'},
+});
 
 type Props = {
     id: string;
@@ -79,201 +80,187 @@ export default function ContentFlaggingNotificationSettingsSection({id, value, o
     }, [notificationSettings]);
 
     return (
-        <AdminSection>
-            <SectionHeader>
-                <hgroup>
-                    <h1 className='content-flagging-section-title'>
+        <AdminPanel
+            id='notification_settings'
+            title={messages.title}
+            subtitle={messages.description}
+        >
+            <div className='content-flagging-section-setting-wrapper'>
+
+                {/*Notify on flagging*/}
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
                         <FormattedMessage
-                            id='admin.dataSpillage.notificationSettings.title'
-                            defaultMessage='Notification Settings'
+                            id='admin.dataSpillage.notificationSettings.notifyOnFlag'
+                            defaultMessage='Notify when content is quarantined'
                         />
-                    </h1>
-                    <h5 className='content-flagging-section-description'>
-                        <FormattedMessage
-                            id='admin.dataSpillage.notificationSettings.description'
-                            defaultMessage='Choose who receives notifications from the System bot when content is quarantined and reviewed'
+                    </div>
+
+                    <div className='setting-content'>
+                        <CheckboxSetting
+                            id='flagged_reviewers'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.reviewers'
+                                    defaultMessage='Reviewer(s)'
+                                />
+                            }
+                            defaultChecked={getValue('flagged', 'reviewers')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={true}
                         />
-                    </h5>
-                </hgroup>
-            </SectionHeader>
-            <SectionContent>
-                <div className='content-flagging-section-setting-wrapper'>
 
-                    {/*Notify on flagging*/}
-                    <div className='content-flagging-section-setting'>
-                        <div className='setting-title'>
-                            <FormattedMessage
-                                id='admin.dataSpillage.notificationSettings.notifyOnFlag'
-                                defaultMessage='Notify when content is quarantined'
-                            />
-                        </div>
-
-                        <div className='setting-content'>
-                            <CheckboxSetting
-                                id='flagged_reviewers'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.reviewers'
-                                        defaultMessage='Reviewer(s)'
-                                    />
-                                }
-                                defaultChecked={getValue('flagged', 'reviewers')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={true}
-                            />
-
-                            <CheckboxSetting
-                                id='flagged_author'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.author'
-                                        defaultMessage='Author'
-                                    />
-                                }
-                                defaultChecked={getValue('flagged', 'author')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={disabled}
-                            />
-                        </div>
-                    </div>
-
-                    {/*Notify on reviewer assigned*/}
-                    <div className='content-flagging-section-setting'>
-                        <div className='setting-title'>
-                            <FormattedMessage
-                                id='admin.dataSpillage.notificationSettings.notifyOnReviewerAssigned'
-                                defaultMessage='Notify when a reviewer is assigned'
-                            />
-                        </div>
-
-                        <div className='setting-content'>
-                            <CheckboxSetting
-                                id='assigned_reviewers'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.reviewers'
-                                        defaultMessage='Reviewer(s)'
-                                    />
-                                }
-                                defaultChecked={getValue('assigned', 'reviewers')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={disabled}
-                            />
-                        </div>
-                    </div>
-
-                    {/*Notify on removal*/}
-                    <div className='content-flagging-section-setting'>
-                        <div className='setting-title'>
-                            <FormattedMessage
-                                id='admin.dataSpillage.notificationSettings.notifyOnRemoval'
-                                defaultMessage='Notify when content is removed'
-                            />
-                        </div>
-
-                        <div className='setting-content'>
-                            <CheckboxSetting
-                                id='removed_reviewers'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.reviewers'
-                                        defaultMessage='Reviewer(s)'
-                                    />
-                                }
-                                defaultChecked={getValue('removed', 'reviewers')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={disabled}
-                            />
-
-                            <CheckboxSetting
-                                id='removed_author'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.author'
-                                        defaultMessage='Author'
-                                    />
-                                }
-                                defaultChecked={getValue('removed', 'author')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={disabled}
-                            />
-
-                            <CheckboxSetting
-                                id='removed_reporter'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.reporter'
-                                        defaultMessage='Reporter'
-                                    />
-                                }
-                                defaultChecked={getValue('removed', 'reporter')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={disabled}
-                            />
-                        </div>
-                    </div>
-
-                    {/*Notify on dismiss*/}
-                    <div className='content-flagging-section-setting'>
-                        <div className='setting-title'>
-                            <FormattedMessage
-                                id='admin.dataSpillage.notificationSettings.notifyOnDismissal'
-                                defaultMessage='Notify when quarantine is dismissed'
-                            />
-                        </div>
-
-                        <div className='setting-content'>
-                            <CheckboxSetting
-                                id='dismissed_reviewers'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.reviewers'
-                                        defaultMessage='Reviewer(s)'
-                                    />
-                                }
-                                defaultChecked={getValue('dismissed', 'reviewers')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={disabled}
-                            />
-
-                            <CheckboxSetting
-                                id='dismissed_author'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.author'
-                                        defaultMessage='Author'
-                                    />
-                                }
-                                defaultChecked={getValue('dismissed', 'author')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={disabled}
-                            />
-
-                            <CheckboxSetting
-                                id='dismissed_reporter'
-                                label={
-                                    <FormattedMessage
-                                        id='admin.dataSpillage.notificationSettings.reporter'
-                                        defaultMessage='Reporter'
-                                    />
-                                }
-                                defaultChecked={getValue('dismissed', 'reporter')}
-                                onChange={handleChange}
-                                setByEnv={false}
-                                disabled={disabled}
-                            />
-                        </div>
+                        <CheckboxSetting
+                            id='flagged_author'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.author'
+                                    defaultMessage='Author'
+                                />
+                            }
+                            defaultChecked={getValue('flagged', 'author')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={disabled}
+                        />
                     </div>
                 </div>
-            </SectionContent>
-        </AdminSection>
+
+                {/*Notify on reviewer assigned*/}
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
+                        <FormattedMessage
+                            id='admin.dataSpillage.notificationSettings.notifyOnReviewerAssigned'
+                            defaultMessage='Notify when a reviewer is assigned'
+                        />
+                    </div>
+
+                    <div className='setting-content'>
+                        <CheckboxSetting
+                            id='assigned_reviewers'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.reviewers'
+                                    defaultMessage='Reviewer(s)'
+                                />
+                            }
+                            defaultChecked={getValue('assigned', 'reviewers')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={disabled}
+                        />
+                    </div>
+                </div>
+
+                {/*Notify on removal*/}
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
+                        <FormattedMessage
+                            id='admin.dataSpillage.notificationSettings.notifyOnRemoval'
+                            defaultMessage='Notify when content is removed'
+                        />
+                    </div>
+
+                    <div className='setting-content'>
+                        <CheckboxSetting
+                            id='removed_reviewers'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.reviewers'
+                                    defaultMessage='Reviewer(s)'
+                                />
+                            }
+                            defaultChecked={getValue('removed', 'reviewers')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={disabled}
+                        />
+
+                        <CheckboxSetting
+                            id='removed_author'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.author'
+                                    defaultMessage='Author'
+                                />
+                            }
+                            defaultChecked={getValue('removed', 'author')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={disabled}
+                        />
+
+                        <CheckboxSetting
+                            id='removed_reporter'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.reporter'
+                                    defaultMessage='Reporter'
+                                />
+                            }
+                            defaultChecked={getValue('removed', 'reporter')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={disabled}
+                        />
+                    </div>
+                </div>
+
+                {/*Notify on dismiss*/}
+                <div className='content-flagging-section-setting'>
+                    <div className='setting-title'>
+                        <FormattedMessage
+                            id='admin.dataSpillage.notificationSettings.notifyOnDismissal'
+                            defaultMessage='Notify when quarantine is dismissed'
+                        />
+                    </div>
+
+                    <div className='setting-content'>
+                        <CheckboxSetting
+                            id='dismissed_reviewers'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.reviewers'
+                                    defaultMessage='Reviewer(s)'
+                                />
+                            }
+                            defaultChecked={getValue('dismissed', 'reviewers')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={disabled}
+                        />
+
+                        <CheckboxSetting
+                            id='dismissed_author'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.author'
+                                    defaultMessage='Author'
+                                />
+                            }
+                            defaultChecked={getValue('dismissed', 'author')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={disabled}
+                        />
+
+                        <CheckboxSetting
+                            id='dismissed_reporter'
+                            label={
+                                <FormattedMessage
+                                    id='admin.dataSpillage.notificationSettings.reporter'
+                                    defaultMessage='Reporter'
+                                />
+                            }
+                            defaultChecked={getValue('dismissed', 'reporter')}
+                            onChange={handleChange}
+                            setByEnv={false}
+                            disabled={disabled}
+                        />
+                    </div>
+                </div>
+            </div>
+        </AdminPanel>
     );
 }

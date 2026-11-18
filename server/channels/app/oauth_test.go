@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -616,6 +617,25 @@ func TestAuthorizeOAuthUser(t *testing.T) {
 		assert.Contains(t, err.DetailedError, "response_body=invalid")
 	})
 
+	t.Run("with an oversized token response", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			_, err := w.Write([]byte(strings.Repeat("a", 2*maxOAuthTokenResponseSize)))
+			require.NoError(t, err)
+		}))
+		defer server.Close()
+
+		th := setup(t, true, true, true, server.URL)
+
+		cookie := model.NewId()
+		request := makeRequest(cookie)
+		state := makeState(makeToken(th, cookie))
+
+		_, _, err := th.App.AuthorizeOAuthUser(th.Context, &httptest.ResponseRecorder{}, request, model.ServiceGitlab, "", state, "")
+		require.NotNil(t, err)
+		assert.Equal(t, "api.user.authorize_oauth_user.bad_response.app_error", err.Id)
+		assert.Less(t, len(err.DetailedError), maxOAuthTokenResponseSize+1024)
+	})
+
 	t.Run("with an invalid token type", func(t *testing.T) {
 		accessToken := model.NewId()
 
@@ -979,7 +999,8 @@ func TestDeauthorizeOAuthApp(t *testing.T) {
 	code := queryParams.Get("code")
 
 	data, err := th.App.Srv().Store().OAuth().GetAuthData(code)
-	require.Equal(t, store.NewErrNotFound("AuthData", fmt.Sprintf("code=%s", code)), err)
+	require.Equal(t, store.NewErrNotFound("AuthData", "code=<redacted>"), err)
+	assert.NotContains(t, err.Error(), code)
 	assert.Nil(t, data)
 }
 
@@ -2484,6 +2505,45 @@ func TestCompleteOAuthUserCreated(t *testing.T) {
 		assert.Equal(t, existing.Id, user.Id)
 		assert.False(t, userCreated)
 	})
+}
+
+func TestCompleteOAuthDeactivatedUser(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.GitLabSettings.Enable = true
+	})
+
+	id := model.GetMillis()
+	username := "o" + model.NewId()
+	email := model.NewId() + "@simulator.amazonses.com"
+	gitlabAuth := func() *OAuthAuthorization {
+		js, err := json.Marshal(oauthgitlab.GitLabUser{Id: id, Username: username, Email: email, Name: "Test User"})
+		require.NoError(t, err)
+		return &OAuthAuthorization{UserInfo: io.NopCloser(bytes.NewReader(js))}
+	}
+	props := map[string]string{"action": model.OAuthActionLogin}
+
+	user, _, appErr := th.App.CompleteOAuth(th.Context, model.UserAuthServiceGitlab, gitlabAuth(), props)
+	require.Nil(t, appErr)
+
+	_, appErr = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, appErr)
+
+	// A successful OAuth login reactivates the account before DoLogin runs.
+	user, _, appErr = th.App.CompleteOAuth(th.Context, model.UserAuthServiceGitlab, gitlabAuth(), props)
+	require.Nil(t, appErr)
+	assert.Zero(t, user.DeleteAt)
+
+	stored, appErr := th.App.GetUser(th.Context, user.Id)
+	require.Nil(t, appErr)
+	assert.Zero(t, stored.DeleteAt)
+
+	session, appErr := th.App.DoLogin(th.Context, httptest.NewRecorder(), &http.Request{}, user, model.LoginOptions{IsOAuthUser: true})
+	require.Nil(t, appErr)
+	require.NotNil(t, session)
+	assert.Equal(t, user.Id, session.UserId)
 }
 
 // TestOAuthStoreErrorClassification covers the store-error branches in the OAuth

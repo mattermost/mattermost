@@ -43,8 +43,8 @@ const AdminPanelWithButton = ({
             <Button
                 emphasis='primary'
                 destructive={destructive}
-                className={classNames({disabled})}
-                onClick={disabled ? undefined : onButtonClick}
+                disabled={disabled}
+                onClick={onButtonClick}
                 data-testid={buttonId}
             >
                 <FormattedMessage
@@ -56,7 +56,7 @@ const AdminPanelWithButton = ({
 
     return (
         <AdminPanel
-            className={'AdminPanelWithButton ' + className}
+            className={classNames('AdminPanelWithButton', className)}
             id={id}
             title={title}
             subtitle={subtitle}

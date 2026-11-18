@@ -17,6 +17,8 @@ import ChannelSelect from 'components/channel_select';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
+import {usernameFromDisplayName} from 'utils/username';
+
 interface State {
     displayName: string;
     description: string;
@@ -83,6 +85,9 @@ interface Props {
 }
 
 export default class AbstractIncomingWebhook extends PureComponent<Props, State> {
+    // Whether the user typed their own username, which stops it from following the display name.
+    private usernameEdited = false;
+
     constructor(props: Props | Readonly<Props>) {
         super(props);
 
@@ -150,8 +155,15 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
     };
 
     updateDisplayName: ChangeEventHandler<HTMLInputElement> = (e) => {
+        const displayName = e.target.value;
+        if (this.props.initialHook || !this.props.enablePostUsernameOverride || this.usernameEdited) {
+            this.setState({displayName});
+            return;
+        }
+
         this.setState({
-            displayName: e.target.value,
+            displayName,
+            username: usernameFromDisplayName(displayName),
         });
     };
 
@@ -174,6 +186,7 @@ export default class AbstractIncomingWebhook extends PureComponent<Props, State>
     };
 
     updateUsername: ChangeEventHandler<HTMLInputElement> = (e) => {
+        this.usernameEdited = e.target.value !== '';
         this.setState({
             username: e.target.value,
         });

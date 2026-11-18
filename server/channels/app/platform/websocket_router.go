@@ -37,7 +37,17 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 	}
 
 	if r.Action == string(model.WebsocketAuthenticationChallenge) {
+		if !conn.authChallengeHandled.CompareAndSwap(false, true) {
+			conn.WebSocket.Close()
+			return
+		}
+
 		if conn.GetSessionToken() != "" {
+			return
+		}
+
+		if conn.UserId != "" {
+			conn.WebSocket.Close()
 			return
 		}
 

@@ -98,22 +98,22 @@ func TestRunHealthCheckGating(t *testing.T) {
 
 	th, svc := setupHealthCheck(t, true)
 
-	t.Run("no license writes nothing", func(t *testing.T) {
+	t.Run("no license fails and writes nothing", func(t *testing.T) {
 		th.App.Srv().SetLicense(nil)
 
-		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
+		require.Error(t, th.App.runHealthCheck(th.Context, svc))
 		assert.Empty(t, listHealthFindings(t, th))
 	})
 
-	t.Run("license below Enterprise writes nothing", func(t *testing.T) {
+	t.Run("license below Professional fails and writes nothing", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE20))
+
+		require.Error(t, th.App.runHealthCheck(th.Context, svc))
+		assert.Empty(t, listHealthFindings(t, th))
+	})
+
+	t.Run("a Professional license applied at runtime takes effect on the next call", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
-
-		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
-		assert.Empty(t, listHealthFindings(t, th))
-	})
-
-	t.Run("an Enterprise license applied at runtime takes effect on the next call", func(t *testing.T) {
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 		require.NoError(t, th.App.runHealthCheck(th.Context, svc))
 		assert.NotEmpty(t, listHealthFindings(t, th))

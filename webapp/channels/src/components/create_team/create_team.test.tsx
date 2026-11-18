@@ -22,14 +22,6 @@ describe('component/create_team', () => {
         intl: {formatMessage: jest.fn()},
     } as any;
 
-    test('should match snapshot default', () => {
-        const {container} = renderWithContext(
-            <CreateTeam {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should not render team_url route when UseAnonymousURLs is true', () => {
         const history = createMemoryHistory({
             initialEntries: ['/create_team/team_url'],

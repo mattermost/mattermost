@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {LogFilter} from '@mattermost/types/admin';
+import type {LogFilter, LogFilterQuery, LogsByNode} from '@mattermost/types/admin';
 import type {
     Channel,
     ChannelSearchOpts,
@@ -35,18 +35,47 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter) {
-    const logFilter = {
+function toLogFilterQuery({serverNames = [], logLevels = [], dateFrom, dateTo, search = '', fields}: LogFilter): LogFilterQuery {
+    return {
         server_names: serverNames,
         log_levels: logLevels,
         date_from: dateFrom,
         date_to: dateTo,
+        search,
+        fields,
     };
+}
+
+// Aborting signal drops the request without storing or reporting anything, as a newer one replaces it
+export function getLogs(logFilter: LogFilter, signal?: AbortSignal): ActionFuncAsync<LogsByNode> {
+    return async (dispatch, getState) => {
+        let data: LogsByNode;
+        try {
+            data = await Client4.getLogs(toLogFilterQuery(logFilter), undefined, undefined, signal);
+        } catch (error) {
+            if (signal?.aborted) {
+                return {error};
+            }
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        if (signal?.aborted) {
+            return {error: signal.reason};
+        }
+        dispatch({type: AdminTypes.RECEIVED_LOGS, data});
+        return {data};
+    };
+}
+
+// Merges the response into the loaded entries instead of replacing them
+export function getNewLogs(logFilter: LogFilter) {
     return bindClientFunc({
         clientFunc: Client4.getLogs,
-        onSuccess: [AdminTypes.RECEIVED_LOGS],
+        onSuccess: [AdminTypes.RECEIVED_NEW_LOGS],
         params: [
-            logFilter,
+            toLogFilterQuery(logFilter),
         ],
     });
 }

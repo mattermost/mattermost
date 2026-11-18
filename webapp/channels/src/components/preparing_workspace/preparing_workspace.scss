@@ -91,6 +91,9 @@
         position: absolute;
         top: 25%;
         right: -697px;
+
+        // Shrink to stay clear of the content column (310px offset + 547px width), with a 40px gap and 48px right margin
+        width: min(697px, calc(100vw - 945px));
         animation-duration: 0.3s;
         animation-fill-mode: forwards;
         animation-timing-function: ease-in-out;
@@ -103,6 +106,12 @@
 
         &.exit {
             animation-name: invitationSlideOutRight;
+        }
+
+        svg {
+            display: block;
+            width: 100%;
+            height: auto;
         }
     }
 }
@@ -133,19 +142,5 @@
 @media screen and (max-width: 1200px) {
     .PreparingWorkspace__invite-members-illustration {
         display: none;
-    }
-}
-
-@media screen and (min-width: 1200px) and (max-width: 1680px) {
-    .PreparingWorkspace__invite-members-illustration {
-        @include mixins.sideIllustrationKeyframe(invitation, -697, -200);
-
-        &.enter {
-            animation-name: invitationSlideInRight;
-        }
-
-        &.exit {
-            animation-name: invitationSlideOutRight;
-        }
     }
 }

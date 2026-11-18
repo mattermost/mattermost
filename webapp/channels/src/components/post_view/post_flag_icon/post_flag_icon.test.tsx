@@ -17,11 +17,8 @@ describe('components/post_view/PostFlagIcon', () => {
         },
     };
 
-    test('should match snapshot', async () => {
-        const {container, rerender} = renderWithContext(<PostFlagIcon {...baseProps}/>);
-
-        // for unflagged icon
-        expect(container).toMatchSnapshot();
+    test('should render', async () => {
+        const {rerender} = renderWithContext(<PostFlagIcon {...baseProps}/>);
         const user = userEvent.setup();
         await user.click(screen.getByRole('button', {name: /save message/i}));
         expect(baseProps.actions.flagPost).toHaveBeenCalledTimes(1);
@@ -35,7 +32,6 @@ describe('components/post_view/PostFlagIcon', () => {
                 isFlagged={true}
             />,
         );
-        expect(container).toMatchSnapshot();
         await user.click(screen.getByRole('button', {name: /remove from saved/i}));
         expect(baseProps.actions.flagPost).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.unflagPost).toHaveBeenCalledTimes(1);

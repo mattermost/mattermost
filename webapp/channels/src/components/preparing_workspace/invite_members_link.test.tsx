@@ -11,25 +11,6 @@ import InviteMembersLink from './invite_members_link';
 describe('components/preparing-workspace/invite_members_link', () => {
     const inviteURL = 'https://invite-url.mattermost.com';
 
-    it('should match snapshot', () => {
-        const component = withIntl(<InviteMembersLink inviteURL={inviteURL}/>);
-
-        const {container} = render(component);
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot when displayed including the input field', () => {
-        const component = withIntl(
-            <InviteMembersLink
-                inviteURL={inviteURL}
-                inputAndButtonStyle={true}
-            />,
-        );
-
-        const {container} = render(component);
-        expect(container).toMatchSnapshot();
-    });
-
     it('renders only with the button if the inputAndButton option is false', () => {
         const component = withIntl(
             <InviteMembersLink

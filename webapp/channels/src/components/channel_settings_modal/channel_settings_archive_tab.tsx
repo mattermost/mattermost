@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -11,6 +11,10 @@ import type {Channel} from '@mattermost/types/channels';
 import {deleteChannel} from 'actions/views/channel';
 
 import ConfirmationModal from 'components/confirm_modal';
+
+import {useChannelKind} from 'hooks/useChannelKind';
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 
 type ChannelSettingsArchiveTabProps = {
     channel: Channel;
@@ -23,6 +27,7 @@ function ChannelSettingsArchiveTab({
 }: ChannelSettingsArchiveTabProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const channelKind = useChannelKind(channel);
 
     const [showArchiveConfirmModal, setShowArchiveConfirmModal] = useState(false);
 
@@ -40,40 +45,30 @@ function ChannelSettingsArchiveTab({
 
     return (
         <div className='ChannelSettingsModal__archiveTab'>
-            <FormattedMessage
-                id='channel_settings.archive.warning'
-                defaultMessage="Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels."
-            />
+            <FormattedMessage {...messages.warning[channelKind]}/>
             <Button
                 type='button'
                 destructive={true}
                 onClick={handleArchiveChannel}
                 id='channelSettingsArchiveChannelButton'
-                aria-label={`Archive channel ${channel.display_name}`}
+                aria-label={formatMessage(messages.buttonAriaLabel[channelKind], {displayName: channel.display_name})}
             >
-                <FormattedMessage
-                    id='channel_settings.archive.button'
-                    defaultMessage='Archive this channel'
-                />
+                <FormattedMessage {...messages.button[channelKind]}/>
             </Button>
 
             {showArchiveConfirmModal && (
                 <ConfirmationModal
                     id='archiveChannelConfirmModal'
                     show={true}
-                    title={formatMessage({id: 'channel_settings.modal.archiveTitle', defaultMessage: 'Archive channel?'})}
+                    title={formatMessage(messages.confirmTitle[channelKind])}
                     message={
                         <div>
                             <p>
-                                <FormattedMessage
-                                    id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                    defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
-                                />
+                                <FormattedMessage {...channelKindMessages.archivedChannelsWarning[channelKind]}/>
                             </p>
                             <p>
                                 <FormattedMessage
-                                    id='deleteChannelModal.confirmArchive'
-                                    defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                    {...channelKindMessages.confirmArchive[channelKind]}
                                     values={{
                                         display_name: channel.display_name,
                                         strong: (chunks) => <strong>{chunks}</strong>,
@@ -94,5 +89,50 @@ function ChannelSettingsArchiveTab({
         </div>
     );
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    warning: {
+        channel: defineMessage({
+            id: 'channel_settings.archive.warning',
+            defaultMessage: "Archiving a channel removes it from the user interface, but doesn't permanently delete the channel. New messages can't be posted to archived channels.",
+        }),
+        board: defineMessage({
+            id: 'channel_settings.archive.warning.board',
+            defaultMessage: "Archiving a board removes it from the user interface, but doesn't permanently delete the board. New messages can't be posted to archived boards.",
+        }),
+    },
+    button: {
+        channel: defineMessage({
+            id: 'channel_settings.archive.button',
+            defaultMessage: 'Archive this channel',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.archive.button.board',
+            defaultMessage: 'Archive this board',
+        }),
+    },
+    buttonAriaLabel: {
+        channel: defineMessage({
+            id: 'channel_settings.archive.button.aria_label',
+            defaultMessage: 'Archive channel {displayName}',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.archive.button.aria_label.board',
+            defaultMessage: 'Archive board {displayName}',
+        }),
+    },
+    confirmTitle: {
+        channel: defineMessage({
+            id: 'channel_settings.modal.archiveTitle',
+            defaultMessage: 'Archive channel?',
+        }),
+        board: defineMessage({
+            id: 'channel_settings.modal.archiveTitle.board',
+            defaultMessage: 'Archive board?',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */
 
 export default ChannelSettingsArchiveTab;

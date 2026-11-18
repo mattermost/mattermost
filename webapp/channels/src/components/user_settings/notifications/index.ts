@@ -7,7 +7,6 @@ import type {PreferencesType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {patchUser, updateMe} from 'mattermost-redux/actions/users';
-import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     isCollapsedThreadsEnabled,
@@ -16,7 +15,7 @@ import {
 
 import {isCallsEnabled, isCallsRingingEnabledOnServer} from 'selectors/calls';
 
-import {isEnterpriseOrCloudOrSKUStarterFree} from 'utils/license_utils';
+import {isEnterpriseOrSKUStarterFree} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -40,7 +39,6 @@ const mapStateToProps = (state: GlobalState, props: OwnProps) => {
     const enableAutoResponder = config.ExperimentalEnableAutomaticReplies === 'true';
 
     const license = getLicense(state);
-    const subscriptionProduct = getSubscriptionProduct(state);
 
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
 
@@ -49,7 +47,7 @@ const mapStateToProps = (state: GlobalState, props: OwnProps) => {
         enableAutoResponder,
         isCollapsedThreadsEnabled: props.adminMode && props.userPreferences ? isCollapsedThreadsEnabledForUser(state, props.userPreferences) : isCollapsedThreadsEnabled(state),
         isCallsRingingEnabled: isCallsEnabled(state, '0.17.0') && isCallsRingingEnabledOnServer(state),
-        isEnterpriseOrCloudOrSKUStarterFree: isEnterpriseOrCloudOrSKUStarterFree(license, subscriptionProduct, isEnterpriseReady),
+        isEnterpriseOrSKUStarterFree: isEnterpriseOrSKUStarterFree(license, isEnterpriseReady),
         isEnterpriseReady,
     };
 };

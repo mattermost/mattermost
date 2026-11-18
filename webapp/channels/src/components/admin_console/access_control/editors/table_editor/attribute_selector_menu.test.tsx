@@ -91,6 +91,46 @@ const allPlatformsSessionField = {
     },
 } as unknown as UserPropertyField;
 
+const boolOptions = [{id: 'true', name: 'true'}, {id: 'false', name: 'false'}];
+
+const makeNativeField = (
+    name: string,
+    displayName: string,
+    type: UserPropertyField['type'],
+    operators: string[],
+    extraAttrs: Partial<UserPropertyField['attrs']> = {},
+): UserPropertyField => ({
+    id: `native_user_attribute_${name}`,
+    name,
+    type,
+    group_id: CPA_GROUP_UUID,
+    target_id: '',
+    target_type: 'system',
+    object_type: 'user',
+    attrs: {
+        sort_order: 0,
+        visibility: 'always',
+        value_type: '',
+        native: true,
+        display_name: displayName,
+        operators,
+        ...extraAttrs,
+    },
+    create_at: 0,
+    update_at: 0,
+    delete_at: 0,
+    created_by: '',
+    updated_by: '',
+});
+
+const nativeEmail = makeNativeField('email', 'Email', 'text', ['==', '!=', 'in', 'contains', 'startsWith', 'endsWith']);
+const nativeVerified = makeNativeField('verified', 'Email verified', 'select', ['==', '!='], {options: boolOptions});
+const nativeIsBot = makeNativeField('isbot', 'Bot account', 'select', ['==', '!='], {options: boolOptions});
+const nativeCreateAt = makeNativeField('createat', 'Account created', 'text', ['youngerThanDays']);
+const nativeFields = [nativeEmail, nativeVerified, nativeIsBot, nativeCreateAt];
+
+const menuItem = (field: UserPropertyField) => document.getElementById(`attribute-${field.id}`);
+
 describe('AttributeSelectorMenu', () => {
     const baseProps = {
         currentAttribute: '',
@@ -323,5 +363,127 @@ describe('AttributeSelectorMenu', () => {
         // tooltip portal, so the tooltip is queried with hidden:true.
         const tooltip = await screen.findByRole('tooltip', {hidden: true}, {timeout: 2000});
         expect(tooltip).toHaveTextContent(tooltipText);
+    });
+
+    describe('selectableAttributes', () => {
+        const openMenu = () => fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+
+        test('lists only the selectable subset', () => {
+            renderWithContext(
+                <AttributeSelectorMenu
+                    {...baseProps}
+                    availableAttributes={nativeFields}
+                    selectableAttributes={[nativeCreateAt]}
+                />,
+            );
+
+            openMenu();
+
+            expect(screen.getByText('Built-in attributes')).toBeInTheDocument();
+            expect(menuItem(nativeCreateAt)).toBeInTheDocument();
+            expect(menuItem(nativeEmail)).toBeNull();
+            expect(menuItem(nativeVerified)).toBeNull();
+            expect(menuItem(nativeIsBot)).toBeNull();
+        });
+
+        test('keeps the display label of a current value outside the subset', () => {
+            renderWithContext(
+                <AttributeSelectorMenu
+                    {...baseProps}
+                    currentAttribute='email'
+                    availableAttributes={nativeFields}
+                    selectableAttributes={[nativeCreateAt]}
+                />,
+            );
+
+            const label = screen.getByTestId('attributeSelectorMenuButton').querySelector('.field-selector-menu-button__label');
+            expect(label).toHaveTextContent('Email');
+
+            openMenu();
+
+            expect(menuItem(nativeEmail)).toBeNull();
+            expect(menuItem(nativeCreateAt)).toBeInTheDocument();
+        });
+
+        test('lets the user switch from a current value outside the subset to a listed one', () => {
+            renderWithContext(
+                <AttributeSelectorMenu
+                    {...baseProps}
+                    currentAttribute='email'
+                    availableAttributes={nativeFields}
+                    selectableAttributes={[nativeCreateAt]}
+                />,
+            );
+
+            openMenu();
+            fireEvent.click(menuItem(nativeCreateAt) as HTMLElement);
+
+            expect(baseProps.onChange).toHaveBeenCalledWith(nativeCreateAt.id);
+        });
+
+        test('an empty subset lists no attributes but keeps the search box', () => {
+            renderWithContext(
+                <AttributeSelectorMenu
+                    {...baseProps}
+                    availableAttributes={[userField, ...nativeFields]}
+                    selectableAttributes={[]}
+                />,
+            );
+
+            openMenu();
+
+            expect(screen.getByRole('textbox')).toBeInTheDocument();
+            expect(screen.queryByText('Built-in attributes')).not.toBeInTheDocument();
+            expect(screen.queryByText('Custom attributes')).not.toBeInTheDocument();
+            expect(screen.queryAllByRole('menuitemradio')).toHaveLength(0);
+        });
+
+        test('search filters within the subset', () => {
+            renderWithContext(
+                <AttributeSelectorMenu
+                    {...baseProps}
+                    availableAttributes={[userField, nativeEmail, nativeCreateAt]}
+                    selectableAttributes={[userField, nativeCreateAt]}
+                />,
+            );
+
+            openMenu();
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: 'e'}});
+
+            expect(screen.getByText('Department')).toBeInTheDocument();
+            expect(screen.getByText('Account created')).toBeInTheDocument();
+            expect(menuItem(nativeEmail)).toBeNull();
+        });
+
+        test('search that matches only an unlisted attribute shows nothing', () => {
+            renderWithContext(
+                <AttributeSelectorMenu
+                    {...baseProps}
+                    availableAttributes={nativeFields}
+                    selectableAttributes={[nativeCreateAt]}
+                />,
+            );
+
+            openMenu();
+            fireEvent.change(screen.getByRole('textbox'), {target: {value: 'bot'}});
+
+            expect(screen.queryAllByRole('menuitemradio')).toHaveLength(0);
+            expect(screen.queryByText('Built-in attributes')).not.toBeInTheDocument();
+        });
+
+        test('lists every available attribute when the prop is omitted', () => {
+            renderWithContext(
+                <AttributeSelectorMenu
+                    {...baseProps}
+                    availableAttributes={nativeFields}
+                />,
+            );
+
+            openMenu();
+
+            for (const field of nativeFields) {
+                expect(menuItem(field)).toBeInTheDocument();
+            }
+        });
     });
 });

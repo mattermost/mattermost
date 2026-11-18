@@ -18,6 +18,7 @@ import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
 
 import {DocLinks} from 'utils/constants';
+import {usernameFromDisplayName} from 'utils/username';
 import {localizeMessage} from 'utils/utils';
 
 interface State {
@@ -88,6 +89,9 @@ interface Props {
 }
 
 export default class AbstractOutgoingWebhook extends React.PureComponent<Props, State> {
+    // Whether the user typed their own username, which stops it from following the display name.
+    private usernameEdited = false;
+
     constructor(props: Props | Readonly<Props>) {
         super(props);
 
@@ -209,8 +213,15 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
     };
 
     updateDisplayName: ChangeEventHandler<HTMLInputElement> = (e) => {
+        const displayName = e.target.value;
+        if (this.props.initialHook || !this.props.enablePostUsernameOverride || this.usernameEdited) {
+            this.setState({displayName});
+            return;
+        }
+
         this.setState({
-            displayName: e.target.value,
+            displayName,
+            username: usernameFromDisplayName(displayName),
         });
     };
 
@@ -251,6 +262,7 @@ export default class AbstractOutgoingWebhook extends React.PureComponent<Props, 
     };
 
     updateUsername: ChangeEventHandler<HTMLInputElement> = (e) => {
+        this.usernameEdited = e.target.value !== '';
         this.setState({
             username: e.target.value,
         });

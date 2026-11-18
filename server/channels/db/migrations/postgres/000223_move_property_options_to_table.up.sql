@@ -152,11 +152,13 @@ INSERT INTO PropertyOptions (ID, GroupID, FieldID, Name, Color, Rank, SortOrder,
 SELECT
     -- An option with no usable ID, or a second occurrence of one already used on
     -- the same field, is minted a new one. Nothing could reference it under an ID
-    -- it does not hold, so the option is kept rather than dropped.
+    -- it does not hold, so the option is kept rather than dropped. The ID comes
+    -- from gen_random_uuid() rather than a hash: md5() raises an error on a
+    -- PostgreSQL server running in FIPS mode.
     CASE
         WHEN jsonb_typeof(o.opt->'id') = 'string' AND o.opt->>'id' <> '' AND o.idclaim = 1
         THEN o.opt->>'id'
-        ELSE substr(md5(random()::text || clock_timestamp()::text || o.fieldid || o.ord::text), 1, 26)
+        ELSE substr(replace(gen_random_uuid()::text, '-', ''), 1, 26)
     END,
     o.groupid,
     o.fieldid,
