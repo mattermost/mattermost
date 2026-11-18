@@ -197,23 +197,44 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	}
 
 	// If we get this far, we've recorded the client-provided pending post id to the cache.
-	// Remove it if we fail below, allowing a proper retry by the client.
+	// Remove it if we fail below, allowing a proper retry by the client. The id is read now:
+	// post may be replaced by a plugin's post below, which need not carry it.
+	pendingPostID := post.PendingPostId
 	defer func() {
-		if post.PendingPostId == "" {
+		if pendingPostID == "" {
 			return
 		}
 
 		if err != nil {
-			if appErr := a.Srv().seenPendingPostIdsCache.Remove(post.PendingPostId); appErr != nil {
+			if appErr := a.Srv().seenPendingPostIdsCache.Remove(pendingPostID); appErr != nil {
 				err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 			}
 			return
 		}
 
-		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, savedPost.Id, pendingPostIDsCacheTTL); appErr != nil {
+		if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(pendingPostID, savedPost.Id, pendingPostIDsCacheTTL); appErr != nil {
 			err = model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 		}
 	}()
+
+	if values := post.Metadata.GetPropertyValues(); len(values) > 0 {
+		// Every caller reaches CreatePost, not only the API, so the flag is enforced here as
+		// well as where each caller validates the values.
+		if !a.Config().FeatureFlags.PostAttributes {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_feature_disabled.app_error", nil, "", http.StatusBadRequest)
+		}
+		// Readers get a post's values from property_values_updated and the property value API,
+		// and neither knows whether a reader has revealed a burn-on-read post.
+		if post.Type == model.PostTypeBurnOnRead {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_burn_on_read.app_error", nil, "", http.StatusBadRequest)
+		}
+		// Callers other than the API and the plugin API reach this without
+		// PreparePostPropertyValuesForCreate, and a nil value would only be caught after the
+		// post is saved, by a dereference.
+		if slices.Contains(values, nil) {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.invalid_attribute.app_error", nil, "nil value", http.StatusBadRequest)
+		}
+	}
 
 	if flags.SilentNotification {
 		if persistentNotification := post.GetPersistentNotification(); persistentNotification != nil && *persistentNotification {
@@ -413,6 +434,12 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 		post = newPost
 		willBePostedPluginIDs = deliveredIDs
+
+		// A plugin's replacement keeps the submitted values (restorePriorityAndValues) but can
+		// change the type, so the burn-on-read check above has to hold for it too.
+		if post.Type == model.PostTypeBurnOnRead && len(post.Metadata.GetPropertyValues()) > 0 {
+			return nil, false, model.NewAppError("CreatePost", "api.post.create_post.attributes_burn_on_read.app_error", nil, "", http.StatusBadRequest)
+		}
 	}
 
 	// Pre-fill the CreateAt field for link previews to get the correct timestamp.
@@ -443,13 +470,25 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		}
 	}
 
+	// Runs before anything announces the post, so a failed write removes it before any
+	// `posted` event, notification or MessageHasBeenPosted hook. On success the values are
+	// taken off rpost and only handed back to the caller at the end.
+	var writtenPropertyValues []*model.PropertyValue
+	if propertyValues := rpost.Metadata.GetPropertyValues(); len(propertyValues) > 0 {
+		written, appErr := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues)
+		if appErr != nil {
+			return nil, false, appErr
+		}
+		writtenPropertyValues = written
+	}
+
 	// MessageWillBePosted ran before the post had an ID, so this is recorded here, now that
 	// rpost carries the one assigned by Save.
 	a.RecordPostDeliveryToPlugins(rctx, willBePostedPluginIDs, rpost)
 
 	// Update the mapping from pending post id to the actual post id, for any clients that
 	// might be duplicating requests.
-	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(post.PendingPostId, rpost.Id, pendingPostIDsCacheTTL); appErr != nil {
+	if appErr := a.Srv().seenPendingPostIdsCache.SetWithExpiry(pendingPostID, rpost.Id, pendingPostIDsCacheTTL); appErr != nil {
 		return nil, false, model.NewAppError("CreatePost", "api.post.deduplicate_create_post.cache_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
@@ -561,6 +600,20 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	rpost, isMemberForPreviews, err = a.SanitizePostMetadataForUser(rctx, rpost, rctx.Session().UserId)
 	if err != nil {
 		return nil, false, err
+	}
+
+	// The caller wrote these values, so it gets them back the way the property value API
+	// returns a write: unfiltered, to that caller only. The `posted` event above went out
+	// without them. Set on a copy, because the work handlePostEvents started in the
+	// background holds rpost and shares its metadata.
+	if len(writtenPropertyValues) > 0 {
+		rpost = rpost.Clone()
+		if rpost.Metadata != nil {
+			rpost.Metadata = rpost.Metadata.Copy()
+		} else {
+			rpost.Metadata = &model.PostMetadata{}
+		}
+		rpost.Metadata.PropertyValues = writtenPropertyValues
 	}
 
 	return rpost, isMemberForPreviews, nil
