@@ -720,6 +720,8 @@ func TestSearchTeamsInSessionScopeListedChannelFailure(t *testing.T) {
 	})
 
 	t.Run("listed channels that no longer exist are not an error", func(t *testing.T) {
+		teamStore.ExpectedCalls = nil
+		teamStore.On("SearchAll", mock.Anything).Return([]*model.Team{{Id: model.NewId(), Name: "team"}}, nil)
 		channelStore.On("GetMany", mock.Anything, true).Return(nil, store.NewErrNotFound("Channel", "x")).Once()
 
 		teams, err := th.App.SearchTeamsInSessionScope(th.Context, scope, &model.TeamSearch{Term: "team"})
