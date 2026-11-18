@@ -4,6 +4,8 @@
 package properties
 
 import (
+	"slices"
+
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -45,10 +47,10 @@ func (ps *PropertyService) OptionsCoveredBy(rctx request.CTX, field *model.Prope
 	}
 
 	covered := make(map[string]bool, len(optionIDs))
+	for _, optionID := range optionIDs {
+		covered[optionID] = false
+	}
 	if field.Type != model.PropertyFieldTypeRank {
-		for _, optionID := range optionIDs {
-			covered[optionID] = false
-		}
 		for _, holder := range holders {
 			if _, asked := covered[holder]; asked {
 				covered[holder] = true
@@ -58,21 +60,20 @@ func (ps *PropertyService) OptionsCoveredBy(rctx request.CTX, field *model.Prope
 	}
 
 	if len(holders) == 0 || len(optionIDs) == 0 {
-		for _, optionID := range optionIDs {
-			covered[optionID] = false
-		}
 		return covered, nil
 	}
 
-	// One rank read per call, for the candidates and the holders together.
-	// Nothing memoizes ranks across calls, so a batch of values on one field pays
-	// one read per value; memoize per field in maskingContext if batch reads such
-	// as post lists show it.
-	ranks, err := ps.fieldStore.GetOptionRanks(field, append(append([]string{}, optionIDs...), holders...))
+	ranks, err := ps.fieldStore.GetOptionRanks(field, slices.Concat(optionIDs, holders))
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to read the ranks of a rank property field's options")
 	}
+	return rankCovered(ranks, optionIDs, holders), nil
+}
 
+// rankCovered is the rank branch of OptionsCoveredBy over ranks already read:
+// an option absent from ranks has no rank. Every candidate has an entry.
+func rankCovered(ranks map[string]int64, optionIDs, holders []string) map[string]bool {
+	covered := make(map[string]bool, len(optionIDs))
 	ceiling, held := int64(0), false
 	for _, holder := range holders {
 		if rank, ok := ranks[holder]; ok && (!held || rank > ceiling) {
@@ -83,5 +84,5 @@ func (ps *PropertyService) OptionsCoveredBy(rctx request.CTX, field *model.Prope
 		rank, ranked := ranks[optionID]
 		covered[optionID] = held && ranked && rank <= ceiling
 	}
-	return covered, nil
+	return covered
 }

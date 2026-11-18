@@ -68,6 +68,12 @@ type countingPropertyFieldStore struct {
 	store.PropertyFieldStore
 	gets         int
 	linkedFields int
+	rankReads    int
+}
+
+func (c *countingPropertyFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	c.rankReads++
+	return c.PropertyFieldStore.GetOptionRanks(field, optionIDs)
 }
 
 func (c *countingPropertyFieldStore) Get(rctx request.CTX, groupID, id string) (*model.PropertyField, error) {
@@ -2207,4 +2213,31 @@ func TestMaskingRankOrder(t *testing.T) {
 			assert.NoError(t, err, "a target with nothing stored can always be marked")
 		})
 	}
+
+	t.Run("a batch read of several values on one field reads each option rank once", func(t *testing.T) {
+		f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "RankOrder-Batch")
+		caller := model.NewId()
+		writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
+
+		h := th.service.accessControlHookForTests()
+		require.NotNil(t, h)
+		counter := &countingPropertyFieldStore{PropertyFieldStore: th.service.fieldStore}
+		th.service.fieldStore = counter
+		t.Cleanup(func() { th.service.fieldStore = counter.PropertyFieldStore })
+
+		stored := []string{"Secret", "Secret", "Internal", "Internal", "Top Secret"}
+		values := make([]*model.PropertyValue, len(stored))
+		for i, name := range stored {
+			values[i] = writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value(name))
+		}
+		counter.rankReads = 0
+		read, err := h.PostGetPropertyValues(RequestContextWithCallerID(th.Context, caller), values)
+		require.NoError(t, err)
+		readIDs := make([]string, len(read))
+		for i, v := range read {
+			readIDs[i] = v.ID
+		}
+		assert.ElementsMatch(t, []string{values[0].ID, values[1].ID, values[2].ID, values[3].ID}, readIDs)
+		assert.Equal(t, 3, counter.rankReads, "each distinct option is asked about once (Secret, Internal, Top Secret), not once per value")
+	})
 }

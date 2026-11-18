@@ -73,6 +73,7 @@ type maskingContext struct {
 	fieldMaskingErrs  map[string]error
 	holdingsValues    map[string][]*model.PropertyValue
 	holdingsOptionIDs map[string]map[string]struct{}
+	optionRanks       map[string]map[string]*int64
 	existingValues    map[[2]string]*model.PropertyValue
 	templateSyncs     map[[2]string]bool
 }
@@ -86,6 +87,7 @@ func newMaskingContext() maskingContext {
 		fieldMaskingErrs:  make(map[string]error),
 		holdingsValues:    make(map[string][]*model.PropertyValue),
 		holdingsOptionIDs: make(map[string]map[string]struct{}),
+		optionRanks:       make(map[string]map[string]*int64),
 		existingValues:    make(map[[2]string]*model.PropertyValue),
 		templateSyncs:     make(map[[2]string]bool),
 	}
@@ -182,6 +184,46 @@ func (c maskingContext) callerOptionIDsForHoldings(rctx request.CTX, h *AccessCo
 	}
 	c.holdingsOptionIDs[holdingsFieldID] = ids
 	return ids, nil
+}
+
+// ranksFor returns the rank of each of ids that field's option list ranks,
+// asking the store only about IDs not asked about before on this field. An ID
+// the store left out (unranked, deleted, not on the list) is remembered as
+// having no rank, so a batch of values holding one does not query again. A
+// failed read caches nothing.
+func (c maskingContext) ranksFor(h *AccessControlHook, field *model.PropertyField, ids []string) (map[string]int64, error) {
+	known := c.optionRanks[field.ID]
+	if known == nil {
+		known = make(map[string]*int64)
+		c.optionRanks[field.ID] = known
+	}
+	var missing []string
+	for _, id := range ids {
+		if _, ok := known[id]; !ok && !slices.Contains(missing, id) {
+			missing = append(missing, id)
+		}
+	}
+	if len(missing) > 0 {
+		fetched, err := h.propertyService.fieldStore.GetOptionRanks(field, missing)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to read the ranks of a rank property field's options")
+		}
+		for _, id := range missing {
+			if rank, ok := fetched[id]; ok {
+				known[id] = &rank
+			} else {
+				known[id] = nil
+			}
+		}
+	}
+
+	ranks := make(map[string]int64, len(ids))
+	for _, id := range ids {
+		if rank := known[id]; rank != nil {
+			ranks[id] = *rank
+		}
+	}
+	return ranks, nil
 }
 
 // resolveFieldMasking answers what masks field and where the caller's
@@ -412,7 +454,15 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 		return map[string]bool{}, nil
 	}
 
-	return h.propertyService.OptionsCoveredBy(rctx, field, candidateOptionIDs, slices.Collect(maps.Keys(callerOptionIDs)))
+	heldIDs := slices.Collect(maps.Keys(callerOptionIDs))
+	if field.Type == model.PropertyFieldTypeRank {
+		ranks, err := c.ranksFor(h, field, slices.Concat(candidateOptionIDs, heldIDs))
+		if err != nil {
+			return nil, err
+		}
+		return rankCovered(ranks, candidateOptionIDs, heldIDs), nil
+	}
+	return h.propertyService.OptionsCoveredBy(rctx, field, candidateOptionIDs, heldIDs)
 }
 
 // maskFieldOptions filters field's inline option list to what callerID may
