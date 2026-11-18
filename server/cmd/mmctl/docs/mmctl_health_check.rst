@@ -11,7 +11,7 @@ Synopsis
 
 Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.
 
-With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included. One outbound request to GitHub fetches the latest Mattermost release, which the version-behind findings compare against.
+With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.
 
 ::
 

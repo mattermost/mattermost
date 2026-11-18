@@ -477,7 +477,6 @@ func healthTestFinding(findings []*model.HealthFinding, code string) *model.Heal
 
 func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 	s.serveLatestRelease(healthTestRelease("v12.4.0"))
-	latestReleaseNote := "Latest release 12.4.0, fetched from GitHub when this ran."
 	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
 	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04")
 	packetWithFilestoreDisk := func(totalMB, availableMB uint64) string {
@@ -517,8 +516,6 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 		s.Require().NoError(err)
 
 		s.Equal(healthPacketDisclaimer+`
-
-`+latestReleaseNote+`
 
 Last evaluated `+evaluatedAt+` (0 minutes ago)
 
@@ -626,7 +623,7 @@ Could not evaluate
 		s.Require().NotEqual(-1, pushIndex)
 		s.Equal("PushNotificationServer does not use https://", findings[pushIndex].Title)
 		s.Equal(time.UnixMilli(healthTestPacketGeneratedAt).UnixMilli(), findings[pushIndex].FirstSeenAt)
-		s.Equal([]string{healthPacketDisclaimer, latestReleaseNote}, printer.GetErrorLines())
+		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
 	})
 
 	running, latest := s.healthTestBehindVersions()
@@ -640,7 +637,7 @@ Could not evaluate
 		findings := s.runHealthPacketJSON(supportedPacket)
 
 		s.Equal(int32(1), requests.Load())
-		s.Equal([]string{healthPacketDisclaimer, "Latest release " + latest + ", fetched from GitHub when this ran."}, printer.GetErrorLines())
+		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
 		behind := healthTestFinding(findings, "VERSION_BEHIND")
 		s.Require().NotNil(behind)
 		s.Equal("firing", behind.State)

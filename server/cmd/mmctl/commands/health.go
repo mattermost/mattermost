@@ -45,8 +45,7 @@ var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Report current health findings",
 	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
-		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included. " +
-		"One outbound request to GitHub fetches the latest Mattermost release, which the version-behind findings compare against.",
+		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.",
 	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip",
 	Args:    cobra.NoArgs,
 	RunE:    healthCheckRunE,
@@ -143,9 +142,9 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-// fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one,
-// and returns a note saying where it came from. A failed fetch is not an error: the
-// version-behind rules report unknown and the note says why.
+// fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one.
+// A failed fetch is not an error: the version-behind rules report unknown and the returned note
+// says why.
 func fillLatestVersion(snapshot *healthcheck.Snapshot) string {
 	if snapshot.Version.Latest != "" {
 		return ""
@@ -160,7 +159,7 @@ func fillLatestVersion(snapshot *healthcheck.Snapshot) string {
 	}
 
 	snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
-	return fmt.Sprintf("Latest release %s, fetched from GitHub when this ran.", snapshot.Version.Latest)
+	return ""
 }
 
 // printHealthFindings prints already-rendered findings, leaving out resolved ones unless
