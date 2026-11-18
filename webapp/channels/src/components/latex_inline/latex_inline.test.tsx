@@ -17,7 +17,7 @@ describe('components/LatexInline', () => {
     test('should render', async () => {
         const {container} = renderWithContext(withIntl(<LatexInline {...defaultProps}/>));
         await waitFor(() => {
-            expect(container.querySelector('[data-testid="latex-enabled"]')).toBeInTheDocument();
+            expect(container.querySelector('[data-testid="latex.inline.rendered"]')).toBeInTheDocument();
         });
     });
 
@@ -29,7 +29,7 @@ describe('components/LatexInline', () => {
 
         const {container} = renderWithContext(withIntl(<LatexInline {...props}/>));
         await waitFor(() => {
-            expect(container.querySelector('[data-testid="latex-enabled"]')).toBeInTheDocument();
+            expect(container.querySelector('[data-testid="latex.inline.rendered"]')).toBeInTheDocument();
         });
     });
 });

@@ -55,6 +55,7 @@ function ThreadViewerRow({
             <DateSeparator
                 key={date}
                 date={date}
+                testId='rhs.thread.date_separator'
             />
         );
     }
@@ -62,6 +63,7 @@ function ThreadViewerRow({
     case PostListUtils.isStartOfNewMessages(listId):
         return (
             <NewMessageSeparator
+                testId='rhs.thread.new_messages'
                 separatorId={listId}
                 threadId={threadId}
                 newMessagesSeparatorActions={newMessagesSeparatorActions}

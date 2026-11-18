@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, duration} from '@mattermost/playwright-lib';
 
-import {BOR_TAG, setupBorTest, createSecondUser} from './support';
+import {BOR_TAG, createSecondUser, lastPost, openDm, parseTimeRemaining, sendMessage, setupBorTest} from './support';
 
 test.describe('Burn-on-Read Receiver Flow', () => {
     test('MM-66742_9 receiver sees concealed placeholder and reveals message', {tag: [BOR_TAG]}, async ({pw}) => {
@@ -17,44 +17,41 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and navigate to DM
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name, `@${receiver.username}`);
-        await senderPage.toBeVisible();
+        const senderApp = await openDm(pw, sender, team, receiver);
 
         // # Post BoR message
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const secretMessage = `Secret message ${pw.random.id()}`;
-        await senderPage.postMessage(secretMessage);
+        await sendMessage(senderApp, secretMessage);
 
         // # Login as receiver in new context
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name, `@${sender.username}`);
-        await receiverPage.toBeVisible();
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
         // # Get the BoR post
-        const borPost = await receiverPage.getLastPost();
+        const {post: borPost} = await lastPost(receiverApp);
 
         // * Verify post is concealed (placeholder shown)
-        await expect(borPost.concealedPlaceholder.container).toBeVisible();
+        await expect(borPost.revealButton).toBeVisible();
 
         // * Verify the actual message is NOT visible
         await expect(borPost.body).not.toContainText(secretMessage);
 
         // * Verify concealed placeholder has correct text
-        const placeholderText = await borPost.concealedPlaceholder.getText();
+        const placeholderText = (await borPost.revealButton.locator.textContent()) ?? '';
         expect(placeholderText).toContain('View message');
 
         // # Click to reveal
-        await borPost.concealedPlaceholder.clickToReveal();
+        await borPost.revealButton.click();
 
         // * Wait for reveal to complete
-        await borPost.concealedPlaceholder.waitForReveal();
+        await expect(borPost.revealButton).not.toBeVisible();
 
         // * Verify message is now visible
         await expect(borPost.body).toContainText(secretMessage);
 
         // * Verify concealed placeholder is no longer visible
-        await expect(borPost.concealedPlaceholder.container).not.toBeVisible();
+        await expect(borPost.revealButton).not.toBeVisible();
     });
 
     test('MM-66742_10 receiver manually burns revealed message via timer chip', {tag: [BOR_TAG]}, async ({pw}) => {
@@ -68,42 +65,39 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and post BoR message
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name, `@${receiver.username}`);
-        await senderPage.toBeVisible();
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        const senderApp = await openDm(pw, sender, team, receiver);
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const message = `To be burned ${pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await sendMessage(senderApp, message);
 
         // # Login as receiver
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name, `@${sender.username}`);
-        await receiverPage.toBeVisible();
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
         // # Get the BoR post and reveal it
-        const borPost = await receiverPage.getLastPost();
-        const postId = await borPost.getId();
+        const {id: borPostId, post: borPost} = await lastPost(receiverApp);
+        const postId = borPostId;
 
-        await borPost.concealedPlaceholder.clickToReveal();
-        await borPost.concealedPlaceholder.waitForReveal();
+        await borPost.revealButton.click();
+        await expect(borPost.revealButton).not.toBeVisible();
 
         // * Verify message is revealed
         await expect(borPost.body).toContainText(message);
 
         // * Wait for timer chip to appear (WebSocket update)
-        await expect(borPost.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
+        await expect(borPost.burnOnReadTimerButton).toBeVisible({timeout: duration.half_min});
 
         // # Click timer chip to manually burn
-        await borPost.burnOnReadTimerChip.click();
+        await borPost.burnOnReadTimerButton.click();
 
         // * Verify confirmation modal appears
-        await expect(receiverPage.burnOnReadConfirmationModal.container).toBeVisible();
+        await expect(receiverApp.burnOnReadConfirmationModal.confirmButton).toBeVisible();
 
         // # Confirm deletion
-        await receiverPage.burnOnReadConfirmationModal.confirm();
+        await receiverApp.burnOnReadConfirmationModal.confirmButton.click();
 
         // * Verify post is removed from receiver's view
-        const deletedPostLocator = receiverPage.page.locator(`[id="post_${postId}"]`);
+        const deletedPostLocator = receiverApp.center.postList.post({id: postId}).locator;
         await expect(deletedPostLocator).not.toBeVisible();
     });
 
@@ -121,41 +115,40 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             await adminClient.createDirectChannel([sender.id, receiver.id]);
 
             // # Login as sender and post BoR message
-            const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-            await senderPage.goto(team.name, `@${receiver.username}`);
-            await senderPage.toBeVisible();
+            const senderApp = await openDm(pw, sender, team, receiver);
 
-            await senderPage.centerView.postCreate.toggleBurnOnRead();
+            await senderApp.center.postCreate.burnOnReadButton.click();
+            await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
             const message = `Test message ${pw.random.id()}`;
-            await senderPage.postMessage(message);
+            await sendMessage(senderApp, message);
 
             // # Login as receiver
-            const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-            await receiverPage.goto(team.name, `@${sender.username}`);
-            await receiverPage.toBeVisible();
+            const receiverApp = await openDm(pw, receiver, team, sender);
 
             // # Reveal the message
-            const borPost = await receiverPage.getLastPost();
-            await borPost.concealedPlaceholder.clickToReveal();
-            await borPost.concealedPlaceholder.waitForReveal();
+            const {post: borPost} = await lastPost(receiverApp);
+            await borPost.revealButton.click();
+            await expect(borPost.revealButton).not.toBeVisible();
 
             // * Wait for timer chip to be visible
-            await expect(borPost.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
+            await expect(borPost.burnOnReadTimerButton).toBeVisible({timeout: duration.half_min});
 
             // # Click timer to burn
-            await borPost.burnOnReadTimerChip.click();
+            await borPost.burnOnReadTimerButton.click();
 
             // * Verify confirmation modal appears
-            await expect(receiverPage.burnOnReadConfirmationModal.container).toBeVisible();
+            await expect(receiverApp.burnOnReadConfirmationModal.confirmButton).toBeVisible();
 
             // * Verify "don't show again" checkbox is available
-            await expect(receiverPage.burnOnReadConfirmationModal.dontShowAgainCheckbox).toBeVisible();
+            await expect(receiverApp.burnOnReadConfirmationModal.dontShowAgainCheckbox).toBeVisible();
 
             // # Check "don't show again" and confirm (combined action)
-            await receiverPage.burnOnReadConfirmationModal.confirmWithDontShowAgain();
+            await receiverApp.burnOnReadConfirmationModal.dontShowAgainCheckbox.check();
+            await expect(receiverApp.burnOnReadConfirmationModal.dontShowAgainCheckbox).toBeChecked();
+            await receiverApp.burnOnReadConfirmationModal.confirmButton.click();
 
             // * Verify post is deleted
-            await expect(borPost.container).not.toBeVisible({timeout: 10000});
+            await expect(borPost).not.toBeVisible();
         },
     );
 
@@ -176,50 +169,38 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and post BoR message
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name, `@${receiver.username}`);
-        await senderPage.toBeVisible();
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        const senderApp = await openDm(pw, sender, team, receiver);
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const message = `Timer test ${pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await sendMessage(senderApp, message);
 
         // # Login as receiver
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name, `@${sender.username}`);
-        await receiverPage.toBeVisible();
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
         // # Get the BoR post and reveal it
-        const borPost = await receiverPage.getLastPost();
-        await borPost.concealedPlaceholder.clickToReveal();
-        await borPost.concealedPlaceholder.waitForReveal();
+        const {post: borPost} = await lastPost(receiverApp);
+        await borPost.revealButton.click();
+        await expect(borPost.revealButton).not.toBeVisible();
 
         // * Verify timer chip is visible (wait for WebSocket update)
-        await expect(borPost.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
+        await expect(borPost.burnOnReadTimerButton).toBeVisible({timeout: duration.half_min});
 
         // * Get initial time
-        const initialTime = await borPost.burnOnReadTimerChip.getTimeRemaining();
+        const initialTime = (await borPost.burnOnReadTimerButton.locator.textContent()) ?? '';
 
         // * Verify time format is correct (MM:SS or M:SS)
         expect(initialTime).toMatch(/^\d+:\d{2}$/);
 
-        // # Wait 2 seconds
-        await receiverPage.page.waitForTimeout(2000);
-
-        // * Get updated time
-        const updatedTime = await borPost.burnOnReadTimerChip.getTimeRemaining();
-
-        // * Verify time has decreased
-        expect(updatedTime).toMatch(/^\d+:\d{2}$/);
-        // Parse times to compare
-        const parseTime = (t: string) => {
-            const [m, s] = t.split(':').map(Number);
-            return m * 60 + s;
-        };
-        expect(parseTime(updatedTime)).toBeLessThan(parseTime(initialTime));
+        // * Verify the time goes down while staying in the same format
+        await expect
+            .poll(async () => parseTimeRemaining((await borPost.burnOnReadTimerButton.locator.textContent()) ?? ''))
+            .toBeLessThan(parseTimeRemaining(initialTime));
+        await expect(borPost.burnOnReadTimerButton).toHaveText(/^\d+:\d{2}$/);
     });
 
     test('MM-66742_13 message auto-deletes after timer expires', {tag: [BOR_TAG]}, async ({pw}, testInfo) => {
-        testInfo.setTimeout(120000);
+        testInfo.setTimeout(duration.two_min);
         // # Initialize setup with very short duration (10 seconds)
         const {
             user: sender,
@@ -243,9 +224,7 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and post BoR message
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name, `@${receiver.username}`);
-        await senderPage.toBeVisible();
+        const senderApp = await openDm(pw, sender, team, receiver);
         // Re-apply guard: concurrent initSetup() may reset BurnOnReadDurationSeconds to 60
         // (default) after the pw.waitUntil check above but before the message is posted.
         await adminClient.patchConfig({
@@ -260,18 +239,17 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             const cfg = await adminClient.getConfig();
             return cfg.ServiceSettings.BurnOnReadDurationSeconds === 10;
         });
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const message = `Auto-delete test ${pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await sendMessage(senderApp, message);
 
         // # Login as receiver
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name, `@${sender.username}`);
-        await receiverPage.toBeVisible();
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
         // # Get the BoR post and reveal it
-        const borPost = await receiverPage.getLastPost();
-        const postId = await borPost.getId();
+        const {id: borPostId, post: borPost} = await lastPost(receiverApp);
+        const postId = borPostId;
 
         // Re-apply guard: TTL is assigned by the server at reveal time, not post time.
         // A concurrent initSetup() may have reset BurnOnReadDurationSeconds to its
@@ -288,29 +266,29 @@ test.describe('Burn-on-Read Receiver Flow', () => {
             const cfg = await adminClient.getConfig();
             return cfg.ServiceSettings.BurnOnReadDurationSeconds === 10;
         });
-        await borPost.concealedPlaceholder.clickToReveal();
-        await borPost.concealedPlaceholder.waitForReveal();
+        await borPost.revealButton.click();
+        await expect(borPost.revealButton).not.toBeVisible();
 
         // * Verify message is visible and timer is running (wait for WebSocket update)
         await expect(borPost.body).toContainText(message);
-        await expect(borPost.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
+        await expect(borPost.burnOnReadTimerButton).toBeVisible({timeout: duration.half_min});
 
         // # Wait for timer to expire (10 seconds + buffer)
         // Use polling to check for post removal
         await expect(async () => {
-            const postLocator = receiverPage.page.locator(`[id="post_${postId}"]`);
+            const postLocator = receiverApp.center.postList.post({id: postId}).locator;
             await expect(postLocator).not.toBeVisible();
         }).toPass({
-            timeout: 30000,
+            timeout: duration.half_min,
             intervals: [1000],
         });
 
         // * Verify message is no longer visible
-        const deletedPostLocator = receiverPage.page.locator(`[id="post_${postId}"]`);
+        const deletedPostLocator = receiverApp.center.postList.post({id: postId}).locator;
         await expect(deletedPostLocator).not.toBeVisible();
 
         // * Verify message text is not in the channel
-        const pageContent = await receiverPage.centerView.container.textContent();
+        const pageContent = await receiverApp.center.postList.locator.textContent();
         expect(pageContent).not.toContain(message);
     });
 
@@ -325,31 +303,26 @@ test.describe('Burn-on-Read Receiver Flow', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and post BoR message
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
-        await senderPage.goto(team.name, `@${receiver.username}`);
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        const senderApp = await openDm(pw, sender, team, receiver);
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const message = `Badge test ${pw.random.id()}`;
-        await senderPage.postMessage(message);
+        await sendMessage(senderApp, message);
 
         // # Login as receiver
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
-        await receiverPage.goto(team.name, `@${sender.username}`);
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
         // # Get the BoR post (still concealed)
-        const borPost = await receiverPage.getLastPost();
+        const {post: borPost} = await lastPost(receiverApp);
 
         // * Verify concealed placeholder is visible
-        await expect(borPost.concealedPlaceholder.container).toBeVisible();
+        await expect(borPost.revealButton).toBeVisible();
 
         // * Verify flame badge is also visible on concealed post
-        await expect(borPost.burnOnReadBadge.container).toBeVisible();
+        await expect(borPost.burnOnReadButton).toBeVisible();
 
         // * Verify badge tooltip shows appropriate message for receiver
-        const ariaLabel = await borPost.burnOnReadBadge.getAriaLabel();
+        const ariaLabel = (await borPost.burnOnReadButton.locator.getAttribute('aria-label')) ?? '';
         expect(ariaLabel).toContain('Burn-on-read message');
     });
 });

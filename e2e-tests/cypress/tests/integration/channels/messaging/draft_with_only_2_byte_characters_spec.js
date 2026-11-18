@@ -46,7 +46,7 @@ describe('Messaging', () => {
         cy.get('#sidebarItem_town-square').click();
 
         // * Check that the draft icon does not exist next to the Test Channel name
-        cy.get(`#sidebarItem_${testChannel.name}`).findByTestId('draftIcon').should('not.exist');
+        cy.get(`#sidebarItem_${testChannel.name}`).findByTestId('lhs.channel_list.channel.draft--text').should('not.exist');
 
         // # Return to the channel where the 2 byte character was posted
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);

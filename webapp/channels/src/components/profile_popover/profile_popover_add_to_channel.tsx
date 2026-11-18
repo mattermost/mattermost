@@ -62,6 +62,7 @@ const ProfilePopoverAddToChannel = ({
             <span>
                 <ToggleModalButton
                     id='addToChannelButton'
+                    testId='profile_popover.actions.add_to_channel'
                     className='btn btn-icon btn-sm'
                     ariaLabel={formatMessage({
                         id: 'user_profile.add_user_to_channel',

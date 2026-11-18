@@ -36,11 +36,14 @@ describe('TimestampPropertyRenderer', () => {
 
     it('should render timestamp component with the provided value', () => {
         renderWithContext(
-            <TimestampPropertyRenderer value={mockValue}/>,
+            <TimestampPropertyRenderer
+                value={mockValue}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
-        const timestampElement = screen.getByTestId('timestamp-property');
+        const timestampElement = screen.getByTestId('x.card.field.value.timestamp--text');
         expect(timestampElement).toBeVisible();
         expect(timestampElement).toHaveTextContent('Thursday, January 20, 2022 at 4:00:00 PM');
     });
@@ -51,11 +54,14 @@ describe('TimestampPropertyRenderer', () => {
         } as PropertyValue<number>;
 
         renderWithContext(
-            <TimestampPropertyRenderer value={zeroValue}/>,
+            <TimestampPropertyRenderer
+                value={zeroValue}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
-        const timestampElement = screen.getByTestId('timestamp-property');
+        const timestampElement = screen.getByTestId('x.card.field.value.timestamp--text');
         expect(timestampElement).toBeVisible();
         expect(timestampElement).toHaveTextContent('Thursday, January 1, 1970 at 12:00:00 AM');
     });
@@ -66,11 +72,14 @@ describe('TimestampPropertyRenderer', () => {
         } as PropertyValue<number>;
 
         renderWithContext(
-            <TimestampPropertyRenderer value={negativeValue}/>,
+            <TimestampPropertyRenderer
+                value={negativeValue}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
-        const timestampElement = screen.getByTestId('timestamp-property');
+        const timestampElement = screen.getByTestId('x.card.field.value.timestamp--text');
         expect(timestampElement).toBeVisible();
         expect(timestampElement).toHaveTextContent('Wednesday, December 31, 1969 at 12:00:00 AM');
     });
@@ -81,11 +90,14 @@ describe('TimestampPropertyRenderer', () => {
         } as PropertyValue<number>;
 
         renderWithContext(
-            <TimestampPropertyRenderer value={futureValue}/>,
+            <TimestampPropertyRenderer
+                value={futureValue}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
-        const timestampElement = screen.getByTestId('timestamp-property');
+        const timestampElement = screen.getByTestId('x.card.field.value.timestamp--text');
         expect(timestampElement).toBeVisible();
         expect(timestampElement).toHaveTextContent('Wednesday, May 18, 2033 at 3:33:20 AM');
     });
@@ -96,11 +108,14 @@ describe('TimestampPropertyRenderer', () => {
         } as PropertyValue<number>;
 
         renderWithContext(
-            <TimestampPropertyRenderer value={timeValue}/>,
+            <TimestampPropertyRenderer
+                value={timeValue}
+                testIdScope='x.card.field.value'
+            />,
             baseState,
         );
 
-        const timestampElement = screen.getByTestId('timestamp-property');
+        const timestampElement = screen.getByTestId('x.card.field.value.timestamp--text');
         expect(timestampElement).toBeVisible();
         expect(timestampElement).toHaveTextContent('Thursday, January 20, 2022 at 6:00:00 PM');
     });
@@ -128,11 +143,14 @@ describe('TimestampPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TimestampPropertyRenderer value={timeValue}/>,
+            <TimestampPropertyRenderer
+                value={timeValue}
+                testIdScope='x.card.field.value'
+            />,
             militaryTimeState,
         );
 
-        const timestampElement = screen.getByTestId('timestamp-property');
+        const timestampElement = screen.getByTestId('x.card.field.value.timestamp--text');
         expect(timestampElement).toBeVisible();
         expect(timestampElement).toHaveTextContent('Thursday, January 20, 2022 at 18:00:00');
     });
@@ -160,11 +178,14 @@ describe('TimestampPropertyRenderer', () => {
         };
 
         renderWithContext(
-            <TimestampPropertyRenderer value={timeValue}/>,
+            <TimestampPropertyRenderer
+                value={timeValue}
+                testIdScope='x.card.field.value'
+            />,
             twelveHourState,
         );
 
-        const timestampElement = screen.getByTestId('timestamp-property');
+        const timestampElement = screen.getByTestId('x.card.field.value.timestamp--text');
         expect(timestampElement).toBeVisible();
         expect(timestampElement).toHaveTextContent('Thursday, January 20, 2022 at 6:00:00 PM');
     });

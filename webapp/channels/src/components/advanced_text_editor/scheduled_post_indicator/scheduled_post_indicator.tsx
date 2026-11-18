@@ -35,6 +35,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     // Fetch scheduled posts for the thread when opening a thread, and fetch for channel
     // when opening from center channel.
     const isThread = location === Locations.RHS_COMMENT;
+    const testId: string = isThread ? 'rhs.post_create.scheduled_post_indicator' : 'center.post_create.scheduled_post_indicator';
     const id = isThread ? postId : channelId;
     const scheduledPostData = useSelector((state: GlobalState) => showChannelOrThreadScheduledPostIndicator(state, id));
 
@@ -48,6 +49,7 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     if (remoteUserHourDisplayed) {
         return (
             <ShortScheduledPostIndicator
+                testId={testId}
                 scheduledPostData={scheduledPostData}
                 scheduledPostLinkURL={scheduledPostLinkURL}
             />
@@ -100,14 +102,17 @@ export default function ScheduledPostIndicator({location, channelId, postId, rem
     return (
         <div
             className='ScheduledPostIndicator'
-            data-testid='scheduledPostIndicator'
+            data-testid={testId}
         >
             <i
-                data-testid='scheduledPostIcon'
+                data-testid={testId ? `${testId}.icon` : undefined}
                 className='icon icon-draft-indicator icon-clock-send-outline'
             />
             {scheduledPostText}
-            <Link to={scheduledPostLinkURL}>
+            <Link
+                to={scheduledPostLinkURL}
+                data-testid={testId ? `${testId}.see_all--link` : undefined}
+            >
                 <FormattedMessage
                     id='scheduled_post.channel_indicator.link_to_scheduled_posts.text'
                     defaultMessage='See all.'

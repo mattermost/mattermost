@@ -167,7 +167,10 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
     }
 
     const currentVersionIndicator = isCurrent ? (
-        <div className='edit-post-history__current__indicator'>
+        <div
+            className='edit-post-history__current__indicator'
+            data-testid='rhs.edit_history.version.current'
+        >
             {formatMessage(itemMessages.currentVersionText)}
         </div>
     ) : null;
@@ -178,6 +181,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
             isRHS={true}
             showPostEditedIndicator={false}
             userLanguage={locale}
+            testId='rhs.edit_history.version.message'
             isChannelAutotranslated={isChannelAutotranslated}
         />
     );
@@ -197,6 +201,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
                 isEditHistory={isFileDeleted}
                 disableDownload={isFileDeleted}
                 disableActions={isFileDeleted}
+                testIdScope='rhs.edit_history.version.attachments'
             />
         </div>
     );
@@ -208,6 +213,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
             <button
                 className='edit-post-history__icon__button restore-icon'
                 onClick={openRestorePostModal}
+                data-testid='rhs.edit_history.version.restore--button'
                 aria-label={formatMessage(itemMessages.ariaLabelMessage)}
             >
                 <i className={'icon icon-restore'}/>
@@ -221,6 +227,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
     return (
         <div
             className={postContainerClass}
+            data-testid={`rhs.edit_history.version:${post.id}`}
         >
             <PostAriaLabelDiv
                 className={'a11y__section post'}
@@ -236,6 +243,7 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, actions, i
                         <button
                             aria-label='Toggle to see an old message.'
                             className='edit-post-history__icon__button toggleCollapseButton'
+                            data-testid='rhs.edit_history.version.toggle--button'
                         >
                             <i className={`icon ${open ? 'icon-chevron-down' : 'icon-chevron-right'}`}/>
                         </button>

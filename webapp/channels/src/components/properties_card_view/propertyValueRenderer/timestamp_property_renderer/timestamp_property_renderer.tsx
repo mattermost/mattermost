@@ -12,13 +12,14 @@ const getDateFormat: ComponentProps<typeof Timestamp>['useDate'] = {weekday: 'lo
 
 type Props = {
     value: PropertyValue<unknown>;
+    testIdScope?: string;
 };
 
-export default function TimestampPropertyRenderer({value}: Props) {
+export default function TimestampPropertyRenderer({value, testIdScope}: Props) {
     return (
         <div
             className='TimestampPropertyRenderer'
-            data-testid='timestamp-property'
+            data-testid={testIdScope ? `${testIdScope}.timestamp--text` : undefined}
         >
             <Timestamp
                 value={value.value as number}

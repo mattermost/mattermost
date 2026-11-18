@@ -48,6 +48,8 @@ export type Props = {
     teamId: string;
     canOpenMarketplace: boolean;
 
+    testIdScope?: string;
+
     /**
      * Components for overriding provided by plugins
      */
@@ -243,6 +245,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
             return null;
         }
 
+        const menuScope = this.props.testIdScope ? `${this.props.testIdScope}.actions_menu` as const : undefined;
         const pluginItems = this.props.pluginMenuItems?.
             filter((item) => {
                 return item.filter ? item.filter(this.props.post.id) : item;
@@ -258,6 +261,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                             subMenu={item.subMenu}
                             action={item.action}
                             root={true}
+                            slotTestId={this.props.testIdScope ? `${this.props.testIdScope}.actions_menu.plugin_submenu:${item.pluginId}--menuitem` : undefined}
                         />
                     );
                 }
@@ -265,6 +269,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     <Menu.ItemAction
                         key={item.id + '_pluginmenuitem'}
                         text={item.text}
+                        slotTestId={this.props.testIdScope ? `${this.props.testIdScope}.actions_menu.plugin:${item.pluginId}--menuitem` : undefined}
                         onClick={() => {
                             if (item.action) {
                                 item.action(this.props.post.id);
@@ -310,6 +315,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         show={true}
                         text={formatMessage({id: 'post_info.marketplace', defaultMessage: 'App Marketplace'})}
                         icon={<ActionsMenuIcon name='icon-view-grid-plus-outline'/>}
+                        testId={menuScope ? `${menuScope}.marketplace` : undefined}
                         onClick={this.handleOpenMarketplace}
                     />
                 </React.Fragment>
@@ -350,6 +356,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                     openLeft={true}
                     openUp={this.state.openUp}
                     ariaLabel={formatMessage({id: 'post_info.menuAriaLabel', defaultMessage: 'Post extra options'})}
+                    testId={menuScope}
                 >
                     {menuItems}
                 </Menu>
@@ -371,6 +378,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         buttonId={buttonId}
                         popupId={popupId}
                         isMenuOpen={this.props.isMenuOpen}
+                        testId={this.props.testIdScope ? `${this.props.testIdScope}.actions` : undefined}
                     />
                     {this.props.isMobileView ? createPortal(
                         <div
@@ -393,6 +401,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.openDropdown}
                         popupId={popupId}
                         isMenuOpen={this.props.isMenuOpen}
+                        testId={this.props.testIdScope ? `${this.props.testIdScope}.actions` : undefined}
                     />
                     <ActionsMenuEmptyPopover
                         anchorElement={this.buttonElement}

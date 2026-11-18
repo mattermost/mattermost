@@ -100,39 +100,39 @@ this is long text this is long text this is long text this is long text this is 
     test('<a> should contain target=_blank for external links', () => {
         const output = format('[external_link](http://example.com)', {siteURL: 'http://localhost'});
 
-        expect(output).toContain('<a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">external_link</a>');
+        expect(output).toContain('<a data-testid="markdown.link--link" class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">external_link</a>');
     });
 
     test('<a> should not contain target=_blank for internal links', () => {
         const output = format('[internal_link](http://localhost/example)', {siteURL: 'http://localhost'});
 
-        expect(output).toContain('<a class="theme markdown__link" href="http://localhost/example" rel="noreferrer" data-link="/example">internal_link</a>');
+        expect(output).toContain('<a data-testid="markdown.link--link" class="theme markdown__link" href="http://localhost/example" rel="noreferrer" data-link="/example">internal_link</a>');
     });
 
     test('<a> should contain target=_blank for internal links that live under /plugins', () => {
         const output = format('[internal_link](http://localhost/plugins/example)', {siteURL: 'http://localhost'});
 
-        expect(output).toContain('<a class="theme markdown__link" href="http://localhost/plugins/example" rel="noreferrer" target="_blank">internal_link</a>');
+        expect(output).toContain('<a data-testid="markdown.link--link" class="theme markdown__link" href="http://localhost/plugins/example" rel="noreferrer" target="_blank">internal_link</a>');
     });
 
     test('<a> should contain target=_blank for internal links that are files', () => {
         const output = format('http://localhost/files/o6eujqkmjfd138ykpzmsmc131y/public?h=j5nPX8JlgUeNVMOB3dLXwyG_jlxlSw4nSgZmegXfpHw', {siteURL: 'http://localhost'});
 
-        expect(output).toContain('<a class="theme markdown__link" href="http://localhost/files/o6eujqkmjfd138ykpzmsmc131y/public?h=j5nPX8JlgUeNVMOB3dLXwyG_jlxlSw4nSgZmegXfpHw" rel="noreferrer" target="_blank">http://localhost/files/o6eujqkmjfd138ykpzmsmc131y/public?h=j5nPX8JlgUeNVMOB3dLXwyG_jlxlSw4nSgZmegXfpHw</a>');
+        expect(output).toContain('<a data-testid="markdown.link--link" class="theme markdown__link" href="http://localhost/files/o6eujqkmjfd138ykpzmsmc131y/public?h=j5nPX8JlgUeNVMOB3dLXwyG_jlxlSw4nSgZmegXfpHw" rel="noreferrer" target="_blank">http://localhost/files/o6eujqkmjfd138ykpzmsmc131y/public?h=j5nPX8JlgUeNVMOB3dLXwyG_jlxlSw4nSgZmegXfpHw</a>');
     });
 
     test('<a> should not contain target=_blank for pl|channels|messages links', () => {
         const pl = format('[thread](/reiciendis-0/pl/b3hrs3brjjn7fk4kge3xmeuffc))', {siteURL: 'http://localhost'});
-        expect(pl).toContain('<a class="theme markdown__link" href="/reiciendis-0/pl/b3hrs3brjjn7fk4kge3xmeuffc" rel="noreferrer" data-link="/reiciendis-0/pl/b3hrs3brjjn7fk4kge3xmeuffc">thread</a>');
+        expect(pl).toContain('<a data-testid="markdown.link--link" class="theme markdown__link" href="/reiciendis-0/pl/b3hrs3brjjn7fk4kge3xmeuffc" rel="noreferrer" data-link="/reiciendis-0/pl/b3hrs3brjjn7fk4kge3xmeuffc">thread</a>');
 
         const channels = format('[thread](/reiciendis-0/channels/b3hrs3brjjn7fk4kge3xmeuffc))', {siteURL: 'http://localhost'});
-        expect(channels).toContain('<a class="theme markdown__link" href="/reiciendis-0/channels/b3hrs3brjjn7fk4kge3xmeuffc" rel="noreferrer" data-link="/reiciendis-0/channels/b3hrs3brjjn7fk4kge3xmeuffc">thread</a>');
+        expect(channels).toContain('<a data-testid="markdown.link--link" class="theme markdown__link" href="/reiciendis-0/channels/b3hrs3brjjn7fk4kge3xmeuffc" rel="noreferrer" data-link="/reiciendis-0/channels/b3hrs3brjjn7fk4kge3xmeuffc">thread</a>');
 
         const messages = format('[thread](/reiciendis-0/messages/b3hrs3brjjn7fk4kge3xmeuffc))', {siteURL: 'http://localhost'});
-        expect(messages).toContain('<a class="theme markdown__link" href="/reiciendis-0/messages/b3hrs3brjjn7fk4kge3xmeuffc" rel="noreferrer" data-link="/reiciendis-0/messages/b3hrs3brjjn7fk4kge3xmeuffc">thread</a>');
+        expect(messages).toContain('<a data-testid="markdown.link--link" class="theme markdown__link" href="/reiciendis-0/messages/b3hrs3brjjn7fk4kge3xmeuffc" rel="noreferrer" data-link="/reiciendis-0/messages/b3hrs3brjjn7fk4kge3xmeuffc">thread</a>');
 
         const plugin = format('[plugin](/reiciendis-0/plugins/example))', {siteURL: 'http://localhost'});
-        expect(plugin).toContain('<a class="theme markdown__link" href="/reiciendis-0/plugins/example" rel="noreferrer" data-link="/reiciendis-0/plugins/example">plugin</a>');
+        expect(plugin).toContain('<a data-testid="markdown.link--link" class="theme markdown__link" href="/reiciendis-0/plugins/example" rel="noreferrer" data-link="/reiciendis-0/plugins/example">plugin</a>');
     });
 
     describe('should correctly open links in the current tab based on whether they are handled by the web app', () => {
@@ -172,8 +172,8 @@ this is long text this is long text this is long text this is long text this is 
             {input: '[link text](//markdownlink.com/test)', expected: '<p>link text : //markdownlink.com/test</p>'},
             {input: '[link text](http://my.site.com/whatever)', expected: '<p>link text : http://my.site.com/whatever</p>'},
             {input: '[link text](http://my.site.com/api/v4/image?url=ohno)', expected: '<p>link text : http://my.site.com/api/v4/image?url=ohno</p>'},
-            {input: '[link text](http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p><a class="theme markdown__link" href="http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur" rel="noreferrer" data-link="/_redirect/pl/c18xpcpusjd88en1g4j7us31ur">link text</a></p>'},
-            {input: '[link text](http://my.site.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p><a class="theme markdown__link" href="http://my.site.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur" rel="noreferrer" data-link="/someteam/pl/c18xpcpusjd88en1g4j7us31ur">link text</a></p>'},
+            {input: '[link text](http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p><a data-testid="markdown.link--link" class="theme markdown__link" href="http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur" rel="noreferrer" data-link="/_redirect/pl/c18xpcpusjd88en1g4j7us31ur">link text</a></p>'},
+            {input: '[link text](http://my.site.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p><a data-testid="markdown.link--link" class="theme markdown__link" href="http://my.site.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur" rel="noreferrer" data-link="/someteam/pl/c18xpcpusjd88en1g4j7us31ur">link text</a></p>'},
             {input: '[link text](http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur/ohno)', expected: '<p>link text : http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur/ohno</p>'},
             {input: '[link text](http://my.site.com/more/stuff/here/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p>link text : http://my.site.com/more/stuff/here/pl/c18xpcpusjd88en1g4j7us31ur</p>'},
             {input: '[link text](http://myqsite.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p>link text : http://myqsite.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur</p>'},

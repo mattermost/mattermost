@@ -406,6 +406,7 @@ const Search = ({
                 <button
                     id={isSideBarRight ? 'sbrSidebarCollapse' : 'sidebarCollapse'}
                     className='sidebar-collapse'
+                    data-testid='search.mobile_bar.back--button'
                     onClick={handleClose}
                     aria-label={intl.formatMessage({id: 'channel_header.back', defaultMessage: 'Back to channel'})}
                 >

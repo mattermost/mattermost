@@ -43,6 +43,7 @@ export default function DeleteScheduledPostModal({
     return (
         <GenericModal
             className='delete_scheduled_post_modal'
+            testId='delete_scheduled_post_modal'
             confirmButtonText={confirmButtonText}
             destructive={true}
             handleCancel={noop}

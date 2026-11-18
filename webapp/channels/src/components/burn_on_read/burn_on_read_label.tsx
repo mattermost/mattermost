@@ -18,9 +18,12 @@ type Props = {
 
     // The configured duration in minutes for BoR messages
     durationMinutes: number;
+
+    // The label's testid; undefined renders none
+    testId?: string;
 };
 
-const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes}: Props) => {
+const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes, testId}: Props) => {
     const {formatMessage} = useIntl();
 
     const formatDuration = () => {
@@ -59,7 +62,7 @@ const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes}: Props) => {
     return (
         <div
             className='BurnOnReadLabel'
-            data-testid='burn-on-read-label'
+            data-testid={testId ?? 'burn_on_read.label--text'}
         >
             <div className='BurnOnReadLabel__badge'>
                 <FireIcon
@@ -74,6 +77,7 @@ const BurnOnReadLabel = ({canRemove, onRemove, durationMinutes}: Props) => {
                 <button
                     className='BurnOnReadLabel__close'
                     onClick={onRemove}
+                    data-testid={testId ? `${testId}.remove--button` : undefined}
                     aria-label={formatMessage({
                         id: 'burn_on_read.label.remove',
                         defaultMessage: 'Remove burn-on-read',

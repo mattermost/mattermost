@@ -19,6 +19,9 @@ type Props = {
     onReveal: (postId: string) => void;
     loading?: boolean;
     error?: string | null;
+
+    // The post's scope; undefined renders no testid.
+    testIdScope?: string;
 };
 
 const ERROR_STATE_DURATION_MS = 3000;
@@ -29,6 +32,7 @@ function BurnOnReadConcealedPlaceholder({
     onReveal,
     loading = false,
     error = null,
+    testIdScope,
 }: Props) {
     const {formatMessage} = useIntl();
     const [showError, setShowError] = useState(false);
@@ -94,7 +98,7 @@ function BurnOnReadConcealedPlaceholder({
                     disabled={loading}
                     aria-label={ariaLabel}
                     tabIndex={0}
-                    data-testid={`burn-on-read-concealed-${postId}`}
+                    data-testid={testIdScope ? `${testIdScope}.reveal--button` : undefined}
                 >
                     {loading ? (
                         <LoadingSpinner legacy={true}/>

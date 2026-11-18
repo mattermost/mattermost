@@ -20,6 +20,7 @@ describe('BurnOnReadBadge', () => {
         post: mockPost,
         isSender: false,
         revealed: false,
+        testIdScope: 'center.post_list.post' as const,
     };
 
     it('should render flame icon for unrevealed recipient', () => {
@@ -27,7 +28,7 @@ describe('BurnOnReadBadge', () => {
             <BurnOnReadBadge {...baseProps}/>,
         );
 
-        const badge = screen.getByTestId('burn-on-read-badge-post123');
+        const badge = screen.getByTestId('center.post_list.post.burn_on_read--button');
         expect(badge).toBeInTheDocument();
         expect(badge.querySelector('svg')).toBeInTheDocument();
     });
@@ -37,7 +38,7 @@ describe('BurnOnReadBadge', () => {
             <BurnOnReadBadge {...baseProps}/>,
         );
 
-        const badge = screen.getByTestId('burn-on-read-badge-post123');
+        const badge = screen.getByTestId('center.post_list.post.burn_on_read--button');
         expect(badge).toHaveAttribute('aria-label', 'Burn-on-read message');
     });
 
@@ -49,7 +50,7 @@ describe('BurnOnReadBadge', () => {
             />,
         );
 
-        const badge = screen.getByTestId('burn-on-read-badge-post123');
+        const badge = screen.getByTestId('center.post_list.post.burn_on_read--button');
         expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
     });
 
@@ -75,7 +76,7 @@ describe('BurnOnReadBadge', () => {
         );
 
         // Sender sees the flame badge with delete tooltip when timer is not active
-        const badge = screen.getByTestId('burn-on-read-badge-post123');
+        const badge = screen.getByTestId('center.post_list.post.burn_on_read--button');
         expect(badge).toBeInTheDocument();
         expect(badge.getAttribute('aria-label')).toContain('Click to delete message for everyone');
     });
@@ -91,7 +92,7 @@ describe('BurnOnReadBadge', () => {
         );
 
         // When timer is active, badge should not render (timer chip shows instead)
-        const badge = screen.queryByTestId('burn-on-read-badge-post123');
+        const badge = screen.queryByTestId('center.post_list.post.burn_on_read--button');
         expect(badge).not.toBeInTheDocument();
     });
 
@@ -100,7 +101,7 @@ describe('BurnOnReadBadge', () => {
             <BurnOnReadBadge {...baseProps}/>,
         );
 
-        const badge = screen.getByTestId('burn-on-read-badge-post123');
+        const badge = screen.getByTestId('center.post_list.post.burn_on_read--button');
         expect(badge).toHaveClass('BurnOnReadBadge');
     });
 
@@ -114,7 +115,7 @@ describe('BurnOnReadBadge', () => {
             />,
         );
 
-        const badge = screen.getByTestId('burn-on-read-badge-post123');
+        const badge = screen.getByTestId('center.post_list.post.burn_on_read--button');
         await userEvent.click(badge);
 
         expect(onSenderDelete).toHaveBeenCalledTimes(1);
@@ -133,7 +134,7 @@ describe('BurnOnReadBadge', () => {
             />,
         );
 
-        const badge = screen.getByTestId('burn-on-read-badge-post123');
+        const badge = screen.getByTestId('center.post_list.post.burn_on_read--button');
         await userEvent.click(badge);
 
         expect(onSenderDelete).not.toHaveBeenCalled();

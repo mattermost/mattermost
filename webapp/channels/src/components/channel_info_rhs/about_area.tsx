@@ -48,7 +48,7 @@ interface Props {
 
 const AboutArea = ({channel, dmUser, gmUsers, canEditChannelProperties, actions}: Props) => {
     return (
-        <Container>
+        <Container data-testid='rhs.channel_info.about'>
             {channel.type === Constants.DM_CHANNEL && dmUser && (
                 <AboutAreaDM
                     channel={channel}

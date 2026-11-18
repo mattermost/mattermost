@@ -27,7 +27,6 @@ const ProfilePopoverName = ({
             <FullName
                 fullname={fullname}
                 remoteId={user.remote_id}
-                username={user.username}
             />
             {(user.is_bot && !haveOverrideProp) && (
                 <BotDescription

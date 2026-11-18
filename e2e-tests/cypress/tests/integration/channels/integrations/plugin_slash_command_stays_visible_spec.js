@@ -32,7 +32,7 @@ describe('Integrations', () => {
         // * Suggestion list is not visible
         cy.get('#suggestionList').should('not.exist').then(() => {
             // * Suggestion list is visible after typing "/agenda " with space character
-            cy.findByTestId('post_textbox').type('/agenda ');
+            cy.findByTestId('center.post_create.message--textbox').type('/agenda ');
             cy.get('#suggestionList').should('be.visible');
         });
     });

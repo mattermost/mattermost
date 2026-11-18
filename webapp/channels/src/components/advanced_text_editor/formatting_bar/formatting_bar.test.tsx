@@ -112,19 +112,21 @@ describe('FormattingBar', () => {
         const {container, rerender} = renderWithContext(
             <FormattingBar
                 {...baseProps}
+                testId='formatting_bar'
                 aiActionsMenu={<button type='button'>{'AI Actions'}</button>}
             />,
         );
 
-        expect(container.querySelectorAll('[data-testid="formatting-bar-separator"]')).toHaveLength(2);
+        expect(container.querySelectorAll('[data-testid$="_separator--separator"]')).toHaveLength(2);
 
         rerender(
             <FormattingBar
                 {...baseProps}
+                testId='formatting_bar'
                 aiActionsMenu={null}
             />,
         );
 
-        expect(container.querySelectorAll('[data-testid="formatting-bar-separator"]')).toHaveLength(1);
+        expect(container.querySelectorAll('[data-testid$="_separator--separator"]')).toHaveLength(1);
     });
 });

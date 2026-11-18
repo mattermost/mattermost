@@ -62,7 +62,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
     return (
         <div
             ref={ref}
-            data-testid={isGroupChannel(option) ? 'group-message-row' : 'direct-message-row'}
+            data-testid={isGroupChannel(option) ? `direct_messages_modal.options.group:${option.id}` : `direct_messages_modal.options.user:${option.id}`}
             className={classNames('more-modal__row clickable', {'more-modal__row--selected': isSelected})}
             onClick={handleClick}
             onMouseEnter={handleMouseEnter}
@@ -80,6 +80,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
 
             <div className='more-modal__actions'>
                 <button
+                    data-testid={isGroupChannel(option) ? 'direct_messages_modal.options.group.add--button' : 'direct_messages_modal.options.user.add--button'}
                     className='more-modal__actions--round'
                     aria-label={intl.formatMessage({
                         id: 'more_direct_channels.new_convo_add.label',
@@ -104,12 +105,15 @@ function GMDetails(props: {option: GroupChannel}) {
 
     return (
         <>
-            <div className='more-modal__gm-icon'>
+            <div
+                className='more-modal__gm-icon'
+                data-testid='direct_messages_modal.options.group.member_count--text'
+            >
                 {option.profiles.length}
             </div>
             <div className='more-modal__details'>
                 <div className='more-modal__name'>
-                    <span>
+                    <span data-testid='direct_messages_modal.options.group.name--text'>
                         {option.profiles.map((profile) => `@${profile.username}`).join(', ')}
                     </span>
                 </div>

@@ -44,7 +44,7 @@ const multiselectField = {
 
 const valueOf = (value: unknown) => ({value} as PropertyValue<unknown>);
 
-const chipTexts = () => screen.getAllByTestId('select-property').map((chip) => chip.textContent);
+const chipTexts = () => screen.getAllByTestId('post_attributes.value.select--text').map((chip) => chip.textContent);
 
 describe('OptionPropertyRenderer', () => {
     describe('a single-valued field', () => {
@@ -56,12 +56,13 @@ describe('OptionPropertyRenderer', () => {
         ])('renders the %s option with its colour', (_label, optionId, expected) => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={selectField}
                     value={valueOf(optionId)}
                 />,
             );
 
-            const element = screen.getByTestId('select-property');
+            const element = screen.getByTestId('post_attributes.value.select--text');
             expect(element).toHaveTextContent(optionId);
             expect(element).toHaveStyle(expected);
         });
@@ -77,12 +78,13 @@ describe('OptionPropertyRenderer', () => {
 
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={valueOf('option1')}
                 />,
             );
 
-            expect(screen.getByTestId('select-property')).toHaveStyle({backgroundColor: '#f3a4a0', color: '#000000'});
+            expect(screen.getByTestId('post_attributes.value.select--text')).toHaveStyle({backgroundColor: '#f3a4a0', color: '#000000'});
         });
 
         // Nothing on the server constrains `option.color`, so a token from another
@@ -98,12 +100,13 @@ describe('OptionPropertyRenderer', () => {
 
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={valueOf('option1')}
                 />,
             );
 
-            expect(screen.getByTestId('select-property')).toHaveStyle(NEUTRAL);
+            expect(screen.getByTestId('post_attributes.value.select--text')).toHaveStyle(NEUTRAL);
         });
 
         // The id is the durable key, so a value holding an id must resolve to that
@@ -122,12 +125,13 @@ describe('OptionPropertyRenderer', () => {
 
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={valueOf('Secret')}
                 />,
             );
 
-            const element = screen.getByTestId('select-property');
+            const element = screen.getByTestId('post_attributes.value.select--text');
             expect(element).toHaveTextContent('Confidential');
             expect(element).toHaveStyle({backgroundColor: 'var(--error-text)'});
         });
@@ -139,6 +143,7 @@ describe('OptionPropertyRenderer', () => {
         it('renders exactly one chip for an array value', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={selectField}
                     value={valueOf(['option1', 'option2', 'option3'])}
                 />,
@@ -150,6 +155,7 @@ describe('OptionPropertyRenderer', () => {
         it('renders exactly one chip for a rank field with an array value', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={{...selectField, type: 'rank'} as PropertyField}
                     value={valueOf(['option1', 'option2'])}
                 />,
@@ -163,6 +169,7 @@ describe('OptionPropertyRenderer', () => {
         it('renders one chip per entry of an array value', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['opt-1', 'opt-2'])}
                 />,
@@ -174,6 +181,7 @@ describe('OptionPropertyRenderer', () => {
         it('renders a bare scalar as a single chip', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf('opt-3')}
                 />,
@@ -185,6 +193,7 @@ describe('OptionPropertyRenderer', () => {
         it('resolves entries by option name as well as by id', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['Secret', 'opt-2'])}
                 />,
@@ -196,12 +205,13 @@ describe('OptionPropertyRenderer', () => {
         it('colours each chip from its own option', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['opt-1', 'opt-2'])}
                 />,
             );
 
-            const [secret, unclassified] = screen.getAllByTestId('select-property');
+            const [secret, unclassified] = screen.getAllByTestId('post_attributes.value.select--text');
 
             // #f3a4a0 and #c5e6bb, both with the derived black foreground.
             expect(secret).toHaveStyle({backgroundColor: '#f3a4a0', color: '#000000'});
@@ -211,17 +221,19 @@ describe('OptionPropertyRenderer', () => {
         it('falls to the neutral chip for an option with no colour', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['opt-4'])}
                 />,
             );
 
-            expect(screen.getByTestId('select-property')).toHaveStyle(NEUTRAL);
+            expect(screen.getByTestId('post_attributes.value.select--text')).toHaveStyle(NEUTRAL);
         });
 
         it('renders repeated entries rather than collapsing them', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['opt-1', 'opt-1'])}
                 />,
@@ -233,6 +245,7 @@ describe('OptionPropertyRenderer', () => {
         it('truncates to maxItems, keeping the leading entries', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['opt-1', 'opt-2', 'opt-3'])}
                     maxItems={2}
@@ -245,6 +258,7 @@ describe('OptionPropertyRenderer', () => {
         it('renders every entry when maxItems is not given', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['opt-1', 'opt-2', 'opt-3'])}
                 />,
@@ -260,6 +274,7 @@ describe('OptionPropertyRenderer', () => {
         it('applies maxItems to the resolved entries, not to the raw list', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['opt-1', 'Retired', 'opt-2', 'opt-3'])}
                     maxItems={2}
@@ -278,6 +293,7 @@ describe('OptionPropertyRenderer', () => {
         it('renders nothing when a single-valued field matches none of the options', () => {
             const {container} = renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={selectField}
                     value={valueOf('nonexistent_option')}
                 />,
@@ -290,6 +306,7 @@ describe('OptionPropertyRenderer', () => {
         it('skips an entry of a multiselect that matches no option', () => {
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['opt-1', 'Retired'])}
                 />,
@@ -302,6 +319,7 @@ describe('OptionPropertyRenderer', () => {
         it('renders nothing when no entry of a multiselect resolves', () => {
             const {container} = renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={multiselectField}
                     value={valueOf(['Retired', 'Withdrawn'])}
                 />,
@@ -318,6 +336,7 @@ describe('OptionPropertyRenderer', () => {
         ])('renders nothing for %s', (_label, raw) => {
             const {container} = renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={selectField}
                     value={valueOf(raw)}
                 />,
@@ -338,12 +357,13 @@ describe('OptionPropertyRenderer', () => {
 
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={valueOf('Classification mismatch')}
                 />,
             );
 
-            const element = screen.getByTestId('select-property');
+            const element = screen.getByTestId('post_attributes.value.select--text');
             expect(element).toHaveTextContent('Classification mismatch');
             expect(element).toHaveStyle(NEUTRAL);
         });
@@ -353,12 +373,13 @@ describe('OptionPropertyRenderer', () => {
 
             renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={valueOf('some_value')}
                 />,
             );
 
-            expect(screen.getByTestId('select-property')).toHaveTextContent('some_value');
+            expect(screen.getByTestId('post_attributes.value.select--text')).toHaveTextContent('some_value');
         });
 
         it('still renders nothing for an unset value', () => {
@@ -366,6 +387,7 @@ describe('OptionPropertyRenderer', () => {
 
             const {container} = renderWithContext(
                 <OptionPropertyRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={valueOf(null)}
                 />,
@@ -382,6 +404,7 @@ describe('OptionPropertyRenderer', () => {
     it('renders its chips as direct children, with no wrapper element', () => {
         const {container} = renderWithContext(
             <OptionPropertyRenderer
+                testIdScope='post_attributes.value'
                 field={multiselectField}
                 value={valueOf(['opt-1', 'opt-2'])}
             />,

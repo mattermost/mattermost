@@ -28,6 +28,7 @@ const useEditorEmojiPicker = (
     textboxId: string,
     isDisabled: boolean,
     shouldShowPreview: boolean,
+    testIdScope?: string,
     insertWysiwygText?: (text: string) => void,
 ) => {
     const intl = useIntl();
@@ -118,6 +119,7 @@ const useEditorEmojiPicker = (
                 >
                     <IconButton
                         id='emojiPickerButton'
+                        data-testid={testIdScope ? `${testIdScope}.emoji--button` : undefined}
                         ref={setReference}
                         size='small'
                         icon={

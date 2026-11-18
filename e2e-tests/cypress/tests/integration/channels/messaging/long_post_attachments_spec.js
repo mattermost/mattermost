@@ -30,7 +30,7 @@ describe('Messaging', () => {
 
         // * Verify the total 4 attached items are present
         cy.getLastPostId().then((postID) => {
-            const tiles = `#${postID}_message [data-testid="media-gallery-tile"]`;
+            const tiles = `#${postID}_message [data-testid^="center.post_list.post.attachments.file:"][data-testid$="--button"]`;
             cy.get(tiles).should('have.length', 4);
 
             // * Verify each tile points at the right file

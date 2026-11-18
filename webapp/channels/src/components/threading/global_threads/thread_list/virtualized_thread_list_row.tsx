@@ -79,6 +79,7 @@ function Row({index, style, data}: Props) {
             style={style}
             threadId={itemId}
             isFirstThreadInList={index === 0}
+            position={index}
         />
     );
 }

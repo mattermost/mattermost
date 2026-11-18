@@ -85,7 +85,7 @@ describe('Demo plugin - Webhook events', () => {
 
         // * Verify message is posted in the demo channel
         cy.visit(`/${team1.name}/channels/demo_plugin`);
-        cy.findAllByTestId('postView').should('contain', `MessageHasBeenPosted: @${testUser.username}, ~Town Square`);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `MessageHasBeenPosted: @${testUser.username}, ~Town Square`);
     });
 
     it('MM-T2408_2 - User joined a channel Webhook event', () => {
@@ -95,7 +95,7 @@ describe('Demo plugin - Webhook events', () => {
 
         // * Verify message is posted in the demo channel
         cy.visit(`/${team1.name}/channels/demo_plugin`);
-        cy.findAllByTestId('postView').should('contain', `UserHasJoinedChannel: @${testUser.username}, ~my_test_channel`);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `UserHasJoinedChannel: @${testUser.username}, ~my_test_channel`);
     });
 
     it('MM-T2408_3 - ​User left a channel Webhook event', () => {
@@ -105,7 +105,7 @@ describe('Demo plugin - Webhook events', () => {
 
         // * Verify message is posted in the demo plugin channel
         cy.visit(`/${team1.name}/channels/demo_plugin`);
-        cy.findAllByTestId('postView').should('contain', `UserHasLeftChannel: @${testUser.username}, ~my_test_channel`);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `UserHasLeftChannel: @${testUser.username}, ~my_test_channel`);
     });
 
     it('MM-T2408_4 - User edited a message Webhook event', () => {
@@ -133,7 +133,7 @@ describe('Demo plugin - Webhook events', () => {
             cy.visit(`/${team1.name}/channels/demo_plugin`);
 
             // * Verify event posted in the channel
-            cy.findAllByTestId('postView').should('contain', `MessageHasBeenUpdated: @${testUser.username}, ~Off-Topic`);
+            cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `MessageHasBeenUpdated: @${testUser.username}, ~Off-Topic`);
         });
     });
 
@@ -152,7 +152,7 @@ describe('Demo plugin - Webhook events', () => {
             cy.visit(`/${team1.name}/channels/demo_plugin`);
 
             // * Verify event posted in the channel
-            cy.findAllByTestId('postView').should('contain', `ReactionHasBeenAdded: @${testUser.username}, `).and('contain', ':slightly_frowning_face:');
+            cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `ReactionHasBeenAdded: @${testUser.username}, `).and('contain', ':slightly_frowning_face:');
         });
     });
 
@@ -165,7 +165,7 @@ describe('Demo plugin - Webhook events', () => {
         cy.visit(`/${team2.name}/channels/demo_plugin`);
 
         // * Verify event is posted in the channel
-        cy.findAllByTestId('postView').should('contain', `UserHasJoinedTeam: @${testUser.username}`);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `UserHasJoinedTeam: @${testUser.username}`);
     });
 
     it('MM-T2408_7 - ​User left a team Webhook event', () => {
@@ -176,7 +176,7 @@ describe('Demo plugin - Webhook events', () => {
         cy.visit(`/${team2.name}/channels/demo_plugin`);
 
         // * Verify event is posted in the channel
-        cy.findAllByTestId('postView').should('contain', `UserHasLeftTeam: @${testUser.username}`);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `UserHasLeftTeam: @${testUser.username}`);
     });
 
     it('MM-T2408_8 - ​User user login Webhook event', () => {
@@ -187,7 +187,7 @@ describe('Demo plugin - Webhook events', () => {
         cy.visit(`/${team1.name}/channels/demo_plugin`);
 
         // * Verify event is posted in the channel
-        cy.findAllByTestId('postView').should('contain', `User @${testUser.username} has logged in`);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `User @${testUser.username} has logged in`);
     });
 
     it('MM-T2408_9 - ​User user created Webhook event', () => {
@@ -200,7 +200,7 @@ describe('Demo plugin - Webhook events', () => {
             cy.visit(`/${team1.name}/channels/demo_plugin`);
 
             // * Verify event is posted in the channel
-            cy.findAllByTestId('postView').should('contain', `User_ID @${otherUser.id} has been created in`);
+            cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('contain', `User_ID @${otherUser.id} has been created in`);
         });
     });
 });

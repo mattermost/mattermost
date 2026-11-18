@@ -63,6 +63,8 @@ function NewRepliesBanner({
                 onDismiss={onDismiss}
                 onClickMessage={onClickMessage}
                 width={156}
+                testIdScope='rhs.thread.toast'
+                testKey='new_replies'
             >
                 <FormattedMessage
                     id='rhs_thread.toast.newReplies'

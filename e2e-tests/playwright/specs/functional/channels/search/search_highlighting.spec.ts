@@ -1,34 +1,43 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import type {Post} from '@mattermost/types/posts';
+
+import {Api, expect, settle, test, type App} from '@mattermost/playwright-lib';
+
+/** Searches from the global header for the term. */
+async function searchFor(app: App, term: string) {
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    await app.searchBox.inputSearchbox.fill(term);
+    await app.searchBox.inputSearchbox.press('Enter');
+    await expect(app.globalHeader.search.openButton).toContainText(term);
+}
+
+/** The highlighted search terms in a result: the result's Markdown search highlights. */
+function highlightsIn(app: App, post: Pick<Post, 'id'>) {
+    return app.search.results.post(post).markdown.searchHighlightText;
+}
 
 /**
  * @objective Verify that searching with trailing double quotes highlights only the searched terms, with no unexpected highlighting.
  */
 test('MM-T354 highlights only the searched terms when searching with double quotes', {tag: '@search'}, async ({pw}) => {
-    // # Create and log in as a test user
-    const {user, team} = await pw.initSetup();
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
     // # Post a message that contains the two search words plus an unrelated unique word
+    const {user, team, userClient, townSquare} = await pw.initSetup();
     const marker = `zzz${pw.random.id()}`;
-    await channelsPage.postMessage(`test tool ${marker}`);
+    const post = await userClient.createPost({channel_id: townSquare.id, message: `test tool ${marker}`});
+
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: townSquare});
 
     // # Search using the two words followed by an empty double-quoted phrase
-    await channelsPage.searchFor('test tool ""');
+    await searchFor(app, 'test tool ""');
 
     // * Verify the message is returned
-    await channelsPage.searchResultsPanel.toContainText(marker);
+    await expect(app.search.results.post(post).message.container).toContainText(marker);
 
     // * Verify only the two searched words are highlighted (no unexpected highlighting)
-    const highlights = channelsPage.searchResultsPanel.getHighlightedTerms();
-    await expect(highlights).toHaveCount(2);
-    await expect(highlights.filter({hasText: 'test'})).toHaveCount(1);
-    await expect(highlights.filter({hasText: 'tool'})).toHaveCount(1);
-    await expect(highlights.filter({hasText: marker})).toHaveCount(0);
+    await expect(highlightsIn(app, post)).toHaveText(['test', 'tool']);
 });
 
 /**
@@ -38,35 +47,31 @@ test(
     'MM-T371 keeps search result highlighting unchanged while editing the search input',
     {tag: '@search'},
     async ({pw}) => {
-        // # Create and log in as a test user
-        const {user, team} = await pw.initSetup();
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
-
         // # Post a message that contains two distinct words
+        const {user, team, userClient, townSquare} = await pw.initSetup();
         const suffix = pw.random.id();
         const firstWord = `apple${suffix}`;
         const secondWord = `banana${suffix}`;
-        await channelsPage.postMessage(`${firstWord} ${secondWord}`);
+        const post = await userClient.createPost({channel_id: townSquare.id, message: `${firstWord} ${secondWord}`});
+
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
 
         // # Search for the first word
-        await channelsPage.searchFor(firstWord);
+        await searchFor(app, firstWord);
 
         // * Verify the result contains both words but highlights only the searched (first) word
-        await channelsPage.searchResultsPanel.toBeVisible();
-        await channelsPage.searchResultsPanel.toContainText(secondWord);
-        await expect(channelsPage.searchResultsPanel.getHighlightedTerms()).toHaveText([firstWord]);
+        await expect(app.search.results.post(post).message.container).toContainText(secondWord);
+        await expect(highlightsIn(app, post)).toHaveText([firstWord]);
 
         // # Reopen the search box and replace the query with the second word without submitting
-        await channelsPage.globalHeader.openSearch();
-        await channelsPage.searchBox.toBeVisible();
-        const {searchInput} = channelsPage.searchBox;
-        await expect(searchInput).toHaveValue(firstWord);
-        await searchInput.fill(secondWord);
+        await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+        const input = app.searchBox.inputSearchbox;
+        await expect(input).toHaveValue(firstWord);
+        await input.fill(secondWord);
 
         // * Verify the search results still highlight the originally searched (first) word
-        await expect(channelsPage.searchResultsPanel.getHighlightedTerms()).toHaveText([firstWord]);
+        await expect(highlightsIn(app, post)).toHaveText([firstWord]);
     },
 );
 
@@ -77,64 +82,60 @@ test(
     'MM-T372 does not persist search highlighting in the saved or pinned message panels',
     {tag: '@search'},
     async ({pw}) => {
-        // # Create and log in as a test user, and open a channel
-        const {user, team, adminClient} = await pw.initSetup();
+        // # Create a channel with a message
+        const {user, team, adminClient, userClient} = await pw.initSetup();
         const channel = await adminClient.createPublicChannel(team.id, 'Highlight', 'highlight');
         await adminClient.addToChannel(user.id, channel.id);
-
         const token = `highlightterm${pw.random.id()}`;
+        const post = await userClient.createPost({channel_id: channel.id, message: `test message ${token}`});
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
+        const result = app.search.results.post(post);
 
-        // # Post a message, then pin it to the channel and save it
-        await channelsPage.postMessage(`test message ${token}`);
-        const post = await channelsPage.getLastPost();
-        await post.hover();
-        await post.postMenu.openDotMenu();
-        await channelsPage.postDotMenu.pinToChannelMenuItem.click();
-        await post.hover();
-        await post.postMenu.saveButton.click();
+        // # Pin the message to the channel and save it
+        const centerPost = app.center.postList.post(post);
+        await centerPost.container.hover();
+        await centerPost.menu.dotMenuButton.clickTo(app.postDotMenu);
+        await settle(app.postDotMenu.pinMenuItem, {wait: Api.PinPost}).click();
+        await centerPost.container.hover();
+        await settle(centerPost.menu.saveButton, {wait: Api.UpdatePreferences}).click();
 
         // # Open the saved messages panel
-        await channelsPage.globalHeader.openSavedMessages();
-        await channelsPage.searchResultsPanel.toBeVisible();
-        await channelsPage.searchResultsPanel.toContainText(token);
+        await app.globalHeader.savedMessagesButton.click();
+        await expect(result.message.container).toContainText(token);
 
         // * Verify no search term is highlighted in the saved messages panel
-        await expect(channelsPage.searchResultsPanel.getHighlightedTerms()).toHaveCount(0);
+        await expect(highlightsIn(app, post)).toHaveCount(0);
 
         // # Open the pinned messages panel
-        await channelsPage.centerView.header.openPinnedMessages();
-        await channelsPage.searchResultsPanel.toBeVisible();
-        await channelsPage.searchResultsPanel.toContainText(token);
+        await app.channelHeader.pinnedMessagesButton.click();
+        await expect(result.message.container).toContainText(token);
 
         // * Verify no search term is highlighted in the pinned messages panel
-        await expect(channelsPage.searchResultsPanel.getHighlightedTerms()).toHaveCount(0);
+        await expect(highlightsIn(app, post)).toHaveCount(0);
 
         // # Search for the message so the term is highlighted
-        await channelsPage.searchFor(token);
-        await channelsPage.searchResultsPanel.toContainText(token);
+        await searchFor(app, token);
+        await expect(result.message.container).toContainText(token);
 
         // * Verify the search term is highlighted in the search results panel
-        await expect(channelsPage.searchResultsPanel.getHighlightedTerms().first()).toBeVisible();
+        await expect(highlightsIn(app, post)).toBeVisible();
 
         // # Close the search results panel, then reopen the saved messages panel
-        await channelsPage.sidebarRight.close();
-        await channelsPage.globalHeader.openSavedMessages();
-        await channelsPage.searchResultsPanel.toBeVisible();
-        await channelsPage.searchResultsPanel.toContainText(token);
+        await app.search.header.closeButton.click();
+        await expect(app.search.header.closeButton).not.toBeVisible();
+        await app.globalHeader.savedMessagesButton.click();
+        await expect(result.message.container).toContainText(token);
 
         // * Verify the previously searched term is not highlighted in the saved messages panel
-        await expect(channelsPage.searchResultsPanel.getHighlightedTerms()).toHaveCount(0);
+        await expect(highlightsIn(app, post)).toHaveCount(0);
 
         // # Reopen the pinned messages panel
-        await channelsPage.centerView.header.openPinnedMessages();
-        await channelsPage.searchResultsPanel.toBeVisible();
-        await channelsPage.searchResultsPanel.toContainText(token);
+        await app.channelHeader.pinnedMessagesButton.click();
+        await expect(result.message.container).toContainText(token);
 
         // * Verify the previously searched term is not highlighted in the pinned messages panel
-        await expect(channelsPage.searchResultsPanel.getHighlightedTerms()).toHaveCount(0);
+        await expect(highlightsIn(app, post)).toHaveCount(0);
     },
 );

@@ -10,6 +10,8 @@ import StatusOnlineIcon from 'components/widgets/icons/status_online_icon';
 
 type Props = {
     id?: string;
+
+    testId?: string;
     button?: boolean;
     status?: string;
     className?: string;
@@ -20,6 +22,7 @@ const StatusIcon = ({
     className = '',
     button = false,
     status,
+    testId,
 }: Props) => {
     if (!status) {
         return null;
@@ -34,6 +37,7 @@ const StatusIcon = ({
     const iconProps = {
         id,
         className: iconClassName,
+        'data-testid': testId,
     };
 
     switch (status) {

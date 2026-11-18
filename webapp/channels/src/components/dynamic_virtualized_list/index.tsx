@@ -55,6 +55,7 @@ export interface DynamicVirtualizedListProps {
 
     id?: string;
     className?: string;
+    testId?: string;
     correctScrollToBottom?: boolean;
     innerListStyle?: React.CSSProperties;
     loaderId?: string;
@@ -782,6 +783,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         const {
             className,
             id,
+            testId,
             style,
             innerListStyle,
         } = this.props;
@@ -795,6 +797,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             {
                 className,
                 id,
+                'data-testid': testId,
                 onScroll,
                 ref: this._outerRefSetter,
                 style: {

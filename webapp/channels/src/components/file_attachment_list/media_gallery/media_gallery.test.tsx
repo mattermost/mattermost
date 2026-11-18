@@ -52,6 +52,7 @@ describe('MediaGallery', () => {
         const onClick = jest.fn();
         const {container} = renderWithContext(
             <MediaGallery
+                testIdScope='center.post_list.post.attachments'
                 fileInfos={[fileInfo({extension: 'pdf', mime_type: 'application/pdf'})]}
                 postId='p1'
                 onItemClick={onClick}
@@ -70,6 +71,7 @@ describe('MediaGallery', () => {
 
         renderWithContext(
             <MediaGallery
+                testIdScope='center.post_list.post.attachments'
                 fileInfos={files}
                 postId='p1'
                 onItemClick={onClick}
@@ -77,7 +79,7 @@ describe('MediaGallery', () => {
             baseState,
         );
 
-        const tile = await screen.findByTestId('media-gallery-tile');
+        const tile = await screen.findByTestId(/\.attachments\.file:/);
         const image = tile.querySelector('img');
         await userEvent.click(image!);
 
@@ -88,13 +90,14 @@ describe('MediaGallery', () => {
         const onClick = jest.fn();
         renderWithContext(
             <MediaGallery
+                testIdScope='center.post_list.post.attachments'
                 fileInfos={[fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4'})]}
                 postId='p1'
                 onItemClick={onClick}
             />,
             baseState,
         );
-        expect(screen.getByTestId('media-gallery-tile')).toBeInTheDocument();
+        expect(screen.getByTestId(/\.attachments\.file:/)).toBeInTheDocument();
     });
 
     it('renders a collapse toggle header for multi-image galleries when a toggle handler is provided', async () => {
@@ -102,6 +105,7 @@ describe('MediaGallery', () => {
         const onToggle = jest.fn();
         renderWithContext(
             <MediaGallery
+                testIdScope='center.post_list.post.attachments'
                 fileInfos={[
                     fileInfo({id: 'a', name: 'a.png'}),
                     fileInfo({id: 'b', name: 'b.png'}),
@@ -121,6 +125,7 @@ describe('MediaGallery', () => {
     it('leaves tile sizing to CSS so a narrow container does not need to be measured', () => {
         renderWithContext(
             <MediaGallery
+                testIdScope='center.post_list.post.attachments'
                 fileInfos={[
                     fileInfo({id: 'a', name: 'a.png', width: 800, height: 600}),
                     fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4', width: 0, height: 0}),
@@ -131,7 +136,8 @@ describe('MediaGallery', () => {
             baseState,
         );
 
-        const [image, video] = screen.getAllByTestId('media-gallery-tile');
+        const image = screen.getByTestId('center.post_list.post.attachments.file:a--button');
+        const video = screen.getByTestId('center.post_list.post.attachments.file:v--button');
         expect(image.style.getPropertyValue('--tile-ratio')).toBe(String(800 / 600));
         expect(image.style.getPropertyValue('--tile-native-width')).toBe('800px');
         expect(video.style.getPropertyValue('--tile-ratio')).toBe('1.5');
@@ -244,6 +250,7 @@ describe('MediaGallery', () => {
         it('switches row height for compact display with a class rather than a measurement', () => {
             const {container} = renderWithContext(
                 <MediaGallery
+                    testIdScope='center.post_list.post.attachments'
                     fileInfos={mixedFiles}
                     postId='p1'
                     compactDisplay={true}
@@ -263,6 +270,7 @@ describe('MediaGallery', () => {
     it('marks the tile container as hidden when isEmbedVisible is false', () => {
         const {container} = renderWithContext(
             <MediaGallery
+                testIdScope='center.post_list.post.attachments'
                 fileInfos={[
                     fileInfo({id: 'a', name: 'a.png'}),
                     fileInfo({id: 'b', name: 'b.png'}),
@@ -285,6 +293,7 @@ describe('MediaGallery', () => {
         const onToggle = jest.fn();
         renderWithContext(
             <MediaGallery
+                testIdScope='center.post_list.post.attachments'
                 fileInfos={[fileInfo({id: 'v', name: 'clip.mp4', extension: 'mp4', mime_type: 'video/mp4'})]}
                 postId='p1'
                 isEmbedVisible={false}
@@ -332,6 +341,7 @@ describe('MediaGallery', () => {
 
         const renderGallery = () => renderWithContext(
             <MediaGallery
+                testIdScope='center.post_list.post.attachments'
                 fileInfos={[
                     fileInfo({id: 'a', name: 'a.png'}),
                     fileInfo({id: 'b', name: 'b.png'}),

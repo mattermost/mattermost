@@ -111,7 +111,15 @@ export {setupFileServer} from './file_server';
 export {decomposeKorean, koreanTestPhrase, typeHangulCharacterWithIme, typeHangulWithIme} from './ime';
 export {type SizeObservation, type SizeWatcher, watchElementSize} from './layout_shift';
 export {duration, getRandomId, wait, newTestPassword} from './util';
-export {LicenseSkus, appsPluginId, callsPluginId, demoPluginId, demoPluginUrl, playbooksPluginId} from './constant';
+export {
+    DefaultChannel,
+    LicenseSkus,
+    appsPluginId,
+    callsPluginId,
+    demoPluginId,
+    demoPluginUrl,
+    playbooksPluginId,
+} from './constant';
 
 export {
     getAdminClient,
@@ -268,3 +276,5 @@ export {
     verifyUserNotInChannel,
     updateUserAttributes,
 } from './server';
+export * from './flows';
+export {pasteHtml} from './paste';

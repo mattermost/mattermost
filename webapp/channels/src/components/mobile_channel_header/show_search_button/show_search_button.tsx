@@ -25,6 +25,7 @@ const ShowSearchButton = ({actions}: Props) => {
         <button
             type='button'
             className='navbar-toggle navbar-right__icon navbar-search pull-right'
+            data-testid='mobile_header.search--button'
             onClick={handleClick}
             aria-label={intl.formatMessage({id: 'accessibility.button.Search', defaultMessage: 'Search'})}
         >

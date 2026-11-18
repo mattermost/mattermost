@@ -204,6 +204,7 @@ const ChannelInfoRhs = ({
         <div
             id='rhsContainer'
             className='sidebar-right__body'
+            data-testid='rhs.channel_info'
         >
             <Header
                 channel={channel}
@@ -215,7 +216,7 @@ const ChannelInfoRhs = ({
             >
                 <Container>
                     {isArchived && (
-                        <ArchivedNoticeContainer>
+                        <ArchivedNoticeContainer data-testid='rhs.channel_info.archived_notice'>
                             <SectionNotice
                                 type='warning'
                                 icon={<Icon glyph={<ArchiveOutlineIcon/>}/>}
@@ -231,6 +232,7 @@ const ChannelInfoRhs = ({
                                                 <UnarchiveButton
                                                     emphasis='link'
                                                     onClick={openUnarchiveChannel}
+                                                    data-testid='rhs.channel_info.archived_notice.unarchive--button'
                                                 >
                                                     <FormattedMessage
                                                         id='channel_info_rhs.archived.unarchive'

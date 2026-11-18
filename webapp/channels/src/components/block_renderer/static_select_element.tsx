@@ -35,6 +35,8 @@ type StaticSelectElementProps = {
     element: MmStaticSelectBlock;
     postId: string;
     onAction: ActionHandler;
+
+    testIdScope?: string;
 };
 
 function staticSelectDisplayValue(
@@ -52,7 +54,7 @@ function staticSelectDisplayValue(
     return '';
 }
 
-export const StaticSelectElement = ({element, postId, onAction}: StaticSelectElementProps) => {
+export const StaticSelectElement = ({element, postId, onAction, testIdScope}: StaticSelectElementProps) => {
     const dispatch = useDispatch();
     const interactionsDisabled = useContext(MmBlocksInteractionsDisabledContext);
     const [isExecuting, setIsExecuting] = useState(false);
@@ -150,6 +152,8 @@ export const StaticSelectElement = ({element, postId, onAction}: StaticSelectEle
                     onSelected={handleSelected}
                     placeholder={element.placeholder}
                     inputClassName='mm-blocks-select'
+                    testIdScope={testIdScope ? `${testIdScope}.select` : undefined}
+                    testKey={element.action_id}
                     value={value}
                     toggleFocus={handlePopupOpened}
                     listPosition='auto'

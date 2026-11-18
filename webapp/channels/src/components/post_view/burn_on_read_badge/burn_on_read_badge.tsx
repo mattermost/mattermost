@@ -27,6 +27,9 @@ type Props = {
     maxExpireAt?: number | null;
     onReveal?: (postId: string) => void;
     onSenderDelete?: () => void;
+
+    // The post's scope; undefined renders no testid.
+    testIdScope?: string;
 };
 
 function BurnOnReadBadge({
@@ -37,6 +40,7 @@ function BurnOnReadBadge({
     maxExpireAt,
     onReveal,
     onSenderDelete,
+    testIdScope,
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -220,7 +224,7 @@ function BurnOnReadBadge({
                     <button
                         type='button'
                         className='BurnOnReadBadge'
-                        data-testid={`burn-on-read-badge-${post.id}`}
+                        data-testid={testIdScope ? `${testIdScope}.burn_on_read--button` : undefined}
                         aria-label={getAriaLabel()}
                         onClick={isInteractive ? handleClick : undefined}
                         disabled={!isInteractive}
@@ -228,6 +232,7 @@ function BurnOnReadBadge({
                         <FireIcon
                             size={14}
                             className='BurnOnReadBadge__icon'
+                            data-testid={testIdScope ? `${testIdScope}.burn_on_read_flame` : undefined}
                         />
                     </button>
                 </WithTooltip>

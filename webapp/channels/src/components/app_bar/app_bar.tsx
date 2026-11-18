@@ -98,7 +98,7 @@ export default function AppBar() {
     return (
         <div
             className={'app-bar'}
-            data-testid='app-bar'
+            data-testid='app_bar'
         >
             <div className={'app-bar__top'}>
                 {items}

@@ -27,7 +27,7 @@ describe('Messaging', () => {
         cy.uiGetPostTextBox().clear().type(message);
 
         // # click send
-        cy.findByTestId('SendMessageButton').click();
+        cy.findByTestId('center.post_create.send--button').click();
 
         // # check if message sent correctly
         cy.getLastPostId().then((postId) => {

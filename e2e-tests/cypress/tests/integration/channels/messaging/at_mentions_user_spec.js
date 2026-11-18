@@ -67,7 +67,7 @@ describe('Mention self', () => {
 // Helper function to verify search result and click on #tryAI hashtag
 function verifySearchResult(postId, fullMessage) {
     // Find the specific search item container that contains our post ID
-    cy.get(`[data-testid="search-item-container"] #rhsPostMessageText_${postId}`).closest('[data-testid="search-item-container"]').within(() => {
+    cy.get(`[data-testid^="search.results.post:"], [data-testid^="search.results.file:"] #rhsPostMessageText_${postId}`).closest('[data-testid="search-item-container"]').within(() => {
         cy.get(`#rhsPostMessageText_${postId}`).should('have.text', `${fullMessage}`);
 
         // This will find the exact element containing just "#tryAI"

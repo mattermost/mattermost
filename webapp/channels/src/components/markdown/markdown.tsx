@@ -41,6 +41,9 @@ export type OwnProps = {
      */
     editedAt?: number;
 
+    /** The "Edited" label's testid (see PostEditedIndicator). */
+    editedTestId?: string;
+
     /*
      * The text to be rendered
      */
@@ -93,6 +96,7 @@ function Markdown({
     imagesMetadata = {},
     postId = '', // Needed to avoid proptypes console errors for cases like channel header, which doesn't have a proper value
     editedAt = 0,
+    editedTestId,
     message = '',
     channelNamesMap,
     mentionKeys,
@@ -118,6 +122,7 @@ function Markdown({
                 <PostEditedIndicator
                     postId={postId}
                     editedAt={editedAt}
+                    testId={editedTestId}
                 />
             </span>
         );
@@ -151,7 +156,7 @@ function Markdown({
         allowInlineActions,
         mmBlocksActionCookie,
         integrationFormat,
-    });
+    }, editedTestId);
 }
 
 export default Markdown;

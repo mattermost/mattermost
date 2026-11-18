@@ -64,6 +64,7 @@ const baseProps = {
     ],
     isMobileView: false,
     location: Locations.RHS_ROOT as keyof typeof Locations,
+    testIdScope: 'rhs.thread.post' as const,
     pluginActions: [],
     isChannelAutotranslated: false,
     actions: {
@@ -83,7 +84,7 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
             baseState,
         );
 
-        expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(3);
+        expect(screen.getAllByTestId(/\.menu\.recent_reactions\.emoji:\w+--button$/)).toHaveLength(3);
     });
 
     test('RHS_ROOT with isExpanded false (narrow sidebar) shows 1 quick reaction emoji', () => {
@@ -97,7 +98,7 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
             baseState,
         );
 
-        expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(1);
+        expect(screen.getAllByTestId(/\.menu\.recent_reactions\.emoji:\w+--button$/)).toHaveLength(1);
     });
 
     test('RHS_ROOT with isExpanded true (expanded sidebar or Global Threads view) shows 3 quick reaction emojis', () => {
@@ -111,7 +112,7 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
             baseState,
         );
 
-        expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(3);
+        expect(screen.getAllByTestId(/\.menu\.recent_reactions\.emoji:\w+--button$/)).toHaveLength(3);
     });
 
     test('RHS_COMMENT with isExpanded true shows 3 quick reaction emojis', () => {
@@ -125,7 +126,7 @@ describe('PostOptions - quick reaction count (MM-68681)', () => {
             baseState,
         );
 
-        expect(screen.getAllByTestId('post-menu__item_emoji')).toHaveLength(3);
+        expect(screen.getAllByTestId(/\.menu\.recent_reactions\.emoji:\w+--button$/)).toHaveLength(3);
     });
 
     testPluginComponentErrorHandling((pluginComponent) => {

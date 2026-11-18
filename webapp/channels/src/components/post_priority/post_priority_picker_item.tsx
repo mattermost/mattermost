@@ -18,6 +18,9 @@ type ToggleProps = {
     onClick: () => void;
     text: React.ReactNode;
     toggled: boolean;
+
+    // Path for the item: `<testId>--menuitemcheckbox`.
+    testId?: string;
 };
 
 const Wrapper = styled(MenuItem)`
@@ -107,6 +110,7 @@ function ToggleItem({
     onClick,
     text,
     toggled,
+    testId,
 }: ToggleProps) {
     // Compass Switch fires onChange on its own click; without stopping
     // propagation the MenuItem onClick also runs and the toggle nets out.
@@ -121,6 +125,7 @@ function ToggleItem({
             leadingElement={icon}
             tabIndex={-1}
             role='menuitemcheckbox'
+            data-testid={testId ? `${testId}--menuitemcheckbox` : undefined}
             aria-checked={toggled}
             aria-label={ariaLabel}
             trailingElements={

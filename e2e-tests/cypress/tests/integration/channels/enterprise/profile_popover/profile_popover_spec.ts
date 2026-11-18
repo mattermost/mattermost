@@ -215,7 +215,7 @@ describe('Profile popover', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // * Verify that user added message is there.
-        cy.findByTestId('postView', {timeout: TIMEOUTS.ONE_MIN}).find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);
+        cy.findByTestId(/^center\.post_list\.post:[^.]+$/, {timeout: TIMEOUTS.ONE_MIN}).find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);
     });
 
     it('MM-T7 Add User — Team admins (Private only)', () => {
@@ -289,7 +289,7 @@ describe('Profile popover', () => {
         cy.visit(`/${testTeam.name}/channels/${privateChannel.name}`);
 
         // * Verify that user added message is there.
-        cy.findByTestId('postView', {timeout: TIMEOUTS.ONE_MIN}).find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);
+        cy.findByTestId(/^center\.post_list\.post:[^.]+$/, {timeout: TIMEOUTS.ONE_MIN}).find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);
     });
 
     it('MM-T9 Add User - Any user (can add users)', () => {
@@ -348,10 +348,10 @@ describe('Profile popover', () => {
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         // * Verify that there are 1 post views now.
-        cy.findAllByTestId('postView', {timeout: TIMEOUTS.ONE_MIN}).should('have.length', 1);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/, {timeout: TIMEOUTS.ONE_MIN}).should('have.length', 1);
 
         // * Verify that user added message is there.
-        cy.findAllByTestId('postView').last().find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).last().find('.post-message__text').should('contain.text', `@${testUser.username} added to the channel by you.`);
     });
 
     it('MM-T1 Add User - System Admin only', () => {

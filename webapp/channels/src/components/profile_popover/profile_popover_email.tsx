@@ -35,6 +35,7 @@ const ProfilePopoverEmail = ({
             <a
                 href={`mailto:${email}`}
                 onClick={handleEmailClick}
+                data-testid='profile_popover.email--link'
             >
                 {email}
             </a>

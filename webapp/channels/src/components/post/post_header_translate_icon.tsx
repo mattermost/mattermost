@@ -19,11 +19,15 @@ type Props = {
     postId: string;
     translationState: PostTranslation['state'] | undefined;
     postType: PostType;
+
+    /** The post's testid scope: the icon is `<testIdScope>.translation--button` (`.translation_unavailable` when it can't be). */
+    testIdScope?: string;
 };
 function PostHeaderTranslateIcon({
     postId,
     translationState,
     postType,
+    testIdScope,
 }: Props) {
     const dispatch = useDispatch();
     const {formatMessage} = useIntl();
@@ -51,6 +55,7 @@ function PostHeaderTranslateIcon({
             >
                 <button
                     className='btn btn-icon btn-xs btn-compact'
+                    data-testid={testIdScope ? `${testIdScope}.translation--button` : undefined}
                     onClick={handleTranslationClick}
                     aria-label={formatMessage({id: 'post_info.translation_icon', defaultMessage: 'This post has been translated'})}
                 >
@@ -84,7 +89,10 @@ function PostHeaderTranslateIcon({
             <WithTooltip
                 title={formatMessage({id: 'post_info.translation_icon_unavailable', defaultMessage: 'Translation unavailable'})}
             >
-                <div className='post__translation-icon-unavailable'>
+                <div
+                    className='post__translation-icon-unavailable'
+                    data-testid={testIdScope ? `${testIdScope}.translation_unavailable` : undefined}
+                >
                     <TranslateIcon
                         size={12}
                         aria-label={formatMessage({

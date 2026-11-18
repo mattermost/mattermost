@@ -31,7 +31,7 @@ const FloatingTimestamp = ({createAt, isScrolling, isRhsPost, toastPresent}: Pro
     return (
         <div
             className={classes}
-            data-testid='floatingTimestamp'
+            data-testid={isRhsPost ? 'rhs.thread.floating_timestamp--text' : 'center.post_list.floating_timestamp--text'}
         >
             <div>
                 <span>

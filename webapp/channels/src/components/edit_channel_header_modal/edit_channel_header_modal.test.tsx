@@ -165,7 +165,7 @@ describe('components/EditChannelHeaderModal', () => {
         const {unmount} = renderWithContext(<EditChannelHeaderModal {...baseProps}/>);
 
         const previewLink = screen.getByRole('button', {name: 'Preview'});
-        const textboxWrapper = () => screen.getByTestId('edit_textbox').closest('.textarea-wrapper');
+        const textboxWrapper = () => screen.getByTestId('edit_channel_header_modal.header--textbox').closest('.textarea-wrapper');
 
         expect(textboxWrapper()).not.toHaveClass('textarea-wrapper-preview');
 
@@ -382,7 +382,7 @@ describe('components/EditChannelHeaderModal', () => {
         expect(baseElement.querySelector('.has-error')).not.toBeInTheDocument();
 
         // Get textarea and add more characters to exceed limit
-        const textarea = screen.getByTestId('edit_textbox');
+        const textarea = screen.getByTestId('edit_channel_header_modal.header--textbox');
 
         // Type a few more characters to exceed limit
         await userEvent.type(textarea, 'aaaaa'); // Now 1025 chars

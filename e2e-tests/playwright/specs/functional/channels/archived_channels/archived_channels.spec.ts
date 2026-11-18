@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, DefaultChannel} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify the member list of an archived channel is viewable but read-only (no member management).
@@ -11,9 +11,8 @@ test('MM-T1671 shows a read-only member list for an archived channel', {tag: '@c
     const channel = await adminClient.createPublicChannel(team.id, `Archive ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {channelsPage, app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
 
     // # Archive the channel
     await channelsPage.archiveChannel();
@@ -40,15 +39,14 @@ test('MM-T1679 opens an archived channel by jumping from search results', {tag: 
     const channel = await adminClient.createPublicChannel(team.id, `Archived ${pw.random.id()}`);
     await adminClient.addToChannel(user.id, channel.id);
     const message = `archived post ${pw.random.id()}`;
-    await adminClient.createPost({channel_id: channel.id, user_id: user.id, message});
+    await pw.postAs(user, {channel_id: channel.id, message});
 
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, channel.name);
-    await channelsPage.toBeVisible();
+    const {channelsPage, app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: channel.name});
 
     // # Archive the channel, then move to another channel
     await channelsPage.archiveChannel();
-    await channelsPage.sidebarLeft.goToItem('town-square');
+    await channelsPage.sidebarLeft.goToItem(DefaultChannel.TownSquare);
     await channelsPage.centerView.header.toHaveTitle('Town Square');
 
     // # Search for the message posted in the archived channel

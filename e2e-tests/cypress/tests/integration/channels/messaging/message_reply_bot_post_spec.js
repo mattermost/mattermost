@@ -60,7 +60,7 @@ describe('Messaging', () => {
                 cy.getLastPostId().then((replyId) => {
                     // * Verify that the reply is in the RHS with matching text
                     cy.get(`#rhsPost_${replyId}`).within(() => {
-                        cy.findByTestId('post-link').should('not.exist');
+                        cy.findByTestId('rhs.thread.post.commented_on').should('not.exist');
                         cy.get(`#rhsPostMessageText_${replyId}`).should('be.visible').and('have.text', replyMessage);
                     });
 
@@ -77,7 +77,7 @@ describe('Messaging', () => {
 
                     // * Verify that the reply is in the channel view with matching text
                     cy.get(`#post_${replyId}`).within(() => {
-                        cy.findByTestId('post-link').should('be.visible').and('have.text', 'Commented on ' + bot.username + 'BOT\'s message: Some Text posted by bot that has no content and no attachment pretext');
+                        cy.findByTestId('center.post_list.post.commented_on').should('be.visible').and('have.text', 'Commented on ' + bot.username + 'BOT\'s message: Some Text posted by bot that has no content and no attachment pretext');
                         cy.get(`#postMessageText_${replyId}`).should('be.visible').and('have.text', replyMessage);
                     });
                 });
@@ -128,7 +128,7 @@ describe('Messaging', () => {
                 cy.getLastPostId().then((replyId) => {
                     // * Verify that the reply is in the RHS with matching text
                     cy.get(`#rhsPost_${replyId}`).within(() => {
-                        cy.findByTestId('post-link').should('not.exist');
+                        cy.findByTestId('rhs.thread.post.commented_on').should('not.exist');
                         cy.get(`#rhsPostMessageText_${replyId}`).should('be.visible').and('have.text', replyMessage);
                     });
 
@@ -145,7 +145,7 @@ describe('Messaging', () => {
 
                     // * Verify that the reply is in the channel view with matching text
                     cy.get(`#post_${replyId}`).scrollIntoView().within(() => {
-                        cy.findByTestId('post-link').should('be.visible').and('have.text', 'Commented on ' + bot.username + 'BOT\'s message: Hello message from ' + bot.username);
+                        cy.findByTestId('center.post_list.post.commented_on').should('be.visible').and('have.text', 'Commented on ' + bot.username + 'BOT\'s message: Hello message from ' + bot.username);
                         cy.get(`#postMessageText_${replyId}`).should('be.visible').and('have.text', replyMessage);
                     });
                 });

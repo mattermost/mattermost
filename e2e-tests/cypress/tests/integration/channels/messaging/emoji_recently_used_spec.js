@@ -129,7 +129,7 @@ describe('Messaging', () => {
             cy.clickPostReactionIcon(postId);
 
             cy.get('#emojiPickerSearch').type('+1');
-            cy.findByTestId('+1,thumbsup').parent().click();
+            cy.get('[data-testid="emoji_picker.system_emoji:+1--button"] img').parent().click();
 
             // * Verify :wave: is still in the far left spot as the most frequently used reaction
             recentEmojis = ['wave emoji', '+1 emoji', 'innocent emoji'];

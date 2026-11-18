@@ -21,9 +21,11 @@ type Props = {
     total: number;
     enablePublicLink: boolean;
     onClick: (index: number) => void;
+
+    testIdScope?: string;
 };
 
-const ImageTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) => {
+const ImageTile = ({fileInfo, index, total, enablePublicLink, onClick, testIdScope}: Props) => {
     const {formatMessage} = useIntl();
 
     const handleActivate = useCallback(() => {
@@ -64,7 +66,7 @@ const ImageTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
             role='button'
             tabIndex={0}
             aria-label={label}
-            data-testid='media-gallery-tile'
+            data-testid={testIdScope ? `${testIdScope}.file:${fileInfo.id}--button` : undefined}
             data-file-name={fileInfo.name || ''}
             style={tileSizeVars(fileInfo)}
             onKeyDown={handleKeyDown}

@@ -23,6 +23,8 @@ export interface Props {
     results: SuggestionResults;
     selection: string;
 
+    testId?: string;
+
     // suggestionBoxAlgn is an optional object that can be passed to align the SuggestionList with the keyboard caret
     // as the user is typing.
     suggestionBoxAlgn?: {
@@ -197,6 +199,7 @@ export default class SuggestionList extends React.PureComponent<Props> {
                     onItemClick={this.props.onCompleteWord}
                     onItemHover={this.props.onItemHover}
                     onMouseDown={this.props.preventClose}
+                    testId={this.props.testId}
                 />
             );
         } else if (this.props.renderNoResults) {

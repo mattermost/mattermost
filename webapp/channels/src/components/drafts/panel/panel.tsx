@@ -16,7 +16,10 @@ type Props = {
     isHighlighted?: boolean;
     style?: React.CSSProperties;
     className?: string;
-    dataTestId?: string;
+
+    // The panel's scope and its key: the panel is `<testId>:<testKey>--link`.
+    testId?: string;
+    testKey?: number;
     dataPostId?: string;
     ariaLabel?: string;
 };
@@ -31,7 +34,8 @@ function Panel({
     isHighlighted,
     style,
     className,
-    dataTestId,
+    testId,
+    testKey,
     dataPostId,
     ariaLabel,
 }: Props) {
@@ -41,6 +45,8 @@ function Panel({
         }
     };
 
+    const keyedTestId = testKey === undefined ? testId : `${testId}:${testKey}`;
+
     const handleOnKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
         if (e.key === 'Enter' || e.key === ' ') {
             onClick();
@@ -49,7 +55,7 @@ function Panel({
 
     return (
         <div
-            data-testid={dataTestId}
+            data-testid={testId ? `${keyedTestId}--link` : undefined}
             data-postid={dataPostId}
             className={classNames(
                 'Panel',

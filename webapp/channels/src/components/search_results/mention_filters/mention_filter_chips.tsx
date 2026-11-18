@@ -22,8 +22,13 @@ import {dateRangeLabels, mentionTypeLabels} from './labels';
 import useFilterableChannels, {useTeamNames} from './use_filterable_channels';
 
 // MentionFilterChips lists the filters currently narrowing the mentions panel, each removable on its
-// own. It renders nothing when no filter is applied.
-export default function MentionFilterChips() {
+// own. It renders nothing when no filter is applied. Each chip is keyed by what it filters on: the team's
+// or channel's id, the mention type, or the date range.
+type Props = {
+    testIdScope: string;
+};
+
+export default function MentionFilterChips({testIdScope}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -81,23 +86,27 @@ export default function MentionFilterChips() {
     return (
         <div
             className='MentionFilterChips'
-            data-testid='mentionFilterChips'
+            data-testid={`${testIdScope}.chips`}
         >
             {team && (
                 <Chip
                     size='small'
+                    role='button'
+                    data-testid={`${testIdScope}.chips.team:${team.id}--button`}
                     aria-label={removeLabel(team.display_name)}
                     onRemove={removeTeam}
                 >
                     {team.display_name}
                 </Chip>
             )}
-            {filters.channelIds.map((channelId) => {
+            {filters.channelIds.map((channelId, position) => {
                 const label = channelLabel(channelId);
                 return (
                     <Chip
                         key={channelId}
                         size='small'
+                        role='button'
+                        data-testid={`${testIdScope}.chips.channel:${position}--button`}
                         aria-label={removeLabel(label)}
                         onRemove={() => removeChannel(channelId)}
                     >
@@ -111,6 +120,8 @@ export default function MentionFilterChips() {
                     <Chip
                         key={type}
                         size='small'
+                        role='button'
+                        data-testid={`${testIdScope}.chips.mention_type:${type}--button`}
                         aria-label={removeLabel(label)}
                         onRemove={() => removeMentionType(type)}
                     >
@@ -121,6 +132,8 @@ export default function MentionFilterChips() {
             {filters.date !== 'any' && (
                 <Chip
                     size='small'
+                    role='button'
+                    data-testid={`${testIdScope}.chips.date:${filters.date}--button`}
                     aria-label={removeLabel(formatMessage(dateRangeLabels[filters.date]))}
                     leadingIcon={<CalendarOutlineIcon/>}
                     onRemove={removeDate}

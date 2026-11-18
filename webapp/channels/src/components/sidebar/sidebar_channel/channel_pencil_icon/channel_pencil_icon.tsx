@@ -13,7 +13,7 @@ function ChannelPencilIcon({hasDraft}: Props) {
     if (hasDraft) {
         return (
             <i
-                data-testid='draftIcon'
+                data-testid='lhs.channel_list.channel.draft--text'
                 className='icon icon-pencil-outline channel-pencil-icon'
             />
         );

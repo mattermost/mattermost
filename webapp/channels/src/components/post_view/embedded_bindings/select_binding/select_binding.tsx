@@ -25,6 +25,8 @@ type Props = {
     intl: IntlShape;
     post: Post;
     binding: AppBinding;
+
+    testIdScope?: string;
     actions: {
         handleBindingClick: HandleBindingClick;
         getChannel: (channelId: string) => Promise<ActionResult>;
@@ -170,6 +172,8 @@ class SelectBinding extends React.PureComponent<Props, State> {
                         inputClassName='post-attachment-dropdown'
                         value={this.state.selected?.text}
                         toggleFocus={handlePopupOpened}
+                        testIdScope={this.props.testIdScope ? `${this.props.testIdScope}.binding_select` : undefined}
+                        testKey={this.props.binding.location}
                     />
                 )}
             </PostContext.Consumer>

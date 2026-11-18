@@ -39,6 +39,7 @@ describe('AgentDropdown', () => {
         onBotSelect: jest.fn(),
         bots: mockBots,
         defaultBotId: 'bot1',
+        testIdScope: 'create_recap_modal.agent' as const,
     };
 
     test('should render with selected bot name', () => {
@@ -119,7 +120,7 @@ describe('AgentDropdown', () => {
         const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
-        const openAIOption = screen.getByTestId('agent-option-bot2');
+        const openAIOption = screen.getByTestId('create_recap_modal.agent.menu.agent:bot2--menuitem');
         await userEvent.click(openAIOption);
 
         // Wait for callback to be called after menu closes
@@ -138,7 +139,7 @@ describe('AgentDropdown', () => {
         const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
-        const selectedOption = screen.getByTestId('agent-option-bot2');
+        const selectedOption = screen.getByTestId('create_recap_modal.agent.menu.agent:bot2--menuitem');
         const checkIcon = selectedOption.querySelector('svg');
         expect(checkIcon).toBeInTheDocument();
     });
@@ -154,7 +155,7 @@ describe('AgentDropdown', () => {
         const button = screen.getByLabelText('Agent selector');
         await userEvent.click(button);
 
-        const nonSelectedOption = screen.getByTestId('agent-option-bot2');
+        const nonSelectedOption = screen.getByTestId('create_recap_modal.agent.menu.agent:bot2--menuitem');
         const trailingElements = nonSelectedOption.querySelector('.trailing-elements');
         expect(trailingElements).not.toBeInTheDocument();
     });
@@ -231,7 +232,7 @@ describe('AgentDropdown', () => {
         await userEvent.click(button);
 
         // All bots should be rendered without "(default)" label
-        const copilotOption = screen.getByTestId('agent-option-bot1');
+        const copilotOption = screen.getByTestId('create_recap_modal.agent.menu.agent:bot1--menuitem');
         expect(copilotOption).toHaveTextContent('Copilot');
         expect(screen.queryByText('Copilot (default)')).not.toBeInTheDocument();
     });

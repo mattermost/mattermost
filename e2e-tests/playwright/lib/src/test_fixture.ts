@@ -70,6 +70,7 @@ import {
     listMattermostDataFiles,
     listMinioObjectKeys,
     makeClient,
+    postAs,
     openidServerConfig,
     opensearchServerConfig,
     recapCompletion,
@@ -122,6 +123,9 @@ export type ExtendedFixtures = {
 type AxeBuilderOptions = {
     disableColorContrast?: boolean;
     disableLinkInTextBlock?: boolean;
+
+    /** Analyze only this generated scope's element: `axe.builder(page, {within: app.postDotMenu})`. */
+    within?: {readonly scope: string};
 };
 
 let lastSpecFile: string | undefined;
@@ -285,6 +289,7 @@ export class PlaywrightExtended {
     readonly createNewTeam;
     readonly isOutsideRemoteUserHour;
     readonly makeClient;
+    readonly postAs;
     readonly setDefaultOnboardingPreferences;
 
     // ./visual
@@ -435,6 +440,7 @@ export class PlaywrightExtended {
         this.createNewUserProfile = createNewUserProfile;
         this.createNewTeam = createNewTeam;
         this.makeClient = makeClient;
+        this.postAs = postAs;
         this.setDefaultOnboardingPreferences = setDefaultOnboardingPreferences;
 
         // ./visual
@@ -486,7 +492,8 @@ export class AxeBuilderExtended {
                 disabledRules.push('link-in-text-block');
             }
 
-            return new AxeBuilder({page}).withTags(this.tags).disableRules(disabledRules);
+            const builder = new AxeBuilder({page}).withTags(this.tags).disableRules(disabledRules);
+            return options.within ? builder.include(`[data-testid="${options.within.scope}"]`) : builder;
         };
     }
 

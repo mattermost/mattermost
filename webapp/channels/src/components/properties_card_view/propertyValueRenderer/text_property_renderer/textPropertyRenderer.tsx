@@ -10,15 +10,16 @@ import type {TextFieldMetadata} from 'components/properties_card_view/properties
 type Props = {
     value: PropertyValue<unknown>;
     metadata?: TextFieldMetadata;
+    testIdScope?: string;
 };
 
-export default function TextPropertyRenderer({value, metadata}: Props) {
+export default function TextPropertyRenderer({value, metadata, testIdScope}: Props) {
     const isSet = value.value !== null && value.value !== undefined && value.value !== '';
 
     return (
         <span
             className='TextProperty'
-            data-testid='text-property'
+            data-testid={testIdScope ? `${testIdScope}.text--text` : undefined}
         >
             {isSet && String(value.value)}
 

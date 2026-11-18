@@ -180,6 +180,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                         className='sidebar--right__back'
                         icon={<Icon glyph={<ArrowBackIosIcon/>}/>}
                         onClick={this.handleBack}
+                        data-testid='rhs.thread.header.back--button'
                         aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                     />
                 </WithTooltip>
@@ -194,6 +195,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                 <div
                     className='sidebar--right__title'
                     id='rhsPanelTitle'
+                    data-testid='rhs.thread.header'
                 >
                     {back}
                     <span className='sidebar--right__title__heading'>
@@ -206,6 +208,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                         <button
                             onClick={this.handleJumpClick}
                             className='style--none sidebar--right__title__channel'
+                            data-testid='rhs.thread.header.channel--button'
                         >
                             {channelName}
                         </button>
@@ -214,6 +217,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                         channelId={this.props.channel.id}
                         surface={[ChannelLabelSurface.INFO, ChannelLabelSurface.HEADER]}
                         allowEmptyVisible={true}
+                        testId='rhs.thread.header.attributes'
                     />
                 </div>
                 <div className='controls'>
@@ -223,15 +227,20 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                             isFollowing={isFollowingThread}
                             iconOnly={true}
                             onClick={this.handleFollowChange}
+                            testId='rhs.thread.header.follow'
                         />
                     ) : null}
-                    <PopoutButton onClick={this.popout}/>
+                    <PopoutButton
+                        onClick={this.popout}
+                        testId='rhs.thread.header.popout'
+                    />
                     <WithTooltip
                         title={rhsHeaderTooltipContent}
                     >
                         <IconButton
                             size='small'
                             className='sidebar--right__expand'
+                            data-testid='rhs.thread.header.expand--button'
                             icon={<Icon glyph={this.props.isExpanded ? <ArrowCollapseIcon/> : <ArrowExpandIcon/>}/>}
                             aria-label={this.props.isExpanded ? collapseIconLabel : expandIconLabel}
                             onClick={this.props.toggleRhsExpanded}
@@ -243,6 +252,7 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                     >
                         <IconButton
                             id='rhsCloseButton'
+                            data-testid='rhs.thread.header.close--button'
                             size='small'
                             className='sidebar--right__close'
                             icon={<Icon glyph={<CloseIcon/>}/>}

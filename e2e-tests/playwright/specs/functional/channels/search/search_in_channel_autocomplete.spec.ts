@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, closeChannelSettings, openChannelSettingsInfoTab, Api, settle} from '@mattermost/playwright-lib';
+import {Api, closeChannelSettings, expect, openChannelSettingsInfoTab, settle, test} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify the "in:" search autocomplete shows a renamed channel by both its new display name and
@@ -20,27 +20,27 @@ test(
         const channel = await adminClient.createPublicChannel(team.id, `Original ${id}`, handle);
         await adminClient.addToChannel(user.id, channel.id);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel});
 
         // # Rename the channel's display name via Channel Settings
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const infoSettings = await openChannelSettingsInfoTab(channelSettings);
         await infoSettings.name.container.fill(updatedName);
         await settle(channelSettings.savePanel.saveButton, {wait: Api.PatchChannel}).click();
         await closeChannelSettings(channelSettings);
-        await expect(channelsPage.centerView.header.title).toContainText(updatedName);
+        await expect(app.channelHeader.openMenuButton).toContainText(updatedName);
 
         // # Open search and type an "in:" filter matching the channel's original handle
-        await channelsPage.globalHeader.openSearch();
-        await expect(channelsPage.searchBox.container).toBeVisible();
-        await channelsPage.searchBox.searchInput.fill('in:');
-        await expect(channelsPage.searchBox.searchInput).toHaveValue('in:');
-        await channelsPage.searchBox.searchInput.pressSequentially(handle);
+        const input = app.searchBox.inputSearchbox;
+        await app.globalHeader.search.openButton.clickTo(input);
+        await input.fill('in:');
+        await input.type(handle);
 
-        // * Verify the autocomplete shows the channel by its new display name and its original handle
-        const suggestion = channelsPage.searchBox.container.getByRole('option').filter({hasText: updatedName});
+        // * Verify the autocomplete offers the channel by its handle (the client adds a suffix to the one asked
+        // for), showing its new display name and the handle
+        const suggestion = app.searchBox.suggestions.suggestion(channel.name);
         await expect(suggestion).toBeVisible();
         await expect(suggestion).toContainText(updatedName);
         await expect(suggestion).toContainText(`~${handle}`);

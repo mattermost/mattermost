@@ -14,6 +14,8 @@ type Props = {
     name: string;
     onClick: (e: React.MouseEvent<HTMLButtonElement>) => void;
     tooltipText: React.ReactElement<any> | string;
+
+    testId?: string;
 };
 
 function Action({
@@ -22,6 +24,7 @@ function Action({
     onClick,
     id,
     tooltipText,
+    testId,
 }: Props) {
     return (
         <div className='DraftAction'>
@@ -35,6 +38,7 @@ function Action({
                         {'DraftAction__button--delete': name === 'delete'},
                     )}
                     id={`draft_${icon}_${id}`}
+                    data-testid={testId ? `${testId}--button` : undefined}
                     onClick={onClick}
                     aria-labelledby={`draft_tooltip_${id}`}
                 >

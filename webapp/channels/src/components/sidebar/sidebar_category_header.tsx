@@ -66,6 +66,7 @@ export const SidebarCategoryHeader = React.forwardRef(({
         >
             <button
                 ref={ref}
+                data-testid='lhs.channel_list.category.header--button'
                 className={classNames('SidebarChannelGroupHeader_groupButton')}
                 aria-label={displayName}
                 onClick={onClick}

@@ -30,12 +30,13 @@ test(
         await adminClient.patchChannel(channel.id, {purpose: paddedPurpose, header: paddedHeader});
         await adminClient.addToChannel(user.id, channel.id);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Open Channel Settings without touching any field
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const infoSettings = await openChannelSettingsInfoTab(channelSettings);
 
         // * Verify the stored text is shown as-is and the form does not report unsaved changes
@@ -71,12 +72,13 @@ test(
         await adminClient.patchChannel(channel.id, {purpose: '  padded purpose  ', header: paddedHeader});
         await adminClient.addToChannel(user.id, channel.id);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Open Channel Settings and edit the purpose
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const infoSettings = await openChannelSettingsInfoTab(channelSettings);
         await infoSettings.purpose.container.fill('A brand new purpose');
 
@@ -91,7 +93,8 @@ test(
 
         // # Close and reopen Channel Settings
         await closeChannelSettings(channelSettings);
-        const reopenedSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const reopenedSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const reopenedInfo = await openChannelSettingsInfoTab(reopenedSettings);
 
         // * Verify the saved purpose persisted, the untouched header was left exactly as stored, and the

@@ -129,7 +129,7 @@ export default function GraphProfileAttribute({
                     onIdsChange={onDraftIdsChange}
                     menuId={`customProfileAttributeGraph_${attribute.id}`}
                     buttonId={`customProfileAttributeGraphButton_${attribute.id}`}
-                    buttonDataTestId={`customProfileAttributeGraph_${attribute.id}`}
+                    buttonDataTestId={`settings.section.graph:${attribute.id}--button`}
                     placeholder={formatMessage({
                         id: 'user.settings.general.select',
                         defaultMessage: 'Select',

@@ -22,6 +22,8 @@ type Props = {
      */
     post: Post;
 
+    testIdScope?: string;
+
     /*
      * The id of the team which belongs the post
      */
@@ -95,13 +97,15 @@ export default class ReactionList extends React.PureComponent<Props, State> {
             return null;
         }
 
-        const reactions = this.state.emojiNames.map((emojiName) => {
+        const reactions = this.state.emojiNames.map((emojiName, position) => {
             if (reactionsByName.has(emojiName)) {
                 return (
                     <Reaction
                         key={emojiName}
                         post={this.props.post}
                         emojiName={emojiName}
+                        testId={this.props.testIdScope ? `${this.props.testIdScope}.reaction` : undefined}
+                        testKey={position}
                         reactions={reactionsByName.get(emojiName) || []}
                     />
                 );
@@ -116,6 +120,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                     post={this.props.post}
                     teamId={this.props.teamId}
                     onEmojiClick={this.handleEmojiClick}
+                    testId={this.props.testIdScope ? `${this.props.testIdScope}.add` : undefined}
                 />
             );
         }
@@ -124,6 +129,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
             <div
                 aria-label={localizeMessage({id: 'reaction.container.ariaLabel', defaultMessage: 'reactions'})}
                 className='post-reaction-list'
+                data-testid={this.props.testIdScope}
             >
                 {reactions}
                 {addReaction}

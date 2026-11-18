@@ -60,7 +60,7 @@ const crossTeamState = {
 };
 
 async function openPopover() {
-    await userEvent.click(screen.getByTestId('mentionFiltersButton'));
+    await userEvent.click(screen.getByTestId('search.mention_filters.trigger--button'));
     await screen.findByText('Mention type');
 }
 
@@ -74,30 +74,30 @@ async function chooseOption(name: string | RegExp) {
 
 describe('MentionFiltersButton', () => {
     test('counts nothing before a filter is applied', () => {
-        renderWithContext(<MentionFiltersButton/>, state);
+        renderWithContext(<MentionFiltersButton testIdScope='search.mention_filters'/>, state);
 
-        expect(screen.getByTestId('mentionFiltersButton')).toHaveTextContent('Filters');
-        expect(screen.getByTestId('mentionFiltersButton')).not.toHaveTextContent('Filters (');
+        expect(screen.getByTestId('search.mention_filters.trigger--button')).toHaveTextContent('Filters');
+        expect(screen.getByTestId('search.mention_filters.trigger--button')).not.toHaveTextContent('Filters (');
     });
 
     test('Apply applies the draft to the store', async () => {
-        renderWithContext(<MentionFiltersButton/>, state);
+        renderWithContext(<MentionFiltersButton testIdScope='search.mention_filters'/>, state);
 
         await openPopover();
         await userEvent.click(screen.getByLabelText('Directly mentioning you'));
 
         // * Verify nothing is applied while the popover is still open
-        expect(screen.getByTestId('mentionFiltersButton')).not.toHaveTextContent('Filters (');
+        expect(screen.getByTestId('search.mention_filters.trigger--button')).not.toHaveTextContent('Filters (');
 
         await userEvent.click(screen.getByRole('button', {name: 'Apply'}));
 
         // * Verify the popover closed and the count came back through the store
         await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
-        expect(screen.getByTestId('mentionFiltersButton')).toHaveTextContent('Filters (1)');
+        expect(screen.getByTestId('search.mention_filters.trigger--button')).toHaveTextContent('Filters (1)');
     });
 
     test('Escape discards the draft', async () => {
-        renderWithContext(<MentionFiltersButton/>, state);
+        renderWithContext(<MentionFiltersButton testIdScope='search.mention_filters'/>, state);
 
         await openPopover();
         await userEvent.click(screen.getByLabelText('Directly mentioning you'));
@@ -105,7 +105,7 @@ describe('MentionFiltersButton', () => {
 
         // * Verify the popover closed without applying anything
         await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
-        expect(screen.getByTestId('mentionFiltersButton')).not.toHaveTextContent('Filters (');
+        expect(screen.getByTestId('search.mention_filters.trigger--button')).not.toHaveTextContent('Filters (');
 
         // * Verify the discarded selection is not still sitting in the popover on reopen
         await openPopover();
@@ -113,9 +113,9 @@ describe('MentionFiltersButton', () => {
     });
 
     test('opening from the keyboard moves focus onto the popover', async () => {
-        renderWithContext(<MentionFiltersButton/>, crossTeamState);
+        renderWithContext(<MentionFiltersButton testIdScope='search.mention_filters'/>, crossTeamState);
 
-        screen.getByTestId('mentionFiltersButton').focus();
+        screen.getByTestId('search.mention_filters.trigger--button').focus();
         await userEvent.keyboard('{Enter}');
 
         // * Verify focus is on the dialog, and no Combobox menu opened from it
@@ -126,20 +126,20 @@ describe('MentionFiltersButton', () => {
         await userEvent.keyboard('{Escape}');
 
         // * Verify closing returns focus to the button
-        await waitFor(() => expect(screen.getByTestId('mentionFiltersButton')).toHaveFocus());
+        await waitFor(() => expect(screen.getByTestId('search.mention_filters.trigger--button')).toHaveFocus());
     });
 
     test('opening with the mouse leaves focus on the button', async () => {
-        renderWithContext(<MentionFiltersButton/>, crossTeamState);
+        renderWithContext(<MentionFiltersButton testIdScope='search.mention_filters'/>, crossTeamState);
 
         await openPopover();
 
         // * Verify focus stayed on the button
-        expect(screen.getByTestId('mentionFiltersButton')).toHaveFocus();
+        expect(screen.getByTestId('search.mention_filters.trigger--button')).toHaveFocus();
     });
 
     test('Escape closes an open combobox first and the popover on the next press', async () => {
-        renderWithContext(<MentionFiltersButton/>, crossTeamState);
+        renderWithContext(<MentionFiltersButton testIdScope='search.mention_filters'/>, crossTeamState);
 
         await openPopover();
         await openCombobox('Team');
@@ -160,7 +160,7 @@ describe('MentionFiltersButton', () => {
     test('keeps channels picked after a team change when Apply is selected', async () => {
         // The apply used to compare the incoming team against the applied one, which made it clear
         // the channels on the Apply click, after the popover had already cleared the old team's.
-        renderWithContext(<MentionFiltersButton/>, crossTeamState);
+        renderWithContext(<MentionFiltersButton testIdScope='search.mention_filters'/>, crossTeamState);
 
         await openPopover();
         await openCombobox('Team');
@@ -171,6 +171,6 @@ describe('MentionFiltersButton', () => {
 
         // * Verify both the team and the channel are counted, not the team alone
         await waitFor(() => expect(screen.queryByText('Mention type')).not.toBeInTheDocument());
-        expect(screen.getByTestId('mentionFiltersButton')).toHaveTextContent('Filters (2)');
+        expect(screen.getByTestId('search.mention_filters.trigger--button')).toHaveTextContent('Filters (2)');
     });
 });

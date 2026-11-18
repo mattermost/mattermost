@@ -15,6 +15,8 @@ type ActionsMenuButtonProps = {
     onClick?: React.MouseEventHandler<HTMLButtonElement>;
     isMenuOpen: boolean;
     popupId: string;
+
+    testId?: string;
 };
 
 const ActionsMenuButton = React.forwardRef<HTMLButtonElement, ActionsMenuButtonProps>(({
@@ -22,6 +24,7 @@ const ActionsMenuButton = React.forwardRef<HTMLButtonElement, ActionsMenuButtonP
     onClick,
     isMenuOpen,
     popupId,
+    testId,
 }, ref) => {
     const {formatMessage} = useIntl();
     const ariaLabel = formatMessage({id: 'post_info.actions.tooltip.actions', defaultMessage: 'Actions'}).toLowerCase();
@@ -39,6 +42,7 @@ const ActionsMenuButton = React.forwardRef<HTMLButtonElement, ActionsMenuButtonP
                 key='more-actions-button'
                 ref={ref}
                 id={buttonId}
+                data-testid={testId ? `${testId}--button` : undefined}
                 size='small'
                 padding='compact'
                 type='button'

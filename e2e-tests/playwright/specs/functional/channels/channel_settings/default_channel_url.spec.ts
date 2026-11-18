@@ -15,13 +15,14 @@ test(
     {tag: '@channel_settings'},
     async ({pw}) => {
         const {adminUser, adminClient, team} = await pw.initSetup();
-        const {channelsPage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel: 'town-square'});
+        await expect(app.center.postCreate).toBeVisible();
 
         // # Open the Channel Settings modal on the Info tab
-        const channelSettings = await channelsPage.openChannelSettings();
+        await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+        const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
         const infoSettings = await openChannelSettingsInfoTab(channelSettings);
 
         // * Verify the URL is shown read-only, with no way to edit it and an explanation why
@@ -37,7 +38,7 @@ test(
         // * Verify the save succeeded: the save panel disappears rather than showing a form error
         await expect(channelSettings.savePanel.saveButton).not.toBeVisible();
         await closeChannelSettings(channelSettings);
-        await expect(channelsPage.centerView.header.title).toContainText('Company Wide');
+        await expect(app.channelHeader.openMenuButton).toContainText('Company Wide');
 
         // * Verify the server kept the default channel URL and applied the new display name
         const channel = await adminClient.getChannelByName(team.id, 'town-square');
@@ -55,12 +56,13 @@ test('allows the URL of an ordinary channel to be changed', {tag: '@channel_sett
     const {adminUser, adminClient, team} = await pw.initSetup();
     const createdChannel = await adminClient.createPublicChannel(team.id, 'Ordinary Channel');
 
-    const {channelsPage} = await pw.testBrowser.login(adminUser);
-    await channelsPage.goto(team.name, createdChannel.name);
-    await channelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(adminUser);
+    await app.channelsPage.goto({team, channel: createdChannel.name});
+    await expect(app.center.postCreate).toBeVisible();
 
     // # Open the Channel Settings modal on the Info tab
-    const channelSettings = await channelsPage.openChannelSettings();
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     const infoSettings = await openChannelSettingsInfoTab(channelSettings);
 
     // * Verify an ordinary channel is not affected by the default-channel restriction

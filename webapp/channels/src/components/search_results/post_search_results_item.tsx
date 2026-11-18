@@ -27,10 +27,7 @@ type Props = {
 export default function PostSearchResultsItem(props: Props) {
     const autotranslated = useSelector((state: GlobalState) => isMyChannelAutotranslated(state, props.post.channel_id));
     return (
-        <div
-            className='search-item__container'
-            data-testid='search-item-container'
-        >
+        <div className='search-item__container'>
             <PostComponent
                 post={props.post}
                 matches={props.matches}

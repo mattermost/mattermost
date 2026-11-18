@@ -125,6 +125,7 @@ export default class NotifyConfirmModal extends React.PureComponent<Props> {
 
         return (
             <ConfirmModalRedux
+                testId='notify_confirm_modal'
                 title={notifyAllTitle}
                 message={notifyAllMessage}
                 confirmButtonText={notifyAllConfirm}

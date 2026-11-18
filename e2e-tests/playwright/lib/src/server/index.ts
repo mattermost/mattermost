@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-export {makeClient} from './client';
+export {makeClient, postAs} from './client';
 export {PlaywrightClient4} from './playwright_client';
 export {createRandomChannel} from './channel';
 export {initSetup, getAdminClient} from './init';

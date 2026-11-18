@@ -36,6 +36,8 @@ interface AIActionsMenuProps {
     isRHS: boolean;
     rewriteMenuProps?: RewriteMenuProps;
     aiRewriteEnabled?: boolean;
+
+    testIdScope?: string;
 }
 
 const AIActionsMenu = ({
@@ -46,6 +48,7 @@ const AIActionsMenu = ({
     isRHS,
     rewriteMenuProps,
     aiRewriteEnabled,
+    testIdScope,
 }: AIActionsMenuProps): JSX.Element => {
     const {formatMessage} = useIntl();
 
@@ -143,6 +146,7 @@ const AIActionsMenu = ({
             <Menu.Container
                 menuButton={{
                     id: 'ai-actions-button',
+                    testId: testIdScope ? `${testIdScope}.open` : undefined,
                     as: AIActionsMenuTrigger,
                     class: 'control',
                     'aria-label': formatMessage({
@@ -213,6 +217,7 @@ const AIActionsMenu = ({
                 {aiRewriteEnabled && rewriteMenuProps && (
                     <Menu.Item
                         id='ai-action-rewrite'
+                        data-testid={testIdScope ? `${testIdScope}.menu.rewrite--menuitem` : undefined}
                         role='menuitem'
                         aria-haspopup='menu'
                         aria-expanded={activeSubmenu === '__rewrite__'}
@@ -260,6 +265,7 @@ const AIActionsMenu = ({
                                     onCustomPromptKeyDown={rewriteMenuProps.onCustomPromptKeyDown}
                                     onCancelProcessing={rewriteMenuProps.onCancelProcessing}
                                     customPromptRef={rewriteMenuProps.customPromptRef}
+                                    testIdScope={testIdScope ? `${testIdScope}.rewrite` : undefined}
                                 />
                                 <MuiMenuList
                                     sx={{py: 0}}

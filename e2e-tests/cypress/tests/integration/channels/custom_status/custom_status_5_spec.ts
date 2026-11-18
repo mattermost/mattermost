@@ -35,7 +35,7 @@ describe('Custom Status - Verifying Where Custom Status Appears', () => {
         // # Select an emoji from the emoji picker and set the status
         cy.get('#custom_status_modal .StatusModal__emoji-button').click();
         cy.get('#emojiPicker').should('be.visible').find('.emoji-picker__items').should('be.visible');
-        cy.findByTestId(customStatus.emoji).trigger('mouseover', {force: true}).click({force: true});
+        cy.get(`[data-testid="emoji_picker.system_emoji:${customStatus.emoji}--button"] img`).trigger('mouseover', {force: true}).click({force: true});
         cy.get('#custom_status_modal .GenericModal__button.confirm').should('be.visible').click();
 
         // * Custom status modal should be closed

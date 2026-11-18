@@ -186,7 +186,7 @@ describe('Keyboard shortcut CTRL/CMD+Shift+\\ for adding reaction to last messag
         cy.visit(`/${testTeam.name}/channels/${emptyChannel.name}`);
 
         // * Check that there are no post except you joined message
-        cy.findAllByTestId('postView').should('have.length', 1);
+        cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('have.length', 1);
 
         // # Do keyboard shortcut
         doReactToLastMessageShortcut();

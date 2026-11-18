@@ -74,7 +74,7 @@ const BannerTokenControls = ({testId, attributes, onInsertToken, disabled, chann
                     'aria-label': formatMessage(messages.menuLabel[channelKind]),
                 }}
             >
-                {suggestions.map((suggestion) => {
+                {suggestions.map((suggestion, index) => {
                     // An unset attribute inserts a token that renders nothing, so it is
                     // flagged before the author picks it.
                     const valueStatus = suggestion.value ? formatMessage(
@@ -86,7 +86,7 @@ const BannerTokenControls = ({testId, attributes, onInsertToken, disabled, chann
                         <Menu.Item
                             key={suggestion.name}
                             id={`bannerAttributeToken-${suggestion.name}`}
-                            data-testid={testId ? `${testId}.insert_menu.attribute:${suggestion.field.id}--menuitem` : `bannerAttributeToken-${suggestion.name}`}
+                            data-testid={testId ? `${testId}.insert_menu.attribute:${attributes[index].field.id}--menuitem` : `bannerAttributeToken-${suggestion.name}`}
                             onClick={() => onInsertToken(attributeToken(suggestion.name))}
 
                             // One child, not two: Menu.Item reads two children as a

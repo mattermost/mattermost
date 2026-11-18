@@ -38,6 +38,9 @@ type Props = {
     theme: Theme;
     actionExecuting?: boolean;
     actionExecutingMessage?: string;
+
+    testId?: string;
+    testKey?: number;
 };
 
 const ActionButton = ({
@@ -47,6 +50,8 @@ const ActionButton = ({
     theme,
     actionExecuting = false,
     actionExecutingMessage,
+    testId,
+    testKey,
 }: Props) => {
     const handleActionClick = useCallback((e: React.MouseEvent) => handleAction(e, action.options), [action.options, handleAction]);
     let hexColor: string | null | undefined;
@@ -84,6 +89,7 @@ const ActionButton = ({
         <Button
             data-action-id={action.id}
             data-action-cookie={action.cookie}
+            data-testid={testId && testKey !== undefined ? `${testId}:${testKey}--button` : undefined}
             disabled={disabled || actionExecuting}
             onClick={handleActionClick}
             size='small'

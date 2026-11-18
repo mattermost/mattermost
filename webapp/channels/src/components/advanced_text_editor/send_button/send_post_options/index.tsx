@@ -26,9 +26,12 @@ type Props = {
     disabled?: boolean;
     onSelect: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     repeatDisabledReason?: RepeatDisabledReason;
+
+    /** The composer's scope for this button (`<testId>.open_menu--button`); the center and thread composers each have one. */
+    testId?: string;
 };
 
-export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason}: Props) {
+export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledReason, testId}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -67,6 +70,7 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             }}
             menuButton={{
                 id: 'button_send_post_options',
+                testId: testId ? `${testId}.open_menu` : undefined,
                 class: classNames('button_send_post_options', {disabled}),
                 children: <ChevronDownIcon size={16}/>,
                 disabled,
@@ -105,6 +109,7 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
             <Menu.Separator/>
 
             <Menu.Item
+                data-testid='send_post_options.menu.custom_time--menuitem'
                 onClick={handleChooseCustomTime}
                 key={'choose_custom_time'}
                 labels={

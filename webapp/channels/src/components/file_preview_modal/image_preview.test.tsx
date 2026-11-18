@@ -24,7 +24,7 @@ describe('components/view_image/ImagePreview', () => {
 
         render(<ImagePreview {...props}/>);
 
-        expect(screen.getByTestId('imagePreview')).toHaveStyle('transform: scale(2)');
+        expect(screen.getByTestId('file_preview_modal.image--img')).toHaveStyle('transform: scale(2)');
     });
 
     test('should not apply transform when scale is 1', () => {
@@ -35,7 +35,7 @@ describe('components/view_image/ImagePreview', () => {
 
         render(<ImagePreview {...props}/>);
 
-        expect(screen.getByTestId('imagePreview').getAttribute('style') || '').not.toContain('transform');
+        expect(screen.getByTestId('file_preview_modal.image--img').getAttribute('style') || '').not.toContain('transform');
     });
 
     test('should call onWheel handler when wheel event fires on image', () => {
@@ -67,7 +67,7 @@ describe('components/view_image/ImagePreview', () => {
 
         render(<ImagePreview {...props}/>);
 
-        expect(screen.getByTestId('imagePreview')).toHaveStyle({width: '800px', height: 'auto'});
+        expect(screen.getByTestId('file_preview_modal.image--img')).toHaveStyle({width: '800px', height: 'auto'});
     });
 
     test('should size an SVG when downloads are disabled', () => {
@@ -94,8 +94,8 @@ describe('components/view_image/ImagePreview', () => {
         render(<ImagePreview {...props}/>);
 
         // Any width other than the SVG's own collapses or distorts it, so no sizing may be applied
-        expect(screen.getByTestId('imagePreview').style.width).toBe('');
-        expect(screen.getByTestId('imagePreview').style.height).toBe('');
+        expect(screen.getByTestId('file_preview_modal.image--img').style.width).toBe('');
+        expect(screen.getByTestId('file_preview_modal.image--img').style.height).toBe('');
     });
 
     test('should not size a non-SVG image from its file dimensions', () => {
@@ -111,7 +111,7 @@ describe('components/view_image/ImagePreview', () => {
 
         render(<ImagePreview {...props}/>);
 
-        expect(screen.getByTestId('imagePreview').style.width).toBe('');
+        expect(screen.getByTestId('file_preview_modal.image--img').style.width).toBe('');
     });
 
     test('should apply both transform and SVG sizing together', () => {
@@ -123,7 +123,7 @@ describe('components/view_image/ImagePreview', () => {
 
         render(<ImagePreview {...props}/>);
 
-        expect(screen.getByTestId('imagePreview')).toHaveStyle({
+        expect(screen.getByTestId('file_preview_modal.image--img')).toHaveStyle({
             transform: 'scale(2)',
             width: '800px',
             height: 'auto',
@@ -146,6 +146,6 @@ describe('components/view_image/ImagePreview', () => {
         );
 
         expect(screen.getByRole('link')).toHaveAttribute('href', '#');
-        expect(screen.getByTestId('imagePreview')).toHaveAttribute('src', props.fileInfo.link);
+        expect(screen.getByTestId('file_preview_modal.image--img')).toHaveAttribute('src', props.fileInfo.link);
     });
 });

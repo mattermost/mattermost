@@ -37,6 +37,8 @@ type Props = {
      */
     options?: Partial<TextFormattingOptions>;
 
+    testIdScope?: string;
+
     currentRelativeTeamUrl: string;
 };
 
@@ -109,6 +111,7 @@ export default class EmbeddedBinding extends React.PureComponent<Props, State> {
                         key={binding.location}
                         post={this.props.post}
                         binding={binding}
+                        testIdScope={this.props.testIdScope}
                     />,
                 );
                 return;

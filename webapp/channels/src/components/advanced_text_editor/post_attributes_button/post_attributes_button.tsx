@@ -15,7 +15,12 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 // asChild + disabled makes IconButton set aria-disabled and its disabled styling
 // on the child instead of the native disabled attribute, so the tooltip still
 // shows on hover and the button keeps its tab stop.
-const PostAttributesButton = (): JSX.Element => {
+type Props = {
+
+    testIdScope?: string;
+};
+
+const PostAttributesButton = ({testIdScope}: Props): JSX.Element => {
     const {formatMessage} = useIntl();
     const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes', description: 'Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb.'});
 
@@ -31,7 +36,7 @@ const PostAttributesButton = (): JSX.Element => {
                 <button
                     type='button'
                     id='postAttributesButton'
-                    data-testid='post-attributes-composer-add'
+                    data-testid={testIdScope ? `${testIdScope}.post_attributes--button` : undefined}
                 />
             </IconButton>
         </WithTooltip>

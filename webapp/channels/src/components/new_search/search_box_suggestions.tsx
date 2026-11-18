@@ -77,6 +77,7 @@ const SearchSuggestions = ({
                     getItemId={getItemId}
                     onItemClick={onSuggestionSelected}
                     onItemHover={setSelectedTerm}
+                    testId='search_box.suggestions'
                 />
                 <SuggestionListStatus results={results}/>
             </SuggestionsBody>

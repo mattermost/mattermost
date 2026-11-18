@@ -23,6 +23,7 @@ const PluginsSubmenu = (props: Props) => {
     }
     return (
         <Menu.SubMenu
+            data-testid='channel_header.menu.more_actions--menuitem'
             id={'moreActions'}
             labels={
                 <FormattedMessage

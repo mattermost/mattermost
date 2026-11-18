@@ -66,6 +66,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                 <Menu.ItemAction
                     id={item.id + '_pluginmenuitem'}
                     key={item.id + '_pluginmenuitem'}
+                    slotTestId={`search.results.file.menu.plugin:${item.pluginId}--menuitem`}
                     onClick={() => item.action?.(fileInfo)}
                     text={item.text}
                 />
@@ -121,12 +122,13 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
 
         return (
             <div
-                data-testid='search-item-container'
+                data-testid={`search.results.file:${this.props.fileInfo.id}`}
                 className='search-item__container'
             >
                 <button
                     className={'FileSearchResultItem' + (this.state.keepOpen ? ' keep-open' : '')}
                     onClick={this.showPreview}
+                    data-testid='search.results.file.preview--button'
                 >
                     <FileThumbnail fileInfo={fileInfo}/>
                     <div className='fileData'>
@@ -157,19 +159,23 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                                 <a
                                     href='#'
                                     className='action-icon dots-icon btn btn-icon btn-sm'
+                                    data-testid='search.results.file.more_actions--link'
                                 >
                                     <i className='icon icon-dots-vertical'/>
                                 </a>
                                 <Menu
                                     ariaLabel={'file menu'}
                                     openLeft={true}
+                                    testId='search.results.file.menu'
                                 >
                                     <Menu.ItemAction
+                                        testId='search.results.file.menu.open_in_channel'
                                         onClick={this.jumpToConv}
                                         ariaLabel={localizeMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
                                         text={localizeMessage({id: 'file_search_result_item.open_in_channel', defaultMessage: 'Open in channel'})}
                                     />
                                     <Menu.ItemAction
+                                        testId='search.results.file.menu.copy_link'
                                         onClick={this.copyLink}
                                         ariaLabel={localizeMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
                                         text={localizeMessage({id: 'file_search_result_item.copy_link', defaultMessage: 'Copy link'})}
@@ -185,6 +191,7 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                         <a
                             className='action-icon download-icon btn btn-icon btn-sm'
                             href={getFileDownloadUrl(fileInfo.id)}
+                            data-testid='search.results.file.download--link'
                             onClick={this.stopPropagation}
                         >
                             <i className='icon icon-download-outline'/>

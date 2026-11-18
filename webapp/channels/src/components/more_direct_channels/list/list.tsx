@@ -132,6 +132,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
 
     return (
         <MultiSelect<OptionValue>
+            testId='direct_messages_modal.options'
             ref={ref}
             options={options}
             optionRenderer={renderOptionValue}

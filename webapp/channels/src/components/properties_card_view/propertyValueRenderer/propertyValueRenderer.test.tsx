@@ -78,6 +78,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -101,6 +102,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -126,6 +128,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -151,6 +154,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -176,6 +180,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -201,6 +206,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -230,6 +236,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -255,6 +262,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -283,6 +291,7 @@ describe('PropertyValueRenderer', () => {
         it.each(['select', 'rank', 'multiselect'])('should render OptionPropertyRenderer for a %s field', (type) => {
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={optionField(type)}
                     value={{value: 'option1'} as PropertyValue<string>}
                 />,
@@ -297,6 +306,7 @@ describe('PropertyValueRenderer', () => {
         it('should pass maxItems through to the renderer', () => {
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={optionField('multiselect')}
                     value={{value: ['option1', 'option2']} as PropertyValue<string[]>}
                     maxItems={1}
@@ -309,6 +319,7 @@ describe('PropertyValueRenderer', () => {
         it('should leave maxItems undefined when the caller sets no budget', () => {
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={optionField('multiselect')}
                     value={{value: ['option1', 'option2']} as PropertyValue<string[]>}
                 />,
@@ -329,6 +340,7 @@ describe('PropertyValueRenderer', () => {
         it('should render one UserPropertyRenderer per stored id', () => {
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={multiuserField}
                     value={{value: ['user-id-1', 'user-id-2']} as PropertyValue<string[]>}
                 />,
@@ -343,6 +355,7 @@ describe('PropertyValueRenderer', () => {
         it('should cap the list at maxItems', () => {
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={multiuserField}
                     value={{value: ['user-id-1', 'user-id-2', 'user-id-3']} as PropertyValue<string[]>}
                     maxItems={2}
@@ -358,6 +371,7 @@ describe('PropertyValueRenderer', () => {
         it('should render a bare value as a single entry', () => {
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={multiuserField}
                     value={{value: 'user-id-1'} as PropertyValue<string>}
                 />,
@@ -372,6 +386,7 @@ describe('PropertyValueRenderer', () => {
         it('should skip empty entries before applying maxItems', () => {
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={multiuserField}
                     value={{value: ['user_1', '', 'user_2']} as PropertyValue<string[]>}
                     maxItems={2}
@@ -398,6 +413,7 @@ describe('PropertyValueRenderer', () => {
 
             const {container} = renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={{value: raw} as PropertyValue<unknown>}
                 />,
@@ -421,6 +437,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -444,6 +461,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -466,6 +484,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -489,6 +508,7 @@ describe('PropertyValueRenderer', () => {
 
             renderWithContext(
                 <PropertyValueRenderer
+                    testIdScope='post_attributes.value'
                     field={field}
                     value={value}
                 />,
@@ -522,6 +542,7 @@ describe('canRenderPropertyValue agrees with what PropertyValueRenderer draws', 
     function drawsSomething(field: PropertyField, raw: unknown): boolean {
         const {container, unmount} = renderWithContext(
             <PropertyValueRenderer
+                testIdScope='post_attributes.value'
                 field={field}
                 value={{value: raw} as PropertyValue<unknown>}
             />,

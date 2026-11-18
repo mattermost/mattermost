@@ -85,13 +85,14 @@ describe('UserPropertyRenderer', () => {
 
             renderWithContext(
                 <UserPropertyRenderer
+                    testIdScope='x.card.field.value'
                     field={field}
                     value={mockValue}
                 />,
                 baseState,
             );
 
-            const userProperty = screen.getByTestId('user-property');
+            const userProperty = screen.getByTestId('x.card.field.value.user');
             expect(userProperty).toBeVisible();
 
             const userProfile = screen.getByText('testuser');
@@ -107,12 +108,13 @@ describe('UserPropertyRenderer', () => {
 
             renderWithContext(
                 <UserPropertyRenderer
+                    testIdScope='x.card.field.value'
                     field={editableField}
                 />,
                 baseState,
             );
 
-            const selectableUserProperty = screen.getByTestId('selectable-user-property');
+            const selectableUserProperty = screen.getByTestId('x.card.field.value.selectable_user');
             expect(selectableUserProperty).toBeVisible();
 
             // Check that the placeholder text is present

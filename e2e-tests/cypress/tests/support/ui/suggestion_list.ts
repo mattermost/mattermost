@@ -13,20 +13,39 @@ import type {ChainableT} from '@/types';
  * @example
  *   cy.uiVerifyAtMentionInSuggestionList(user, true, 'Channel Members');
  */
-function uiVerifyAtMentionInSuggestionList(user: SimpleUser, isSelected = false, sectionDividerName: string | null = null): ChainableT {
+function uiVerifyAtMentionInSuggestionList(
+    user: SimpleUser,
+    isSelected = false,
+    sectionDividerName: string | null = null,
+): ChainableT {
     // * Verify that the suggestion list is open and visible
-    return cy.get('#suggestionList').should('be.visible').within(() => {
-        if (sectionDividerName) {
-            // * Verify the section name is as expected
-            cy.get('.suggestion-list__divider').findByText(sectionDividerName).should('be.visible');
-            cy.get('.suggestion-list__divider').next().findByTestId(`mentionSuggestion_${user.username}`).should('be.visible');
-        }
+    return cy.
+        get('#suggestionList').
+        should('be.visible').
+        within(() => {
+            if (sectionDividerName) {
+                // * Verify the section name is as expected
+                cy.get('.suggestion-list__divider').
+                    findByText(sectionDividerName).
+                    should('be.visible');
+                cy.get('.suggestion-list__divider').
+                    next().
+                    findByTestId(
+                        new RegExp(
+                            `\\.suggestion:@${Cypress._.escapeRegExp(user.username)}--option$`,
+                        ),
+                    ).
+                    should('be.visible');
+            }
 
-        // * Verify that the user is selected
-        return cy.uiVerifyAtMentionSuggestion(user, isSelected);
-    });
+            // * Verify that the user is selected
+            return cy.uiVerifyAtMentionSuggestion(user, isSelected);
+        });
 }
-Cypress.Commands.add('uiVerifyAtMentionInSuggestionList', uiVerifyAtMentionInSuggestionList);
+Cypress.Commands.add(
+    'uiVerifyAtMentionInSuggestionList',
+    uiVerifyAtMentionInSuggestionList,
+);
 
 /**
  * Verify user's at-mention suggestion
@@ -36,7 +55,10 @@ Cypress.Commands.add('uiVerifyAtMentionInSuggestionList', uiVerifyAtMentionInSug
  * @example
  *   cy.uiVerifyAtMentionSuggestion(user, true);
  */
-function uiVerifyAtMentionSuggestion(user: SimpleUser, isSelected = false): ChainableT {
+function uiVerifyAtMentionSuggestion(
+    user: SimpleUser,
+    isSelected = false,
+): ChainableT {
     const {
         username,
         first_name: firstName,
@@ -45,18 +67,38 @@ function uiVerifyAtMentionSuggestion(user: SimpleUser, isSelected = false): Chai
     } = user;
 
     // * Verify that the user is selected
-    cy.findByTestId(`mentionSuggestion_${username}`).as('selectedMentionSuggestion').should('be.visible');
+    cy.findByTestId(
+        new RegExp(
+            `\\.suggestion:@${Cypress._.escapeRegExp(username)}--option$`,
+        ),
+    ).
+        as('selectedMentionSuggestion').
+        should('be.visible');
     if (isSelected) {
-        cy.get('@selectedMentionSuggestion').should('have.class', 'suggestion--selected');
+        cy.get('@selectedMentionSuggestion').should(
+            'have.class',
+            'suggestion--selected',
+        );
     }
 
-    cy.get('@selectedMentionSuggestion').findByText(`@${username}`).should('be.visible');
-    cy.get('@selectedMentionSuggestion').findByText(`${firstName} ${lastName} (${nickname})`).should('be.visible');
+    cy.get('@selectedMentionSuggestion').
+        findByText(`@${username}`).
+        should('be.visible');
+    cy.get('@selectedMentionSuggestion').
+        findByText(`${firstName} ${lastName} (${nickname})`).
+        should('be.visible');
 
-    return cy.findByTestId(`mentionSuggestion_${username}`);
+    return cy.findByTestId(
+        new RegExp(
+            `\\.suggestion:@${Cypress._.escapeRegExp(username)}--option$`,
+        ),
+    );
 }
 
-Cypress.Commands.add('uiVerifyAtMentionSuggestion', uiVerifyAtMentionSuggestion);
+Cypress.Commands.add(
+    'uiVerifyAtMentionSuggestion',
+    uiVerifyAtMentionSuggestion,
+);
 
 declare global {
     // eslint-disable-next-line @typescript-eslint/no-namespace

@@ -14,13 +14,15 @@ type Props = {
     field: PropertyField;
     value: PropertyValue<unknown>;
     maxItems?: number;
+
+    testIdScope?: string;
 };
 
 /**
  * The chip renderer for every option-bearing field: `select`, `rank` and
  * `multiselect`. One `.SelectProperty` chip per resolved option.
  */
-export default function OptionPropertyRenderer({field, value, maxItems}: Props) {
+export default function OptionPropertyRenderer({field, value, maxItems, testIdScope}: Props) {
     const chips = resolveOptionChips(field, value.value);
 
     // Cap after resolving, not before. `resolveOptionChips` has already dropped the
@@ -38,7 +40,7 @@ export default function OptionPropertyRenderer({field, value, maxItems}: Props) 
                     <div
                         key={key}
                         className='SelectProperty'
-                        data-testid='select-property'
+                        data-testid={testIdScope ? `${testIdScope}.select--text` : undefined}
                         style={{backgroundColor, color}}
                     >
                         {chip.label}

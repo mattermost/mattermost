@@ -16,6 +16,7 @@ interface Props extends HTMLAttributes<'div'> {
     rightWidthHolderRef: React.RefObject<HTMLDivElement | null>;
     ariaLabel?: string;
     ariaLabeledby?: string;
+    testId?: string;
 }
 
 function ResizableRhs({
@@ -26,6 +27,7 @@ function ResizableRhs({
     rightWidthHolderRef,
     ariaLabel,
     ariaLabeledby,
+    testId,
 }: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
 
@@ -92,6 +94,7 @@ function ResizableRhs({
     return (
         <div
             id={id}
+            data-testid={testId}
             className={className}
             role={role}
             ref={containerRef}

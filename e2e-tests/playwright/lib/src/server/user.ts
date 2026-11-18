@@ -5,6 +5,8 @@ import type {Client4} from '@mattermost/client';
 import type {UserProfile, UserTimezone} from '@mattermost/types/users';
 import {DateTime} from 'luxon';
 
+import {rememberLogin} from './credentials';
+
 import {getRandomId, newTestPassword} from '@/util';
 import {testConfig} from '@/test_config';
 import {REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY, REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY} from '@/constant';
@@ -20,6 +22,7 @@ export async function createNewUserProfile(
     const newUser = await client.createUser(randomUser, '', '');
     // Set password to the created user profile so it can be used to login later
     newUser.password = randomUser.password;
+    rememberLogin(newUser, randomUser.password);
 
     if (disableTutorial && disableOnboarding) {
         await setDefaultOnboardingPreferences(client, newUser.id);

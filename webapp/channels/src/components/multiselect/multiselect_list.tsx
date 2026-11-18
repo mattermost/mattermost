@@ -27,6 +27,9 @@ export type Props<T extends Value> = {
     selectedItemRef?: React.RefObject<HTMLDivElement | null>;
     options: T[];
     customNoOptionsMessage?: React.ReactNode;
+
+    // The list root; its parts: `.no_results--text`.
+    testId?: string;
 };
 
 type State = {
@@ -180,6 +183,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                     <div
                         key='no-users-found'
                         className='no-channel-message'
+                        data-testid={this.props.testId ? `${this.props.testId}.no_results--text` : undefined}
                         tabIndex={0}
                     >
                         <p className='primary-message'>
@@ -210,7 +214,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
 
             renderOutput = (
                 <div
-                    data-testid='more-modal-list'
+                    data-testid={this.props.testId}
                     className='more-modal__list'
                 >
                     <div
@@ -225,6 +229,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
                         />
                     </div>
                     <div
+                        data-testid={this.props.testId ? `${this.props.testId}.selection--text` : undefined}
                         className='sr-only'
                         aria-live='polite'
                         aria-atomic='true'
@@ -245,6 +250,7 @@ export default class MultiSelectList<T extends Value> extends React.PureComponen
 
         return (
             <div
+                data-testid={this.props.testId ? `${this.props.testId}.live_region` : undefined}
                 className='multi-select__wrapper'
                 aria-live='polite'
             >

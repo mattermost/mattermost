@@ -53,6 +53,7 @@ const ToggleInfo = ({channel, ...rest}: Props) => {
     return (
         <>
             <Menu.Item
+                data-testid='channel_header.menu.toggle_info--menuitem'
                 leadingElement={<InformationOutlineIcon size='18px'/>}
                 onClick={toggleRHS}
                 labels={text}

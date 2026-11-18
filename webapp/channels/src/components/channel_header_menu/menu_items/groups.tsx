@@ -44,6 +44,7 @@ const Groups = ({channel, ...rest}: Props): JSX.Element => {
     return (
         <>
             <Menu.Item
+                data-testid='channel_header.menu.add_groups--menuitem'
                 id='channelAddGroups'
                 leadingElement={<AccountMultiplePlusOutlineIcon size='18px'/>}
                 onClick={handleAddGroups}
@@ -56,6 +57,7 @@ const Groups = ({channel, ...rest}: Props): JSX.Element => {
                 {...rest}
             />
             <Menu.Item
+                data-testid='channel_header.menu.manage_groups--menuitem'
                 id='channelManageGroups'
                 leadingElement={<AccountMultipleOutlineIcon size='18px'/>}
                 onClick={handleManageGroups}

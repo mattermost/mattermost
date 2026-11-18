@@ -3,16 +3,18 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
+
 import './separator.scss';
 
 type Props = {
     children?: ReactNode;
+    testId?: string;
 };
 
-const BasicSeparator = ({children}: Props) => {
+const BasicSeparator = ({children, testId}: Props) => {
     return (
         <div
-            data-testid='basicSeparator'
+            data-testid={testId ?? 'basicSeparator'}
             className='Separator BasicSeparator'
         >
             <hr className='separator__hr'/>

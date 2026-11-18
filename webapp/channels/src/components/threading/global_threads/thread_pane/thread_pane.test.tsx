@@ -244,6 +244,9 @@ describe('components/threading/global_threads/thread_pane', () => {
     });
 
     describe('channel attribute labels', () => {
+        // The row's own chips, not the ones repeated in the overflow popover.
+        const CHIP = /^threads\.pane\.attributes\.chip:[^:]+$/;
+
         afterEach(() => {
             jest.restoreAllMocks();
         });
@@ -263,11 +266,11 @@ describe('components/threading/global_threads/thread_pane', () => {
             // chips collapse together instead of competing for the space. The row stays
             // hidden until it has measured how many of them fit.
             await waitFor(() => {
-                expect(screen.getAllByTestId('channel_attributes.chip')).toHaveLength(2);
-                expect(screen.getAllByTestId('channel_attributes.chip')[0]).toBeVisible();
+                expect(screen.getAllByTestId(CHIP)).toHaveLength(2);
+                expect(screen.getAllByTestId(CHIP)[0]).toBeVisible();
             });
 
-            const chips = screen.getAllByTestId('channel_attributes.chip');
+            const chips = screen.getAllByTestId(CHIP);
             expect(chips.map((chip) => chip.textContent)).toEqual(['caveat: CAVEAT', 'program: PROGRAM']);
 
             // Beside the channel name rather than among the thread controls.
@@ -284,7 +287,7 @@ describe('components/threading/global_threads/thread_pane', () => {
                 ]),
             );
 
-            const chip = await screen.findByTestId('channel_attributes.chip');
+            const chip = await screen.findByTestId('threads.pane.attributes.chip:0');
             expect(chip.closest('button')).toBeNull();
         });
 
@@ -301,9 +304,9 @@ describe('components/threading/global_threads/thread_pane', () => {
                 ]),
             );
 
-            const overflow = await screen.findByTestId('channelAttributeLabelsOverflow-info-header');
+            const overflow = await screen.findByTestId('threads.pane.attributes.overflow--button');
             expect(overflow).toHaveTextContent('+2');
-            expect(screen.queryByTestId('channel_attributes.chip')).not.toBeInTheDocument();
+            expect(screen.queryAllByTestId(CHIP)).toHaveLength(0);
         });
     });
 });

@@ -98,6 +98,7 @@ describe('PostAttachmentOpenGraph', () => {
         actions: {
             editPost: jest.fn(),
         },
+        testIdScope: 'center.post_list.post' as const,
     };
 
     test('should render nothing without any data', () => {

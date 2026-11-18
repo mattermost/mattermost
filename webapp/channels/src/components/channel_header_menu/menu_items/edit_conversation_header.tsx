@@ -33,6 +33,7 @@ const EditConversationHeader = ({channel, leadingElement}: Props): JSX.Element =
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.edit_header--menuitem'
             id='channelEditHeader'
             leadingElement={leadingElement}
             onClick={handleEditHeader}

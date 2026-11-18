@@ -42,6 +42,7 @@ const SavedPostsButton = (): JSX.Element | null => {
             forcedPlacement='bottom'
         >
             <IconButton
+                data-testid='global_header.saved_messages--button'
                 style='inverted'
                 size='small'
                 padding='compact'

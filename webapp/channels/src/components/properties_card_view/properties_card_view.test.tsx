@@ -44,25 +44,26 @@ describe('PropertiesCardView actionRows', () => {
     };
 
     const actionRows: ActionRow[] = [
-        {label: 'Report', content: <div data-testid='report-content'>{'r'}</div>, testId: 'report-row'},
-        {label: 'Actions', content: <div data-testid='actions-content'>{'a'}</div>, testId: 'actions-row'},
+        {label: 'Report', content: <div data-testid='report-content'>{'r'}</div>, testKey: 'report'},
+        {label: 'Actions', content: <div data-testid='actions-content'>{'a'}</div>, testKey: 'actions'},
     ];
 
     test('renders action rows in full mode with labels and content', () => {
         renderWithContext(
             <PropertiesCardView
+                testIdScope='x.card'
                 {...baseProps}
                 mode='full'
                 actionRows={actionRows}
             />,
         );
 
-        const reportRow = screen.getByTestId('report-row');
+        const reportRow = screen.getByTestId('x.card.action:report');
         expect(reportRow).toBeVisible();
         expect(reportRow).toHaveTextContent('Report');
         expect(screen.getByTestId('report-content')).toBeVisible();
 
-        const actionsRow = screen.getByTestId('actions-row');
+        const actionsRow = screen.getByTestId('x.card.action:actions');
         expect(actionsRow).toBeVisible();
         expect(actionsRow).toHaveTextContent('Actions');
         expect(screen.getByTestId('actions-content')).toBeVisible();
@@ -71,29 +72,31 @@ describe('PropertiesCardView actionRows', () => {
     test('does not render action rows in short mode', () => {
         renderWithContext(
             <PropertiesCardView
+                testIdScope='x.card'
                 {...baseProps}
                 mode='short'
                 actionRows={actionRows}
             />,
         );
 
-        expect(screen.queryByTestId('report-row')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('actions-row')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('x.card.action:report')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('x.card.action:actions')).not.toBeInTheDocument();
     });
 
     test('skips action rows whose content is falsy', () => {
         renderWithContext(
             <PropertiesCardView
+                testIdScope='x.card'
                 {...baseProps}
                 mode='full'
                 actionRows={[
-                    {label: 'Empty', content: null, testId: 'empty-row'},
+                    {label: 'Empty', content: null, testKey: 'empty'},
                     actionRows[0],
                 ]}
             />,
         );
 
-        expect(screen.queryByTestId('empty-row')).not.toBeInTheDocument();
-        expect(screen.getByTestId('report-row')).toBeVisible();
+        expect(screen.queryByTestId('x.card.action:empty')).not.toBeInTheDocument();
+        expect(screen.getByTestId('x.card.action:report')).toBeVisible();
     });
 });

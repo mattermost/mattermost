@@ -1,9 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, openChannel, test, duration} from '@mattermost/playwright-lib';
 
-import {BOR_TAG, setupBorTest, createSecondUser} from './support';
+import {
+    BOR_TAG,
+    createSecondUser,
+    lastPost,
+    openDm,
+    recipientCount,
+    reveal,
+    sendBorMessage,
+    sendMessage,
+    setupBorTest,
+} from './support';
 
 test.describe('Burn-on-Read in DMs and GMs', () => {
     test('MM-66742_1 BoR toggle is available in DM channel', {tag: [BOR_TAG]}, async ({pw}) => {
@@ -17,20 +27,18 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await adminClient.createDirectChannel([user.id, otherUser.id]);
 
         // # Login and navigate to DM
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-        await channelsPage.goto(team.name, `@${otherUser.username}`);
+        const app = await openDm(pw, user, team, otherUser);
 
         // * Verify BoR toggle button is available
-        await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeAttached();
-        await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeEnabled();
+        await expect(app.center.postCreate.burnOnReadButton.locator).toBeAttached();
+        await expect(app.center.postCreate.burnOnReadButton).toBeEnabled();
 
         // # Toggle BoR on
-        await channelsPage.centerView.postCreate.toggleBurnOnRead();
+        await app.center.postCreate.burnOnReadButton.click();
+        await expect(app.center.postCreate.burnOnReadLabel).toBeVisible();
 
         // * Verify BoR label appears indicating it's enabled
-        await expect(channelsPage.centerView.postCreate.burnOnReadLabel).toBeVisible();
+        await expect(app.center.postCreate.burnOnReadLabel).toBeVisible();
     });
 
     test('MM-66742_2 complete BoR flow in DM between two users', {tag: [BOR_TAG]}, async ({pw}) => {
@@ -44,56 +52,51 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and navigate to DM
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
-        await senderPage.goto(team.name, `@${receiver.username}`);
+        const senderApp = await openDm(pw, sender, team, receiver);
 
         // # Enable BoR and send message
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const secretMessage = `DM secret ${pw.random.id()}`;
-        await senderPage.postMessage(secretMessage);
+        await sendMessage(senderApp, secretMessage);
 
         // # Get sender's view of the post
-        const senderPost = await senderPage.getLastPost();
+        const {post: senderPost} = await lastPost(senderApp);
 
         // * Verify sender sees the message content (not concealed)
         await expect(senderPost.body).toContainText(secretMessage);
 
         // * Verify sender sees flame badge
-        await expect(senderPost.burnOnReadBadge.container).toBeVisible();
+        await expect(senderPost.burnOnReadButton).toBeVisible();
 
         // # Login as receiver and navigate to DM
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
-        await receiverPage.goto(team.name, `@${sender.username}`);
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
         // # Get receiver's view of the post
-        const receiverPost = await receiverPage.getLastPost();
+        const {post: receiverPost} = await lastPost(receiverApp);
 
         // * Verify receiver sees concealed placeholder
-        await expect(receiverPost.concealedPlaceholder.container).toBeVisible();
+        await expect(receiverPost.revealButton).toBeVisible();
 
         // * Verify receiver does NOT see the message content
         await expect(receiverPost.body).not.toContainText(secretMessage);
 
         // # Reveal the message
-        await receiverPost.concealedPlaceholder.clickToReveal();
-        await receiverPost.concealedPlaceholder.waitForReveal();
+        await receiverPost.revealButton.click();
+        await expect(receiverPost.revealButton).not.toBeVisible();
 
         // * Verify receiver now sees the message content
         await expect(receiverPost.body).toContainText(secretMessage);
 
         // * Verify timer chip appears (wait for WebSocket update)
-        await expect(receiverPost.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
+        await expect(receiverPost.burnOnReadTimerButton).toBeVisible({timeout: duration.half_min});
     });
 
     test(
         'MM-66742_3 BoR message in group message with multiple recipients',
         {tag: [BOR_TAG]},
         async ({pw}, testInfo) => {
-            testInfo.setTimeout(120000);
+            testInfo.setTimeout(duration.two_min);
             // # Initialize setup with BoR enabled
             const {user: sender, team, adminClient} = await setupBorTest(pw);
 
@@ -123,58 +126,52 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
             await adminClient.removeFromChannel(adminUser.id, channel.id);
 
             // # Login as sender and navigate to the channel
-            const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-            await senderPage.goto(team.name, channel.name);
-            await senderPage.toBeVisible();
+            const senderApp = await openChannel(pw, sender, {team, channel});
 
             // # Enable BoR and send message
-            await senderPage.centerView.postCreate.toggleBurnOnRead();
+            await senderApp.center.postCreate.burnOnReadButton.click();
+            await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
             const secretMessage = `GM secret ${pw.random.id()}`;
-            await senderPage.postMessage(secretMessage);
+            await sendMessage(senderApp, secretMessage);
 
             // # Get sender's view
-            const senderPost = await senderPage.getLastPost();
+            const {post: senderPost} = await lastPost(senderApp);
 
             // * Verify sender sees flame badge
-            await expect(senderPost.burnOnReadBadge.container).toBeVisible();
+            await expect(senderPost.burnOnReadButton).toBeVisible();
 
             // * Verify tooltip shows 0 of 2 recipients (channel has 3 members - 1 sender = 2 recipients)
-            const tooltipText = await senderPost.burnOnReadBadge.getTooltipText();
+            const tooltipText = (await senderPost.burnOnReadButton.locator.getAttribute('aria-label')) ?? '';
             expect(tooltipText).toContain('Read by 0 of 2');
 
             // # Login as first recipient and reveal
-            const {channelsPage: recipient1Page} = await pw.testBrowser.login(recipient1);
-            await recipient1Page.goto(team.name, channel.name);
-            await recipient1Page.toBeVisible();
+            const recipient1App = await openChannel(pw, recipient1, {team, channel});
 
-            const recipient1Post = await recipient1Page.getLastPost();
-            await recipient1Post.concealedPlaceholder.clickToReveal();
-            await recipient1Post.concealedPlaceholder.waitForReveal();
+            const {post: recipient1Post} = await lastPost(recipient1App);
+            await recipient1Post.revealButton.click();
+            await expect(recipient1Post.revealButton).not.toBeVisible();
 
             // * Verify first recipient sees message and timer (wait for WebSocket update)
             await expect(recipient1Post.body).toContainText(secretMessage);
-            await expect(recipient1Post.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
+            await expect(recipient1Post.burnOnReadTimerButton).toBeVisible({timeout: duration.half_min});
 
             // # Refresh sender and verify updated count
-            await senderPage.page.reload();
-            await senderPage.toBeVisible();
-            const updatedSenderPost = await senderPage.getLastPost();
-            await updatedSenderPost.burnOnReadBadge.hover();
-            const updatedTooltip = await updatedSenderPost.burnOnReadBadge.getTooltipText();
-            expect(updatedTooltip).toContain('Read by 1 of 2');
+            await senderApp.page.reload();
+            await expect(senderApp.center.postCreate.message).toBeVisible();
+            const {post: updatedSenderPost} = await lastPost(senderApp);
+            await updatedSenderPost.burnOnReadButton.hover();
+            await expect(updatedSenderPost.burnOnReadButton.locator).toHaveAttribute('aria-label', /Read by 1 of 2/);
 
             // # Login as second recipient and reveal
-            const {channelsPage: recipient2Page} = await pw.testBrowser.login(recipient2);
-            await recipient2Page.goto(team.name, channel.name);
-            await recipient2Page.toBeVisible();
+            const recipient2App = await openChannel(pw, recipient2, {team, channel});
 
-            const recipient2Post = await recipient2Page.getLastPost();
-            await recipient2Post.concealedPlaceholder.clickToReveal();
-            await recipient2Post.concealedPlaceholder.waitForReveal();
+            const {post: recipient2Post} = await lastPost(recipient2App);
+            await recipient2Post.revealButton.click();
+            await expect(recipient2Post.revealButton).not.toBeVisible();
 
             // * Verify second recipient sees message and timer (wait for WebSocket update)
             await expect(recipient2Post.body).toContainText(secretMessage);
-            await expect(recipient2Post.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
+            await expect(recipient2Post.burnOnReadTimerButton).toBeVisible({timeout: duration.half_min});
         },
     );
 
@@ -189,45 +186,40 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and navigate to DM
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
-        await senderPage.goto(team.name, `@${receiver.username}`);
+        const senderApp = await openDm(pw, sender, team, receiver);
 
         // # Enable BoR and send message
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const secretMessage = `To be deleted ${pw.random.id()}`;
-        await senderPage.postMessage(secretMessage);
+        await sendMessage(senderApp, secretMessage);
 
         // # Get the post ID
-        const senderPost = await senderPage.getLastPost();
-        const postId = await senderPost.getId();
+        const {id: senderPostId, post: senderPost} = await lastPost(senderApp);
+        const postId = senderPostId;
 
         // # Sender clicks flame badge to delete
-        await senderPost.burnOnReadBadge.click();
+        await senderPost.burnOnReadButton.click();
 
         // * Verify confirmation modal appears
-        await expect(senderPage.burnOnReadConfirmationModal.container).toBeVisible();
+        await expect(senderApp.burnOnReadConfirmationModal.confirmButton).toBeVisible();
 
         // # Confirm deletion
-        await senderPage.burnOnReadConfirmationModal.confirm();
+        await senderApp.burnOnReadConfirmationModal.confirmButton.click();
 
         // * Verify post is removed from sender's view
-        const deletedPostSender = senderPage.page.locator(`[id="post_${postId}"]`);
+        const deletedPostSender = senderApp.center.postList.post({id: postId}).locator;
         await expect(deletedPostSender).not.toBeVisible();
 
         // # Login as receiver and verify message is not there
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name);
-        await receiverPage.toBeVisible();
-        await receiverPage.goto(team.name, `@${sender.username}`);
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
         // * Verify the deleted message is not visible to receiver
-        const deletedPostReceiver = receiverPage.page.locator(`[id="post_${postId}"]`);
+        const deletedPostReceiver = receiverApp.center.postList.post({id: postId}).locator;
         await expect(deletedPostReceiver).not.toBeVisible();
 
         // * Verify message content is not in the channel
-        const channelContent = await receiverPage.centerView.container.textContent();
+        const channelContent = await receiverApp.center.postList.locator.textContent();
         expect(channelContent).not.toContain(secretMessage);
     });
 
@@ -242,47 +234,44 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and navigate to DM
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name, `@${receiver.username}`);
-        await senderPage.toBeVisible();
+        const senderApp = await openDm(pw, sender, team, receiver);
 
         // # Enable BoR and send message
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const secretMessage = `Receiver will burn ${pw.random.id()}`;
-        await senderPage.postMessage(secretMessage);
+        await sendMessage(senderApp, secretMessage);
 
         // # Login as receiver
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name, `@${sender.username}`);
-        await receiverPage.toBeVisible();
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
         // # Reveal the message
-        const receiverPost = await receiverPage.getLastPost();
-        const postId = await receiverPost.getId();
-        await receiverPost.concealedPlaceholder.clickToReveal();
-        await receiverPost.concealedPlaceholder.waitForReveal();
+        const {id: receiverPostId, post: receiverPost} = await lastPost(receiverApp);
+        const postId = receiverPostId;
+        await receiverPost.revealButton.click();
+        await expect(receiverPost.revealButton).not.toBeVisible();
 
         // * Verify message is revealed
         await expect(receiverPost.body).toContainText(secretMessage);
 
         // * Wait for timer chip to appear (WebSocket update)
-        await expect(receiverPost.burnOnReadTimerChip.container).toBeVisible({timeout: 15000});
+        await expect(receiverPost.burnOnReadTimerButton).toBeVisible({timeout: duration.half_min});
 
         // # Click timer to burn
-        await receiverPost.burnOnReadTimerChip.click();
+        await receiverPost.burnOnReadTimerButton.click();
 
         // * Verify confirmation modal
-        await expect(receiverPage.burnOnReadConfirmationModal.container).toBeVisible();
+        await expect(receiverApp.burnOnReadConfirmationModal.confirmButton).toBeVisible();
 
         // # Confirm
-        await receiverPage.burnOnReadConfirmationModal.confirm();
+        await receiverApp.burnOnReadConfirmationModal.confirmButton.click();
 
         // * Verify post is removed from receiver's view
-        const deletedPostReceiver = receiverPage.page.locator(`[id="post_${postId}"]`);
-        await expect(deletedPostReceiver).not.toBeVisible({timeout: 15000});
+        const deletedPostReceiver = receiverApp.center.postList.post({id: postId}).locator;
+        await expect(deletedPostReceiver).not.toBeVisible({timeout: duration.half_min});
 
         // * Verify message content is not visible in the channel
-        await expect(receiverPage.centerView.container).not.toContainText(secretMessage);
+        await expect(receiverApp.center.postList.locator).not.toContainText(secretMessage);
     });
 
     test('MM-66742_6 DM shows correct recipient count of 1', {tag: [BOR_TAG]}, async ({pw}) => {
@@ -296,24 +285,23 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender and navigate to DM
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name);
-        await senderPage.toBeVisible();
-        await senderPage.goto(team.name, `@${receiver.username}`);
+        const senderApp = await openDm(pw, sender, team, receiver);
 
         // # Enable BoR and send message
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
         const secretMessage = `Count test ${pw.random.id()}`;
-        await senderPage.postMessage(secretMessage);
+        await sendMessage(senderApp, secretMessage);
 
         // # Get sender's view
-        const senderPost = await senderPage.getLastPost();
+        const {post: senderPost} = await lastPost(senderApp);
 
         // * Verify tooltip shows exactly 1 recipient
-        await senderPost.burnOnReadBadge.hover();
-        const recipientCount = await senderPost.burnOnReadBadge.getRecipientCount();
-        expect(recipientCount.total).toBe(1);
-        expect(recipientCount.revealed).toBe(0);
+        await senderPost.burnOnReadButton.hover();
+        await expect(senderPost.burnOnReadButton.locator).toHaveAttribute('aria-label', /Read by/);
+        const counts = await recipientCount(senderPost);
+        expect(counts.total).toBe(1);
+        expect(counts.revealed).toBe(0);
     });
 
     test('MM-66742_7 multiple BoR messages in same DM conversation', {tag: [BOR_TAG]}, async ({pw}) => {
@@ -327,48 +315,30 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name, `@${receiver.username}`);
-        await senderPage.toBeVisible();
+        const senderApp = await openDm(pw, sender, team, receiver);
 
-        // # Send first BoR message
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        // # Send two BoR messages (toggling BoR on for each, since it resets after a send)
         const message1 = `First BoR ${pw.random.id()}`;
-        await senderPage.postMessage(message1);
-
-        // # Send second BoR message (toggle again to ensure BoR is on)
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        const {id: firstId} = await sendBorMessage(senderApp, message1);
         const message2 = `Second BoR ${pw.random.id()}`;
-        await senderPage.postMessage(message2);
+        const {id: secondId} = await sendBorMessage(senderApp, message2);
 
-        // # Login as receiver and verify they can see concealed messages
-        const {channelsPage: receiverPage} = await pw.testBrowser.login(receiver);
-        await receiverPage.goto(team.name, `@${sender.username}`);
-        await receiverPage.toBeVisible();
+        // # Login as receiver
+        const receiverApp = await openDm(pw, receiver, team, sender);
 
-        // * Verify concealed BoR placeholders are visible
-        await expect(receiverPage.centerView.container.getByTestId(/^burn-on-read-concealed-/).first()).toBeVisible();
+        // * Verify both messages are concealed, then reveal each one
+        for (const [id, message] of [
+            [firstId, message1],
+            [secondId, message2],
+        ]) {
+            const post = receiverApp.center.postList.post({id});
+            await expect(post.revealButton).toBeVisible();
+            await expect(post).not.toContainText(message);
+            await reveal(post);
 
-        // * Get all concealed placeholders
-        const concealedPlaceholders = receiverPage.centerView.container.locator('.BurnOnReadConcealedPlaceholder');
-        const count = await concealedPlaceholders.count();
-        expect(count).toBeGreaterThanOrEqual(1);
-
-        // # Reveal all concealed messages
-        for (let i = 0; i < count; i++) {
-            const placeholder = concealedPlaceholders.nth(i);
-            if (await placeholder.isVisible()) {
-                await placeholder.click();
-                // Wait for reveal animation
-                await receiverPage.page.waitForTimeout(500);
-            }
+            // * Verify the message is visible after revealing
+            await expect(post.message).toContainText(message);
         }
-
-        // * Verify at least one of the messages is visible after revealing
-        const pageContent = await receiverPage.centerView.container.textContent();
-        const hasMessage1 = pageContent?.includes(message1);
-        const hasMessage2 = pageContent?.includes(message2);
-        expect(hasMessage1 || hasMessage2).toBe(true);
     });
 
     test('MM-66742_8 BoR toggle resets after sending message', {tag: [BOR_TAG]}, async ({pw}) => {
@@ -382,27 +352,24 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await adminClient.createDirectChannel([sender.id, receiver.id]);
 
         // # Login as sender
-        const {channelsPage: senderPage} = await pw.testBrowser.login(sender);
-        await senderPage.goto(team.name, `@${receiver.username}`);
-        await senderPage.toBeVisible();
+        const senderApp = await openDm(pw, sender, team, receiver);
 
         // # Enable BoR toggle
-        await senderPage.centerView.postCreate.toggleBurnOnRead();
+        await senderApp.center.postCreate.burnOnReadButton.click();
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
 
         // * Verify BoR is enabled
-        const isEnabledBefore = await senderPage.centerView.postCreate.isBurnOnReadEnabled();
-        expect(isEnabledBefore).toBe(true);
+        await expect(senderApp.center.postCreate.burnOnReadLabel).toBeVisible();
 
         // # Send a message
         const message1 = `BoR message ${pw.random.id()}`;
-        await senderPage.postMessage(message1);
+        await sendMessage(senderApp, message1);
 
         // * Verify BoR is disabled after sending (toggle resets)
-        const isEnabledAfter = await senderPage.centerView.postCreate.isBurnOnReadEnabled();
-        expect(isEnabledAfter).toBe(false);
+        await expect(senderApp.center.postCreate.burnOnReadLabel).not.toBeVisible();
 
         // * Verify the sent message has BoR badge (was sent as BoR)
-        const lastPost = await senderPage.getLastPost();
-        await expect(lastPost.burnOnReadBadge.container).toBeVisible();
+        const {post: sentPost} = await lastPost(senderApp);
+        await expect(sentPost.burnOnReadButton).toBeVisible();
     });
 });

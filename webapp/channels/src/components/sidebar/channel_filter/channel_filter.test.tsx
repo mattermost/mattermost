@@ -77,7 +77,7 @@ describe('components/sidebar/channel_filter', () => {
             renderWithContext(<ChannelFilterIntl {...props}/>);
 
             expect(screen.queryByRole('button', {name: 'Filter channels'})).not.toBeInTheDocument();
-            fireEvent.click(screen.getByTestId('sidebar-unread-filter-button'));
+            fireEvent.click(screen.getByTestId('lhs.header.unreads_filter--togglebutton'));
 
             expect(props.actions.setUnreadFilterEnabled).toHaveBeenCalledWith(true);
         });

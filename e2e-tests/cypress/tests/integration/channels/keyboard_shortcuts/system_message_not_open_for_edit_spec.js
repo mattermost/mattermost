@@ -38,7 +38,7 @@ describe('Keyboard Shortcuts', () => {
         cy.uiWaitUntilMessagePostedIncludes(newHeader);
 
         // # Press UP arrow
-        cy.findByTestId('post_textbox').
+        cy.findByTestId('center.post_create.message--textbox').
             type('{uparrow}');
 
         // * Verify that the Edit Post Input is visible

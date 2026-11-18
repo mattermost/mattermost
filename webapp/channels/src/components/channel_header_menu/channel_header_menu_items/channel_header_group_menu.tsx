@@ -107,6 +107,7 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                             {(!isGroupConstrained && !isGuest(user.roles)) && (
                                 <Menu.SubMenu
                                     id={'channelSettings'}
+                                    data-testid='channel_header.menu.settings--menuitem'
                                     labels={
                                         <FormattedMessage
                                             id='channel_header.settings'
@@ -160,7 +161,10 @@ const ChannelHeaderGroupMenu = ({channel, user, isMuted, isMobile, isFavorite, p
                     <Menu.Separator/>
                 </ChannelPermissionGate>
             )}
-            <ChannelMoveToSubMenu channel={channel}/>
+            <ChannelMoveToSubMenu
+                channel={channel}
+                testIdScope='channel_header.menu'
+            />
             {!isMobile && (
                 <MenuItemPluginItems pluginItems={pluginItems}/>
             )}

@@ -105,6 +105,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                     tabIndex={props.selected === DataSearchTypes.MESSAGES_SEARCH_TYPE ? 0 : -1}
                     aria-controls='messagesPanel'
                     id='messagesTab'
+                    data-testid='search.tabs.messages--tab'
                     onClick={() => props.onChange(DataSearchTypes.MESSAGES_SEARCH_TYPE)}
                     onKeyDown={(e) => handleTabKeyDown(e, DataSearchTypes.MESSAGES_SEARCH_TYPE)}
                     className={props.selected === DataSearchTypes.MESSAGES_SEARCH_TYPE ? 'active tab messages-tab' : 'tab messages-tab'}
@@ -123,6 +124,7 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
                         tabIndex={props.selected === DataSearchTypes.FILES_SEARCH_TYPE ? 0 : -1}
                         aria-controls='filesPanel'
                         id='filesTab'
+                        data-testid='search.tabs.files--tab'
                         onClick={() => props.onChange(DataSearchTypes.FILES_SEARCH_TYPE)}
                         onKeyDown={(e) => handleTabKeyDown(e, DataSearchTypes.FILES_SEARCH_TYPE)}
                         className={props.selected === DataSearchTypes.FILES_SEARCH_TYPE ? 'active tab files-tab' : 'tab files-tab'}
@@ -138,9 +140,10 @@ export default function MessagesOrFilesSelector(props: Props): JSX.Element {
             {props.crossTeamSearchEnabled && hasMoreThanOneTeam && (
                 <div
                     className='team-selector-container'
-                    data-testid='searchResultsTeamSelector'
+                    data-testid='search.team_selector'
                 >
                     <SelectTeam
+                        testIdScope='search.team_selector'
                         selectedTeamId={searchTeam}
                         onTeamSelected={props.onTeamChange}
                     />

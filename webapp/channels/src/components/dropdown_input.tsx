@@ -81,19 +81,21 @@ const IndicatorsContainer = (props: any) => {
     );
 };
 
-const makeControl = (testId?: string) => (props: any) => {
+const makeControl = (controlTestId?: string) => (props: any) => {
     return (
         <div className='DropdownInput__controlContainer'>
             <components.Control
                 {...props}
-                innerProps={{...props.innerProps, 'data-testid': testId ? `${testId}.control--button` : undefined}}
+                innerProps={{...props.innerProps, 'data-testid': controlTestId}}
             />
         </div>
     );
 };
 
-const makeOption = (testId?: string, options?: readonly unknown[]) => (props: any) => {
-    const position = options ? options.indexOf(props.data) : -1;
+const makeOption = (testId?: string) => (props: any) => {
+    // Grouped options nest the options in each group: count across all groups so every option's id is unique.
+    const flatOptions = props.options.flatMap((option: any) => ('options' in option ? option.options : [option]));
+    const position: number = flatOptions.indexOf(props.data);
     return (
         <div
             className={classNames('DropdownInput__option', {
@@ -124,8 +126,8 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     const [focused, setFocused] = useState(false);
 
     const Menu = useMemo(() => makeMenu(testId), [testId]);
-    const Control = useMemo(() => makeControl(testId), [testId]);
-    const OptionWithTestId = useMemo(() => makeOption(testId, options), [testId, options]);
+    const Control = useMemo(() => makeControl(testId ? `${testId}.control--button` : undefined), [testId]);
+    const OptionWithTestId = useMemo(() => makeOption(testId), [testId]);
 
     const onInputFocus = (event: React.FocusEvent<HTMLInputElement>) => {
         const {onFocus} = props;

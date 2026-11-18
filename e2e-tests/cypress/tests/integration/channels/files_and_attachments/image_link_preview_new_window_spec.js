@@ -49,7 +49,7 @@ describe('Image Link Preview', () => {
         cy.uiGetFilePreviewModal().as('filePreviewModal');
 
         // * Assert that the image has the correct url
-        cy.get('@filePreviewModal').findByTestId('imagePreview').should('have.attr', 'src', expectedSrc);
+        cy.get('@filePreviewModal').findByTestId('file_preview_modal.image--img').should('have.attr', 'src', expectedSrc);
 
         cy.get('@filePreviewModal').uiGetContentFilePreviewModal().find('img').should((img) => {
             // * Verify image is rendered
