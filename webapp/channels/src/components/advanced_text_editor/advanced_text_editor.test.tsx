@@ -1452,6 +1452,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(controls).toContainElement(menu);
             expect(controls).toContainElement(send);
             expect(controls.firstElementChild).toContainElement(menu);
+            expect(menu).toHaveClass('agent-composer-menu-button');
             expect(controls.lastElementChild).toContainElement(send);
             expect(menu.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--agent');

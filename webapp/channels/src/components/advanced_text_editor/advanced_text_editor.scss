@@ -216,6 +216,12 @@
 
     // The + sits at the start of this row and send at the end. The row is in
     // the flow, under the editor, so neither control covers the text.
+    // Two classes, so this wins over the icon button's transparent rest state
+    // and loses to its hover and pressed rules.
+    &--agent .agent-composer-menu-button {
+        background-color: rgba(var(--center-channel-color-rgb), 0.08);
+    }
+
     &__agent-controls {
         display: flex;
         height: 48px;

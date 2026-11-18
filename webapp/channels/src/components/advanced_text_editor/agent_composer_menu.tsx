@@ -16,7 +16,10 @@ import {MenuContext} from 'components/menu/menu_context';
 
 const AGENT_COMPOSER_MENU_ID = 'agent-composer-menu';
 
-const AgentComposerMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
+const AgentComposerMenuTrigger = Menu.createMenuIconButtonTrigger({
+    size: 'small',
+    className: 'agent-composer-menu-button',
+});
 
 type Props = {
     canAttach: boolean;
