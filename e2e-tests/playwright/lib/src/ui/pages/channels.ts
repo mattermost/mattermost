@@ -8,6 +8,7 @@ import {waitUntil} from 'async-wait-until';
 import type {
     ChannelNotificationPreferencesModal,
     ChannelsPost,
+    ChannelsSidebarRight,
     SettingsModal,
     TeamSettingsModal,
     InvitePeopleModal,
@@ -21,7 +22,6 @@ import {
     NewChannelModal,
     components,
     ChannelsSidebarLeft,
-    ChannelsSidebarRight,
 } from '@/ui/components';
 import {duration} from '@/util';
 
