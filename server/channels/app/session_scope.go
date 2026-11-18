@@ -478,7 +478,7 @@ func (a *App) SearchTeamsInSessionScope(rctx request.CTX, scope *model.SessionSc
 	}
 	limits := a.sessionScopeLimits(rctx)
 	return slices.DeleteFunc(teams, func(team *model.Team) bool {
-		if team.DeleteAt != 0 {
+		if team.DeleteAt != 0 || team.PolicyEnforced {
 			return true
 		}
 		return !listedTeamIDs[team.Id] && !model.SessionScopeGrantsTeamPublicChannels(scope, team, limits)

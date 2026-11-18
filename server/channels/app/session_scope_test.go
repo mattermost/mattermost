@@ -705,6 +705,20 @@ func TestSearchTeamsInSessionScopeListedChannelFailure(t *testing.T) {
 		assert.Nil(t, teams)
 	})
 
+	t.Run("a listed channel doesn't make a policy-enforced team found", func(t *testing.T) {
+		policyTeam := &model.Team{Id: model.NewId(), Name: "policy", PolicyEnforced: true}
+		openTeam := &model.Team{Id: model.NewId(), Name: "listed"}
+		teamStore.ExpectedCalls = nil
+		teamStore.On("SearchAll", mock.Anything).Return([]*model.Team{policyTeam, openTeam}, nil)
+		channelStore.On("GetMany", mock.Anything, true).Return(model.ChannelList{
+			{Id: scope.Resources.ChannelIDs[0], TeamId: policyTeam.Id, Type: model.ChannelTypePrivate},
+		}, nil).Once()
+
+		teams, err := th.App.SearchTeamsInSessionScope(th.Context, scope, &model.TeamSearch{})
+		require.NoError(t, err)
+		assert.Empty(t, teams)
+	})
+
 	t.Run("listed channels that no longer exist are not an error", func(t *testing.T) {
 		channelStore.On("GetMany", mock.Anything, true).Return(nil, store.NewErrNotFound("Channel", "x")).Once()
 
