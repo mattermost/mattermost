@@ -23,7 +23,7 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {AIActionMenuItemComponent} from 'types/store/plugins';
 
-import {isMenuRowTarget, pointerIsInside, useComposerSubmenuHover, useDelayedSubmenuClose} from './composer_submenu_hover';
+import {submenuPointerDestination, useComposerSubmenuHover, useDelayedSubmenuClose} from './composer_submenu_hover';
 import type {RewriteMenuProps} from './rewrite_menu';
 import {RewriteSubmenu, RewriteSubMenuHeader, RewriteSubMenuFooter} from './rewrite_menu';
 
@@ -100,16 +100,19 @@ const AIActionsMenu = ({
             closeSubmenu();
         }
         if (rewriteMenuProps) {
-            rewriteMenuProps.setIsMenuOpen(Boolean(parentOpen && activeSubmenu && activeRow === activeSubmenu));
+            rewriteMenuProps.setIsMenuOpen(Boolean(
+                parentOpen && activeSubmenu === '__rewrite__' && activeRow === '__rewrite__',
+            ));
         }
     }, [activeRow, activeSubmenu, cancelClose, closeSubmenu, embedded, parentOpen, rewriteMenuProps]);
 
     const closeUnlessInside = useCallback((next: EventTarget | null, anchor: HTMLElement | null) => {
-        if (pointerIsInside(next, panelRef.current) || pointerIsInside(next, anchor)) {
+        const destination = submenuPointerDestination(next, panelRef.current, anchor);
+        if (destination === 'stay') {
             cancelClose();
             return;
         }
-        if (isMenuRowTarget(next)) {
+        if (destination === 'close') {
             cancelClose();
             closeSubmenu();
             return;

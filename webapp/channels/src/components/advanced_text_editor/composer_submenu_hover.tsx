@@ -38,12 +38,39 @@ export function useComposerSubmenuHover() {
     return useContext(ComposerSubmenuHoverContext);
 }
 
+export const COMPOSER_PLUS_MENU_ID = 'agent-composer-menu';
+
 export function pointerIsInside(node: EventTarget | null, root: HTMLElement | null) {
     return node instanceof Node && Boolean(root?.contains(node));
 }
 
-export function isMenuRowTarget(node: EventTarget | null) {
-    return node instanceof Element && Boolean(node.closest('[role="menuitem"]'));
+// Where the pointer went when it left a submenu row or its panel.
+// `close` is another row in the + menu. `stay` is this panel or a menu it
+// opened, such as the rewrite agent picker. `delay` is empty space, so the
+// pointer may still be on its way into the panel.
+export function submenuPointerDestination(
+    next: EventTarget | null,
+    panel: HTMLElement | null,
+    anchor: HTMLElement | null,
+): 'stay' | 'close' | 'delay' {
+    if (pointerIsInside(next, panel) || pointerIsInside(next, anchor)) {
+        return 'stay';
+    }
+    if (!(next instanceof Element)) {
+        return 'delay';
+    }
+
+    const parentMenu = document.getElementById(COMPOSER_PLUS_MENU_ID);
+    if (parentMenu?.contains(next) || parentMenu?.closest('.MuiPaper-root')?.contains(next)) {
+        return 'close';
+    }
+
+    // A portaled menu that belongs to the open panel, not the + list.
+    if (next.closest('[role="menu"], [role="menuitem"], [role="menuitemradio"], [role="menuitemcheckbox"], .MuiPopover-paper')) {
+        return 'stay';
+    }
+
+    return 'delay';
 }
 
 // Delay the close so the pointer can reach the panel. Callers cancel on panel

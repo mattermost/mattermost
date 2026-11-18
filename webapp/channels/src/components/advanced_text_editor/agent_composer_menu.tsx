@@ -15,9 +15,7 @@ import type {FirstMenuItemProps} from 'components/menu';
 import {MenuContext} from 'components/menu/menu_context';
 
 import AIActionsMenu from './ai_actions_menu';
-import {ComposerSubmenuHoverProvider, useComposerSubmenuHover} from './composer_submenu_hover';
-
-const AGENT_COMPOSER_MENU_ID = 'agent-composer-menu';
+import {COMPOSER_PLUS_MENU_ID, ComposerSubmenuHoverProvider, useComposerSubmenuHover} from './composer_submenu_hover';
 
 const AgentComposerMenuTrigger = Menu.createMenuIconButtonTrigger({
     size: 'small',
@@ -118,7 +116,7 @@ const AttachFilesItem = ({disabled, onAttach, ...otherProps}: AttachFilesItemPro
         if (menu.close) {
             menu.close();
         } else {
-            dispatch(closeModal(AGENT_COMPOSER_MENU_ID));
+            dispatch(closeModal(COMPOSER_PLUS_MENU_ID));
         }
     };
 
@@ -192,7 +190,7 @@ const AgentComposerMenuContents = ({
                 }}
                 menuButtonTooltip={{text: label}}
                 menu={{
-                    id: AGENT_COMPOSER_MENU_ID,
+                    id: COMPOSER_PLUS_MENU_ID,
                     'aria-label': label,
                     onToggle: handleToggle,
                 }}

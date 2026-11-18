@@ -15,7 +15,7 @@ import {PostPriority} from '@mattermost/types/posts';
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {isMenuRowTarget, pointerIsInside, useComposerSubmenuHover, useDelayedSubmenuClose} from 'components/advanced_text_editor/composer_submenu_hover';
+import {submenuPointerDestination, useComposerSubmenuHover, useDelayedSubmenuClose} from 'components/advanced_text_editor/composer_submenu_hover';
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
 import {MenuContext} from 'components/menu/menu_context';
@@ -278,11 +278,12 @@ function PostPriorityPicker({
     }, [cancelClose, claimRow]);
 
     const closeItemUnlessInside = useCallback((next: EventTarget | null, anchor: HTMLElement | null) => {
-        if (pointerIsInside(next, panelRef.current) || pointerIsInside(next, anchor)) {
+        const destination = submenuPointerDestination(next, panelRef.current, anchor);
+        if (destination === 'stay') {
             cancelClose();
             return;
         }
-        if (isMenuRowTarget(next)) {
+        if (destination === 'close') {
             cancelClose();
             closeItemPanel();
             return;

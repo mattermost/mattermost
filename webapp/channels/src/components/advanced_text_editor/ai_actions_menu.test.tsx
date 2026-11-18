@@ -10,7 +10,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import type {PostDraft} from 'types/store/draft';
 
 import AIActionsMenu from './ai_actions_menu';
-import {ComposerSubmenuHoverProvider, useComposerSubmenuHover} from './composer_submenu_hover';
+import {COMPOSER_PLUS_MENU_ID, ComposerSubmenuHoverProvider, submenuPointerDestination, useComposerSubmenuHover} from './composer_submenu_hover';
 import {RewriteAction} from './rewrite_action';
 import type {RewriteMenuProps} from './rewrite_menu';
 
@@ -42,11 +42,12 @@ jest.mock('components/menu', () => {
                 </div>
             );
         },
-        Item: ({labels, onClick, leadingElement, trailingElements, onMouseEnter, onKeyDown, ...rest}: any) => (
+        Item: ({labels, onClick, leadingElement, trailingElements, onMouseEnter, onMouseLeave, onKeyDown, ...rest}: any) => (
             <li
                 role='menuitem'
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
                 onKeyDown={onKeyDown}
                 aria-haspopup={rest['aria-haspopup']}
                 aria-expanded={rest['aria-expanded']}
@@ -564,6 +565,73 @@ describe('AIActionsMenu', () => {
 
         fireEvent.mouseEnter(screen.getByRole('button', {name: 'Other row', hidden: true}));
         expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+    });
+
+    test('treats a nested menu item as part of the open panel', () => {
+        const nestedItem = document.createElement('div');
+        nestedItem.setAttribute('role', 'menuitem');
+        document.body.appendChild(nestedItem);
+
+        expect(submenuPointerDestination(nestedItem, null, null)).toBe('stay');
+        nestedItem.remove();
+    });
+
+    test('treats another plus-menu row as leaving the panel', () => {
+        const parentMenu = document.createElement('ul');
+        parentMenu.id = COMPOSER_PLUS_MENU_ID;
+        const otherRow = document.createElement('li');
+        otherRow.setAttribute('role', 'menuitem');
+        parentMenu.appendChild(otherRow);
+        document.body.appendChild(parentMenu);
+
+        expect(submenuPointerDestination(otherRow, null, null)).toBe('close');
+        parentMenu.remove();
+    });
+
+    test('marks rewrite open only while the rewrite row is showing', () => {
+        const setIsMenuOpen = jest.fn();
+
+        renderWithContext(
+            <ComposerSubmenuHoverProvider>
+                <AIActionsMenu
+                    {...getBaseProps()}
+                    embedded={true}
+                    parentOpen={true}
+                    aiRewriteEnabled={true}
+                    rewriteMenuProps={{
+                        ...getRewriteMenuProps(),
+                        setIsMenuOpen,
+                    }}
+                />
+            </ComposerSubmenuHoverProvider>,
+            {
+                entities: {
+                    general: {config: {}},
+                    preferences: {myPreferences: {}},
+                    users: {currentUserId: 'user1'},
+                },
+                plugins: {
+                    components: {
+                        AIActionMenuItem: [
+                            {
+                                id: 'plugin1',
+                                pluginId: 'test-plugin',
+                                component: () => <div data-testid='plugin-submenu'>{'Plugin Content'}</div>,
+                                icon: <span>{'icon'}</span>,
+                                text: 'Hover Me',
+                                sortOrder: 1,
+                            },
+                        ],
+                    },
+                },
+            } as any,
+        );
+
+        fireEvent.mouseEnter(screen.getByText('Hover Me').closest('li')!);
+        expect(setIsMenuOpen).not.toHaveBeenCalledWith(true);
+
+        fireEvent.mouseEnter(screen.getByText('Rewrite').closest('li')!);
+        expect(setIsMenuOpen).toHaveBeenCalledWith(true);
     });
 
     testPluginComponentErrorHandling((pluginComponent) => {
