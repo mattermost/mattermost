@@ -329,6 +329,17 @@ _OPTIONS_ROUTES = (
 )
 
 
+class HandlerOptionsTest(unittest.TestCase):
+    def test_a_route_with_handler_options_is_the_same_endpoint(self):
+        plain = 'api.BaseRoutes.Channel.Handle("", api.APISessionRequired(getChannel)).Methods(http.MethodGet)'
+        flagged = 'api.BaseRoutes.Channel.Handle("", api.APISessionRequired(getChannel, handlerParamScopedSession)).Methods(http.MethodGet)'
+        two_options = 'api.BaseRoutes.Channel.Handle("", api.APISessionRequired(getChannel, handlerParamFileAPI, handlerParamScopedSession)).Methods(http.MethodGet)'
+        expected = {("/", "getChannel", "GET")}
+        self.assertEqual(checker._parse_endpoints(plain), expected)
+        self.assertEqual(checker._parse_endpoints(flagged), expected)
+        self.assertEqual(checker._parse_endpoints(two_options), expected)
+
+
 class RoutePrefixTest(unittest.TestCase):
     def test_subrouter_prefixes_chain_from_their_parents(self):
         prefixes = checker._route_prefixes(_API_ROUTES)
