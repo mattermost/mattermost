@@ -59,6 +59,7 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                 role='none'
                 aria-labelledby='deleteChannelModalLabel'
                 id='deleteChannelModal'
+                data-testid='delete_channel_modal'
             >
                 <Modal.Header closeButton={true}>
                     <Modal.Title
@@ -88,6 +89,7 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                     <Button
                         type='button'
                         emphasis='tertiary'
+                        data-testid='delete_channel_modal.cancel--button'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
@@ -101,6 +103,7 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                         onClick={this.handleDelete}
                         autoFocus={true}
                         id='deleteChannelModalDeleteButton'
+                        data-testid='delete_channel_modal.confirm--button'
                         destructive={true}
                     >
                         <FormattedMessage

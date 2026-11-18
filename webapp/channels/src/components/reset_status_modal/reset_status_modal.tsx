@@ -241,6 +241,7 @@ export default class ResetStatusModal extends React.PureComponent<Props, State> 
 
         return (
             <ConfirmModal
+                testId='reset_status_modal'
                 show={this.state.show}
                 title={manualStatusTitle}
                 message={manualStatusMessage}

@@ -297,6 +297,7 @@ export class TeamSelectorModal extends React.PureComponent<Props, State> {
                 <Modal.Body>
                     {confirmModal}
                     <MultiSelect<TeamValue>
+                        testId='team_selector_modal.teams'
                         key='addTeamsToSchemeKey'
                         options={teamsValues}
                         optionRenderer={this.renderOption}

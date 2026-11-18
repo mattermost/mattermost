@@ -58,7 +58,7 @@ describe('components/user_settings/display/manage_timezones/manage_timezones', (
         await userEvent.click(screen.getByRole('checkbox', {name: /automatic/i}));
 
         // Click Save to trigger changeTimezone → submitUser
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('settings.display.section.save--button'));
 
         const expected = {
             ...props.user,

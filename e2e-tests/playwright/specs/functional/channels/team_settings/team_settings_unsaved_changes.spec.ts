@@ -6,7 +6,7 @@
  * @reference MM-67920
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {expect, Msg, openTeamSettings, test, Api, settle} from '@mattermost/playwright-lib';
 
 test.describe('Team Settings Modal - Unsaved Changes', () => {
     /**
@@ -15,38 +15,28 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
      */
     test('MM-67920 Warn on close with unsaved changes', async ({pw}) => {
         // # Set up admin user and login
-        const {adminUser, team} = await pw.initSetup();
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
+        const {adminUser, team, townSquare} = await pw.initSetup();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        // # Navigate to team
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        // # Open Team Settings Modal
-        const teamSettings = await channelsPage.openTeamSettings();
-
-        // # Edit team name to create unsaved changes
-        const newTeamName = `Modified Team ${pw.random.id()}`;
-        await teamSettings.infoSettings.updateName(newTeamName);
+        // # Open Team Settings and edit the team name to create unsaved changes
+        const settings = await openTeamSettings(app);
+        await settings.info.name.container.fill(`Modified Team ${pw.random.id()}`);
 
         // # Try to close modal (first attempt)
-        await teamSettings.close();
+        await settings.closeButton.click();
 
-        // * Verify "You have unsaved changes" warning appears
-        await teamSettings.verifyUnsavedChanges();
-
-        // * Verify Save button is visible
-        await expect(teamSettings.saveButton).toBeVisible();
-
-        // * Verify modal is still open
-        await expect(teamSettings.container).toBeVisible();
+        // * Verify the unsaved changes warning appears with its Save button, and the modal stays open
+        await expect(settings.savePanel.messageText).toHaveMessage(Msg.saveChangesPanel.message);
+        await expect(settings.savePanel.messageText).toBeVisible();
+        await expect(settings.savePanel.saveButton).toBeVisible();
+        await expect(settings).toBeVisible();
 
         // # Try to close modal again (second attempt - warn-once behavior)
-        await teamSettings.close();
+        await settings.closeButton.click();
 
         // * Verify modal closes on second attempt
-        await expect(teamSettings.container).not.toBeVisible();
+        await expect(settings).not.toBeVisible();
     });
 
     /**
@@ -55,39 +45,36 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
      */
     test('MM-67920 Prevent tab switch with unsaved changes', async ({pw}) => {
         // # Set up admin user and login
-        const {adminUser, team} = await pw.initSetup();
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
+        const {adminUser, team, townSquare} = await pw.initSetup();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        // # Navigate to team
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        // # Open Team Settings Modal
-        const teamSettings = await channelsPage.openTeamSettings();
+        // # Open Team Settings
+        const settings = await openTeamSettings(app);
+        const infoTab = settings.tabs.tab('info');
+        const accessTab = settings.tabs.tab('access');
 
         // * Verify Access tab is visible (admin has INVITE_USER permission)
-        await expect(teamSettings.accessTab).toBeVisible();
+        await expect(accessTab).toBeVisible();
 
         // # Edit team name in Info tab (create unsaved changes)
-        const newTeamName = `Modified Team ${pw.random.id()}`;
-        await teamSettings.infoSettings.updateName(newTeamName);
+        await settings.info.name.container.fill(`Modified Team ${pw.random.id()}`);
 
         // # Try to switch to Access tab
-        await teamSettings.openAccessTab();
+        await accessTab.select();
 
-        // * Verify "You have unsaved changes" error appears
-        await teamSettings.verifyUnsavedChanges();
+        // * Verify the unsaved changes warning appears and the Info tab stays selected
+        await expect(settings.savePanel.messageText).toHaveMessage(Msg.saveChangesPanel.message);
+        await expect(settings.savePanel.messageText).toBeVisible();
+        await expect(infoTab).toBeSelected();
 
-        // * Verify still on Info tab
-        await expect(teamSettings.infoTab).toHaveAttribute('aria-selected', 'true');
-
-        // # Click Undo button
-        await teamSettings.undo();
+        // # Click Undo
+        await settings.savePanel.cancelButton.click();
+        await expect(settings.info.name.container).toHaveValue(team.display_name);
 
         // * Verify can now switch to Access tab
-        await teamSettings.openAccessTab();
-        await expect(teamSettings.accessTab).toHaveAttribute('aria-selected', 'true');
+        await accessTab.select();
+        await expect(accessTab).toBeSelected();
     });
 
     /**
@@ -96,36 +83,31 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
      */
     test('MM-67920 Save changes and close modal without warning', async ({pw}) => {
         // # Set up admin user and login
-        const {adminUser, adminClient, team} = await pw.initSetup();
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
+        const {adminUser, adminClient, team, townSquare} = await pw.initSetup();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        // # Navigate to team
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        // # Open Team Settings Modal
-        const teamSettings = await channelsPage.openTeamSettings();
-
-        // # Edit team name
+        // # Open Team Settings and edit the team name
+        const settings = await openTeamSettings(app);
         const newTeamName = `Updated Team ${pw.random.id()}`;
-        await teamSettings.infoSettings.updateName(newTeamName);
+        await settings.info.name.container.fill(newTeamName);
 
         // # Save changes
-        await teamSettings.save();
+        await settle(settings.savePanel.saveButton, {wait: Api.PatchTeam}).click();
 
         // * Wait for "Settings saved" message
-        await teamSettings.verifySavedMessage();
+        await expect(settings.savePanel.messageText).toHaveMessage(Msg.saveChangesPanel.saved);
+        await expect(settings.savePanel.messageText).toBeVisible();
 
         // * Verify team name updated via API
         const updatedTeam = await adminClient.getTeam(team.id);
         expect(updatedTeam.display_name).toBe(newTeamName);
 
         // # Close modal immediately after save (should work without warning)
-        await teamSettings.close();
+        await settings.closeButton.click();
 
         // * Verify modal closes without warning
-        await expect(teamSettings.container).not.toBeVisible();
+        await expect(settings).not.toBeVisible();
     });
 
     /**
@@ -134,32 +116,28 @@ test.describe('Team Settings Modal - Unsaved Changes', () => {
      */
     test('MM-67920 Undo changes resets form state', async ({pw}) => {
         // # Set up admin user and login
-        const {adminUser, team} = await pw.initSetup();
-        const {page} = await pw.testBrowser.login(adminUser);
-        const channelsPage = new ChannelsPage(page);
+        const {adminUser, team, townSquare} = await pw.initSetup();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        // # Navigate to team
-        await channelsPage.goto(team.name);
-        await channelsPage.toBeVisible();
-
-        // # Open Team Settings Modal
-        const teamSettings = await channelsPage.openTeamSettings();
-
-        // # Edit team name
+        // # Open Team Settings and edit the team name
+        const settings = await openTeamSettings(app);
+        const nameTextbox = settings.info.name.container;
         const newTeamName = `Modified Team ${pw.random.id()}`;
-        await teamSettings.infoSettings.updateName(newTeamName);
+        await settings.info.name.container.fill(newTeamName);
 
         // * Verify input shows new value
-        await expect(teamSettings.infoSettings.nameInput).toHaveValue(newTeamName);
+        await expect(nameTextbox).toHaveValue(newTeamName);
 
-        // # Click Undo button
-        await teamSettings.undo();
+        // # Click Undo
+        await settings.savePanel.cancelButton.click();
+        await expect(settings.info.name.container).toHaveValue(team.display_name);
 
         // * Verify input restored to original value
-        await expect(teamSettings.infoSettings.nameInput).toHaveValue(team.display_name);
+        await expect(nameTextbox).toHaveValue(team.display_name);
 
         // * Verify can close modal without warning
-        await teamSettings.close();
-        await expect(teamSettings.container).not.toBeVisible();
+        await settings.closeButton.click();
+        await expect(settings).not.toBeVisible();
     });
 });

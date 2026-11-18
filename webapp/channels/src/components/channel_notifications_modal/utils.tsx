@@ -13,32 +13,32 @@ import {optionsOfMessageNotificationSoundsSelect} from 'utils/notification_sound
 
 const MuteChannelInputFieldData: FieldsetCheckbox = {
     name: 'mute channel',
-    dataTestId: 'muteChannel',
+    dataTestId: 'channel_notifications_modal.mute--checkbox',
 };
 
 const DesktopReplyThreadsInputFieldData: FieldsetCheckbox = {
     name: 'desktop reply threads',
-    dataTestId: 'desktopReplyThreads',
+    dataTestId: 'channel_notifications_modal.desktop_reply_threads--checkbox',
 };
 
 const MobileReplyThreadsInputFieldData: FieldsetCheckbox = {
     name: 'mobile reply threads',
-    dataTestId: 'mobileReplyThreads',
+    dataTestId: 'channel_notifications_modal.mobile_reply_threads--checkbox',
 };
 
 export const sameMobileSettingsDesktopInputFieldData: FieldsetCheckbox = {
     name: 'same mobile settings as Desktop',
-    dataTestId: 'sameMobileSettingsDesktop',
+    dataTestId: 'channel_notifications_modal.same_mobile_as_desktop--checkbox',
 };
 
 export const IgnoreMentionsInputFieldData: FieldsetCheckbox = {
     name: 'ignore mentions',
-    dataTestId: 'ignoreMentions',
+    dataTestId: 'channel_notifications_modal.ignore_mentions--checkbox',
 };
 
 export const AutoFollowThreadsInputFieldData: FieldsetCheckbox = {
     name: 'auto follow threads',
-    dataTestId: 'autoFollowThreads',
+    dataTestId: 'channel_notifications_modal.auto_follow_threads--checkbox',
 };
 
 const defaultMessage = defineMessage({
@@ -49,7 +49,6 @@ const defaultMessage = defineMessage({
 export const desktopNotificationInputFieldData = (defaultOption: string): FieldsetRadio => ({
     options: [
         {
-            dataTestId: `desktopNotification-${NotificationLevels.ALL}`,
             title: (
                 <FormattedMessage
                     id='channelNotifications.desktopNotification.allMessages'
@@ -62,12 +61,12 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
                     }}
                 />
             ),
+            dataTestId: 'channel_notifications_modal.desktop.all--radio',
             name: 'desktop',
             key: `desktopNotification-${NotificationLevels.ALL}`,
             value: NotificationLevels.ALL,
         },
         {
-            dataTestId: `desktopNotification-${NotificationLevels.MENTION}`,
             title: (
                 <FormattedMessage
                     id='channelNotifications.desktopNotification.mention'
@@ -80,12 +79,12 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
                     }}
                 />
             ),
+            dataTestId: 'channel_notifications_modal.desktop.mention--radio',
             name: 'desktop',
             key: `desktopNotification-${NotificationLevels.MENTION}`,
             value: NotificationLevels.MENTION,
         },
         {
-            dataTestId: `desktopNotification-${NotificationLevels.NONE}`,
             title: (
                 <FormattedMessage
                     id='channelNotifications.desktopNotification.nothing'
@@ -98,6 +97,7 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
                     }}
                 />
             ),
+            dataTestId: 'channel_notifications_modal.desktop.none--radio',
             name: 'desktop',
             key: `desktopNotification-${NotificationLevels.NONE}`,
             value: NotificationLevels.NONE,
@@ -108,7 +108,7 @@ export const desktopNotificationInputFieldData = (defaultOption: string): Fields
 
 export const desktopNotificationSoundsCheckboxFieldData: FieldsetCheckbox = {
     name: 'desktopNotificationSoundsCheckbox',
-    dataTestId: 'desktopNotificationSoundsCheckbox',
+    dataTestId: 'channel_notifications_modal.desktop_sound--checkbox',
 };
 
 export const desktopNotificationSoundsSelectFieldData: FieldsetReactSelect = {
@@ -120,7 +120,6 @@ export const desktopNotificationSoundsSelectFieldData: FieldsetReactSelect = {
 export const mobileNotificationInputFieldData = (defaultOption: string): FieldsetRadio => ({
     options: [
         {
-            dataTestId: `MobileNotification-${NotificationLevels.ALL}`,
             title: (
                 <FormattedMessage
                     id='channelNotifications.mobileNotification.newMessages'
@@ -133,12 +132,12 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
                     }}
                 />
             ),
+            dataTestId: 'channel_notifications_modal.mobile.all--radio',
             name: 'push',
             key: `MobileNotification-${NotificationLevels.ALL}`,
             value: NotificationLevels.ALL,
         },
         {
-            dataTestId: `MobileNotification-${NotificationLevels.MENTION}`,
             title: (
                 <FormattedMessage
 
@@ -152,12 +151,12 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
                     }}
                 />
             ),
+            dataTestId: 'channel_notifications_modal.mobile.mention--radio',
             name: 'push',
             key: `MobileNotification-${NotificationLevels.MENTION}`,
             value: NotificationLevels.MENTION,
         },
         {
-            dataTestId: `MobileNotification-${NotificationLevels.NONE}`,
             title: (
                 <FormattedMessage
                     id='channelNotifications.mobileNotification.nothing'
@@ -170,6 +169,7 @@ export const mobileNotificationInputFieldData = (defaultOption: string): Fieldse
                     }}
                 />
             ),
+            dataTestId: 'channel_notifications_modal.mobile.none--radio',
             name: 'push',
             key: `MobileNotification-${NotificationLevels.NONE}`,
             value: NotificationLevels.NONE,

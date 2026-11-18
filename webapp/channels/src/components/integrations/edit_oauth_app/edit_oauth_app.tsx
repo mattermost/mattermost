@@ -124,6 +124,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
 
         return (
             <ConfirmModal
+                testId='integrations.edit_oauth_app.confirm_modal'
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
@@ -137,7 +138,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
 
     render() {
         if (!this.props.oauthApp) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='edit_oauth_app.loading_screen'/>;
         }
 
         return (

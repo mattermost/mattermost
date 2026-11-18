@@ -510,6 +510,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                 />
             </div>
             <ConfirmModal
+                testId='integrations.oauth_connection_form.save_unvalidated_modal'
                 show={isValidationModalOpen}
                 message={intl.formatMessage({
                     id: 'add_outgoing_oauth_connection.save_without_validation_warning',
@@ -575,6 +576,7 @@ const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) 
                 className='outgoing-oauth-connection-validation-message'
             >
                 <LoadingSpinner
+                    testId='outgoing_oauth_connection.loading_spinner'
                     text={(
                         <FormattedMessage
                             id={'add_outgoing_oauth_connection.validating'}

@@ -27,7 +27,8 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
                 continue;
             }
 
-            const premadeTheme: Theme = Object.assign({}, Preferences.THEMES[k as ThemeKey]);
+            const themeKey = k as ThemeKey;
+            const premadeTheme: Theme = Object.assign({}, Preferences.THEMES[themeKey]);
 
             let activeClass = '';
             if (premadeTheme.type === theme.type) {
@@ -42,6 +43,7 @@ const PremadeThemeChooser = ({theme, updateTheme, allowedThemes = []}: Props) =>
                     <button
                         id={`premadeTheme${premadeTheme.type?.replace(' ', '')}`}
                         className={`premadeThemeButton ${activeClass}`}
+                        data-testid={`settings.display.section.premade_theme:${themeKey}--button`}
                         onClick={() => updateTheme(premadeTheme)}
                     >
                         <label>

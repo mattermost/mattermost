@@ -49,6 +49,7 @@ export default function ProductSwitcherMarketplaceMenuItem(props: Props) {
             permissions={[Permissions.SYSCONSOLE_WRITE_PLUGINS]}
         >
             <Menu.Item
+                data-testid='global_header.product_menu.marketplace--menuitem'
                 leadingElement={<ViewGridPlusOutlineIcon size={18}/>}
                 labels={
                     <FormattedMessage

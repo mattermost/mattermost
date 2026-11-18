@@ -45,7 +45,7 @@ describe('components/TeamSettings', () => {
     test('should not render team invite section if no permissions for team inviting', () => {
         const props = {...defaultProps, canInviteTeamMembers: false};
         renderWithContext(<AccessTab {...props}/>);
-        const inviteContainer = screen.queryByTestId('teamInviteContainer');
+        const inviteContainer = screen.queryByTestId('team_settings_modal.access.invite_link');
         expect(inviteContainer).toBeNull();
     });
 
@@ -75,7 +75,7 @@ describe('components/TeamSettings', () => {
             },
         };
         const wrapper = renderWithContext(<AccessTab {...defaultProps}/>, state);
-        wrapper.getByTestId('regenerateButton').click();
+        wrapper.getByTestId('team_settings_modal.access.invite_link.regenerate--button').click();
         expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledTimes(1);
         expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledWith(defaultProps.team?.id);
     });
@@ -83,8 +83,14 @@ describe('components/TeamSettings', () => {
     test('should still render allowed domains checkbox if no permissions for team inviting', () => {
         // Allowed domains is independent of INVITE_USER; only the invite section is gated.
         renderWithContext(<AccessTab {...defaultProps}/>);
-        expect(screen.getByTestId('allowedDomainsCheckbox')).toBeInTheDocument();
-        expect(screen.queryByTestId('teamInviteContainer')).toBeNull();
+        expect(screen.getByTestId('team_settings_modal.access.allowed_domains--checkbox')).toBeInTheDocument();
+        expect(screen.queryByTestId('team_settings_modal.access.invite_link')).toBeNull();
+    });
+
+    test('should not render the allowed domains checkbox for a group-constrained team', () => {
+        const props = {...defaultProps, team: TestHelper.getTeamMock({...defaultProps.team, group_constrained: true})};
+        renderWithContext(<AccessTab {...props}/>);
+        expect(screen.queryByTestId('team_settings_modal.access.allowed_domains--checkbox')).not.toBeInTheDocument();
     });
 
     test('should not show allowed domains input if allowed domains is empty', () => {
@@ -114,7 +120,7 @@ describe('components/TeamSettings', () => {
         const newDomainText = screen.getByText(newDomain);
         expect(newDomainText).toBeInTheDocument();
 
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('team_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
         expect(baseActions.patchTeam).toHaveBeenCalledTimes(1);
         expect(baseActions.patchTeam).toHaveBeenCalledWith({
@@ -146,7 +152,7 @@ describe('components/TeamSettings', () => {
         };
         renderWithContext(<AccessTab {...props}/>);
         await userEvent.click(screen.getByText('Private Team'));
-        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        await userEvent.click(screen.getByTestId('team_settings_modal.save_panel.save--button'));
         expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
     });
 
@@ -157,7 +163,7 @@ describe('components/TeamSettings', () => {
         };
         renderWithContext(<AccessTab {...props}/>);
         await userEvent.click(screen.getByText('Public Team'));
-        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        await userEvent.click(screen.getByTestId('team_settings_modal.save_panel.save--button'));
         expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: true});
     });
 
@@ -186,7 +192,7 @@ describe('components/TeamSettings', () => {
         };
         renderWithContext(<AccessTab {...props}/>);
         await userEvent.click(screen.getByText('Public Team'));
-        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        await userEvent.click(screen.getByTestId('team_settings_modal.save_panel.save--button'));
         expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: true});
     });
 
@@ -200,7 +206,7 @@ describe('components/TeamSettings', () => {
         };
         renderWithContext(<AccessTab {...props}/>);
         await userEvent.click(screen.getByText('Private Team'));
-        await userEvent.click(screen.getByTestId('SaveChangesPanel__save-btn'));
+        await userEvent.click(screen.getByTestId('team_settings_modal.save_panel.save--button'));
         expect(patchTeam).toHaveBeenCalledWith({id: 'team_id', allow_open_invite: false});
     });
 

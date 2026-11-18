@@ -194,6 +194,7 @@ const InfoTab = ({team, areThereUnsavedChanges, maxFileSize, showTabSwitchError,
             />
             {(areThereUnsavedChanges || saveChangesPanelState === 'saved') && (
                 <SaveChangesPanel
+                    testId='team_settings_modal.save_panel'
                     handleCancel={handleCancel}
                     handleSubmit={handleSaveChanges}
                     handleClose={handleClose}

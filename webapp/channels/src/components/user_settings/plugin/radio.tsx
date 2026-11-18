@@ -37,6 +37,7 @@ const RadioInput = ({
             setting={setting}
             value={value}
             onChange={onChange}
+            testIdScope='settings.plugin_panel.section'
         />
     );
 };

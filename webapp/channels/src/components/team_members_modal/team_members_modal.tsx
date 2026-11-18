@@ -62,6 +62,7 @@ function MembershipRequirementsBanner({team}: {team: Team}) {
         <div
             className='teamMembersModal__policyBanner'
             role='status'
+            data-testid='team_members_modal.policy_banner'
         >
             <AlertBanner
                 mode='info'
@@ -159,6 +160,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
         return (
             <GenericModal
                 id='teamMembersModal'
+                testId='team_members_modal'
                 className='more-modal'
                 compassDesign={true}
                 show={this.state.show}
@@ -182,6 +184,7 @@ export default class TeamMembersModal extends React.PureComponent<Props, State> 
                     >
                         <Button
                             id='invitePeople'
+                            data-testid='team_members_modal.invite_people--button'
                             type='button'
                             emphasis='primary'
                             size='small'

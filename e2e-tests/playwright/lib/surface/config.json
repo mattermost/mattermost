@@ -108,6 +108,30 @@
                     "module": "@mattermost/types/channels",
                     "field": "name",
                     "reason": "The sidebar is scoped to one team and uses the unique channel route name, distinct from display_name. Specs can address a default channel by name without fetching its id, including notification replies to the known default channel."
+                },
+                {
+                    "entity": "RadioSetting",
+                    "module": "plugins/settings_schema/types",
+                    "field": "name",
+                    "value": "setting",
+                    "freeForm": true,
+                    "reason": "A plugin declares its settings by name in its settings schema, and the name identifies the setting in the panel."
+                },
+                {
+                    "entity": "RadioSettingOption",
+                    "module": "plugins/settings_schema/types",
+                    "field": "value",
+                    "value": "option",
+                    "freeForm": true,
+                    "reason": "A plugin declares its radio options by value in its settings schema, and the value identifies the option in the group."
+                },
+                {
+                    "entity": "PluginConfiguration",
+                    "module": "types/plugins/user_settings",
+                    "field": "id",
+                    "value": "plugin",
+                    "freeForm": true,
+                    "reason": "A plugin registers its user settings under its plugin id, which identifies the plugin's panel."
                 }
             ]
         }
@@ -198,6 +222,14 @@
             "reason": "redirects to the team's default channel: open a channel with app.channelsPage.goto()."
         },
         "RhsPopoutPage": {"ready": null, "reason": "renders no testid of its own yet."},
-        "PopoutPage": {"ready": null, "reason": "only routes to a popout below it (channel, thread, RHS, help)."}
+        "PopoutPage": {"ready": null, "reason": "only routes to a popout below it (channel, thread, RHS, help)."},
+        "IntegrationsPage": [
+            "integrations.options.incoming_webhooks--link",
+            "integrations.options.outgoing_webhooks--link",
+            "integrations.options.commands--link",
+            "integrations.options.oauth2_apps--link",
+            "integrations.options.outgoing_oauth_connections--link",
+            "integrations.options.bots--link"
+        ]
     }
 }

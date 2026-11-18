@@ -53,7 +53,7 @@ describe('Onboarding', () => {
             // # Click 'Public Team' card to allow any user to join the team
             cy.get('#public-private-selector-button-O').should('be.visible').click();
 
-            cy.get('[data-testid="SaveChangesPanel__save-btn"]').should('be.visible').click();
+            cy.get('[data-testid="team_settings_modal.save_panel.save--button"]').should('be.visible').click();
 
             // # Close the modal
             cy.findByLabelText('Close').should('be.visible').click();

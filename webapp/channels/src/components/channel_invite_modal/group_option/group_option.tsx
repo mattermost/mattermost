@@ -27,6 +27,8 @@ export type Props = {
     selectedItemRef: React.RefObject<HTMLDivElement | null>;
     onMouseMove: (group: GroupValue) => void;
     addUserProfile: (profile: UserProfileValue) => void;
+
+    testId?: string;
 };
 
 const displayNameGetter = makeDisplayNameGetter();
@@ -39,6 +41,7 @@ const GroupOption = (props: Props) => {
         selectedItemRef,
         onMouseMove,
         addUserProfile,
+        testId,
     } = props;
 
     const getProfilesByIdsAndUsernames = useMemo(() => makeGetProfilesByIdsAndUsernames(), []);
@@ -78,6 +81,8 @@ const GroupOption = (props: Props) => {
             key={group.id}
             ref={isSelected ? selectedItemRef : undefined}
             className={'more-modal__row clickable ' + rowSelected}
+            role='button'
+            data-testid={`${testId}:${group.id}--button`}
             onClick={onAdd}
             onMouseMove={() => onMouseMove(group)}
         >
@@ -101,9 +106,11 @@ const GroupOption = (props: Props) => {
                     </span>
                     <WithTooltip
                         title={overflowNames}
+                        testId={testId ? `${testId}.tooltip` : undefined}
                     >
                         <span
                             className='add-group-members'
+                            data-testid={testId ? `${testId}.add_members--text` : undefined}
                         >
                             <FormattedMessage
                                 id='multiselect.addGroupMembers'

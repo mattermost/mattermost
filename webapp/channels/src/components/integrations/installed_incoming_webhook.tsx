@@ -117,7 +117,10 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
         if (this.props.canChange) {
             actions = (
                 <div className='item-actions'>
-                    <Link to={`/${this.props.team.name}/integrations/incoming_webhooks/edit?id=${incomingWebhook.id}`}>
+                    <Link
+                        to={`/${this.props.team.name}/integrations/incoming_webhooks/edit?id=${incomingWebhook.id}`}
+                        data-testid='integrations.incoming_webhooks.hook.edit--link'
+                    >
                         <FormattedMessage
                             id='installed_integrations.edit'
                             defaultMessage='Edit'
@@ -132,6 +135,7 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
                             />
                         }
                         onDelete={this.handleDelete}
+                        testId='integrations.incoming_webhooks.hook.delete'
                     />
                 </div>
             );
@@ -140,17 +144,26 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
         const incomingWebhookId = getSiteURL() + '/hooks/' + incomingWebhook.id;
 
         return (
-            <div className='backstage-list__item'>
+            <div
+                className='backstage-list__item'
+                data-testid={`integrations.incoming_webhooks.hook:${incomingWebhook.id}`}
+            >
                 <div className='item-details'>
                     <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
-                        <strong className='item-details__name'>
+                        <strong
+                            className='item-details__name'
+                            data-testid='integrations.incoming_webhooks.hook.name'
+                        >
                             {displayName}
                         </strong>
                         {actions}
                     </div>
                     {description}
                     <div className='item-details__row'>
-                        <span className='item-details__url word-break--all'>
+                        <span
+                            className='item-details__url word-break--all'
+                            data-testid='integrations.incoming_webhooks.hook.url'
+                        >
                             <FormattedMessage
                                 id='installed_integrations.url'
                                 defaultMessage='URL: {url}'
@@ -165,6 +178,7 @@ export default class InstalledIncomingWebhook extends React.PureComponent<Props>
                                         defaultMessage: 'Copy URL',
                                     })}
                                     value={incomingWebhookId}
+                                    testId='integrations.incoming_webhooks.hook.url.copy'
                                 />
                             </span>
                         </span>

@@ -10,6 +10,8 @@ import {isExpiryPresetAllowed, isoPlusDays, todayIso} from './token_expiry';
 
 type Props = {
     idPrefix: string;
+
+    testId?: string;
     expiryPreset: ExpiryPreset;
     customExpiryDate: string;
     maxLifetimeDays: number;
@@ -30,6 +32,7 @@ type Props = {
  */
 export default function TokenExpiryPicker({
     idPrefix,
+    testId,
     expiryPreset,
     customExpiryDate,
     maxLifetimeDays,
@@ -47,6 +50,7 @@ export default function TokenExpiryPicker({
         <>
             <select
                 id={`${idPrefix}Expiry`}
+                data-testid={testId ? `${testId}.expiry--combobox` : undefined}
                 className={selectClassName}
                 value={expiryPreset}
                 onChange={onPresetChange}
@@ -83,6 +87,7 @@ export default function TokenExpiryPicker({
             {expiryPreset === 'custom' && (
                 <input
                     id={`${idPrefix}ExpiryCustom`}
+                    data-testid={testId ? `${testId}.expiry_date--textbox` : undefined}
                     className={`${selectClassName} mt-2`}
                     type='date'
                     aria-label={intl.formatMessage({id: 'user.settings.tokens.expiry.customDate', defaultMessage: 'Custom expiry date'})}
@@ -93,7 +98,10 @@ export default function TokenExpiryPicker({
                 />
             )}
             {maxLifetimeDays > 0 && (
-                <div className={hintClassName}>
+                <div
+                    className={hintClassName}
+                    data-testid={testId ? `${testId}.max_lifetime_hint--text` : undefined}
+                >
                     <FormattedMessage
                         id='user.settings.tokens.maxLifetimeHint'
                         defaultMessage='Tokens can be valid for up to {days, number} {days, plural, one {day} other {days}}.'
@@ -102,7 +110,10 @@ export default function TokenExpiryPicker({
                 </div>
             )}
             {enforceExpiry && (
-                <div className={hintClassName}>
+                <div
+                    className={hintClassName}
+                    data-testid={testId ? `${testId}.expiry_enforced--text` : undefined}
+                >
                     <FormattedMessage
                         id='user.settings.tokens.expiryEnforced'
                         defaultMessage='Your administrator requires all personal access tokens to have an expiry date.'

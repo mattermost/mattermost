@@ -247,7 +247,7 @@ describe('Integrations page', () => {
         cy.findByText('Token').should('exist').and('be.visible');
 
         // * Verify copy icon is shown
-        cy.findByTestId('copyText').should('be.visible');
+        cy.findByTestId('integrations.confirm.copy_token--button').should('be.visible');
 
         // # Hit done to move from confirm screen
         cy.findByText('Done').should('exist').and('be.visible').click();
@@ -263,7 +263,7 @@ describe('Integrations page', () => {
             // # For each custom slash command was created
             cy.wrap(el).within(() => {
                 // Verify copy icon for token is present
-                cy.findByTestId('copyText').should('be.visible');
+                cy.findByTestId('integrations.commands.command.token.copy--button').should('be.visible');
             });
         });
     });

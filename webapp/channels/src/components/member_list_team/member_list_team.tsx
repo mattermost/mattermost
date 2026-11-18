@@ -176,6 +176,7 @@ export default class MemberListTeam extends React.PureComponent<Props, State> {
                 actions={teamMembersDropdown}
                 actionUserProps={actionUserProps}
                 focusOnMount={!UserAgent.isMobile()}
+                testIdScope='team_members_modal.members'
             />
         );
     }

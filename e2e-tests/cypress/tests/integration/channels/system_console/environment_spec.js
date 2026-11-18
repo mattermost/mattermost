@@ -43,7 +43,7 @@ describe('Environment', () => {
             cy.get('i[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
-            cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
+            cy.findByTestId('team_settings_modal.info.picture.upload').attachFile(mattermostIcon);
 
             // after uploading the picture the save button must be disabled
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
@@ -87,7 +87,7 @@ describe('Environment', () => {
             cy.get('i[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
-            cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
+            cy.findByTestId('team_settings_modal.info.picture.upload').attachFile(mattermostIcon);
 
             // * After uploading the picture the save button must be disabled
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);
@@ -131,7 +131,7 @@ describe('Environment', () => {
             cy.get('i[title="Edit Icon"]').should('be.visible');
 
             // # Upload a file on center view
-            cy.findByTestId('uploadPicture').attachFile(mattermostIcon);
+            cy.findByTestId('team_settings_modal.info.picture.upload').attachFile(mattermostIcon);
 
             // * After uploading the picture the save button must be disabled
             cy.uiSave().wait(TIMEOUTS.HALF_SEC);

@@ -118,6 +118,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
 
         return (
             <ConfirmModal
+                testId='integrations.edit_oauth_connection.confirm_modal'
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
@@ -130,7 +131,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
     };
 
     if (!existingConnection) {
-        return <LoadingScreen/>;
+        return <LoadingScreen testId='edit_outgoing_oauth_connection.loading_screen'/>;
     }
 
     return (

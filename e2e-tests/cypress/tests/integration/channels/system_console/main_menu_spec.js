@@ -48,7 +48,7 @@ describe('Main menu', () => {
             cy.findByRole('menu', {name: 'System Console Menu'}).should('not.exist');
 
             // * Return to team via BackstageNavbar instead
-            cy.findByTestId('backstage-navbar-back').should('be.visible').click();
+            cy.findByTestId('backstage.navbar.back--link').should('be.visible').click();
             cy.url().should('include', `/${DEFAULT_TEAM.name}`);
         });
     });

@@ -10,7 +10,7 @@ import {TestHelper} from 'utils/test_helper';
 
 import MemberProfileInputs from './member_profile_inputs';
 
-describe('MemberProfileInputs', () => {
+describe('invitation_modal.invite.member_profiles', () => {
     const baseProps = {
         usersEmails: ['dave.roberts@gmail.com'],
         profiles: {},
@@ -24,8 +24,8 @@ describe('MemberProfileInputs', () => {
                 usersEmails={['one@example.com', 'two@example.com']}
             />,
         );
-        expect(screen.getByTestId('MemberProfileInputs__row-one@example.com')).toBeInTheDocument();
-        expect(screen.getByTestId('MemberProfileInputs__row-two@example.com')).toBeInTheDocument();
+        expect(screen.getByTestId('invitation_modal.invite.member_profiles.member:0')).toBeInTheDocument();
+        expect(screen.getByTestId('invitation_modal.invite.member_profiles.member:1')).toBeInTheDocument();
     });
 
     test('skips existing users and non-email entries', () => {

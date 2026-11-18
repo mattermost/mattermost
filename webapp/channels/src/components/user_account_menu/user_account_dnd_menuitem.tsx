@@ -177,6 +177,7 @@ export default function UserAccountDndMenuItem(props: Props) {
     return (
         <Menu.SubMenu
             id='userAccountMenu.dndMenuItem'
+            data-testid='global_header.account_menu.dnd--menuitem'
             menuId='userAccountMenu.dndSubMenu'
             menuAriaDescribedBy='userAccountMenu_dndSubMenuTitle'
             leadingElement={
@@ -213,6 +214,7 @@ export default function UserAccountDndMenuItem(props: Props) {
         >
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.DO_NOT_CLEAR}
+                data-testid='global_header.account_menu.dnd_menu.do_not_clear--menuitem'
                 labels={
                     <FormattedMessage
                         id='userAccountMenu.dndSubMenuItem.doNotClear'
@@ -223,6 +225,7 @@ export default function UserAccountDndMenuItem(props: Props) {
             />
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.THIRTY_MINUTES}
+                data-testid='global_header.account_menu.dnd_menu.thirty_minutes--menuitem'
                 labels={
                     <FormattedMessage
                         id='userAccountMenu.dndSubMenuItem.30Minutes'
@@ -233,6 +236,7 @@ export default function UserAccountDndMenuItem(props: Props) {
             />
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.ONE_HOUR}
+                data-testid='global_header.account_menu.dnd_menu.one_hour--menuitem'
                 labels={
                     <FormattedMessage
                         id='userAccountMenu.dndSubMenuItem.1Hour'
@@ -243,6 +247,7 @@ export default function UserAccountDndMenuItem(props: Props) {
             />
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.TWO_HOURS}
+                data-testid='global_header.account_menu.dnd_menu.two_hours--menuitem'
                 labels={
                     <FormattedMessage
                         id='userAccountMenu.dndSubMenuItem.2Hours'
@@ -253,6 +258,7 @@ export default function UserAccountDndMenuItem(props: Props) {
             />
             <Menu.Item
                 id={DND_SUB_MENU_ITEMS_IDS.TOMORROW}
+                data-testid='global_header.account_menu.dnd_menu.tomorrow--menuitem'
                 labels={
                     <FormattedMessage
                         id='userAccountMenu.dndSubMenuItem.tomorrow'
@@ -285,6 +291,7 @@ export default function UserAccountDndMenuItem(props: Props) {
                 onClick={handleSubMenuItemClick}
             />
             <Menu.Item
+                data-testid='global_header.account_menu.dnd_menu.custom--menuitem'
                 labels={
                     <FormattedMessage
                         id='userAccountMenu.dndSubMenuItem.custom'

@@ -8,3 +8,4 @@ export {calendarDayKey, monthDays, pickDate, showMonth, type Calendar} from './c
 export {removeChip} from './chips';
 export {openChannel} from './channels';
 export {lastPost, postsOf, postWith, type PostList} from './posts';
+export {closeTeamSettings, openChannelSettings, openTeamSettings} from './settings';

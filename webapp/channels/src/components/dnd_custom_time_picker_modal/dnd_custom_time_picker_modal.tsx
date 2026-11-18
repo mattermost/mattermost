@@ -128,6 +128,7 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
                 handleConfirm={this.handleConfirm}
                 handleEnterKeyPress={this.handleConfirm}
                 id='dndCustomTimePickerModal'
+                testId='dnd_custom_time_picker_modal'
                 className={'DndModal modal-overflow'}
                 tabIndex={-1}
                 keyboardEscape={true}
@@ -135,6 +136,7 @@ export default injectIntl(class DndCustomTimePicker extends React.PureComponent<
             >
                 <div className='DndModal__content'>
                     <DateTimeInput
+                        testIdScope='dnd_custom_time_picker_modal.when'
                         time={selectedDateTime}
                         handleChange={this.handleDateTimeChange}
                         timezone={this.props.timezone}

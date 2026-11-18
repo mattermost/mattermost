@@ -26,6 +26,10 @@ type Props = {
      */
     section: string;
 
+    /** The test id scope (a tab's `settings.<tab>.section`) and key of the row; keyed by the section by default. Without a scope the row has no test ids. */
+    testId?: string;
+    testKey?: string;
+
     /**
      * The setting UI when it is maximized (open)
      */
@@ -47,6 +51,8 @@ const SettingItem = ({
     active,
     areAllSectionsInactive,
     section,
+    testId,
+    testKey = section,
     max,
     updateSection,
     title,
@@ -65,6 +71,8 @@ const SettingItem = ({
     }, [active]);
 
     if (active) {
+        // the expanded row is the same section item as the collapsed one (`<scope>:<section>`);
+        // only its testid takes the section: SettingItemMax's own `section` changes what Cancel does
         return <>{max}</>;
     }
 
@@ -75,6 +83,8 @@ const SettingItem = ({
             updateSection={updateSection}
             describe={describe}
             section={section}
+            testId={testId}
+            testKey={testKey}
             isDisabled={isDisabled}
             collapsedEditButtonWhenDisabled={collapsedEditButtonWhenDisabled}
         />

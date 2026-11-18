@@ -133,9 +133,9 @@ function toggleOnOrOffUnreadsCategory(toggleOn = true) {
     cy.get('#showUnreadsCategoryEdit').click();
 
     if (toggleOn) {
-        cy.findByTestId('showUnreadsCategoryOn').click();
+        cy.findByTestId('settings.sidebar.section.show_unreads_category.option:on--radio').click();
     } else {
-        cy.findByTestId('showUnreadsCategoryOff').click();
+        cy.findByTestId('settings.sidebar.section.show_unreads_category.option:off--radio').click();
     }
 }
 

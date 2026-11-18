@@ -45,6 +45,7 @@ const TeamSelector = (props: Props): JSX.Element => {
             legend={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}
             placeholder={formatMessage({id: 'sidebar_left.sidebar_channel_modal.select_team_placeholder', defaultMessage: 'Select Team'})}
             name='team_selector'
+            testId='convert_gm_to_channel_modal.team'
         />
     );
 };

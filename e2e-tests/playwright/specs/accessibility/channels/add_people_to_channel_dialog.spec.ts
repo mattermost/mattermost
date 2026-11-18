@@ -1,7 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, type App, duration} from '@mattermost/playwright-lib';
+
+import {highlightedUser} from './multiselect_support';
+
+/** Opens the channel's Members panel, then its Add people dialog. */
+async function openAddPeople(app: App) {
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.membersMenuItem);
+    const menu = app.channelHeader.menu;
+    await menu.membersMenuItem.click();
+    await expect(app.rhs.channelMembers).toBeVisible();
+    await expect(app.rhs.channelMembers.addButton).toBeEnabled();
+    const channelInviteModal = await app.rhs.channelMembers.addButton.clickTo(app.channelInviteModal);
+    await expect(channelInviteModal).toBeVisible();
+    return channelInviteModal;
+}
 
 /**
  * @objective Verify accessibility support in Add people to Channel Dialog screen
@@ -36,60 +50,51 @@ test(
         }
 
         // # Log in as admin
-        const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+        const {app} = await pw.testBrowser.login(adminUser);
 
         // # Visit the test channel
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel});
+        // (the first load of a new team's channel can be slow on this server)
+        await expect(app.center.postCreate.message.container).toBeVisible({timeout: duration.one_min});
 
-        // # Open channel menu and click Members
-        await channelsPage.centerView.header.openChannelMenu();
-        const membersMenuItem = page.locator('#channelMembers');
-        await membersMenuItem.click();
-
-        // # Click the Add people button
-        const membersRhs = page.locator('#rhsContainer');
-        await expect(membersRhs).toBeVisible();
-        const addMembers = membersRhs.locator('button.add-members');
-        await expect(addMembers).toBeEnabled();
-        await addMembers.click();
-
+        // # Open channel menu and click Members, then click the Add people button
         // * Verify the Add people dialog is visible
-        const dialog = page.getByRole('dialog').first();
-        await expect(dialog).toBeVisible();
+        const dialog = await openAddPeople(app);
 
         // * Verify the heading with channel name
         const modalName = `Add people to ${channel.display_name}`;
-        await expect(dialog.getByRole('heading', {name: modalName})).toBeVisible();
-        await pw.wait(pw.duration.one_sec);
+        await expect(dialog.headingText).toHaveText(modalName);
+        await expect(dialog.headingText.locator).toMatchAriaSnapshot(`- heading "${modalName}" [level=1]`);
 
         // * Verify the search input has proper accessibility attributes
-        const searchInput = dialog.getByLabel('Search for people or groups');
+        const people = dialog.users;
+        const searchInput = people.searchCombobox;
         await expect(searchInput).toBeVisible();
+        await expect(searchInput).toHaveAccessibleName('Search for people or groups');
         await expect(searchInput).toHaveAttribute('aria-autocomplete', 'list');
 
         // # Search for a text and navigate with arrow keys
-        await pw.wait(pw.duration.half_sec);
         await searchInput.fill('u');
-        await pw.wait(pw.duration.half_sec);
+        await expect(searchInput).toHaveValue('u');
+        await expect.poll(async () => (await people.results.userList.keys()).length).toBeGreaterThan(0);
 
         // # Navigate down through the list
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('ArrowDown');
-        await page.keyboard.press('ArrowUp');
+        await searchInput.press('ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowUp');
 
         // * Verify the selected row has the correct class
-        const selectedRow = dialog.locator('#multiSelectList').locator('.more-modal__row--selected');
+        await expect(async () => {
+            await highlightedUser(people.results);
+        }).toPass();
+        const selectedRow = await highlightedUser(people.results);
         await expect(selectedRow).toBeVisible();
 
         // * Verify image alt is displayed for user profile
-        const avatar = selectedRow.locator('img.Avatar');
+        // eslint-disable-next-line test-surface/e2e-no-literal-locators -- the avatar's accessible name (its alt text) is the thing under test
+        const avatar = selectedRow.locator.getByRole('img', {name: 'user profile image'});
         await expect(avatar).toHaveAttribute('alt', 'user profile image');
 
         // * Verify screen reader live region exists and has proper attributes
-        const srOnlyRegion = dialog.locator('.filtered-user-list div.sr-only:not([role="status"])');
+        const srOnlyRegion = people.results.selectionText;
         await expect(srOnlyRegion).toHaveAttribute('aria-live', 'polite');
         await expect(srOnlyRegion).toHaveAttribute('aria-atomic', 'true');
 
@@ -97,9 +102,9 @@ test(
         await searchInput.fill('somethingwhichdoesnotexist');
 
         // * Check if the no results message is displayed with proper accessibility
-        const noResultsMessage = dialog.getByText(/No matches found|No results found matching/i);
-        await expect(noResultsMessage).toBeVisible();
-        const noResultsWrapper = dialog.locator('.multi-select__wrapper');
+        const noResultsWrapper = people.results.liveRegion;
+        await expect(people.results.noResultsText).toBeVisible();
+        await expect(people.results.noResultsText).toContainText(/No matches found|No results found matching/i);
         await expect(noResultsWrapper).toHaveAttribute('aria-live', 'polite');
     },
 );
@@ -133,28 +138,16 @@ test(
         }
 
         // # Log in as admin
-        const {page, channelsPage} = await pw.testBrowser.login(adminUser);
+        const {app, page} = await pw.testBrowser.login(adminUser);
 
         // # Visit the test channel
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        await app.channelsPage.goto({team, channel});
+        // (the first load of a new team's channel can be slow on this server)
+        await expect(app.center.postCreate.message.container).toBeVisible({timeout: duration.one_min});
 
-        // # Open channel menu and click Members
-        await channelsPage.centerView.header.openChannelMenu();
-        const membersMenuItem = page.locator('#channelMembers');
-        await membersMenuItem.click();
-
-        // # Click the Add people button
-        const membersRhs = page.locator('#rhsContainer');
-        await expect(membersRhs).toBeVisible();
-        const addMembers = membersRhs.locator('button.add-members');
-        await expect(addMembers).toBeEnabled();
-        await addMembers.click();
-
+        // # Open channel menu and click Members, then click the Add people button
         // * Verify the Add people dialog is visible
-        const dialog = page.getByRole('dialog').first();
-        await expect(dialog).toBeVisible();
-        await pw.wait(pw.duration.one_sec);
+        const dialog = await openAddPeople(app);
 
         // * Verify aria snapshot of Add people to Channel dialog
         await expect(dialog).toMatchAriaSnapshot(`

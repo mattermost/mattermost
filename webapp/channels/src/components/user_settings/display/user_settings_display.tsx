@@ -71,6 +71,9 @@ type Option = {
 
 type SectionProps = {
     section: string;
+
+    /** The scope of this setting's radio options (`settings.display.section.<setting>`). */
+    testIdScope: string;
     display: string;
     defaultDisplay: string;
     value: string;
@@ -389,6 +392,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     createSection(props: SectionProps) {
         const {
             section,
+            testIdScope,
             display,
             value,
             title,
@@ -504,6 +508,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                 thirdSection = (
                     <Radio
                         id={name + 'C'}
+                        data-testid={`${testIdScope}.option:${thirdOption.value}--radio`}
                         name={name}
                         checked={format[2]}
                         onChange={(e) => this.handleOnChange(e, thirdDisplay)}
@@ -552,6 +557,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                     <div className='settings-radio-group'>
                         <Radio
                             id={name + 'A'}
+                            data-testid={`${testIdScope}.option:${firstOption.value}--radio`}
                             name={name}
                             checked={format[0]}
                             onChange={(e) => this.handleOnChange(e, firstDisplay)}
@@ -562,6 +568,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
                         </Radio>
                         <Radio
                             id={name + 'B'}
+                            data-testid={`${testIdScope}.option:${secondOption.value}--radio`}
                             name={name}
                             checked={format[1]}
                             onChange={(e) => this.handleOnChange(e, secondDisplay)}
@@ -594,6 +601,8 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             }
             max = (
                 <SettingItemMax
+                    testIdScope='settings.display.section'
+                    testKey={section}
                     title={messageTitle}
                     inputs={inputs}
                     submit={submit}
@@ -616,6 +625,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         return (
             <div>
                 <SettingItem
+                    testId='settings.display.section'
                     active={active}
                     areAllSectionsInactive={this.props.activeSection === ''}
                     title={messageTitle}
@@ -632,6 +642,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
     render() {
         const collapseSection = this.createSection({
             section: 'collapse',
+            testIdScope: 'settings.display.section.collapse_display',
             display: 'collapseDisplay',
             value: this.state.collapseDisplay,
             defaultDisplay: 'false',
@@ -668,6 +679,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.enableLinkPreviews) {
             linkPreviewSection = this.createSection({
                 section: 'linkpreview',
+                testIdScope: 'settings.display.section.link_previews',
                 display: 'linkPreviewDisplay',
                 value: this.state.linkPreviewDisplay,
                 defaultDisplay: 'true',
@@ -708,6 +720,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.lastActiveTimeEnabled) {
             lastActiveSection = this.createSection({
                 section: 'lastactive',
+                testIdScope: 'settings.display.section.last_active',
                 display: 'lastActiveDisplay',
                 value: this.state.lastActiveDisplay,
                 defaultDisplay: 'true',
@@ -743,6 +756,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const clockSection = this.createSection({
             section: 'clock',
+            testIdScope: 'settings.display.section.clock',
             display: 'militaryTime',
             value: this.state.militaryTime,
             defaultDisplay: 'false',
@@ -776,6 +790,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const teammateNameDisplaySection = this.createSection({
             section: Preferences.NAME_NAME_FORMAT,
+            testIdScope: 'settings.display.section.teammate_name_display',
             display: 'teammateNameDisplay',
             value: this.props.lockTeammateNameDisplay ? this.props.configTeammateNameDisplay : this.state.teammateNameDisplay,
             defaultDisplay: this.props.configTeammateNameDisplay,
@@ -819,6 +834,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const availabilityStatusOnPostsSection = this.createSection({
             section: 'availabilityStatus',
+            testIdScope: 'settings.display.section.availability_status',
             display: 'availabilityStatusOnPosts',
             value: this.state.availabilityStatusOnPosts,
             defaultDisplay: 'true',
@@ -870,6 +886,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
             timezoneSelection = (
                 <div>
                     <SettingItem
+                        testId='settings.display.section'
                         active={active}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         title={
@@ -890,6 +907,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const messageDisplaySection = this.createSection({
             section: Preferences.MESSAGE_DISPLAY,
+            testIdScope: 'settings.display.section.message_display',
             display: 'messageDisplay',
             value: this.state.messageDisplay,
             defaultDisplay: Preferences.MESSAGE_DISPLAY_CLEAN,
@@ -946,6 +964,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.collapsedReplyThreadsAllowUserPreference) {
             collapsedReplyThreads = this.createSection({
                 section: Preferences.COLLAPSED_REPLY_THREADS,
+                testIdScope: 'settings.display.section.collapsed_reply_threads',
                 display: 'collapsedReplyThreads',
                 value: this.state.collapsedReplyThreads,
                 defaultDisplay: Preferences.COLLAPSED_REPLY_THREADS_FALLBACK_DEFAULT,
@@ -980,6 +999,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const clickToReply = this.createSection({
             section: Preferences.CLICK_TO_REPLY,
+            testIdScope: 'settings.display.section.click_to_reply',
             display: 'clickToReply',
             value: this.state.clickToReply,
             defaultDisplay: 'true',
@@ -1013,6 +1033,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const channelDisplayModeSection = this.createSection({
             section: Preferences.CHANNEL_DISPLAY_MODE,
+            testIdScope: 'settings.display.section.channel_display_mode',
             display: 'channelDisplayMode',
             value: this.state.channelDisplayMode,
             defaultDisplay: Preferences.CHANNEL_DISPLAY_MODE_FULL_SCREEN,
@@ -1046,6 +1067,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
 
         const collapseCategoryWithUnreadsSection = this.createSection({
             section: Preferences.COLLAPSE_CATEGORY_WITH_UNREADS,
+            testIdScope: 'settings.display.section.collapse_category_with_unreads',
             display: 'collapseCategoryWithUnreads',
             value: this.state.collapseCategoryWithUnreads,
             defaultDisplay: Preferences.COLLAPSE_CATEGORY_WITH_UNREADS_DEFAULT,
@@ -1084,6 +1106,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         languagesSection = (
             <div>
                 <SettingItem
+                    testId='settings.display.section'
                     active={this.props.activeSection === 'languages'}
                     areAllSectionsInactive={this.props.activeSection === ''}
                     title={
@@ -1132,6 +1155,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         if (this.props.emojiPickerEnabled) {
             oneClickReactionsOnPostsSection = this.createSection({
                 section: Preferences.ONE_CLICK_REACTIONS_ENABLED,
+                testIdScope: 'settings.display.section.one_click_reactions',
                 display: 'oneClickReactionsOnPosts',
                 value: this.state.oneClickReactionsOnPosts,
                 defaultDisplay: 'true',
@@ -1167,6 +1191,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         const renderEmoticonsAsEmojiSection = (
             <div>
                 <SettingItem
+                    testId='settings.display.section'
                     active={this.props.activeSection === 'renderEmoticonsAsEmoji'}
                     areAllSectionsInactive={this.props.activeSection === ''}
                     title={
@@ -1205,6 +1230,7 @@ export default class UserSettingsDisplay extends React.PureComponent<Props, Stat
         return (
             <div
                 id='displaySettings'
+                data-testid='settings.panel:display--tabpanel'
                 aria-labelledby='displayButton'
                 role='tabpanel'
             >

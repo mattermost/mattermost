@@ -164,6 +164,7 @@ export default class EditCommand extends React.PureComponent<Props, State> {
 
         return (
             <ConfirmModal
+                testId='integrations.edit_command.confirm_modal'
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
@@ -177,7 +178,7 @@ export default class EditCommand extends React.PureComponent<Props, State> {
 
     public render(): JSX.Element {
         if (!this.state.originalCommand) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='edit_command.loading_screen'/>;
         }
 
         return (

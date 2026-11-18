@@ -106,7 +106,7 @@ describe('InvitationModal', () => {
             <InvitationModal {...props}/>,
             state,
         );
-        expect(screen.getByTestId('inviteButton')).toBeInTheDocument();
+        expect(screen.getByTestId('invitation_modal.invite.send--button')).toBeInTheDocument();
     });
 
     it('shows result view when view state is result', () => {
@@ -124,7 +124,7 @@ describe('InvitationModal', () => {
             ref.current!.setState({view: View.RESULT});
         });
 
-        expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
+        expect(screen.getByTestId('invitation_modal.result.done--button')).toBeInTheDocument();
     });
 
     it('shows no permissions view when user can neither invite users nor guests', () => {
@@ -138,7 +138,7 @@ describe('InvitationModal', () => {
             state,
         );
 
-        expect(screen.getByTestId('confirm-done')).toBeInTheDocument();
+        expect(screen.getByTestId('invitation_modal.no_permissions.done--button')).toBeInTheDocument();
     });
 
     it('filters out policy_enforced channels when inviting guests', async () => {

@@ -27,8 +27,8 @@ const TeamDescriptionSection = ({handleDescriptionChanges, clientError, descript
 
     const descriptionSectionInput = (
         <Input
+            testId='team_settings_modal.info.description'
             id='teamDescription'
-            data-testid='teamDescriptionInput'
             containerClassName='description-section-input'
             type='textarea'
             maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
@@ -47,6 +47,7 @@ const TeamDescriptionSection = ({handleDescriptionChanges, clientError, descript
             content={descriptionSectionInput}
             className='description-setting-item'
             error={clientError}
+            dataTestId='team_settings_modal.info.description_section'
         />
     );
 };

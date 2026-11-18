@@ -84,7 +84,7 @@ function getInvitePeopleLink(settings: TestSettings) {
 
     stubClipboard().as('clipboard');
     cy.checkInvitePeoplePage();
-    cy.findByTestId('InviteView__copyInviteLink').click();
+    cy.findByTestId('invitation_modal.invite.copy_link--button').click();
     return cy.get('@clipboard').its('contents').then((text) => {
         // # Close Invite People modal
         cy.uiClose();
