@@ -1236,6 +1236,7 @@ type PropertyFieldStore interface {
 	GetFieldOptions(field *model.PropertyField, cursorCreateAt int64, cursorID string, perPage int, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPage, error)
 	GetOptionsByID(field *model.PropertyField, optionIDs []string) ([]*model.PropertyFieldOption, error)
 	GetOptionsByName(field *model.PropertyField, names []string) ([]*model.PropertyFieldOption, error)
+	GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error)
 	GetLinkedFieldOptionNames(fieldID string, names []string) (map[string]string, error)
 	CountOptions(fieldID string) (int, error)
 	MutateOptions(groupID, fieldID string, expectedUpdateAt int64, upsert []*model.PropertyFieldOption, add, remove []*model.PropertyOptionEdge) error

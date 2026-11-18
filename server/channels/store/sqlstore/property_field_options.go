@@ -613,6 +613,45 @@ func (s *SqlPropertyFieldStore) GetOptionsByName(field *model.PropertyField, nam
 	return s.getFieldOptionsWhere(field, "Name", names)
 }
 
+// GetOptionRanks returns the rank of each given option that is live in the
+// field's effective option set and has one, as option ID -> rank. Everything else
+// is absent from the map: an ID the set lacks, a deleted option, and an option
+// that carries no rank -- which callers read as "ranks nowhere", so the absence
+// has to stay distinguishable from rank 0.
+//
+// A separate lookup because an option read drops the rank on purpose, and a field
+// past model.PropertyFieldMaxHydratedOptions carries no inline option list to
+// read it from.
+func (s *SqlPropertyFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	type ranked struct {
+		ID   string
+		Rank *int64
+	}
+
+	ranks := make(map[string]int64, len(optionIDs))
+	if field == nil {
+		return ranks, nil
+	}
+	for batch := range slices.Chunk(optionIDs, maxOptionIDsPerQuery) {
+		builder := s.getQueryBuilder().
+			Select("ID", "Rank").
+			From("PropertyOptions").
+			Where(sq.Eq{"FieldID": optionOwnerIDs(field)}).
+			Where(sq.Eq{"ID": batch}).
+			Where(sq.Eq{"DeleteAt": 0}).
+			Where(sq.NotEq{"Rank": nil})
+
+		rows := []*ranked{}
+		if err := s.GetMaster().SelectBuilder(&rows, builder); err != nil {
+			return nil, errors.Wrap(err, "property_options_ranks_query")
+		}
+		for _, row := range rows {
+			ranks[row.ID] = *row.Rank
+		}
+	}
+	return ranks, nil
+}
+
 // getFieldOptionsWhere runs one lookup over a field's effective option set,
 // matching the given column against the given keys, with no parent information.
 //
