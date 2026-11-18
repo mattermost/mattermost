@@ -1498,6 +1498,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(menu).toHaveClass('agent-composer-menu-button');
             expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--agent');
+            const controls = document.querySelector('.AdvancedTextEditor__agent-controls');
+            const textbox = screen.getByTestId('post_textbox');
+            expect(controls).toContainElement(plus);
+            expect(controls).toContainElement(send);
+            expect(textbox.compareDocumentPosition(controls!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(plus.compareDocumentPosition(document.querySelector('.AutoHeight')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
 
@@ -1567,6 +1572,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             });
             const textbox = screen.getByTestId('post_textbox');
             const bar = screen.getByTestId('formattingBarContainer');
+            const controls = document.querySelector('.AdvancedTextEditor__agent-controls');
+            expect(controls).toContainElement(bar);
             expect(textbox.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();

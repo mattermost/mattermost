@@ -893,8 +893,8 @@ const AdvancedTextEditor = ({
     }, [isInEditMode, isRHS]);
 
     // Channel composers reserve a row under long, previewed, RHS, and thread
-    // messages so the overlaid controls clear the text. Agent mode keeps the
-    // controls on the text line and the formatting bar under that line.
+    // messages so the overlaid controls clear the text. Agent mode keeps a
+    // real row under the text for the +, formatting, and send.
     const showFormattingSpacer = !agentMode && (isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView);
 
     const messageEditor = wysiwygEnabled ? (
@@ -942,60 +942,58 @@ const AdvancedTextEditor = ({
         />
     );
 
-    // The + and send share a positioned box with the text in agent mode, so
-    // they stay on that line when the formatting bar opens underneath.
-    const plusAndSend = showPlus && (
-        <>
-            {/* Keep the input rendered. `hidden` is display:none, and Safari will not open a file dialog from that. */}
-            <div className='AdvancedTextEditor__agent-file-input'>
-                {fileUploadJSX}
-            </div>
-            <div
-                className='AdvancedTextEditor__plus'
-                data-testid='composer-plus'
-            >
-                {!isInEditMode && canSetBurnOnRead && (
-                    <BurnOnReadTourTip
-                        anchorId='agentComposerMenuButton'
-                        onTryItOut={() => handleBurnOnReadApply(true)}
-                    />
-                )}
-                <AgentComposerMenu
-                    canAttach={canUploadFiles}
-                    attachDisabled={uploadDisabledByPolicy}
-                    onAttach={openFileDialog}
-                    enableEmojiPicker={enableEmojiPicker}
-                    emojiDisabled={showPreview}
-                    onEmoji={toggleEmojiPicker}
-                    showAttributes={postAttributesEnabled && !isInEditMode}
-                    formattingDisabled={showPreview}
-                    onToggleFormatting={toggleAdvanceTextEditor}
-                    emojiAnchorRef={setEmojiReference}
-                    priorityItem={isInEditMode ? null : priorityAdditionalControl}
-                    burnOnRead={!isInEditMode && canSetBurnOnRead ? {
-                        on: hasBurnOnReadSet,
-                        disabled: showPreview,
-                        onToggle: () => handleBurnOnReadApply(!hasBurnOnReadSet),
-                    } : null}
-                    aiActions={hasAIActionsMenu ? {
-                        draft,
-                        getSelectedText,
-                        updateText,
-                        channelId,
-                        isRHS: location === Locations.RHS_COMMENT,
-                        rewriteMenuProps,
-                        aiRewriteEnabled,
-                    } : null}
+    const fileInput = showPlus && (
+        <div className='AdvancedTextEditor__agent-file-input'>
+            {fileUploadJSX}
+        </div>
+    );
+    const plusButton = showPlus && (
+        <div
+            className='AdvancedTextEditor__plus'
+            data-testid='composer-plus'
+        >
+            {!isInEditMode && canSetBurnOnRead && (
+                <BurnOnReadTourTip
+                    anchorId='agentComposerMenuButton'
+                    onTryItOut={() => handleBurnOnReadApply(true)}
                 />
-            </div>
-            {emojiPickerPortal}
-            <TexteditorActions
-                ref={editorActionsRef}
-                placement='bottom'
-            >
-                {sendControl}
-            </TexteditorActions>
-        </>
+            )}
+            <AgentComposerMenu
+                canAttach={canUploadFiles}
+                attachDisabled={uploadDisabledByPolicy}
+                onAttach={openFileDialog}
+                enableEmojiPicker={enableEmojiPicker}
+                emojiDisabled={showPreview}
+                onEmoji={toggleEmojiPicker}
+                showAttributes={postAttributesEnabled && !isInEditMode}
+                formattingDisabled={showPreview}
+                onToggleFormatting={toggleAdvanceTextEditor}
+                emojiAnchorRef={setEmojiReference}
+                priorityItem={isInEditMode ? null : priorityAdditionalControl}
+                burnOnRead={!isInEditMode && canSetBurnOnRead ? {
+                    on: hasBurnOnReadSet,
+                    disabled: showPreview,
+                    onToggle: () => handleBurnOnReadApply(!hasBurnOnReadSet),
+                } : null}
+                aiActions={hasAIActionsMenu ? {
+                    draft,
+                    getSelectedText,
+                    updateText,
+                    channelId,
+                    isRHS: location === Locations.RHS_COMMENT,
+                    rewriteMenuProps,
+                    aiRewriteEnabled,
+                } : null}
+            />
+        </div>
+    );
+    const sendActions = showPlus && (
+        <TexteditorActions
+            ref={editorActionsRef}
+            placement='bottom'
+        >
+            {sendControl}
+        </TexteditorActions>
     );
 
     const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
@@ -1064,29 +1062,37 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
-                        {agentMode && attachmentPreview}
+                        {messageEditor}
+                        {attachmentPreview}
                         {agentMode ? (
-                            <div className='AdvancedTextEditor__agent-line'>
-                                {messageEditor}
-                                {plusAndSend}
-                            </div>
-                        ) : messageEditor}
-                        {agentMode && formattingBar}
-                        {attachmentPreview && !agentMode}
-                        {!agentMode && !isDisabled && (showFormattingBar || showPreview) && (
-                            <TexteditorActions
-                                placement='top'
-                                isScrollbarRendered={renderScrollbar}
-                            >
-                                {showFormatJSX}
-                            </TexteditorActions>
-                        )}
-                        {showFormattingSpacer && !agentMode ? (
-                            <FormattingBarSpacer>
+                            <div className='AdvancedTextEditor__agent-controls'>
+                                {fileInput}
+                                {plusButton}
                                 {formattingBar}
-                            </FormattingBarSpacer>
-                        ) : (!agentMode && formattingBar)}
-                        {!agentMode && plusAndSend}
+                                {showPlus && emojiPickerPortal}
+                                {sendActions}
+                            </div>
+                        ) : (
+                            <>
+                                {!isDisabled && (showFormattingBar || showPreview) && (
+                                    <TexteditorActions
+                                        placement='top'
+                                        isScrollbarRendered={renderScrollbar}
+                                    >
+                                        {showFormatJSX}
+                                    </TexteditorActions>
+                                )}
+                                {showFormattingSpacer ? (
+                                    <FormattingBarSpacer>
+                                        {formattingBar}
+                                    </FormattingBarSpacer>
+                                ) : formattingBar}
+                                {fileInput}
+                                {plusButton}
+                                {showPlus && emojiPickerPortal}
+                                {sendActions}
+                            </>
+                        )}
                     </div>
                     {showSendTutorialTip && (
                         <SendMessageTour

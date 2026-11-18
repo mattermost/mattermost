@@ -54,8 +54,7 @@
     }
 
     // A thread or the RHS pins the formatting bar to the bottom of the cell.
-    // Agent mode keeps the bar in the flow, under the text line, so opening
-    // it does not cover the + and send.
+    // Agent mode keeps that bar in the control row under the text.
     .sidebar--right &--agent,
     .ThreadViewer &--agent {
         .AutoHeight {
@@ -97,6 +96,11 @@
     // multiple lines. At that point, leave space below the text as if the controls were still there.
     &.formatting-bar {
         --right-padding-for-preview-button: 32px;
+    }
+
+    // Agent mode has no preview button on the text. The controls are the row below it.
+    &--agent.formatting-bar {
+        --right-padding-for-preview-button: 0px;
     }
 
     &__body {
@@ -228,24 +232,21 @@
         }
     }
 
-    // Agent mode positions the + and send against this line, then renders the
-    // formatting bar after it.
-    &__agent-line {
+    // Agent mode: the text is the top row. This row under it holds the +,
+    // the formatting bar, and send. The buttons stay absolute against this
+    // row, so they line up with the formatting controls.
+    &__agent-controls {
         position: relative;
+        min-height: 46px;
+
+        [data-testid='formattingBarContainer'] {
+            padding-right: 62px;
+            padding-left: 46px;
+        }
     }
 
     // On a channel composer the + overlays the left of the formatting bar.
     &--plus:not(&--agent) [data-testid='formattingBarContainer'] {
-        padding-left: 46px;
-    }
-
-    // Agent mode is one line: the + and send sit on the text, and the text
-    // stays between them. The measurement clone is not a textarea, so this
-    // padding does not change the width used to decide a long message.
-    &--agent textarea.custom-textarea,
-    &--agent .textbox-preview-area,
-    &--agent .WysiwygEditor .ProseMirror {
-        padding-right: 62px;
         padding-left: 46px;
     }
 
