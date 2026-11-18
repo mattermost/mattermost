@@ -191,12 +191,12 @@ const ThreadList = ({
         ],
     });
 
-    // The default width depends on the window width and layout, so it is read from the GlobalThreads CSS.
-    const getDefaultWidth = () => {
+    // The default width depends on the window width and layout, so it is read from the GlobalThreads CSS when a drag starts.
+    const getDefaultWidth = useCallback(() => {
         const globalThreads = ref.current?.parentElement;
         const cssDefault = globalThreads ? parseInt(getComputedStyle(globalThreads).getPropertyValue('--list-default-width'), 10) : NaN;
         return Number.isNaN(cssDefault) ? DEFAULT_THREADS_LIST_WIDTH : cssDefault;
-    };
+    }, []);
 
     // The list's column width is set on the GlobalThreads grid, so mirror the width there while dragging.
     const handleResize = useCallback((_: number, cssVarProp: string, cssVarValue: string) => {
@@ -310,7 +310,7 @@ const ThreadList = ({
                 className='ThreadList__resizeHandle'
                 name='threadsListResizeHandle'
                 globalCssVar={CssVarKeyForResizable.THREADS_LIST}
-                defaultWidth={getDefaultWidth()}
+                defaultWidth={getDefaultWidth}
                 dir={ResizeDirection.LEFT}
                 containerRef={ref}
                 onResize={handleResize}

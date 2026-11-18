@@ -12,7 +12,7 @@ import ResizableDivider from './resizable_divider';
 describe('components/resizable_sidebar/ResizableDivider', () => {
     const dividerId = 'resizable-divider';
 
-    function TestWrapper(props: {onResizeStart: jest.Mock}) {
+    function TestWrapper(props: {onResizeStart?: jest.Mock; onResizeEnd?: jest.Mock; defaultWidth?: number | (() => number)}) {
         const containerRef = useRef<HTMLDivElement>(null);
 
         return (
@@ -20,11 +20,12 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
                 <ResizableDivider
                     id={dividerId}
                     name='test'
-                    defaultWidth={240}
+                    defaultWidth={props.defaultWidth ?? 240}
                     globalCssVar={CssVarKeyForResizable.LHS}
                     dir={ResizeDirection.LEFT}
                     containerRef={containerRef}
                     onResizeStart={props.onResizeStart}
+                    onResizeEnd={props.onResizeEnd}
                 />
             </div>
         );
@@ -58,5 +59,31 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
         fireEvent.mouseDown(divider, {button: 2});
 
         expect(onResizeStart).not.toHaveBeenCalled();
+    });
+
+    test('should read a default width function when each drag starts', () => {
+        const defaultWidth = jest.fn(() => 368);
+        const {container} = renderWithContext(<TestWrapper defaultWidth={defaultWidth}/>);
+
+        expect(defaultWidth).not.toHaveBeenCalled();
+
+        const divider = container.querySelector(`#${dividerId}`)!;
+        fireEvent.mouseDown(divider, {button: 0});
+        fireEvent.mouseUp(window);
+        fireEvent.mouseDown(divider, {button: 0});
+        fireEvent.mouseUp(window);
+
+        expect(defaultWidth).toHaveBeenCalledTimes(2);
+    });
+
+    test('should call onResizeEnd when a drag ends even if the container has no width', () => {
+        const onResizeEnd = jest.fn();
+        const {container} = renderWithContext(<TestWrapper onResizeEnd={onResizeEnd}/>);
+
+        const divider = container.querySelector(`#${dividerId}`)!;
+        fireEvent.mouseDown(divider, {button: 0});
+        fireEvent.mouseUp(window);
+
+        expect(onResizeEnd).toHaveBeenCalledWith(0, '--overrideLhsWidth', '0px');
     });
 });
