@@ -52,7 +52,6 @@ var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Report current health findings",
 	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
-		"Findings are grouped by severity, then listed as could not be evaluated, muted, and resolved. Each finding appears in one group only: a muted finding that resolved is listed as resolved.\n\n" +
 		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.",
 	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip",
 	Args:    cobra.NoArgs,

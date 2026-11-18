@@ -11,8 +11,6 @@ Synopsis
 
 Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.
 
-Findings are grouped by severity, then listed as could not be evaluated, muted, and resolved. Each finding appears in one group only: a muted finding that resolved is listed as resolved.
-
 With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.
 
 ::
