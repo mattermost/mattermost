@@ -126,6 +126,9 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
     const [urlFilters] = useState(() => parseUrlFilters(history.location.search, PRESET_MINUTES));
     const [isPlainLogs, setIsPlainLogs] = useState(() => getInitialFormat(configIsPlainLogs, Object.keys(urlFilters).length > 0));
     const [loading, setLoading] = useState(true);
+
+    // After a failed reload the store still holds the previous logs, which no longer match the filters
+    const [loadFailed, setLoadFailed] = useState(false);
     const [search, setSearch] = useState(urlFilters.search ?? '');
     const [initialPrefs] = useState(loadPrefs);
     const [enabledLevels, setEnabledLevels] = useState(() => urlFilters.enabledLevels ?? new Set(initialPrefs.enabledLevels));
@@ -242,6 +245,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
         let signal: AbortSignal | undefined;
         if (!silent) {
             setLoading(true);
+            setLoadFailed(false);
             reloadAbortRef.current?.abort();
             reloadAbortRef.current = new AbortController();
             signal = reloadAbortRef.current.signal;
@@ -288,6 +292,8 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
             const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query, signal));
             if (!result?.error) {
                 lastFetchStartRef.current = startedAt;
+            } else if (!silent && id === latestFetchRef.current && !signal?.aborted) {
+                setLoadFailed(true);
             }
         };
 
@@ -362,6 +368,7 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
         <LogList
             key={viewKey}
             loading={loading}
+            filteredDownloadReady={!loading && !loadFailed}
             logs={logs}
             truncatedNodes={truncatedLogNodes}
             scanLimitedNodes={scanLimitedLogNodes}

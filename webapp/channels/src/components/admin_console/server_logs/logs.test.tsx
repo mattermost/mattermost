@@ -493,6 +493,50 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         expect(getLogs.mock.calls[1][0].dateFrom).not.toBe('');
     });
 
+    describe('filtered download', () => {
+        function filteredItem() {
+            return screen.getByRole('menuitem', {name: /^Filtered entries/});
+        }
+
+        async function openDownloadMenu() {
+            await userEvent.click(screen.getByLabelText('Open menu to download the logs'));
+        }
+
+        function renderWithEntries(getLogs: jest.Mock) {
+            return renderWithContext(
+                <Logs
+                    logs={[{caller: 'c', level: 'info', msg: 'm', timestamp: '2026-03-12T10:00:01.000Z'} as never]}
+                    logNodes={[]}
+                    truncatedLogNodes={[]}
+                    plainLogs={[]}
+                    isPlainLogs={false}
+                    plugins={{}}
+                    actions={{getLogs, getNewLogs: jest.fn().mockResolvedValue({}), getPlainLogs: jest.fn().mockResolvedValue({})}}
+                />,
+            );
+        }
+
+        test('should be disabled while a reload is pending and enabled after it succeeds', async () => {
+            const pending = deferred();
+            renderWithEntries(jest.fn().mockReturnValue(pending.promise));
+            await openDownloadMenu();
+            expect(filteredItem()).toHaveAttribute('aria-disabled', 'true');
+
+            await act(async () => {
+                pending.resolve();
+            });
+            await waitFor(() => expect(filteredItem()).not.toHaveAttribute('aria-disabled', 'true'));
+        });
+
+        test('should stay disabled after a failed reload', async () => {
+            renderWithEntries(jest.fn().mockResolvedValue({error: {message: 'failed'}}));
+            await openDownloadMenu();
+
+            await waitFor(() => expect(screen.queryByText('Loading')).not.toBeInTheDocument());
+            expect(filteredItem()).toHaveAttribute('aria-disabled', 'true');
+        });
+    });
+
     test('should send the search with the query', async () => {
         const getLogs = jest.fn().mockResolvedValue({});
         renderLogs(getLogs);

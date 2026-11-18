@@ -29,10 +29,11 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import {useLatest} from 'hooks/useLatest';
 
 import CustomRangeModal from './custom_range_modal';
+import FilteredDownloadItem, {createFilteredDownloadStore} from './filtered_download_item';
 import KeyboardHints from './keyboard_hints';
 import LogRow from './log_row';
 import type {CustomTimeRange, LogObjectWithAdditionalInfo, PluginOption, ScanLimitedLogNode, TimeRange} from './types';
-import {FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, downloadTextFile, filteredLogsFilename, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, logsToJsonLines, newestLogTimes, nextDayStart} from './utils';
+import {FIELD_MAX_VALUES, LEVEL_GROUPS, SEARCH_MAX_LENGTH, levelGroup, logRowTimeFormat, logRowTimeLength, logsNeedDate, newestLogTimes, nextDayStart} from './utils';
 
 import './log_list.scss';
 
@@ -43,6 +44,9 @@ type TimePreset = {
 
 type Props = {
     loading: boolean;
+
+    // False while the logs may not match the filters: a reload is pending, or the last one failed
+    filteredDownloadReady?: boolean;
     logs: LogObjectWithAdditionalInfo[];
 
     // Nodes that returned a full page, leaving out their older entries, so the total is a lower bound
@@ -246,7 +250,7 @@ DownloadMenuTrigger.displayName = 'DownloadMenuTrigger';
 const NO_SCAN_LIMITED_NODES: ScanLimitedLogNode[] = [];
 
 export default function LogList({
-    loading, logs, truncatedNodes, scanLimitedNodes = NO_SCAN_LIMITED_NODES, onSearchChange, search,
+    loading, filteredDownloadReady = true, logs, truncatedNodes, scanLimitedNodes = NO_SCAN_LIMITED_NODES, onSearchChange, search,
     enabledLevels, onEnabledLevelsChange: setEnabledLevels,
     nodes, selectedNode, onSelectedNodeChange,
     plugins, selectedPlugins, onSelectedPluginsChange,
@@ -371,6 +375,12 @@ export default function LogList({
 
     const allLevelsEnabled = useMemo(() => LEVEL_GROUPS.every((level) => enabledLevels.has(level)), [enabledLevels]);
 
+    // The entries a filtered download holds, in file order. Sorting for the viewer would reverse same-time ties
+    const exportLogs = useMemo(
+        () => filterLogs(scopedLogs, enabledLevels).filter((log) => log.failed_node !== true),
+        [scopedLogs, enabledLevels],
+    );
+
     const processedLogs = useMemo(() => {
         // Ties fall back to file order so same-millisecond entries reverse too
         const direction = sortAsc ? 1 : -1;
@@ -417,10 +427,13 @@ export default function LogList({
     const truncated = truncatedNodes.some((node) => !selectedNode || node === selectedNode);
     const scanLimited = scanLimitedNodes.filter(({node}) => !selectedNode || node === selectedNode);
 
-    // What's on screen, minus the paging. Search and plugin filters were applied by the server
-    const handleDownloadFiltered = useCallback(() => {
-        downloadTextFile(filteredLogsFilename(), logsToJsonLines(processedLogs));
-    }, [processedLogs]);
+    // The menu item reads this rather than props, since on mobile the menu shows a copy made when it opened.
+    // Search and plugin filters were applied by the server
+    const partialExport = truncated || scanLimited.length > 0;
+    const [downloadStore] = useState(() => createFilteredDownloadStore({rows: exportLogs, partial: partialExport, ready: filteredDownloadReady}));
+    useLayoutEffect(() => {
+        downloadStore.set({rows: exportLogs, partial: partialExport, ready: filteredDownloadReady});
+    }, [downloadStore, exportLogs, partialExport, filteredDownloadReady]);
 
     const totalPages = Math.max(1, Math.ceil(processedLogs.length / pageSize));
     const startIndex = page * pageSize;
@@ -1031,31 +1044,7 @@ export default function LogList({
                         />
                     }
                 />
-                <Menu.Item
-                    id='serverLogsDownloadFiltered'
-                    disabled={processedLogs.length === 0}
-                    forceCloseOnSelect={true}
-                    labels={
-                        <>
-                            <span>
-                                <FormattedMessage
-                                    id='admin.logs.download.filtered'
-                                    defaultMessage='Filtered entries ({count, number})'
-                                    values={{count: processedLogs.length}}
-                                />
-                            </span>
-                            {(truncated || scanLimited.length > 0) && (
-                                <span>
-                                    <FormattedMessage
-                                        id='admin.logs.download.filteredPartial'
-                                        defaultMessage='Only the loaded entries are included'
-                                    />
-                                </span>
-                            )}
-                        </>
-                    }
-                    onClick={handleDownloadFiltered}
-                />
+                <FilteredDownloadItem store={downloadStore}/>
             </Menu.Container>
         </div>
     );

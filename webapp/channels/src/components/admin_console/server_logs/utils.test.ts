@@ -129,6 +129,17 @@ describe('components/admin_console/server_logs/utils', () => {
             expect(lines.map((line) => JSON.parse(line).msg)).toEqual(['second', 'first']);
         });
 
+        test('should put entries without a readable time last, in input order', () => {
+            const lines = logsToJsonLines([
+                entry('bad1', 'not a time'),
+                entry('late', '2026-03-12T10:00:02.000Z'),
+                entry('bad2', ''),
+                entry('early', '2026-03-12T10:00:01.000Z'),
+            ]).split('\n');
+
+            expect(lines.map((line) => JSON.parse(line).msg)).toEqual(['early', 'late', 'bad1', 'bad2']);
+        });
+
         test('should add a node field only when the entry has a node', () => {
             const lines = logsToJsonLines([
                 {...entry('a', '2026-03-12T10:00:01.000Z'), [LogNodeKey]: 'node-a'},

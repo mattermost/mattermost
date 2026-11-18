@@ -112,7 +112,15 @@ export function logsToJsonLines(logs: LogObjectWithAdditionalInfo[]): string {
     return logs.
         filter((log) => log.failed_node !== true).
         map((log, index) => ({log, index, time: logEntryTime(log)})).
-        sort((a, b) => (a.time - b.time) || (a.index - b.index)).
+        sort((a, b) => {
+            // Entries without a readable time go last, in input order, so the comparator stays consistent
+            const aValid = !Number.isNaN(a.time);
+            const bValid = !Number.isNaN(b.time);
+            if (aValid !== bValid) {
+                return aValid ? -1 : 1;
+            }
+            return (aValid ? a.time - b.time : 0) || (a.index - b.index);
+        }).
         map(({log}) => {
             const node = log[LogNodeKey];
             return JSON.stringify(node ? {...log, node} : log);
