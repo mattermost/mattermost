@@ -1242,6 +1242,17 @@ func (e *erroringAncestorsFieldStore) GetOptionAncestorsOrSelf(field *model.Prop
 	return nil, errors.New("forced failure for test")
 }
 
+// erroringRanksFieldStore wraps a store.PropertyFieldStore and forces
+// GetOptionRanks to fail, so a test can exercise the fail-closed path a rank
+// lookup failure takes.
+type erroringRanksFieldStore struct {
+	store.PropertyFieldStore
+}
+
+func (e *erroringRanksFieldStore) GetOptionRanks(field *model.PropertyField, optionIDs []string) (map[string]int64, error) {
+	return nil, errors.New("forced failure for test")
+}
+
 // erroringSearchValueStore wraps a store.PropertyValueStore and forces
 // SearchPropertyValues to fail, so a test can exercise a masking filter's
 // holdings-lookup failure path -- the one every field type shares, not just
@@ -2266,6 +2277,36 @@ func TestMaskingRankOrder(t *testing.T) {
 		require.Len(t, read, 1)
 		assert.Equal(t, visible.ID, read[0].ID)
 		assert.Equal(t, 1, counter.rankReads, "the unranked option is remembered after its first lookup")
+	})
+
+	t.Run("a failed rank lookup denies on every path and is not reported as access denied on a write", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "RankOrder-LookupFailure", model.PropertyFieldTypeRank, rankOptions(), &model.Masking{}))
+		require.NoError(t, err)
+
+		caller := model.NewId()
+		writeValueDirect(t, th, field.ID, "user", caller, "opt_secret")
+		// below the caller's rank, so it is visible and writable unless the lookup fails
+		stored := writeValueDirect(t, th, field.ID, "user", model.NewId(), "opt_public")
+
+		original := th.service.fieldStore
+		th.service.fieldStore = &erroringRanksFieldStore{PropertyFieldStore: original}
+		t.Cleanup(func() { th.service.fieldStore = original })
+		ctx := RequestContextWithCallerID(th.Context, caller)
+
+		retrieved, err := th.service.GetPropertyField(ctx, th.CPAGroupID, field.ID)
+		require.NoError(t, err)
+		requireOptionsHidden(t, retrieved)
+
+		_, err = th.service.GetFieldOptions(ctx, field.GroupID, field.ID, 0, "", 100)
+		require.Error(t, err, "a listing has somewhere to put a lookup failure")
+
+		read, err := th.service.GetPropertyValue(ctx, th.CPAGroupID, stored.ID)
+		require.NoError(t, err)
+		assert.Nil(t, read, "a value is hidden, never granted, when its rank cannot be looked up")
+
+		_, err = th.service.UpdatePropertyValue(ctx, th.CPAGroupID, stored)
+		require.Error(t, err)
+		assert.NotErrorIs(t, err, ErrAccessDenied, "a lookup failure is a server error, not a refusal")
 	})
 
 	t.Run("an empty option list reads no ranks", func(t *testing.T) {
