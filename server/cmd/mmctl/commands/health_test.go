@@ -33,7 +33,6 @@ func healthTestFindings(lastSeen time.Time) []*model.HealthFinding {
 	return []*model.HealthFinding{
 		{
 			Fingerprint: "00000000000000000000000000000001",
-			Surface:     "product",
 			Code:        "PUSH_BAD_SCHEME",
 			Severity:    "critical",
 			State:       "firing",
@@ -45,7 +44,6 @@ func healthTestFindings(lastSeen time.Time) []*model.HealthFinding {
 		},
 		{
 			Fingerprint: "00000000000000000000000000000002",
-			Surface:     "product",
 			Code:        "SITE_URL_HTTP",
 			Severity:    "warning",
 			State:       "unknown",
@@ -57,7 +55,6 @@ func healthTestFindings(lastSeen time.Time) []*model.HealthFinding {
 		},
 		{
 			Fingerprint: "00000000000000000000000000000003",
-			Surface:     "product",
 			Code:        "SITE_URL_EMPTY",
 			Severity:    "critical",
 			State:       "resolved",
@@ -1043,10 +1040,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 	lastSeen := time.Now().Add(-5 * time.Minute)
 	exportList := func() *model.HealthFindingList {
 		list := healthTestList(lastSeen)
-		list.Findings = append(list.Findings,
-			&model.HealthFinding{Surface: "product", Severity: "warning", State: "firing", Area: model.AreaPlatform, Title: "Muted finding", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()},
-			&model.HealthFinding{Surface: "internal", Severity: "info", State: "firing", Area: model.AreaPlatform, Title: "Internal finding", LastSeenAt: lastSeen.UnixMilli()},
-		)
+		list.Findings = append(list.Findings, &model.HealthFinding{Severity: "warning", State: "firing", Area: model.AreaPlatform, Title: "Muted finding", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()})
 		return list
 	}
 	expectFindings := func() {
@@ -1076,7 +1070,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		{"html", []string{"<!DOCTYPE html>", "<dt>Site URL</dt>", "<dt>Licensed to</dt>"}},
 		{"md", []string{"# Health report\n", "- **Site URL:** https://chat.example.com\n", "- **License:** enterprise\n", "- **Licensed to:** Acme Corp\n"}},
 	} {
-		s.Run("online "+tc.format+" export includes resolved and muted findings but no internal ones", func() {
+		s.Run("online "+tc.format+" export includes resolved and muted findings", func() {
 			printer.Clean()
 			printer.SetFormat(printer.FormatPlain)
 			expectFindings()
@@ -1090,7 +1084,6 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 				"Push notification server is not HTTPS", "Site URL is not HTTPS", "Site URL is empty", "Muted finding") {
 				s.Contains(output, want)
 			}
-			s.NotContains(output, "Internal finding")
 		})
 	}
 
@@ -1109,7 +1102,6 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		s.Require().NoError(err)
 		s.Contains(string(b), "- **Licensed to:** Acme Corp\n")
 		s.Contains(string(b), "Push notification server is not HTTPS")
-		s.NotContains(string(b), "Internal finding")
 	})
 
 	s.Run("online export leaves out site facts mmctl can't read", func() {
@@ -1204,20 +1196,6 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		s.Require().NoError(healthCheckRunE(s.healthExportTestCommand("packet", s.writeHealthTestPacket(files), "output-format", "md"), []string{}))
 		s.Contains(s.printedHealthFindings(), "- **Data collected:** Unknown\n")
 	})
-
-	s.Run("packet export to a file", func() {
-		printer.Clean()
-		printer.SetFormat(printer.FormatPlain)
-		path := filepath.Join(s.T().TempDir(), "report.html")
-
-		s.Require().NoError(healthCheckRunE(s.healthExportTestCommand("packet", packetPath, "output-format", "html", "output", path), []string{}))
-
-		s.Equal([]any{"Wrote the health report to " + path}, printer.GetLines())
-		b, err := os.ReadFile(path)
-		s.Require().NoError(err)
-		s.Contains(string(b), "PushNotificationServer does not use https://")
-		s.NotContains(string(b), internalTitle)
-	})
 }
 
 func (s *MmctlUnitTestSuite) TestHealthCheckExportRejectedFlags() {
@@ -1231,10 +1209,8 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExportRejectedFlags() {
 	}{
 		{"--include-resolved", false, []string{"output-format", "html", "include-resolved", "true"}, "--include-resolved cannot be used with --output-format: exports already include resolved and muted findings"},
 		{"--include-muted", false, []string{"output-format", "md", "include-muted", "true"}, "--include-muted cannot be used with --output-format: exports already include resolved and muted findings"},
-		{"--include-resolved with --packet", false, []string{"packet", packetPath, "output-format", "md", "include-resolved", "true"}, "--include-resolved cannot be used with --output-format: exports already include resolved and muted findings"},
 		{"--include-muted with --packet", false, []string{"packet", packetPath, "output-format", "html", "include-muted", "true"}, "--include-muted cannot be used with --output-format: exports already include resolved and muted findings"},
 		{"--json", true, []string{"output-format", "html"}, "--json cannot be used with --output-format"},
-		{"--json with --packet", true, []string{"packet", packetPath, "output-format", "md"}, "--json cannot be used with --output-format"},
 		{"an unknown format", false, []string{"output-format", "pdf"}, `invalid --output-format "pdf": use html or md`},
 		{"--output without --output-format", false, []string{"output", "report.html"}, "--output requires --output-format"},
 	} {

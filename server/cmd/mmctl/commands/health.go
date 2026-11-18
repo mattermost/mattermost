@@ -147,7 +147,7 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		opts.License = license["SkuShortName"]
 		opts.Company = license["Company"]
 	}
-	return exportHealthReport(cmd, list, opts)
+	return exportHealthReport(cmd, format, list, opts)
 }
 
 func healthRunCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -243,7 +243,13 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to evaluate Support Packet: %w", err)
 	}
 
-	stored, err := store.List(model.HealthFindingFilter{})
+	// An export is meant to be shared, so it leaves out the findings meant for support engineers.
+	format, _ := cmd.Flags().GetString("output-format")
+	filter := model.HealthFindingFilter{}
+	if format != "" {
+		filter.Surfaces = []string{string(healthcheck.SurfaceProduct)}
+	}
+	stored, err := store.List(filter)
 	if err != nil {
 		return fmt.Errorf("failed to list health findings: %w", err)
 	}
@@ -265,7 +271,7 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		PointInTime: true,
 		Notes:       notes,
 	}
-	if format, _ := cmd.Flags().GetString("output-format"); format == "" {
+	if format == "" {
 		return printHealthFindings(list, includeResolved, opts)
 	}
 
@@ -275,28 +281,17 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		opts.License = license.SkuShortName
 		opts.Company = license.Company
 	}
-	return exportHealthReport(cmd, list, opts)
+	return exportHealthReport(cmd, format, list, opts)
 }
 
-// exportHealthReport renders the report in the --output-format format, to the --output file or
-// to stdout. Only product findings are exported, as an export is meant to be shared.
-func exportHealthReport(cmd *cobra.Command, list *model.HealthFindingList, opts report.Options) error {
-	format, _ := cmd.Flags().GetString("output-format")
+// exportHealthReport renders the report as format, to the --output file or to stdout.
+func exportHealthReport(cmd *cobra.Command, format string, list *model.HealthFindingList, opts report.Options) error {
 	output, _ := cmd.Flags().GetString("output")
 
-	exported := &model.HealthFindingList{EvaluatedAt: list.EvaluatedAt}
-	for _, finding := range list.Findings {
-		if finding.Surface == string(healthcheck.SurfaceProduct) {
-			exported.Findings = append(exported.Findings, finding)
-		}
+	r, err := buildHealthReport(list, opts)
+	if err != nil {
+		return err
 	}
-
-	if err := i18n.TranslationsPreInitFromFileBytes("en.json", serveri18n.English); err != nil {
-		return fmt.Errorf("failed to load translations: %w", err)
-	}
-	opts.T = i18n.T
-	opts.Location = time.Local
-	r := report.Build(exported, opts)
 
 	write := r.WriteHTML
 	if format == "md" {
@@ -308,7 +303,7 @@ func exportHealthReport(cmd *cobra.Command, list *model.HealthFindingList, opts 
 	}
 
 	if output == "" {
-		printer.Print(b.String())
+		printer.Print(strings.TrimSuffix(b.String(), "\n"))
 		return nil
 	}
 	if err := os.WriteFile(output, b.Bytes(), 0600); err != nil {
@@ -359,14 +354,23 @@ func printHealthFindings(list *model.HealthFindingList, includeResolved bool, op
 		return nil
 	}
 
+	r, err := buildHealthReport(list, opts)
+	if err != nil {
+		return err
+	}
+	printer.Print(formatHealthReport(r))
+	return nil
+}
+
+// buildHealthReport builds the report with the English catalog built into mmctl, showing times
+// in this machine's time zone.
+func buildHealthReport(list *model.HealthFindingList, opts report.Options) (*report.Report, error) {
 	if err := i18n.TranslationsPreInitFromFileBytes("en.json", serveri18n.English); err != nil {
-		return fmt.Errorf("failed to load translations: %w", err)
+		return nil, fmt.Errorf("failed to load translations: %w", err)
 	}
 	opts.T = i18n.T
 	opts.Location = time.Local
-
-	printer.Print(formatHealthReport(report.Build(list, opts)))
-	return nil
+	return report.Build(list, opts), nil
 }
 
 func formatHealthReport(r *report.Report) string {
