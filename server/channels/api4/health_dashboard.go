@@ -4,18 +4,25 @@
 package api4
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"time"
 
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/report"
 )
 
 func (api *API) InitHealthDashboard() {
 	api.BaseRoutes.HealthFindings.Handle("", api.APISessionRequired(getHealthFindings)).Methods(http.MethodGet)
+	api.BaseRoutes.HealthFindings.Handle("/export", api.APISessionRequired(exportHealthFindings)).Methods(http.MethodGet)
 	api.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", api.APISessionRequired(muteHealthFinding)).Methods(http.MethodPost)
 	api.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", api.APISessionRequired(unmuteHealthFinding)).Methods(http.MethodDelete)
 }
@@ -79,6 +86,73 @@ func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(list); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !requireHealthDashboard(c) {
+		return
+	}
+
+	format := r.URL.Query().Get("format")
+
+	auditRec := c.MakeAuditRecord(model.AuditEventExportHealthFindings, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+	model.AddEventParameterToAuditRec(auditRec, "format", format)
+
+	var contentType string
+	var write func(*report.Report, io.Writer) error
+	switch format {
+	case "html":
+		contentType, write = "text/html; charset=utf-8", (*report.Report).WriteHTML
+	case "md":
+		contentType, write = "text/markdown; charset=utf-8", (*report.Report).WriteMarkdown
+	default:
+		c.SetInvalidURLParam("format")
+		return
+	}
+
+	user, appErr := c.App.GetUser(c.AppContext, c.AppContext.Session().UserId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	list, appErr := c.App.GetHealthFindings(c.AppContext, model.HealthFindingFilter{Muted: model.MutedIncluded})
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	list.Findings = renderFindings(c, list.Findings)
+
+	cfg := c.App.Config()
+	location := user.GetTimezoneLocation()
+	now := time.Now().In(location)
+	healthReport := report.Build(list, report.Options{
+		T:             c.AppContext.T,
+		Location:      location,
+		GeneratedAt:   now,
+		SiteName:      *cfg.TeamSettings.SiteName,
+		SiteURL:       *cfg.ServiceSettings.SiteURL,
+		ServerVersion: model.CurrentVersion,
+		License:       c.App.Channels().License().SkuShortName,
+	})
+
+	var buf bytes.Buffer
+	if err := write(healthReport, &buf); err != nil {
+		c.Err = model.NewAppError("exportHealthFindings", "api.health_finding.export.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	filename := fmt.Sprintf("site-health-%s-%s.%s", utils.SanitizeFileName(*cfg.TeamSettings.SiteName), now.Format(time.DateOnly), format)
+	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
+	w.Header().Set("Cache-Control", "no-store")
+	if _, err := w.Write(buf.Bytes()); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+		return
+	}
+
+	auditRec.Success()
 }
 
 func muteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {

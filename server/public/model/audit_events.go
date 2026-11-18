@@ -267,8 +267,9 @@ const (
 
 // Health Dashboard
 const (
-	AuditEventMuteHealthFinding   = "muteHealthFinding"   // mute health dashboard finding
-	AuditEventUnmuteHealthFinding = "unmuteHealthFinding" // unmute health dashboard finding
+	AuditEventExportHealthFindings = "exportHealthFindings" // export health dashboard findings as a report
+	AuditEventMuteHealthFinding    = "muteHealthFinding"    // mute health dashboard finding
+	AuditEventUnmuteHealthFinding  = "unmuteHealthFinding"  // unmute health dashboard finding
 )
 
 // Imports

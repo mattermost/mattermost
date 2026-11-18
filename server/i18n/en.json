@@ -3329,6 +3329,11 @@
     "description": "API error when the server's own Site URL is not configured and cannot be determined; needed for shared channels / secure connection operations."
   },
   {
+    "id": "api.health_finding.export.app_error",
+    "translation": "Unable to export the health report.",
+    "description": "API error when the server fails to render the Site health report that an admin is exporting as HTML or Markdown."
+  },
+  {
     "id": "api.health_finding.feature_disabled.app_error",
     "translation": "The health dashboard is not enabled.",
     "description": "API error when a health dashboard endpoint is called while the health dashboard feature flag is off."
