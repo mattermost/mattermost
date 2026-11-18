@@ -84,6 +84,17 @@ func TestConfigDrift(t *testing.T) {
 			},
 		},
 		{
+			name:     "the most common hash wins without a strict majority",
+			snapshot: configSnapshot(clusterOn, hashNodes("aaa", "aaa", "bbb", "ccc")...),
+			global:   firing(driftMessage, map[string]string{"nodes": "app-3.example.com, app-4.example.com"}),
+			nodes: []want{
+				resolved,
+				resolved,
+				firing(driftNodeMessage, map[string]string{"node": "app-3.example.com", "majority": "2"}),
+				firing(driftNodeMessage, map[string]string{"node": "app-4.example.com", "majority": "2"}),
+			},
+		},
+		{
 			name:     "a tie for the most common hash",
 			snapshot: configSnapshot(clusterOn, hashNodes("aaa", "bbb", "bbb", "aaa")...),
 			global:   firing(driftNoMajorityMessage, map[string]string{"groups": "app-1.example.com, app-4.example.com | app-2.example.com, app-3.example.com"}),
@@ -154,12 +165,15 @@ func TestConfigDrift(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 
-			assertResult(t, tc.global, configDrift.Eval(tc.snapshot), "global")
-
 			nodes := tc.snapshot.Nodes()
 			require.Len(t, nodes, len(tc.nodes))
-			for i, node := range nodes {
-				assertResult(t, tc.nodes[i], configDrift.EvalNode(tc.snapshot, node), node.Hostname)
+
+			// The vote iterates a map, so repeat to catch results that depend on its order.
+			for range 20 {
+				assertResult(t, tc.global, configDrift.Eval(tc.snapshot), "global")
+				for i, node := range nodes {
+					assertResult(t, tc.nodes[i], configDrift.EvalNode(tc.snapshot, node), node.Hostname)
+				}
 			}
 		})
 	}
