@@ -1006,9 +1006,14 @@ func (ch *Channels) processPrepackagedPlugins(prepackagedPluginsDir string) erro
 	close(builds)
 
 	allBuilds := make([]*prepackagedBuild, 0, len(pluginSignaturePathMap))
+	defer func() {
+		for _, b := range allBuilds {
+			b.cleanup()
+		}
+	}()
+
 	var callsManifests []*model.Manifest
 	for b := range builds {
-		defer b.cleanup()
 		allBuilds = append(allBuilds, b)
 		if b.plugin.Manifest.Id == model.PluginIdCalls {
 			callsManifests = append(callsManifests, b.plugin.Manifest)
