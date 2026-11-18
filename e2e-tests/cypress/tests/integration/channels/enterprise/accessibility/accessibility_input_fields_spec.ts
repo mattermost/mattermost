@@ -204,17 +204,14 @@ describe('Verify Accessibility Support in different input fields', () => {
             // * Verify if the focus is on the numbered list button
             cy.get('#FormattingControl_ol').should('be.focused').and('have.attr', 'aria-label', 'numbered list');
 
-            // # Skip any additional controls (priority, AI rewrite, BOR) which vary by enterprise config
+            // # Attach, emoji, priority, and burn-on-read are inside the + menu, so they are not in this tab order.
             cy.get('#toggleFormattingBarButton').focus();
 
             // * Verify if the focus is on the formatting options button
             cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();
 
-            // * Verify if the focus is on the attachment icon (skipping burn-on-read button when enabled)
-            cy.get('#fileUploadButton').should('be.focused').and('have.attr', 'aria-label', 'attachment').tab();
-
-            // * Verify if the focus is on the emoji picker
-            cy.get('#emojiPickerButton').should('be.focused').and('have.attr', 'aria-label', 'select an emoji').tab();
+            // * Verify if the focus is on the + button
+            cy.get('#agentComposerMenuButton').should('be.focused').and('have.attr', 'aria-label', 'Message options').tab();
         });
 
         // * Verify if the focus is on the help link
@@ -257,18 +254,15 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#FormattingControl_ul').should('exist').and('have.attr', 'aria-label', 'bulleted list');
             cy.get('#FormattingControl_ol').should('exist').and('have.attr', 'aria-label', 'numbered list');
 
-            // # Close the overflow popover, skip additional controls (priority, BOR) which vary by enterprise config
+            // # Close the overflow popover. Attach, emoji, and burn-on-read are inside the + menu.
             cy.get('#HiddenControlsButtonRHS_COMMENT').focus().type('{esc}');
             cy.get('#toggleFormattingBarButton').focus();
 
             // * Verify if the focus is on the formatting options button
             cy.get('#toggleFormattingBarButton').should('be.focused').and('have.attr', 'aria-label', 'formatting').tab();
 
-            // * Verify if the focus is on the attachment icon
-            cy.get('#fileUploadButton').should('be.focused').and('have.attr', 'aria-label', 'attachment').tab();
-
-            // * Verify if the focus is on the emoji picker
-            cy.get('#emojiPickerButton').should('be.focused').and('have.attr', 'aria-label', 'select an emoji').tab();
+            // * Verify if the focus is on the + button
+            cy.get('#agentComposerMenuButton').should('be.focused').and('have.attr', 'aria-label', 'Message options').tab();
 
             // * Verify if the focus is on the Reply button
             cy.findByTestId('SendMessageButton').should('be.focused');

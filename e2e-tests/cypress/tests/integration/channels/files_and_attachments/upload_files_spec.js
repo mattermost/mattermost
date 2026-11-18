@@ -246,8 +246,8 @@ describe('Upload Files', () => {
         // # Set the viewport to mobile
         cy.viewport('iphone-6');
 
-        // * Check if the attachment button is present
-        cy.findByLabelText('Attachment Icon').should('be.visible').and('have.css', 'cursor', 'pointer');
+        // * Check if the + menu, which holds attach, is present
+        cy.findByRole('button', {name: 'Message options'}).should('be.visible');
 
         const imageFilename = 'jpg-image-file.jpg';
         const imageType = 'JPG';

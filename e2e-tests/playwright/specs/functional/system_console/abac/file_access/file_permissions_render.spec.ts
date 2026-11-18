@@ -187,9 +187,7 @@ test.describe('ABAC file permissions - attribute-based policy', () => {
             await channelsPage.toBeVisible();
 
             // * Verify the attachment control is offered
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({
-                timeout: pw.duration.half_min,
-            });
+            await channelsPage.centerView.postCreate.expectAttachFilesEnabled(pw.duration.half_min);
         },
     );
 
@@ -212,11 +210,8 @@ test.describe('ABAC file permissions - attribute-based policy', () => {
             await channelsPage.goto(team.name, channelName);
             await channelsPage.toBeVisible();
 
-            // * Verify the attachment control stays visible but is not actionable
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeVisible({
-                timeout: pw.duration.half_min,
-            });
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled();
+            // * Verify Attach files stays in the + menu but is not actionable
+            await channelsPage.centerView.postCreate.expectAttachFilesDisabled(pw.duration.half_min);
         },
     );
 
@@ -243,9 +238,7 @@ test.describe('ABAC file permissions - attribute-based policy', () => {
             await post.toHaveFilesRedacted();
 
             // * Verify new uploads are not offered
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({
-                timeout: pw.duration.half_min,
-            });
+            await channelsPage.centerView.postCreate.expectAttachFilesDisabled(pw.duration.half_min);
         },
     );
 
@@ -266,9 +259,7 @@ test.describe('ABAC file permissions - attribute-based policy', () => {
             const {channelsPage} = await pw.testBrowser.login(allowedUser);
             await channelsPage.goto(team.name, channelName);
             await channelsPage.toBeVisible();
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({
-                timeout: pw.duration.half_min,
-            });
+            await channelsPage.centerView.postCreate.expectAttachFilesEnabled(pw.duration.half_min);
 
             // # Upload a file
             const message = `Upload from allowed user ${getRandomId()}`;

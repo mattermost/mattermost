@@ -14,11 +14,15 @@ export default class ChannelsPostCreate {
     readonly container: Locator;
     readonly input;
 
-    readonly attachmentButton;
-    readonly emojiButton;
+    readonly plusButton;
+    readonly plusMenu;
+    readonly attachFilesItem;
+    readonly emojiMenuItem;
     readonly sendMessageButton;
+
+    // Scheduled send stays on the send split, beside Send. Agent mode hides it.
     readonly scheduleMessageButton;
-    readonly priorityButton;
+    readonly priorityMenuItem;
     readonly priorityLabel;
     readonly removeLabelsButton;
     readonly removeLabelsTooltip;
@@ -46,11 +50,13 @@ export default class ChannelsPostCreate {
             this.input = container.getByTestId('post_textbox');
         }
 
-        this.attachmentButton = container.locator('#fileUploadButton');
-        this.emojiButton = container.getByLabel('select an emoji');
+        this.plusButton = container.getByTestId('agent-composer-menu-button');
+        this.plusMenu = container.page().getByRole('menu', {name: 'Message options'});
+        this.attachFilesItem = this.plusMenu.getByRole('menuitem', {name: 'Attach files', exact: true});
+        this.emojiMenuItem = this.plusMenu.getByRole('menuitem', {name: 'Emoji', exact: true});
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleMessageButton = container.getByLabel('Schedule message');
-        this.priorityButton = container.getByLabel('Message priority');
+        this.priorityMenuItem = this.plusMenu.getByRole('menuitem', {name: 'Message priority', exact: true});
         this.priorityLabel = container.getByTestId('post-priority-label');
         this.removeLabelsButton = container.getByRole('button', {name: 'Remove all labels'});
         // Tooltips render in a portal outside the post create container.
@@ -66,7 +72,7 @@ export default class ChannelsPostCreate {
 
         // Burn-on-Read elements
         // Use a flexible locator that matches the aria-label pattern
-        this.burnOnReadButton = container.getByRole('button', {name: /Burn-on-read/i});
+        this.burnOnReadButton = this.plusMenu.getByRole('menuitem', {name: 'Burn-on-read', exact: true});
         this.burnOnReadLabel = container.getByTestId('burn-on-read-label');
 
         // Two distinct remove controls can sit on the label row: the label's own X and
@@ -132,12 +138,56 @@ export default class ChannelsPostCreate {
     }
 
     /**
-     * Opens the message priority menu
+     * Opens the + menu. Attach, emoji, priority, burn-on-read, and rewrite are items in it.
+     */
+    async openPlusMenu() {
+        if ((await this.plusButton.getAttribute('aria-expanded')) !== 'true') {
+            await expect(this.plusButton).toBeVisible();
+            await this.plusButton.click();
+        }
+        await expect(this.plusButton).toHaveAttribute('aria-expanded', 'true');
+        await expect(this.plusMenu).toBeVisible();
+    }
+
+    async closePlusMenu() {
+        if ((await this.plusButton.getAttribute('aria-expanded')) === 'true') {
+            await this.plusButton.click();
+            await expect(this.plusButton).toHaveAttribute('aria-expanded', 'false');
+        }
+    }
+
+    /**
+     * Opens the message priority picker from the + menu.
      */
     async openPriorityMenu() {
-        await expect(this.priorityButton).toBeVisible();
-        await expect(this.priorityButton).toBeEnabled();
-        await this.priorityButton.click();
+        await this.openPlusMenu();
+        await expect(this.priorityMenuItem).toBeVisible();
+        await expect(this.priorityMenuItem).toBeEnabled();
+        await this.priorityMenuItem.click();
+    }
+
+    /**
+     * The priority row is in the + menu, so these open that menu first.
+     */
+    async toShowPriorityItem() {
+        await this.openPlusMenu();
+        await expect(this.priorityMenuItem).toBeVisible();
+    }
+
+    async toOmitPriorityItem() {
+        await this.openPlusMenu();
+        await expect(this.priorityMenuItem).toHaveCount(0);
+        await this.closePlusMenu();
+    }
+
+    async expectAttachFilesEnabled(timeout?: number) {
+        await this.openPlusMenu();
+        await expect(this.attachFilesItem).toBeEnabled({timeout});
+    }
+
+    async expectAttachFilesDisabled(timeout?: number) {
+        await this.openPlusMenu();
+        await expect(this.attachFilesItem).toBeDisabled({timeout});
     }
 
     /**
@@ -161,7 +211,6 @@ export default class ChannelsPostCreate {
 
         if (files) {
             const filePaths = files.map((file) => path.join(assetPath, file));
-            await expect(this.attachmentButton).toBeVisible();
             const fileInput = this.container.locator('input[type="file"]');
             await expect(fileInput).toBeAttached();
             await fileInput.setInputFiles(filePaths);
@@ -221,14 +270,16 @@ export default class ChannelsPostCreate {
     }
 
     async openEmojiPicker() {
-        await expect(this.emojiButton).toBeVisible();
-        await this.emojiButton.click();
+        await this.openPlusMenu();
+        await expect(this.emojiMenuItem).toBeVisible();
+        await this.emojiMenuItem.click();
     }
 
     async selectFiles(files: File | File[]) {
         const selectedFiles = Array.isArray(files) ? files : [files];
         const fileChooserPromise = this.container.page().waitForEvent('filechooser');
-        await this.attachmentButton.click();
+        await this.openPlusMenu();
+        await this.attachFilesItem.click();
         const fileChooser = await fileChooserPromise;
         const payloads = await Promise.all(
             selectedFiles.map(async (file) => ({
@@ -303,21 +354,24 @@ export default class ChannelsPostCreate {
      * Toggle the burn-on-read feature for the message
      */
     async toggleBurnOnRead() {
-        await expect(this.burnOnReadButton).toBeAttached();
+        await this.openPlusMenu();
         await expect(this.burnOnReadButton).toBeEnabled();
         await this.burnOnReadButton.click();
     }
 
     /**
-     * The burn-on-read control is hidden by not being rendered at all, so this asserts
-     * absence from the DOM rather than invisibility — a control rendered disabled would
-     * pass toBeHidden() and should not pass here.
+     * Burn-on-read is a row in the + menu. Hidden means the row is not rendered,
+     * so this opens the menu and asserts the row is absent. A disabled row would
+     * still be attached and should not pass here.
      */
     async toHaveBurnOnReadHidden() {
-        await expect(this.burnOnReadButton).not.toBeAttached();
+        await this.openPlusMenu();
+        await expect(this.burnOnReadButton).toHaveCount(0);
+        await this.closePlusMenu();
     }
 
     async toHaveBurnOnReadVisible() {
+        await this.openPlusMenu();
         await expect(this.burnOnReadButton).toBeVisible();
     }
 

@@ -22,8 +22,8 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         await channelsPage.toBeVisible();
         await channelsPage.goto(team.name, `@${otherUser.username}`);
 
-        // * Verify BoR toggle button is available
-        await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeAttached();
+        // * Verify the burn-on-read row is available in the + menu
+        await channelsPage.centerView.postCreate.toHaveBurnOnReadVisible();
         await expect(channelsPage.centerView.postCreate.burnOnReadButton).toBeEnabled();
 
         // # Toggle BoR on

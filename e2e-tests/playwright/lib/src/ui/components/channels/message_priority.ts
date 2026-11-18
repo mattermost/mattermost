@@ -24,7 +24,9 @@ export default class MessagePriority {
         // Formatting bar priority icon
         this.priorityIcon = container.locator('#messagePriority');
 
-        this.priorityMenu = container.page().getByRole('menu', {name: 'Post priority options'});
+        // The priority row in the + menu opens this list. Its accessible name is the
+        // picker header, not the old formatting-bar menu.
+        this.priorityMenu = container.page().getByRole('menu', {name: 'Message priority'});
 
         // Header and footer render as siblings of the menu list, not inside it.
         this.dialogHeader = container.page().getByRole('heading', {name: 'Message priority', level: 4});

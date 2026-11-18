@@ -68,8 +68,8 @@ async function postWithPriorityAndVerify(pw: PlaywrightExtended, priority: Exclu
     await rhsPost.toContainText(testMessage);
     await channelsPage.messagePriority.verifyPriorityLabel(rhsPost.container, priority);
 
-    // * Verify RHS formatting bar doesn't include priority button
-    await expect(channelsPage.sidebarRight.postCreate.priorityButton).not.toBeVisible();
+    // * Verify the reply composer does not offer priority in its + menu
+    await channelsPage.sidebarRight.postCreate.toOmitPriorityItem();
 }
 
 /**
@@ -90,8 +90,8 @@ test(
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
-        // * Verify the priority control is available while the system setting is enabled
-        await expect(channelsPage.centerView.postCreate.priorityButton).toBeVisible();
+        // * Verify the priority row is in the + menu while the system setting is enabled
+        await channelsPage.centerView.postCreate.toShowPriorityItem();
 
         // # Open priority menu
         await channelsPage.centerView.postCreate.openPriorityMenu();
@@ -120,8 +120,8 @@ test(
         await rhsPost.toContainText(testMessage);
         await channelsPage.messagePriority.verifyNoPriorityLabelIn(rhsPost.container);
 
-        // * Verify RHS formatting bar doesn't include priority button
-        await expect(channelsPage.sidebarRight.postCreate.priorityButton).not.toBeVisible();
+        // * Verify the reply composer does not offer priority in its + menu
+        await channelsPage.sidebarRight.postCreate.toOmitPriorityItem();
     },
 );
 
@@ -145,8 +145,8 @@ test(
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
-            // * Verify the priority control is hidden
-            await expect(channelsPage.centerView.postCreate.priorityButton).not.toBeVisible();
+            // * Verify the + menu does not offer priority
+            await channelsPage.centerView.postCreate.toOmitPriorityItem();
         } finally {
             await adminClient.patchConfig({ServiceSettings: {PostPriority: originalPostPriority}});
         }

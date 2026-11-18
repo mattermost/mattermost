@@ -387,9 +387,9 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await page.goto(`/${team.name}/channels/off-topic`);
         await page.waitForLoadState('networkidle');
 
-        // * Verify BoR toggle is visible in post create area
-        const borButton = page.getByRole('button', {name: /Burn-on-read/i});
-        await expect(borButton).toBeVisible({timeout: 10000});
+        // * Verify burn-on-read is a row in the composer + menu
+        await page.locator('#create_post').getByTestId('agent-composer-menu-button').click();
+        await expect(page.getByRole('menuitem', {name: 'Burn-on-read'})).toBeVisible({timeout: 10000});
     });
 
     test('BoR toggle is hidden when feature is disabled in System Console', async ({pw}) => {
@@ -444,9 +444,10 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await page.goto(`/${team.name}/channels/off-topic`);
         await page.waitForLoadState('networkidle');
 
-        // * Verify BoR toggle is NOT visible in post create area
-        const borButton = page.getByRole('button', {name: /Burn-on-read/i});
-        await expect(borButton).not.toBeVisible({timeout: 5000});
+        // * Verify the composer + menu does not offer burn-on-read
+        await page.locator('#create_post').getByTestId('agent-composer-menu-button').click();
+        await expect(page.getByRole('menu', {name: 'Message options'})).toBeVisible();
+        await expect(page.getByRole('menuitem', {name: 'Burn-on-read'})).toHaveCount(0);
     });
 
     test('configured duration affects timer countdown in channels', async ({pw}) => {
