@@ -20,6 +20,7 @@ import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {productRailPathsLoaded, productRailPathViewed, setProductRailSection} from 'actions/views/product_rail';
+import {arePluginsLoadedForSession} from 'selectors/plugins';
 import {selectProducts} from 'selectors/products';
 import {
     getBoardChannelIds,
@@ -114,6 +115,28 @@ function readSavedLastPaths(userId: string): Record<string, Record<string, strin
     }
 }
 
+const sectionStorageKey = (userId: string) => `product_rail_section_${userId}`;
+
+function readSavedSection(userId: string): ProductRailSection | null {
+    try {
+        const saved = localStorage.getItem(sectionStorageKey(userId));
+        if (saved === 'channels' || saved === 'boards' || isPluginRailSection(saved)) {
+            return saved;
+        }
+    } catch {
+        // Storage is unavailable; start in Channels.
+    }
+    return null;
+}
+
+function saveSection(userId: string, section: ProductRailSection) {
+    try {
+        localStorage.setItem(sectionStorageKey(userId), section);
+    } catch {
+        // Storage is unavailable or full; the section still lasts for this session.
+    }
+}
+
 function saveLastPaths(userId: string, lastPaths: Record<string, Record<string, string>>) {
     try {
         localStorage.setItem(lastPathsStorageKey(userId), JSON.stringify(lastPaths));
@@ -157,10 +180,8 @@ export default function ProductRail() {
     const firstChannelInPluginSections = useSelector(getFirstChannelInPluginRailSections);
     const pluginSectionChannelIds = useSelector(getPluginRailSectionChannelIds);
     const currentChannelPluginSections = useMemo(() => pluginSectionsOfChannel(pluginSectionChannelIds, currentChannelId), [pluginSectionChannelIds, currentChannelId]);
-
-    // Until the first channel is filed, one in a plugin's section opens that section, so a reload
-    // or a link straight to a page lands in it rather than in Channels.
-    const firstChannelFiled = useRef(false);
+    const savedSection = useSelector((state: GlobalState) => state.views.productRail.section);
+    const pluginsLoaded = useSelector(arePluginsLoadedForSession);
 
     const currentTeamId = currentTeam?.id ?? '';
     const lastPaths = useSelector(getProductRailLastPaths);
@@ -191,13 +212,13 @@ export default function ProductRail() {
                 viewedTab = 'boards';
             } else if (section && currentChannelPluginSections.length > 0) {
                 // A plugin section's channel stays where it's open, as Channels lists it too;
-                // opened from Boards or another section, or on first load, it moves to its own.
+                // opened from Boards or another plugin's section, it moves to its own.
                 if (isPluginRailSection(section) && currentChannelPluginSections.includes(section)) {
                     viewedTab = section;
-                } else if (section !== 'channels' || !firstChannelFiled.current) {
-                    viewedTab = currentChannelPluginSections[0];
-                } else {
+                } else if (section === 'channels') {
                     viewedTab = 'channels';
+                } else {
+                    viewedTab = currentChannelPluginSections[0];
                 }
             } else {
                 viewedTab = 'channels';
@@ -230,9 +251,14 @@ export default function ProductRail() {
         }
     }, [dispatch, enabled, currentProduct, teamIdToRestore]);
 
-    // Bring back where each item was in earlier sessions.
+    // Bring back where each item was in earlier sessions, and the section the sidebar showed, so a
+    // reload stays in Docs or Channels even on a channel both list.
     useEffect(() => {
         if (enabled && currentUserId) {
+            const restoredSection = readSavedSection(currentUserId);
+            if (restoredSection) {
+                dispatch(setProductRailSection(restoredSection));
+            }
             dispatch(productRailPathsLoaded(readSavedLastPaths(currentUserId)));
         }
     }, [dispatch, enabled, currentUserId]);
@@ -249,16 +275,13 @@ export default function ProductRail() {
             return;
         }
 
-        if (enabled && viewedTab && currentTeamId) {
+        // Wait for the saved section, and for plugins to register their sections and say which
+        // channels are in them, so the first channel isn't filed under the wrong item.
+        if (enabled && viewedTab && currentTeamId && lastPathsLoaded && pluginsLoaded) {
             const followsKind = (viewedTab === 'boards' || viewedTab === 'channels' || isPluginRailSection(viewedTab)) && !boardViewedInChannels;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
-
-            // Only once a plugin section is registered: until then, the channel can't be in one.
-            if (channelMatch && pluginSections.length > 0) {
-                firstChannelFiled.current = true;
-            }
         }
-    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels, pluginSections.length > 0]);
+    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels, lastPathsLoaded, pluginsLoaded]);
 
     // Saved only once the earlier paths are restored, so they're never overwritten unseen.
     useEffect(() => {
@@ -266,6 +289,11 @@ export default function ProductRail() {
             saveLastPaths(currentUserId, lastPaths);
         }
     }, [enabled, currentUserId, lastPaths, lastPathsLoaded]);
+    useEffect(() => {
+        if (enabled && currentUserId && lastPathsLoaded) {
+            saveSection(currentUserId, savedSection);
+        }
+    }, [enabled, currentUserId, savedSection, lastPathsLoaded]);
 
     // Backstage pages (Integrations, Custom Emoji) take the whole page, with their own way back.
     if (!enabled || !currentTeam || isBackstagePath(pathname)) {

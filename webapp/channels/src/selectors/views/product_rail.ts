@@ -119,7 +119,7 @@ export function pluginRailSection(pluginId: string): PluginProductRailSection {
     return `plugin:${pluginId}`;
 }
 
-export function isPluginRailSection(section: ProductRailTab | null | undefined): section is PluginProductRailSection {
+export function isPluginRailSection(section: ProductRailTab | string | null | undefined): section is PluginProductRailSection {
     return typeof section === 'string' && section.startsWith('plugin:');
 }
 

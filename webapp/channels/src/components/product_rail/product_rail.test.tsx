@@ -277,6 +277,16 @@ describe('ProductRail', () => {
             };
         }
 
+        test('should move a section\'s channel opened from Boards to its own section', () => {
+            const state = getDocsState(handbook.id, 'boards');
+            const {store} = renderAt('/team-one/channels/handbook', {
+                ...state,
+                plugins: {components: {...state.plugins!.components, ChannelKind: [boardKind]} as unknown as GlobalState['plugins']['components']},
+            });
+
+            expect(store.getState().views.productRail.section).toBe('plugin:conflux');
+        });
+
         test('should show the section after Channels, opening its first channel, and no Boards without boards', () => {
             renderAt('/team-one/channels/town-square', getDocsState(townSquare.id));
 
@@ -293,7 +303,15 @@ describe('ProductRail', () => {
             expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('12');
         });
 
-        test('should open the section for its channel on first load, keeping the sub-path to return to', () => {
+        test('should stay in Channels for a section\'s channel opened there, as Channels lists it too', () => {
+            const {store} = renderAt('/team-one/channels/handbook', getDocsState(handbook.id));
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
+            expect(store.getState().views.productRail.section).toBe('channels');
+        });
+
+        test('should reopen the section saved from the last session, keeping the sub-path to return to', () => {
+            localStorage.setItem(`product_rail_section_${user.id}`, 'plugin:conflux');
             const {store} = renderAt('/team-one/channels/handbook/pages/abc', getDocsState(handbook.id));
 
             expect(screen.getByRole('link', {name: /Docs/})).toHaveAttribute('aria-current', 'page');
