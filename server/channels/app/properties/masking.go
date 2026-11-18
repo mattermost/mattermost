@@ -41,9 +41,16 @@ import (
 // fieldMasking is the resolved masking answer for one field: the masking
 // object that applies (nil when the field is not masked) and the ID of the
 // field the caller's holdings are read from.
+//
+// holdingsListDiffers is set for a masked rank or graph field whose holdings
+// field reads a different option list than the field does: ranks are
+// comparable only within one list, and option IDs repeat across fields (an
+// unlinked copy keeps its template's IDs), so matching IDs proves nothing.
+// Such a field shows its caller no options and no values.
 type fieldMasking struct {
-	masking         *model.Masking
-	holdingsFieldID string
+	masking             *model.Masking
+	holdingsFieldID     string
+	holdingsListDiffers bool
 }
 
 // maskingContext memoizes, within one hook call that reads or writes several
@@ -197,7 +204,19 @@ func (h *AccessControlHook) resolveFieldMasking(rctx request.CTX, field *model.P
 	}
 
 	masking := target.Permissions.Masking
-	return fieldMasking{masking: masking, holdingsFieldID: holdingsFieldIDFor(field, masking)}, nil
+	fm := fieldMasking{masking: masking, holdingsFieldID: holdingsFieldIDFor(field, masking)}
+
+	if (field.Type == model.PropertyFieldTypeRank || field.Type == model.PropertyFieldTypeGraph) && fm.holdingsFieldID != field.ID {
+		holdings, err := h.propertyService.getPropertyField(rctx, field.GroupID, fm.holdingsFieldID)
+		if err != nil {
+			return fieldMasking{}, errors.Wrapf(err, "failed to resolve holdings field %q for field %q", fm.holdingsFieldID, field.ID)
+		}
+		// A linked field reads its template's option list, any other field its own.
+		// A deleted holdings field, or one unlinked since (the service refuses both
+		// while the masking names it), no longer reads the template's list.
+		fm.holdingsListDiffers = holdings.DeleteAt != 0 || (holdings.ID != target.ID && holdings.LinkSourceID() != target.ID)
+	}
+	return fm, nil
 }
 
 // holdingsFieldIDFor returns the field ID whose values masking treats as the
@@ -377,6 +396,9 @@ func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, 
 // against. A caller holding nothing sees nothing, without asking CoveredBy at
 // all.
 func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX, field *model.PropertyField, fm fieldMasking, candidateOptionIDs []string, callerID string) (map[string]bool, error) {
+	if fm.holdingsListDiffers {
+		return map[string]bool{}, nil
+	}
 	callerOptionIDs, err := c.callerOptionIDsForHoldings(rctx, h, field.GroupID, fm.holdingsFieldID, callerID, field.Type)
 	if err != nil {
 		return nil, err
