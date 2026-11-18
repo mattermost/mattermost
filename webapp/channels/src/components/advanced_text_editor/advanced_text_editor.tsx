@@ -27,7 +27,6 @@ import {getSelectedPostFocussedAt} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import PostAttributesButton from 'components/advanced_text_editor/post_attributes_button';
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
@@ -77,7 +76,7 @@ import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
 import FormattingBar from './formatting_bar';
-import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
+import {FormattingBarSpacer} from './formatting_bar/formatting_bar';
 import type {FormattingBarHandle} from './formatting_bar/formatting_bar';
 import LinkPopover from './formatting_bar/link_popover';
 import MessageWithMentionsFooter from './message_with_mentions_footer';
@@ -85,7 +84,6 @@ import OutOfOfficeWarning from './out_of_office_warning';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
-import ToggleFormattingBar from './toggle_formatting_bar';
 import UnifiedLabelsWrapper from './unified_labels_wrapper';
 import useBurnOnRead from './use_burn_on_read';
 import {useComposerPlaceholder} from './use_composer_placeholder';
@@ -449,9 +447,10 @@ const AdvancedTextEditor = ({
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
 
-    // The channel composer's +, separate from the agent menu. It stays the
-    // disabled Add attributes control and sits on the left of this box.
-    const showAttributesButton = !agentMode && postAttributesEnabled && !isInEditMode && !isDisabled;
+    // One + on the left of this composer, agent chat and channels. It opens
+    // attach, emoji, attributes, and formatting. The file button stays hidden
+    // because attach lives in that menu.
+    const showPlus = !isDisabled;
 
     usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
@@ -467,7 +466,7 @@ const AdvancedTextEditor = ({
         focusTextbox,
         setServerError,
         isInEditMode,
-        agentMode,
+        true,
     );
 
     const insertWysiwygText = useCallback((text: string) => {
@@ -475,7 +474,6 @@ const AdvancedTextEditor = ({
     }, []);
 
     const {
-        emojiPicker,
         emojiPickerPortal,
         enableEmojiPicker,
         toggleEmojiPicker,
@@ -676,8 +674,8 @@ const AdvancedTextEditor = ({
         }
 
         // The left + is outside the measured action cluster. 7px inset, 32px button, 7px gap.
-        const attributesWidth = showAttributesButton ? 46 : 0;
-        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth - attributesWidth;
+        const plusWidth = showPlus ? 46 : 0;
+        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth - plusWidth;
 
         if (!hasDraftMessage) {
             // if we do not have a message we can just render the default state
@@ -690,7 +688,7 @@ const AdvancedTextEditor = ({
         } else {
             setIsMessageLong(false);
         }
-    }, [hasDraftMessage, showAttributesButton]);
+    }, [hasDraftMessage, showPlus]);
 
     const prefillMessage = useCallback((message: string) => {
         handleDraftChange({
@@ -949,8 +947,8 @@ const AdvancedTextEditor = ({
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     'AdvancedTextEditor--agent': agentMode,
-                    'AdvancedTextEditor--attributes': showAttributesButton,
-                    'AdvancedTextEditor--attributes-overlay': showAttributesButton && !showFormattingBar && !showFormattingSpacer,
+                    'AdvancedTextEditor--plus': showPlus,
+                    'AdvancedTextEditor--plus-overlay': showPlus && !agentMode && !showFormattingBar && !showFormattingSpacer,
                     scroll: renderScrollbar,
                     'formatting-bar': showFormattingBar,
                 })}
@@ -990,6 +988,8 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
+                        {agentMode && attachmentPreview}
+                        {agentMode && formattingBar}
                         {wysiwygEnabled ? (
                             <WysiwygEditor
                                 ref={wysiwygRef}
@@ -1034,8 +1034,8 @@ const AdvancedTextEditor = ({
                                 onWidthChange={handleWidthChange}
                             />
                         )}
-                        {attachmentPreview}
-                        {!isDisabled && (showFormattingBar || showPreview) && (
+                        {attachmentPreview && !agentMode}
+                        {!agentMode && !isDisabled && (showFormattingBar || showPreview) && (
                             <TexteditorActions
                                 placement='top'
                                 isScrollbarRendered={renderScrollbar}
@@ -1043,21 +1043,21 @@ const AdvancedTextEditor = ({
                                 {showFormatJSX}
                             </TexteditorActions>
                         )}
-                        {showFormattingSpacer ? (
+                        {showFormattingSpacer && !agentMode ? (
                             <FormattingBarSpacer>
                                 {formattingBar}
                             </FormattingBarSpacer>
-                        ) : formattingBar}
+                        ) : (!agentMode && formattingBar)}
                         {/* Keep the input rendered. `hidden` is display:none, and Safari will not open a file dialog from that. */}
-                        {agentMode && (
+                        {showPlus && (
                             <div className='AdvancedTextEditor__agent-file-input'>
                                 {fileUploadJSX}
                             </div>
                         )}
-                        {agentMode && !isDisabled && (
+                        {showPlus && (
                             <div
-                                className='AdvancedTextEditor__agent-controls'
-                                data-testid='agent-composer-controls'
+                                className='AdvancedTextEditor__plus'
+                                data-testid='composer-plus'
                             >
                                 <AgentComposerMenu
                                     canAttach={canUploadFiles}
@@ -1071,28 +1071,14 @@ const AdvancedTextEditor = ({
                                     onToggleFormatting={toggleAdvanceTextEditor}
                                     emojiAnchorRef={setEmojiReference}
                                 />
-                                {sendControl}
                             </div>
                         )}
-                        {agentMode && emojiPickerPortal}
-                        {showAttributesButton && (
-                            <div className='AdvancedTextEditor__attributes'>
-                                <PostAttributesButton/>
-                            </div>
-                        )}
-                        {!agentMode && !isDisabled && (
+                        {showPlus && emojiPickerPortal}
+                        {showPlus && (
                             <TexteditorActions
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
-                                <ToggleFormattingBar
-                                    onClick={toggleAdvanceTextEditor}
-                                    active={showFormattingBar}
-                                    disabled={showPreview}
-                                />
-                                <Separator/>
-                                {fileUploadJSX}
-                                {emojiPicker}
                                 {sendControl}
                             </TexteditorActions>
                         )}

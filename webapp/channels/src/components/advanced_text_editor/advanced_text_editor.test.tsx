@@ -1055,7 +1055,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1064,7 +1068,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox.selectionEnd).toEqual(3);
 
             // Do it again
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'relaxed emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'relaxed emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1086,7 +1094,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('This is some text');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1112,7 +1124,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('aaabbb');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1138,7 +1154,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('aaa bbb');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1208,7 +1228,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
     });
 
-    describe('post attributes button', () => {
+    describe('composer plus menu', () => {
         const flagOn = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -1219,7 +1239,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             },
         });
 
-        it('is absent with the feature flag off', () => {
+        const openMenu = async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+        };
+
+        it('omits Add attributes when the feature flag is off', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1227,10 +1251,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 initialState,
             );
 
+            await openMenu();
+
+            expect(screen.queryByRole('menuitem', {name: 'Add attributes'})).not.toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Formatting'})).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
         });
 
-        it('is present in the centre channel composer with the flag on', () => {
+        it('includes Add attributes in the centre channel plus menu when the flag is on', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1238,10 +1266,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            await openMenu();
+
+            expect(screen.getByRole('menuitem', {name: 'Add attributes'})).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
         });
 
-        it('is present in the RHS reply composer with the flag on', () => {
+        it('includes Add attributes in the RHS reply plus menu when the flag is on', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1251,10 +1282,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            await openMenu();
+
+            expect(screen.getByRole('menuitem', {name: 'Add attributes'})).toBeInTheDocument();
         });
 
-        it('is absent when editing an existing post', () => {
+        it('omits Add attributes when editing an existing post', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1263,10 +1296,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            await openMenu();
+
+            expect(screen.queryByRole('menuitem', {name: 'Add attributes'})).not.toBeInTheDocument();
         });
 
-        it('sits on the left of the composer, outside the right-hand actions', () => {
+        it('sits on the left of the composer', () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1274,14 +1309,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            const add = screen.getByTestId('post-attributes-composer-add');
-            const formatting = screen.getByLabelText('formatting');
+            const plus = screen.getByTestId('composer-plus');
+            const menu = screen.getByRole('button', {name: 'Message options'});
+            const send = screen.getByTestId('SendMessageButton');
 
-            expect(add.closest('.AdvancedTextEditor__attributes')).toBeTruthy();
-            expect(formatting.closest('.AdvancedTextEditor__attributes')).toBeNull();
-            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--attributes');
-            expect(add).toHaveClass('post-attributes-composer-button');
-            expect(add.compareDocumentPosition(formatting) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(plus).toContainElement(menu);
+            expect(menu).toHaveClass('agent-composer-menu-button');
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus');
+            expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
     });
 
@@ -1397,23 +1432,22 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
         };
 
-        it('leaves the channel composer unchanged when the mode is off', () => {
+        it('puts attach, emoji, attributes, and formatting in the left plus', () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 chromeState,
             );
 
-            expect(screen.getByRole('button', {name: 'formatting'})).toBeInTheDocument();
             expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message priority'})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Schedule message'})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'AI Actions'})).toBeInTheDocument();
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'attachment'})).toBeInTheDocument();
-            expect(screen.getByRole('button', {name: 'select an emoji'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Message options'})).not.toBeInTheDocument();
-            expect(screen.queryByTestId('agent-composer-controls')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'attachment'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'select an emoji'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'formatting'})).not.toBeInTheDocument();
             expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--agent');
             expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeInTheDocument();
         });
@@ -1440,7 +1474,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
         });
 
-        it('puts the + at the start of the control row and send at the end', () => {
+        it('puts the + on the left of the composer and send at the end', () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1449,18 +1483,15 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 chromeState,
             );
 
-            const controls = screen.getByTestId('agent-composer-controls');
+            const plus = screen.getByTestId('composer-plus');
             const menu = screen.getByRole('button', {name: 'Message options'});
             const send = screen.getByTestId('SendMessageButton');
 
-            expect(controls).toContainElement(menu);
-            expect(controls).toContainElement(send);
-            expect(controls.firstElementChild).toContainElement(menu);
+            expect(plus).toContainElement(menu);
             expect(menu).toHaveClass('agent-composer-menu-button');
-            expect(controls.lastElementChild).toContainElement(send);
-            expect(menu.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--agent');
-            expect(document.querySelector('.AutoHeight')?.compareDocumentPosition(controls) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(document.querySelector('.AutoHeight')?.compareDocumentPosition(plus) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
 
         it('omits Add attributes when post attributes are off', async () => {

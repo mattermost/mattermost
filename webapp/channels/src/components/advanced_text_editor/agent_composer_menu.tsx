@@ -103,10 +103,10 @@ const AttachFilesItem = ({disabled, onAttach, ...otherProps}: AttachFilesItemPro
 };
 
 /**
- * The one + control on an agent composer. It sits at the start of the control
- * row. Attach, emoji, and formatting open the controls the channel composer
- * shows as their own buttons. Add attributes is shown only when that feature
- * is on, and stays disabled until messages can carry attributes.
+ * The one + on the host composer. It sits on the left. Attach, emoji,
+ * formatting, and Add attributes are items in this menu. Add attributes is
+ * shown only when that feature is on, and stays disabled until messages can
+ * carry attributes.
  */
 const AgentComposerMenu = ({
     canAttach,
