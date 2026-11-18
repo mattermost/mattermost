@@ -65,6 +65,8 @@ jobs:
           # OneTrust production domain script for mattermost.com (public ID,
           # also embedded on mattermost.com). Hosted site only.
           ONETRUST_DOMAIN_SCRIPT: 720431b2-455a-47db-be59-4312edc7f3b4
+          # docs.mattermost.com GTM container (public ID). Requires OneTrust.
+          GTM_CONTAINER_ID: GTM-K874RWM
         run: npm run build
 
       - name: cd/configure-aws-credentials

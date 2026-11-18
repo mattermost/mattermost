@@ -146,11 +146,7 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 		}
 		if replacementPost != nil {
 			post = replacementPost
-			if post.Metadata != nil && metadata != nil {
-				post.Metadata.Priority = metadata.Priority
-			} else {
-				post.Metadata = metadata
-			}
+			restorePriorityAndValues(post, metadata)
 		}
 		return true
 	}, plugin.MessageWillBePostedID)
@@ -178,11 +174,7 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 		}
 		if replacement != nil {
 			post = replacement
-			if post.Metadata != nil && metadata != nil {
-				post.Metadata.Priority = metadata.Priority
-			} else {
-				post.Metadata = metadata
-			}
+			restorePriorityAndValues(post, metadata)
 		}
 		if trackPluginDelivery {
 			deliveredPluginIDs = append(deliveredPluginIDs, g.PluginId)
@@ -190,6 +182,18 @@ func (a *App) runGuardedMessageWillBePosted(rctx request.CTX, post *model.Post) 
 	}
 
 	return post, deliveredPluginIDs, nil
+}
+
+// restorePriorityAndValues puts the original post's priority and property values back on a
+// plugin's replacement post. Values are validated before the hooks run, and a plugin sets
+// values through the plugin API, not by rewriting the post here.
+func restorePriorityAndValues(replacement *model.Post, original *model.PostMetadata) {
+	if replacement.Metadata != nil && original != nil {
+		replacement.Metadata.Priority = original.Priority
+		replacement.Metadata.PropertyValues = original.PropertyValues
+	} else {
+		replacement.Metadata = original
+	}
 }
 
 // runGuardedMessageWillBeUpdated dispatches MessageWillBeUpdated. In the non-guarded

@@ -132,13 +132,34 @@ func TestHealthDashboardAccess(t *testing.T) {
 		checkHealthDashboardNotImplemented(t, th)
 	})
 
-	t.Run("license below Enterprise", func(t *testing.T) {
+	t.Run("license below Professional", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
-		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuE20))
 		checkHealthDashboardNotImplemented(t, th)
 	})
 
-	t.Run("admin with the flag and license", func(t *testing.T) {
+	t.Run("admin with the flag and a Professional license", func(t *testing.T) {
+		th := setupHealthDashboard(t, true)
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+		finding := newHealthFinding("SITE_URL_HTTP", healthcheck.SurfaceProduct)
+		storeHealthFindings(t, th, finding)
+
+		list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.Len(t, list.Findings, 1)
+		assert.Equal(t, finding.Fingerprint, list.Findings[0].Fingerprint)
+
+		resp, err = th.SystemAdminClient.MuteHealthFinding(context.Background(), finding.Fingerprint)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+
+		resp, err = th.SystemAdminClient.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+	})
+
+	t.Run("admin with the flag and an Enterprise license", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 
 		list, resp, err := th.SystemAdminClient.GetHealthFindings(context.Background(), model.HealthFindingFilter{})

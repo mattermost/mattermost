@@ -28,6 +28,7 @@ import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import {unifiedToUnicode} from 'utils/emoji_utils';
+import {replaceTextboxValue} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
@@ -254,7 +255,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
         const res = applyMarkdown(params);
 
-        setEditText(res.message);
+        const textbox = textboxRef.current?.getInputBox();
+        if (!textbox || !replaceTextboxValue(textbox, res.message)) {
+            setEditText(res.message);
+        }
         setSelectionRange({start: res.selectionStart, end: res.selectionEnd});
     };
 
