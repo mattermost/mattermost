@@ -16007,6 +16007,21 @@
     "description": "Health dashboard finding title when the server could not connect to its SMTP server while email notifications are enabled."
   },
   {
+    "id": "health.rule.tls_verify_outgoing_off.message",
+    "translation": "ServiceSettings.EnableInsecureOutgoingConnections is true, so the server does not verify TLS certificates on outgoing HTTPS connections such as outgoing webhooks, slash commands, OAuth token exchanges, link previews and plugin downloads. Anyone on the network path can read or change that traffic, including OAuth tokens.",
+    "description": "Health dashboard finding detail when the server skips TLS certificate verification on outgoing connections; 'ServiceSettings.EnableInsecureOutgoingConnections' is a config setting path and 'true' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.remediation",
+    "translation": "Add the internal CA certificate to the system trust store on every Mattermost server, then set ServiceSettings.EnableInsecureOutgoingConnections to false.",
+    "description": "Health dashboard fix-it step when the server skips TLS certificate verification on outgoing connections; 'ServiceSettings.EnableInsecureOutgoingConnections' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.tls_verify_outgoing_off.title",
+    "translation": "TLS certificate verification is off for outgoing connections",
+    "description": "Health dashboard finding title when the server skips TLS certificate verification on outgoing HTTPS connections."
+  },
+  {
     "id": "health.rule.version.unknown.latest",
     "translation": "Latest release unknown: it could not be fetched, or the packet does not record it.",
     "description": "Health dashboard reason shown when a version check could not run because the latest Mattermost release could not be fetched from GitHub or is not recorded in the Support Packet being evaluated, so the check's status is unknown."

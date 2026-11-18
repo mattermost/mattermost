@@ -11,6 +11,7 @@
         "Forward80To443": false,
         "EnableIncomingWebhooks": true,
         "EnableOutgoingWebhooks": true,
+        "EnableInsecureOutgoingConnections": false,
         "ExtendSessionLengthWithActivity": true
     },
     "TeamSettings": {
