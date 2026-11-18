@@ -3580,6 +3580,7 @@ Server-backed commands require a Mattermost Entry, Professional, Enterprise, or 
 
 > Child Commands  
 > - [mmctl health check](#mmctl-health-check) - Report current health findings
+> - [mmctl health run](#mmctl-health-run) - Run the health check now and report its findings
 
 **Options**
 
@@ -3616,6 +3617,47 @@ mmctl health check --packet mm_support_packet.zip
 --include-muted          Include muted findings
 --include-resolved       Include resolved findings
 --packet string          Path to a Support Packet zip to evaluate offline, without a server
+```
+
+**Options inherited from parent commands**
+
+``` sh
+--config string                path to the configuration file (default "$XDG_CONFIG_HOME/mmctl/config")
+--disable-pager                disables paged output
+--insecure-sha1-intermediate   allows to use insecure TLS protocols, such as SHA-1
+--insecure-tls-version         allows to use TLS versions 1.0 and 1.1
+--json                         the output format will be in json format
+--local                        allows communicating with the server through a unix socket
+--quiet                        prevent mmctl to generate output for the commands
+--strict                       will only run commands if the mmctl version matches the server one
+--suppress-warnings            disables printing warning messages
+```
+
+### mmctl health run
+
+**Description**
+
+Run the health check now, wait for it to finish, then report its findings as health check does. If a run is already pending or in progress, wait for that one instead of starting another.
+
+**Format**
+
+``` sh
+mmctl health run [flags]
+```
+
+**Examples**
+
+``` sh
+mmctl health run
+mmctl health run --include-resolved --include-muted
+```
+
+**Options**
+
+``` sh
+-h, --help               help for run
+--include-muted          Include muted findings
+--include-resolved       Include resolved findings
 ```
 
 **Options inherited from parent commands**
