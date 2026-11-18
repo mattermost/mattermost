@@ -168,6 +168,7 @@ func TestPropertyFieldOptionsPageRank(t *testing.T) {
 		slices.Sort(raw)
 		internal, secret, topSecret, unranked := raw[0], raw[1], raw[2], raw[3]
 		names := map[string]string{internal: "Internal", secret: "Secret", topSecret: "Top Secret", unranked: "Unranked"}
+		retired := model.NewId()
 
 		template, err := ss.PropertyField().Create(&model.PropertyField{
 			GroupID:    groupID,
@@ -180,9 +181,11 @@ func TestPropertyFieldOptionsPageRank(t *testing.T) {
 				map[string]any{"id": secret, "name": "Secret", "rank": 2},
 				map[string]any{"id": topSecret, "name": "Top Secret", "rank": 3},
 				map[string]any{"id": unranked, "name": "Unranked"},
+				map[string]any{"id": retired, "name": "Retired", "rank": 9},
 			}},
 		})
 		require.NoError(t, err)
+		require.NoError(t, fieldStore.DeleteOptions(groupID, template.ID, 0, []string{retired}))
 
 		// walk pages the whole listing and returns the names it reached, in order.
 		walk := func(t *testing.T, field *model.PropertyField, coveredBy []string, perPage, maxCandidates int) []string {
@@ -217,6 +220,10 @@ func TestPropertyFieldOptionsPageRank(t *testing.T) {
 		t.Run("an unranked or unknown held option covers nothing", func(t *testing.T) {
 			require.Empty(t, walk(t, template, []string{unranked}, 5, 2000))
 			require.Empty(t, walk(t, template, []string{model.NewId()}, 5, 2000))
+		})
+
+		t.Run("a deleted held option covers nothing", func(t *testing.T) {
+			require.Empty(t, walk(t, template, []string{retired}, 5, 2000))
 		})
 
 		t.Run("a small candidate window still reaches every passing option", func(t *testing.T) {
