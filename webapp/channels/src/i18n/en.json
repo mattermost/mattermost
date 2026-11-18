@@ -15104,11 +15104,11 @@
     "description": "Admin console label for a true/false setting enabling automatic certificates from Let's Encrypt (a certificate authority brand name); ends with a colon before the radio buttons."
   },
   "admin.service.useLetsEncryptDescription": {
-    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.",
+    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.",
     "description": "Help text for the Use Let's Encrypt setting on the System Console Web Server page; Let's Encrypt is a certificate authority (keep name)."
   },
   "admin.service.useLetsEncryptDescription.disabled": {
-    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true.",
+    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true.",
     "description": "Help text variant for the Use Let's Encrypt setting shown when it cannot be enabled; contains a markdown link [Forward port 80 to 443](#...) — keep the link target unchanged."
   },
   "admin.service.userAccessTokensDescription": {
