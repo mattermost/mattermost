@@ -1977,9 +1977,8 @@ func TestMaskingHoldingsOnAnotherOptionList(t *testing.T) {
 		updateErr      error
 		newTargetErr   error
 	}
-	observe := func(t *testing.T, f *maskedListFixture) outcome {
+	observe := func(t *testing.T, f *maskedListFixture, caller string) outcome {
 		t.Helper()
-		caller := model.NewId()
 		ctx := RequestContextWithCallerID(th.Context, caller)
 		writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value("Secret"))
 		stored := writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value("Secret"))
@@ -2010,7 +2009,7 @@ func TestMaskingHoldingsOnAnotherOptionList(t *testing.T) {
 	for _, fieldType := range []model.PropertyFieldType{model.PropertyFieldTypeRank, model.PropertyFieldTypeGraph} {
 		t.Run(string(fieldType)+": holdings on the same list still see what they hold", func(t *testing.T) {
 			f := newMaskedListFixture(t, th, fieldType, "Foreign-Control")
-			o := observe(t, f)
+			o := observe(t, f, model.NewId())
 
 			want := []string{"Secret"}
 			if fieldType == model.PropertyFieldTypeGraph {
@@ -2027,13 +2026,36 @@ func TestMaskingHoldingsOnAnotherOptionList(t *testing.T) {
 			t.Run(string(fieldType)+": holdings field "+b.name+" hides every option and value", func(t *testing.T) {
 				f := newMaskedListFixture(t, th, fieldType, "Foreign-"+b.name)
 				b.apply(t, f)
-				o := observe(t, f)
+				o := observe(t, f, model.NewId())
 
 				assert.Empty(t, o.inline, "the inline option list is empty")
 				assert.Empty(t, o.listed, "every listing page is empty")
 				assert.False(t, o.readable, "a stored value is dropped from the read")
 				assert.ErrorIs(t, o.updateErr, ErrAccessDenied, "a value the caller cannot see cannot be overwritten")
 				assert.NoError(t, o.newTargetErr, "an object with nothing stored can still be marked")
+			})
+		}
+
+		for _, b := range holdingsBreaks {
+			t.Run(string(fieldType)+": a caller named in except still sees everything when holdings field "+b.name, func(t *testing.T) {
+				f := newMaskedListFixture(t, th, fieldType, "ForeignExcept-"+b.name)
+				exempt := model.NewId()
+				f.template.Permissions = &model.Permissions{Masking: &model.Masking{
+					MaskByFieldID: f.holdings.ID,
+					Except:        []model.Identity{{Type: model.PropertyOwnerTypeUser, ID: exempt}},
+				}}
+				updated, err := th.dbStore.PropertyField().Update(f.template.GroupID, []*model.PropertyField{f.template}, nil)
+				require.NoError(t, err)
+				f.template = updated[0]
+				b.apply(t, f)
+				o := observe(t, f, exempt)
+
+				all := []string{"Top Secret", "Secret", "Internal"}
+				assert.ElementsMatch(t, all, o.inline)
+				assert.ElementsMatch(t, all, o.listed)
+				assert.True(t, o.readable)
+				assert.NoError(t, o.updateErr)
+				assert.NoError(t, o.newTargetErr)
 			})
 		}
 	}
