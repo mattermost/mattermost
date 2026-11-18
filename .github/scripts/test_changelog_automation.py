@@ -745,6 +745,33 @@ class LabelTokenWorkflowTest(unittest.TestCase):
         self.assertEqual(summary.call_args_list[-1].args[0],
                          "Changelog labels not reconciled: no labels token for the source repos.")
 
+    def test_a_dispatch_after_a_hand_merge_reconciles_the_labels(self):
+        with mock.patch.object(ca, "find_changelog_pr", return_value=None), \
+                mock.patch.object(ca, "fetch_reports", return_value=iter([REPORT])), \
+                mock.patch.object(ca, "run_merge") as merge, mock.patch.object(ca, "run_blog_fixup", return_value=""), \
+                mock.patch.object(ca, "merge_labels", return_value="reconciled") as labels, \
+                mock.patch.object(ca, "Api"), mock.patch.object(ca, "_summary") as summary:
+            ca.cmd_merge({"EVENT_NAME": "workflow_dispatch", "INPUT_VERSION": VERSION, "GH_TOKEN": "t",
+                          "LABEL_TOKEN": "l", "LABEL_ACTOR": "app[bot]"})
+        merge.assert_not_called()
+        self.assertEqual(labels.call_args.args[2], [REPORT])
+        summary.assert_called_once_with("reconciled")
+
+    def test_a_scheduled_run_with_no_open_pr_leaves_the_labels(self):
+        with mock.patch.object(ca, "recent_releases", return_value=[VERSION]), \
+                mock.patch.object(ca, "find_changelog_pr", return_value=None), \
+                mock.patch.object(ca, "fetch_reports") as reports, mock.patch.object(ca, "run_blog_fixup", return_value=""), \
+                mock.patch.object(ca, "merge_labels") as labels, mock.patch.object(ca, "Api"), mock.patch.object(ca, "_summary"):
+            ca.cmd_merge({"EVENT_NAME": "schedule", "GH_TOKEN": "t", "LABEL_TOKEN": "l", "LABEL_ACTOR": "app[bot]"})
+        reports.assert_not_called()
+        labels.assert_not_called()
+
+    def test_the_merge_cron_runs_on_weekends(self):
+        crons = re.findall(r"- cron: '([^']+)'", self.text)
+        self.assertIn("37 * * * *", crons)
+        self.assertEqual(self.text.count("github.event.schedule == '37 * * * *'"), 1)
+        self.assertEqual(self.text.count("github.event.schedule != '37 * * * *'"), 1)
+
 
 GUESS = "https://mattermost.com/blog/mattermost-v12-2-is-now-available/"
 POST = "https://mattermost.com/blog/mattermost-12-2-faster-search/"

@@ -1069,7 +1069,7 @@ def cmd_merge(env: dict) -> int:
     api = Api(env["GH_TOKEN"])
     now = datetime.now(timezone.utc)
     if env.get("EVENT_NAME") == "schedule":
-        # Hourly on weekdays: the releases still waiting for their changelog (or its blog link fix).
+        # Hourly, weekends included: the releases still waiting for their changelog (or its blog link fix).
         versions = recent_releases(api, now.date())
         if not versions:
             _summary("No feature release in the last 20 days; nothing to merge or fix.")
@@ -1082,20 +1082,22 @@ def cmd_merge(env: dict) -> int:
         versions = [version]
     find = blog_finder()
     for version in versions:
-        merged_now = False
-        if find_changelog_pr(api, version) is not None:
-            reports = fetch_reports(version, env, limit=100)
-            report = next(reports, None)
+        is_open = find_changelog_pr(api, version) is not None
+        # A dispatch or release run reconciles labels even with no open PR: that is how a hand-merge is reconciled.
+        reconcile = env.get("EVENT_NAME") != "schedule"
+        reports = fetch_reports(version, env, limit=100) if is_open or reconcile else iter(())
+        report = next(reports, None)
+        if is_open:
             outcome = run_merge(api, version, report, env.get("AUTO_MERGE", "").strip().lower() == "true", blog=find, now=now)
             _summary(merge_summary(version, outcome))
-            merged_now = outcome["merged"]
-            if merged_now or env.get("EVENT_NAME") != "schedule":
-                label_api = Api(env["LABEL_TOKEN"]) if env.get("LABEL_TOKEN") else None
-                if label_api is None:
-                    _summary("Changelog labels not reconciled: no labels token for the source repos.")
-                else:
-                    _summary(merge_labels(api, version, [report, *reports] if report else [], env.get("LABEL_ACTOR", ""),
-                                          label_api))
+            reconcile = reconcile or outcome["merged"]
+        if reconcile:
+            label_api = Api(env["LABEL_TOKEN"]) if env.get("LABEL_TOKEN") else None
+            if label_api is None:
+                _summary("Changelog labels not reconciled: no labels token for the source repos.")
+            else:
+                _summary(merge_labels(api, version, [report, *reports] if report else [], env.get("LABEL_ACTOR", ""),
+                                      label_api))
         fixed = run_blog_fixup(api, version, now.date(), find, env.get("RELEASE_MANAGER", ""))
         if fixed:
             _summary(fixed)

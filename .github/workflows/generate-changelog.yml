@@ -60,11 +60,12 @@ name: Generate Changelog
 # no "Release day: TBD" is left, benchmarking is not pending and no note was left unplaced
 # by the model; otherwise it lists what is missing in the run summary. Once the PR is
 # merged, it swaps Changelog/Done for Changelog/Not Needed on each PR whose bullet a
-# reviewer deleted, only where this workflow's app added Changelog/Done.
+# reviewer deleted, only where this workflow's app added Changelog/Done. A PR merged by
+# hand gets the same swap from a dispatch in merge mode.
 #
 # The blog link: before merging, the entry's "this blog post" link is set to the published
 # post (found on mattermost.com as the release agent's blog check finds it). If the post isn't
-# out, the merge job (hourly on weekdays, besides the release event) checks again each run
+# out, the merge job (hourly every day, besides the release event) checks again each run
 # until 23:00 UTC on Release Day, then merges with the releases category page linked; the
 # release agent's status post flags "Blog link in the changelog to update". A link set in a run
 # is a commit on the changelog PR's branch, so the PR merges on a later run, once checks pass.
@@ -85,8 +86,9 @@ on:
   schedule:
     - cron: '0 6 * * 1-5'
     # The merge job only: on Release Day, until the changelog is merged, and for 10 working days
-    # after it, until its blog link is the published post.
-    - cron: '37 * * * 1-5'
+    # after it, until its blog link is the published post. Weekends too, so a Friday release
+    # linked to the category page at 23:00 UTC still merges that night.
+    - cron: '37 * * * *'
   release:
     types: [released]
   workflow_dispatch:
@@ -147,7 +149,7 @@ jobs:
   # milestone disagree on the major version, which would file one release's notes
   # under another's.
   resolve:
-    if: github.repository == 'mattermost/mattermost' && github.event_name != 'release' && inputs.mode != 'merge' && github.event.schedule != '37 * * * 1-5'
+    if: github.repository == 'mattermost/mattermost' && github.event_name != 'release' && inputs.mode != 'merge' && github.event.schedule != '37 * * * *'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -550,7 +552,7 @@ jobs:
   # mode. Merges the changelog PR only when CHANGELOG_AUTO_MERGE is true and nothing is
   # missing; otherwise the run summary lists what is.
   merge:
-    if: github.repository == 'mattermost/mattermost' && (github.event_name == 'release' || github.event.schedule == '37 * * * 1-5' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'merge'))
+    if: github.repository == 'mattermost/mattermost' && (github.event_name == 'release' || github.event.schedule == '37 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'merge'))
     runs-on: ubuntu-latest
     concurrency:
       group: generate-changelog-merge
