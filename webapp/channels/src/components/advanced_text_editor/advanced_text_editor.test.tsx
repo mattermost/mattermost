@@ -1460,6 +1460,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+            expect(screen.getByTestId('SendMessageButton').closest('.splitSendButton')).not.toHaveClass('splitSendButton--round');
+            expect(document.getElementById('createPostFileDropOverlay')).not.toHaveClass('file-overlay--pill');
+            expect(screen.getByText('Drop a file to upload it.')).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'attachment'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'select an emoji'})).not.toBeInTheDocument();
@@ -1510,6 +1513,26 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+        });
+
+        it('uses a circular send button and a pill drop label', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            const send = screen.getByTestId('SendMessageButton');
+            expect(send.closest('.splitSendButton')).toHaveClass('splitSendButton--round');
+            expect(send.querySelector('.SendMessageButton__icon')).toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor__send')).toContainElement(send);
+
+            const overlay = document.getElementById('agentComposerFileDropOverlay_CENTER_new');
+            expect(overlay).toHaveClass('file-overlay--pill');
+            expect(overlay).toHaveTextContent('Drop file to attach');
+            expect(screen.queryByText('Drop a file to upload it.')).not.toBeInTheDocument();
         });
 
         it('puts the + on the left of the composer and send at the end', () => {
@@ -1778,7 +1801,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 chromeState,
             );
 
-            expect(screen.getByRole('button', {name: 'Stop generating'})).toBeInTheDocument();
+            const stop = screen.getByRole('button', {name: 'Stop generating'});
+            expect(stop).toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor__send')).toContainElement(stop);
             expect(screen.queryByTestId('SendMessageButton')).not.toBeInTheDocument();
 
             rerender(

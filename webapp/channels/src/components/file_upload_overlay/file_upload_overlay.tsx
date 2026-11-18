@@ -21,6 +21,9 @@ type Props = {
     id: string;
     isInEditMode?: boolean;
     direction?: 'horizontal' | 'vertical';
+
+    /** Agent composer: "Drop file to attach" as a pill, instead of the page overlay. */
+    pill?: boolean;
 };
 
 export const FileUploadOverlay = (props: Props) => {
@@ -35,6 +38,10 @@ export const FileUploadOverlay = (props: Props) => {
         overlayClass += ' post_edit_mode';
     }
 
+    if (props.pill) {
+        overlayClass += ' file-overlay--pill';
+    }
+
     const mode = props.direction || 'vertical';
 
     return (
@@ -44,16 +51,27 @@ export const FileUploadOverlay = (props: Props) => {
         >
             <div className='overlay__indent'>
                 <div className={classNames('overlay__circle', mode)}>
-                    <img
-                        className='overlay__files'
-                        src={fileOverlayImage}
-                        alt=''
-                        loading='lazy'
-                    />
-                    <FormattedMessage
-                        id='upload_overlay.info'
-                        defaultMessage='Drop a file to upload it.'
-                    />
+                    {props.pill ? (
+                        <span className='overlay__label'>
+                            <FormattedMessage
+                                id='upload_overlay.drop_to_attach'
+                                defaultMessage='Drop file to attach'
+                            />
+                        </span>
+                    ) : (
+                        <>
+                            <img
+                                className='overlay__files'
+                                src={fileOverlayImage}
+                                alt=''
+                                loading='lazy'
+                            />
+                            <FormattedMessage
+                                id='upload_overlay.info'
+                                defaultMessage='Drop a file to upload it.'
+                            />
+                        </>
+                    )}
                 </div>
             </div>
         </div>

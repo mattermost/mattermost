@@ -41,6 +41,7 @@ const useUploadFiles = (
     setServerError: (err: (ServerError & {submittedMessage?: string}) | null) => void,
     isPostBeingEdited?: boolean,
     hideAttachmentButton = false,
+    overlayId?: string,
 ): [React.ReactNode, React.ReactNode, () => void, boolean] => {
     const intl = useIntl();
     const locale = useSelector(getCurrentLocale);
@@ -199,6 +200,7 @@ const useUploadFiles = (
             postType={postType}
             disabledByPolicy={!uploadAllowedByPolicy}
             hideButton={hideAttachmentButton}
+            overlayId={overlayId}
         />
     );
 

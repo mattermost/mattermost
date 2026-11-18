@@ -30,9 +30,12 @@ type SendButtonProps = {
 
     /** Agent chat has no scheduled or repeating send. The split stays off. */
     hideSchedule?: boolean;
+
+    /** Agent chat. A 32px circle, the same size as stop. */
+    round?: boolean;
 };
 
-const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, hideSchedule = false}: SendButtonProps) => {
+const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, hideSchedule = false, round = false}: SendButtonProps) => {
     const {formatMessage} = useIntl();
     const isScheduledPostEnabled = useSelector(isScheduledPostsEnabled) && !hideSchedule;
 
@@ -63,7 +66,7 @@ const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, hi
     }, [sendOnCtrlEnter]);
 
     return (
-        <div className={classNames('splitSendButton', {disabled, scheduledPost: isScheduledPostEnabled})}>
+        <div className={classNames('splitSendButton', {disabled, scheduledPost: isScheduledPostEnabled, 'splitSendButton--round': round})}>
             <WithTooltip
                 title={formatMessage({id: 'create_post_button.option.send_now', defaultMessage: 'Send Now'})}
                 shortcut={sendNowKeyboardShortcutDescriptor}
@@ -83,6 +86,7 @@ const SendButton = ({disabled, handleSubmit, channelId, repeatDisabledReason, hi
                     <SendIcon
                         size={18}
                         color='currentColor'
+                        className={round ? 'SendMessageButton__icon' : undefined}
                     />
                 </button>
             </WithTooltip>

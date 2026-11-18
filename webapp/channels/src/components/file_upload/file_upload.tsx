@@ -168,6 +168,12 @@ export type Props = {
     centerChannelPostBeingEdited: boolean;
     rhsPostBeingEdited: boolean;
 
+    /**
+     * Reveal this overlay while files are dragged over the composer. The drop
+     * still uploads through this component's file input.
+     */
+    overlayId?: string;
+
     actions: {
 
         /**
@@ -227,6 +233,10 @@ export class FileUpload extends PureComponent<Props, State> {
         }
         }
 
+        if (this.props.overlayId) {
+            overlaySelector = '#' + this.props.overlayId;
+        }
+
         return {
             containerSelector,
             overlaySelector,
@@ -246,7 +256,8 @@ export class FileUpload extends PureComponent<Props, State> {
         // clear existing drag handlers and register fresh ones in the right place.
         if (
             prevProps.centerChannelPostBeingEdited !== this.props.centerChannelPostBeingEdited ||
-            prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited
+            prevProps.rhsPostBeingEdited !== this.props.rhsPostBeingEdited ||
+            prevProps.overlayId !== this.props.overlayId
         ) {
             this.unbindDragsterEvents?.();
             const {containerSelector, overlaySelector} = this.getDragEventDefinition();

@@ -484,6 +484,15 @@ const AdvancedTextEditor = ({
 
     usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
+    let dropOverlayId = DropOverlayIdCreatePost;
+    if (agentMode) {
+        dropOverlayId = `agentComposerFileDropOverlay_${location}_${rootId || 'new'}`;
+    } else if (isInEditMode) {
+        dropOverlayId = DropOverlayIdEditPost;
+    } else if (isRHS) {
+        dropOverlayId = DropOverlayIdCreateComment;
+    }
+
     const [attachmentPreview, fileUploadJSX, openFileDialog, uploadDisabledByPolicy] = useUploadFiles(
         draft,
         rootId,
@@ -497,6 +506,7 @@ const AdvancedTextEditor = ({
         setServerError,
         isInEditMode,
         true,
+        agentMode ? dropOverlayId : undefined,
     );
 
     const insertWysiwygText = useCallback((text: string) => {
@@ -805,6 +815,7 @@ const AdvancedTextEditor = ({
             channelId={channelId}
             repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
             hideSchedule={agentMode}
+            round={agentMode}
         />
     );
     const sendControl = agentMode && renderSendButton && sendButton ? renderSendButton(sendButton) : sendButton;
@@ -903,22 +914,16 @@ const AdvancedTextEditor = ({
         const overlayType = isRHS ? 'right' : 'center';
         const direction = 'horizontal';
 
-        return isInEditMode ? (
+        return (
             <FileUploadOverlay
                 overlayType={overlayType}
-                isInEditMode={true}
-                id={DropOverlayIdEditPost}
+                isInEditMode={isInEditMode}
+                id={dropOverlayId}
                 direction={direction}
-            />
-        ) : (
-            <FileUploadOverlay
-                overlayType={overlayType}
-                isInEditMode={false}
-                id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
-                direction={direction}
+                pill={agentMode}
             />
         );
-    }, [isInEditMode, isRHS]);
+    }, [agentMode, dropOverlayId, isInEditMode, isRHS]);
 
     // Channel composers reserve a row under long, previewed, RHS, and thread
     // messages so the overlaid controls clear the text. Agent mode keeps a
@@ -1019,6 +1024,7 @@ const AdvancedTextEditor = ({
     const sendActions = showPlus && (
         <TexteditorActions
             ref={editorActionsRef}
+            className={agentMode ? 'AdvancedTextEditor__send' : undefined}
             placement='bottom'
         >
             {sendControl}

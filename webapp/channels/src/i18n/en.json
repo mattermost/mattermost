@@ -33223,6 +33223,10 @@
     "defaultMessage": "Upgrade now",
     "description": "Call-to-action button/link prompting the workspace to upgrade to a paid plan."
   },
+  "upload_overlay.drop_to_attach": {
+    "defaultMessage": "Drop file to attach",
+    "description": "Pill label on the agent composer while a file is dragged over it."
+  },
   "upload_overlay.info": {
     "defaultMessage": "Drop a file to upload it.",
     "description": "Text on the full-screen overlay shown while dragging a file over the app, prompting the user to drop it to upload."

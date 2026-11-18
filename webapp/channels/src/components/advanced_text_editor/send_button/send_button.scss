@@ -70,3 +70,24 @@
         }
     }
 }
+
+// Agent send is a 32px circle, the same size as stop, with the primary fill.
+// The paper plane's mass sits left of center; 2px (--spacing-xxxxs) centers it.
+.splitSendButton--round {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-full);
+
+    .SendMessageButton {
+        border-radius: var(--radius-full);
+        padding-inline: 0;
+
+        &.singleAction {
+            border-radius: var(--radius-full);
+        }
+    }
+}
+
+.SendMessageButton__icon {
+    transform: translateX(var(--spacing-xxxxs));
+}
