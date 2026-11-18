@@ -456,8 +456,8 @@
         white-space: nowrap;
     }
 
-    // Out of the layout until the row is hovered or focused, so the node text doesn't jump
-    // (btn-compact is already 20px, which fits the row's line height.) The extra class beats .btn's display
+    // Out of the layout until the row is hovered or focused, so it takes no room from the node name the rest of the time.
+    // btn-compact is already 20px, which fits the row's line height. The extra class beats .btn's display
     &__node &__node-copy-btn {
         display: none;
     }

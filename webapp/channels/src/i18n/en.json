@@ -9679,6 +9679,10 @@
     "defaultMessage": "Copy log line",
     "description": "Button label in an expanded log entry on the System Console Server Logs page; copies the raw log line to the clipboard."
   },
+  "admin.logs.copyNode": {
+    "defaultMessage": "Copy node name",
+    "description": "Accessible label for the icon button that copies the cluster node name of a log entry, in the entry's row and in its expanded details, on the System Console Server Logs page."
+  },
   "admin.logs.copyToClipboard": {
     "defaultMessage": "Copy to clipboard",
     "description": "Accessible label for the icon button that copies a field value of a log entry on the System Console Server Logs page."

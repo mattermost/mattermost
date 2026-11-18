@@ -112,9 +112,12 @@ type CopyButtonProps = {
     value: string;
     className?: string;
     tabIndex?: number;
+
+    // Names what's copied where the generic label isn't enough
+    label?: string;
 };
 
-function CopyButton({value, className, tabIndex}: CopyButtonProps) {
+function CopyButton({value, className, tabIndex, label}: CopyButtonProps) {
     const intl = useIntl();
     const [status, copy] = useClipboardCopy();
 
@@ -130,7 +133,7 @@ function CopyButton({value, className, tabIndex}: CopyButtonProps) {
             className={`LogRow__copy-btn btn btn-icon btn-xs btn-compact${className ? ` ${className}` : ''}`}
             tabIndex={tabIndex}
             onClick={handleCopy}
-            aria-label={intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
+            aria-label={label ?? intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
             <i className={status === 'copied' ? 'icon icon-check' : 'icon icon-content-copy'}/>
         </button>
@@ -208,7 +211,9 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
     const copyJsonSuccess = copyJsonStatus === 'copied';
     const copyLineSuccess = copyLineStatus === 'copied';
     const levelConfig = LEVEL_CONFIG[log.level];
+    const intl = useIntl();
     const node = showNode ? log[LogNodeKey] : undefined;
+    const copyNodeLabel = intl.formatMessage({id: 'admin.logs.copyNode', defaultMessage: 'Copy node name'});
 
     // Levels such as fatal or trace keep their own name but take their group's color
     const group = levelGroup(log.level);
@@ -312,6 +317,7 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                                 value={node}
                                 className='LogRow__node-copy-btn'
                                 tabIndex={-1}
+                                label={copyNodeLabel}
                             />
                         )}
                     </span>
@@ -355,7 +361,10 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                                 </span>
                                 <span className='LogRow__detail-value LogRow__detail-value--mono'>
                                     {node}
-                                    <CopyButton value={node}/>
+                                    <CopyButton
+                                        value={node}
+                                        label={copyNodeLabel}
+                                    />
                                 </span>
                             </div>
                         )}

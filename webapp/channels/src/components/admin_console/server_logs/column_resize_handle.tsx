@@ -4,6 +4,8 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 
+import {useLatest} from 'hooks/useLatest';
+
 export type ResizableColumn = 'timestamp' | 'node' | 'caller';
 
 export type ColumnWidths = Partial<Record<ResizableColumn, number>>;
@@ -73,6 +75,15 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         }
     }, [width, measure]);
 
+    // Unmounted mid-drag, as when the list reloads, keeps the width so the viewer doesn't stay in its resizing state
+    const latest = useLatest({column, onCommit});
+    useEffect(() => () => {
+        const current = drag.current;
+        if (current?.moved) {
+            latest.current.onCommit(latest.current.column, current.width);
+        }
+    }, []);
+
     // +1 grows the column when dragged right
     const direction = edge === 'end' ? 1 : -1;
 
@@ -97,19 +108,6 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         }
     }, [width, measure]);
 
-    const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
-        const current = drag.current;
-        if (!current) {
-            return;
-        }
-        const next = clampColumnWidth(column, current.startWidth + ((e.clientX - current.startX) * direction));
-        if (next !== current.width) {
-            current.width = next;
-            current.moved = true;
-            onResize(column, next);
-        }
-    }, [column, direction, onResize]);
-
     const endDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         const current = drag.current;
         if (!current) {
@@ -127,6 +125,25 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
             onCommit(column, current.width);
         }
     }, [column, onCommit]);
+
+    const handlePointerMove = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
+        const current = drag.current;
+        if (!current) {
+            return;
+        }
+
+        // Released outside the handle without a pointerup reaching it, as when capture failed
+        if (e.buttons === 0) {
+            endDrag(e);
+            return;
+        }
+        const next = clampColumnWidth(column, current.startWidth + ((e.clientX - current.startX) * direction));
+        if (next !== current.width) {
+            current.width = next;
+            current.moved = true;
+            onResize(column, next);
+        }
+    }, [column, direction, onResize, endDrag]);
 
     const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
         if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
@@ -163,6 +180,7 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
             onPointerMove={handlePointerMove}
             onPointerUp={endDrag}
             onPointerCancel={endDrag}
+            onLostPointerCapture={endDrag}
             onClick={stop}
             onDoubleClick={handleDoubleClick}
             onKeyDown={handleKeyDown}

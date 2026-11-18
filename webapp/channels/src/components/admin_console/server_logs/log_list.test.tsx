@@ -829,7 +829,7 @@ describe('components/admin_console/server_logs/LogList', () => {
         describe('dragging', () => {
             // jsdom has no PointerEvent, so the coordinates are set on the event
             function pointer(element: Element, type: 'pointerDown' | 'pointerMove' | 'pointerUp', clientX: number) {
-                const event = new MouseEvent(type.toLowerCase(), {bubbles: true, cancelable: true, clientX, button: 0});
+                const event = new MouseEvent(type.toLowerCase(), {bubbles: true, cancelable: true, clientX, button: 0, buttons: type === 'pointerUp' ? 0 : 1});
                 Object.defineProperty(event, 'pointerId', {value: 1});
                 act(() => {
                     element.dispatchEvent(event);
@@ -885,6 +885,42 @@ describe('components/admin_console/server_logs/LogList', () => {
                 pointer(nodeHandle, 'pointerUp', 100);
 
                 expect(storedPrefs().columnWidths).toEqual({});
+            });
+
+            test('should end the drag when the pointer moves with no button held', () => {
+                renderListWith(twoNodeProps);
+                const nodeHandle = handle('Node');
+
+                pointer(nodeHandle, 'pointerDown', 100);
+                pointer(nodeHandle, 'pointerMove', 130);
+
+                // The release happened where the handle couldn't see it
+                const event = new MouseEvent('pointermove', {bubbles: true, cancelable: true, clientX: 200, buttons: 0});
+                Object.defineProperty(event, 'pointerId', {value: 1});
+                act(() => {
+                    nodeHandle.dispatchEvent(event);
+                });
+
+                expect(viewer()).not.toHaveClass('LogViewer--resizing');
+                expect(storedPrefs().columnWidths).toEqual({node: 150});
+            });
+
+            test('should keep the width and leave the resizing state when the handle unmounts mid-drag', () => {
+                const {rerender} = renderListWith(twoNodeProps);
+                pointer(handle('Node'), 'pointerDown', 100);
+                pointer(handle('Node'), 'pointerMove', 130);
+
+                // A single node hides the node column and its handle
+                rerender(
+                    <StatefulLogList
+                        {...baseProps}
+                        logs={[makeNodeLog('node-a', 'a')]}
+                        nodes={['node-a']}
+                    />,
+                );
+
+                expect(viewer()).not.toHaveClass('LogViewer--resizing');
+                expect(storedPrefs().columnWidths).toEqual({node: 150});
             });
         });
 
