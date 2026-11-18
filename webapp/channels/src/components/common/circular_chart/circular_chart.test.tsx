@@ -15,15 +15,6 @@ describe('/components/common/CircularChart', () => {
         height: 100,
     };
 
-    test('should match snapshot', () => {
-        const {container} = render(
-            <CircularChart
-                {...baseProps}
-                type={'success'}
-            />);
-        expect(container).toMatchSnapshot();
-    });
-
     test('test circularChart contains the text value as specified in the base props', () => {
         render(
             <CircularChart

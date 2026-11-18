@@ -6,7 +6,7 @@ import {defineMessage, defineMessages, FormattedMessage, useIntl} from 'react-in
 import type {MessageDescriptor} from 'react-intl';
 import {useSelector} from 'react-redux';
 
-import {PlusIcon} from '@mattermost/compass-icons/components';
+import {DotsHorizontalIcon, PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {AccessControlPolicy, AccessControlPolicyRule} from '@mattermost/types/access_control';
@@ -54,6 +54,8 @@ const SAVE_RESULT_ERROR = 'error' as const;
 type SaveResult = typeof SAVE_RESULT_SAVED | typeof SAVE_RESULT_ERROR;
 
 const PAGE_SIZE = 10;
+
+const PermissionsPolicyRowMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
 type ChannelSettingsPermissionsPolicyTabProps = {
     channel: Channel;
@@ -273,6 +275,10 @@ function ChannelSettingsPermissionsPolicyTab({
     showTabSwitchError,
 }: ChannelSettingsPermissionsPolicyTabProps) {
     const {formatMessage} = useIntl();
+    const rowMenuLabel = formatMessage({
+        id: 'channel_settings.permissions_policy.row.menu_label',
+        defaultMessage: 'Rule actions',
+    });
     const channelKind = useChannelKind(channel);
     const accessControlSettings = useSelector((state: GlobalState) => getAccessControlSettings(state));
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
@@ -908,12 +914,12 @@ function ChannelSettingsPermissionsPolicyTab({
                                         <Menu.Container
                                             menuButton={{
                                                 id: `permissions-policy-row-menu-${rule.key}`,
-                                                'aria-label': formatMessage({
-                                                    id: 'channel_settings.permissions_policy.row.menu_label',
-                                                    defaultMessage: 'Rule actions',
-                                                }),
-                                                class: 'ChannelSettingsModal__permissionsPolicyRowMenuButton',
-                                                children: <i className='icon icon-dots-horizontal'/>,
+                                                as: PermissionsPolicyRowMenuTrigger,
+                                                'aria-label': rowMenuLabel,
+                                                children: <Icon glyph={<DotsHorizontalIcon/>}/>,
+                                            }}
+                                            menuButtonTooltip={{
+                                                text: rowMenuLabel,
                                             }}
                                             menu={{
                                                 id: `permissions-policy-row-menu-${rule.key}-content`,

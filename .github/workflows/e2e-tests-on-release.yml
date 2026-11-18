@@ -67,6 +67,7 @@ jobs:
   e2e-cypress:
     needs: validate
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -93,6 +94,7 @@ jobs:
   e2e-playwright:
     needs: validate
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -117,6 +119,7 @@ jobs:
   e2e-playwright-subpath:
     needs: validate
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -143,6 +146,7 @@ jobs:
     needs: validate
     if: needs.validate.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write
@@ -171,6 +175,7 @@ jobs:
     needs: validate
     if: needs.validate.outputs.fips_supported == 'true'
     permissions:
+      actions: read
       contents: read
       statuses: write
       id-token: write

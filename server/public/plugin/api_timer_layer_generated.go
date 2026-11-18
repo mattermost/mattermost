@@ -1443,6 +1443,13 @@ func (api *apiTimerLayer) UpdateSharedChannelCursor(channelID, remoteID string, 
 	return _returnsA
 }
 
+func (api *apiTimerLayer) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetSharedChannelCursor(channelID, remoteID)
+	api.recordTime(startTime, "GetSharedChannelCursor", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SyncSharedChannel(channelID string) error {
 	startTime := timePkg.Now()
 	_returnsA := api.apiImpl.SyncSharedChannel(channelID)

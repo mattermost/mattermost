@@ -81,6 +81,17 @@ describe('AttributeDetails', () => {
         }),
     );
 
+    it('renders Definition and Applies to as Compass AdminPanels', () => {
+        const {container} = renderComponent();
+
+        expect(container.querySelector('#attribute_definition.AdminPanel')).toBeInTheDocument();
+        expect(container.querySelector('#attribute_applies_to.AdminPanel')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Definition'})).toBeInTheDocument();
+        expect(screen.getByText('Display name, type, and options.')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Applies to'})).toBeInTheDocument();
+        expect(screen.getByText('Resources this attribute applies to, and who can set the value on each.')).toBeInTheDocument();
+    });
+
     it('renders the empty auto-slug caption as a dash, not the _copy sentinel', () => {
         renderComponent();
         expect(screen.getByTestId('attributeUniqueNameCaption')).toHaveTextContent('Unique name:');
@@ -1714,8 +1725,8 @@ describe('AttributeDetails', () => {
         // pages with a cursor, so a cursor-bearing call has to come back empty or
         // the walk never terminates.
         function mockConflictFields(userFields: PropertyField[], templates: PropertyField[] = []) {
-            return jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, _targetType, _targetId, options) => {
-                if (options?.cursorId) {
+            return jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'user') {
@@ -1735,8 +1746,8 @@ describe('AttributeDetails', () => {
             renderComponent();
 
             await waitFor(() => {
-                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'user', 'system', undefined, expect.anything());
-                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'template', 'system', undefined, expect.anything());
+                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'user', expect.objectContaining({targetType: 'system'}));
+                expect(Client4.getPropertyFields).toHaveBeenCalledWith('access_control', 'template', expect.objectContaining({targetType: 'system'}));
             });
             await runPostRenderAct(3);
         };
@@ -1771,8 +1782,8 @@ describe('AttributeDetails', () => {
             const userFieldsPromise = new Promise<PropertyField[]>((resolve) => {
                 resolveUserFields = resolve;
             });
-            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, _targetType, _targetId, options) => {
-                if (options?.cursorId) {
+            jest.spyOn(Client4, 'getPropertyFields').mockImplementation((_group, objectType, query) => {
+                if (query?.cursorId) {
                     return Promise.resolve([]);
                 }
                 if (objectType === 'user') {

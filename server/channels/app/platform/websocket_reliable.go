@@ -9,6 +9,7 @@ import (
 	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64) (*model.WSQueues, error) {
@@ -16,8 +17,11 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 	if hub == nil {
 		return nil, nil
 	}
-	connRes := hub.CheckConn(userID, connectionID)
+	connRes, active := hub.CheckConn(userID, connectionID)
 	if connRes == nil {
+		if active {
+			return &model.WSQueues{Status: model.WSQueuesStatusOldConnStillOpen}, nil
+		}
 		return nil, nil
 	}
 	aq := connRes.ActiveQueue
@@ -62,8 +66,12 @@ func (ps *PlatformService) GetWSQueues(userID, connectionID string, seqNum int64
 		}, nil
 	}
 
-	// Nothing matched.
-	return nil, nil
+	// The connection was here, but the client's sequence number is no longer in the dead queue.
+	ps.Log().Debug("Websocket resume failed on another node, missed events evicted from dead queue",
+		mlog.String("user_id", userID),
+		mlog.String("connection_id", connectionID),
+		mlog.Int("sequence_number", seqNum))
+	return &model.WSQueues{Status: model.WSQueuesStatusMissedEventsEvicted}, nil
 }
 
 func (ps *PlatformService) marshalAQ(aq <-chan model.WebSocketMessage, connID, userID string) ([]model.ActiveQueueItem, error) {

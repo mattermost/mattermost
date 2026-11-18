@@ -37,6 +37,7 @@ import FormError from 'components/form_error';
 import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AdminSectionPanel from 'components/widgets/admin_console/admin_section_panel';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 import BetaTag from 'components/widgets/tag/beta_tag';
@@ -48,6 +49,7 @@ import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapte
 
 import PluginMetadataPanel from './plugin_metadata_panel/plugin_metadata_panel';
 import ProductionWarning from './production_warning';
+import {canViewPluginLogs, pluginLogsPath} from './server_logs/url_filters';
 import Setting from './setting';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
 
@@ -352,7 +354,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
             return (
                 <AdminHeader>
                     <div className='admin-console__header-left'>
-                        {name}
+                        <span>{name}</span>
                         {pluginStateBadge}
                         {betaBadge}
                     </div>
@@ -387,7 +389,10 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         return (
             <div className='PluginMetadataPanel__settingsWrapper'>
-                <div className='PluginMetadataPanel__actionsPanel'>
+                <AdminPanel
+                    id='plugin_metadata_panel'
+                    className='PluginMetadataPanel__actionsPanel'
+                >
                     <div className='PluginMetadataPanel__actionsRow'>
                         <div className='PluginMetadataPanel__identity'>
                             <div className='PluginMetadataPanel__details'>
@@ -413,11 +418,12 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                                 homepageUrl={this.props.plugin.homepage_url}
                                 saveNeeded={this.state.saveNeeded}
                                 value={this.props.plugin.active}
+                                logsPath={canViewPluginLogs(this.props.config, this.props.consoleAccess) ? pluginLogsPath(this.props.plugin.id) : undefined}
                             />
                         )}
                     </div>
                     {this.renderPluginStateError(pluginState, this.props.pluginStatus?.error)}
-                </div>
+                </AdminPanel>
             </div>
         );
     };
@@ -1126,6 +1132,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 }
             };
             const errorCallback = (error: any) => {
+                this.setState({[`${setting.key}Error`]: error.message});
                 if (callback && typeof callback === 'function') {
                     callback(error.message);
                 }
@@ -1146,7 +1153,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 disabled={this.isDisabled(setting)}
                 fileType={setting.fileType}
                 onSubmit={uploadFile}
-                error={this.state.idpCertificateFileError}
+                error={this.state[`${setting.key}Error`]}
             />
         );
     };
@@ -1256,12 +1263,36 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
 
         const schemaSections = 'sections' in schema ? schema.sections : undefined;
         if ('settings' in schema && schema.settings && !schemaSections) {
+            const settingsList = buildSettingsList(schema.settings);
+
+            // Custom settings without showTitle (e.g. Localization Languages /
+            // Auto-translation) each render their own AdminPanel and must be
+            // direct flex children so schema-sections gap separates panels.
+            // Ordinary flat settings stay in SettingsGroup so the gap is between
+            // groups, not every individual control.
+            const visibleSettings = schema.settings.filter((setting) => !this.isHidden(setting));
+            const settingsSelfRenderPanels = visibleSettings.length > 0 && visibleSettings.every(
+                (setting) => setting.type === Constants.SettingsTypes.TYPE_CUSTOM && !setting.showTitle,
+            );
+
+            if (settingsSelfRenderPanels) {
+                return (
+                    <div className='admin-console__schema-sections'>
+                        {header}
+                        {settingsList}
+                        {footer}
+                    </div>
+                );
+            }
+
             return (
-                <SettingsGroup container={false}>
-                    {header}
-                    {buildSettingsList(schema.settings)}
-                    {footer}
-                </SettingsGroup>
+                <div className='admin-console__schema-sections'>
+                    <SettingsGroup container={false}>
+                        {header}
+                        {settingsList}
+                        {footer}
+                    </SettingsGroup>
+                </div>
             );
         } else if (schemaSections) {
             const sections: React.ReactNode[] = [];
@@ -1334,15 +1365,19 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                     return;
                 }
 
-                // Sections with enhanced properties use AdminSectionPanel for richer UI
-                const hasEnhancedProps = section.description || section.license_sku;
+                // Prefer Compass AdminPanel chrome when the section has a title,
+                // description/subtitle, or license badge. Map legacy `subtitle` to
+                // AdminSectionPanel's `description` so LDAP wizard and similar
+                // sections pick up AdminPanel without a separate migration.
+                const sectionDescription = section.description || section.subtitle;
+                const useAdminPanel = Boolean(section.title || sectionDescription || section.license_sku);
 
-                if (hasEnhancedProps) {
+                if (useAdminPanel) {
                     sections.push(
                         <AdminSectionPanel
                             key={section.key}
                             title={section.title}
-                            description={section.description}
+                            description={sectionDescription}
                             licenseSku={section.license_sku}
                             data-testid={section.key}
                         >
@@ -1351,8 +1386,18 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                             {footer}
                         </AdminSectionPanel>,
                     );
+                } else if (!section.title && !section.subtitle) {
+                    // Untitled sections that self-render AdminPanel (e.g. Membership
+                    // Policies list) must not get legacy config-section card chrome.
+                    sections.push(
+                        <React.Fragment key={section.key}>
+                            {header}
+                            {settingsList}
+                            {footer}
+                        </React.Fragment>,
+                    );
                 } else {
-                    // Standard sections use existing rendering
+                    // Legacy SettingsGroup path for remaining titled sections.
                     sections.push(
                         <div
                             className={'config-section'}
@@ -1374,8 +1419,11 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 }
             });
 
+            // Stack sections with the same gap as admin-console__content. Without
+            // this, AdminSectionPanel siblings sit flush because Compass AdminPanel
+            // has no outer margin and this wrapper is a single flex child of content.
             return (
-                <div>
+                <div className='admin-console__schema-sections'>
                     {header}
                     {'settings' in schema && schema.settings && schema.settings.length > 0 && (
                         <SettingsGroup container={false}>

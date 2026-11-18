@@ -10,6 +10,7 @@ import type {Dispatch} from 'redux';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
+import {loadPostAttributeFields} from 'actions/post_attributes';
 import {setRhsExpanded, showChannelInfo, showPinnedPosts, showChannelFiles, openRHSSearch, closeRightHandSide, openAtPrevious, updateSearchTerms} from 'actions/views/rhs';
 import {selectCurrentProductId} from 'selectors/products';
 import {
@@ -74,6 +75,7 @@ function mapDispatchToProps(dispatch: Dispatch) {
             updateSearchTerms,
             showChannelFiles,
             showChannelInfo,
+            loadPostAttributeFields,
         }, dispatch),
     };
 }

@@ -94,7 +94,7 @@
 
         ##### Permissions
 
-        A Cloud license is required
+        The server must have `CWS_CLOUD_LOGIN_ID` set, and `login_id` must match it.
       operationId: LoginByCwsToken
       requestBody:
         content:

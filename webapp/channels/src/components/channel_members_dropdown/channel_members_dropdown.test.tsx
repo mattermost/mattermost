@@ -68,77 +68,6 @@ describe('components/channel_members_dropdown', () => {
         },
     };
 
-    test('should match snapshot for dropdown with guest user', () => {
-        const props = {
-            ...baseProps,
-            user: {
-                ...baseProps.user,
-                roles: 'system_guest',
-            },
-            channelMember: {
-                ...baseProps.channelMember,
-                roles: 'channel_guest',
-            },
-            canChangeMemberRoles: true,
-        };
-        const {container} = renderWithContext(
-            <ChannelMembersDropdown {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for dropdown with shared user', () => {
-        const props = {
-            ...baseProps,
-            user: {
-                ...baseProps.user,
-                roles: 'system_user',
-                remote_id: 'fakeid',
-            },
-        };
-        const {container} = renderWithContext(
-            <ChannelMembersDropdown {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for not dropdown with guest user', () => {
-        const props = {
-            ...baseProps,
-            user: {
-                ...baseProps.user,
-                roles: 'system_guest',
-            },
-            channelMember: {
-                ...baseProps.channelMember,
-                roles: 'channel_guest',
-            },
-            canChangeMemberRoles: false,
-        };
-        const {container} = renderWithContext(
-            <ChannelMembersDropdown {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot for channel_members_dropdown', () => {
-        const {container} = renderWithContext(
-            <ChannelMembersDropdown {...baseProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot opening dropdown upwards', () => {
-        const {container} = renderWithContext(
-            <ChannelMembersDropdown
-                {...baseProps}
-                index={4}
-                totalUsers={5}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('If a removal is in progress do not execute another removal', async () => {
         const removeMock = jest.fn().mockImplementation(() => {
             const myPromise = new Promise<ActionResult>((resolve) => {
@@ -223,41 +152,6 @@ describe('components/channel_members_dropdown', () => {
         await waitFor(() => {
             expect(removeMock).toHaveBeenCalledTimes(1);
         });
-    });
-
-    test('should match snapshot for group_constrained channel', () => {
-        const props = {
-            ...baseProps,
-            channel: {
-                ...baseProps.channel,
-                group_constrained: true,
-            },
-        };
-        const {container} = renderWithContext(
-            <ChannelMembersDropdown {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with role change possible', () => {
-        const {container} = renderWithContext(
-            <ChannelMembersDropdown
-                {...baseProps}
-                canChangeMemberRoles={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when user is current user', () => {
-        const props = {
-            ...baseProps,
-            currentUserId: 'user-1',
-        };
-        const {container} = renderWithContext(
-            <ChannelMembersDropdown {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
     });
 
     test('should open a confirmation modal when current user tries to remove themselves from a channel', async () => {

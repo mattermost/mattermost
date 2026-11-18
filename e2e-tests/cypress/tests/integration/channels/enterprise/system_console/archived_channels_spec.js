@@ -65,7 +65,7 @@ describe('Archived channels', () => {
         cy.findByRole('button', {name: 'Unarchive Channel', timeout: TIMEOUTS.TWO_SEC}).should('be.visible').should('be.enabled');
 
         // * Verify that only one widget is visible
-        cy.get('div.AdminPanel').should('be.visible').and('have.length', 1);
+        cy.get('.AdminPanel').should('be.visible').and('have.length', 1);
     });
 
     it('can be unarchived', () => {
@@ -79,7 +79,7 @@ describe('Archived channels', () => {
         cy.findByRole('button', {name: 'Archive Channel', timeout: TIMEOUTS.TWO_SEC}).should('be.visible');
 
         // * Verify that the other widget appears
-        cy.get('div.AdminPanel').should('be.visible').should('have.length', 5);
+        cy.get('.AdminPanel').should('be.visible').should('have.length', 5);
 
         // # Save and wait for redirect
         cy.get('#saveSetting').click();

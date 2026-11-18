@@ -384,6 +384,8 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		Expression string `json:"expression"`
 		ChannelId  string `json:"channelId,omitempty"`
 		TeamId     string `json:"teamId,omitempty"`
+		// Membership also rejects what the membership sync can't evaluate.
+		Membership bool `json:"membership,omitempty"`
 	}{}
 	if jsonErr := json.NewDecoder(r.Body).Decode(&checkExpressionRequest); jsonErr != nil {
 		c.SetInvalidParamWithErr("user", jsonErr)
@@ -411,7 +413,11 @@ func checkExpression(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	errs, appErr := c.App.CheckExpression(c.AppContext, checkExpressionRequest.Expression)
+	check := c.App.CheckExpression
+	if checkExpressionRequest.Membership {
+		check = c.App.CheckMembershipExpression
+	}
+	errs, appErr := check(c.AppContext, checkExpressionRequest.Expression)
 	if appErr != nil {
 		c.Err = appErr
 		return

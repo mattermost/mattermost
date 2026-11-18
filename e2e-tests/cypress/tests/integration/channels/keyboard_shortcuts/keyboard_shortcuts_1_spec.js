@@ -377,7 +377,7 @@ describe('Keyboard Shortcuts', () => {
         cy.get('body').cmdOrCtrlShortcut('{shift}L');
         cy.uiGetPostTextBox().should('be.focused');
 
-        cy.get('[data-testid="searchBoxClose"] > .icon').click();
+        cy.get('[data-testid="searchBoxClose"]').click();
         // # Post a message and open RHS
         const message = `hello${Date.now()}`;
         cy.postMessage(message);

@@ -14,6 +14,8 @@ import {
     ContentCopyIcon,
     DotsHorizontalIcon,
     EmoticonPlusOutlineIcon,
+    FormatListBulletedIcon,
+    FormatQuoteOpenIcon,
     LinkVariantIcon,
     MarkAsUnreadIcon,
     MessageArrowRightOutlineIcon,
@@ -26,6 +28,7 @@ import {
     TranslateIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
@@ -40,6 +43,7 @@ import ForwardPostModal from 'components/forward_post_modal';
 import * as Menu from 'components/menu';
 import MoveThreadModal from 'components/move_thread_modal';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import PostAttributesModal from 'components/post_attributes/post_attributes_modal';
 
 import {createBurnOnReadDeleteModalHandlers} from 'hooks/useBurnOnReadDeleteModal';
 import {Locations, ModalIdentifiers, Constants} from 'utils/constants';
@@ -53,6 +57,8 @@ import type {ModalData} from 'types/actions';
 import PostReminderSubMenu from './post_reminder_submenu';
 
 import './dot_menu.scss';
+
+const PostDotMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small', padding: 'compact', className: 'dot-menu__button'});
 
 type ChangeEvent = React.KeyboardEvent | React.MouseEvent;
 
@@ -104,7 +110,17 @@ type Props = {
     canPin: boolean;
     canCopyText: boolean;
     canCopyLink: boolean;
+    canQuote: boolean;
     canFlagContent?: boolean;
+
+    /**
+     * Whether the post's channel declares any post attributes. Gated on the
+     * feature flag and on the channel's fields, never on the post having
+     * values: a post with no values renders no chip row, so this menu item is
+     * the only way in, and unset `always` fields are exactly what it has to
+     * show.
+     */
+    hasPostAttributes?: boolean;
 
     actions: {
 
@@ -162,6 +178,11 @@ type Props = {
          * Function to save user preferences
          */
         savePreferences: (userId: string, preferences: Array<{category: string; user_id: string; name: string; value: string}>) => void;
+
+        /**
+         * Function to quote text from the post into the message box it's shown with
+         */
+        quoteTextFromPost: (postId: string, isRHS: boolean, text: string) => void;
 
     }; // TechDebt: Made non-mandatory while converting to typescript
 
@@ -261,6 +282,16 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         Utils.copyToClipboard(getMessageToCopy(this.props.post, this.props.isChannelAutotranslated, this.props.intl.locale));
     };
 
+    handleQuote = (): void => {
+        const message = getMessageToCopy(this.props.post, this.props.isChannelAutotranslated, this.props.intl.locale);
+        if (!message.trim()) {
+            return;
+        }
+
+        const isRHS = this.props.location === Locations.RHS_ROOT || this.props.location === Locations.RHS_COMMENT;
+        this.props.actions.quoteTextFromPost(this.props.post.id, isRHS, message);
+    };
+
     handlePinMenuItemActivated = (): void => {
         if (this.props.post.is_pinned) {
             this.props.actions.unpinPost(this.props.post.id);
@@ -323,6 +354,14 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         };
 
         this.props.actions.openModal(flagPostModalData);
+    };
+
+    handlePostAttributesMenuItemClicked = () => {
+        this.props.actions.openModal({
+            modalId: ModalIdentifiers.POST_ATTRIBUTES,
+            dialogType: PostAttributesModal,
+            dialogProps: {post: this.props.post},
+        });
     };
 
     handleMoveThreadMenuItemActivated = (e: ChangeEvent): void => {
@@ -449,6 +488,14 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             }
             break;
 
+            // quote
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.Q):
+            if (this.canQuotePost()) {
+                forceCloseMenu();
+                this.handleQuote();
+            }
+            break;
+
             // delete post
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.DELETE):
             forceCloseMenu();
@@ -483,6 +530,10 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
             this.handleMarkPostAsUnread();
             break;
         }
+    };
+
+    canQuotePost = (): boolean => {
+        return Boolean(this.props.canQuote && !this.props.isReadOnly && (this.props.post.message_source || this.props.post.message).trim());
     };
 
     handleMenuToggle = (open: boolean) => {
@@ -596,6 +647,7 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         const showMove = Boolean(!isSystemMessage && this.props.canMove);
         const showShowTranslation = !isSystemMessage && showTranslation;
         const showCopyText = !isSystemMessage && !isBurnOnReadPost;
+        const showQuote = !isSystemMessage && !isBurnOnReadPost && this.canQuotePost();
         const showCopyLink = !isSystemMessage && (!isBurnOnReadPost || this.props.post.user_id === this.props.userId);
         const showEdit = this.state.canEdit && !isBurnOnReadPost;
         const showFlagContent = this.props.canFlagContent;
@@ -605,8 +657,9 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         // 2. BoR post meeting above criteria
         const showDelete = (!isBurnOnReadPost && this.state.canDelete) || shouldShowDeleteForBoR;
 
-        const firstSectionHasItems = showReply || showForward || showReactions || showFollowPost || showMarkAsUnread || showSave || showRemind || showPin || showMove;
-        const secondSectionHasItems = showShowTranslation || showCopyText || showCopyLink;
+        const firstSectionHasItems = showReply || showQuote || showForward || showReactions || showFollowPost || showMarkAsUnread || showSave || showRemind || showPin || showMove;
+        const showPostAttributes = Boolean(!isSystemMessage && !this.props.isUnrevealedBurnOnReadPost && this.props.hasPostAttributes);
+        const secondSectionHasItems = showPostAttributes || showShowTranslation || showCopyText || showCopyLink;
         const thirdSectionHasItems = showEdit || showDelete || showFlagContent;
 
         return (
@@ -614,11 +667,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                 menuButton={{
                     id: `${this.props.location}_button_${this.props.post.id}`,
                     dataTestId: `PostDotMenu-Button-${this.props.post.id}`,
+                    as: PostDotMenuTrigger,
                     class: classNames('post-menu__item', {
                         'post-menu__item--active': this.props.isMenuOpen,
                     }),
                     'aria-label': formatMessage({id: 'post_info.dot_menu.tooltip.more', defaultMessage: 'More'}).toLowerCase(),
-                    children: <DotsHorizontalIcon size={16}/>,
+                    children: <Icon glyph={<DotsHorizontalIcon/>}/>,
                 }}
                 menu={{
                     id: `${this.props.location}_dropdown_${this.props.post.id}`,
@@ -645,6 +699,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={<ReplyOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='R'/>}
                         onClick={this.handleCommentClick}
+                    />
+                }
+                {showQuote &&
+                    <Menu.Item
+                        id={`quote_post_${this.props.post.id}`}
+                        data-testid={`quote_post_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='post_info.quote'
+                                defaultMessage='Quote'
+                            />
+                        }
+                        leadingElement={<FormatQuoteOpenIcon size={18}/>}
+                        trailingElements={<ShortcutKey shortcutKey='Q'/>}
+                        onClick={this.handleQuote}
                     />
                 }
                 {showForward &&
@@ -751,6 +820,21 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                     />
                 }
                 {firstSectionHasItems && secondSectionHasItems && <Menu.Separator/>}
+                {showPostAttributes && (
+                    <Menu.Item
+                        id={`post_attributes_${this.props.post.id}`}
+                        data-testid={`post_attributes_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id='post_attributes.dot_menu.attributes'
+                                defaultMessage='Attributes'
+                                description='Item in the three-dot (More actions) menu of a post that opens the modal for viewing and editing the attributes of that post. Plural noun.'
+                            />
+                        }
+                        leadingElement={<FormatListBulletedIcon size={18}/>}
+                        onClick={this.handlePostAttributesMenuItemClicked}
+                    />
+                )}
                 {showShowTranslation && (
                     <Menu.Item
                         id={`show_translation_${this.props.post.id}`}

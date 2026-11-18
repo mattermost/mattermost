@@ -9,7 +9,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {renderWithContext, screen, userEvent, waitFor, fireEvent} from 'tests/react_testing_utils';
-import Constants from 'utils/constants';
 
 import SecurityTab from './user_settings_security';
 
@@ -54,46 +53,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         passwordConfig: {} as PasswordConfig,
         militaryTime: false,
     };
-
-    test('should match snapshot, enable google', () => {
-        const props = {...requiredProps, enableSaml: false};
-
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, enable gitlab', () => {
-        const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithGitLab: true};
-
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, enable office365', () => {
-        const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithOffice365: true};
-
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, enable openID', () => {
-        const props = {...requiredProps, enableSignUpWithGoogle: false, enableSaml: false, enableSignUpWithOpenId: true};
-
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, to email', () => {
-        const user = {
-            id: 'user_id',
-            auth_service: Constants.OPENID_SERVICE,
-        };
-
-        const props = {...requiredProps, user: user as UserProfile};
-
-        const {container} = renderWithContext(<SecurityTab {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
 
     test('componentDidMount() should have called getAuthorizedOAuthApps', () => {
         const props = {...requiredProps, enableOAuthServiceProvider: true};

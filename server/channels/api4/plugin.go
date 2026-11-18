@@ -259,15 +259,26 @@ func getWebappPlugins(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	preAuthOnly := c.AppContext.Session().UserId == "" && *c.App.Config().PluginSettings.RestrictUnauthenticatedWebappPlugins
+
 	clientManifests := []*model.Manifest{}
 	for _, m := range manifests {
-		if m.HasClient() {
-			manifest := m.ClientManifest()
-
-			// There is no reason to expose the SettingsSchema in this API call; it's not used in the webapp.
-			manifest.SettingsSchema = nil
-			clientManifests = append(clientManifests, manifest)
+		if !m.HasClient() {
+			continue
 		}
+
+		if preAuthOnly {
+			if m.Webapp.PreAuth {
+				clientManifests = append(clientManifests, m.PreAuthClientManifest())
+			}
+			continue
+		}
+
+		manifest := m.ClientManifest()
+
+		// There is no reason to expose the SettingsSchema in this API call; it's not used in the webapp.
+		manifest.SettingsSchema = nil
+		clientManifests = append(clientManifests, manifest)
 	}
 
 	js, err := json.Marshal(clientManifests)

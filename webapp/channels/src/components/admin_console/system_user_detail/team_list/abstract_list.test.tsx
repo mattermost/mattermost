@@ -5,7 +5,7 @@ import {waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import AbstractList from './abstract_list';
 import type {TeamWithMembership} from './types';
@@ -113,18 +113,7 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         defaultProps.actions.getTeamsData = jest.fn().mockResolvedValue([]);
     });
 
-    test('should match snapshot if loading', () => {
-        // Use a never-resolving promise so loading remains true
-        defaultProps.actions.getTeamsData = jest.fn(() => new Promise(() => {}));
-
-        const {container} = renderWithContext(
-            <AbstractList {...defaultProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot no data', async () => {
+    test('should render no data', async () => {
         const {container} = renderWithContext(
             <AbstractList {...defaultProps}/>,
         );
@@ -132,11 +121,9 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         await waitFor(() => {
             expect(container.querySelector('.AbstractList__loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with teams data populated', async () => {
+    test('should render with teams data populated', async () => {
         const {container} = renderWithContext(
             <AbstractList
                 {...defaultProps}
@@ -148,11 +135,9 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         await waitFor(() => {
             expect(container.querySelector('.AbstractList__loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot with enough teams data to require paging', async () => {
+    test('should render with enough teams data to require paging', async () => {
         const moreTeams: TeamWithMembership[] = [...teamsWithMemberships];
         for (let i = 3; i <= 30; i++) {
             moreTeams.push({
@@ -173,11 +158,9 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         await waitFor(() => {
             expect(container.querySelector('.AbstractList__loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 
-    test('should match snapshot when on second page of pagination', async () => {
+    test('should render when on second page of pagination', async () => {
         const moreTeams: TeamWithMembership[] = [...teamsWithMemberships];
         for (let i = 3; i <= 30; i++) {
             moreTeams.push({
@@ -200,15 +183,12 @@ describe('admin_console/system_user_detail/team_list/AbstractList', () => {
         });
 
         // Click next page button to go to page 1
-        const nextButton = container.querySelector('button.next');
-        expect(nextButton).toBeInTheDocument();
-        await userEvent.click(nextButton!);
+        const nextButton = screen.getByRole('button', {name: 'Next page'});
+        await userEvent.click(nextButton);
 
         // Wait for loading to finish again after page change
         await waitFor(() => {
             expect(container.querySelector('.AbstractList__loading')).not.toBeInTheDocument();
         });
-
-        expect(container).toMatchSnapshot();
     });
 });

@@ -377,6 +377,12 @@ func (hooks *hooksTimerLayer) DraftWillBeUpserted(c *Context, draft *model.Draft
 	return _returnsA, _returnsB
 }
 
+func (hooks *hooksTimerLayer) PropertyValuesHaveBeenUpdated(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.PropertyValuesHaveBeenUpdated(c, userID, groupID, targetType, targetID, values, previousValues)
+	hooks.recordTime(startTime, "PropertyValuesHaveBeenUpdated", true)
+}
+
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -669,4 +675,11 @@ func (hooks *hooksTimerLayer) DraftWillBeUpsertedWithRPCErr(c *Context, draft *m
 	_returnsA, _returnsB, _returnsRPCErr := hooks.hooksWithRPCErrImpl.DraftWillBeUpsertedWithRPCErr(c, draft)
 	hooks.recordTime(startTime, "DraftWillBeUpsertedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsA, _returnsB, _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.PropertyValuesHaveBeenUpdatedWithRPCErr(c, userID, groupID, targetType, targetID, values, previousValues)
+	hooks.recordTime(startTime, "PropertyValuesHaveBeenUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
 }

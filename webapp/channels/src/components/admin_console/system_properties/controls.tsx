@@ -7,34 +7,6 @@ import styled, {css} from 'styled-components';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 
-export const SectionHeading = styled.h3`
-    &&& {
-        margin-bottom: 8px;
-    }
-`;
-
-export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
-    &&& {
-        padding: 24px 32px;
-        ${({$borderless}) => !$borderless && css`
-            border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-        `}
-    }
-`;
-
-export const SectionContent = styled.div.attrs({className: 'content'})<{$compact?: boolean}>`
-    &&& {
-        padding: ${({$compact}) => ($compact ? '24px 32px' : '48px 32px')};
-        border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-    }
-`;
-
-export const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
-    && {
-        overflow: visible;
-    }
-`;
-
 export const AdminWrapper = (props: {children: ReactNode}) => {
     return (
         <div className='admin-console__wrapper'>
