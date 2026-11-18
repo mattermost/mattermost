@@ -918,7 +918,23 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	// UserId, system types, etc.); we do not clear RemoteId here.
 	post.SanitizeProps()
 
-	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, model.CreatePostFlags{
+	rctx := api.ctx
+	if values := post.Metadata.GetPropertyValues(); len(values) > 0 {
+		// The property hook judges the write against the plugin's own grants when CreatePost
+		// stores the values after the save; a denial there removes the post again.
+		rctx = api.psaPluginContext()
+
+		// With the flag off, CreatePost refuses the values itself before saving.
+		if api.app.Config().FeatureFlags.PostAttributes {
+			prepared, _, err := api.app.PreparePostPropertyValuesForCreate(rctx, values, channel)
+			if err != nil {
+				return nil, model.AsAppError(err)
+			}
+			post.Metadata.PropertyValues = prepared
+		}
+	}
+
+	post, _, appErr = api.app.CreatePost(rctx, post, channel, model.CreatePostFlags{
 		TriggerWebhooks:    true,
 		SetOnline:          true,
 		FromPlugin:         true,

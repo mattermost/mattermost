@@ -66,7 +66,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckPasswordAndA
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckPluginAccessControlExpression
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckRolesExist
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckUserAllAuthenticationCriteria
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckUserMfa
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CleanUpAfterPostDeletion
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CleanupReportChunks
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).ClearChannelManagedCategory
@@ -596,7 +595,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).InviteNewUsersToT
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsBotExemptFromDMRestrictions
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsDeactivatedUserEmail
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsDiscoverableJoinAllowed
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsPasswordValid
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsPhase2MigrationCompleted
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsUserSignUpAllowed
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsUserTeamContentReviewer
