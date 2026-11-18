@@ -6,7 +6,7 @@
  * @reference MM-67326 — public and private channels can carry ABAC membership policies
  */
 
-import {ChannelsPage, expect, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, duration, expect, test} from '@mattermost/playwright-lib';
 
 import {
     enableABACConfig,
@@ -332,7 +332,7 @@ test.describe('Channel Settings Modal - Access Control Tab', () => {
                         return false;
                     }
                 },
-                {timeout: 30_000},
+                {timeout: duration.half_min},
             )
             .toBe(true);
 
