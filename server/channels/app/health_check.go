@@ -125,7 +125,7 @@ func (a *App) runHealthCheck(rctx request.CTX, svc *HealthCheckService) error {
 //
 // It refuses with 501 unless the health dashboard is enabled and licensed: the health-check
 // workers don't run otherwise, so the job would never be picked up.
-func (a *App) StartHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppError) {
+func (a *App) StartHealthCheckRun(rctx request.CTX) (*model.Job, error) {
 	if !a.Config().FeatureFlags.HealthDashboard {
 		return nil, model.NewAppError("StartHealthCheckRun", "api.health_finding.feature_disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -134,16 +134,22 @@ func (a *App) StartHealthCheckRun(rctx request.CTX) (*model.Job, *model.AppError
 	}
 
 	running, appErr := health_check.RunningJob(rctx, a.Srv().Jobs)
-	if appErr != nil || running != nil {
-		return running, appErr
+	if appErr != nil {
+		return nil, appErr
+	}
+	if running != nil {
+		return running, nil
 	}
 
 	// CreateJobOnce saves atomically and creates nothing if a run is already pending, or another
 	// request or the scheduler has just created one; that run is returned instead. If that run
 	// finishes before it can be read, the caller is asked to try again.
 	job, appErr := a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeHealthCheck, nil)
-	if appErr != nil || job != nil {
-		return job, appErr
+	if appErr != nil {
+		return nil, appErr
+	}
+	if job != nil {
+		return job, nil
 	}
 
 	existing, err := a.Srv().Jobs.Store.Job().GetNewestJobByStatusesAndType([]string{model.JobStatusPending, model.JobStatusInProgress}, model.JobTypeHealthCheck)

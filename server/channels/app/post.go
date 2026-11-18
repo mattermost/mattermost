@@ -475,9 +475,9 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 	// taken off rpost and only handed back to the caller at the end.
 	var writtenPropertyValues []*model.PropertyValue
 	if propertyValues := rpost.Metadata.GetPropertyValues(); len(propertyValues) > 0 {
-		written, appErr := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues)
-		if appErr != nil {
-			return nil, false, appErr
+		written, err := a.setPostPropertyValuesOnCreate(rctx, rpost, propertyValues)
+		if err != nil {
+			return nil, false, model.AsAppError(err)
 		}
 		writtenPropertyValues = written
 	}
