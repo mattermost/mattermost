@@ -279,6 +279,48 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -936,6 +978,48 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -1671,6 +1755,48 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -2329,6 +2455,48 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -2995,6 +3163,48 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -3653,6 +3863,48 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -4314,6 +4566,49 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    disabled=""
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -4972,6 +5267,48 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -5629,6 +5966,48 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -6307,6 +6686,48 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -7247,6 +7668,48 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -7985,6 +8448,48 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -8723,6 +9228,48 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"
@@ -9461,6 +10008,48 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                   </div>
                 </div>
               </fieldset>
+              <div
+                class="form-group"
+                data-testid="callsVersion"
+              >
+                <label
+                  class="control-label col-sm-4"
+                  for="callsVersion"
+                >
+                  Calls Version:
+                </label>
+                <div
+                  class="col-sm-8"
+                >
+                  <select
+                    class="form-control"
+                    data-testid="callsVersiondropdown"
+                    id="callsVersion"
+                  >
+                    <option
+                      value=""
+                    >
+                      Automatic
+                    </option>
+                    <option
+                      value="v1"
+                    >
+                      v1 (RTC / RTCD)
+                    </option>
+                    <option
+                      value="v2"
+                    >
+                      v2 (LiveKit)
+                    </option>
+                  </select>
+                  <div
+                    class="help-text"
+                    data-testid="callsVersionhelp-text"
+                  >
+                    Which prepackaged version of Calls is installed: v1 (built-in RTC or RTCD) or v2 (LiveKit). Automatic uses v1 while it is prepackaged. Switching disconnects users from active calls, so first list active calls using /call list-all and switch during a quiet period. An uploaded Calls plugin overrides this setting, unless the setting selects the same version and the prepackaged build is newer.
+                  </div>
+                </div>
+              </div>
               <fieldset
                 class="form-group"
                 data-testid="restrictUnauthenticatedWebappPlugins"

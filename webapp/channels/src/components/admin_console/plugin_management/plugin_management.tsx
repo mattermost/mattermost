@@ -621,8 +621,9 @@ export class PluginManagement extends OLDAdminSettings<Props, State> {
         return config;
     };
 
-    // "Automatic" only represents an unset value, which the server resolves to v1 or v2 at
-    // startup. It is not offered once a version is set, since choosing it would change nothing.
+    // "Automatic" is an empty value, which lets the server choose: v1 while it is prepackaged, then
+    // v2. It is only offered while the value is empty, because choosing it later would switch a
+    // running prepackaged v2 back to v1.
     getCallsVersionOptions = () => {
         const options = [
             {value: 'v1', text: this.props.intl.formatMessage(messages.callsVersionV1)},

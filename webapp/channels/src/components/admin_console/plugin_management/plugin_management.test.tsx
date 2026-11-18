@@ -1048,4 +1048,71 @@ describe('components/PluginManagement', () => {
             expect(screen.queryByRole('link', {name: 'View logs'})).not.toBeInTheDocument();
         });
     });
+
+    describe('calls version', () => {
+        const renderWithCallsVersion = (callsVersion: '' | 'v1' | 'v2', {automaticPrepackagedPlugins = true, enable = true} = {}) => {
+            const props = {
+                ...defaultProps,
+                config: {
+                    ...defaultProps.config,
+                    PluginSettings: {
+                        ...defaultProps.config.PluginSettings,
+                        Enable: enable,
+                        AutomaticPrepackagedPlugins: automaticPrepackagedPlugins,
+                        CallsVersion: callsVersion,
+                    },
+                },
+            };
+            const ref = React.createRef<InstanceType<typeof PluginManagement>>();
+            renderWithContext(
+                <PluginManagement
+                    {...props}
+                    ref={ref}
+                />,
+            );
+            act(() => {
+                ref.current!.setState({loading: false} as any);
+            });
+            return ref;
+        };
+
+        const optionLabels = () => within(screen.getByTestId('callsVersiondropdown')).getAllByRole('option').map((option) => option.textContent);
+
+        test('is hidden when automatic prepackaged plugins is off', () => {
+            renderWithCallsVersion('v1', {automaticPrepackagedPlugins: false});
+
+            expect(screen.queryByTestId('callsVersion')).not.toBeInTheDocument();
+        });
+
+        test('is disabled when plugins are disabled', () => {
+            renderWithCallsVersion('v1', {enable: false});
+
+            expect(screen.getByTestId('callsVersiondropdown')).toBeDisabled();
+        });
+
+        test('offers Automatic while the value is empty', () => {
+            renderWithCallsVersion('');
+
+            expect(optionLabels()).toEqual(['Automatic', 'v1 (RTC / RTCD)', 'v2 (LiveKit)']);
+            expect(screen.getByTestId('callsVersiondropdown')).toHaveValue('');
+        });
+
+        test('does not offer Automatic once a version is set', () => {
+            renderWithCallsVersion('v1');
+
+            expect(optionLabels()).toEqual(['v1 (RTC / RTCD)', 'v2 (LiveKit)']);
+            expect(screen.getByTestId('callsVersiondropdown')).toHaveValue('v1');
+        });
+
+        test('saves the selected version and stops offering Automatic', async () => {
+            const ref = renderWithCallsVersion('');
+
+            await userEvent.selectOptions(screen.getByTestId('callsVersiondropdown'), 'v2');
+
+            expect(screen.getByTestId('callsVersiondropdown')).toHaveValue('v2');
+            expect(optionLabels()).toEqual(['v1 (RTC / RTCD)', 'v2 (LiveKit)']);
+            const config = ref.current!.getConfigFromState({PluginSettings: {}} as any);
+            expect(config?.PluginSettings?.CallsVersion).toBe('v2');
+        });
+    });
 });
