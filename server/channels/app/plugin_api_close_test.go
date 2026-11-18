@@ -58,7 +58,7 @@ func pluginRegistrations(th *TestHelper, pluginID string) (commands int, hasEnti
 	}
 	th.App.ch.pluginCommandsLock.RUnlock()
 
-	_, _, err := entities.Prepare(th.Context.Context(), pluginID+":ticket", "CLOSE-1")
+	_, _, err := entities.Prepare(th.Context.Context(), pluginID+":ticket", "CLOSE-1", 0)
 	return commands, err == nil
 }
 

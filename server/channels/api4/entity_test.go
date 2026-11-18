@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 
@@ -110,6 +111,60 @@ func TestGetEntityCardForOccurrence(t *testing.T) {
 	require.NoError(t, json.NewDecoder(resp.Body).Decode(&card))
 	require.Equal(t, "mm:time", card.TypeID)
 	require.Equal(t, entity.Value, card.Value)
+}
+
+func TestGetEntityCardUsesThePostDate(t *testing.T) {
+	th := SetupConfig(t, enableEntities).InitBasic(t)
+
+	posted := time.Date(2020, time.March, 15, 12, 0, 0, 0, time.UTC)
+	clock := "16:30 CET"
+	rfc3339 := "2024-06-01T15:04:05Z"
+	created, _, err := th.SystemAdminClient.CreatePost(context.Background(), &model.Post{
+		ChannelId: th.BasicChannel.Id,
+		Message:   "meet at " + clock + " and shipped " + rfc3339,
+		CreateAt:  posted.UnixMilli(),
+	})
+	require.NoError(t, err)
+	require.Equal(t, posted.UnixMilli(), created.CreateAt)
+
+	got, _, err := th.Client.GetPost(context.Background(), created.Id, "")
+	require.NoError(t, err)
+	require.NotNil(t, got.Metadata)
+
+	var clockID string
+	for _, entity := range got.Metadata.Entities {
+		if entity.Value == clock {
+			clockID = entity.ID
+		}
+	}
+	require.NotEmpty(t, clockID)
+
+	fetch := func(value, occurrence string) model.EntityCard {
+		t.Helper()
+		path := "/entities/card?post_id=" + created.Id + "&type_id=mm:time"
+		if value != "" {
+			path += "&value=" + url.QueryEscape(value)
+		}
+		if occurrence != "" {
+			path += "&id=" + url.QueryEscape(occurrence)
+		}
+		resp, fetchErr := th.Client.DoAPIGet(context.Background(), path, "")
+		require.NoError(t, fetchErr)
+		CheckOKStatus(t, model.BuildResponse(resp))
+		defer resp.Body.Close()
+		var card model.EntityCard
+		require.NoError(t, json.NewDecoder(resp.Body).Decode(&card))
+		return card
+	}
+
+	fromValue := fetch(clock, "")
+	require.Equal(t, time.Date(2020, time.March, 15, 15, 30, 0, 0, time.UTC).UnixMilli(), fromValue.Instant)
+
+	fromOccurrence := fetch("", clockID)
+	require.Equal(t, fromValue.Instant, fromOccurrence.Instant)
+
+	rfc := fetch(rfc3339, "")
+	require.Equal(t, time.Date(2024, time.June, 1, 15, 4, 5, 0, time.UTC).UnixMilli(), rfc.Instant)
 }
 
 func TestGetPostIncludesEntityEtag(t *testing.T) {

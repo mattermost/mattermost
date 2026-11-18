@@ -300,8 +300,9 @@ func sortMatchers(list []matcher) {
 }
 
 // Prepare reports who can describe value. A non-nil Remote means the provider
-// is asked first. The card is the core description when no provider describes it.
-func Prepare(ctx context.Context, typeID, value string) (*model.EntityCard, *Remote, error) {
+// is asked first. The card is the core description when no provider describes
+// it. createAt dates a built-in clock that names no day; zero means now.
+func Prepare(ctx context.Context, typeID, value string, createAt int64) (*model.EntityCard, *Remote, error) {
 	reg.mu.RLock()
 	known := reg.valueMatches(typeID, value)
 	remote, core := reg.lookupPlan(typeID)
@@ -316,7 +317,7 @@ func Prepare(ctx context.Context, typeID, value string) (*model.EntityCard, *Rem
 		return card, nil, nil
 	}
 	if core {
-		card, err := CoreLookup(ctx, typeID, value)
+		card, err := CoreLookup(ctx, typeID, value, createAt)
 		if err != nil {
 			return nil, nil, err
 		}

@@ -66,18 +66,20 @@ func must(err error) {
 	}
 }
 
-// CoreLookup describes a value using a built-in type.
-func CoreLookup(_ context.Context, typeID, value string) (*model.EntityCard, error) {
+// CoreLookup describes a value using a built-in type. createAt is the post's
+// creation time in Unix milliseconds. It dates a clock that names no day.
+// Zero means the current time.
+func CoreLookup(_ context.Context, typeID, value string, createAt int64) (*model.EntityCard, error) {
 	switch typeID {
 	case CoreTimeTypeID:
-		return coreTimeCard(value)
+		return coreTimeCard(value, createAt)
 	default:
 		return nil, fmt.Errorf("unsupported entity")
 	}
 }
 
-func coreTimeCard(value string) (*model.EntityCard, error) {
-	parsed, err := parseCoreTime(value)
+func coreTimeCard(value string, createAt int64) (*model.EntityCard, error) {
+	parsed, err := parseCoreTime(value, createAt)
 	if err != nil {
 		return nil, err
 	}
@@ -105,7 +107,7 @@ func coreTimeCard(value string) (*model.EntityCard, error) {
 	}, nil
 }
 
-func parseCoreTime(value string) (time.Time, error) {
+func parseCoreTime(value string, createAt int64) (time.Time, error) {
 	value = strings.TrimSpace(value)
 	if value == "" {
 		return time.Time{}, fmt.Errorf("unsupported entity")
@@ -117,13 +119,13 @@ func parseCoreTime(value string) (time.Time, error) {
 	if parsed, err := time.Parse(time.RFC3339, normalized); err == nil {
 		return parsed, nil
 	}
-	if parsed, err := parseCoreTimeClockZone(value); err == nil {
+	if parsed, err := parseCoreTimeClockZone(value, createAt); err == nil {
 		return parsed, nil
 	}
 	return time.Time{}, fmt.Errorf("unsupported entity")
 }
 
-func parseCoreTimeClockZone(value string) (time.Time, error) {
+func parseCoreTimeClockZone(value string, createAt int64) (time.Time, error) {
 	compact := collapseSpaces(value)
 	if m := coreTimeClockZoneRE.FindStringSubmatch(compact); m != nil {
 		hour, err := strconv.Atoi(m[1])
@@ -153,7 +155,7 @@ func parseCoreTimeClockZone(value string) (time.Time, error) {
 		if err != nil {
 			return time.Time{}, err
 		}
-		return clockInZone(hour, minute, second, zone)
+		return clockInZone(hour, minute, second, zone, createAt)
 	}
 	if m := coreTimeHourPMRE.FindStringSubmatch(compact); m != nil {
 		hour, err := strconv.Atoi(m[1])
@@ -164,7 +166,7 @@ func parseCoreTimeClockZone(value string) (time.Time, error) {
 		if err != nil {
 			return time.Time{}, err
 		}
-		return clockInZone(hour, 0, 0, strings.ToUpper(m[3]))
+		return clockInZone(hour, 0, 0, strings.ToUpper(m[3]), createAt)
 	}
 	return time.Time{}, fmt.Errorf("unsupported entity")
 }
@@ -216,7 +218,7 @@ func applyMeridiem(hour int, meridiem string) (int, error) {
 	}
 }
 
-func clockInZone(hour, minute, second int, zone string) (time.Time, error) {
+func clockInZone(hour, minute, second int, zone string, createAt int64) (time.Time, error) {
 	if minute < 0 || minute > 59 || second < 0 || second > 59 {
 		return time.Time{}, fmt.Errorf("unsupported entity")
 	}
@@ -225,6 +227,10 @@ func clockInZone(hour, minute, second int, zone string) (time.Time, error) {
 		return time.Time{}, fmt.Errorf("unsupported entity")
 	}
 	loc := time.FixedZone(zone, offset)
-	now := time.Now().In(loc)
-	return time.Date(now.Year(), now.Month(), now.Day(), hour, minute, second, 0, loc), nil
+	ref := time.Now()
+	if createAt > 0 {
+		ref = time.UnixMilli(createAt)
+	}
+	ref = ref.In(loc)
+	return time.Date(ref.Year(), ref.Month(), ref.Day(), hour, minute, second, 0, loc), nil
 }

@@ -21,24 +21,12 @@ func (a *App) GetEntityCard(rctx request.CTX, typeID, value string) (*model.Enti
 		return nil, model.NewAppError("GetEntityCard", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
 
-	card, remote, err := entities.Prepare(rctx.Context(), typeID, value)
+	card, remote, err := entities.Prepare(rctx.Context(), typeID, value, 0)
 	if err != nil {
 		return nil, model.NewAppError("GetEntityCard", "api.context.invalid_url_param.app_error", map[string]any{"Name": "value"}, err.Error(), http.StatusBadRequest)
 	}
-	if remote != nil && remote.Cache != model.EntityCacheShared {
-		return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
-	}
 	if remote != nil {
-		if got := a.lookupEntityProvider(rctx, remote, typeID, value, "", 0); got != nil {
-			return got, nil
-		}
-		if term, ok := entities.TermCard(typeID, value); ok {
-			return term, nil
-		}
-		card, err = entities.CoreLookup(rctx.Context(), typeID, value)
-		if err != nil || card == nil {
-			return entityCardFallback(typeID, value), nil
-		}
+		return nil, model.NewAppError("GetEntityCard", "api.context.permissions.app_error", nil, "", http.StatusForbidden)
 	}
 	localizeEntityCard(rctx, card)
 	return card, nil
@@ -56,7 +44,7 @@ func (a *App) GetEntityCardFromPost(rctx request.CTX, postID, typeID, value stri
 	if !postContainsEntity(post, typeID, value) {
 		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.404.app_error", nil, "", http.StatusNotFound)
 	}
-	card, remote, err := entities.Prepare(rctx.Context(), typeID, value)
+	card, remote, err := entities.Prepare(rctx.Context(), typeID, value, post.CreateAt)
 	if err != nil {
 		return nil, model.NewAppError("GetEntityCardFromPost", "api.context.invalid_url_param.app_error", map[string]any{"Name": "value"}, err.Error(), http.StatusBadRequest)
 	}
@@ -143,7 +131,7 @@ func (a *App) GetEntityCardForPost(rctx request.CTX, postID, occurrence, preferr
 	}
 	var thin *model.EntityCard
 	for _, typeID := range typeIDs {
-		card, remote, err := entities.Prepare(rctx.Context(), typeID, entity.Value)
+		card, remote, err := entities.Prepare(rctx.Context(), typeID, entity.Value, post.CreateAt)
 		if err != nil {
 			continue
 		}
@@ -212,6 +200,8 @@ func (a *App) lookupEntityProvider(rctx request.CTX, remote *entities.Remote, ty
 		return nil
 	}
 	userID := rctx.Session().UserId
+	// A shared card is the same for every reader of the post, so the provider
+	// is not told who is asking. The caller has already shown they can read it.
 	lookupUser := ""
 	if remote.Cache != model.EntityCacheShared {
 		lookupUser = userID

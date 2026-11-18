@@ -19,7 +19,7 @@ func TestCoreTimeIsDetectedAndDescribed(t *testing.T) {
 		for _, typeID := range entity.TypeIDs {
 			if typeID == CoreTimeTypeID {
 				timeHit = true
-				card, err := CoreLookup(context.Background(), typeID, entity.Value)
+				card, err := CoreLookup(context.Background(), typeID, entity.Value, 0)
 				require.NoError(t, err)
 				require.NotNil(t, card)
 				require.Equal(t, "Timestamp", card.Title)
@@ -67,7 +67,7 @@ func TestCoreTimeClockZoneFormats(t *testing.T) {
 				}
 			}
 			require.Equal(t, tc.value, hit)
-			card, err := CoreLookup(context.Background(), CoreTimeTypeID, hit)
+			card, err := CoreLookup(context.Background(), CoreTimeTypeID, hit, 0)
 			require.NoError(t, err)
 			instant := time.UnixMilli(card.Instant).UTC()
 			require.Equal(t, tc.hourUTC, instant.Hour())
@@ -82,4 +82,23 @@ func TestCoreTimeRejectsBareClock(t *testing.T) {
 			require.NotEqual(t, CoreTimeTypeID, typeID)
 		}
 	}
+}
+
+func TestCoreTimeClockZoneUsesThePostDate(t *testing.T) {
+	posted := time.Date(2020, time.March, 15, 12, 0, 0, 0, time.UTC)
+	card, err := CoreLookup(context.Background(), CoreTimeTypeID, "16:30 CET", posted.UnixMilli())
+	require.NoError(t, err)
+	instant := time.UnixMilli(card.Instant).UTC()
+	require.Equal(t, time.Date(2020, time.March, 15, 15, 30, 0, 0, time.UTC), instant)
+
+	// 23:30 UTC is already the next calendar day in CET, so the clock keeps that day.
+	late := time.Date(2020, time.March, 15, 23, 30, 0, 0, time.UTC)
+	card, err = CoreLookup(context.Background(), CoreTimeTypeID, "16:30 CET", late.UnixMilli())
+	require.NoError(t, err)
+	instant = time.UnixMilli(card.Instant).UTC()
+	require.Equal(t, time.Date(2020, time.March, 16, 15, 30, 0, 0, time.UTC), instant)
+
+	rfc, err := CoreLookup(context.Background(), CoreTimeTypeID, "2024-06-01T15:04:05Z", posted.UnixMilli())
+	require.NoError(t, err)
+	require.Equal(t, time.Date(2024, time.June, 1, 15, 4, 5, 0, time.UTC), time.UnixMilli(rfc.Instant).UTC())
 }

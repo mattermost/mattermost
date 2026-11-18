@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+	"unicode/utf16"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/stretchr/testify/require"
@@ -262,9 +263,9 @@ func TestValueGroupLooksUpTheCapturedText(t *testing.T) {
 	found, _ := Detect("use FREQ: 243.0 now")
 	require.Len(t, found, 1)
 	require.Equal(t, "243.0", found[0].Value)
-	_, _, err := Prepare(t.Context(), owner+":freq", found[0].Value)
+	_, _, err := Prepare(t.Context(), owner+":freq", found[0].Value, 0)
 	require.NoError(t, err)
-	_, _, err = Prepare(t.Context(), owner+":freq", "nope")
+	_, _, err = Prepare(t.Context(), owner+":freq", "nope", 0)
 	require.Error(t, err)
 }
 
@@ -392,4 +393,36 @@ func TestCardBodyIgnoresTheFallbackSentence(t *testing.T) {
 	require.False(t, model.EntityCardHasBody(&model.EntityCard{Title: "MM-123", URL: "https://jira.example.com/browse/MM-123"}))
 	require.False(t, model.EntityCardHasBody(&model.EntityCard{Summary: model.EntityCardFallbackSummary}))
 	require.True(t, model.EntityCardHasBody(&model.EntityCard{Rows: []model.EntityCardRow{{Label: "Status", Value: "Open"}}}))
+}
+
+func TestUTF16IndexMatchesRuneEncoding(t *testing.T) {
+	message := "a👍é\xffb"
+	prefix := utf16Prefix(message)
+	for i := 0; i <= len(message); i++ {
+		require.Equal(t, len(utf16.Encode([]rune(message[:i]))), utf16Index(message, i), "byte %d", i)
+		require.Equal(t, utf16Index(message, i), prefix[i], "prefix byte %d", i)
+	}
+}
+
+func TestMaskFromUTF16OverlapsInOnePass(t *testing.T) {
+	message := "abcdef"
+	mask := maskFromUTF16(message, [][2]int{{4, 6}, {1, 3}, {2, 5}})
+	require.Equal(t, []bool{false, true, true, true, true, true}, mask)
+}
+
+func TestManyMentionsDoNotHideALaterEntity(t *testing.T) {
+	installSecurityPatterns(t)
+	message := strings.Repeat("@a ", 4000) + "CVE-2024-1234"
+	found, protected := Detect(message)
+	require.Len(t, found, 1)
+	require.Equal(t, "CVE-2024-1234", found[0].Value)
+	require.NotEmpty(t, protected)
+
+	mask := maskFromUTF16(message, protected)
+	cveAt := strings.LastIndex(message, "CVE-2024-1234")
+	require.GreaterOrEqual(t, cveAt, 0)
+	for i := cveAt; i < cveAt+len("CVE-2024-1234"); i++ {
+		require.False(t, mask[i])
+	}
+	require.True(t, mask[0])
 }

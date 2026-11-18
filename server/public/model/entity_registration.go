@@ -41,7 +41,8 @@ type EntityMatcher struct {
 const (
 	// EntityCacheNone calls the provider on every open and stores nothing.
 	EntityCacheNone = "none"
-	// EntityCacheShared stores one card per value for every reader.
+	// EntityCacheShared stores one card per value for every reader of a post
+	// that contains that value. It is not permission to fetch the value with no post.
 	EntityCacheShared = "shared"
 	// EntityCacheUser stores a separate card for each reader.
 	EntityCacheUser = "user"
@@ -51,6 +52,8 @@ const (
 // Name is local to the plugin, and each of Types is written as in EntityMatcher.Type.
 // HasCard means the server calls the plugin's EntityLookup hook. Cache selects
 // whether that card is stored: shared, user, or none. An empty Cache is none.
+// Cache is not an access grant. A provider card is returned only for a post
+// the caller can read.
 // CacheTTLSeconds is the lifetime for a stored card. Zero uses the server default.
 type EntityProvider struct {
 	Name            string   `json:"name"`
@@ -68,7 +71,9 @@ type EntityLookupRequest struct {
 	Provider string `json:"provider"`
 	Type     string `json:"type"`
 	Value    string `json:"value"`
-	// UserID is set when the card may differ by reader. A shared cache leaves it empty.
+	// UserID is set when the card may differ by reader. A shared cache leaves it
+	// empty: the server has already required a post the caller can read, and the
+	// stored card is the same for every such reader.
 	UserID string `json:"user_id,omitempty"`
 	// PostID and CreateAt identify the post the value was read from.
 	// CreateAt is the reference for a token that omits its month or year.

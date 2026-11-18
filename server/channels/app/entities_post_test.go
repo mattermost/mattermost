@@ -43,27 +43,31 @@ func TestPostContainsEntityRequiresTheValue(t *testing.T) {
 	require.False(t, postContainsEntity(post, "com.example:other", "WX-100"))
 }
 
-func TestPrivateEntityCardNeedsAPost(t *testing.T) {
-	const pluginID = "com.example.privatecard"
-	typeID := pluginID + ":mark"
-	t.Cleanup(func() { entities.RemoveOwner(pluginID) })
-	require.NoError(t, entities.AddType(pluginID, &model.EntityType{Name: "mark", DisplayName: "Mark"}))
-	require.NoError(t, entities.AddMatcher(pluginID, &model.EntityMatcher{
-		Name:    "scan",
-		Type:    typeID,
-		Pattern: `WX-[0-9]+`,
-	}))
-	require.NoError(t, entities.AddProvider(pluginID, &model.EntityProvider{
-		Name:    "card",
-		Types:   []string{typeID},
-		HasCard: true,
-		Cache:   model.EntityCacheNone,
-	}))
+func TestProviderEntityCardNeedsAPost(t *testing.T) {
+	for _, cache := range []string{model.EntityCacheNone, model.EntityCacheShared, model.EntityCacheUser} {
+		t.Run(cache, func(t *testing.T) {
+			pluginID := "com.example.card." + cache
+			typeID := pluginID + ":mark"
+			t.Cleanup(func() { entities.RemoveOwner(pluginID) })
+			require.NoError(t, entities.AddType(pluginID, &model.EntityType{Name: "mark", DisplayName: "Mark"}))
+			require.NoError(t, entities.AddMatcher(pluginID, &model.EntityMatcher{
+				Name:    "scan",
+				Type:    typeID,
+				Pattern: `WX-[0-9]+`,
+			}))
+			require.NoError(t, entities.AddProvider(pluginID, &model.EntityProvider{
+				Name:    "card",
+				Types:   []string{typeID},
+				HasCard: true,
+				Cache:   cache,
+			}))
 
-	card, appErr := entityEnabledApp(nil).GetEntityCard(request.TestContext(t), typeID, "WX-100")
-	require.Nil(t, card)
-	require.NotNil(t, appErr)
-	require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+			card, appErr := entityEnabledApp(nil).GetEntityCard(request.TestContext(t), typeID, "WX-100")
+			require.Nil(t, card)
+			require.NotNil(t, appErr)
+			require.Equal(t, http.StatusForbidden, appErr.StatusCode)
+		})
+	}
 }
 
 func TestEntityCardLinksAreQualifiedByTheProvider(t *testing.T) {

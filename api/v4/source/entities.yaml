@@ -4,10 +4,11 @@
         - entities
       summary: Get an entity card
       description: >
-        Returns the detail card for a detected entity. Prefer a post-scoped
-        lookup (`post_id` plus occurrence `id`, or `post_id` with `type_id` and
-        `value`) so provider cache policy can use the post context. A bare
-        `type_id` and `value` lookup is limited to shared-cache providers.
+        Returns the detail card for a detected entity. Provider cards require a
+        post-scoped lookup (`post_id` plus occurrence `id`, or `post_id` with
+        `type_id` and `value`) and permission to read that post. A bare
+        `type_id` and `value` lookup describes built-in types such as `mm:time`
+        only. Cache mode does not grant access.
 
 
         Feature-gated behind `FeatureFlags.Entities` /
@@ -16,8 +17,8 @@
 
         ##### Permissions
 
-        Must be authenticated. Post-scoped lookups also require permission to
-        read the post's channel.
+        Must be authenticated. Provider cards require permission to read the
+        post's channel.
 
         __Minimum server version__: 12.2
       operationId: GetEntityCard

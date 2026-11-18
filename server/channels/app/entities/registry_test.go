@@ -33,7 +33,7 @@ func TestOwnerMatcherIsDetectedAndRemoved(t *testing.T) {
 	require.Equal(t, "Mark", found[0].DisplayName)
 	require.Equal(t, []string{owner + ":mark"}, found[0].TypeIDs)
 
-	_, remote, err := Prepare(t.Context(), owner+":mark", "MARK-2048")
+	_, remote, err := Prepare(t.Context(), owner+":mark", "MARK-2048", 0)
 	require.NoError(t, err)
 	require.Nil(t, remote)
 
@@ -42,11 +42,11 @@ func TestOwnerMatcherIsDetectedAndRemoved(t *testing.T) {
 		Types:   []string{"mark"},
 		HasCard: true,
 	}))
-	_, remote, err = Prepare(t.Context(), owner+":mark", "MARK-2048")
+	_, remote, err = Prepare(t.Context(), owner+":mark", "MARK-2048", 0)
 	require.NoError(t, err)
 	require.Equal(t, Ref{Owner: owner, Name: "mark.card"}, remote.Provider)
 
-	_, _, err = Prepare(t.Context(), owner+":mark", "MARK-2048-extra")
+	_, _, err = Prepare(t.Context(), owner+":mark", "MARK-2048-extra", 0)
 	require.Error(t, err)
 
 	RemoveOwner(owner)
@@ -86,7 +86,7 @@ func TestAcronymTermIsTheHoverAndTheLink(t *testing.T) {
 	require.Equal(t, "Mattermost leadership team", entities[0].Title)
 	require.Equal(t, "/conflux/team/pages/abcdefghijklmnopqrstuvwxyz", entities[0].URL)
 
-	card, remote, err := Prepare(t.Context(), owner+":acronym", "MLT")
+	card, remote, err := Prepare(t.Context(), owner+":acronym", "MLT", 0)
 	require.NoError(t, err)
 	require.Nil(t, remote)
 	require.Equal(t, "Mattermost leadership team", card.Summary)
@@ -132,7 +132,7 @@ func TestProviderSelectsWhoTheCardIsCachedFor(t *testing.T) {
 		Cache:           model.EntityCacheUser,
 		CacheTTLSeconds: 60,
 	}))
-	_, remote, err := Prepare(t.Context(), owner+":mark", "MARK-2048")
+	_, remote, err := Prepare(t.Context(), owner+":mark", "MARK-2048", 0)
 	require.NoError(t, err)
 	require.Equal(t, model.EntityCacheUser, remote.Cache)
 	require.Equal(t, 60*time.Second, remote.CacheTTL)

@@ -97,7 +97,7 @@ func Detect(message string) (entities []*model.PostEntity, protected [][2]int) {
 				continue
 			}
 			if m.typeID == CoreTimeTypeID {
-				if _, err := parseCoreTime(value); err != nil {
+				if _, err := parseCoreTime(value, 0); err != nil {
 					continue
 				}
 			}
@@ -145,10 +145,11 @@ func ApplyTerms(message string, protected [][2]int, patterns []*model.PostEntity
 }
 
 func hitsToEntities(scanned string, hits []hit) []*model.PostEntity {
+	prefix := utf16Prefix(scanned)
 	entities := make([]*model.PostEntity, 0, len(hits))
 	for _, h := range hits {
-		start := utf16Index(scanned, h.byteStart)
-		end := utf16Index(scanned, h.byteEnd)
+		start := prefixAt(prefix, h.byteStart)
+		end := prefixAt(prefix, h.byteEnd)
 		entities = append(entities, &model.PostEntity{
 			ID:          fmt.Sprintf("%d:%d", start, end),
 			Start:       start,
@@ -483,18 +484,23 @@ func byteIndexAtUTF16(s string, utf16Index int) int {
 
 func maskFromUTF16(s string, ranges [][2]int) []bool {
 	mask := make([]bool, len(s))
-	if len(ranges) == 0 {
+	if len(ranges) == 0 || len(s) == 0 {
 		return mask
 	}
+	ordered := append([][2]int(nil), ranges...)
+	slices.SortFunc(ordered, func(a, b [2]int) int {
+		return cmp.Compare(a[0], b[0])
+	})
+	ri := 0
 	units := 0
 	for i := 0; i < len(s); {
 		r, size := utf8.DecodeRuneInString(s[i:])
 		next := units + utf16.RuneLen(r)
-		for _, rg := range ranges {
-			if units < rg[1] && rg[0] < next {
-				mark(mask, i, i+size)
-				break
-			}
+		for ri < len(ordered) && ordered[ri][1] <= units {
+			ri++
+		}
+		if ri < len(ordered) && units < ordered[ri][1] && ordered[ri][0] < next {
+			mark(mask, i, i+size)
 		}
 		units = next
 		i += size
@@ -509,7 +515,48 @@ func utf16Index(s string, byteIndex int) int {
 	if byteIndex > len(s) {
 		byteIndex = len(s)
 	}
-	return len(utf16.Encode([]rune(s[:byteIndex])))
+	units := 0
+	for i := 0; i < byteIndex; {
+		r, size := utf8.DecodeRuneInString(s[i:])
+		if i+size > byteIndex {
+			return units + (byteIndex - i)
+		}
+		units += utf16.RuneLen(r)
+		i += size
+	}
+	return units
+}
+
+func utf16Prefix(s string) []int {
+	prefix := make([]int, len(s)+1)
+	units := 0
+	for i := 0; i < len(s); {
+		r, size := utf8.DecodeRuneInString(s[i:])
+		if r == utf8.RuneError && size == 1 {
+			prefix[i] = units
+			units++
+			i++
+			continue
+		}
+		prefix[i] = units
+		for k := 1; k < size; k++ {
+			prefix[i+k] = units + k
+		}
+		units += utf16.RuneLen(r)
+		i += size
+	}
+	prefix[len(s)] = units
+	return prefix
+}
+
+func prefixAt(prefix []int, byteIndex int) int {
+	if byteIndex <= 0 || len(prefix) == 0 {
+		return 0
+	}
+	if byteIndex >= len(prefix) {
+		return prefix[len(prefix)-1]
+	}
+	return prefix[byteIndex]
 }
 
 func protectedMask(s string) []bool {
@@ -666,19 +713,24 @@ func overlapsProtected(mask []bool, start, end int) bool {
 }
 
 func protectedUTF16(s string, mask []bool) [][2]int {
+	prefix := utf16Prefix(s)
 	var ranges [][2]int
 	start := -1
-	for i, on := range mask {
-		if on && start < 0 {
+	n := len(mask)
+	if n > len(s) {
+		n = len(s)
+	}
+	for i := 0; i < n; i++ {
+		if mask[i] && start < 0 {
 			start = i
 		}
-		if !on && start >= 0 {
-			ranges = append(ranges, [2]int{utf16Index(s, start), utf16Index(s, i)})
+		if !mask[i] && start >= 0 {
+			ranges = append(ranges, [2]int{prefix[start], prefix[i]})
 			start = -1
 		}
 	}
 	if start >= 0 {
-		ranges = append(ranges, [2]int{utf16Index(s, start), utf16Index(s, len(s))})
+		ranges = append(ranges, [2]int{prefix[start], prefix[len(s)]})
 	}
 	return ranges
 }
