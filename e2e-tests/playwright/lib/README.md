@@ -29,6 +29,22 @@ This library requires `@playwright/test` version 1.55.0 or higher:
 npm install @playwright/test@^1.55.0
 ```
 
+## Generate the webapp surface
+
+The webapp declares its test surface in product `data-testid` attributes. The library consumes the version 4 structural report and generates its Playwright SDK. For spec examples, action observations and justified native locators, read [the Playwright spec-writing instructions](../AGENTS.md). The scanner and its config schema are described in [the test-surface README](../test-surface/README.md).
+
+Use Node 24.11 or newer. Install the webapp and Playwright workspace dependencies, then run from `e2e-tests/playwright`:
+
+```sh
+npm run scan --workspace @mattermost/playwright-lib
+npm run tsc --workspace @mattermost/playwright-lib
+npm run scan:check --workspace @mattermost/playwright-lib
+```
+
+`scan` reads `lib/surface/config.json` and writes `lib/surface/webapp.surface.json` when the app has no scan errors. Commit the report with source/config changes. The library's `tsc` command regenerates the SDK, compiles the library and checks its type fixtures. Generated files under `lib/src/ui/generated` are ignored; regenerate them instead of editing them. `scan:check` fails on scanner errors, stale test lookups under the configured Playwright roots, or a committed report that differs from a fresh scan, without updating it.
+
+The `Test Surface Scan` workflow (`.github/workflows/test-surface-scan.yml`) runs the scan check, then generates and compiles the library/type fixtures. Its paths include webapp/tool/surface-config/API and migrated spec changes. Fix source errors, run `scan`, and commit the report; do not edit the report by hand.
+
 ## Usage
 
 Basic example of logging in and posting a message:

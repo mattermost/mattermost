@@ -565,7 +565,7 @@ test(
         await expect(scheduledPost.panelBody).toContainText(updatedText);
 
         // * Verify scheduled date/time remains unchanged
-        await expect(scheduledPost.panelHeader).toContainText(selectedTime);
+        await expect(scheduledPost.panelHeader).toContainText(selectedTime!);
 
         // # Send the edited message immediately
         await scheduledPost.hover();

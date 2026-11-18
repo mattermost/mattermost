@@ -48,3 +48,5 @@ jobs:
           npm run build --workspace @mattermost/test-surface
       - name: ci/test-scanner-generator-and-lint-rules
         run: npm test --workspace @mattermost/test-surface
+      - name: ci/check-surface-budgets
+        run: npm run test:golden --workspace @mattermost/test-surface
