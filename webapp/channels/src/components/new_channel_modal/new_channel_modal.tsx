@@ -522,9 +522,9 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
     const pluginCreateGate = isBuiltInType(type) ? canCreateFromPluggable : pluginCanCreate;
     const classificationValid = !classificationEnabled || (Boolean(selectedClassificationId) && bannerText.trim().length > 0);
 
-    // Enforced by the dialog, not the server: POST /channels cannot carry values, so
-    // a failed write still leaves a channel short of its own requirement.
-    const requiredAttributesFilled = !isBuiltInType(type) || missingRequiredAttributes.length === 0;
+    // Enforced by the dialog as well as the server, for plugin channel types too:
+    // a plugin that creates the channel itself receives the values in formState.
+    const requiredAttributesFilled = missingRequiredAttributes.length === 0;
 
     const hasCompleteForm = Boolean(displayName) && hasValidType && classificationValid && requiredAttributesFilled;
     const hasNoErrors = !urlError && !purposeError && !serverError && !channelInputError;
@@ -552,7 +552,8 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
         managedCategoryName,
         classificationId: classificationEnabled ? selectedClassificationId : undefined,
         bannerText: classificationEnabled ? bannerText : undefined,
-    }), [currentTeamId, displayName, url, purpose, type, defaultCategoryName, managedCategoryName, classificationEnabled, selectedClassificationId, bannerText]);
+        attributeValues,
+    }), [currentTeamId, displayName, url, purpose, type, defaultCategoryName, managedCategoryName, classificationEnabled, selectedClassificationId, bannerText, attributeValues]);
 
     const newBoardInfoIcon = (
         <WithTooltip
@@ -785,7 +786,7 @@ const NewChannelModal = ({channelTypePluginId, modalHeaderText, nameLabel, nameP
                         )}
                     </div>
                 )}
-                {isBuiltInType(type) && (
+                {(isBuiltInType(type) || activePluginOption) && (
                     <ChannelAttributesForm
                         fields={assignableAttributeFields}
                         values={attributeValues}
