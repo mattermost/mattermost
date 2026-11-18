@@ -23,6 +23,7 @@ import {getChannelBanner} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import type {ResolvedChannelAttribute} from 'mattermost-redux/selectors/entities/properties';
 import {getChannelAttributeFields, getChannelBannerFields, getPropertyValueForTargetField, makeGetResolvedChannelAttributes} from 'mattermost-redux/selectors/entities/properties';
+import {isPropertyFieldRequired} from 'mattermost-redux/utils/property_utils';
 
 import {CLASSIFICATIONS_CHANNEL_FIELD_NAME, CLASSIFICATIONS_CHANNEL_OBJECT_TYPE} from 'components/admin_console/classification_markings/utils';
 import {hasAttributeToken, renderBannerTemplate} from 'components/channel_attributes/banner_template';
@@ -228,7 +229,7 @@ export default function useChannelClassificationBanner(channelId: string): Chann
 
             // A required attribute mandates the banner, overriding any opt-out the
             // channel saved before the attribute became required.
-            const bannerRequired = designatedFields.some((field) => Boolean(field.attrs?.required));
+            const bannerRequired = designatedFields.some(isPropertyFieldRequired);
 
             if (channelBannerInfo?.attribute_banner_disabled && !bannerRequired) {
                 return {...noBanner, classificationIsBannerDesignated};

@@ -570,6 +570,16 @@ describe('useChannelClassificationBanner — generic designated attributes', () 
             expect(result.current.bannerText).toBe('AURORA');
         });
 
+        test('a legacy string required value leaves the opt-out in place', () => {
+            const {result} = renderHookWithContext(
+                () => useChannelClassificationBanner(CHANNEL_ID),
+                makeState([programField({required: 'false'})], [value('program', 'opt1')], {enabled: false, text: '{{program}}', attribute_banner_disabled: true}),
+            );
+
+            expect(result.current.hasClassification).toBe(false);
+            expect(result.current.bannerText).toBeUndefined();
+        });
+
         test('a required attribute that is not on the banner leaves the opt-out in place', () => {
             const label = designatedField('tier', 'display_label_header', [{id: 'opt2', name: 'GOLD'}]);
             const requiredLabel = {...label, attrs: {...label.attrs, required: true}};
