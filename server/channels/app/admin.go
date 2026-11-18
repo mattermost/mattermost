@@ -23,8 +23,16 @@ import (
 )
 
 var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
-	Size: 1,
+	Size: 2,
 })
+
+const (
+	latestVersionCacheKey        = "latest_version_cache"
+	latestVersionFailureCacheKey = "latest_version_failure_cache"
+	// latestVersionFailureExpiry spaces out retries from servers that cannot reach GitHub, which
+	// also keeps servers behind a shared IP under its unauthenticated rate limit.
+	latestVersionFailureExpiry = 6 * time.Hour
+)
 
 // LatestVersionURL is the GitHub endpoint for the latest server release.
 const LatestVersionURL = "https://api.github.com/repos/mattermost/mattermost-server/releases/latest"
@@ -242,41 +250,36 @@ func (a *App) TestEmail(rctx request.CTX, userID string, cfg *model.Config) *mod
 	return nil
 }
 
+// GetLatestVersion fetches the latest release from latestVersionUrl. It makes no request while
+// ServiceSettings.EnableSecurityFixAlert is off, the setting that stops the server contacting
+// external services for update information.
 func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, *model.AppError) {
+	if !*a.Config().ServiceSettings.EnableSecurityFixAlert {
+		return nil, model.NewAppError("GetLatestVersion", "app.admin.get_latest_version.disabled.app_error", nil, "", http.StatusNotImplemented)
+	}
+
 	var cachedLatestVersion *model.GithubReleaseInfo
-	if cacheErr := latestVersionCache.Get("latest_version_cache", &cachedLatestVersion); cacheErr == nil {
+	if cacheErr := latestVersionCache.Get(latestVersionCacheKey, &cachedLatestVersion); cacheErr == nil {
 		return cachedLatestVersion, nil
 	}
 
-	req, err := http.NewRequestWithContext(rctx.Context(), http.MethodGet, latestVersionUrl, nil)
+	var cachedFailure string
+	if cacheErr := latestVersionCache.Get(latestVersionFailureCacheKey, &cachedFailure); cacheErr == nil {
+		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, cachedFailure, http.StatusInternalServerError)
+	}
+
+	releaseInfoResponse, err := fetchLatestVersion(rctx, latestVersionUrl)
 	if err != nil {
+		// A cancelled request says nothing about whether the feed is reachable.
+		if rctx.Context().Err() == nil {
+			if cacheErr := latestVersionCache.SetWithExpiry(latestVersionFailureCacheKey, err.Error(), latestVersionFailureExpiry); cacheErr != nil {
+				rctx.Logger().Warn("Failed to cache the latest version failure", mlog.Err(cacheErr))
+			}
+		}
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	client := &http.Client{Timeout: 10 * time.Second}
-	res, err := client.Do(req)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	defer res.Body.Close()
-
-	responseData, err := io.ReadAll(res.Body)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	var releaseInfoResponse *model.GithubReleaseInfo
-	err = json.Unmarshal(responseData, &releaseInfoResponse)
-	if err != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-
-	if validErr := releaseInfoResponse.IsValid(); validErr != nil {
-		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(validErr)
-	}
-
-	err = latestVersionCache.SetWithExpiry("latest_version_cache", releaseInfoResponse, 24*time.Hour)
+	err = latestVersionCache.SetWithExpiry(latestVersionCacheKey, releaseInfoResponse, 24*time.Hour)
 	if err != nil {
 		return nil, model.NewAppError("GetLatestVersion", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -284,6 +287,55 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 	return releaseInfoResponse, nil
 }
 
+func fetchLatestVersion(rctx request.CTX, latestVersionUrl string) (*model.GithubReleaseInfo, error) {
+	req, err := http.NewRequestWithContext(rctx.Context(), http.MethodGet, latestVersionUrl, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	client := &http.Client{Timeout: 10 * time.Second}
+	res, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode != http.StatusOK {
+		_, _ = io.Copy(io.Discard, res.Body)
+		return nil, fmt.Errorf("unexpected status code %d", res.StatusCode)
+	}
+
+	responseData, err := io.ReadAll(res.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var releaseInfoResponse *model.GithubReleaseInfo
+	err = json.Unmarshal(responseData, &releaseInfoResponse)
+	if err != nil {
+		return nil, err
+	}
+
+	if validErr := releaseInfoResponse.IsValid(); validErr != nil {
+		return nil, validErr
+	}
+
+	return releaseInfoResponse, nil
+}
+
 func (a *App) clearLatestVersionCache() error {
-	return latestVersionCache.Remove("latest_version_cache")
+	return latestVersionCache.Purge()
+}
+
+// clearLatestVersionCacheOnFlip drops a cached release or failure when EnableSecurityFixAlert is
+// toggled, so an admin who fixed the server's network access can retry by toggling it.
+func (ch *Channels) clearLatestVersionCacheOnFlip(prevCfg, cfg *model.Config) {
+	if *prevCfg.ServiceSettings.EnableSecurityFixAlert == *cfg.ServiceSettings.EnableSecurityFixAlert {
+		return
+	}
+
+	if err := latestVersionCache.Purge(); err != nil {
+		ch.srv.Log().Warn("Failed to clear the latest version cache", mlog.Err(err))
+	}
 }
