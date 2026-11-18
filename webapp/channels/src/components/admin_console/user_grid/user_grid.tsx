@@ -164,6 +164,9 @@ export default class UserGrid extends React.PureComponent<Props, State> {
     private getRows = (): Row[] => {
         const {page, membershipsToUpdate} = this.state;
         const {memberships, users, excludeUsers, includeUsers, totalCount, term, scope, readOnly} = this.props;
+
+        // The team's or the channel's members on its System Console page.
+        const testId = scope === 'team' ? 'admin.team.members' : 'admin.channel.members';
         const {startCount, endCount} = this.getPaginationProps();
 
         let usersToDisplay = users;
@@ -190,11 +193,13 @@ export default class UserGrid extends React.PureComponent<Props, State> {
         return usersToDisplay.map((user) => {
             const membership = membershipsToUpdate[user.id] || memberships[user.id] || this.newMembership(user);
             return {
+                testKey: user.id,
                 cells: {
                     id: user.id,
                     name: (
                         <UserGridName
                             user={user}
+                            testId={testId ? `${testId}.row` : undefined}
                         />
                     ),
                     new: includeUsers[user.id] ? (
@@ -215,6 +220,7 @@ export default class UserGrid extends React.PureComponent<Props, State> {
                             handleUpdateMembership={this.updateMembership}
                             scope={scope}
                             isDisabled={readOnly}
+                            testId={testId ? `${testId}.row` : undefined}
                         />
                     ),
                     remove: (
@@ -222,6 +228,7 @@ export default class UserGrid extends React.PureComponent<Props, State> {
                             user={user}
                             removeUser={this.removeUser}
                             isDisabled={readOnly}
+                            testId={testId ? `${testId}.row` : undefined}
                         />
                     ),
                 },
@@ -289,6 +296,7 @@ export default class UserGrid extends React.PureComponent<Props, State> {
 
         return (
             <DataGrid
+                testIdScope={this.props.scope === 'team' ? 'admin.team.members' : 'admin.channel.members'}
                 columns={columns}
                 rows={rows}
                 loading={this.state.loading || this.props.loading}

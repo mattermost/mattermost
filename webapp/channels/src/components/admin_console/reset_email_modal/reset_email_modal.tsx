@@ -137,7 +137,7 @@ export default function ResetEmailModal({
             compassDesign={true}
             autoCloseOnConfirmButton={false}
             errorText={error ? <span className='error'>{error}</span> : undefined}
-            dataTestId='resetEmailModal'
+            testId='admin.users.reset_email_modal'
         >
             <div className='ResetEmailModal__body'>
                 <Input
@@ -145,6 +145,7 @@ export default function ResetEmailModal({
                     type='email'
                     name='newEmail'
                     autoComplete='off'
+                    testId='admin.users.reset_email_modal.new_email'
                     label={formatMessage({
                         id: 'admin.reset_email.newEmail',
                         defaultMessage: 'New email',
@@ -165,6 +166,7 @@ export default function ResetEmailModal({
                         type='password'
                         name='currentPassword'
                         autoComplete='current-password'
+                        testId='admin.users.reset_email_modal.current_password'
                         label={formatMessage({
                             id: 'admin.reset_email.currentPassword',
                             defaultMessage: 'Current password',

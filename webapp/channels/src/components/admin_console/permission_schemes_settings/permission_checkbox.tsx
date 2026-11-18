@@ -8,15 +8,16 @@ import CheckboxPartialIcon from 'components/widgets/icons/checkbox_partial_icon'
 
 type Props = {
     value?: string;
-    id?: string;
+
+    testId?: string;
 };
 
-const PermissionCheckbox = ({value = '', id = ''}: Props): JSX.Element => {
+const PermissionCheckbox = ({value = '', testId}: Props): JSX.Element => {
     let icon = null;
     let extraClass = '';
     if (value === 'checked') {
         icon = (
-            <span data-testid='permissionCheckbox-checked'>
+            <span data-testid={testId ? `${testId}.checked` : undefined}>
                 <CheckboxCheckedIcon/>
             </span>
         );
@@ -28,7 +29,7 @@ const PermissionCheckbox = ({value = '', id = ''}: Props): JSX.Element => {
     return (
         <div
             className={'permission-check ' + extraClass}
-            data-testid={id}
+            data-testid={testId}
         >
             {icon}
         </div>

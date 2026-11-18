@@ -76,7 +76,7 @@ describe('IPFilteringAddOrEditModal', () => {
         await userEvent.type(getByLabelText('Enter a name for this rule'), 'Test IP Filter 2');
         await userEvent.clear(getByLabelText('Enter IP Range'));
         await userEvent.type(getByLabelText('Enter IP Range'), '10.0.0.0/8');
-        await userEvent.click(getByTestId('save-add-edit-button'));
+        await userEvent.click(getByTestId('admin.ip_filtering.edit_modal.save--button'));
 
         await waitFor(() => {
             expect(onSave).toHaveBeenCalledWith({
@@ -101,7 +101,7 @@ describe('IPFilteringAddOrEditModal', () => {
         await userEvent.type(getByLabelText('Enter a name for this rule'), 'Test IP Filter 2');
         await userEvent.clear(getByLabelText('Enter IP Range'));
         await userEvent.type(getByLabelText('Enter IP Range'), '10.0.0.0/8');
-        await userEvent.click(getByTestId('save-add-edit-button'));
+        await userEvent.click(getByTestId('admin.ip_filtering.edit_modal.save--button'));
 
         await waitFor(() => {
             expect(onSave).toHaveBeenCalledWith({
@@ -126,7 +126,7 @@ describe('IPFilteringAddOrEditModal', () => {
 
         // Trigger validation on blur - fireEvent used because userEvent doesn't have direct focus/blur methods
         fireEvent.blur(getByLabelText('Enter IP Range'));
-        await userEvent.click(getByTestId('save-add-edit-button'));
+        await userEvent.click(getByTestId('admin.ip_filtering.edit_modal.save--button'));
 
         await waitFor(() => {
             expect(getByText('Invalid CIDR address range')).toBeInTheDocument();
@@ -147,6 +147,6 @@ describe('IPFilteringAddOrEditModal', () => {
 
         fireEvent.blur(getByLabelText('Enter IP Range'));
 
-        expect(getByTestId('save-add-edit-button')).toBeDisabled();
+        expect(getByTestId('admin.ip_filtering.edit_modal.save--button')).toBeDisabled();
     });
 });

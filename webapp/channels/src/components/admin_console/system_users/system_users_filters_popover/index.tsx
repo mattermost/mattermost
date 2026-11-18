@@ -126,6 +126,7 @@ export function SystemUsersFilterPopover(props: Props) {
                 emphasis='tertiary'
                 size='medium'
                 aria-controls='systemUsersFilterPopover'
+                data-testid='admin.users.filters--button'
                 leadingIcon={<Icon glyph={<FilterVariantIcon/>}/>}
                 ref={floatingRefs.setReference}
                 {...getReferenceProps()}
@@ -139,6 +140,7 @@ export function SystemUsersFilterPopover(props: Props) {
                     <StyledPopoverContainer
                         {...getFloatingProps()}
                         id='systemUsersFilterPopover'
+                        data-testid='admin.users.filters_popover'
                         ref={floatingRefs.setFloating}
                         style={Object.assign({}, floatingStyles, floatingTransistionStyles)}
                         className='systemUsersFilterPopoverContainer'
@@ -168,6 +170,7 @@ export function SystemUsersFilterPopover(props: Props) {
                                 size='medium'
                                 onClick={handleApplyFilters}
                                 type='submit'
+                                data-testid='admin.users.filters_popover.apply--button'
                             >
                                 {formatMessage({id: 'admin.system_users.filtersPopover.apply', defaultMessage: 'Apply'})}
                             </Button>

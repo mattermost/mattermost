@@ -115,7 +115,7 @@ const EnterpriseEditionLeftPanel = ({
         return (
             <div
                 className='EnterpriseEditionLeftPanel'
-                data-testid='EnterpriseEditionLeftPanel'
+                data-testid='admin.license.enterprise_panel'
             >
                 <div className='EnterpriseEditionLeftPanel__Header'>
                     <div>
@@ -199,7 +199,7 @@ const EnterpriseEditionLeftPanel = ({
     return (
         <div
             className='EnterpriseEditionLeftPanel'
-            data-testid='EnterpriseEditionLeftPanel'
+            data-testid='admin.license.enterprise_panel'
         >
             <div className='EnterpriseEditionLeftPanel__Header'>
                 <div>
@@ -280,6 +280,18 @@ const EnterpriseEditionLeftPanel = ({
 
 type LegendValues = 'START DATE:' | 'EXPIRES:' | 'LICENSED SEATS:' | 'ACTIVE USERS:' | 'SINGLE-CHANNEL GUESTS:' | 'EDITION:' | 'LICENSE ISSUED:' | 'NAME:' | 'COMPANY / ORG:';
 
+const legendKeys = {
+    'START DATE:': 'start_date',
+    'EXPIRES:': 'expires',
+    'LICENSED SEATS:': 'licensed_seats',
+    'ACTIVE USERS:': 'active_users',
+    'SINGLE-CHANNEL GUESTS:': 'single_channel_guests',
+    'EDITION:': 'edition',
+    'LICENSE ISSUED:': 'license_issued',
+    'NAME:': 'name',
+    'COMPANY / ORG:': 'company',
+} as const satisfies Record<LegendValues, string>;
+
 const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expirationDays: number, singleChannelGuestCount: number, singleChannelGuestLimit: number) => ({legend, value}: {legend: LegendValues; value: string | JSX.Element | null}, index: number): React.ReactNode => {
     if (legend === 'SINGLE-CHANNEL GUESTS:') {
         const isGuestLimitExceeded = singleChannelGuestLimit > 0 && singleChannelGuestCount > singleChannelGuestLimit;
@@ -303,6 +315,7 @@ const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expira
         return (
             <div
                 className='item-element'
+                data-testid={`admin.license.enterprise_panel.detail:${legendKeys[legend]}`}
                 key={'single-channel-guests-' + index.toString()}
             >
                 <span className={classNames({legend: true, 'legend--over-seats-purchased': isGuestLimitExceeded})}>{legend}</span>
@@ -319,6 +332,7 @@ const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expira
         return (
             <div
                 className='item-element'
+                data-testid={`admin.license.enterprise_panel.detail:${legendKeys[legend]}`}
                 key={value + index.toString()}
             >
                 <span
@@ -341,6 +355,7 @@ const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expira
         return (
             <div
                 className='item-element'
+                data-testid={`admin.license.enterprise_panel.detail:${legendKeys[legend]}`}
                 key={value + index.toString()}
             >
                 <span className='legend'>{legend}</span>
@@ -362,6 +377,7 @@ const renderLicenseValues = (activeUsers: number, seatsPurchased: number, expira
     return (
         <div
             className='item-element'
+            data-testid={`admin.license.enterprise_panel.detail:${legendKeys[legend]}`}
             key={value + index.toString()}
         >
             <span className='legend'>{legend}</span>
@@ -525,7 +541,7 @@ const renderRemoveButton = (
                     onClick={handleRemove}
                     disabled={isDisabled}
                     id='remove-button'
-                    data-testid='remove-button'
+                    data-testid='admin.license.remove--button'
                 >
                     {removeButtonText}
                 </Button>

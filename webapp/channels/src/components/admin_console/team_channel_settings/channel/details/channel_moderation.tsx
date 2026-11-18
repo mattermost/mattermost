@@ -16,8 +16,6 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import type {ChannelModerationRoles} from './types';
 
-const PERIOD_TO_SLASH_REGEX = /\./g;
-
 const MEMBERS_CAN_CREATE_POST_PERMISSION = 'create_post';
 const GUESTS_CAN_CREATE_POST_PERMISSION = 'guest_create_post';
 const MEMBERS_CAN_POST_REACTIONS_PERMISSION = 'reactions';
@@ -260,7 +258,7 @@ const channelModerationHeaderMessages = defineMessages({
 });
 
 interface ChannelModerationTableRow {
-    name: string;
+    name: ChannelPermissions['name'];
     guests?: boolean;
     members: boolean;
     guestsDisabled?: boolean;
@@ -282,20 +280,18 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
     }
     const permissionTitle = channelModerationPermissionMessages?.title ? formatMessage(channelModerationPermissionMessages.title) : props.name;
     return (
-        <tr>
+        <tr data-testid={`admin.channel.moderation.permission:${props.name}`}>
             <td>
                 <div
                     className='as-bs-label'
-                    data-testid={channelModerationPermissionMessages?.title?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
+                    data-testid='admin.channel.moderation.permission.title--text'
                 >
                     <FormattedMessage
                         id={channelModerationPermissionMessages?.title?.id}
                         defaultMessage={channelModerationPermissionMessages?.title?.defaultMessage}
                     />
                 </div>
-                <div
-                    data-testid={channelModerationPermissionMessages?.description?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
-                >
+                <div data-testid='admin.channel.moderation.permission.description--text'>
                     <FormattedMessage
                         id={descriptionId}
                         defaultMessage={descriptionDefaultMessage}
@@ -307,7 +303,7 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
                 <td>
                     {!isNil(props.guests) &&
                         <Checkbox
-                            data-testid={`${props.name}-${Roles.GUESTS}`}
+                            data-testid='admin.channel.moderation.permission.guests--checkbox'
                             aria-label={`${permissionTitle} ${formatMessage(channelModerationHeaderMessages.guests)}`}
                             checked={Boolean(props.guests && !props.guestsDisabled)}
                             disabled={Boolean(props.guestsDisabled || props.readOnly)}
@@ -319,7 +315,7 @@ export const ChannelModerationTableRow = (props: ChannelModerationTableRow) => {
             <td>
                 {!isNil(props.members) &&
                     <Checkbox
-                        data-testid={`${props.name}-${Roles.MEMBERS}`}
+                        data-testid='admin.channel.moderation.permission.members--checkbox'
                         aria-label={`${permissionTitle} ${formatMessage(channelModerationHeaderMessages.members)}`}
                         checked={Boolean(props.members && !props.membersDisabled)}
                         disabled={Boolean(props.membersDisabled || props.readOnly)}
@@ -354,7 +350,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
             if (!createPostsObject!.roles.guests!.value && this.props.guestAccountsEnabled && !createPostsObject!.roles.members!.value) {
                 errorMessages.push(
                     <div
-                        data-testid={channelModerationPermissionMessages?.disabledBothDueToCreatePosts?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
+                        data-testid='admin.channel.moderation.permission.error:disabled_both_due_to_create_posts--text'
                         key={channelModerationPermissionMessages?.disabledBothDueToCreatePosts?.id}
                     >
                         <FormattedMessage
@@ -368,7 +364,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                 createPostsKey = 'disabledGuestsDueToCreatePosts';
                 errorMessages.push(
                     <div
-                        data-testid={channelModerationPermissionMessages?.disabledGuestsDueToCreatePosts?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
+                        data-testid='admin.channel.moderation.permission.error:disabled_guests_due_to_create_posts--text'
                         key={channelModerationPermissionMessages?.disabledGuestsDueToCreatePosts?.id}
                     >
                         <FormattedMessage
@@ -381,7 +377,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
                 createPostsKey = 'disabledMembersDueToCreatePosts';
                 errorMessages.push(
                     <div
-                        data-testid={channelModerationPermissionMessages?.disabledMembersDueToCreatePosts?.id?.replace(PERIOD_TO_SLASH_REGEX, '-')}
+                        data-testid='admin.channel.moderation.permission.error:disabled_members_due_to_create_posts--text'
                         key={channelModerationPermissionMessages?.disabledMembersDueToCreatePosts?.id}
                     >
                         <FormattedMessage
@@ -449,7 +445,7 @@ export default class ChannelModeration extends React.PureComponent<Props> {
         if (disabledKey) {
             errorMessages.push(
                 <div
-                    data-testid={disabledKeyId?.replace(PERIOD_TO_SLASH_REGEX, '-')}
+                    data-testid={`admin.channel.moderation.permission.error:${disabledKey}--text`}
                     key={disabledKeyId}
                 >
                     <FormattedMarkdownMessage

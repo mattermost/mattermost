@@ -43,7 +43,7 @@ describe('Archived channels', () => {
         cy.findByText(testChannel.display_name, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
 
         // * Verify the deleted channel displays the correct icon
-        cy.findByTestId(`${testChannel.name}-archive-icon`).should('be.visible');
+        cy.get(`[data-testid="admin.channels.row:${testChannel.id}--row"] [data-testid="admin.channels.row.icon"]`).should('be.visible');
     });
 
     it('appear in the search results of the channels list view', () => {
@@ -51,7 +51,7 @@ describe('Archived channels', () => {
         cy.visit('/admin_console/user_management/channels');
 
         // # Search for the archived channel
-        cy.findByTestId('searchInput', {timeout: TIMEOUTS.ONE_MIN}).type(`${testChannel.display_name}{enter}`);
+        cy.findByTestId('admin.channels.search--textbox', {timeout: TIMEOUTS.ONE_MIN}).type(`${testChannel.display_name}{enter}`);
 
         // * Verify the archived channel is in the results
         cy.findByText(testChannel.display_name).should('be.visible');
@@ -99,7 +99,7 @@ describe('Archived channels', () => {
         cy.findByText(testChannel.display_name, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
 
         // * Verify the archive icon is displayed
-        cy.findByTestId(`${testChannel.name}-archive-icon`).should('be.visible');
+        cy.get(`[data-testid="admin.channels.row:${testChannel.id}--row"] [data-testid="admin.channels.row.icon"]`).should('be.visible');
     });
 
     it('display archive-lock icon for private archived channels in channel list', () => {
@@ -110,6 +110,6 @@ describe('Archived channels', () => {
         cy.findByText(testPrivateChannel.display_name, {timeout: TIMEOUTS.ONE_MIN}).should('be.visible');
 
         // * Verify the archive icon is displayed for private channel
-        cy.findByTestId(`${testPrivateChannel.name}-archive-icon`).should('be.visible');
+        cy.get(`[data-testid="admin.channels.row:${testPrivateChannel.id}--row"] [data-testid="admin.channels.row.icon"]`).should('be.visible');
     });
 });

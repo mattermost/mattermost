@@ -22,6 +22,7 @@ const RemoveFromTeamButton = ({teamId, handleRemoveUserFromTeam}: Props) => {
             type='button'
             destructive={true}
             onClick={handleClick}
+            data-testid='manage_teams_modal.team.remove--button'
         >
             <FormattedMessage
                 id='team_members_dropdown.leave_team'

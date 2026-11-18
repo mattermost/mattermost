@@ -5,7 +5,7 @@ import React from 'react';
 
 import GroupTeamsAndChannels from 'components/admin_console/group_settings/group_details/group_teams_and_channels';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 
 describe('components/admin_console/group_settings/group_details/GroupTeamsAndChannels', () => {
     const defaultProps = {
@@ -96,7 +96,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         );
 
         // Click the remove button for Team 1
-        const removeButton = screen.getByTestId('Team 1_groupsyncable_remove');
+        const removeButton = within(screen.getByTestId('admin.group.teams_and_channels.row:11111111111111111111111111--row')).getByTestId('admin.group.teams_and_channels.row.remove--button');
         await userEvent.click(removeButton);
 
         // Confirm the removal in the modal
@@ -129,7 +129,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         );
 
         // Click on the current role dropdown for Team 1
-        const roleDropdown = screen.getByTestId('Team 1_current_role');
+        const roleDropdown = within(screen.getByTestId('admin.group.teams_and_channels.row:11111111111111111111111111--row')).getByTestId('admin.group.teams_and_channels.row.role');
         await userEvent.click(roleDropdown);
 
         // Click the role option to change (Team Admin)

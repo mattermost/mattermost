@@ -21,11 +21,11 @@ const deleteExistingTeamOverrideSchemes = () => {
 };
 
 const checkChannelBookmarksPermissionsAreVisibleAndSet = () => {
-    const permissionRowIds = ['all_users-public_channel-manage_public_channel_bookmarks-checkbox',
-        'all_users-private_channel-manage_private_channel_bookmarks-checkbox'];
+    const permissionRowIds = ['[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:manage_public_channel_bookmarks--checkbox"] [data-testid="admin.permissions.group.checkbox"]',
+        '[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group:manage_private_channel_bookmarks--checkbox"] [data-testid="admin.permissions.group.checkbox"]'];
 
     permissionRowIds.forEach((id) => {
-        cy.findByTestId(id).then((el) => {
+        cy.get(id).then((el) => {
             expect(el.hasClass('checked')).to.be.true;
         });
     });
@@ -51,7 +51,7 @@ describe('Revoke Bookmarks Permissions', () => {
         cy.visit('/admin_console/user_management/permissions');
 
         // # Click `Edit Scheme` on System Scheme
-        cy.findByTestId('systemScheme-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.permission_schemes.system_scheme.action--link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Find and ensure that manage bookmarks permissions are visible and set
         checkChannelBookmarksPermissionsAreVisibleAndSet();
@@ -64,7 +64,7 @@ describe('Revoke Bookmarks Permissions', () => {
         cy.visit('/admin_console/user_management/permissions');
 
         // # Click `New Team Override Scheme`
-        cy.findByTestId('team-override-schemes-link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByTestId('admin.permission_schemes.team_overrides.action--link').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Type Name and Description
         cy.get('#scheme-name').should('be.visible').type('custom test schema');
@@ -74,7 +74,7 @@ describe('Revoke Bookmarks Permissions', () => {
         cy.get('#saveSetting').click().wait(TIMEOUTS.TWO_SEC);
 
         // # Edit the schema
-        cy.findByTestId('custom test schema-edit').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+        cy.contains('[data-testid^="admin.permission_schemes.scheme:"]', 'custom test schema').find('[data-testid="admin.permission_schemes.scheme.edit--link"]').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Find and ensure that manage bookmarks permissions are visible and set
         checkChannelBookmarksPermissionsAreVisibleAndSet();

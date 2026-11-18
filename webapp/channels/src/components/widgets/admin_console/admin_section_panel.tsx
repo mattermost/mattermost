@@ -56,7 +56,10 @@ const AdminSectionPanel: React.FC<Props> = ({
     const titleDescriptor = title ? asMessageDescriptor(title) : undefined;
     const descriptionDescriptor = description ? asMessageDescriptor(description) : undefined;
 
-    const descriptionTestId = descriptionDescriptor && testId ? `${testId}.description--text` : undefined;
+    // A description alone is the panel's title; with a title it is the subtitle.
+    const descriptionTestId = testId && descriptionDescriptor ? `${testId}.description--text` : undefined;
+    const titleTestId = titleDescriptor ? undefined : descriptionTestId;
+    const subtitleTestId = titleDescriptor ? descriptionTestId : undefined;
 
     return (
         <AdminPanel
@@ -68,8 +71,8 @@ const AdminSectionPanel: React.FC<Props> = ({
             subtitle={titleDescriptor ? descriptionDescriptor : undefined}
             button={licenseSku ? <LicenseSkuBadge sku={licenseSku}/> : undefined}
             data-testid={dataTestId}
-            titleTestId={descriptionTestId && !titleDescriptor ? descriptionTestId : undefined}
-            subtitleTestId={descriptionTestId && titleDescriptor ? descriptionTestId : undefined}
+            titleTestId={titleTestId}
+            subtitleTestId={subtitleTestId}
         >
             <div data-testid={testId ? `${testId}.body` : 'admin-section-panel-body'}>
                 {children}

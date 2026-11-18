@@ -92,7 +92,7 @@ export default class GroupTeamsAndChannelsRow extends React.PureComponent<
             dropDown = (
                 <div>
                     <MenuWrapper isDisabled={isDisabled}>
-                        <div data-testid={`${name}_current_role`}>
+                        <div data-testid='admin.group.teams_and_channels.row.role'>
                             <a>
                                 <span>{currentRole} </span>
                                 <span className='caret'/>
@@ -108,7 +108,7 @@ export default class GroupTeamsAndChannelsRow extends React.PureComponent<
                             id={`${name}_change_role_options`}
                         >
                             <Menu.ItemAction
-                                testid={`${name}_role_to_be`}
+                                testId='admin.group.teams_and_channels.row.role_menu.change'
                                 onClick={this.changeRoles}
                                 text={roleToBe}
                             />
@@ -194,8 +194,12 @@ export default class GroupTeamsAndChannelsRow extends React.PureComponent<
         const displayType = this.props.type.split('-')[1];
 
         return (
-            <tr className={'group-teams-and-channels-row' + extraClasses}>
+            <tr
+                className={'group-teams-and-channels-row' + extraClasses}
+                data-testid={`admin.group.teams_and_channels.row:${this.props.id}--row`}
+            >
                 <ConfirmModal
+                    testId='admin.group.remove_team_or_channel_modal'
                     show={this.state.showConfirmationModal}
                     title={
                         <FormattedMessage
@@ -243,7 +247,7 @@ export default class GroupTeamsAndChannelsRow extends React.PureComponent<
                         onClick={() =>
                             this.setState({showConfirmationModal: true})
                         }
-                        data-testid={`${this.props.name}_groupsyncable_remove`}
+                        data-testid='admin.group.teams_and_channels.row.remove--button'
                         disabled={this.props.isDisabled}
                     >
                         <FormattedMessage

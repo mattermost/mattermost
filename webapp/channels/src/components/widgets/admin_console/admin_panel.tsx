@@ -69,10 +69,10 @@ function renderPanelText(
 
 // Compass renders the title and subtitle itself; a wrapper carries their testids.
 function withTestId(node: React.ReactNode | undefined, testId?: string): React.ReactNode | undefined {
-    if (node == null || !testId) {
+    if (node == null) {
         return node;
     }
-    return <span data-testid={testId}>{node}</span>;
+    return testId ? <span data-testid={testId}>{node}</span> : node;
 }
 
 function hasCompassHeaderChrome(props: {

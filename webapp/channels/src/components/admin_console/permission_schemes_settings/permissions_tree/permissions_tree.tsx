@@ -370,7 +370,10 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
 
     render = () => {
         return (
-            <div className='permissions-tree'>
+            <div
+                className='permissions-tree'
+                data-testid={this.props.role.name ? `admin.permissions.role:${this.props.role.name}--group` : undefined}
+            >
                 <div className='permissions-tree--header'>
                     <div className='permission-name'>
                         <FormattedMessage

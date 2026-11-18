@@ -117,7 +117,7 @@ describe('SecureConnectionDetail', () => {
         renderAtPath('/admin_console/site_config/secure_connections/rc-1');
 
         await waitFor(() => {
-            expect(screen.getByTestId('organization-name-input')).toHaveValue('Acme');
+            expect(screen.getByTestId('admin.secure_connection.name--textbox')).toHaveValue('Acme');
         });
         expect(screen.getByText('Connected')).toBeInTheDocument();
     });
@@ -125,7 +125,7 @@ describe('SecureConnectionDetail', () => {
     it('renders an empty org name input in create mode', () => {
         renderAtPath('/admin_console/site_config/secure_connections/create');
 
-        expect(screen.getByTestId('organization-name-input')).toHaveValue('');
+        expect(screen.getByTestId('admin.secure_connection.name--textbox')).toHaveValue('');
     });
 
     it('hides the shared channels section in create mode', () => {
@@ -148,17 +148,17 @@ describe('SecureConnectionDetail', () => {
         renderAtPath('/admin_console/site_config/secure_connections/rc-1');
 
         await waitFor(() => {
-            expect(screen.getByTestId('organization-name-input')).toHaveValue('Acme');
+            expect(screen.getByTestId('admin.secure_connection.name--textbox')).toHaveValue('Acme');
         });
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
         expect(saveButton).toBeDisabled();
 
-        const input = screen.getByTestId('organization-name-input');
+        const input = screen.getByTestId('admin.secure_connection.name--textbox');
         await user.clear(input);
         await user.type(input, 'Acme Renamed');
 
-        expect(screen.getByTestId('organization-name-input')).toHaveValue('Acme Renamed');
+        expect(screen.getByTestId('admin.secure_connection.name--textbox')).toHaveValue('Acme Renamed');
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();
@@ -181,8 +181,8 @@ describe('SecureConnectionDetail', () => {
 
         renderAtPath('/admin_console/site_config/secure_connections/create');
 
-        await user.type(screen.getByTestId('organization-name-input'), 'New Org');
-        await user.click(screen.getByTestId('destination-team-input'));
+        await user.type(screen.getByTestId('admin.secure_connection.name--textbox'), 'New Org');
+        await user.click(screen.getByTestId('admin.secure_connection.destination_team'));
 
         await waitFor(() => {
             expect(screen.getByRole('button', {name: 'Save'})).toBeEnabled();

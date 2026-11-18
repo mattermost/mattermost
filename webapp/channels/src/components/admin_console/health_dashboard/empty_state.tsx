@@ -13,10 +13,14 @@ type Props = {
     title: React.ReactNode;
     body: React.ReactNode;
     icon?: boolean;
+    testId?: string;
 };
 
-export const EmptyState = ({title, body, icon = false}: Props) => (
-    <div className='HealthDashboard__empty'>
+export const EmptyState = ({title, body, icon = false, testId}: Props) => (
+    <div
+        className='HealthDashboard__empty'
+        data-testid={testId}
+    >
         {icon && (
             <CheckCircleOutlineIcon
                 className='HealthDashboard__emptyIcon'

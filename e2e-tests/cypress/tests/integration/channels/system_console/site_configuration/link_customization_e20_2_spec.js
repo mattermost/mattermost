@@ -41,8 +41,8 @@ describe('SupportSettings', () => {
 
     it('MM-T1032 - Customization: Custom Terms and Privacy links in the About modal', () => {
         // # Edit links in the TOS and Privacy fields
-        cy.findByTestId('SupportSettings.TermsOfServiceLinkinput').clear().type(tosLink);
-        cy.findByTestId('SupportSettings.PrivacyPolicyLinkinput').clear().type(privacyLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.TermsOfServiceLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(tosLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.PrivacyPolicyLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(privacyLink);
 
         // # Save setting then back to team view
         saveSetting();
@@ -58,7 +58,7 @@ describe('SupportSettings', () => {
 
     it('MM-T1034 - Customization: Blank TOS link field (About modal)', () => {
         // # Empty the "terms of services" field
-        cy.findByTestId('SupportSettings.TermsOfServiceLinkinput').type('any').clear();
+        cy.get('[data-testid="admin.setting:SupportSettings.TermsOfServiceLink--group"] [data-testid="admin.setting.value--textbox"]').type('any').clear();
 
         // # Save setting then back to team view
         saveSetting();
@@ -72,7 +72,7 @@ describe('SupportSettings', () => {
     });
 
     it('MM-T1035 - Customization Blank Privacy hides the link', () => {
-        cy.findByTestId('SupportSettings.PrivacyPolicyLinkinput').clear();
+        cy.get('[data-testid="admin.setting:SupportSettings.PrivacyPolicyLink--group"] [data-testid="admin.setting.value--textbox"]').clear();
 
         // # Save setting then back to team view
         saveSetting();

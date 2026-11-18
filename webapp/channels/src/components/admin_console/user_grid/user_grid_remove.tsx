@@ -10,12 +10,16 @@ type Props = {
     user: UserProfile;
     removeUser: (user: UserProfile) => void;
     isDisabled?: boolean;
+
+    // The grid row: the link is `.remove--button`.
+    testId?: string;
 };
 
 const UserGridRemove = ({
     user,
     removeUser,
     isDisabled,
+    testId,
 }: Props) => {
     const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
@@ -30,6 +34,7 @@ const UserGridRemove = ({
                 onClick={handleClick}
                 href='#'
                 role='button'
+                data-testid={testId ? `${testId}.remove--button` : undefined}
                 className={isDisabled ? 'disabled' : ''}
             >
                 <FormattedMessage

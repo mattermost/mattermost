@@ -39,10 +39,10 @@ describe('Custom Terms of Service', () => {
         cy.visit('/admin_console/compliance/custom_terms_of_service');
 
         // # Enable custom terms of service
-        cy.findByTestId('SupportSettings.CustomTermsOfServiceEnabledtrue').click();
+        cy.get('[data-testid="admin.setting:SupportSettings.CustomTermsOfServiceEnabled--group"] [data-testid="admin.setting.true--radio"]').click();
 
         // # Set the terms of service to the first value
-        cy.findByTestId('SupportSettings.CustomTermsOfServiceTextinput').clear().type(customTermsOfServiceText);
+        cy.get('[data-testid="admin.setting:SupportSettings.CustomTermsOfServiceText--group"] [data-testid="admin.setting.value--textbox"]').clear().type(customTermsOfServiceText);
 
         // # Save config
         cy.get('#saveSetting').click();
@@ -84,10 +84,10 @@ describe('Custom Terms of Service', () => {
         cy.visit('/admin_console/compliance/custom_terms_of_service');
 
         // # Enable custom terms of service
-        cy.findByTestId('SupportSettings.CustomTermsOfServiceEnabledtrue').click();
+        cy.get('[data-testid="admin.setting:SupportSettings.CustomTermsOfServiceEnabled--group"] [data-testid="admin.setting.true--radio"]').click();
 
         // # Set the terms of service to the first value
-        cy.findByTestId('SupportSettings.CustomTermsOfServiceTextinput').clear().type(firstTOS);
+        cy.get('[data-testid="admin.setting:SupportSettings.CustomTermsOfServiceText--group"] [data-testid="admin.setting.value--textbox"]').clear().type(firstTOS);
 
         // # Save config
         cy.get('#saveSetting').click();
@@ -114,7 +114,7 @@ describe('Custom Terms of Service', () => {
         cy.visit('/admin_console/compliance/custom_terms_of_service');
 
         // # Set the terms of service to the first value
-        cy.findByTestId('SupportSettings.CustomTermsOfServiceTextinput').clear().type(secondTOS);
+        cy.get('[data-testid="admin.setting:SupportSettings.CustomTermsOfServiceText--group"] [data-testid="admin.setting.value--textbox"]').clear().type(secondTOS);
 
         // # Save config
         cy.get('#saveSetting').click();

@@ -95,7 +95,10 @@ const GuestPermissionsTree = ({license, onToggle, readOnly, scope, selectRow, pa
     }, [openPostTimeLimitModal, readOnly]);
 
     return (
-        <div className='permissions-tree guest'>
+        <div
+            className='permissions-tree guest'
+            data-testid={role.name ? `admin.permissions.role:${role.name}--group` : undefined}
+        >
             <div className='permissions-tree--header'>
                 <div className='permission-name'>
                     <FormattedMessage

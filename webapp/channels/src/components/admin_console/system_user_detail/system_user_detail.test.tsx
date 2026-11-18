@@ -164,7 +164,7 @@ describe('SystemUserDetail', () => {
             const userEventInstance = userEvent.setup();
             renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -176,7 +176,7 @@ describe('SystemUserDetail', () => {
             const userEventInstance = userEvent.setup();
             renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const usernameInput = screen.getByPlaceholderText('Enter username');
             await userEventInstance.clear(usernameInput);
@@ -197,7 +197,7 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const input = screen.getByPlaceholderText(placeholder);
             await userEventInstance.clear(input);
@@ -227,7 +227,7 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const firstNameInput = screen.getByPlaceholderText('Enter first name');
             const lastNameInput = screen.getByPlaceholderText('Enter last name');
@@ -237,7 +237,7 @@ describe('SystemUserDetail', () => {
             await userEventInstance.type(lastNameInput, '  New Last  ');
             await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
 
-            const changesList = await screen.findByTestId('changesList');
+            const changesList = await screen.findByTestId('admin.user.save_modal.changes--list');
             expect(changesList).toHaveTextContent('First Name: Old First → New First');
             expect(changesList).toHaveTextContent('Last Name: Old Last → New Last');
 
@@ -267,12 +267,12 @@ describe('SystemUserDetail', () => {
                 },
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             await userEventInstance.clear(screen.getByPlaceholderText('Enter first name'));
             await userEventInstance.click(screen.getByRole('button', {name: 'Save'}));
 
-            expect(await screen.findByTestId('changesList')).toHaveTextContent('First Name: Old First → (translated empty)');
+            expect(await screen.findByTestId('admin.user.save_modal.changes--list')).toHaveTextContent('First Name: Old First → (translated empty)');
         });
 
         test('should reset first and last names on cancel', async () => {
@@ -285,7 +285,7 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const firstNameInput = screen.getByPlaceholderText('Enter first name');
             const lastNameInput = screen.getByPlaceholderText('Enter last name');
@@ -311,17 +311,17 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const file = new File(['image-bytes'], 'avatar.png', {type: 'image/png'});
-            fireEvent.change(screen.getByTestId('adminUserCardPictureInput'), {target: {files: [file]}});
+            fireEvent.change(screen.getByTestId('admin.user.card.picture_input'), {target: {files: [file]}});
 
             await waitFor(() => {
                 expect(uploadProfileImage).toHaveBeenCalledWith(user.id, file);
             });
 
             // After a successful upload the user now has a custom picture, so removal becomes available.
-            await userEvent.click(screen.getByTestId('adminUserCardPictureButton'));
+            await userEvent.click(screen.getByTestId('admin.user.card.picture--button'));
             expect(await screen.findByText('Remove Picture')).toBeInTheDocument();
         });
 
@@ -334,15 +334,15 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const file = new File(['image-bytes'], 'avatar.png', {type: 'image/png'});
-            fireEvent.change(screen.getByTestId('adminUserCardPictureInput'), {target: {files: [file]}});
+            fireEvent.change(screen.getByTestId('admin.user.card.picture_input'), {target: {files: [file]}});
 
             expect(await screen.findByText('Server rejected image')).toBeInTheDocument();
 
             // The edit control should be usable again after the failure.
-            expect(screen.getByTestId('adminUserCardPictureButton')).toBeEnabled();
+            expect(screen.getByTestId('admin.user.card.picture--button')).toBeEnabled();
         });
 
         test('should reject an unsupported image type without uploading', async () => {
@@ -354,10 +354,10 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const file = new File(['image-bytes'], 'avatar.gif', {type: 'image/gif'});
-            fireEvent.change(screen.getByTestId('adminUserCardPictureInput'), {target: {files: [file]}});
+            fireEvent.change(screen.getByTestId('admin.user.card.picture_input'), {target: {files: [file]}});
 
             expect(await screen.findByText('Only BMP, JPG, JPEG, or PNG images are supported.')).toBeInTheDocument();
             expect(uploadProfileImage).not.toHaveBeenCalled();
@@ -373,10 +373,10 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const file = new File(['too-many-bytes'], 'avatar.png', {type: 'image/png'});
-            fireEvent.change(screen.getByTestId('adminUserCardPictureInput'), {target: {files: [file]}});
+            fireEvent.change(screen.getByTestId('admin.user.card.picture_input'), {target: {files: [file]}});
 
             expect(await screen.findByText(/File is too large/)).toBeInTheDocument();
             expect(uploadProfileImage).not.toHaveBeenCalled();
@@ -394,9 +394,9 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
-            await userEvent.click(screen.getByTestId('adminUserCardPictureButton'));
+            await userEvent.click(screen.getByTestId('admin.user.card.picture--button'));
             await userEvent.click(screen.getByText('Remove Picture'));
 
             await waitFor(() => {
@@ -404,7 +404,7 @@ describe('SystemUserDetail', () => {
             });
 
             // The user no longer has a custom picture, so removal is no longer offered.
-            await userEvent.click(screen.getByTestId('adminUserCardPictureButton'));
+            await userEvent.click(screen.getByTestId('admin.user.card.picture--button'));
             expect(await screen.findByText('Upload Picture')).toBeInTheDocument();
             expect(screen.queryByText('Remove Picture')).not.toBeInTheDocument();
         });
@@ -421,15 +421,15 @@ describe('SystemUserDetail', () => {
                 />,
             );
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
-            await userEvent.click(screen.getByTestId('adminUserCardPictureButton'));
+            await userEvent.click(screen.getByTestId('admin.user.card.picture--button'));
             await userEvent.click(screen.getByText('Remove Picture'));
 
             expect(await screen.findByText('Server rejected removal')).toBeInTheDocument();
 
             // The edit control should be usable again after the failure.
-            expect(screen.getByTestId('adminUserCardPictureButton')).toBeEnabled();
+            expect(screen.getByTestId('admin.user.card.picture--button')).toBeEnabled();
         });
 
         test('should not offer picture editing for provider-managed pictures', async () => {
@@ -444,7 +444,7 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            expect(screen.queryByTestId('adminUserCardPictureButton')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.user.card.picture--button')).not.toBeInTheDocument();
         });
 
         test('should offer picture editing for provider users when the picture is not synced', async () => {
@@ -459,7 +459,7 @@ describe('SystemUserDetail', () => {
 
             await waitForLoadingToFinish();
 
-            expect(screen.getByTestId('adminUserCardPictureButton')).toBeInTheDocument();
+            expect(screen.getByTestId('admin.user.card.picture--button')).toBeInTheDocument();
         });
     });
 
@@ -468,7 +468,7 @@ describe('SystemUserDetail', () => {
             const userEventInstance = userEvent.setup();
             renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -482,7 +482,7 @@ describe('SystemUserDetail', () => {
             const userEventInstance = userEvent.setup();
             renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -497,7 +497,7 @@ describe('SystemUserDetail', () => {
             const userEventInstance = userEvent.setup();
             renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const emailInput = screen.getByLabelText('Email');
             await userEventInstance.clear(emailInput);
@@ -514,7 +514,7 @@ describe('SystemUserDetail', () => {
             const userEventInstance = userEvent.setup();
             renderWithContext(<SystemUserDetail {...defaultProps}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const usernameInput = screen.getByPlaceholderText('Enter username');
             await userEventInstance.clear(usernameInput);
@@ -538,7 +538,7 @@ describe('SystemUserDetail', () => {
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             await userEventInstance.clear(authDataInput);
@@ -557,7 +557,7 @@ describe('SystemUserDetail', () => {
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             const longAuthData = 'a'.repeat(129); // 129 characters, exceeds max
@@ -577,7 +577,7 @@ describe('SystemUserDetail', () => {
             };
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             const authDataInput = screen.getByPlaceholderText('Enter auth data');
             const validAuthData = 'a'.repeat(128); // Exactly 128 characters
@@ -638,7 +638,7 @@ describe('SystemUserDetail', () => {
 
             renderWithContext(<SystemUserDetail {...props}/>);
 
-            await waitForElementToBeRemoved(() => screen.queryAllByTestId('loadingSpinner'));
+            await waitForElementToBeRemoved(() => screen.queryAllByTestId('admin.user_detail.loading_spinner'));
 
             // Find and click activate button
             const activateButton = screen.getByText('Activate');
@@ -809,7 +809,7 @@ describe('SystemUserDetail', () => {
 
             await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-            const changesList = await screen.findByTestId('changesList');
+            const changesList = await screen.findByTestId('admin.user.save_modal.changes--list');
             expect(changesList).toHaveTextContent('Alpha and Beta → Alpha, Beta, and Gamma');
             expect(changesList).not.toHaveTextContent('opt-1');
             expect(changesList).not.toHaveTextContent('opt-2');
@@ -1189,7 +1189,7 @@ describe('SystemUserDetail', () => {
 
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-                const changesList = await screen.findByTestId('changesList');
+                const changesList = await screen.findByTestId('admin.user.save_modal.changes--list');
                 expect(changesList).toHaveTextContent('Alpha and Beta → Alpha, Beta, and Gamma');
                 expect(changesList).not.toHaveTextContent('opt-');
             });
@@ -1418,7 +1418,7 @@ describe('SystemUserDetail', () => {
 
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-                const changesList = await screen.findByTestId('changesList');
+                const changesList = await screen.findByTestId('admin.user.save_modal.changes--list');
                 expect(changesList).toHaveTextContent('Value unavailable');
                 expect(changesList).not.toHaveTextContent('opt-1');
                 expect(changesList).not.toHaveTextContent('opt-2');
@@ -1455,7 +1455,7 @@ describe('SystemUserDetail', () => {
                 await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove Alpha'})));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-                const changesList = await screen.findByTestId('changesList');
+                const changesList = await screen.findByTestId('admin.user.save_modal.changes--list');
                 expect(changesList).toHaveTextContent('ghost-1');
                 expect(changesList).not.toHaveTextContent('Value unavailable');
             });
@@ -1481,7 +1481,7 @@ describe('SystemUserDetail', () => {
                 await userEvent.click(chipRemove(screen.getByRole('button', {name: 'Remove ghost-1'})));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
 
-                const changesList = await screen.findByTestId('changesList');
+                const changesList = await screen.findByTestId('admin.user.save_modal.changes--list');
                 expect(changesList).toHaveTextContent('ghost-2');
                 expect(changesList).not.toHaveTextContent('Value unavailable');
             });
@@ -1502,7 +1502,7 @@ describe('SystemUserDetail', () => {
                 await userEvent.click(picker);
                 await userEvent.click(await screen.findByRole('option', {name: 'Gamma'}));
                 await userEvent.click(screen.getByRole('button', {name: 'Save'}));
-                return screen.findByTestId('changesList');
+                return screen.findByTestId('admin.user.save_modal.changes--list');
             };
 
             test('G22: prints the id for a stale multiselect value, with no picker in sight', async () => {

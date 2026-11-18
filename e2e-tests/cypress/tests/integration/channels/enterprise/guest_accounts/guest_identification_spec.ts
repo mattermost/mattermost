@@ -70,10 +70,10 @@ describe('Guest Accounts', () => {
         cy.visit('/admin_console/authentication/mfa');
 
         // # Ensure the setting 'Enable Multi factor authentication' is set to true in the MFA page.
-        cy.findByTestId('ServiceSettings.EnableMultifactorAuthenticationtrue').check();
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnableMultifactorAuthentication--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Also ensure that this MFA setting is enforced.
-        cy.findByTestId('ServiceSettings.EnforceMultifactorAuthenticationtrue').check();
+        cy.get('[data-testid="admin.setting:ServiceSettings.EnforceMultifactorAuthentication--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Click "Save".
         cy.findByText('Save').click().wait(TIMEOUTS.ONE_SEC);
@@ -90,10 +90,10 @@ describe('Guest Accounts', () => {
         cy.url().should('include', '/admin_console/authentication/guest_access');
 
         // # Enable guest accounts.
-        cy.findByTestId('GuestAccountsSettings.Enabletrue').check();
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Check if user is allowed to enforce MFA for Guest accounts.
-        cy.findByTestId('GuestAccountsSettings.EnforceMultifactorAuthenticationtrue').check();
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.EnforceMultifactorAuthentication--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Click "Save".
         cy.get('#saveSetting').scrollIntoView().click();

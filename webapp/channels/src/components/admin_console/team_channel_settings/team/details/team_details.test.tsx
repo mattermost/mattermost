@@ -461,7 +461,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         renderWithContext(<TeamDetails {...props}/>);
 
         expect(screen.getByText(/Group synced teams cannot use a membership policy/)).toBeInTheDocument();
-        expect(screen.getByTestId('policy-enforce-toggle-button')).toBeDisabled();
+        expect(screen.getByTestId('admin.team.policy_enforce--switch')).toBeDisabled();
     });
 
     test('renders the assigned parent policy and section when policy is enforced', async () => {
@@ -554,7 +554,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
 
         // Removing the last policy drops the enforce toggle on its own.
         await waitFor(() => {
-            expect(screen.getByTestId('policy-enforce-toggle-button')).not.toBeChecked();
+            expect(screen.getByTestId('admin.team.policy_enforce--switch')).not.toBeChecked();
         });
 
         // Save goes straight through — no spurious "Apply membership policy" modal.
@@ -658,7 +658,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         await userEvent.click(document.getElementById('confirmModalButton')!);
 
         // Custom rule still governs, so enforcement stays on.
-        expect(screen.getByTestId('policy-enforce-toggle-button')).toBeChecked();
+        expect(screen.getByTestId('admin.team.policy_enforce--switch')).toBeChecked();
 
         // Removal is not new criteria: the unedited custom rule must not trigger the apply-count modal.
         await userEvent.click(screen.getByText('Save'));
@@ -1459,7 +1459,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         renderWithContext(<TeamDetails {...props}/>);
 
         // Enforce ABAC, then link a parent policy whose own active flag is true.
-        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+        await userEvent.click(screen.getByTestId('admin.team.policy_enforce--switch'));
         await userEvent.click(screen.getByText('Link to a policy'));
         await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
         await userEvent.click(screen.getByText('Engineering Policy'));
@@ -1485,7 +1485,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
         renderWithContext(<TeamDetails {...props}/>);
 
         // Enforce ABAC and stage a policy link — nothing is persisted yet.
-        await userEvent.click(screen.getByTestId('policy-enforce-toggle-button'));
+        await userEvent.click(screen.getByTestId('admin.team.policy_enforce--switch'));
         await userEvent.click(screen.getByText('Link to a policy'));
         await waitFor(() => expect(screen.getByText('Engineering Policy')).toBeInTheDocument());
         await userEvent.click(screen.getByText('Engineering Policy'));
@@ -1704,7 +1704,7 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             await screen.findByTestId('team-level-access-rules');
 
             await userEvent.click(screen.getByTestId('set-cel-rule'));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.team.save_panel.save--button'));
             await userEvent.click(screen.getByTestId('set-session-rule'));
             resolveCheck([]);
 
@@ -1723,8 +1723,8 @@ describe('admin_console/team_channel_settings/team/TeamDetails', () => {
             await screen.findByTestId('team-level-access-rules');
 
             await userEvent.click(screen.getByTestId('set-cel-rule'));
-            await userEvent.click(screen.getByTestId('saveSetting'));
-            await userEvent.click(screen.getByTestId('saveSetting'));
+            await userEvent.click(screen.getByTestId('admin.team.save_panel.save--button'));
+            await userEvent.click(screen.getByTestId('admin.team.save_panel.save--button'));
 
             expect(checkExpressionSpy).toHaveBeenCalledTimes(1);
 

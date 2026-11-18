@@ -18,8 +18,7 @@ async function openGroup(app: App, members: Array<{id: string; username: string}
             }),
             modal.options.searchCombobox.fill(member.username),
         ]);
-        // A user suggestion is exposed as a role-free row; choosing it requires its scoped locator.
-        await modal.options.user(member).locator.click();
+        await modal.options.user(member).container.click();
         await expect(modal.options.remove(member.id)).toBeVisible();
     }
     await modal.options.saveButton.click();

@@ -7,7 +7,7 @@ import type {UserPropertyField, UserPropertyFieldGroupID, UserPropertyFieldType}
 
 import {Client4} from 'mattermost-redux/client';
 
-import {act, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 
 import CustomProfileAttributes from './custom_profile_attributes';
 
@@ -481,12 +481,12 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
                 state,
             );
 
-            const labelEl = await screen.findByTestId('custom_profile_attribute-my_fieldlabel');
+            const labelEl = await within(screen.getByTestId('admin.custom_profile_attribute:attr_display--group')).findByTestId('admin.custom_profile_attribute.label--text');
             expect(labelEl.tagName).toBe('LABEL');
             expect(labelEl).toHaveTextContent('My Display Name');
             expect(labelEl).not.toHaveTextContent('my_field');
 
-            const helpTextEl = screen.getByTestId('custom_profile_attribute-my_fieldhelp-text');
+            const helpTextEl = within(screen.getByTestId('admin.custom_profile_attribute:attr_display--group')).getByTestId('admin.custom_profile_attribute.help--text');
             expect(helpTextEl).toHaveTextContent(/users cannot edit their My Display Name/);
             expect(helpTextEl).not.toHaveTextContent('users cannot edit their my_field');
         });
@@ -510,11 +510,11 @@ describe('components/admin_console/custom_profile_attributes/CustomProfileAttrib
                 state,
             );
 
-            const labelEl = await screen.findByTestId('custom_profile_attribute-my_fieldlabel');
+            const labelEl = await within(screen.getByTestId('admin.custom_profile_attribute:attr_fallback--group')).findByTestId('admin.custom_profile_attribute.label--text');
             expect(labelEl.tagName).toBe('LABEL');
             expect(labelEl).toHaveTextContent('my_field');
 
-            const helpTextEl = screen.getByTestId('custom_profile_attribute-my_fieldhelp-text');
+            const helpTextEl = within(screen.getByTestId('admin.custom_profile_attribute:attr_fallback--group')).getByTestId('admin.custom_profile_attribute.help--text');
             expect(helpTextEl).toHaveTextContent(/users cannot edit their my_field/);
         });
     });

@@ -52,6 +52,7 @@ export default function ConfirmManageUserSettingsModal(props: Props) {
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.manage_user_settings_modal'
             title={title}
             message={message}
             confirmButtonText={confirmButtonText}

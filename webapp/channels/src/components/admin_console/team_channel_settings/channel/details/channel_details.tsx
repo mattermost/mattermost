@@ -1443,6 +1443,7 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                             isDisabled={this.props.isDisabled}
                         />
                         <ConfirmModal
+                            testId='admin.channel.archive_modal'
                             show={showArchiveConfirmModal}
                             title={
                                 <FormattedMessage
@@ -1470,6 +1471,8 @@ export default class ChannelDetails extends React.PureComponent<ChannelDetailsPr
                 </div>
 
                 <SaveChangesPanel
+
+                    testId='admin.channel.save_panel'
                     saving={saving}
                     saveNeeded={saveNeeded}
                     onClick={this.onSave}

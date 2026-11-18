@@ -73,12 +73,14 @@ const UnlimitedNumberSetting: React.FC<Props> = ({
             inputClassName='col-sm-8'
             helpText={helpText}
             inputId={id}
+            testIdScope='admin.setting'
+            testKey={id}
             footer={setByEnv ? <SetByEnv/> : undefined}
         >
             <div className='unlimited-number-setting'>
                 <input
                     id={id}
-                    data-testid={`${id}number`}
+                    data-testid='admin.setting.limit--spinbutton'
                     type='number'
                     className='form-control'
                     style={{display: 'inline-block', width: 'auto', marginRight: '16px'}}
@@ -93,7 +95,7 @@ const UnlimitedNumberSetting: React.FC<Props> = ({
                     style={{display: 'inline-flex', alignItems: 'center', cursor: isDisabled ? 'not-allowed' : 'pointer'}}
                 >
                     <input
-                        data-testid={`${id}checkbox`}
+                        data-testid='admin.setting.unlimited--checkbox'
                         type='checkbox'
                         checked={isUnlimited}
                         onChange={handleCheckboxChange}

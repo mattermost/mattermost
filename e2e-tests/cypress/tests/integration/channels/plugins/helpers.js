@@ -6,7 +6,7 @@ import * as TIMEOUTS from '@/fixtures/timeouts';
 export function waitForAlertMessage(pluginId, message) {
     const checkFn = () => {
         cy.log(`Waiting for ${message}`);
-        return cy.findByTestId(pluginId).scrollIntoView().then((pluginEl) => {
+        return cy.findByTestId(`admin.plugins.plugin:${pluginId}--group`).scrollIntoView().then((pluginEl) => {
             return pluginEl[0].innerText.includes(message);
         });
     };

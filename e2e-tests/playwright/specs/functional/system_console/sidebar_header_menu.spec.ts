@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
+import {openSystemConsoleSection, expect, test, getAdminClient} from '@mattermost/playwright-lib';
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
 
 // Teams here are created on the shared admin account, so track and delete them instead of letting
@@ -38,12 +38,16 @@ test(
         );
 
         // # Open the System Console as the admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.goto();
-        await systemConsolePage.toBeVisible();
+        const {app} = await pw.testBrowser.login(adminUser);
+        await openSystemConsoleSection(app);
+        const {sidebar} = app.admin;
 
         // # Open the header menu, then the Switch teams submenu
-        const menu = await systemConsolePage.sidebar.header.openSwitchTeamsMenu();
+        await sidebar.header.menu.container.clickTo(sidebar.header.menu.switchTeamsMenuItem);
+        const headerMenu = sidebar.header.menu;
+        await headerMenu.switchTeamsMenuItem.hover();
+        const menu = headerMenu.switchTeamsMenu.paper.locator;
+        await expect(menu).toBeVisible();
 
         // * Verify the team list is long enough for the submenu paper to scroll
         const verticalOverflow = await menu.evaluate((el: HTMLElement) => el.scrollHeight - el.clientHeight);
@@ -54,12 +58,12 @@ test(
 
         // * Verify the submenu extends past the sidebar column, which is what put its scroll bar inside
         // the region the sidebar clips
-        const menuBox = await menu.boundingBox();
-        const sidebarBox = await systemConsolePage.sidebar.container.boundingBox();
+        const menuRight = await menu.evaluate((el: HTMLElement) => el.getBoundingClientRect().right);
+        const sidebarRight = await sidebar.locator.evaluate((el: HTMLElement) => el.getBoundingClientRect().right);
         expect(
-            menuBox!.x + menuBox!.width,
+            menuRight,
             'the Switch teams submenu should extend past the sidebar column it opens from',
-        ).toBeGreaterThan(sidebarBox!.x + sidebarBox!.width);
+        ).toBeGreaterThan(sidebarRight);
 
         // * Verify the strip just inside the paper's right border, where the scroll bar is drawn, still
         // hit-tests back to the submenu rather than to whatever the sidebar clips it down to. Headless
@@ -83,7 +87,8 @@ test(
 
         // # Scroll the submenu with the wheel
         await menu.hover();
-        await systemConsolePage.page.mouse.wheel(0, 200);
+        await expect(menu).toBeVisible();
+        await app.page.mouse.wheel(0, 200);
 
         // * Verify the submenu scrolled
         await expect.poll(async () => menu.evaluate((el: HTMLElement) => el.scrollTop)).toBeGreaterThan(0);
@@ -98,12 +103,12 @@ test('keeps the System Console sidebar itself unscrollable', {tag: '@system_cons
     const {adminUser} = await initSetupTracked(pw);
 
     // # Open the System Console as the admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    const {app} = await pw.testBrowser.login(adminUser);
+    await openSystemConsoleSection(app);
+    await expect(app.admin.sidebar).toBeVisible();
 
     // # Try to scroll the sidebar in both directions
-    const sidebarScroll = await systemConsolePage.sidebar.container.evaluate((el: HTMLElement) => {
+    const sidebarScroll = await app.admin.sidebar.locator.evaluate((el: HTMLElement) => {
         el.scrollTop = 9999;
         el.scrollLeft = 9999;
 

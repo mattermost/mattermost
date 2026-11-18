@@ -64,7 +64,7 @@ function sectionHeadings() {
 }
 
 function rowTitles() {
-    return screen.getAllByTestId(/^healthFinding-/).map((row) => row.querySelector('.HealthFinding__title')?.textContent);
+    return screen.getAllByTestId(/^admin\.health\.finding:/).map((row) => row.querySelector('.HealthFinding__title')?.textContent);
 }
 
 async function renderDashboard(list: HealthFindingList, initialState = {}) {
@@ -122,7 +122,7 @@ describe('components/admin_console/health_dashboard', () => {
 
         const titles = screen.getAllByText('Site health');
         expect(titles).toHaveLength(1);
-        expect(screen.getByTestId('admin-console-header')).toContainElement(titles[0]);
+        expect(screen.getByTestId('admin.header')).toContainElement(titles[0]);
         expect(screen.queryByRole('heading', {name: 'Site health'})).not.toBeInTheDocument();
         expect(screen.getByText(/^Last evaluated/)).toBeInTheDocument();
     });
@@ -263,7 +263,7 @@ describe('components/admin_console/health_dashboard', () => {
             await userEvent.click(screen.getByRole('tab', {name: new RegExp(`^${tab}`)}));
 
             expect(screen.getByText(message)).toBeInTheDocument();
-            expect(screen.queryByTestId(/^healthFinding-/)).not.toBeInTheDocument();
+            expect(screen.queryByTestId(/^admin\.health\.finding:/)).not.toBeInTheDocument();
         });
     });
 
@@ -313,7 +313,7 @@ describe('components/admin_console/health_dashboard', () => {
             expect(screen.getByRole('group', {name: 'Group by'})).toBeInTheDocument();
             expect(severity).toHaveAttribute('aria-pressed', 'true');
             expect(category).toHaveAttribute('aria-pressed', 'false');
-            expect(screen.getAllByTestId('healthFindingArea')).toHaveLength(5);
+            expect(screen.getAllByTestId('admin.health.finding.area--text')).toHaveLength(5);
 
             await userEvent.click(category);
 
@@ -343,7 +343,7 @@ describe('components/admin_console/health_dashboard', () => {
 
             expect(screen.getByText('Critical one')).toBeVisible();
             expect(screen.getByText('Warning new')).not.toBeVisible();
-            expect(screen.queryByTestId('healthFindingArea')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.health.finding.area--text')).not.toBeInTheDocument();
 
             await userEvent.click(database);
             expect(database).toHaveAttribute('aria-expanded', 'true');
@@ -353,13 +353,13 @@ describe('components/admin_console/health_dashboard', () => {
         test('severity sections omit row badges, while category rows show the severity or a plain state', async () => {
             await renderDashboard(evaluated(mixed));
 
-            expect(screen.queryByTestId('healthFindingBadge')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.health.finding.badge--text')).not.toBeInTheDocument();
 
             await userEvent.click(screen.getByRole('button', {name: 'Category'}));
 
-            const badges = Object.fromEntries(screen.getAllByTestId(/^healthFinding-/).map((row) => [
+            const badges = Object.fromEntries(screen.getAllByTestId(/^admin\.health\.finding:/).map((row) => [
                 row.querySelector('.HealthFinding__title')?.textContent,
-                within(row).getByTestId('healthFindingBadge').textContent,
+                within(row).getByTestId('admin.health.finding.badge--text').textContent,
             ]));
             expect(badges).toEqual({
                 'Critical one': 'Critical',
@@ -371,7 +371,7 @@ describe('components/admin_console/health_dashboard', () => {
 
             await userEvent.click(screen.getByRole('tab', {name: /^Recently resolved/}));
 
-            expect(screen.getByTestId('healthFindingBadge')).toHaveTextContent(/^Resolved$/);
+            expect(screen.getByTestId('admin.health.finding.badge--text')).toHaveTextContent(/^Resolved$/);
         });
 
         test('an unknown-only area is not expanded for its rule severity', async () => {
@@ -407,7 +407,7 @@ describe('components/admin_console/health_dashboard', () => {
 
         expect(screen.getByText('Disk space is low on node-3')).toBeInTheDocument();
         expect(screen.getByText('Disk space is low on node-5')).toBeInTheDocument();
-        expect(screen.getAllByTestId(/^healthFinding-/)).toHaveLength(2);
+        expect(screen.getAllByTestId(/^admin\.health\.finding:/)).toHaveLength(2);
     });
 
     test('an unrecognized area still renders, labelled with its raw value', async () => {
@@ -415,7 +415,7 @@ describe('components/admin_console/health_dashboard', () => {
             makeFinding({fingerprint: 'a', area: 'brand_new_area'}),
         ]));
 
-        expect(screen.getByTestId('healthFindingArea')).toHaveTextContent('brand_new_area');
+        expect(screen.getByTestId('admin.health.finding.area--text')).toHaveTextContent('brand_new_area');
 
         await userEvent.click(screen.getByRole('button', {name: 'Category'}));
 
@@ -466,7 +466,7 @@ describe('components/admin_console/health_dashboard', () => {
 
             expect(mutedToggle()).toHaveAttribute('aria-pressed', 'true');
             expect(rowTitles()).toEqual(['Muted by a colleague']);
-            expect(within(row('Muted by a colleague')).getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @bob 2 days ago');
+            expect(within(row('Muted by a colleague')).getByTestId('admin.health.finding.muted_by--text')).toHaveTextContent('Muted by @bob 2 days ago');
             for (const tab of screen.getAllByRole('tab')) {
                 expect(tab).toHaveAttribute('aria-selected', 'false');
             }
@@ -524,7 +524,7 @@ describe('components/admin_console/health_dashboard', () => {
             await userEvent.click(mutedToggle());
 
             expect(rowTitles()).toEqual(['Push notification server is not HTTPS']);
-            expect(screen.getByTestId('healthFindingMutedBy')).toHaveTextContent('Muted by @alice');
+            expect(screen.getByTestId('admin.health.finding.muted_by--text')).toHaveTextContent('Muted by @alice');
 
             await userEvent.click(screen.getByRole('button', {name: 'Unmute'}));
 
@@ -535,7 +535,7 @@ describe('components/admin_console/health_dashboard', () => {
             await userEvent.click(screen.getByRole('tab', {name: /^Open/}));
 
             expect(rowTitles()).toEqual(['Push notification server is not HTTPS', 'Disk space is low on node-3']);
-            expect(screen.queryByTestId('healthFindingMutedBy')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('admin.health.finding.muted_by--text')).not.toBeInTheDocument();
         });
 
         test('a mute the server rejects is rolled back and shows an error', async () => {

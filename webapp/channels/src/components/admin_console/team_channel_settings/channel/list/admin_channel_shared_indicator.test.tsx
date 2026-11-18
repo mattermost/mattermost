@@ -16,7 +16,7 @@ jest.mock('mattermost-redux/selectors/entities/shared_channels', () => ({
 }));
 
 jest.mock('components/shared_channel_indicator', () => {
-    return jest.fn(() => <i data-testid='SharedChannelIcon'/>);
+    return jest.fn(() => <i data-testid='shared_channel_icon'/>);
 });
 
 describe('admin_console/team_channel_settings/channel/list/AdminChannelSharedIndicator', () => {

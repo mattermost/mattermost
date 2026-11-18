@@ -46,6 +46,6 @@ describe('components/admin_console/feature_discovery/features/AutoTranslationFea
             'href',
             expect.stringContaining('docs.mattermost.com/administration-guide/manage/admin/autotranslation.html'),
         );
-        expect(screen.getByTestId('featureDiscovery').querySelector('svg')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.feature_discovery').querySelector('svg')).toBeInTheDocument();
     });
 });

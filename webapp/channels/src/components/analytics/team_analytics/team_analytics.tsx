@@ -171,7 +171,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
 
     public render(): JSX.Element {
         if (this.props.teams.length === 0 || !this.state.team || !this.props.stats[this.state.team.id]) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='admin.analytics.team.loading_screen'/>;
         }
 
         if (this.state.team == null) {
@@ -195,7 +195,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
 
         let banner = (
             <div
-                data-testid='team-statistics-banner'
+                data-testid='admin.statistics.banner'
                 className='banner'
             >
                 <div className='banner__content'>
@@ -210,7 +210,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         if (stats[StatTypes.TOTAL_POSTS] === -1) {
             banner = (
                 <div
-                    data-testid='team-statistics-banner'
+                    data-testid='admin.statistics.skipped_queries_banner'
                     className='banner'
                 >
                     <div className='banner__content'>
@@ -301,7 +301,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
             <div className='wrapper--fixed team_statistics'>
                 <AdminHeader>
                     <div
-                        data-testid='team-statistics-header'
+                        data-testid='admin.statistics.header--text'
                         className='team-statistics__header'
                     >
                         <FormattedMessage
@@ -313,7 +313,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                     </div>
                     <div className='team-statistics__team-filter'>
                         <select
-                            data-testid='teamFilter'
+                            data-testid='admin.statistics.team--combobox'
                             className='form-control team-statistics__team-filter__dropdown'
                             onChange={this.handleTeamChange}
                             value={this.state.team.id}
@@ -327,7 +327,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                     <div className='admin-console__content'>
                         {banner}
                         <div
-                            data-testid='grid-statistics'
+                            data-testid='admin.statistics.grid'
                             className='grid-statistics'
                         >
                             <ActivatedUserCard

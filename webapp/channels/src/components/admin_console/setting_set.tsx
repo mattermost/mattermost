@@ -15,7 +15,8 @@ export default function SettingSet({
 }: Props) {
     return (
         <fieldset
-            data-testid={inputId}
+            role='group'
+            data-testid={inputId ? `admin.setting:${inputId}--group` : undefined}
             id={inputId}
             className='form-group'
         >
@@ -26,7 +27,7 @@ export default function SettingSet({
                 {children}
                 {helpText ? (
                     <div
-                        data-testid={inputId + 'help-text'}
+                        data-testid={inputId ? 'admin.setting.set_help--text' : undefined}
                         className='help-text'
                     >
                         {helpText}

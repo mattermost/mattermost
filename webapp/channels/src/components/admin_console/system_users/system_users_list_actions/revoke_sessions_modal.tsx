@@ -62,6 +62,7 @@ export default function RevokeSessionsModal({user, currentUser, onExited, onErro
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.revoke_sessions_modal'
             title={title}
             message={message}
             destructive={true}

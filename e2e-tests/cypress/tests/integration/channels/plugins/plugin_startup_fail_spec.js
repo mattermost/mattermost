@@ -39,7 +39,7 @@ describe('If plugins fail to start, they can be disabled', () => {
             });
 
         // # Enable GitLab plugin
-        cy.findByTestId(gitlabPlugin.id, {timeout: TIMEOUTS.FIVE_MIN}).scrollIntoView().should('be.visible').within(() => {
+        cy.findByTestId(`admin.plugins.plugin:${gitlabPlugin.id}--group`, {timeout: TIMEOUTS.FIVE_MIN}).scrollIntoView().should('be.visible').within(() => {
             // * Verify GitLab Plugin title is shown
             cy.waitUntil(() => cy.get('strong').scrollIntoView().should('be.visible').then((title) => {
                 return title[0].innerText === 'GitLab';

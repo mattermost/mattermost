@@ -31,6 +31,7 @@ const ColorSetting = (props: Props) => {
         >
             <ColorInput
                 id={props.id}
+                testIdScope='admin.setting.color'
                 value={props.value}
                 onChange={handleChange}
                 isDisabled={props.disabled}

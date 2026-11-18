@@ -173,12 +173,14 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
 
         return usersToDisplay.map((user) => {
             return {
+                testKey: user.id,
                 cells: {
                     id: user.id,
                     name: (
                         <UserGridName
                             key={user.id}
                             user={user}
+                            testId='users_to_be_removed_modal.users.row'
                         />
                     ),
                     role: (
@@ -341,6 +343,7 @@ export default class UsersToRemove extends React.PureComponent<Props, State> {
         return (
             <div className='UsersToRemove'>
                 <DataGrid
+                    testIdScope='users_to_be_removed_modal.users'
                     columns={columns}
                     rows={rows}
                     loading={this.state.loading}

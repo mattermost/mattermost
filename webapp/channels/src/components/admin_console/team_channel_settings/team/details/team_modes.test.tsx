@@ -8,6 +8,9 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {TeamModes} from './team_modes';
 
 describe('admin_console/team_channel_settings/team/TeamModes', () => {
+    // AdminSettingsSwitch's row wrapper carries no testid once the switch has a scoped one; it holds the switch's label.
+    const syncGroupsRow = () => screen.getByTestId('admin.team.sync_groups--switch').closest('label')!.parentElement!;
+
     test('keeps separator under Sync Group Members when synced and ABAC row follows', () => {
         renderWithContext(
             <TeamModes
@@ -23,9 +26,9 @@ describe('admin_console/team_channel_settings/team/TeamModes', () => {
             />,
         );
 
-        expect(screen.getByTestId('policy-enforce-toggle')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.team.policy_enforce--switch')).toBeInTheDocument();
 
-        const syncRow = screen.getByTestId('syncGroupSwitch');
+        const syncRow = syncGroupsRow();
         expect(syncRow.nextElementSibling).toHaveClass('section-separator');
     });
 
@@ -42,9 +45,9 @@ describe('admin_console/team_channel_settings/team/TeamModes', () => {
             />,
         );
 
-        expect(screen.queryByTestId('policy-enforce-toggle')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.team.policy_enforce--switch')).not.toBeInTheDocument();
 
-        const syncRow = screen.getByTestId('syncGroupSwitch');
+        const syncRow = syncGroupsRow();
         expect(syncRow.nextElementSibling).toBeNull();
     });
 });

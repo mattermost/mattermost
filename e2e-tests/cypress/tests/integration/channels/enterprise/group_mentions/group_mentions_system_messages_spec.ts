@@ -174,7 +174,7 @@ describe('Group Mentions', () => {
         // # Enable Group Mentions for Guest Users
         cy.visit('/admin_console/user_management/permissions/system_scheme');
         cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'System Scheme');
-        enablePermission('guests-guest_use_group_mentions-checkbox');
+        enablePermission('[data-testid="admin.permissions.role:guests--group"] [data-testid="admin.permissions.group:guest_use_group_mentions--checkbox"] [data-testid="admin.permissions.group.checkbox"]');
         cy.uiSaveConfig();
 
         // # Create a new channel as a sysadmin

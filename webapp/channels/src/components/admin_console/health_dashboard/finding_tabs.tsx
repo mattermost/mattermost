@@ -83,6 +83,7 @@ const FindingTabs = ({idPrefix, panelId, active, counts, onChange}: Props) => {
                         id={tabId(idPrefix, tab)}
                         type='button'
                         role='tab'
+                        data-testid={`admin.health.tab:${tab}--tab`}
                         aria-selected={selected}
                         aria-controls={active ? panelId : undefined}
                         tabIndex={selected || (!active && tab === 'open') ? 0 : -1}

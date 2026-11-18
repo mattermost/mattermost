@@ -14,6 +14,9 @@ type Props = {
     onChange: (id: string, foo: boolean) => void;
     disabled?: boolean;
     setByEnv: boolean;
+
+    testId?: string;
+    testKey?: string;
 };
 
 const CheckboxSetting = ({
@@ -23,16 +26,25 @@ const CheckboxSetting = ({
     defaultChecked,
     setByEnv,
     onChange,
+    testId,
+    testKey,
 }: Props) => {
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.checked);
     };
 
+    let checkboxTestId;
+    if (testId && testKey) {
+        checkboxTestId = `${testId}:${testKey}--checkbox`;
+    } else if (testId) {
+        checkboxTestId = `${testId}--checkbox`;
+    }
+
     return (
         <div>
             <Checkbox
                 className='checkbox-inline'
-                data-testid={id}
+                data-testid={checkboxTestId}
                 id={id}
                 name={id}
                 defaultChecked={defaultChecked}

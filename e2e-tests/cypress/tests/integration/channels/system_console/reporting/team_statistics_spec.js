@@ -66,7 +66,7 @@ describe('System Console > Team Statistics', () => {
         cy.wait(TIMEOUTS.ONE_SEC);
 
         // * Verify Teams are listed in alphabetical order, regardless of who created the team
-        cy.findByTestId('teamFilter').then((el) => {
+        cy.findByTestId('admin.statistics.team--combobox').then((el) => {
             // # Get the options and append them to a unsorted array (assume unsorted)
             const unsortedOptionsText = [];
             el[0].childNodes.forEach((child) => unsortedOptionsText.push(child.innerText));

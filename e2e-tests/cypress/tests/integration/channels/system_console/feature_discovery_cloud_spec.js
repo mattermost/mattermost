@@ -57,8 +57,8 @@ describe('Feature discovery cloud', () => {
     };
 
     const testForUpgradeToProfessionalOption = () => {
-        cy.get("button[data-testid='featureDiscovery_primaryCallToAction']").should('contain', 'Upgrade now');
-        cy.get("button[data-testid='featureDiscovery_primaryCallToAction']").click();
+        cy.get('button[data-testid="admin.feature_discovery.contact_sales--button"]').should('contain', 'Upgrade now');
+        cy.get('button[data-testid="admin.feature_discovery.contact_sales--button"]').click();
 
         cy.get('.PurchaseModal').should('exist');
 
@@ -76,7 +76,7 @@ describe('Feature discovery cloud', () => {
         withTrialBefore('false');
         [...professionalPaidFeatures, ...enterprisePaidFeatures].forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='admin.feature_discovery.title--text']").should('contain', featureDiscoveryTitle);
             testForTrialButton();
         });
     });
@@ -92,7 +92,7 @@ describe('Feature discovery cloud', () => {
         withTrialBefore('false');
         professionalPaidFeatures.forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
+            cy.get("[data-testid='admin.feature_discovery.title--text']").should('contain', featureDiscoveryTitle);
             testForUpgradeToProfessionalOption();
         });
     });
@@ -108,8 +108,8 @@ describe('Feature discovery cloud', () => {
         withTrialBefore('false');
         enterprisePaidFeatures.forEach(({sidebarName, featureDiscoveryTitle}) => {
             cy.get('li').contains(sidebarName).click();
-            cy.get("[data-testid='featureDiscovery_title']").should('contain', featureDiscoveryTitle);
-            cy.get("button[data-testid='featureDiscovery_primaryCallToAction']").should('contain', 'Contact sales');
+            cy.get("[data-testid='admin.feature_discovery.title--text']").should('contain', featureDiscoveryTitle);
+            cy.get("button[data-testid='admin.feature_discovery.contact_sales--button']").should('contain', 'Contact sales');
         });
     });
 });

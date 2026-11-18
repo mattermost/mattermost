@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, type PlaywrightExtended} from '@mattermost/playwright-lib';
+import {expect, formatMessage, Msg, test, type PlaywrightExtended} from '@mattermost/playwright-lib';
+
+import {expectStructuredViewer, gotoServerLogs, logEntryWith, selectDuration, selectNode, toggleLevel} from './support';
 
 type LogEntry = Record<string, unknown>;
 type LogsByNode = Record<string, LogEntry[]>;
@@ -23,10 +25,10 @@ function logEntry(msg: string, level = 'info', time = new Date()): LogEntry {
  */
 async function openWithMockedLogs(pw: PlaywrightExtended, respond: (body: Record<string, unknown>) => LogsByNode) {
     const {adminUser} = await pw.initSetup();
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    const {app} = await pw.testBrowser.login(adminUser);
 
     let latest: QueryLogsRequest | undefined;
-    await systemConsolePage.page.route(
+    await app.page.route(
         (url) => url.pathname.endsWith('/api/v4/logs/query'),
         async (route) => {
             const request = route.request();
@@ -36,11 +38,8 @@ async function openWithMockedLogs(pw: PlaywrightExtended, respond: (body: Record
         },
     );
 
-    await systemConsolePage.gotoServerLogs();
-    await systemConsolePage.toBeVisible();
-
-    const serverLogs = systemConsolePage.serverLogs;
-    await serverLogs.toBeVisible();
+    await gotoServerLogs(app);
+    await expectStructuredViewer(app);
 
     const lastRequest = () => {
         if (!latest) {
@@ -49,7 +48,7 @@ async function openWithMockedLogs(pw: PlaywrightExtended, respond: (body: Record
         return latest;
     };
 
-    return {serverLogs, lastRequest};
+    return {app, lastRequest};
 }
 
 test.describe('System Console - Reporting - Server Logs with a mocked logs query', () => {
@@ -62,7 +61,7 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
         {tag: ['@system_console', '@server_logs']},
         async ({pw}) => {
             // # Open the server logs with a response from two nodes
-            const {serverLogs, lastRequest} = await openWithMockedLogs(pw, (body) => {
+            const {app, lastRequest} = await openWithMockedLogs(pw, (body) => {
                 const names = body.server_names as string[];
                 if (names.length) {
                     return Object.fromEntries(names.map((name) => [name, [logEntry(`queried ${name} alone`)]]));
@@ -71,17 +70,24 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
             });
 
             // * Verify the node menu shows all nodes and each row names its node
-            await expect(serverLogs.nodeValue).toHaveValue('All nodes');
-            await expect(serverLogs.row('from node a').getByTitle('node-a')).toBeVisible();
-            await expect(serverLogs.row('from node b').getByTitle('node-b')).toBeVisible();
+            await expect(app.admin.serverLogs.nodeInput.container).toHaveValue(formatMessage(Msg.admin.logs.allNodes));
+            for (const [message, node] of [
+                ['from node a', 'node-a'],
+                ['from node b', 'node-b'],
+            ]) {
+                const badge = logEntryWith(app, message).parts.nodeText;
+                await expect(badge).toBeVisible();
+                await expect(badge).toHaveText(node);
+                await expect(badge).toHaveAttribute('title', node);
+            }
 
             // # Pick node-b
-            await serverLogs.selectNode('node-b');
+            await selectNode(app, 'node-b');
 
             // * Verify the query asks for node-b alone and its response replaces the list
             await expect.poll(() => lastRequest().body.server_names).toEqual(['node-b']);
-            await expect(serverLogs.row('queried node-b alone')).toBeVisible();
-            await expect(serverLogs.row('from node a')).toHaveCount(0);
+            await expect(logEntryWith(app, 'queried node-b alone').row).toBeVisible();
+            await expect(logEntryWith(app, 'from node a').row).toHaveCount(0);
         },
     );
 
@@ -105,24 +111,24 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
                 error: 'connection refused',
                 failed_node: true,
             };
-            const {serverLogs, lastRequest} = await openWithMockedLogs(pw, () => ({
+            const {app, lastRequest} = await openWithMockedLogs(pw, () => ({
                 'node-a': [logEntry('an hour old entry', 'info', anHourAgo)],
                 'node-b': [failedNode],
             }));
 
             // * Verify the failed node is listed as an error
-            const failedRow = serverLogs.row('Failed to fetch logs from node');
-            await expect(serverLogs.levelBadge(failedRow)).toHaveText('Error');
+            const failed = logEntryWith(app, 'Failed to fetch logs from node');
+            await expect(failed.parts.levelText).toHaveMessage(Msg.admin.logs.level.error);
 
             // # Apply the 5 minute range
-            await serverLogs.selectDuration('Last 5 minutes');
+            await selectDuration(app, 5);
 
             // * Verify the range is sent, the old entry is hidden and the failed node entry stays
             await expect
                 .poll(() => lastRequest().body.date_from)
                 .toMatch(/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/);
-            await expect(serverLogs.row('an hour old entry')).toHaveCount(0);
-            await expect(failedRow).toBeVisible();
+            await expect(logEntryWith(app, 'an hour old entry').row).toHaveCount(0);
+            await expect(failed.row).toBeVisible();
         },
     );
 
@@ -135,7 +141,7 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
         {tag: ['@system_console', '@server_logs']},
         async ({pw}) => {
             // # Open the server logs with a fatal, a trace and an info entry
-            const {serverLogs, lastRequest} = await openWithMockedLogs(pw, () => ({
+            const {app, lastRequest} = await openWithMockedLogs(pw, () => ({
                 'node-a': [
                     logEntry('a fatal entry', 'fatal'),
                     logEntry('a trace entry', 'trace'),
@@ -144,12 +150,12 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
             }));
 
             // * Verify the fatal entry shows its own level in the error color
-            const fatalRow = serverLogs.row('a fatal entry');
-            await expect(serverLogs.levelBadge(fatalRow)).toHaveText('fatal');
-            await expect(serverLogs.levelBadge(fatalRow)).toHaveClass(/LogRow__level--error/);
+            const fatal = logEntryWith(app, 'a fatal entry');
+            await expect(fatal.parts.levelText).toHaveText('fatal');
+            await expect(fatal.parts.levelText).toHaveClass(/LogRow__level--error/);
 
             // # Uncheck Debug
-            await serverLogs.toggleLevel('Debug');
+            await toggleLevel(app, 'debug', false);
 
             // * Verify every level of the other groups is queried
             await expect
@@ -157,9 +163,9 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
                 .toEqual(['panic', 'fatal', 'critical', 'error', 'warn', 'info', 'stdlog']);
 
             // * Verify the fatal entry stays and the trace entry is hidden with Debug
-            await expect(fatalRow).toBeVisible();
-            await expect(serverLogs.row('an info entry')).toBeVisible();
-            await expect(serverLogs.row('a trace entry')).toHaveCount(0);
+            await expect(fatal.row).toBeVisible();
+            await expect(logEntryWith(app, 'an info entry').row).toBeVisible();
+            await expect(logEntryWith(app, 'a trace entry').row).toHaveCount(0);
         },
     );
 
@@ -173,11 +179,11 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
         async ({pw}) => {
             // # Open the server logs with a full page of entries from one node
             const fullPage = Array.from({length: LOGS_PAGE_SIZE}, (_, i) => logEntry(`entry ${i}`));
-            const {serverLogs, lastRequest} = await openWithMockedLogs(pw, () => ({'node-a': fullPage}));
+            const {app, lastRequest} = await openWithMockedLogs(pw, () => ({'node-a': fullPage}));
 
             // * Verify the page size is requested and the footer total is shown as a lower bound
             expect(lastRequest().params.get('logs_per_page')).toBe(String(LOGS_PAGE_SIZE));
-            await expect(serverLogs.footerInfo).toHaveText(
+            await expect(app.admin.serverLogs.footerInfoText).toHaveText(
                 new RegExp(`^Showing \\d+ - \\d+ of ${LOGS_PAGE_SIZE.toLocaleString('en-US')}\\+$`),
             );
         },
@@ -189,7 +195,7 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
      */
     test('sends the search term with the logs query', {tag: ['@system_console', '@server_logs']}, async ({pw}) => {
         // # Open the server logs
-        const {serverLogs, lastRequest} = await openWithMockedLogs(pw, (body) => ({
+        const {app, lastRequest} = await openWithMockedLogs(pw, (body) => ({
             'node-a': [logEntry(body.search === 'needle' ? 'found by the server search for needle' : 'unsearched')],
         }));
 
@@ -197,10 +203,10 @@ test.describe('System Console - Reporting - Server Logs with a mocked logs query
         expect(lastRequest().body.search).toBe('');
 
         // # Search for a term
-        await serverLogs.search('needle');
+        await app.admin.serverLogs.search.container.fill('needle');
 
         // * Verify the term is sent with the query and the searched response is listed
         await expect.poll(() => lastRequest().body.search).toBe('needle');
-        await expect(serverLogs.row('found by the server search for needle')).toBeVisible();
+        await expect(logEntryWith(app, 'found by the server search for needle').row).toBeVisible();
     });
 });

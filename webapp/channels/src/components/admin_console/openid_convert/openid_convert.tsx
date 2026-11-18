@@ -84,7 +84,7 @@ const OpenIdConvert = ({
                 <div className='OpenIdConvert_actionWrapper'>
                     <Button
                         emphasis='primary'
-                        data-testid='openIdConvert'
+                        data-testid='admin.openid_convert.convert--button'
                         disabled={disabled}
                         onClick={upgradeConfig}
                     >
@@ -100,7 +100,7 @@ const OpenIdConvert = ({
                         <ExternalLink
                             location='openid_convert'
                             href='https://www.mattermost.com/default-openid-docs'
-                            data-testid='openIdLearnMore'
+                            data-testid='admin.openid_convert.learn_more--link'
                         >
                             <FormattedMessage
                                 id='admin.openIdConvert.help'
@@ -110,7 +110,7 @@ const OpenIdConvert = ({
                     </Button>
                     <div
                         className='error-message'
-                        data-testid='errorMessage'
+                        data-testid='admin.openid_convert.error--text'
                     >
                         <FormError error={serverError}/>
                     </div>

@@ -151,7 +151,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
 
                     <div className='setting-content'>
                         <Radio
-                            data-testid='requireReporterComment_true'
+                            data-testid='admin.content_flagging.additional.require_reporter_comment.true--radio'
                             id='requireReporterComment_true'
                             name='requireReporterComment'
                             value='true'
@@ -166,7 +166,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
                         </Radio>
 
                         <Radio
-                            data-testid='requireReporterComment_false'
+                            data-testid='admin.content_flagging.additional.require_reporter_comment.false--radio'
                             id='requireReporterComment_false'
                             name='requireReporterComment'
                             value='false'
@@ -194,7 +194,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
 
                     <div className='setting-content'>
                         <Radio
-                            data-testid='requireReviewerComment_true'
+                            data-testid='admin.content_flagging.additional.require_reviewer_comment.true--radio'
                             id='requireReviewerComment_true'
                             name='requireReviewerComment'
                             value='true'
@@ -209,7 +209,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
                         </Radio>
 
                         <Radio
-                            data-testid='requireReviewerComment_false'
+                            data-testid='admin.content_flagging.additional.require_reviewer_comment.false--radio'
                             id='requireReviewerComment_false'
                             name='requireReviewerComment'
                             value='false'
@@ -237,7 +237,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
 
                     <div className='setting-content'>
                         <Radio
-                            data-testid='hideFlaggedPosts_true'
+                            data-testid='admin.content_flagging.additional.hide_flagged_posts.true--radio'
                             id='hideFlaggedPosts_true'
                             name='hideFlaggedPosts'
                             value='true'
@@ -252,7 +252,7 @@ export default function ContentFlaggingAdditionalSettingsSection({
                         </Radio>
 
                         <Radio
-                            data-testid='setHideFlaggedPosts_false'
+                            data-testid='admin.content_flagging.additional.hide_flagged_posts.false--radio'
                             id='setHideFlaggedPosts_false'
                             name='hideFlaggedPosts'
                             value='false'

@@ -29,17 +29,17 @@ describe('Customization', () => {
 
     it('MM-T1214 - Can change Report a Problem Link setting', () => {
         // # Select 'Custom link' from the Report a Problem dropdown
-        cy.findByTestId('SupportSettings.ReportAProblemTypedropdown').scrollIntoView().select('Custom link');
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemType--group"] [data-testid="admin.setting.choice--combobox"]').scrollIntoView().select('Custom link');
 
         // * Verify Report a Problem link label is visible and matches the text
-        cy.findByTestId('SupportSettings.ReportAProblemLinklabel').scrollIntoView().should('be.visible').and('have.text', 'Custom Report a Problem Link:');
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemLink--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Custom Report a Problem Link:');
 
         // * Verify Report a Problem link help text is visible and matches the text
-        cy.findByTestId('SupportSettings.ReportAProblemLinkhelp-text').find('span').should('be.visible').and('have.text', 'Enter the URL that users will be directed to when they choose "Report a Problem".');
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemLink--group"] [data-testid="admin.setting.help--text"]').find('span').should('be.visible').and('have.text', 'Enter the URL that users will be directed to when they choose "Report a Problem".');
 
         // # Enter a problem link
         const reportAProblemLink = 'https://mattermost.com/pl/report-a-bug';
-        cy.findByTestId('SupportSettings.ReportAProblemLinkinput').clear().type(reportAProblemLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.ReportAProblemLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(reportAProblemLink);
 
         // # Save setting
         saveSetting();
@@ -53,18 +53,18 @@ describe('Customization', () => {
 
     it('MM-T1212 - Can change Privacy Policy Link setting', () => {
         // * Verify that setting is visible and matches text content
-        cy.findByTestId('SupportSettings.PrivacyPolicyLinklabel').scrollIntoView().should('be.visible').and('have.text', 'Privacy Policy Link:');
+        cy.get('[data-testid="admin.setting:SupportSettings.PrivacyPolicyLink--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Privacy Policy Link:');
 
         // * Verify that help setting is visible and matches text content
         const content = 'The URL for the Privacy link on the login and sign-up pages. If this field is empty, the Privacy link is hidden from users.';
-        cy.findByTestId('SupportSettings.PrivacyPolicyLinkhelp-text').scrollIntoView().find('span').should('be.visible').and('have.text', content);
+        cy.get('[data-testid="admin.setting:SupportSettings.PrivacyPolicyLink--group"] [data-testid="admin.setting.help--text"]').scrollIntoView().find('span').should('be.visible').and('have.text', content);
 
         // * Verify the input box visible and has default value
-        cy.findByTestId('SupportSettings.PrivacyPolicyLinkinput').scrollIntoView().should('have.value', origConfig.SupportSettings.PrivacyPolicyLink).and('be.visible');
+        cy.get('[data-testid="admin.setting:SupportSettings.PrivacyPolicyLink--group"] [data-testid="admin.setting.value--textbox"]').scrollIntoView().should('have.value', origConfig.SupportSettings.PrivacyPolicyLink).and('be.visible');
 
         // # Fill input field with value
         const stringToSave = 'https://some.com';
-        cy.findByTestId('SupportSettings.PrivacyPolicyLinkinput').clear().type(stringToSave);
+        cy.get('[data-testid="admin.setting:SupportSettings.PrivacyPolicyLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(stringToSave);
 
         // # Save setting
         saveSetting();
@@ -77,21 +77,21 @@ describe('Customization', () => {
 
     it('MM-T1216 Can change Android App Download Link setting', () => {
         // # Scroll Android App Download Link section into view and verify that it's visible
-        cy.findByTestId('NativeAppSettings.AndroidAppDownloadLink').scrollIntoView().should('be.visible');
+        cy.findByTestId('admin.setting:NativeAppSettings.AndroidAppDownloadLink--group').scrollIntoView().should('be.visible');
 
         // * Verify that Android App Download Link label is visible and matches text content
-        cy.findByTestId('NativeAppSettings.AndroidAppDownloadLinklabel').should('be.visible').and('have.text', 'Android App Download Link:');
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AndroidAppDownloadLink--group"] [data-testid="admin.setting.label--text"]').should('be.visible').and('have.text', 'Android App Download Link:');
 
         // * Verify the Android App Download Link input box has default value. The default value depends on the setup before running the test.
-        cy.findByTestId('NativeAppSettings.AndroidAppDownloadLinkinput').should('have.value', origConfig.NativeAppSettings.AndroidAppDownloadLink);
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AndroidAppDownloadLink--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', origConfig.NativeAppSettings.AndroidAppDownloadLink);
 
         // * Verify that the help text is visible and matches text content
-        cy.findByTestId('NativeAppSettings.AndroidAppDownloadLinkhelp-text').find('span').should('be.visible').and('have.text', 'Add a link to download the Android app. Users who access the site on a mobile web browser will be prompted with a page giving them the option to download the app. Leave this field blank to prevent the page from appearing.');
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AndroidAppDownloadLink--group"] [data-testid="admin.setting.help--text"]').find('span').should('be.visible').and('have.text', 'Add a link to download the Android app. Users who access the site on a mobile web browser will be prompted with a page giving them the option to download the app. Leave this field blank to prevent the page from appearing.');
 
         const newAndroidAppDownloadLink = 'https://example.com/android-app/';
 
         // * Verify that set value is visible and matches text
-        cy.findByTestId('NativeAppSettings.AndroidAppDownloadLinkinput').clear().type(newAndroidAppDownloadLink).should('have.value', newAndroidAppDownloadLink);
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AndroidAppDownloadLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(newAndroidAppDownloadLink).should('have.value', newAndroidAppDownloadLink);
 
         // # Save setting
         saveSetting();
@@ -104,21 +104,21 @@ describe('Customization', () => {
 
     it('MM-T1217 Can change iOS App Download Link setting', () => {
         // # Scroll iOS App Download Link section into view and verify that it's visible
-        cy.findByTestId('NativeAppSettings.IosAppDownloadLink').scrollIntoView().should('be.visible');
+        cy.findByTestId('admin.setting:NativeAppSettings.IosAppDownloadLink--group').scrollIntoView().should('be.visible');
 
         // * Verify that iOS App Download Link label is visible and matches text content
-        cy.findByTestId('NativeAppSettings.IosAppDownloadLinklabel').should('be.visible').and('have.text', 'iOS App Download Link:');
+        cy.get('[data-testid="admin.setting:NativeAppSettings.IosAppDownloadLink--group"] [data-testid="admin.setting.label--text"]').should('be.visible').and('have.text', 'iOS App Download Link:');
 
         // * Verify the iOS App Download Link input box has default value. The default value depends on the setup before running the test.
-        cy.findByTestId('NativeAppSettings.IosAppDownloadLinkinput').should('have.value', origConfig.NativeAppSettings.IosAppDownloadLink);
+        cy.get('[data-testid="admin.setting:NativeAppSettings.IosAppDownloadLink--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', origConfig.NativeAppSettings.IosAppDownloadLink);
 
         // * Verify that the help text is visible and matches text content
-        cy.findByTestId('NativeAppSettings.IosAppDownloadLinkhelp-text').find('span').should('be.visible').and('have.text', 'Add a link to download the iOS app. Users who access the site on a mobile web browser will be prompted with a page giving them the option to download the app. Leave this field blank to prevent the page from appearing.');
+        cy.get('[data-testid="admin.setting:NativeAppSettings.IosAppDownloadLink--group"] [data-testid="admin.setting.help--text"]').find('span').should('be.visible').and('have.text', 'Add a link to download the iOS app. Users who access the site on a mobile web browser will be prompted with a page giving them the option to download the app. Leave this field blank to prevent the page from appearing.');
 
         const newIosAppDownloadLink = 'https://example.com/iOS-app/';
 
         // * Verify that set value is visible and matches text
-        cy.findByTestId('NativeAppSettings.IosAppDownloadLinkinput').clear().type(newIosAppDownloadLink).should('have.value', newIosAppDownloadLink);
+        cy.get('[data-testid="admin.setting:NativeAppSettings.IosAppDownloadLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(newIosAppDownloadLink).should('have.value', newIosAppDownloadLink);
 
         // # Save setting
         saveSetting();
@@ -131,17 +131,17 @@ describe('Customization', () => {
 
     it('MM-T1215 - Can change Mattermost Apps Download Page Link setting', () => {
         // * Verify Mattermost Apps Download Page Link's setting name is visible and matches the text
-        cy.findByTestId('NativeAppSettings.AppDownloadLinklabel').scrollIntoView().should('be.visible').and('have.text', 'Mattermost Apps Download Page Link:');
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AppDownloadLink--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Mattermost Apps Download Page Link:');
 
         // * Verify the Mattermost Apps Download Page Link input box has default value. The default value depends on the setup before running the test.
-        cy.findByTestId('NativeAppSettings.AppDownloadLinkinput').should('have.value', origConfig.NativeAppSettings.AppDownloadLink);
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AppDownloadLink--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', origConfig.NativeAppSettings.AppDownloadLink);
 
         // * Verify the site name's help text is visible and matches the text
-        cy.findByTestId('NativeAppSettings.AppDownloadLinkhelp-text').find('span').should('be.visible').and('have.text', 'Add a link to a download page for the Mattermost apps. When a link is present, an option to "Download Mattermost Apps" will be added in the Product Menu so users can find the download page. Leave this field blank to hide the option from the Product Menu.');
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AppDownloadLink--group"] [data-testid="admin.setting.help--text"]').find('span').should('be.visible').and('have.text', 'Add a link to a download page for the Mattermost apps. When a link is present, an option to "Download Mattermost Apps" will be added in the Product Menu so users can find the download page. Leave this field blank to hide the option from the Product Menu.');
 
         // # Enter new App download link
         const newAppDownloadLink = 'https://example.com/app-download-link/';
-        cy.findByTestId('NativeAppSettings.AppDownloadLinkinput').clear().type(newAppDownloadLink);
+        cy.get('[data-testid="admin.setting:NativeAppSettings.AppDownloadLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(newAppDownloadLink);
 
         // # Save setting
         saveSetting();
@@ -156,17 +156,17 @@ describe('Customization', () => {
     it('MM-T1209 - Can change Help Link setting', () => {
         // * Verify that setting is visible and matches text content
         const contents = ['The URL for the Help link on the Mattermost login page, sign-up pages, and Help Menu. If this field is empty, the Help link is hidden from users.'];
-        cy.findByTestId('SupportSettings.HelpLinklabel').scrollIntoView().should('be.visible').and('have.text', 'Help Link:');
+        cy.get('[data-testid="admin.setting:SupportSettings.HelpLink--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Help Link:');
 
         // * Verify that help setting is visible and matches text content
-        cy.findByTestId('SupportSettings.HelpLinkhelp-text').scrollIntoView().find('span').should('be.visible').and('have.text', contents[0]);
+        cy.get('[data-testid="admin.setting:SupportSettings.HelpLink--group"] [data-testid="admin.setting.help--text"]').scrollIntoView().find('span').should('be.visible').and('have.text', contents[0]);
 
         // * Verify the input box visible and has default value
-        cy.findByTestId('SupportSettings.HelpLinkinput').scrollIntoView().should('have.value', origConfig.SupportSettings.HelpLink).and('be.visible');
+        cy.get('[data-testid="admin.setting:SupportSettings.HelpLink--group"] [data-testid="admin.setting.value--textbox"]').scrollIntoView().should('have.value', origConfig.SupportSettings.HelpLink).and('be.visible');
 
         // # Fill input field with value
         const stringToSave = 'https://some.com';
-        cy.findByTestId('SupportSettings.HelpLinkinput').clear().type(stringToSave);
+        cy.get('[data-testid="admin.setting:SupportSettings.HelpLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(stringToSave);
 
         // # Save setting
         saveSetting();
@@ -181,16 +181,16 @@ describe('Customization', () => {
         const newAboutLink = 'https://mattermost.com/';
 
         // * Verify that setting is visible and has the correct label text
-        cy.findByTestId('SupportSettings.AboutLinklabel').scrollIntoView().should('be.visible').and('have.text', 'About Link:');
+        cy.get('[data-testid="admin.setting:SupportSettings.AboutLink--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'About Link:');
 
         // * Verify that the help text is visible and matches text content
-        cy.findByTestId('SupportSettings.AboutLinkhelp-text').should('be.visible').and('have.text', 'The URL for the About link on the Mattermost login and sign-up pages. If this field is empty, the About link is hidden from users.');
+        cy.get('[data-testid="admin.setting:SupportSettings.AboutLink--group"] [data-testid="admin.setting.help--text"]').should('be.visible').and('have.text', 'The URL for the About link on the Mattermost login and sign-up pages. If this field is empty, the About link is hidden from users.');
 
         // * Verify that the existing is visible and has default value
-        cy.findByTestId('SupportSettings.AboutLinkinput').should('be.visible').and('have.value', origConfig.SupportSettings.AboutLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.AboutLink--group"] [data-testid="admin.setting.value--textbox"]').should('be.visible').and('have.value', origConfig.SupportSettings.AboutLink);
 
         // # Clear existing about link and type the new about link
-        cy.findByTestId('SupportSettings.AboutLinkinput').clear().type(newAboutLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.AboutLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(newAboutLink);
 
         // # Save setting
         saveSetting();
@@ -202,13 +202,13 @@ describe('Customization', () => {
 
     it('MM-T1211 - Can change Terms of Use Link setting', () => {
         // * Verify site name's setting name for is visible and matches the text
-        cy.findByTestId('SupportSettings.TermsOfServiceLinklabel').scrollIntoView().should('be.visible').and('have.text', 'Terms of Use Link:');
+        cy.get('[data-testid="admin.setting:SupportSettings.TermsOfServiceLink--group"] [data-testid="admin.setting.label--text"]').scrollIntoView().should('be.visible').and('have.text', 'Terms of Use Link:');
 
         // * Verify the site name input box has default value. The default value depends on the setup before running the test.
-        cy.findByTestId('SupportSettings.TermsOfServiceLinkinput').should('have.value', origConfig.SupportSettings.TermsOfServiceLink);
+        cy.get('[data-testid="admin.setting:SupportSettings.TermsOfServiceLink--group"] [data-testid="admin.setting.value--textbox"]').should('have.value', origConfig.SupportSettings.TermsOfServiceLink);
 
         // * Verify the site name's help text is visible and matches the text
-        cy.findByTestId('SupportSettings.TermsOfServiceLinkhelp-text').find('span').should('be.visible').and('have.text',
+        cy.get('[data-testid="admin.setting:SupportSettings.TermsOfServiceLink--group"] [data-testid="admin.setting.help--text"]').find('span').should('be.visible').and('have.text',
             'Link to the terms under which users may use your online service. By default, this includes the ' +
             '"Mattermost Acceptable Use Policy" explaining the terms under which Mattermost software is ' +
             'provided to end users. If you change the default link to add your own terms for using the service you ' +
@@ -217,7 +217,7 @@ describe('Customization', () => {
 
         // # Enter a new help link
         const newValue = 'https://test.com';
-        cy.findByTestId('SupportSettings.TermsOfServiceLinkinput').clear().type(newValue);
+        cy.get('[data-testid="admin.setting:SupportSettings.TermsOfServiceLink--group"] [data-testid="admin.setting.value--textbox"]').clear().type(newValue);
 
         // # Save setting
         saveSetting();

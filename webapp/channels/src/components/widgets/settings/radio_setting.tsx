@@ -26,8 +26,8 @@ type Props = {
 
     testIdScope?: string;
 
-    /** The row's own testid when it isn't the scope (a keyed row). */
-    testId?: string;
+    /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
+    testKey?: string;
 };
 
 const RadioSetting = ({
@@ -43,7 +43,7 @@ const RadioSetting = ({
     isOptional = false,
     disabled,
     testIdScope,
-    testId,
+    testKey,
 }: Props) => {
     const handleChange: ChangeEventHandler<HTMLInputElement> = useCallback((e) => {
         onChange(id, e.target.value);
@@ -64,7 +64,7 @@ const RadioSetting = ({
             helpText={helpText}
             inputId={id}
             testIdScope={testIdScope}
-            testId={testId}
+            testKey={testKey}
         >
             <div className='inline-choice-setting__options'>
                 {

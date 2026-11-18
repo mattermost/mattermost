@@ -36,7 +36,7 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
     };
 
     const enablePermission = (permissionCheckBoxTestId: string) => {
-        cy.findByTestId(permissionCheckBoxTestId).then((el) => {
+        cy.get(permissionCheckBoxTestId).then((el) => {
             if (!el.hasClass('checked')) {
                 el.click();
             }
@@ -44,7 +44,7 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
     };
 
     const removePermission = (permissionCheckBoxTestId: string) => {
-        cy.findByTestId(permissionCheckBoxTestId).then((el) => {
+        cy.get(permissionCheckBoxTestId).then((el) => {
             if (el.hasClass('checked')) {
                 el.click();
             }
@@ -69,7 +69,7 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
         cy.visit('/admin_console/user_management/permissions/system_scheme');
 
         // # Click reset to defaults and confirm
-        cy.findByTestId('resetPermissionsToDefault').click();
+        cy.findByTestId('admin.permissions.reset--button').click();
         cy.get('#confirmModalButton').click();
 
         // # Save
@@ -90,14 +90,14 @@ describe('Channel Type Conversion (Public to Private Only)', () => {
 
         // Public to private conversion permissions
         if (config.publicToPrivate) {
-            enablePermission('all_users-public_channel-convert_public_channel_to_private-checkbox');
+            enablePermission('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:convert_public_channel_to_private--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
         } else if (config.publicToPrivate === false) {
-            removePermission('all_users-public_channel-convert_public_channel_to_private-checkbox');
+            removePermission('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:convert_public_channel_to_private--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
         }
 
         // Remove public to private conversion from team admin if specified
         if (config.removeFromTeamAdmin) {
-            removePermission('team_admin-public_channel-convert_public_channel_to_private-checkbox');
+            removePermission('[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.group.row:convert_public_channel_to_private--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
         }
 
         cy.wait(1000);

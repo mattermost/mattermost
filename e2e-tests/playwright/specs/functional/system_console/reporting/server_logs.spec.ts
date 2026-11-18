@@ -3,7 +3,19 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, formatMessage, Msg, test} from '@mattermost/playwright-lib';
+
+import {
+    applyDefaultCustomRange,
+    expectLogFormat,
+    expectStructuredViewer,
+    gotoServerLogs,
+    logEntries,
+    logEntryWith,
+    selectDuration,
+    selectLiveTailInterval,
+    selectLogFormat,
+} from './support';
 
 // The layout of the logs query's date_from and date_to, which the server parses
 const FILTER_DATE_LAYOUT = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d{3} \+00:00$/;
@@ -43,32 +55,30 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await writeServerLogEntry(adminClient, marker);
 
             // # Log in as admin and go to the server logs page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.gotoServerLogs();
-            await systemConsolePage.toBeVisible();
-
-            const serverLogs = systemConsolePage.serverLogs;
-            await serverLogs.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await gotoServerLogs(app);
+            const serverLogs = app.admin.serverLogs;
+            await expectStructuredViewer(app);
 
             // * Verify the entry reaches the page. Reload until the server has flushed
             // it to the log file.
             await expect(async () => {
                 await serverLogs.reloadButton.click();
-                await expect(serverLogs.row(marker)).toBeVisible({timeout: 2000});
+                await expect(logEntryWith(app, marker).row).toBeVisible({timeout: 2000});
             }).toPass({timeout: 30000});
 
             // # Search for the entry
-            await serverLogs.search(marker);
+            await serverLogs.search.container.fill(marker);
 
             // * Verify search narrows the list down to that entry alone
-            await expect(serverLogs.rows).toHaveCount(1);
-            await expect(serverLogs.row(marker)).toBeVisible();
+            await expect(logEntries(app)).toHaveCount(1);
+            await expect(logEntryWith(app, marker).row).toBeVisible();
 
             // # Clear the search
             await serverLogs.clearSearchButton.click();
 
             // * Verify the other entries come back
-            await expect(serverLogs.rows).not.toHaveCount(1);
+            await expect(logEntries(app)).not.toHaveCount(1);
         },
     );
 
@@ -83,21 +93,21 @@ test.describe('System Console - Reporting - Server Logs', () => {
             const {adminUser, adminClient} = await pw.initSetup();
 
             // # Log in as admin and go to the server logs page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.gotoServerLogs();
-            await systemConsolePage.toBeVisible();
-
-            const serverLogs = systemConsolePage.serverLogs;
-            await serverLogs.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await gotoServerLogs(app);
+            const serverLogs = app.admin.serverLogs;
+            await expectStructuredViewer(app);
 
             // # Turn on live tail at the shortest poll interval
-            const pollRequest = systemConsolePage.page.waitForRequest(
+            const pollRequest = app.page.waitForRequest(
                 (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
             );
-            await serverLogs.selectLiveTailInterval('Every 10 seconds');
+            await selectLiveTailInterval(app, 10000);
 
             // * Verify live tail is on
-            await expect(serverLogs.liveTailValue).toHaveValue('Every 10 seconds');
+            await expect(serverLogs.liveTailInput.container).toHaveValue(
+                formatMessage(Msg.admin.logs.pollInterval['10s']),
+            );
 
             // * Verify the poll asks every node at once, only for what was logged since the page loaded
             const body = (await pollRequest).postDataJSON();
@@ -109,8 +119,8 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await writeServerLogEntry(adminClient, marker);
 
             // * Verify the entry appears without the reload button being used, highlighted as new
-            await expect(serverLogs.row(marker)).toBeVisible({timeout: 30000});
-            await expect(serverLogs.row(marker)).toHaveClass(/LogRow--new/);
+            await expect(logEntryWith(app, marker).row).toBeVisible({timeout: 30000});
+            await expect(logEntryWith(app, marker).row).toHaveClass(/LogRow--new/);
         },
     );
 
@@ -131,23 +141,24 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await writeServerLogEntry(adminClient, expandedMarker);
 
             // # Log in as admin and go to the server logs page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.gotoServerLogs();
-            await systemConsolePage.toBeVisible();
-
-            const serverLogs = systemConsolePage.serverLogs;
-            await serverLogs.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await gotoServerLogs(app);
+            const serverLogs = app.admin.serverLogs;
+            await expectStructuredViewer(app);
 
             // # Wait for the entry to reach the page, then expand it
             await expect(async () => {
                 await serverLogs.reloadButton.click();
-                await expect(serverLogs.row(expandedMarker)).toBeVisible({timeout: 2000});
+                await expect(logEntryWith(app, expandedMarker).row).toBeVisible({timeout: 2000});
             }).toPass({timeout: 30000});
-            await serverLogs.row(expandedMarker).click();
-            await expect(serverLogs.row(expandedMarker)).toHaveClass(/LogRow--expanded/);
+            const expanded = logEntryWith(app, expandedMarker).parts;
+            await expanded.toggleButton.click();
+            await expect(expanded.toggleButton).toBeExpanded();
+            // The row's expanded styling is independent of the button's ARIA state.
+            await expect(logEntryWith(app, expandedMarker).row).toHaveClass(/LogRow--expanded/);
 
             // # Turn on live tail and write an entry that can only arrive by polling
-            await serverLogs.selectLiveTailInterval('Every 10 seconds');
+            await selectLiveTailInterval(app, 10000);
             const heldMarker = `pw-log-${pw.random.id()}`;
             await writeServerLogEntry(adminClient, heldMarker);
 
@@ -155,13 +166,15 @@ test.describe('System Console - Reporting - Server Logs', () => {
             // Other server activity can arrive in an earlier poll, so repeat until it's the marker.
             await expect(async () => {
                 await expect(serverLogs.newEntriesButton).toBeVisible({timeout: 15000});
-                await expect(serverLogs.row(heldMarker)).toHaveCount(0);
+                await expect(logEntryWith(app, heldMarker).row).toHaveCount(0);
                 await serverLogs.newEntriesButton.click();
-                await expect(serverLogs.row(heldMarker)).toBeVisible({timeout: 1000});
+                await expect(logEntryWith(app, heldMarker).row).toBeVisible({timeout: 1000});
             }).toPass({timeout: 45000});
 
             // * Verify the expanded entry is still expanded
-            await expect(serverLogs.row(expandedMarker)).toHaveClass(/LogRow--expanded/);
+            await expect(expanded.toggleButton).toBeExpanded();
+            // The row's expanded styling is independent of the button's ARIA state.
+            await expect(logEntryWith(app, expandedMarker).row).toHaveClass(/LogRow--expanded/);
         },
     );
 
@@ -180,26 +193,24 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await writeServerLogEntry(adminClient, marker);
 
             // # Log in as admin and go to the server logs page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.gotoServerLogs();
-            await systemConsolePage.toBeVisible();
-
-            const serverLogs = systemConsolePage.serverLogs;
-            await serverLogs.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await gotoServerLogs(app);
+            const serverLogs = app.admin.serverLogs;
+            await expectStructuredViewer(app);
 
             // # Wait for the entry to reach the page
             await expect(async () => {
                 await serverLogs.reloadButton.click();
-                await expect(serverLogs.row(marker)).toBeVisible({timeout: 2000});
+                await expect(logEntryWith(app, marker).row).toBeVisible({timeout: 2000});
             }).toPass({timeout: 30000});
 
             // # Apply the 5 minute preset
-            const page = systemConsolePage.page;
+            const {page} = app;
             const queryRequest = page.waitForRequest(
                 (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
             );
             const queryResponse = page.waitForResponse((response) => response.url().includes('/api/v4/logs/query'));
-            await serverLogs.selectDuration('Last 5 minutes');
+            await selectDuration(app, 5);
 
             // * Verify the start is sent in the layout the server parses. An unparseable
             // date is silently dropped server side rather than rejected, so the response
@@ -211,13 +222,13 @@ test.describe('System Console - Reporting - Server Logs', () => {
             expect((await queryResponse).status()).toBe(200);
 
             // * Verify the just-written entry is still listed under the 5 minute range
-            await expect(serverLogs.row(marker)).toBeVisible();
+            await expect(logEntryWith(app, marker).row).toBeVisible();
 
             // # Clear the preset
-            await serverLogs.selectDuration('All time');
+            await selectDuration(app, 'all');
 
             // * Verify the unfiltered list comes back
-            await expect(serverLogs.rows.first()).toBeVisible();
+            await expect(logEntries(app)).not.toHaveCount(0);
         },
     );
 
@@ -236,28 +247,26 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await writeServerLogEntry(adminClient, marker);
 
             // # Log in as admin and go to the server logs page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.gotoServerLogs();
-            await systemConsolePage.toBeVisible();
-
-            const serverLogs = systemConsolePage.serverLogs;
-            await serverLogs.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await gotoServerLogs(app);
+            const serverLogs = app.admin.serverLogs;
+            await expectStructuredViewer(app);
 
             // # Wait for the entry to reach the page
             await expect(async () => {
                 await serverLogs.reloadButton.click();
-                await expect(serverLogs.row(marker)).toBeVisible({timeout: 2000});
+                await expect(logEntryWith(app, marker).row).toBeVisible({timeout: 2000});
             }).toPass({timeout: 30000});
 
             // # Apply the default custom range, the last hour
-            const page = systemConsolePage.page;
+            const {page} = app;
             const queryRequest = page.waitForRequest(
                 (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
             );
             const queryResponse = page.waitForResponse((response) => response.url().includes('/api/v4/logs/query'));
             const browserNow = () => page.evaluate(() => Date.now());
             const openedAt = await browserNow();
-            await serverLogs.applyDefaultCustomRange();
+            await applyDefaultCustomRange(app);
             const appliedAt = await browserNow();
 
             // * Verify both bounds are sent in the layout the server parses
@@ -279,16 +288,16 @@ test.describe('System Console - Reporting - Server Logs', () => {
             expect(body.date_from).toBe(formatFilterDate(openedMinute - 60 * MINUTE_MS));
 
             // * Verify the just-written entry is inside the range, which ends with the current minute
-            await expect(serverLogs.row(marker)).toBeVisible();
+            await expect(logEntryWith(app, marker).row).toBeVisible();
 
             // * Verify the duration field shows the range rather than a preset
-            await expect(serverLogs.durationValue).toHaveValue(/–/);
+            await expect(serverLogs.durationInput.container).toHaveValue(/–/);
 
             // # Clear the range
-            await serverLogs.selectDuration('All time');
+            await selectDuration(app, 'all');
 
             // * Verify the duration field is back to all time
-            await expect(serverLogs.durationValue).toHaveValue('All time');
+            await expect(serverLogs.durationInput.container).toHaveValue(formatMessage(Msg.admin.logs.time.allTime));
         },
     );
 
@@ -307,22 +316,22 @@ test.describe('System Console - Reporting - Server Logs', () => {
             await writeServerLogEntry(adminClient, marker);
 
             // # Log in as admin and wait for the entry to reach the server logs page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.gotoServerLogs();
-            const serverLogs = systemConsolePage.serverLogs;
-            await serverLogs.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await gotoServerLogs(app);
+            const serverLogs = app.admin.serverLogs;
+            await expectStructuredViewer(app);
             await expect(async () => {
                 await serverLogs.reloadButton.click();
-                await expect(serverLogs.row(marker)).toBeVisible({timeout: 2000});
+                await expect(logEntryWith(app, marker).row).toBeVisible({timeout: 2000});
             }).toPass({timeout: 30000});
 
             // # Open a link to the entry's errors in the last hour
-            const page = systemConsolePage.page;
+            const {page} = app;
             const queryRequest = page.waitForRequest(
                 (request) => request.url().includes('/api/v4/logs/query') && request.method() === 'POST',
             );
-            await systemConsolePage.gotoServerLogs(`?search=${marker}&levels=error&range=60`);
-            await serverLogs.toBeVisible();
+            await gotoServerLogs(app, `?search=${marker}&levels=error&range=60`);
+            await expectStructuredViewer(app);
 
             // * Verify the first query asks for the link's filters
             const body = (await queryRequest).postDataJSON();
@@ -331,14 +340,16 @@ test.describe('System Console - Reporting - Server Logs', () => {
             expect(body.date_from).toMatch(FILTER_DATE_LAYOUT);
 
             // * Verify the filter row shows them and only the entry is listed
-            await expect(serverLogs.searchInput).toHaveValue(marker);
-            await expect(serverLogs.levelsValue).toHaveValue('1 selected');
-            await expect(serverLogs.durationValue).toHaveValue('Last hour');
-            await expect(serverLogs.rows).toHaveCount(1);
-            await expect(serverLogs.row(marker)).toBeVisible();
+            await expect(serverLogs.search.container).toHaveValue(marker);
+            await expect(serverLogs.levelsInput.container).toHaveValue(
+                formatMessage(Msg.admin.logs.levels.selected, {count: 1}),
+            );
+            await expect(serverLogs.durationInput.container).toHaveValue(formatMessage(Msg.admin.logs.time['1h']));
+            await expect(logEntries(app)).toHaveCount(1);
+            await expect(logEntryWith(app, marker).row).toBeVisible();
 
             // # Widen the time range
-            await serverLogs.selectDuration('Last 24 hours');
+            await selectDuration(app, 1440);
 
             // * Verify the URL follows the change and keeps the other filters
             await expect
@@ -352,13 +363,15 @@ test.describe('System Console - Reporting - Server Logs', () => {
 
             // # Reload the page
             await page.reload();
-            await serverLogs.toBeVisible();
+            await expectStructuredViewer(app);
 
             // * Verify the filters survive the reload
-            await expect(serverLogs.searchInput).toHaveValue(marker);
-            await expect(serverLogs.levelsValue).toHaveValue('1 selected');
-            await expect(serverLogs.durationValue).toHaveValue('Last 24 hours');
-            await expect(serverLogs.row(marker)).toBeVisible();
+            await expect(serverLogs.search.container).toHaveValue(marker);
+            await expect(serverLogs.levelsInput.container).toHaveValue(
+                formatMessage(Msg.admin.logs.levels.selected, {count: 1}),
+            );
+            await expect(serverLogs.durationInput.container).toHaveValue(formatMessage(Msg.admin.logs.time['24h']));
+            await expect(logEntryWith(app, marker).row).toBeVisible();
         },
     );
 
@@ -372,35 +385,33 @@ test.describe('System Console - Reporting - Server Logs', () => {
             const {adminUser} = await pw.initSetup();
 
             // # Log in as admin and go to the server logs page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.gotoServerLogs();
-            await systemConsolePage.toBeVisible();
-
-            const serverLogs = systemConsolePage.serverLogs;
+            const {app} = await pw.testBrowser.login(adminUser);
+            await gotoServerLogs(app);
+            await expect(app.admin.sidebar).toBeVisible();
 
             // * Verify the structured viewer is shown by default
-            await serverLogs.toBeStructuredFormat();
+            await expectLogFormat(app, 'structured');
 
             // # Switch to plain text
-            await serverLogs.selectPlainFormat();
+            await selectLogFormat(app, 'plain');
 
             // * Verify the plain text viewer replaces the structured one
-            await serverLogs.toBePlainFormat();
+            await expectLogFormat(app, 'plain');
 
             // # Reload the page
-            await systemConsolePage.page.reload();
-            await systemConsolePage.toBeVisible();
+            await app.page.reload();
+            await expect(app.admin.sidebar).toBeVisible();
 
             // * Verify plain text is still selected
-            await serverLogs.toBePlainFormat();
+            await expectLogFormat(app, 'plain');
 
             // # Switch back to structured
-            await serverLogs.selectStructuredFormat();
-            await systemConsolePage.page.reload();
-            await systemConsolePage.toBeVisible();
+            await selectLogFormat(app, 'structured');
+            await app.page.reload();
+            await expect(app.admin.sidebar).toBeVisible();
 
             // * Verify structured is still selected
-            await serverLogs.toBeStructuredFormat();
+            await expectLogFormat(app, 'structured');
         },
     );
 });

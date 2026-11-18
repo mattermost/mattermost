@@ -46,7 +46,7 @@ const SidebarHeader = ({currentUser: me}: Props) => {
         <Menu.Container
             menuButton={{
                 id: 'admin-sidebar-header',
-                dataTestId: 'adminSidebarHeaderMenuButton',
+                dataTestId: 'admin.sidebar.header.menu--button',
                 class: 'AdminSidebarHeader',
                 'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'System Console Menu'}),
                 children: (
@@ -54,7 +54,7 @@ const SidebarHeader = ({currentUser: me}: Props) => {
                         {profilePicture}
                         <div
                             className='header__info'
-                            data-testid='admin-sidebar-header-info'
+                            data-testid='admin.sidebar.header.info'
                         >
                             <div className='header__title'>
                                 <FormattedMessage
@@ -70,6 +70,7 @@ const SidebarHeader = ({currentUser: me}: Props) => {
             }}
             menu={{
                 id: 'adminConsoleMenu',
+                testId: 'admin.sidebar.header.menu_list',
                 'aria-label': formatMessage({id: 'admin.nav.menuAriaLabel', defaultMessage: 'System Console Menu'}),
                 width: 'calc(var(--admin-sidebar-width) - 16px)',
             }}

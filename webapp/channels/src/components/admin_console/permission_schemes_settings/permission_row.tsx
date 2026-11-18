@@ -57,11 +57,14 @@ const PermissionRow = ({
             className={classNames('permission-row', {'read-only': readOnly, selected: selected === id})}
             onClick={toggleSelect}
             id={uniqId}
-            data-testid='permissionRow'
+            role='checkbox'
+            aria-checked={value === 'intermediate' ? 'mixed' : value === 'checked'}
+            aria-disabled={readOnly}
+            data-testid={`admin.permissions.group.row:${id}--checkbox`}
         >
             <PermissionCheckbox
                 value={value}
-                id={`${uniqId}-checkbox`}
+                testId='admin.permissions.group.row.checkbox'
             />
             <span className='permission-name'>
                 {name}

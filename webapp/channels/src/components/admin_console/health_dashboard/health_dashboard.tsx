@@ -230,6 +230,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
             loading={running}
             disabled={running}
             aria-busy={running}
+            data-testid='admin.health.run--button'
             leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
             onClick={startRun}
         >
@@ -255,6 +256,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
     }
     const runErrorBanner = banner && (
         <AlertBanner
+            testId='admin.health.run_error'
             mode='danger'
             className='HealthDashboard__runError'
             onDismiss={() => {
@@ -272,10 +274,11 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
 
     let content;
     if (loading) {
-        content = <LoadingSpinner/>;
+        content = <LoadingSpinner testId='admin.health.loading_spinner'/>;
     } else if (failed) {
         content = (
             <EmptyState
+                testId='admin.health.load_error'
                 title={
                     <FormattedMessage
                         id='admin.health_dashboard.error.title'
@@ -298,6 +301,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
                 </div>
                 {runErrorBanner}
                 <EmptyState
+                    testId='admin.health.not_evaluated'
                     title={
                         <FormattedMessage
                             id='admin.health_dashboard.empty.title'
@@ -319,7 +323,10 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
         content = (
             <>
                 <div className='HealthDashboard__summary'>
-                    <p className='HealthDashboard__lastEvaluated'>
+                    <p
+                        className='HealthDashboard__lastEvaluated'
+                        data-testid='admin.health.last_evaluated--text'
+                    >
                         <FormattedMessage
                             id='admin.health_dashboard.last_evaluated'
                             defaultMessage='Last evaluated {time}'
@@ -341,6 +348,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
                         type='button'
                         className={classNames('HealthDashboard__mutedToggle', {'HealthDashboard__mutedToggle--active': showMuted})}
                         aria-pressed={showMuted}
+                        data-testid='admin.health.show_muted--togglebutton'
                         onClick={toggleMuted}
                     >
                         <BellOffOutlineIcon
@@ -379,6 +387,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, jobs, action
                     <div
                         id={panelId}
                         role='tabpanel'
+                        data-testid='admin.health.findings--tabpanel'
                         aria-labelledby={tabId(idPrefix, tab)}
                     >
                         {visible.length === 0 ? (
