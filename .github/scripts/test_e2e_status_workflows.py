@@ -590,7 +590,8 @@ class ServerImageCheck(unittest.TestCase):
         self.assertEqual(self.run_check('500', '404')[0].returncode, 1)
 
     def test_status_publication_never_decides_the_gate(self):
-        """A failed status write warns; the image alone decides whether the lanes start."""
+        """A failed or stalled status write warns; the image alone decides whether the lanes start."""
+        self.assertIn('timeout --kill-after=10s 30s gh api', self.gate_job()['steps'][0]['run'])
         published = self.run_check('200', gh='exit 1')[0]
         self.assertEqual(published.returncode, 0, published.stdout + published.stderr)
         self.assertIn('::warning::Could not publish the server-image/fips status', published.stdout)

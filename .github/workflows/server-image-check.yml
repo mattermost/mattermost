@@ -92,7 +92,7 @@ jobs:
 
           # Best effort: the job's result, not this status, is what gates the lanes.
           publish() {
-            gh api --method POST "repos/${REPOSITORY}/statuses/${COMMIT_SHA}" --silent \
+            timeout --kill-after=10s 30s gh api --method POST "repos/${REPOSITORY}/statuses/${COMMIT_SHA}" --silent \
               -f state="$1" -f context="server-image/${SERVER_EDITION}${SUFFIX}" \
               -f description="${2:0:140}" -f target_url="$RUN_URL" ||
               echo "::warning::Could not publish the server-image/${SERVER_EDITION}${SUFFIX} status"
