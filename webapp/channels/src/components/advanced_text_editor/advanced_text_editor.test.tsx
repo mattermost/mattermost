@@ -1535,6 +1535,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             const attributes = screen.getByRole('menuitem', {name: 'Add attributes'});
             expect(attributes).toHaveAttribute('aria-disabled', 'true');
+            expect(attributes.querySelector('svg')).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
         });
 
