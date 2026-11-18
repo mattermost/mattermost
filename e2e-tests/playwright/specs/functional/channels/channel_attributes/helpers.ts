@@ -266,22 +266,16 @@ export function trackChannelCreates(page: Page): () => number {
 
 export async function deleteAttributes(adminClient: Client4, fields: PropertyField[]): Promise<void> {
     for (const field of fields) {
-        try {
-            await adminClient.deletePropertyField(GROUP, field.object_type, field.id);
-        } catch {} // eslint-disable-line no-empty
+        await adminClient.deletePropertyField(GROUP, field.object_type, field.id);
     }
 }
 
-// Best-effort cleanup of fields left behind by an interrupted run.
+// Cleanup of fields left behind by an interrupted run.
 export async function purgeAttributes(adminClient: Client4): Promise<void> {
     for (const objectType of ['channel', 'user'] as const) {
-        try {
-            const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: TARGET_TYPE});
-            const stale = (fields ?? []).filter(
-                (field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0,
-            );
-            await deleteAttributes(adminClient, stale);
-        } catch {} // eslint-disable-line no-empty
+        const fields = await adminClient.getPropertyFields(GROUP, objectType, {targetType: TARGET_TYPE});
+        const stale = (fields ?? []).filter((field) => field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
+        await deleteAttributes(adminClient, stale);
     }
 }
 

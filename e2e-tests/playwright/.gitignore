@@ -15,6 +15,11 @@ test/.eslintcache
 dist
 *.tsbuildinfo
 
+# page objects generated from lib/surface/webapp.surface.json (npm run generate in lib), and the scan's reports
+lib/src/ui/generated
+lib/surface/reports
+lib/test-results
+
 # testcontainers ("full" mode) — generated per-run, see docs/testcontainers/testcontainers_plan.md
 .env.testcontainers
 .testcontainers.lock

@@ -127,7 +127,7 @@ test.describe('System Console Notifications', () => {
         await notifications.pushNotificationContents.toBeVisible();
 
         // * Verify that the help text is visible and matches text content
-        const helpText = notifications.pushNotificationContents.helpText;
+        const helpText = notifications.pushNotificationContents.helpText!;
         await expect(helpText).toBeVisible();
 
         const contents = [
@@ -240,8 +240,8 @@ test.describe('System Console Notifications', () => {
         await notifications.supportEmailAddress.toBeVisible();
 
         // * Verify that the help text is visible and matches text content
-        await expect(notifications.supportEmailAddress.helpText).toBeVisible();
-        await expect(notifications.supportEmailAddress.helpText).toHaveText(
+        await expect(notifications.supportEmailAddress.helpText!).toBeVisible();
+        await expect(notifications.supportEmailAddress.helpText!).toHaveText(
             'Email address displayed on support emails.',
         );
 

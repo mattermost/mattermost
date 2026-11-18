@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {expect as baseExpect} from '@playwright/test';
-import type {Locator, Page} from '@playwright/test';
+import type {ExpectMatcherState, Locator, Page} from '@playwright/test';
 
 import {testConfig} from './test_config';
 
@@ -17,17 +17,30 @@ export const expect = baseExpect.extend({
      * Use this instead of toHaveURL('/path'), which Playwright resolves against baseURL and so drops
      * the subpath. Only the pathname is compared; origin, query and hash are ignored.
      */
-    async toHavePath(page: Page, path: string, options?: {timeout?: number}) {
+    async toHavePath(this: ExpectMatcherState, page: Page, path: string, options?: {timeout?: number}) {
         const expected = testConfig.withSubpath(path);
         const assertionName = 'toHavePath';
+        const matches = (url: URL) => url.pathname === expected;
+
+        // Negation retries too: `not.toHavePath` waits until the page has left the path, and fails once it stays.
+        const urlMatcher = this.isNot ? baseExpect(page).not : baseExpect(page);
         try {
-            await baseExpect(page).toHaveURL((url) => url.pathname === expected, options);
+            await urlMatcher.toHaveURL(matches, options);
             return {
-                pass: true,
+                pass: !this.isNot,
                 name: assertionName,
                 message: () => `Expected page not to be at path ${expected}`,
             };
         } catch {
+            if (this.isNot) {
+                return {
+                    pass: true,
+                    name: assertionName,
+                    expected,
+                    actual: expected,
+                    message: () => `Expected page not to be at path ${expected}, but it stayed there`,
+                };
+            }
             let received: string;
             try {
                 received = new URL(page.url()).pathname;
