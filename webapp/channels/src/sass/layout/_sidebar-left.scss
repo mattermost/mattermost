@@ -1237,7 +1237,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             position: relative;
             display: flex;
             width: 100%;
-            height: 28px;
+            height: 32px;
             align-items: center;
 
             &:hover,
@@ -1324,7 +1324,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &__toggle {
             position: absolute;
             z-index: 1;
-            top: 2px;
+            top: 4px;
             left: calc(44px + var(--sub-item-depth, 0) * var(--sub-item-indent, 16px) - 22px);
             display: flex;
             width: 24px;
@@ -1355,7 +1355,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
         &__menu {
             position: absolute;
             z-index: 1;
-            top: 2px;
+            top: 4px;
             right: 4px;
             opacity: 0;
         }
@@ -1399,11 +1399,13 @@ $sidebarOpacityAnimationDuration: 0.15s;
             padding-right: 32px;
         }
 
-        &__icon {
+        // With .icon too, so it outranks #SidebarContainer .icon's inherited size, as channel icons do.
+        &__icon,
+        &__icon.icon {
             display: flex;
             flex-shrink: 0;
-            margin-right: 4px;
-            font-size: 16px;
+            margin-right: 6px;
+            font-size: 18px;
         }
 
         &__label {
