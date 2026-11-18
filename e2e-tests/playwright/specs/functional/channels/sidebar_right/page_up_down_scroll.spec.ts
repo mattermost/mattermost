@@ -18,7 +18,7 @@ test('should be able to scroll the RHS with page up and down', async ({pw}) => {
         await channelsPage.sidebarRight.postCreate.postMessage('a\n'.repeat(10));
     }
 
-    const threadList = page.locator('#threadViewerScrollContainer');
+    const threadList = channelsPage.sidebarRight.threadList;
     const readScrollTop = () => threadList.evaluate((el) => el.scrollTop);
     let lastScrollTop = await readScrollTop();
 

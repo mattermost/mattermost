@@ -34,6 +34,7 @@ export default class ChannelsSidebarRight {
     readonly channelBanner;
     readonly notificationSeparator;
     readonly mobileSearchInput;
+    readonly threadList;
     readonly attributes: ChannelInfoAttributes;
     readonly threadAttributes: ChannelAttributeLabels;
 
@@ -78,6 +79,7 @@ export default class ChannelsSidebarRight {
 
         // Search input shown in the RHS when opened from the mobile/narrow-width channel header.
         this.mobileSearchInput = container.locator('#sbrSearchBox');
+        this.threadList = container.locator('#threadViewerScrollContainer');
     }
 
     async toBeVisible() {
