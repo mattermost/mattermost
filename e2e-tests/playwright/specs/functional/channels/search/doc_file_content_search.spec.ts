@@ -18,10 +18,7 @@ const contentTerm = 'simple';
  * and ServiceSettings.EnableFileSearch at their default (enabled).
  */
 test('finds a .doc in Files search by extracted content', {tag: ['@search', '@file_attachments']}, async ({pw}) => {
-    test.fixme(
-        true,
-        'The Docker image has no /bin/sh for wvText',
-    );
+    test.fixme(true, 'The Docker image has no /bin/sh for wvText');
 
     // # Log in and post the .doc (message must not contain the search term)
     const {user, team} = await pw.initSetup();
