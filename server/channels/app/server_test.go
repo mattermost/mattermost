@@ -29,6 +29,7 @@ import (
 	"github.com/getsentry/sentry-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/acme"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -228,6 +229,36 @@ func TestStartServerTLSReportsServedCertificate(t *testing.T) {
 		Issuer:     "served.example.com",
 		NotAfter:   servedNotAfter,
 	}, nodeDiagnostics.Diagnostics.TLS.Certificate)
+}
+
+func TestRecordServedCertificate(t *testing.T) {
+	leaf := &x509.Certificate{Subject: pkix.Name{CommonName: "chat.example.com"}}
+	served := &tls.Certificate{Leaf: leaf}
+
+	for name, tc := range map[string]struct {
+		cert   *tls.Certificate
+		err    error
+		protos []string
+		want   *x509.Certificate
+	}{
+		"records the served leaf":            {cert: served, protos: []string{"h2", "http/1.1"}, want: leaf},
+		"skips a failed lookup":              {cert: served, err: errors.New("no certificate")},
+		"skips a certificate without a leaf": {cert: &tls.Certificate{}},
+		"skips an ACME challenge":            {cert: served, protos: []string{acme.ALPNProto}},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var recorded *x509.Certificate
+			getCertificate := recordServedCertificate(func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
+				return tc.cert, tc.err
+			}, func(cert *x509.Certificate) { recorded = cert })
+
+			cert, err := getCertificate(&tls.ClientHelloInfo{SupportedProtos: tc.protos})
+
+			assert.Same(t, tc.cert, cert)
+			assert.Equal(t, tc.err, err)
+			assert.Same(t, tc.want, recorded)
+		})
+	}
 }
 
 func TestStartServerTLSVersion(t *testing.T) {

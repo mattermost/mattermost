@@ -172,6 +172,9 @@ type SupportPacketDiagnostics struct {
 		Error         string `yaml:"error,omitempty"`
 		ServerName    string `yaml:"server_name,omitempty"`
 		ServerVersion string `yaml:"server_version,omitempty"`
+		// The certificates are valid even when the ldap_probe section has an error, which the vendor
+		// lookup sets after a passing test, so read them through Diag rather than SectionDiag.
+
 		// ServerCertificate is collected when the connection uses TLS or STARTTLS.
 		ServerCertificate *SupportPacketCertificate `yaml:"server_certificate,omitempty"`
 		// ClientCertificate is collected when both PublicCertificateFile and PrivateKeyFile are set.
@@ -188,8 +191,9 @@ type SupportPacketDiagnostics struct {
 	} `yaml:"saml"`
 
 	TLS struct {
-		// Certificate is the one the HTTPS listener loaded at startup, which is what clients are served
-		// until a restart, even if the file has been renewed since.
+		// Certificate is the one the HTTPS listener serves, whatever the current config says, since the
+		// listener only reads it at startup. For a TLSCertFile that is the file as loaded at startup, even
+		// if it has been renewed since; for Let's Encrypt it is the certificate of the latest handshake.
 		Certificate *SupportPacketCertificate `yaml:"certificate,omitempty"`
 	} `yaml:"tls,omitempty"`
 

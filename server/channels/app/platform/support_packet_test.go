@@ -1737,14 +1737,32 @@ func TestGetSupportPacketDiagnosticsCertificates(t *testing.T) {
 		assert.True(t, d.TLS.Certificate.NotAfter.IsZero())
 	})
 
-	t.Run("no TLS certificate without TLS", func(t *testing.T) {
+	t.Run("TLS reports the served certificate after TLS is turned off until a restart", func(t *testing.T) {
 		setTLS(t, "", false, served)
 
-		assert.Nil(t, getDiagnostics(t).Diagnostics.TLS.Certificate)
+		d := getDiagnostics(t).Diagnostics
+		require.NotNil(t, d.TLS.Certificate)
+		assert.Equal(t, "chat.example.com", d.TLS.Certificate.CommonName)
 	})
 
-	t.Run("no TLS certificate with Let's Encrypt", func(t *testing.T) {
+	t.Run("TLS reports the served certificate with Let's Encrypt", func(t *testing.T) {
 		setTLS(t, model.ConnSecurityTLS, true, served)
+
+		d := getDiagnostics(t).Diagnostics
+		require.NotNil(t, d.TLS.Certificate)
+		assert.Equal(t, "chat.example.com", d.TLS.Certificate.CommonName)
+	})
+
+	t.Run("Let's Encrypt without a served certificate reports an error", func(t *testing.T) {
+		setTLS(t, model.ConnSecurityTLS, true, nil)
+
+		d := getDiagnostics(t).Diagnostics
+		require.NotNil(t, d.TLS.Certificate)
+		assert.Contains(t, d.TLS.Certificate.Error, "the HTTPS listener has not served a Let's Encrypt certificate yet")
+	})
+
+	t.Run("no TLS certificate without TLS", func(t *testing.T) {
+		setTLS(t, "", false, nil)
 
 		assert.Nil(t, getDiagnostics(t).Diagnostics.TLS.Certificate)
 	})

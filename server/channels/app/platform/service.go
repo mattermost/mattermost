@@ -104,7 +104,8 @@ type PlatformService struct {
 	ldapDiagnostic einterfaces.LdapDiagnosticInterface
 	samlDiagnostic einterfaces.SamlDiagnosticInterface
 
-	// tlsCertificate is the leaf certificate the HTTPS listener loaded, if it serves one from TLSCertFile.
+	// tlsCertificate is the leaf certificate the HTTPS listener serves: the one it loaded from
+	// TLSCertFile, or the Let's Encrypt certificate of its latest handshake.
 	tlsCertificate atomic.Pointer[x509.Certificate]
 
 	Jobs *jobs.JobServer
