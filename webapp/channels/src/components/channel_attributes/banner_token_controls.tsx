@@ -21,6 +21,9 @@ import './banner_token_controls.scss';
 
 type Props = {
 
+    // The controls' testid scope: the button is `<testId>.insert--button` and its items `<testId>.insert_menu.attribute:<field id>--menuitem`.
+    testId?: string;
+
     // Every channel attribute with this channel's value, unset ones included.
     attributes: ResolvedChannelAttribute[];
 
@@ -35,7 +38,7 @@ type Props = {
 /**
  * The "+ Attributes" menu inside the banner text field.
  */
-const BannerTokenControls = ({attributes, onInsertToken, disabled, channelKind = 'channel'}: Props) => {
+const BannerTokenControls = ({testId, attributes, onInsertToken, disabled, channelKind = 'channel'}: Props) => {
     const {formatMessage} = useIntl();
 
     const suggestions = useMemo(() => tokenSuggestions(attributes), [attributes]);
@@ -60,7 +63,7 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled, channelKind =
                             />
                         </>
                     ),
-                    dataTestId: 'bannerAttributeTokenButton',
+                    dataTestId: testId ? `${testId}.insert--button` : 'bannerAttributeTokenButton',
                     'aria-label': formatMessage({
                         id: 'channel_attributes.banner.insert_attribute_aria',
                         defaultMessage: 'Insert an attribute into the banner text',
@@ -83,7 +86,7 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled, channelKind =
                         <Menu.Item
                             key={suggestion.name}
                             id={`bannerAttributeToken-${suggestion.name}`}
-                            data-testid={`bannerAttributeToken-${suggestion.name}`}
+                            data-testid={testId ? `${testId}.insert_menu.attribute:${suggestion.field.id}--menuitem` : `bannerAttributeToken-${suggestion.name}`}
                             onClick={() => onInsertToken(attributeToken(suggestion.name))}
 
                             // One child, not two: Menu.Item reads two children as a
@@ -101,7 +104,7 @@ const BannerTokenControls = ({attributes, onInsertToken, disabled, channelKind =
                                 </span>
                             }
                             trailingElements={suggestion.value ? undefined : (
-                                <UnsetValueIndicator testId={`bannerAttributeTokenUnset-${suggestion.name}`}/>
+                                <UnsetValueIndicator testId={testId ? `${testId}.insert_menu.attribute.unset` : `bannerAttributeTokenUnset-${suggestion.name}`}/>
                             )}
                         />
                     );

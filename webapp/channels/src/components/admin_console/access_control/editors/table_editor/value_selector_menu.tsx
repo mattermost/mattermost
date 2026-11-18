@@ -53,6 +53,8 @@ export interface ValueSelectorMenuProps {
 
     field?: UserPropertyField;
     rowIndex?: number;
+
+    testId?: string;
 }
 
 const ValueSelectorMenu = ({
@@ -66,6 +68,7 @@ const ValueSelectorMenu = ({
     onSelectTarget,
     field,
     rowIndex = 0,
+    testId,
 }: ValueSelectorMenuProps) => {
     const isMultiOperator = isMultiValueOperator(row.operator);
 
@@ -80,6 +83,7 @@ const ValueSelectorMenu = ({
                 channelFields={channelFields}
                 onSelectTarget={onSelectTarget}
                 rowIndex={rowIndex}
+                testId={testId}
             />
         );
     }
@@ -97,6 +101,7 @@ const ValueSelectorMenu = ({
                 channelFields={channelFields}
                 targetAttribute={row.targetAttribute}
                 onSelectTarget={onSelectTarget}
+                testId={testId}
             />
         );
     }
@@ -113,6 +118,7 @@ const ValueSelectorMenu = ({
             channelFields={channelFields}
             targetAttribute={row.targetAttribute}
             onSelectTarget={onSelectTarget}
+            testId={testId}
         />
     );
 };

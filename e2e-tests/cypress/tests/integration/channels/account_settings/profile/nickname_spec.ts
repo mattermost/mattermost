@@ -44,7 +44,7 @@ describe('Settings > Sidebar > General', () => {
         // # Search for username and check that no nickname is present
         cy.get('.modal-title').should('be.visible');
         cy.get('#searchUsersInput').should('be.visible').type(testUser.first_name).wait(TIMEOUTS.ONE_SEC);
-        cy.findByTestId('userListItemDetails').find('.more-modal__name').should('be.visible').then((el) => {
+        cy.findByTestId('user_list_row.details').find('.more-modal__name').should('be.visible').then((el) => {
             expect(getInnerText(el)).equal(`@${testUser.username} - ${testUser.first_name} ${testUser.last_name}`);
         });
 
@@ -73,7 +73,7 @@ describe('Settings > Sidebar > General', () => {
         // # Search for username and check that expected nickname is present
         cy.get('.modal-title').should('be.visible');
         cy.get('#searchUsersInput').should('be.visible').type(testUser.first_name).wait(TIMEOUTS.ONE_SEC);
-        cy.findByTestId('userListItemDetails').find('.more-modal__name').should('be.visible').then((el) => {
+        cy.findByTestId('user_list_row.details').find('.more-modal__name').should('be.visible').then((el) => {
             expect(getInnerText(el)).equal(`@${testUser.username} - ${testUser.first_name} ${testUser.last_name} (${newNickname})`);
         });
 

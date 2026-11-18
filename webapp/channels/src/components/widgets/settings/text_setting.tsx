@@ -27,6 +27,12 @@ export type Props = {
     type?: InputTypes;
     autoFocus?: boolean;
     multiple?: boolean;
+
+    /** The row's parts render under it (`${testIdScope}.value--textbox`, `--spinbutton` for numbers); without it the input keeps its id based testid. */
+    testIdScope?: string;
+
+    /** The row's own testid when it isn't the scope (a keyed row). */
+    testId?: string;
 };
 
 function TextSetting(props: Props) {
@@ -51,7 +57,7 @@ function TextSetting(props: Props) {
         input = (
             <textarea
                 id={props.id}
-                data-testid={`${props.id}input`} // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
+                data-testid={props.testIdScope ? `${props.testIdScope}.value--textbox` : `${props.id}input`} // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
                 className='form-control'
                 autoFocus={props.autoFocus}
                 dir='auto'
@@ -68,7 +74,10 @@ function TextSetting(props: Props) {
         const inputType = INPUT_TYPES.includes(type) ? type : 'text';
 
         // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
-        const testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
+        let testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
+        if (props.testIdScope) {
+            testId = inputType === 'number' ? `${props.testIdScope}.value--spinbutton` : `${props.testIdScope}.value--textbox`;
+        }
 
         // An incomplete number like "-" parses to NaN. Rendering NaN makes React overwrite the input
         // and discard what was typed, while an empty value leaves the browser's in-progress text alone.
@@ -98,6 +107,8 @@ function TextSetting(props: Props) {
             helpText={props.helpText}
             inputId={props.id}
             footer={props.footer}
+            testIdScope={props.testIdScope}
+            testId={props.testId}
         >
             {input}
         </Setting>

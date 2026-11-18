@@ -31,6 +31,9 @@ type AdvancedTextboxProps = {
     showCharacterCount?: boolean;
     readOnly?: boolean;
     name?: string; // Added name prop for floating label
+
+    /** The text area renders `<testId>--textbox`; without it its testid is its id. */
+    testId?: string;
 };
 
 const AdvancedTextbox = ({
@@ -53,6 +56,7 @@ const AdvancedTextbox = ({
     showCharacterCount = false,
     readOnly = false,
     name,
+    testId,
 }: AdvancedTextboxProps) => {
     const {formatMessage} = useIntl();
     const [internalError, setInternalError] = useState<string | JSX.Element | undefined>(errorMessage);
@@ -130,6 +134,7 @@ const AdvancedTextbox = ({
                     createMessage={createMessage}
                     channelId={channelId}
                     id={id}
+                    testId={testId}
                     characterLimit={maxLength}
                     preview={localPreview}
                     useChannelMentions={useChannelMentions}
@@ -151,7 +156,7 @@ const AdvancedTextbox = ({
                 {internalError && (
                     <div className='AdvancedTextbox__error-message'>
                         <i className='icon icon-alert-circle-outline'/>
-                        <span data-testid='advanced-textbox-error-text'>{internalError}</span>
+                        <span data-testid={testId ? `${testId}.error--text` : 'advanced-textbox-error-text'}>{internalError}</span>
                     </div>
                 )}
 
@@ -172,7 +177,7 @@ const AdvancedTextbox = ({
             {/* Error message display */}
             {(descriptionMessage && !internalError) && (
                 <p
-                    data-testid='AdvancedTextbox__description'
+                    data-testid={testId ? `${testId}.description--text` : 'AdvancedTextbox__description'}
                     className='AdvancedTextbox__description'
                 >
                     {descriptionMessage}

@@ -28,13 +28,15 @@ const CHANNEL_SEARCH_OPTS = {
 
 interface Props {
     onSelect: (channelId: string) => void;
+
+    testIdScope?: string;
 }
 
 // First step of the shared test modal for a resource.attributes.* rule with no
 // channel scope of its own: pick a concrete channel whose attribute values the
 // rule is resolved against. Rows are icon + name + team + chevron — no member
 // counts (the members step reports the matching users).
-export default function TestChannelPicker({onSelect}: Props): JSX.Element {
+export default function TestChannelPicker({onSelect, testIdScope}: Props): JSX.Element {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -75,7 +77,7 @@ export default function TestChannelPicker({onSelect}: Props): JSX.Element {
 
     let listContent: JSX.Element | JSX.Element[];
     if (loading && channels.length === 0) {
-        listContent = <LoadingScreen/>;
+        listContent = <LoadingScreen testId={testIdScope ? `${testIdScope}.loading` : undefined}/>;
     } else if (hasError) {
         listContent = (
             <div className='TestChannelPicker__empty'>
@@ -101,6 +103,7 @@ export default function TestChannelPicker({onSelect}: Props): JSX.Element {
                 type='button'
                 className='TestChannelPicker__row'
                 onClick={() => onSelect(channel.id)}
+                data-testid={testIdScope ? `${testIdScope}.channel:${channel.id}--button` : undefined}
             >
                 <ChannelIcon
                     className='TestChannelPicker__row-icon'
@@ -119,7 +122,10 @@ export default function TestChannelPicker({onSelect}: Props): JSX.Element {
     }
 
     return (
-        <div className='TestChannelPicker'>
+        <div
+            className='TestChannelPicker'
+            data-testid={testIdScope}
+        >
             <div className='TestChannelPicker__search'>
                 <i className='icon icon-magnify'/>
                 <input
@@ -127,6 +133,7 @@ export default function TestChannelPicker({onSelect}: Props): JSX.Element {
                     className='TestChannelPicker__search-input'
                     placeholder={placeholder}
                     aria-label={placeholder}
+                    data-testid={testIdScope ? `${testIdScope}.search--textbox` : undefined}
                     value={term}
                     onChange={(e) => setTerm(e.target.value)}
                 />

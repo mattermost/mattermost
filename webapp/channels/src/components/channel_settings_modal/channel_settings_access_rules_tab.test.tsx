@@ -2322,7 +2322,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             renderWithContext(<ChannelSettingsAccessRulesTab {...baseProps}/>, initialState);
 
-            expect(await screen.findByTestId('channel-access-rules-locked-rules')).toBeInTheDocument();
+            expect(await screen.findByTestId('channel_settings_modal.access_rules.locked_rules')).toBeInTheDocument();
             expect(mockActions.getVisualAST).toHaveBeenCalledWith(complexRule);
             expect(screen.getByRole('status')).toHaveTextContent('Contact a System Admin to change them.');
             expect(screen.getByText(complexRule)).toBeInTheDocument();
@@ -2345,7 +2345,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             renderWithContext(<ChannelSettingsAccessRulesTab {...baseProps}/>, initialState);
 
-            expect(await screen.findByTestId('channel-access-rules-locked-rules')).toBeInTheDocument();
+            expect(await screen.findByTestId('channel_settings_modal.access_rules.locked_rules')).toBeInTheDocument();
             expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
         });
 
@@ -2360,7 +2360,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             await waitFor(() => {
                 expect(MockedTableEditor.mock.calls.at(-1)?.[0].value).toBe(rule);
             });
-            expect(screen.queryByTestId('channel-access-rules-locked-rules')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_settings_modal.access_rules.locked_rules')).not.toBeInTheDocument();
         });
 
         test('shows neither the table nor the lock until the parser answers', async () => {
@@ -2374,14 +2374,14 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             await waitFor(() => expect(mockActions.getVisualAST).toHaveBeenCalled());
             expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('channel-access-rules-locked-rules')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_settings_modal.access_rules.locked_rules')).not.toBeInTheDocument();
             expect(screen.getByRole('checkbox', {name: /auto-add members/i})).toBeDisabled();
 
             await act(async () => {
                 resolveParse({data: {conditions: []}});
             });
 
-            expect(screen.queryByTestId('channel-access-rules-locked-rules')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_settings_modal.access_rules.locked_rules')).not.toBeInTheDocument();
             await waitFor(() => {
                 expect(MockedTableEditor.mock.calls.at(-1)?.[0].value).toBe('user.attributes.department == "Engineering"');
             });
@@ -2402,7 +2402,7 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 MockedTableEditor.mock.calls.at(-1)![0].onChange('user.attributes.department in ["Engineering"]');
             });
 
-            expect(screen.queryByTestId('channel-access-rules-locked-rules')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channel_settings_modal.access_rules.locked_rules')).not.toBeInTheDocument();
             expect(await screen.findByText('Invalid expression format')).toBeInTheDocument();
         });
     });

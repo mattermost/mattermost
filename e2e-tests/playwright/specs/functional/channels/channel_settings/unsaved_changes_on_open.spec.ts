@@ -1,7 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {
+    expect,
+    test,
+    closeChannelSettings,
+    openChannelSettingsInfoTab,
+    Api,
+    settle,
+    Msg,
+} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify that Channel Settings opens with no unsaved-changes warning and no channel name
@@ -28,24 +36,22 @@ test(
 
         // # Open Channel Settings without touching any field
         const channelSettings = await channelsPage.openChannelSettings();
-        const infoSettings = await channelSettings.openInfoTab();
+        const infoSettings = await openChannelSettingsInfoTab(channelSettings);
 
         // * Verify the stored text is shown as-is and the form does not report unsaved changes
-        await expect(infoSettings.purposeInput).toHaveValue(paddedPurpose);
-        await expect(infoSettings.headerInput).toHaveValue(paddedHeader);
-        await expect(infoSettings.saveChangesPanel).not.toBeVisible();
+        await expect(infoSettings.purpose).toHaveValue(paddedPurpose);
+        await expect(infoSettings.header).toHaveValue(paddedHeader);
+        await expect(channelSettings.savePanel).not.toBeVisible();
 
         // * Verify no channel name validation error is shown for the populated name field
-        await expect(infoSettings.nameInput).toHaveValue(channel.display_name);
-        await expect(
-            channelSettings.container.getByText('Channel names must have at least 1 character.'),
-        ).not.toBeVisible();
+        await expect(infoSettings.name).toHaveValue(channel.display_name);
+        await expect(infoSettings.name.validationAlert).not.toBeVisible();
 
         // # Close the modal with a single click
         await channelSettings.closeButton.click();
 
         // * Verify the modal closes without the second click that unsaved changes would demand
-        await expect(channelSettings.container).not.toBeVisible();
+        await expect(channelSettings).not.toBeVisible();
     },
 );
 
@@ -71,27 +77,27 @@ test(
 
         // # Open Channel Settings and edit the purpose
         const channelSettings = await channelsPage.openChannelSettings();
-        const infoSettings = await channelSettings.openInfoTab();
-        await infoSettings.updatePurpose('A brand new purpose');
+        const infoSettings = await openChannelSettingsInfoTab(channelSettings);
+        await infoSettings.purpose.container.fill('A brand new purpose');
 
         // * Verify the edit is recognised as an unsaved change
-        await expect(channelSettings.container.getByText('You have unsaved changes')).toBeVisible();
+        await expect(channelSettings.savePanel.messageText).toHaveMessage(Msg.saveChangesPanel.message);
 
         // # Save the edit
-        await channelSettings.save();
+        await settle(channelSettings.savePanel.saveButton, {wait: Api.PatchChannel}).click();
 
         // * Verify the save completes and the panel leaves the unsaved state
-        await expect(channelSettings.saveButton).not.toBeVisible();
+        await expect(channelSettings.savePanel.saveButton).not.toBeVisible();
 
         // # Close and reopen Channel Settings
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
         const reopenedSettings = await channelsPage.openChannelSettings();
-        const reopenedInfo = await reopenedSettings.openInfoTab();
+        const reopenedInfo = await openChannelSettingsInfoTab(reopenedSettings);
 
         // * Verify the saved purpose persisted, the untouched header was left exactly as stored, and the
         // * reopened form is clean
-        await expect(reopenedInfo.purposeInput).toHaveValue('A brand new purpose');
-        await expect(reopenedInfo.headerInput).toHaveValue(paddedHeader);
-        await expect(reopenedInfo.saveChangesPanel).not.toBeVisible();
+        await expect(reopenedInfo.purpose).toHaveValue('A brand new purpose');
+        await expect(reopenedInfo.header).toHaveValue(paddedHeader);
+        await expect(reopenedSettings.savePanel).not.toBeVisible();
     },
 );

@@ -81,6 +81,7 @@ export default function ChannelSettingsPluginTab({
             </div>
             {areThereUnsavedChanges && (
                 <SaveChangesPanel
+                    testId='channel_settings_modal.save_panel'
                     handleSubmit={handleSubmit}
                     handleCancel={handleCancel}
                     handleClose={noop}

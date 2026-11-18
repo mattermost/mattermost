@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, getRandomId, test} from '@mattermost/playwright-lib';
+import {expect, getRandomId, test, closeChannelSettings, openChannelSettingsInfoTab} from '@mattermost/playwright-lib';
 
 async function disableManagedCategories(adminClient: any) {
     await adminClient.patchConfig({
@@ -54,13 +54,12 @@ test.describe('Managed Channel Categories (flag off)', () => {
             await channelsPage.toBeVisible();
 
             const channelSettingsModal = await channelsPage.openChannelSettings();
-            await channelSettingsModal.openInfoTab();
+            const info = await openChannelSettingsInfoTab(channelSettingsModal);
 
             // * Verify managed category selector is not visible
-            const managedSelector = channelSettingsModal.container.locator('.ManagedCategory__control');
-            await expect(managedSelector).not.toBeVisible();
+            await expect(info.managedCategory.container).not.toBeVisible();
 
-            await channelSettingsModal.close();
+            await closeChannelSettings(channelSettingsModal);
         },
     );
 });

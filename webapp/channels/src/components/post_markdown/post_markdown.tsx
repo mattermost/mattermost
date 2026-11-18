@@ -53,6 +53,8 @@ export type OwnProps = {
 
     /** Permalink previews and similar read-only surfaces. */
     disableInteractions?: boolean;
+
+    testIdScope?: string;
 };
 
 type Props = PropsFromRedux & OwnProps;
@@ -135,9 +137,7 @@ export default class PostMarkdown extends React.PureComponent<Props> {
 
         const allowInlineActions = !this.props.disableInteractions && (isBot || isWebhook || isPlugin);
         const postProps = this.props.post?.props as Record<string, unknown> | undefined;
-        const mmBlocksActionsCookie = typeof postProps?.mm_blocks_actions === 'string' ?
-            postProps.mm_blocks_actions :
-            undefined;
+        const mmBlocksActionsCookie = typeof postProps?.mm_blocks_actions === 'string' ? postProps.mm_blocks_actions : undefined;
         const integrationFormat = mmBlocksActionsCookie ? 'mm_block' : undefined;
 
         const options = {

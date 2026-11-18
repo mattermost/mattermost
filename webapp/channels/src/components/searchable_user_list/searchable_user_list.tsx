@@ -56,6 +56,9 @@ type Props = {
 
     // the type of user list row to render
     rowComponentType?: React.ComponentType<any>;
+
+    // The list's testid scope: `<testIdScope>.search--textbox`, `.count--text`, `.next--button`, `.prev--button` and the rows (`<testIdScope>.user:<user id>`).
+    testIdScope?: string;
 };
 
 type State = {
@@ -229,6 +232,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 nextButton = (
                     <Button
                         id='searchableUserListNextBtn'
+                        data-testid={this.props.testIdScope ? `${this.props.testIdScope}.next--button` : undefined}
                         emphasis='tertiary'
                         size='small'
                         className='filter-control filter-control__next'
@@ -247,6 +251,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                 previousButton = (
                     <Button
                         id='searchableUserListPrevBtn'
+                        data-testid={this.props.testIdScope ? `${this.props.testIdScope}.prev--button` : undefined}
                         emphasis='tertiary'
                         size='small'
                         className='filter-control filter-control__prev'
@@ -280,6 +285,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                         <QuickInput
                             ref={this.filterRef}
                             id='searchUsersInput'
+                            data-testid={this.props.testIdScope ? `${this.props.testIdScope}.search--textbox` : undefined}
                             className='form-control filter-textbox'
                             placeholder={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
                             aria-label={this.props.intl.formatMessage({id: 'filtered_user_list.search', defaultMessage: 'Search users'})}
@@ -298,6 +304,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                     <div className='col-sm-12'>
                         <span
                             id='searchableUserListTotal'
+                            data-testid={this.props.testIdScope ? `${this.props.testIdScope}.count--text` : undefined}
                             className='member-count pull-left'
                             aria-live='polite'
                         >
@@ -315,6 +322,7 @@ class SearchableUserList extends React.PureComponent<Props, State> {
                             actionUserProps={this.props.actionUserProps}
                             rowComponentType={this.props.rowComponentType}
                             isDisabled={this.props.isDisabled}
+                            testIdScope={this.props.testIdScope}
                         />
                     </Scrollbars>
                 </div>

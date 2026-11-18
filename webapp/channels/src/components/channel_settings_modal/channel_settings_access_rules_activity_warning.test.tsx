@@ -35,13 +35,13 @@ jest.mock('components/widgets/modals/components/save_changes_panel', () => {
         }, [
             React.createElement('button', {
                 key: 'save',
-                'data-testid': 'SaveChangesPanel__save-btn',
+                'data-testid': 'channel_settings_modal.save_panel.save--button',
                 onClick: props.handleSubmit,
                 disabled: props.state === 'saving',
             }, props.state === 'saving' ? 'Saving...' : 'Save'),
             React.createElement('button', {
                 key: 'cancel',
-                'data-testid': 'SaveChangesPanel__cancel-btn',
+                'data-testid': 'channel_settings_modal.save_panel.cancel--button',
                 onClick: props.handleCancel,
             }, 'Cancel'),
         ]);
@@ -246,7 +246,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
         });
 
         // Click Save button to trigger the confirmation modal
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('channel_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
         // Wait for confirmation modal
@@ -317,7 +317,7 @@ describe('ChannelSettingsAccessRulesTab - Activity Warning Integration', () => {
             expect(screen.getByTestId('save-changes-panel')).toBeInTheDocument();
         });
 
-        const saveButton = screen.getByTestId('SaveChangesPanel__save-btn');
+        const saveButton = screen.getByTestId('channel_settings_modal.save_panel.save--button');
         await userEvent.click(saveButton);
 
         // Wait for confirmation modal first

@@ -38,6 +38,10 @@ function baseRow(overrides: Partial<TableRow> = {}): TableRow {
     };
 }
 
+// The rule row's scope a TableEditor passes down; the value control is `${ROW}.value--button`
+// (or `${ROW}.value_input--textbox` for a bare free-text input).
+const ROW = 'test.rules.row' as const;
+
 describe('GraphValueCell — graph value cell via ValueSelectorMenu', () => {
     const updateValues = jest.fn();
 
@@ -79,6 +83,7 @@ describe('GraphValueCell — graph value cell via ValueSelectorMenu', () => {
         renderWithContext(
             <ValueSelectorMenu
                 row={row}
+                testId={ROW}
                 disabled={false}
                 updateValues={updateValues}
                 options={field.attrs?.options ?? []}
@@ -93,7 +98,7 @@ describe('GraphValueCell — graph value cell via ValueSelectorMenu', () => {
         mockPageAll.mockResolvedValue([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]);
 
         renderGraph(graphField([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]), graphRow());
-        fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.value--button`));
 
         expect(await screen.findByRole('textbox', {name: 'Search values'})).toBeInTheDocument();
         expect(mockPageAll).toHaveBeenCalled();
@@ -105,7 +110,7 @@ describe('GraphValueCell — graph value cell via ValueSelectorMenu', () => {
         mockPageAll.mockResolvedValue([{id: 'opt-air', name: 'Air Program'} as PropertyFieldOption]);
 
         renderGraph(graphField(), graphRow());
-        fireEvent.click(screen.getByTestId('valueSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.value--button`));
 
         expect(await screen.findByRole('textbox', {name: 'Search values'})).toBeInTheDocument();
         expect(mockPageAll).toHaveBeenCalled();

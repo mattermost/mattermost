@@ -24,6 +24,9 @@ export type Props = {
     pluginTabs?: Tab[];
     updateTab: (name: string) => void;
     isMobileView: boolean;
+
+    /** The sidebar's testid scope; each tab renders `<testIdScope>.tabs.tab:<tab name>--tab` (a plugin's tab, `.tabs.plugin:<tab name>--tab`). Without it, tabs are `<tab name>-tab-button`. */
+    testIdScope?: string;
 };
 
 export function normalizePluginIcon(icon?: string, basePath = ''): Tab['icon'] {
@@ -115,7 +118,13 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
         }
     };
 
-    private renderTab(tab: Tab) {
+    private renderTab(tab: Tab, isPluginTab = false) {
+        const {testIdScope} = this.props;
+        let tabTestId;
+        if (testIdScope) {
+            tabTestId = isPluginTab ? `${testIdScope}.tabs.plugin:${tab.name}--tab` : `${testIdScope}.tabs.tab:${tab.name}--tab`;
+        }
+
         const key = `${tab.name}_li`;
         const isActive = this.props.activeTab === tab.name;
 
@@ -141,7 +150,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
             <React.Fragment key={key}>
                 {tab.newGroup && <hr/>}
                 <button
-                    data-testid={`${tab.name}-tab-button`}
+                    data-testid={tabTestId}
                     ref={(element: HTMLButtonElement) => {
                         if (element) {
                             this.buttonRefs.set(tab.name, element);
@@ -196,7 +205,7 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
                                     defaultMessage={'PLUGIN PREFERENCES'}
                                 />
                             </div>
-                            {visiblePluginTabs.map((tab) => this.renderTab(tab))}
+                            {visiblePluginTabs.map((tab) => this.renderTab(tab, true))}
                         </div>
                     </>
                 );

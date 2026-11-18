@@ -56,9 +56,11 @@ interface OperatorSelectorProps {
     // When provided (native attributes), the menu is restricted to exactly these
     // operator labels and the multiselect heuristic is bypassed.
     allowedOperators?: string[];
+
+    testId?: string;
 }
 
-const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeType, allowedOperators}: OperatorSelectorProps) => {
+const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeType, allowedOperators, testId}: OperatorSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
 
@@ -166,6 +168,7 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                 <Menu.Item
                     id={id}
                     key={id}
+                    data-testid={testId ? `${testId}.operator_menu.operator:${id}--menuitemradio` : undefined}
                     role='menuitemradio'
                     forceCloseOnSelect={true}
                     aria-checked={id === currentOperatorDescriptor.id}
@@ -178,7 +181,10 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                                     {...description}
                                     values={{
                                         functionName: (
-                                            <span className='operator-selector-menu__function-name'>
+                                            <span
+                                                className='operator-selector-menu__function-name'
+                                                data-testid={testId ? `${testId}.operator_menu.operator.function_name--text` : undefined}
+                                            >
                                                 {`(${functionName})`}
                                             </span>
                                         ),
@@ -214,7 +220,7 @@ const OperatorSelectorMenu = ({currentOperator, disabled, onChange, attributeTyp
                         </WithTooltip>
                     </>
                 ),
-                dataTestId: 'operatorSelectorMenuButton',
+                dataTestId: testId ? `${testId}.operator--button` : undefined,
                 disabled,
             }}
             menu={{

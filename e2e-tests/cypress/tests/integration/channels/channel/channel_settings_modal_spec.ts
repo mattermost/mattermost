@@ -101,7 +101,7 @@ describe('Channel Settings Modal', () => {
         });
 
         // # Click Save
-        cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+        cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
         // * Verify changes are saved
         cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
@@ -125,7 +125,7 @@ describe('Channel Settings Modal', () => {
         cy.get('.url-input-container button.url-input-button').click();
 
         // # Save changes
-        cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+        cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
         // * Verify changes are saved
         cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
@@ -161,7 +161,7 @@ describe('Channel Settings Modal', () => {
             });
 
             // # Save the name change
-            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+            cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
             // * Verify changes are saved
             cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
@@ -186,7 +186,7 @@ describe('Channel Settings Modal', () => {
             cy.get('.url-input-label').should('contain', 'explicitly-changed-url');
 
             // # Save the URL change
-            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+            cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
             // * Verify changes are saved
             cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
@@ -218,7 +218,7 @@ describe('Channel Settings Modal', () => {
             cy.get('.url-input-label').should('not.contain', 'another-name-change');
 
             // # Save the second name change
-            cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+            cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
             // * Verify changes are saved
             cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
@@ -239,7 +239,7 @@ describe('Channel Settings Modal', () => {
         cy.get('#input_channel-settings-name').clear();
 
         // # Try Save changes
-        cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+        cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
         // * Verify error is shown
         cy.get('.Input_fieldset').should('have.class', 'Input_fieldset___error');
@@ -258,7 +258,7 @@ describe('Channel Settings Modal', () => {
         cy.get('#channel_settings_header_textbox').clear().type('This is a test header');
 
         // # Save changes
-        cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+        cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
 
         // * Verify changes are saved
         cy.get('.SaveChangesPanel').should('contain', 'Settings saved');
@@ -280,7 +280,7 @@ describe('Channel Settings Modal', () => {
         cy.get('#channel_settings_purpose_textbox').clear().type(longPurpose);
 
         // * Verify error is shown
-        cy.findAllByTestId('channel_settings_purpose_textbox').should('have.class', 'textarea--has-errors');
+        cy.findAllByTestId('channel_settings_modal.info.purpose--textbox').should('have.class', 'textarea--has-errors');
         cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
     });
 
@@ -291,10 +291,10 @@ describe('Channel Settings Modal', () => {
 
         // # Enter header that exceeds character limit (1024 characters)
         const longHeader = 'a'.repeat(1050);
-        cy.findByTestId('channel_settings_header_textbox').clear().type(longHeader);
+        cy.findByTestId('channel_settings_modal.info.header--textbox').clear().type(longHeader);
 
         // * Verify error is shown
-        cy.findByTestId('channel_settings_header_textbox').should('have.class', 'textarea--has-errors');
+        cy.findByTestId('channel_settings_modal.info.header--textbox').should('have.class', 'textarea--has-errors');
         cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
     });
 
@@ -452,7 +452,7 @@ describe('Channel Settings Modal', () => {
                 cy.get('.url-input-container button.url-input-button').click();
 
                 // * Verify error is shown
-                cy.get('[data-testid="SaveChangesPanel__save-btn"]').click();
+                cy.get('[data-testid="channel_settings_modal.save_panel.save--button"]').click();
                 cy.get('.SaveChangesPanel').should('contain', 'There are errors in the form above');
             });
         });

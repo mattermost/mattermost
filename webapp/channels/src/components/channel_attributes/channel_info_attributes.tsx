@@ -98,6 +98,10 @@ const headingMessages: KindMessages = {
 type Props = {
     channelId: string;
 
+    // The list's testid scope: rows are `<testId>.attribute:<field id>`, with `.edit--button`, `.value--text`, `.unset--text`, `.chip:<position>`, `.locked`
+    // and `.error--alert`; the add control is `<testId>.add--button` and its items `<testId>.add_menu.attribute:<field id>--menuitem`.
+    testId?: string;
+
     // When true, edits are staged locally rather than saved on each change —
     // the host (e.g. a SaveChangesPanel-driven tab) drives flush/discard through
     // the ref handle and decides when a save actually reaches the server.
@@ -127,7 +131,8 @@ function withPendingValue(attribute: ResolvedChannelAttribute, raw: ChannelAttri
  * its reason rather than hidden: hiding it makes a correctly configured channel
  * look like one missing a marking.
  */
-const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({channelId, deferred, onPendingChange}, ref) => {
+const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({channelId, testId, deferred, onPendingChange}, ref) => {
+    const row = `${testId}.attribute`;
     const {formatMessage} = useIntl();
     const channelKind = useChannelKind({id: channelId});
     const dispatch = useDispatch();
@@ -238,6 +243,9 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
     // global template id, so a stale result cannot simply be filtered by field
     // id -- it would still match a same-named field on the new channel.
     const rootRef = useRef<HTMLDivElement>(null);
+
+    // Each row's element by field id, for scrolling a row into view when an edit is requested for it.
+    const rowRefs = useRef(new Map<string, HTMLDivElement>());
     const visitTokenRef = useRef(0);
     useEffect(() => {
         visitTokenRef.current += 1;
@@ -374,8 +382,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
         setEditingFieldId(field.id);
         setOpenRequest((previous) => ({channelId, fieldId: field.id, signal: (previous?.signal ?? 0) + 1}));
         requestAnimationFrame(() => {
-            const row = rootRef.current?.querySelector(`[data-testid="channelInfoAttributeRow-${field.name}"]`);
-            row?.scrollIntoView({block: 'nearest'});
+            rowRefs.current.get(field.id)?.scrollIntoView({block: 'nearest'});
 
             // Text focuses its own input and an option menu its first item; only the
             // graph picker, which has no menu to open, takes focus on its trigger.
@@ -398,7 +405,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
         <div
             ref={rootRef}
             className='ChannelInfoAttributes'
-            data-testid='channelInfoAttributes'
+            data-testid={testId ?? 'channelInfoAttributes'}
         >
             <div className='ChannelInfoAttributes__heading'>
                 <FormattedMessage {...headingMessages[channelKind]}/>
@@ -439,6 +446,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     displayValue={attribute.displayValue}
                                     color={optionColor(attribute)}
                                     onSubmit={(value) => handleSubmit(field, value)}
+                                    testId={testId ? row : undefined}
                                     onCancel={() => handleCancel(field.id)}
                                     saving={savingFieldId === field.id}
                                     missing={isMissing}
@@ -456,12 +464,12 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                         {id: 'channel_attributes.info.edit', defaultMessage: 'Edit {label}'},
                                         {label},
                                     )}
-                                    data-testid={`channelInfoAttributeEdit-${field.name}`}
+                                    data-testid={testId ? `${row}.edit--button` : `channelInfoAttributeEdit-${field.name}`}
                                 >
                                     {attribute.displayValue && (
                                         <span
                                             className='ChannelInfoAttributes__textValue'
-                                            data-testid={`channelInfoAttributeTextValue-${field.name}`}
+                                            data-testid={testId ? `${row}.value--text` : `channelInfoAttributeTextValue-${field.name}`}
                                         >
                                             {attribute.displayValue}
                                         </span>
@@ -470,7 +478,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     {!attribute.displayValue && !isMissing && (
                                         <span
                                             className='ChannelInfoAttributes__empty'
-                                            data-testid={`channelInfoAttributeUnset-${field.name}`}
+                                            data-testid={testId ? `${row}.unset--text` : `channelInfoAttributeUnset-${field.name}`}
                                         >
                                             <FormattedMessage
                                                 id='channel_attributes.info.not_set'
@@ -490,6 +498,8 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                             valueControl = values.length === 1 ? (
                                 <AttributeChip
                                     className='ChannelInfoAttributes__chip'
+                                    testId={testId ? `${row}.chip` : undefined}
+                                    testKey={0}
                                     label={label}
                                     value={values[0]}
                                     color={optionColor(attribute)}
@@ -498,9 +508,11 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                 />
                             ) : (
                                 <span className='ChannelInfoAttributes__chips'>
-                                    {values.map((value) => (
+                                    {values.map((value, index) => (
                                         <AttributeChip
                                             key={`${field.id}:${value}`}
+                                            testId={testId ? `${row}.chip` : undefined}
+                                            testKey={index}
                                             className='ChannelInfoAttributes__chip'
                                             label={label}
                                             value={value}
@@ -514,7 +526,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                             valueControl = (
                                 <span
                                     className='ChannelInfoAttributes__empty'
-                                    data-testid={`channelInfoAttributeUnset-${field.name}`}
+                                    data-testid={testId ? `${row}.unset--text` : `channelInfoAttributeUnset-${field.name}`}
                                 >
                                     <FormattedMessage
                                         id='channel_attributes.info.not_set'
@@ -527,15 +539,22 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                         return (
                             <div
                                 key={field.id}
+                                ref={(element) => {
+                                    if (element) {
+                                        rowRefs.current.set(field.id, element);
+                                    } else {
+                                        rowRefs.current.delete(field.id);
+                                    }
+                                }}
                                 className='ChannelInfoAttributes__row'
-                                data-testid={`channelInfoAttributeRow-${field.name}`}
+                                data-testid={testId ? `${row}:${field.id}` : `channelInfoAttributeRow-${field.name}`}
                             >
                                 <span className={isMissing ? 'ChannelInfoAttributes__label ChannelInfoAttributes__label--missing' : 'ChannelInfoAttributes__label'}>
                                     {label}
                                     {locked && (
                                         <LockOutlineIcon
                                             size={12}
-                                            data-testid={`channelInfoAttributeLock-${field.name}`}
+                                            data-testid={testId ? `${row}.locked` : `channelInfoAttributeLock-${field.name}`}
                                             aria-label={formatMessage(lockReason)}
                                         />
                                     )}
@@ -549,7 +568,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     <span
                                         className='ChannelInfoAttributes__error'
                                         role='alert'
-                                        data-testid={`channelInfoAttributeError-${field.name}`}
+                                        data-testid={testId ? `${row}.error--alert` : `channelInfoAttributeError-${field.name}`}
                                     >
                                         {failedAsRequired ? (
                                             <FormattedMessage
@@ -585,7 +604,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                                     />
                                 </>
                             ),
-                            dataTestId: 'channelInfoAddAttributeButton',
+                            dataTestId: testId ? `${testId}.add--button` : 'channelInfoAddAttributeButton',
                         }}
                         menu={{
                             id: 'channelInfoAddAttributeMenu',
@@ -596,7 +615,7 @@ const ChannelInfoAttributes = forwardRef<ChannelInfoAttributesHandle, Props>(({c
                             <Menu.Item
                                 key={attribute.field.id}
                                 id={`channelInfoAddAttribute-${attribute.field.name}`}
-                                data-testid={`channelInfoAddAttribute-${attribute.field.name}`}
+                                data-testid={testId ? `${testId}.add_menu.attribute:${attribute.field.id}--menuitem` : `channelInfoAddAttribute-${attribute.field.name}`}
                                 onClick={() => handleAdd(attribute.field.id)}
                                 labels={<span>{getPropertyFieldLabel(attribute.field)}</span>}
                             />

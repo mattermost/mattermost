@@ -146,9 +146,7 @@ export function SelectedValueChips({selectedIds, labelForId, disabled, onRemove,
         <span className='hierarchical-value-menu__chips'>
             {selectedIds.map((id) => {
                 const {text, state} = labelForId(id);
-                const removeLabel = state === 'named' ?
-                    formatMessage(messages.removeValue, {name: text}) :
-                    formatMessage(messages.removeUnnamedValue);
+                const removeLabel = state === 'named' ? formatMessage(messages.removeValue, {name: text}) : formatMessage(messages.removeUnnamedValue);
 
                 switch (variant) {
                 case 'inline':
@@ -215,9 +213,11 @@ export type HierarchicalMenuSearchProps = {
     onChange: (next: string) => void;
     onArrowDown: () => void;
     inputRef: React.Ref<HTMLInputElement>;
+
+    testId?: string;
 };
 
-export function HierarchicalMenuSearch({inputName, value, disabled, onChange, onArrowDown, inputRef}: HierarchicalMenuSearchProps) {
+export function HierarchicalMenuSearch({inputName, value, disabled, onChange, onArrowDown, inputRef, testId}: HierarchicalMenuSearchProps) {
     const {formatMessage} = useIntl();
     const placeholder = formatMessage(messages.searchPlaceholder);
 
@@ -230,6 +230,7 @@ export function HierarchicalMenuSearch({inputName, value, disabled, onChange, on
                 ref={inputRef as React.Ref<HTMLInputElement>}
                 type='text'
                 name={inputName}
+                testId={testId}
                 value={value}
                 disabled={disabled}
                 autoComplete='off'
@@ -262,15 +263,18 @@ export function HierarchicalMenuSearch({inputName, value, disabled, onChange, on
 export type HierarchicalMenuStatusProps = {
     kind: HierarchicalMenuStatusKind;
     onRetry?: () => void;
+
+    /** The status spinner's test id. */
+    testId?: string;
 };
 
-export function HierarchicalMenuStatus({kind, onRetry}: HierarchicalMenuStatusProps) {
+export function HierarchicalMenuStatus({kind, onRetry, testId}: HierarchicalMenuStatusProps) {
     const {formatMessage} = useIntl();
     const isError = kind === 'error_fetch';
 
     return (
         <span className='hierarchical-value-menu__status-inner'>
-            {kind === 'loading' && <LoadingSpinner/>}
+            {kind === 'loading' && <LoadingSpinner testId={testId}/>}
             {isError && <AlertOutlineIcon size={16}/>}
             <span>{formatMessage(STATUS_MESSAGES[kind])}</span>
             {onRetry && (

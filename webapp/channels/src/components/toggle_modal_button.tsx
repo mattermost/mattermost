@@ -21,6 +21,9 @@ type Props = {
     id?: string;
     role?: string;
 
+    /** Renders `<testId>--button`. */
+    testId?: string;
+
     /**
      * When set, renders a compass-ui Button instead of an unstyled trigger.
      * Prefer this for button-looking CTAs; leave unset for link/menu/icon shells.
@@ -43,6 +46,7 @@ const ToggleModalButton = ({
     disabled,
     id,
     role,
+    testId,
     emphasis,
     size,
     destructive,
@@ -85,6 +89,7 @@ const ToggleModalButton = ({
                 id={id}
                 disabled={disabled}
                 role={role}
+                data-testid={testId ? `${testId}--button` : undefined}
             >
                 {children}
                 {badge}
@@ -100,6 +105,7 @@ const ToggleModalButton = ({
             id={id}
             disabled={disabled}
             role={role}
+            data-testid={testId ? `${testId}--button` : undefined}
         >
             {children}
             {badge}

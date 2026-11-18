@@ -8,8 +8,13 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import './selector_menus.scss';
 
+type Props = {
+
+    testId?: string;
+};
+
 /** Non-interactive chip indicating hidden attribute values exist in this condition. */
-const MaskedChip = (): JSX.Element => {
+const MaskedChip = ({testId}: Props): JSX.Element => {
     const {formatMessage} = useIntl();
 
     const tooltipText = formatMessage({
@@ -28,6 +33,7 @@ const MaskedChip = (): JSX.Element => {
                 className='select__multi-value select__multi-value--masked'
                 role='img'
                 aria-label={ariaLabel}
+                data-testid={testId ? `${testId}--img` : undefined}
             >
                 <div className='select__multi-value__label'>
                     {'••••••••'}
