@@ -307,6 +307,50 @@ func TestReadHALayout(t *testing.T) {
 	assert.True(t, s.Has(model.SectionStats))
 }
 
+func TestReadJobSummary(t *testing.T) {
+	t.Run("a packet with a job summary", func(t *testing.T) {
+		s := readFiles(t, fixtureFiles(t, "ha")).Snapshot
+
+		assert.True(t, s.Has(model.SectionJobSummary))
+		summary, ok := s.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		require.True(t, ok)
+		assert.Equal(t, &model.SupportPacketJobTypeSummary{
+			LastRunID:       "w5ne8hq2tgk7cx3rbo9yzf1mjd",
+			LastRunStatus:   model.JobStatusError,
+			LastRunCreateAt: 1790294400000,
+			LastRunError:    "error refreshing materialized view poststats: pq: canceling statement due to statement timeout",
+			LastSuccessAt:   1789862400000,
+			RunsCreated:     30,
+			RunsFailed:      5,
+		}, summary)
+
+		summary, ok = s.JobSummaryFor(model.JobTypeDataRetention)
+		assert.True(t, ok)
+		assert.Nil(t, summary, "a type missing from the summary never ran")
+	})
+
+	t.Run("a packet from a server that predates the job summary", func(t *testing.T) {
+		s := readFiles(t, fixtureFiles(t, "standalone")).Snapshot
+
+		assert.True(t, s.Has(model.SectionJobs))
+		present, _ := s.SectionErr(model.SectionJobSummary)
+		assert.False(t, present)
+		_, ok := s.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		assert.False(t, ok)
+	})
+
+	t.Run("an unparsable jobs.yaml records no job summary", func(t *testing.T) {
+		files := fixtureFiles(t, "ha")
+		files[model.SupportPacketJobsFileName] = []byte("job_summary: [")
+		s := readFiles(t, files).Snapshot
+
+		present, _ := s.SectionErr(model.SectionJobSummary)
+		assert.False(t, present)
+		_, ok := s.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		assert.False(t, ok)
+	})
+}
+
 func TestReadLeader(t *testing.T) {
 	const unknownLeaderWarning = "The packet does not record which node is the leader"
 	leaderOf := func(t *testing.T, files map[string][]byte) (string, []string) {

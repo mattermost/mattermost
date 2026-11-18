@@ -174,6 +174,76 @@ func TestBuildHealthSnapshotSectionFailureIsolationWithPartialStats(t *testing.T
 }
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotJobSummary(t *testing.T) {
+	th := Setup(t)
+
+	license := model.NewTestLicense()
+	require.True(t, th.App.Srv().SetLicense(license))
+	t.Cleanup(func() { th.App.Srv().SetLicense(nil) })
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	now := model.GetMillis()
+	failed := &model.Job{Id: model.NewId(), Type: model.JobTypeDataRetention, CreateAt: now, LastActivityAt: now, Status: model.JobStatusError, Data: model.StringMap{"error": "driver: bad connection"}}
+	_, err = th.App.Srv().Store().Job().Save(failed)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, deleteErr := th.App.Srv().Store().Job().Delete(failed.Id)
+		require.NoError(t, deleteErr)
+	})
+
+	jobFailed := func(t *testing.T, snapshot *healthcheck.Snapshot) healthcheck.Result {
+		t.Helper()
+
+		engine := healthcheck.NewEngine(healthcheck.EngineOpts{Registry: healthcheck.Builtin(), Now: time.Now})
+		for _, evaluation := range engine.Evaluate(snapshot) {
+			if evaluation.Code == "JOB_FAILED" && evaluation.Result.Subject == model.JobTypeDataRetention {
+				return evaluation.Result
+			}
+		}
+		require.FailNow(t, "JOB_FAILED was not evaluated for data retention")
+		return healthcheck.Result{}
+	}
+
+	t.Run("the summary is read through JobSummaryFor", func(t *testing.T) {
+		snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+		require.NoError(t, buildErr)
+
+		summary, ok := snapshot.JobSummaryFor(model.JobTypeDataRetention)
+		require.True(t, ok)
+		require.NotNil(t, summary)
+		assert.Equal(t, failed.Id, summary.LastRunID)
+		assert.Equal(t, "driver: bad connection", summary.LastRunError)
+		assert.Equal(t, int64(1), summary.RunsFailed)
+
+		summary, ok = snapshot.JobSummaryFor(model.JobTypeRefreshMaterializedViews)
+		assert.True(t, ok)
+		assert.Nil(t, summary, "a type that never ran has no summary")
+	})
+
+	t.Run("a failed summary query does not hide the job lists from the job rules", func(t *testing.T) {
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(failingJobSummaryStore{original})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		snapshot, buildErr := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, latestVersionServer(t).URL)
+		require.NoError(t, buildErr)
+
+		ok, sectionErr := snapshot.SectionErr(model.SectionJobSummary)
+		require.True(t, ok)
+		require.ErrorContains(t, sectionErr, "job summary query failed")
+		_, ok = snapshot.JobSummaryFor(model.JobTypeDataRetention)
+		assert.False(t, ok)
+
+		assert.True(t, snapshot.Has(model.SectionJobs))
+		result := jobFailed(t, snapshot)
+		assert.Equal(t, healthcheck.StateFiring, result.State)
+		assert.Equal(t, failed.Id, result.Details["job_id"])
+	})
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestBuildHealthSnapshotLatestVersionTimeout(t *testing.T) {
 	th := Setup(t)
 

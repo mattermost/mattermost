@@ -64,3 +64,25 @@ migration_jobs:
   progress: 0
   data:
     result: ok
+job_summary:
+  delete_empty_drafts_migration:
+    last_run_id: job-drafts
+    last_run_status: success
+    last_run_create_at: 1111
+    last_success_at: 1111
+    runs_created: 0
+    runs_failed: 0
+  export_process:
+    last_run_id: job-export-process
+    last_run_status: pending
+    last_run_create_at: 5555
+    runs_created: 1
+    runs_failed: 0
+  refresh_materialized_views:
+    last_run_id: job-refresh
+    last_run_status: error
+    last_run_create_at: 4444
+    last_run_error: error refreshing materialized view poststats
+    last_success_at: 1111
+    runs_created: 30
+    runs_failed: 2

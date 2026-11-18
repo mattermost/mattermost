@@ -10,8 +10,10 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 
 	"github.com/goccy/go-yaml"
 	"github.com/stretchr/testify/assert"
@@ -698,6 +700,103 @@ func TestGetSupportPacketJobList(t *testing.T) {
 	})
 }
 
+// failingJobSummaryStore fails only the job summary query.
+type failingJobSummaryStore struct {
+	store.Store
+}
+
+func (s failingJobSummaryStore) Job() store.JobStore {
+	return failingJobSummaryJobStore{s.Store.Job()}
+}
+
+type failingJobSummaryJobStore struct {
+	store.JobStore
+}
+
+func (failingJobSummaryJobStore) GetTypeSummaries(request.CTX, int64) ([]*store.JobTypeSummary, error) {
+	return nil, errors.New("job summary query failed")
+}
+
+func TestSupportPacketJobSummary(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	readJobsFile := func(t *testing.T) (*model.SupportPacketJobList, string, []model.FileData) {
+		t.Helper()
+
+		files := th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: shortCPUProfileDuration})
+		for _, file := range files {
+			if file.Filename == model.SupportPacketJobsFileName {
+				var jobs model.SupportPacketJobList
+				require.NoError(t, yaml.Unmarshal(file.Body, &jobs))
+				return &jobs, string(file.Body), files
+			}
+		}
+		require.FailNow(t, "the Support Packet has no jobs.yaml")
+		return nil, "", nil
+	}
+
+	// A type outside the per-type job lists, so only the summary reports it.
+	jobType := model.JobTypeRefreshMaterializedViews
+	now := model.GetMillis()
+	jobError := `LDAP Result Code 200 "Network Error": dial ldap://admin:hunter2@ldap.example.com:389: ` + strings.Repeat("ü", 600)
+	succeeded := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - 2000, Status: model.JobStatusSuccess}
+	failed := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - 1000, Status: model.JobStatusError, Data: model.StringMap{"error": jobError}}
+	outsideWindow := &model.Job{Id: model.NewId(), Type: jobType, CreateAt: now - (jobSummaryWindow + time.Hour).Milliseconds(), Status: model.JobStatusError}
+	for _, job := range []*model.Job{succeeded, failed, outsideWindow} {
+		_, err := th.App.Srv().Store().Job().Save(job)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, err := th.App.Srv().Store().Job().Delete(job.Id)
+			require.NoError(t, err)
+		})
+	}
+
+	t.Run("jobs.yaml summarizes every job type with a masked, truncated error", func(t *testing.T) {
+		jobs, body, _ := readJobsFile(t)
+
+		assert.Contains(t, body, "\njob_summary:\n")
+		require.Contains(t, jobs.JobSummary, jobType)
+		summary := jobs.JobSummary[jobType]
+
+		wantPrefix := `LDAP Result Code 200 "Network Error": dial ldap://****@ldap.example.com:389: `
+		assert.True(t, strings.HasPrefix(summary.LastRunError, wantPrefix), summary.LastRunError)
+		assert.NotContains(t, summary.LastRunError, "hunter2")
+		assert.True(t, utf8.ValidString(summary.LastRunError))
+		assert.Less(t, utf8.RuneCountInString(summary.LastRunError), utf8.RuneCountInString(jobError))
+
+		summary.LastRunError = ""
+		assert.Equal(t, &model.SupportPacketJobTypeSummary{
+			LastRunID:       failed.Id,
+			LastRunStatus:   model.JobStatusError,
+			LastRunCreateAt: failed.CreateAt,
+			LastSuccessAt:   succeeded.CreateAt,
+			RunsCreated:     2,
+			RunsFailed:      1,
+		}, summary)
+	})
+
+	t.Run("a failed summary query leaves the job lists and omits the summary", func(t *testing.T) {
+		original := th.App.Srv().Store()
+		th.App.Srv().SetStore(failingJobSummaryStore{original})
+		t.Cleanup(func() { th.App.Srv().SetStore(original) })
+
+		jobs, body, files := readJobsFile(t)
+
+		assert.NotContains(t, body, "job_summary")
+		assert.Nil(t, jobs.JobSummary)
+		assert.Contains(t, body, "data_retention_jobs:")
+
+		var warnings string
+		for _, file := range files {
+			if file.Filename == model.SupportPacketErrorFile {
+				warnings = string(file.Body)
+			}
+		}
+		assert.Contains(t, warnings, "job summary query failed")
+	})
+}
+
 func TestGetSupportPacketPermissionsInfo(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
@@ -967,6 +1066,29 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 					ElasticPostIndexingJobs:    []*model.Job{jobFactory("job-index", model.JobTypeElasticsearchPostIndexing)},
 					ElasticPostAggregationJobs: []*model.Job{jobFactory("job-agg", model.JobTypeElasticsearchPostAggregation)},
 					MigrationJobs:              []*model.Job{jobFactory("job-migrate", model.JobTypeMigrations)},
+					JobSummary: map[string]*model.SupportPacketJobTypeSummary{
+						model.JobTypeRefreshMaterializedViews: {
+							LastRunID:       "job-refresh",
+							LastRunStatus:   model.JobStatusError,
+							LastRunCreateAt: 4444,
+							LastRunError:    "error refreshing materialized view poststats",
+							LastSuccessAt:   1111,
+							RunsCreated:     30,
+							RunsFailed:      2,
+						},
+						model.JobTypeDeleteEmptyDraftsMigration: {
+							LastRunID:       "job-drafts",
+							LastRunStatus:   model.JobStatusSuccess,
+							LastRunCreateAt: 1111,
+							LastSuccessAt:   1111,
+						},
+						model.JobTypeExportProcess: {
+							LastRunID:       "job-export-process",
+							LastRunStatus:   model.JobStatusPending,
+							LastRunCreateAt: 5555,
+							RunsCreated:     1,
+						},
+					},
 				}, nil)
 			},
 		},

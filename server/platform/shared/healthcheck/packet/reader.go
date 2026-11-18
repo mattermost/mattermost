@@ -90,6 +90,10 @@ func readPacket(z *budgetedZip) (*Packet, error) {
 	snapshot.Config = readSection[model.SupportPacketConfig](z, snapshot.Sections, model.SectionConfig, configFile, json.Unmarshal)
 	snapshot.Stats = readSection[model.SupportPacketStats](z, snapshot.Sections, model.SectionStats, model.SupportPacketStatsFileName, yaml.Unmarshal)
 	snapshot.Jobs = readSection[model.SupportPacketJobList](z, snapshot.Sections, model.SectionJobs, model.SupportPacketJobsFileName, yaml.Unmarshal)
+	// Packets from servers that predate the job summary, or whose summary query failed, have none.
+	if snapshot.Jobs != nil && snapshot.Jobs.JobSummary != nil {
+		snapshot.Sections[model.SectionJobSummary] = nil
+	}
 	snapshot.Plugins = readSection[model.SupportPacketPluginList](z, snapshot.Sections, model.SectionPlugins, model.SupportPacketPluginsFileName, json.Unmarshal)
 
 	var metadata model.PacketMetadata
