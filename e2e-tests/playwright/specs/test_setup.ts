@@ -47,27 +47,25 @@ setup('ensure ABAC is configured', async ({pw}) => {
     // browser sessions across the 13 parallel shards starting simultaneously.
     const {adminClient} = await pw.getAdminClient();
 
-    try {
-        await adminClient.patchConfig({
-            AccessControlSettings: {
-                EnableAttributeBasedAccessControl: true,
-                EnableUserManagedAttributes: true,
-            },
-        } as any);
-    } catch {
-        // Server is not licensed for ABAC — individual tests will skip via pw.skipIfNoLicense()
+    // Without a license the server refuses the ABAC settings; individual tests skip via pw.skipIfNoLicense().
+    const license = await adminClient.getClientLicenseOld();
+    if (license.IsLicensed === 'false') {
+        return;
     }
 
-    try {
-        const fields = await adminClient.getCustomProfileAttributeFields();
-        if (!fields.some((f: any) => f.name === 'Department')) {
-            await adminClient.createCustomProfileAttributeField({
-                name: 'Department',
-                type: 'text',
-                attrs: {sort_order: 0},
-            } as any);
-        }
-    } catch {
-        // Attribute creation failed — ABAC tests will handle their own attribute setup
+    await adminClient.patchConfig({
+        AccessControlSettings: {
+            EnableAttributeBasedAccessControl: true,
+            EnableUserManagedAttributes: true,
+        },
+    } as any);
+
+    const fields = await adminClient.getCustomProfileAttributeFields();
+    if (!fields.some((f: any) => f.name === 'Department')) {
+        await adminClient.createCustomProfileAttributeField({
+            name: 'Department',
+            type: 'text',
+            attrs: {sort_order: 0},
+        } as any);
     }
 });

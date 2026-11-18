@@ -26,17 +26,20 @@ export async function postAndFindMessage(
     const uniqueTerm = `searchterm${getRandomId()}`;
     await userClient.createPost({channel_id: townSquare.id, message: `hello ${uniqueTerm}`});
 
-    let results: PostSearchResults | undefined;
-    await pw.waitUntil(
+    const results = await pw.waitUntil(
         async () => {
-            results = await userClient.searchPosts(teamId, uniqueTerm, false);
-            const found = results.order.length > 0;
-            return fromSearchEngine ? found && Boolean(results.matches?.[results.order[0]]) : found;
+            const response: PostSearchResults = await userClient.searchPosts(teamId, uniqueTerm, false);
+            const found = response.order.length > 0;
+            const ready = fromSearchEngine ? found && Boolean(response.matches?.[response.order[0]]) : found;
+            return ready ? response : false;
         },
         {timeout: 15000, intervalBetweenAttempts: 1000},
     );
 
-    const {order, posts} = results!;
+    if (!results) {
+        throw new Error('The search never returned the posted message');
+    }
+    const {order, posts} = results;
     expect(order).toHaveLength(1);
     expect(posts[order[0]].message).toContain(uniqueTerm);
 }
