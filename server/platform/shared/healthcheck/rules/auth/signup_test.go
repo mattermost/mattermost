@@ -57,8 +57,14 @@ func TestOpenSignupUnverified(t *testing.T) {
 		{"verification absent", openSignup(func(cfg *model.Config) {
 			cfg.EmailSettings.RequireEmailVerification = nil
 		}), configUnavailable},
+		{"user creation absent", openSignup(func(cfg *model.Config) {
+			cfg.TeamSettings.EnableUserCreation = nil
+		}), configUnavailable},
 		{"open server absent", openSignup(func(cfg *model.Config) {
 			cfg.TeamSettings.EnableOpenServer = nil
+		}), configUnavailable},
+		{"email signup absent", openSignup(func(cfg *model.Config) {
+			cfg.EmailSettings.EnableSignUpWithEmail = nil
 		}), configUnavailable},
 		{"a known closed setting outweighs an absent one", openSignup(func(cfg *model.Config) {
 			cfg.TeamSettings.EnableOpenServer = nil
