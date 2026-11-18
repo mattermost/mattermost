@@ -32,7 +32,7 @@ type Props = {
     onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
 
     // Called whenever a drag ends. finalWidth is 0 if the container was hidden at the time; the width is saved only when
-    // it is positive and the drag changed it.
+    // it is positive and the pointer moved.
     onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;
     onDividerDoubleClick?: (prevWidth: number, cssVarProperty: string) => void;
 };
@@ -100,6 +100,7 @@ function ResizableDivider({
 
     const startWidth = useRef(0);
     const snapWidth = useRef(0);
+    const pointerMoved = useRef(false);
     const lastWidth = useRef<number | null>(null);
 
     const previousClientX = useRef(0);
@@ -143,6 +144,7 @@ function ResizableDivider({
 
         previousClientX.current = e.clientX;
         snapWidth.current = typeof defaultWidth === 'function' ? defaultWidth() : defaultWidth;
+        pointerMoved.current = false;
 
         const currentWidth = containerRef.current.getBoundingClientRect().width;
         startWidth.current = currentWidth;
@@ -206,6 +208,10 @@ function ResizableDivider({
                 break;
             }
 
+            if (widthDiff !== 0) {
+                pointerMoved.current = true;
+            }
+
             const newWidth = previousWidth + widthDiff;
 
             if (resizeLine.classList.contains('snapped')) {
@@ -249,9 +255,9 @@ function ResizableDivider({
         const onMouseUp = () => {
             const finalWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
 
-            // Only save a width the drag changed, so a click on the handle doesn't overwrite the saved
-            // preference with a width the layout is currently capping. Always let the parent clean up.
-            if (finalWidth && finalWidth !== startWidth.current) {
+            // Only save a width the pointer changed, so pressing the handle without dragging doesn't overwrite
+            // the saved preference with a width the layout is currently capping. Always let the parent clean up.
+            if (finalWidth && pointerMoved.current) {
                 setWidth(finalWidth);
             }
             onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);

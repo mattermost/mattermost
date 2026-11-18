@@ -87,24 +87,31 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
         expect(onResizeEnd).toHaveBeenCalledWith(0, '--overrideLhsWidth', '0px');
     });
 
-    test('should save the width only when the drag changed it', () => {
-        let width = 400;
-        const getBoundingClientRect = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(() => ({width} as DOMRect));
-        const getSavedWidth = (state: any) => Object.entries(state.storage.storage).find(([key]) => key.startsWith('resizable_test:'))?.[1];
+    test('should keep the saved width on a click and save it after a drag', () => {
+        // The container's rendered width follows the width override the divider sets on it
+        const getBoundingClientRect = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(function(this: HTMLElement) {
+            const override = parseFloat(this.style.getPropertyValue('--overrideLhsWidth'));
+            return {width: Number.isNaN(override) ? 400 : override} as DOMRect;
+        });
+        const savedWidthKey = 'resizable_test:user1';
+        const getSavedWidth = (state: any) => state.storage.storage[savedWidthKey]?.value;
 
-        const {container, store} = renderWithContext(<TestWrapper/>);
+        const {container, store} = renderWithContext(<TestWrapper/>, {
+            entities: {users: {currentUserId: 'user1'}},
+            storage: {storage: {[savedWidthKey]: {value: 600, timestamp: new Date()}}},
+        });
         const divider = container.querySelector(`#${dividerId}`)!;
 
-        // A click without moving keeps whatever was saved
+        // Pressing the handle without moving keeps the saved width
         fireEvent.mouseDown(divider, {button: 0, clientX: 400});
         fireEvent.mouseUp(window);
-        expect(getSavedWidth(store.getState())).toBeUndefined();
+        expect(getSavedWidth(store.getState())).toBe(600);
 
-        // A drag that changes the width saves it
+        // Dragging saves the new width
         fireEvent.mouseDown(divider, {button: 0, clientX: 400});
-        width = 450;
+        fireEvent.mouseMove(window, {clientX: 450});
         fireEvent.mouseUp(window);
-        expect(getSavedWidth(store.getState())).toMatchObject({value: 450});
+        expect(getSavedWidth(store.getState())).toBe(450);
 
         getBoundingClientRect.mockRestore();
     });
