@@ -592,8 +592,8 @@ func TestMaskValueReads(t *testing.T) {
 		assert.Nil(t, retrieved)
 	})
 
-	t.Run("rank: exact match visible, and a target above or below the caller is dropped rather than clamped", func(t *testing.T) {
-		field, err := th.service.CreatePropertyField(th.Context, maskedField(th.CPAGroupID, "Mask-Rank", model.PropertyFieldTypeRank, &model.Masking{}))
+	t.Run("rank: a target at or below the caller is visible whole, and one above is dropped rather than clamped", func(t *testing.T) {
+		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Rank", model.PropertyFieldTypeRank, rankOptions(), &model.Masking{}))
 		require.NoError(t, err)
 
 		caller := model.NewId()
@@ -615,7 +615,8 @@ func TestMaskValueReads(t *testing.T) {
 
 		retrieved, err = th.service.GetPropertyValue(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, below.ID)
 		require.NoError(t, err)
-		assert.Nil(t, retrieved, "a target ranked below the caller must be dropped too -- rank order plays no part in masking")
+		require.NotNil(t, retrieved, "a target ranked below the caller is visible")
+		assert.Equal(t, below.Value, retrieved.Value, "returned whole, not rewritten to the caller's rank")
 	})
 
 	t.Run("scalar: identical bytes visible, different bytes dropped, no caller value dropped", func(t *testing.T) {
@@ -1316,7 +1317,7 @@ func TestMaskFieldOptions(t *testing.T) {
 		assert.ElementsMatch(t, []string{"opt_a", "opt_c"}, optionIDsOf(t, retrieved))
 	})
 
-	t.Run("rank: only the option the caller holds exactly comes back, not the options below it", func(t *testing.T) {
+	t.Run("rank: the option the caller holds and every option ranked below it come back", func(t *testing.T) {
 		field, err := th.service.CreatePropertyField(th.Context, maskedOptionField(th.CPAGroupID, "Mask-Rank-Options", model.PropertyFieldTypeRank, rankOptions(), &model.Masking{}))
 		require.NoError(t, err)
 
@@ -1325,11 +1326,7 @@ func TestMaskFieldOptions(t *testing.T) {
 
 		retrieved, err := th.service.GetPropertyField(RequestContextWithCallerID(th.Context, caller), th.CPAGroupID, field.ID)
 		require.NoError(t, err)
-		// TestRankSharedOnly_FieldOptions shows the whole ladder at or below
-		// opt_secret for the legacy path. Masking must show only the exact
-		// option, never the ladder below it.
-		assert.Equal(t, []string{"opt_secret"}, optionIDsOf(t, retrieved),
-			"masking must never apply the rank ladder, only exact-option membership")
+		assert.ElementsMatch(t, []string{"opt_public", "opt_confidential", "opt_secret"}, optionIDsOf(t, retrieved))
 	})
 
 	t.Run("graph: a caller holding an ancestor receives that option and the ones below it that they cover, and no unrelated branch", func(t *testing.T) {
@@ -1845,8 +1842,7 @@ func TestMaskOptionPage(t *testing.T) {
 // maskedListFixture is a masked template whose holdings field is linked back to
 // it, plus a channel field linked to the template -- the shape a classification
 // marking takes. The options form a chain, Top Secret > Secret > Internal: a
-// graph holder of Secret covers Secret and Internal, a rank holder sees only
-// Secret.
+// graph holder of Secret covers Secret and Internal, and so does a rank holder.
 type maskedListFixture struct {
 	th                         *TestHelper
 	fieldType                  model.PropertyFieldType
@@ -2027,10 +2023,7 @@ func TestMaskingHoldingsOnAnotherOptionList(t *testing.T) {
 			f := newMaskedListFixture(t, th, fieldType, "Foreign-Control")
 			o := observe(t, f, model.NewId())
 
-			want := []string{"Secret"}
-			if fieldType == model.PropertyFieldTypeGraph {
-				want = []string{"Secret", "Internal"}
-			}
+			want := []string{"Secret", "Internal"}
 			assert.ElementsMatch(t, want, o.inline)
 			assert.ElementsMatch(t, want, o.listed)
 			assert.True(t, o.readable)
@@ -2129,4 +2122,89 @@ func TestMaskingHoldingsOnAnotherOptionList(t *testing.T) {
 		assert.Empty(t, read)
 		assert.Equal(t, 2, counter.gets, "the template and the holdings field are each read once, not once per value")
 	})
+}
+
+// TestMaskingRankOrder: a masked rank field shows a caller every option ranked
+// at or below the highest one they hold, on the inline list, the paged listing,
+// value reads and the write check alike, and a value is returned whole or not
+// at all.
+func TestMaskingRankOrder(t *testing.T) {
+	th := Setup(t).RegisterCPAPropertyGroup(t)
+	th.service.setLadderCheckerForTests(func(_ request.CTX, _ string, _ *model.PropertyField, _, _ string) bool { return true })
+	t.Cleanup(func() {
+		th.service.setLadderCheckerForTests(nil)
+		th.service.setPluginCheckerForTests(nil)
+	})
+
+	// listAll pages one option at a time, so a page that stops early or repeats
+	// an option shows up.
+	listAll := func(t *testing.T, ctx request.CTX, f *maskedListFixture) []string {
+		t.Helper()
+		var names []string
+		var cursorCreateAt int64
+		var cursorID string
+		for pages := 1; ; pages++ {
+			require.LessOrEqual(t, pages, 5, "the listing has to end")
+			page, err := th.service.GetFieldOptions(ctx, f.linked.GroupID, f.linked.ID, cursorCreateAt, cursorID, 1)
+			require.NoError(t, err)
+			names = append(names, listedNames(page.Options)...)
+			if !page.HasMore {
+				return names
+			}
+			cursorCreateAt, cursorID = page.NextCursorCreateAt, page.NextCursorID
+		}
+	}
+
+	cases := []struct {
+		held    string // "" holds nothing
+		visible []string
+	}{
+		{"Top Secret", []string{"Top Secret", "Secret", "Internal"}},
+		{"Secret", []string{"Secret", "Internal"}},
+		{"Internal", []string{"Internal"}},
+		{"", nil},
+	}
+	for _, tc := range cases {
+		t.Run("holding "+tc.held, func(t *testing.T) {
+			f := newMaskedListFixture(t, th, model.PropertyFieldTypeRank, "RankOrder-"+tc.held)
+			caller := model.NewId()
+			if tc.held != "" {
+				writeValueDirect(t, th, f.holdings.ID, "user", caller, f.value(tc.held))
+			}
+			ctx := RequestContextWithCallerID(th.Context, caller)
+
+			field, err := th.service.GetPropertyField(ctx, f.linked.GroupID, f.linked.ID)
+			require.NoError(t, err)
+			assert.ElementsMatch(t, tc.visible, inlineOptionNames(t, field), "inline list")
+			assert.ElementsMatch(t, tc.visible, listAll(t, ctx, f), "paged listing")
+
+			for _, stored := range []string{"Top Secret", "Secret", "Internal"} {
+				canSee := slices.Contains(tc.visible, stored)
+				value := writeValueDirect(t, th, f.linked.ID, "channel", model.NewId(), f.value(stored))
+
+				read, readErr := th.service.GetPropertyValue(ctx, th.CPAGroupID, value.ID)
+				require.NoError(t, readErr)
+				if canSee {
+					require.NotNil(t, read, "a stored %s value is visible", stored)
+					assert.Equal(t, string(value.Value), string(read.Value), "returned whole, same bytes")
+				} else {
+					assert.Nil(t, read, "a stored %s value is dropped, never replaced by a lower option", stored)
+				}
+
+				_, updateErr := th.service.UpdatePropertyValue(ctx, th.CPAGroupID, value)
+				if canSee {
+					assert.NoError(t, updateErr, "updating a visible %s value", stored)
+				} else {
+					assert.ErrorIs(t, updateErr, ErrAccessDenied, "updating an invisible %s value", stored)
+				}
+			}
+
+			encoded, err := json.Marshal(f.value("Top Secret"))
+			require.NoError(t, err)
+			_, err = th.service.CreatePropertyValue(ctx, &model.PropertyValue{
+				GroupID: th.CPAGroupID, FieldID: f.linked.ID, TargetType: "channel", TargetID: model.NewId(), Value: encoded,
+			})
+			assert.NoError(t, err, "a target with nothing stored can always be marked")
+		})
+	}
 }

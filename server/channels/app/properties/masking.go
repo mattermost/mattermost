@@ -335,9 +335,9 @@ func logMaskingFailure(rctx request.CTX, field *model.PropertyField, value *mode
 
 // maskOptionValue answers select, multiselect, rank and graph alike: the
 // value the caller may see is the value's own option IDs narrowed to the
-// ones visibleOptionIDs reports true for -- exact membership for select,
-// multiselect and rank, CoveredBy for graph, the same rule the two
-// option-list filters (maskFieldOptions, filterMaskedOptionPage) already use.
+// ones visibleOptionIDs reports true for -- the same rule the two option-list
+// filters (maskFieldOptions, filterMaskedOptionPage) use. A rank value is
+// returned whole or not at all, never replaced by a lower option.
 // select and rank hold at most one option, so the narrowed set has at most
 // one element; multiselect's and graph's may have several. A caller holding
 // nothing, or a narrowed set of none, sees nothing -- reported as (nil, nil),
@@ -390,12 +390,10 @@ func (h *AccessControlHook) maskOptionValue(rctx request.CTX, c maskingContext, 
 }
 
 // visibleOptionIDs answers, for a field already known to carry masking, which
-// of candidateOptionIDs callerID may see: a graph field asks CoveredBy -- one
-// of the caller's own held options is at-or-above the candidate -- and every
-// other option-supporting type asks exact membership in what the caller
-// holds, the same holdings maskOptionValue checks a value's own options
-// against. A caller holding nothing sees nothing, without asking CoveredBy at
-// all.
+// of candidateOptionIDs callerID may see: those OptionsCoveredBy reports
+// covered by the options the caller holds on the holdings field (rank order for
+// rank, ancestry for graph, exact membership for select and multiselect). A
+// caller holding nothing sees nothing, without asking.
 func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX, field *model.PropertyField, fm fieldMasking, candidateOptionIDs []string, callerID string) (map[string]bool, error) {
 	if fm.holdingsListDiffers {
 		return map[string]bool{}, nil
@@ -408,23 +406,11 @@ func (c maskingContext) visibleOptionIDs(h *AccessControlHook, rctx request.CTX,
 		return map[string]bool{}, nil
 	}
 
-	if field.Type == model.PropertyFieldTypeGraph {
-		return h.propertyService.CoveredBy(rctx, field, candidateOptionIDs, slices.Collect(maps.Keys(callerOptionIDs)))
-	}
-
-	visible := make(map[string]bool, len(candidateOptionIDs))
-	for _, id := range candidateOptionIDs {
-		if _, ok := callerOptionIDs[id]; ok {
-			visible[id] = true
-		}
-	}
-	return visible, nil
+	return h.propertyService.OptionsCoveredBy(rctx, field, candidateOptionIDs, slices.Collect(maps.Keys(callerOptionIDs)))
 }
 
 // maskFieldOptions filters field's inline option list to what callerID may
-// see. A masked rank field's options are exact-option membership, the same
-// rule select and multiselect use, so this path never applies the rank
-// ladder.
+// see, by the same coverage rule as value reads.
 //
 // This runs only on the branch permissionsAllows already admitted for
 // option.read; a caller the gate refused never reaches it.

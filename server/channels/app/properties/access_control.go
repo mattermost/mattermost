@@ -577,8 +577,9 @@ func (h *AccessControlHook) PostGetPropertyFieldOptions(rctx request.CTX, field 
 // overlaps them, or whose holdings field reads a different option list, since
 // held IDs mean nothing against this one. A caller with holdings gets them as
 // CoveredBy, which the store applies as the same rule visibleOptionIDs does:
-// coverage for a graph field, and exact membership for every other type, whose
-// options have no edges to cover through.
+// ancestry for a graph field, rank order for a rank field, and exact
+// membership for every other type, whose options have no edges to cover
+// through.
 func (h *AccessControlHook) PreGetPropertyFieldOptions(rctx request.CTX, field *model.PropertyField, filter *model.PropertyFieldOptionPageFilter) (*model.PropertyFieldOptionPageFilter, error) {
 	if field == nil {
 		return filter, nil

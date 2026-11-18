@@ -1873,7 +1873,7 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 		assert.True(t, info.IsValueHidden("Air Program"), "an option above the one the caller holds")
 	})
 
-	t.Run("a rank field reports the caller's own rank and no other", func(t *testing.T) {
+	t.Run("a rank field reports the caller's own rank and the ranks below it, not above", func(t *testing.T) {
 		secret, confidential, public := model.NewId(), model.NewId(), model.NewId()
 		field, sErr := th.Store.PropertyField().Create(&model.PropertyField{
 			GroupID:    groupID,
@@ -1907,11 +1907,9 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
 		assert.False(t, info.IsValueHidden("Confidential"), "the caller's own rank")
-		// Masking treats a rank like a select -- the same option or nothing -- so
-		// the ladder is not walked in either direction. Holding a higher rank no
-		// longer discloses a lower one, which is the narrowing this model
-		// announces relative to the clamping it replaces.
-		assert.True(t, info.IsValueHidden("Public"), "a rank below the caller's")
+		// A rank is covered by rank order: what the caller holds and everything
+		// ranked below it shows, and anything above stays hidden.
+		assert.False(t, info.IsValueHidden("Public"), "a rank below the caller's")
 		assert.True(t, info.IsValueHidden("Secret"), "a rank above the caller's")
 	})
 }
