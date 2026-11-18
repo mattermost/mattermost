@@ -133,9 +133,9 @@ func (_m *ChannelStore) Autocomplete(rctx request.CTX, userID string, term strin
 	return r0, r1
 }
 
-// AutocompleteInSessionScope provides a mock function with given fields: teamID, term, resources
-func (_m *ChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelListWithTeamData, error) {
-	ret := _m.Called(teamID, term, resources)
+// AutocompleteInSessionScope provides a mock function with given fields: teamID, term, resources, opts
+func (_m *ChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources, opts *model.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
+	ret := _m.Called(teamID, term, resources, opts)
 
 	if len(ret) == 0 {
 		panic("no return value specified for AutocompleteInSessionScope")
@@ -143,19 +143,19 @@ func (_m *ChannelStore) AutocompleteInSessionScope(teamID string, term string, r
 
 	var r0 model.ChannelListWithTeamData
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *model.SessionScopeResources) (model.ChannelListWithTeamData, error)); ok {
-		return rf(teamID, term, resources)
+	if rf, ok := ret.Get(0).(func(string, string, *model.SessionScopeResources, *model.ChannelSearchOpts) (model.ChannelListWithTeamData, error)); ok {
+		return rf(teamID, term, resources, opts)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, *model.SessionScopeResources) model.ChannelListWithTeamData); ok {
-		r0 = rf(teamID, term, resources)
+	if rf, ok := ret.Get(0).(func(string, string, *model.SessionScopeResources, *model.ChannelSearchOpts) model.ChannelListWithTeamData); ok {
+		r0 = rf(teamID, term, resources, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelListWithTeamData)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, *model.SessionScopeResources) error); ok {
-		r1 = rf(teamID, term, resources)
+	if rf, ok := ret.Get(1).(func(string, string, *model.SessionScopeResources, *model.ChannelSearchOpts) error); ok {
+		r1 = rf(teamID, term, resources, opts)
 	} else {
 		r1 = ret.Error(1)
 	}

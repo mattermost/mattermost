@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
-	"slices"
 	"strconv"
 	"strings"
 
@@ -1409,7 +1408,9 @@ func getPublicChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request
 	var channels model.ChannelList
 	var err *model.AppError
 	if scope, scoped := c.AppContext.Session().Scope(); scoped {
-		channels, err = c.App.GetPublicChannelsForTeamInSessionScope(c.AppContext, scope, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		var scopedErr error
+		channels, scopedErr = c.App.GetPublicChannelsForTeamInSessionScope(c.AppContext, scope, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
+		err = model.AsAppError(scopedErr)
 	} else {
 		channels, err = c.App.GetPublicChannelsForTeam(c.AppContext, c.Params.TeamId, c.Params.Page*c.Params.PerPage, c.Params.PerPage)
 	}
@@ -1758,7 +1759,9 @@ func searchChannelsForTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	var appErr *model.AppError
 	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
 		if scope, scoped := c.AppContext.Session().Scope(); scoped {
-			channels, appErr = c.App.SearchChannelsInSessionScope(c.AppContext, scope, c.Params.TeamId, props.Term)
+			var scopedErr error
+			channels, scopedErr = c.App.SearchChannelsInSessionScope(c.AppContext, scope, c.Params.TeamId, props.Term)
+			appErr = model.AsAppError(scopedErr)
 		} else {
 			channels, appErr = c.App.SearchChannels(c.AppContext, c.Params.TeamId, props.Term)
 		}
@@ -1808,15 +1811,14 @@ func searchAllChannelsInSessionScope(c *Context, w http.ResponseWriter, props *m
 		return
 	}
 
-	found, appErr := c.App.SearchAllChannelsInSessionScope(c.AppContext, scope, teamID, props.Term)
-	if appErr != nil {
-		c.Err = appErr
+	found, scopedErr := c.App.SearchAllChannelsInSessionScope(c.AppContext, scope, teamID, props.Term, &model.ChannelSearchOpts{
+		Private:                 props.Private,
+		ExcludeGroupConstrained: props.ExcludeGroupConstrained,
+	})
+	if scopedErr != nil {
+		c.Err = model.AsAppError(scopedErr)
 		return
 	}
-	found = slices.DeleteFunc(found, func(channel *model.ChannelWithTeamData) bool {
-		return (props.Private && channel.Type != model.ChannelTypePrivate) ||
-			(props.ExcludeGroupConstrained && channel.IsGroupConstrained())
-	})
 
 	var response any = found
 	if teamID != "" {

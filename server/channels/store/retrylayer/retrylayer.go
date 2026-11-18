@@ -1541,11 +1541,11 @@ func (s *RetryLayerChannelStore) Autocomplete(rctx request.CTX, userID string, t
 
 }
 
-func (s *RetryLayerChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelListWithTeamData, error) {
+func (s *RetryLayerChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources, opts *model.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.AutocompleteInSessionScope(teamID, term, resources)
+		result, err := s.ChannelStore.AutocompleteInSessionScope(teamID, term, resources, opts)
 		if err == nil {
 			return result, nil
 		}

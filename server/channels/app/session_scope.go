@@ -398,7 +398,7 @@ func (a *App) sessionScopeResources(rctx request.CTX, scope *model.SessionScope)
 
 // GetPublicChannelsForTeamInSessionScope is GetPublicChannelsForTeam limited to
 // the scope's channels, paged after the limit is applied.
-func (a *App) GetPublicChannelsForTeamInSessionScope(rctx request.CTX, scope *model.SessionScope, teamID string, offset int, limit int) (model.ChannelList, *model.AppError) {
+func (a *App) GetPublicChannelsForTeamInSessionScope(rctx request.CTX, scope *model.SessionScope, teamID string, offset int, limit int) (model.ChannelList, error) {
 	ids, err := a.Srv().Store().Channel().GetChannelIDsInSessionScope(teamID, a.sessionScopeResources(rctx, scope), true)
 	if err != nil {
 		return nil, model.NewAppError("GetPublicChannelsForTeamInSessionScope", "app.channel.get_public_channels.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -422,7 +422,7 @@ func (a *App) GetPublicChannelsForTeamInSessionScope(rctx request.CTX, scope *mo
 
 // SearchChannelsInSessionScope is SearchChannels limited to the scope's
 // channels.
-func (a *App) SearchChannelsInSessionScope(rctx request.CTX, scope *model.SessionScope, teamID string, term string) (model.ChannelList, *model.AppError) {
+func (a *App) SearchChannelsInSessionScope(rctx request.CTX, scope *model.SessionScope, teamID string, term string) (model.ChannelList, error) {
 	channels, err := a.Srv().Store().Channel().SearchInTeamInSessionScope(teamID, strings.TrimSpace(term), a.sessionScopeResources(rctx, scope))
 	if err != nil {
 		return nil, model.NewAppError("SearchChannelsInSessionScope", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -432,8 +432,8 @@ func (a *App) SearchChannelsInSessionScope(rctx request.CTX, scope *model.Sessio
 
 // SearchAllChannelsInSessionScope searches the scope's channels across teams,
 // or on teamID when it is set.
-func (a *App) SearchAllChannelsInSessionScope(rctx request.CTX, scope *model.SessionScope, teamID string, term string) (model.ChannelListWithTeamData, *model.AppError) {
-	channels, err := a.Srv().Store().Channel().AutocompleteInSessionScope(teamID, strings.TrimSpace(term), a.sessionScopeResources(rctx, scope))
+func (a *App) SearchAllChannelsInSessionScope(rctx request.CTX, scope *model.SessionScope, teamID string, term string, opts *model.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
+	channels, err := a.Srv().Store().Channel().AutocompleteInSessionScope(teamID, strings.TrimSpace(term), a.sessionScopeResources(rctx, scope), opts)
 	if err != nil {
 		return nil, model.NewAppError("SearchAllChannelsInSessionScope", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -442,7 +442,7 @@ func (a *App) SearchAllChannelsInSessionScope(rctx request.CTX, scope *model.Ses
 
 // SearchTeamsInSessionScope returns the teams matching term that the scope can
 // view.
-func (a *App) SearchTeamsInSessionScope(rctx request.CTX, scope *model.SessionScope, term string) ([]*model.Team, *model.AppError) {
+func (a *App) SearchTeamsInSessionScope(rctx request.CTX, scope *model.SessionScope, term string) ([]*model.Team, error) {
 	if !scope.HasPermission(model.PermissionViewTeam.Id) {
 		return []*model.Team{}, nil
 	}

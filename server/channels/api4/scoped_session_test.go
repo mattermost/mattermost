@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"regexp"
@@ -857,6 +858,38 @@ func TestScopedSessionSearch(t *testing.T) {
 		requireScopeError(t, resp, err)
 	})
 
+	t.Run("channel search filters apply before the result limit", func(t *testing.T) {
+		team := th.CreateTeam(t)
+		team.AllowOpenInvite = true
+		team.Type = model.TeamOpen
+		_, err := th.App.Srv().Store().Team().Update(team)
+		require.NoError(t, err)
+		th.LinkUserToTeam(t, th.BasicUser, team)
+
+		for i := range model.ChannelSearchDefaultLimit + 2 {
+			_, _, createErr := th.Client.CreateChannel(ctx, &model.Channel{TeamId: team.Id, Type: model.ChannelTypeOpen, Name: model.NewId(), DisplayName: fmt.Sprintf("aaa public %03d", i)})
+			require.NoError(t, createErr)
+		}
+		private, _, err := th.Client.CreateChannel(ctx, &model.Channel{TeamId: team.Id, Type: model.ChannelTypePrivate, Name: model.NewId(), DisplayName: "zzz private"})
+		require.NoError(t, err)
+
+		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+			Permissions: model.ScopeReadPermissions,
+			Resources:   model.SessionScopeResources{ChannelIDs: []string{private.Id}, OpenTeamPublicChannels: true},
+		}, model.GetMillis()+30*60*1000)
+		require.NoError(t, err)
+		client := th.CreateClient()
+		client.SetToken(session.Token)
+
+		found, _, err := client.SearchAllChannelsForUserWithOpts(ctx, &model.ChannelSearch{Private: true, TeamIds: []string{team.Id}})
+		require.NoError(t, err)
+		var foundIDs []string
+		for _, channel := range found {
+			foundIDs = append(foundIDs, channel.Id)
+		}
+		assert.Equal(t, []string{private.Id}, foundIDs)
+	})
+
 	t.Run("channel listing pages over the scope's channels", func(t *testing.T) {
 		team := th.CreateTeam(t)
 		team.AllowOpenInvite = false
@@ -872,11 +905,11 @@ func TestScopedSessionSearch(t *testing.T) {
 				listed = append(listed, channel.Id)
 			}
 		}
-		session, appErr := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
 			Permissions: model.ScopeReadPermissions,
 			Resources:   model.SessionScopeResources{ChannelIDs: listed},
 		}, model.GetMillis()+30*60*1000)
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 		client := th.CreateClient()
 		client.SetToken(session.Token)
 
@@ -1018,17 +1051,29 @@ func TestScopedSessionChannelAndTeamSearch(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, int64(1), total)
 		assert.Equal(t, []string{f.openTeam.Id}, teamIDs(paged))
+
+		for name, page := range map[string][2]int{
+			"a page offset that overflows":   {1 << 32, 1 << 31},
+			"a page size that overflows":     {1, math.MaxInt},
+			"the largest page":               {math.MaxInt, 10},
+			"the largest page and page size": {math.MaxInt, math.MaxInt},
+		} {
+			empty, total, _, pageErr := f.client.SearchTeamsPaged(ctx, &model.TeamSearch{Term: f.openTeam.Name, Page: model.NewPointer(page[0]), PerPage: model.NewPointer(page[1])})
+			require.NoError(t, pageErr, name)
+			assert.Equal(t, int64(1), total, name)
+			assert.Empty(t, empty, name)
+		}
 	})
 
 	t.Run("the triggering team's public channels with public_channel_team_ids", func(t *testing.T) {
-		session, appErr := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
+		session, err := th.App.CreateScopedSession(th.Context, "com.example.scoped", f.bot.Id, &model.SessionScope{
 			Permissions: model.ScopeReadPermissions,
 			Resources: model.SessionScopeResources{
 				ChannelIDs:           []string{f.triggering.Id},
 				PublicChannelTeamIDs: []string{f.closedTeam.Id},
 			},
 		}, model.GetMillis()+30*60*1000)
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 		client := th.CreateClient()
 		client.SetToken(session.Token)
 

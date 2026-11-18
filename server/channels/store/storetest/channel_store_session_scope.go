@@ -4,6 +4,7 @@
 package storetest
 
 import (
+	"fmt"
 	"slices"
 	"testing"
 
@@ -136,7 +137,7 @@ func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX,
 			require.NoError(t, err)
 			assert.ElementsMatch(t, wantPublic, onlyOurs(got), "public channels only")
 
-			found, err := ss.Channel().AutocompleteInSessionScope("", marker, &resources)
+			found, err := ss.Channel().AutocompleteInSessionScope("", marker, &resources, nil)
 			require.NoError(t, err)
 			var foundIDs []string
 			for _, channel := range found {
@@ -147,7 +148,7 @@ func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX,
 			}
 			assert.ElementsMatch(t, want, foundIDs, "autocomplete across teams")
 
-			found, err = ss.Channel().AutocompleteInSessionScope(open.Id, marker, &resources)
+			found, err = ss.Channel().AutocompleteInSessionScope(open.Id, marker, &resources, nil)
 			require.NoError(t, err)
 			foundIDs = nil
 			for _, channel := range found {
@@ -156,4 +157,65 @@ func testChannelStoreGetChannelIDsInSessionScope(t *testing.T, rctx request.CTX,
 			assert.ElementsMatch(t, wantOnOpen, foundIDs, "autocomplete on one team")
 		})
 	}
+}
+
+// testChannelStoreAutocompleteInSessionScopeFilters checks that the private and
+// group-constrained filters apply before the result limit: the channels that
+// should be returned sort after more than a limit's worth that should not.
+func testChannelStoreAutocompleteInSessionScopeFilters(t *testing.T, rctx request.CTX, ss store.Store) {
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName:     "Scope filters",
+		Name:            NewTestID(),
+		Email:           MakeEmail(),
+		Type:            model.TeamOpen,
+		AllowOpenInvite: true,
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() { _ = ss.Team().PermanentDelete(team.Id) })
+
+	saveChannel := func(displayName string, channelType model.ChannelType, groupConstrained bool) *model.Channel {
+		channel, saveErr := ss.Channel().Save(rctx, &model.Channel{
+			TeamId:           team.Id,
+			DisplayName:      displayName,
+			Name:             NewTestID(),
+			Type:             channelType,
+			GroupConstrained: model.NewPointer(groupConstrained),
+		}, -1)
+		require.NoError(t, saveErr)
+		t.Cleanup(func() { _ = ss.Channel().PermanentDelete(rctx, channel.Id) })
+		return channel
+	}
+
+	for i := range model.ChannelSearchDefaultLimit + 5 {
+		saveChannel(fmt.Sprintf("aaa filler %03d", i), model.ChannelTypeOpen, false)
+	}
+	private := saveChannel("zzz private", model.ChannelTypePrivate, false)
+	constrained := saveChannel("zzz constrained", model.ChannelTypeOpen, true)
+	unconstrained := saveChannel("zzz unconstrained", model.ChannelTypeOpen, false)
+
+	resources := &model.SessionScopeResources{
+		ChannelIDs:             []string{private.Id},
+		OpenTeamPublicChannels: true,
+	}
+	ids := func(channels model.ChannelListWithTeamData) []string {
+		var result []string
+		for _, channel := range channels {
+			result = append(result, channel.Id)
+		}
+		return result
+	}
+
+	found, err := ss.Channel().AutocompleteInSessionScope(team.Id, "", resources, &model.ChannelSearchOpts{Private: true})
+	require.NoError(t, err)
+	assert.Equal(t, []string{private.Id}, ids(found))
+
+	found, err = ss.Channel().AutocompleteInSessionScope(team.Id, "zzz", resources, &model.ChannelSearchOpts{ExcludeGroupConstrained: true})
+	require.NoError(t, err)
+	assert.ElementsMatch(t, []string{private.Id, unconstrained.Id}, ids(found))
+	assert.NotContains(t, ids(found), constrained.Id)
+
+	found, err = ss.Channel().AutocompleteInSessionScope(team.Id, "", resources, &model.ChannelSearchOpts{ExcludeGroupConstrained: true})
+	require.NoError(t, err)
+	assert.Len(t, found, model.ChannelSearchDefaultLimit, "unfiltered results are still limited")
+	assert.NotContains(t, ids(found), constrained.Id)
 }

@@ -1491,9 +1491,9 @@ func getAllTeams(c *Context, w http.ResponseWriter, r *http.Request) {
 // searchTeamsInSessionScope is searchTeams for a scoped session: it searches
 // only the teams the scope can view.
 func searchTeamsInSessionScope(c *Context, w http.ResponseWriter, props *model.TeamSearch, scope *model.SessionScope) {
-	teams, appErr := c.App.SearchTeamsInSessionScope(c.AppContext, scope, props.Term)
-	if appErr != nil {
-		c.Err = appErr
+	teams, err := c.App.SearchTeamsInSessionScope(c.AppContext, scope, props.Term)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return
 	}
 	c.App.SanitizeTeams(*c.AppContext.Session(), teams)
@@ -1505,8 +1505,12 @@ func searchTeamsInSessionScope(c *Context, w http.ResponseWriter, props *model.T
 			return
 		}
 		totalCount := len(teams)
-		start := min(*props.Page**props.PerPage, totalCount)
-		teams = teams[start:min(start+*props.PerPage, totalCount)]
+		perPage := min(*props.PerPage, totalCount)
+		start := totalCount
+		if perPage > 0 && *props.Page <= (totalCount-1)/perPage {
+			start = *props.Page * perPage
+		}
+		teams = teams[start:min(start+perPage, totalCount)]
 		payload = model.ToJSON(map[string]any{"teams": teams, "total_count": totalCount})
 	} else {
 		payload = model.ToJSON(teams)

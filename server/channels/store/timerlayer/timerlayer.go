@@ -1424,10 +1424,10 @@ func (s *TimerLayerChannelStore) Autocomplete(rctx request.CTX, userID string, t
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelListWithTeamData, error) {
+func (s *TimerLayerChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources, opts *model.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.AutocompleteInSessionScope(teamID, term, resources)
+	result, err := s.ChannelStore.AutocompleteInSessionScope(teamID, term, resources, opts)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

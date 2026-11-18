@@ -4669,7 +4669,7 @@ func (s SqlChannelStore) SearchInTeamInSessionScope(teamID string, term string, 
 	return s.performSearch(query, term)
 }
 
-func (s SqlChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources) (model.ChannelListWithTeamData, error) {
+func (s SqlChannelStore) AutocompleteInSessionScope(teamID string, term string, resources *model.SessionScopeResources, opts *model.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
 	scopedSQL, scopedArgs, err := sessionScopeChannelIDsQuery(s.getSubQueryBuilder(), resources).ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "autocomplete_in_session_scope_tosql")
@@ -4688,6 +4688,15 @@ func (s SqlChannelStore) AutocompleteInSessionScope(teamID string, term string, 
 		Limit(model.ChannelSearchDefaultLimit)
 	if teamID != "" {
 		query = query.Where(sq.Eq{"c.TeamId": teamID})
+	}
+	if opts != nil && opts.Private {
+		query = query.Where(sq.Eq{"c.Type": model.ChannelTypePrivate})
+	}
+	if opts != nil && opts.ExcludeGroupConstrained {
+		query = query.Where(sq.Or{
+			sq.NotEq{"c.GroupConstrained": true},
+			sq.Eq{"c.GroupConstrained": nil},
+		})
 	}
 	if searchClause := s.searchClause(term); searchClause != nil {
 		query = query.Where(searchClause)
