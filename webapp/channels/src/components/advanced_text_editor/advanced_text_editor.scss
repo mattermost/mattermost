@@ -54,8 +54,8 @@
     }
 
     // A thread or the RHS pins the formatting bar to the bottom of the cell.
-    // Agent mode keeps the bar in the flow, above the + and send, so opening
-    // it does not cover those controls.
+    // Agent mode keeps the bar in the flow, under the text line, so opening
+    // it does not cover the + and send.
     .sidebar--right &--agent,
     .ThreadViewer &--agent {
         .AutoHeight {
@@ -228,8 +228,14 @@
         }
     }
 
-    // Keep the formatting bar's first controls clear of the +.
-    &--plus [data-testid='formattingBarContainer'] {
+    // Agent mode positions the + and send against this line, then renders the
+    // formatting bar after it.
+    &__agent-line {
+        position: relative;
+    }
+
+    // On a channel composer the + overlays the left of the formatting bar.
+    &--plus:not(&--agent) [data-testid='formattingBarContainer'] {
         padding-left: 46px;
     }
 

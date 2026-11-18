@@ -918,9 +918,89 @@ const AdvancedTextEditor = ({
     }, [isInEditMode, isRHS]);
 
     // Channel composers reserve a row under long, previewed, RHS, and thread
-    // messages so the overlaid controls clear the text. Agent mode has its own
-    // control row, so it does not need that spacer.
+    // messages so the overlaid controls clear the text. Agent mode keeps the
+    // controls on the text line and the formatting bar under that line.
     const showFormattingSpacer = !agentMode && (isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView);
+
+    const messageEditor = wysiwygEnabled ? (
+        <WysiwygEditor
+            ref={wysiwygRef}
+            value={messageValue}
+            onChange={handleWysiwygChange}
+            onSubmit={handleSubmitWrapper}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            placeholder={createMessage}
+            channelId={channelId}
+            rootId={rootId}
+            id={textboxId}
+            disabled={isDisabled && !rewriteIsProcessing}
+            useCtrlSend={ctrlSend}
+            sendCodeBlockOnCtrlEnter={codeBlockOnCtrlEnter}
+            onKeyDown={handleKeyDown as unknown as (e: React.KeyboardEvent<HTMLDivElement>) => void}
+        />
+    ) : (
+        <Textbox
+            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
+            suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
+            onChange={handleChange}
+            onKeyPress={postMsgKeyPress}
+            onKeyDown={handleKeyDown}
+            onCompositionUpdate={emitTypingEvent}
+            onHeightChange={handleHeightChange}
+            handlePostError={handlePostError}
+            value={messageValue}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            emojiEnabled={enableEmojiPicker}
+            createMessage={createMessage}
+            channelId={channelId}
+            id={textboxId}
+            ref={textboxRef!}
+            disabled={isDisabled && !rewriteIsProcessing}
+            characterLimit={maxPostSize}
+            preview={showPreview}
+            badConnection={badConnection}
+            useChannelMentions={useChannelMentions}
+            rootId={rootId}
+            onWidthChange={handleWidthChange}
+        />
+    );
+
+    // The + and send share a positioned box with the text in agent mode, so
+    // they stay on that line when the formatting bar opens underneath.
+    const plusAndSend = showPlus && (
+        <>
+            {/* Keep the input rendered. `hidden` is display:none, and Safari will not open a file dialog from that. */}
+            <div className='AdvancedTextEditor__agent-file-input'>
+                {fileUploadJSX}
+            </div>
+            <div
+                className='AdvancedTextEditor__plus'
+                data-testid='composer-plus'
+            >
+                <AgentComposerMenu
+                    canAttach={canUploadFiles}
+                    attachDisabled={uploadDisabledByPolicy}
+                    onAttach={openFileDialog}
+                    enableEmojiPicker={enableEmojiPicker}
+                    emojiDisabled={showPreview}
+                    onEmoji={toggleEmojiPicker}
+                    showAttributes={postAttributesEnabled && !isInEditMode}
+                    formattingDisabled={showPreview}
+                    onToggleFormatting={toggleAdvanceTextEditor}
+                    emojiAnchorRef={setEmojiReference}
+                />
+            </div>
+            {emojiPickerPortal}
+            <TexteditorActions
+                ref={editorActionsRef}
+                placement='bottom'
+            >
+                {sendControl}
+            </TexteditorActions>
+        </>
+    );
 
     const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
 
@@ -989,51 +1069,13 @@ const AdvancedTextEditor = ({
                             </div>
                         )}
                         {agentMode && attachmentPreview}
+                        {agentMode ? (
+                            <div className='AdvancedTextEditor__agent-line'>
+                                {messageEditor}
+                                {plusAndSend}
+                            </div>
+                        ) : messageEditor}
                         {agentMode && formattingBar}
-                        {wysiwygEnabled ? (
-                            <WysiwygEditor
-                                ref={wysiwygRef}
-                                value={messageValue}
-                                onChange={handleWysiwygChange}
-                                onSubmit={handleSubmitWrapper}
-                                onFocus={handleFocus}
-                                onBlur={handleBlur}
-                                placeholder={createMessage}
-                                channelId={channelId}
-                                rootId={rootId}
-                                id={textboxId}
-                                disabled={isDisabled && !rewriteIsProcessing}
-                                useCtrlSend={ctrlSend}
-                                sendCodeBlockOnCtrlEnter={codeBlockOnCtrlEnter}
-                                onKeyDown={handleKeyDown as unknown as (e: React.KeyboardEvent<HTMLDivElement>) => void}
-                            />
-                        ) : (
-                            <Textbox
-                                hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
-                                suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
-                                onChange={handleChange}
-                                onKeyPress={postMsgKeyPress}
-                                onKeyDown={handleKeyDown}
-                                onCompositionUpdate={emitTypingEvent}
-                                onHeightChange={handleHeightChange}
-                                handlePostError={handlePostError}
-                                value={messageValue}
-                                onBlur={handleBlur}
-                                onFocus={handleFocus}
-                                emojiEnabled={enableEmojiPicker}
-                                createMessage={createMessage}
-                                channelId={channelId}
-                                id={textboxId}
-                                ref={textboxRef!}
-                                disabled={isDisabled && !rewriteIsProcessing}
-                                characterLimit={maxPostSize}
-                                preview={showPreview}
-                                badConnection={badConnection}
-                                useChannelMentions={useChannelMentions}
-                                rootId={rootId}
-                                onWidthChange={handleWidthChange}
-                            />
-                        )}
                         {attachmentPreview && !agentMode}
                         {!agentMode && !isDisabled && (showFormattingBar || showPreview) && (
                             <TexteditorActions
@@ -1048,40 +1090,7 @@ const AdvancedTextEditor = ({
                                 {formattingBar}
                             </FormattingBarSpacer>
                         ) : (!agentMode && formattingBar)}
-                        {/* Keep the input rendered. `hidden` is display:none, and Safari will not open a file dialog from that. */}
-                        {showPlus && (
-                            <div className='AdvancedTextEditor__agent-file-input'>
-                                {fileUploadJSX}
-                            </div>
-                        )}
-                        {showPlus && (
-                            <div
-                                className='AdvancedTextEditor__plus'
-                                data-testid='composer-plus'
-                            >
-                                <AgentComposerMenu
-                                    canAttach={canUploadFiles}
-                                    attachDisabled={uploadDisabledByPolicy}
-                                    onAttach={openFileDialog}
-                                    enableEmojiPicker={enableEmojiPicker}
-                                    emojiDisabled={showPreview}
-                                    onEmoji={toggleEmojiPicker}
-                                    showAttributes={postAttributesEnabled && !isInEditMode}
-                                    formattingDisabled={showPreview}
-                                    onToggleFormatting={toggleAdvanceTextEditor}
-                                    emojiAnchorRef={setEmojiReference}
-                                />
-                            </div>
-                        )}
-                        {showPlus && emojiPickerPortal}
-                        {showPlus && (
-                            <TexteditorActions
-                                ref={editorActionsRef}
-                                placement='bottom'
-                            >
-                                {sendControl}
-                            </TexteditorActions>
-                        )}
+                        {!agentMode && plusAndSend}
                     </div>
                     {showSendTutorialTip && (
                         <SendMessageTour

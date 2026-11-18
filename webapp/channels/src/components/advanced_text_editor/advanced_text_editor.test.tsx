@@ -1491,7 +1491,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(menu).toHaveClass('agent-composer-menu-button');
             expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--agent');
-            expect(document.querySelector('.AutoHeight')?.compareDocumentPosition(plus) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(plus.compareDocumentPosition(document.querySelector('.AutoHeight')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
 
         it('omits Add attributes when post attributes are off', async () => {
@@ -1556,6 +1556,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await waitFor(() => {
                 expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
             });
+            const textbox = screen.getByTestId('post_textbox');
+            const bar = screen.getByTestId('formattingBarContainer');
+            expect(textbox.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
