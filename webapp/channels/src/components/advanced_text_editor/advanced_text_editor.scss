@@ -214,6 +214,32 @@
         gap: 8px;
     }
 
+    // The channel composer's Add attributes +. Left of the box, same 8% rest
+    // as the agent menu button. The formatting bar and a short message start
+    // after it so the control does not cover them.
+    &--attributes {
+        [data-testid='formattingBarContainer'] {
+            padding-left: 46px;
+        }
+    }
+
+    &--attributes-overlay .custom-textarea,
+    .post-create__container &--attributes-overlay .custom-textarea,
+    &--attributes-overlay .WysiwygEditor .ProseMirror {
+        padding-left: 46px;
+    }
+
+    &__attributes {
+        position: absolute;
+        z-index: 2;
+        bottom: 7px;
+        left: 7px;
+
+        .post-attributes-composer-button {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
     // The + sits at the start of this row and send at the end. The row is in
     // the flow, under the editor, so neither control covers the text.
     // Two classes, so this wins over the icon button's transparent rest state

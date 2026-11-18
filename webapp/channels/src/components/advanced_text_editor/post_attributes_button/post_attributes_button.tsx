@@ -24,6 +24,7 @@ const PostAttributesButton = (): JSX.Element => {
             <IconButton
                 asChild={true}
                 size='small'
+                className='post-attributes-composer-button'
                 icon={<Icon glyph={<PlusIcon/>}/>}
                 aria-label={label}
                 disabled={true}

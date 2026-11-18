@@ -449,6 +449,10 @@ const AdvancedTextEditor = ({
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
 
+    // The channel composer's +, separate from the agent menu. It stays the
+    // disabled Add attributes control and sits on the left of this box.
+    const showAttributesButton = !agentMode && postAttributesEnabled && !isInEditMode && !isDisabled;
+
     usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
     const [attachmentPreview, fileUploadJSX, openFileDialog, uploadDisabledByPolicy] = useUploadFiles(
@@ -671,7 +675,9 @@ const AdvancedTextEditor = ({
             return;
         }
 
-        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth;
+        // The left + is outside the measured action cluster. 7px inset, 32px button, 7px gap.
+        const attributesWidth = showAttributesButton ? 46 : 0;
+        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth - attributesWidth;
 
         if (!hasDraftMessage) {
             // if we do not have a message we can just render the default state
@@ -684,7 +690,7 @@ const AdvancedTextEditor = ({
         } else {
             setIsMessageLong(false);
         }
-    }, [hasDraftMessage]);
+    }, [hasDraftMessage, showAttributesButton]);
 
     const prefillMessage = useCallback((message: string) => {
         handleDraftChange({
@@ -943,6 +949,8 @@ const AdvancedTextEditor = ({
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     'AdvancedTextEditor--agent': agentMode,
+                    'AdvancedTextEditor--attributes': showAttributesButton,
+                    'AdvancedTextEditor--attributes-overlay': showAttributesButton && !showFormattingBar && !showFormattingSpacer,
                     scroll: renderScrollbar,
                     'formatting-bar': showFormattingBar,
                 })}
@@ -1067,12 +1075,16 @@ const AdvancedTextEditor = ({
                             </div>
                         )}
                         {agentMode && emojiPickerPortal}
+                        {showAttributesButton && (
+                            <div className='AdvancedTextEditor__attributes'>
+                                <PostAttributesButton/>
+                            </div>
+                        )}
                         {!agentMode && !isDisabled && (
                             <TexteditorActions
                                 ref={editorActionsRef}
                                 placement='bottom'
                             >
-                                {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
                                 <ToggleFormattingBar
                                     onClick={toggleAdvanceTextEditor}
                                     active={showFormattingBar}

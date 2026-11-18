@@ -1266,7 +1266,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
         });
 
-        it('sits before the formatting toggle in the action row', () => {
+        it('sits on the left of the composer, outside the right-hand actions', () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1274,9 +1274,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            const add = screen.getByLabelText('Add attributes');
+            const add = screen.getByTestId('post-attributes-composer-add');
             const formatting = screen.getByLabelText('formatting');
 
+            expect(add.closest('.AdvancedTextEditor__attributes')).toBeTruthy();
+            expect(formatting.closest('.AdvancedTextEditor__attributes')).toBeNull();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--attributes');
+            expect(add).toHaveClass('post-attributes-composer-button');
             expect(add.compareDocumentPosition(formatting) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
     });
