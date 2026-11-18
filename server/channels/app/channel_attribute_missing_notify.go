@@ -182,11 +182,16 @@ func (a *App) NotifyNewChannelAdminOfMissingRequiredAttributes(rctx request.CTX,
 	}
 
 	applicable := make([]*model.Channel, 0, len(channels))
+	var sharedIDs []string
 	for _, channel := range channels {
 		if channelCanMissRequiredAttributes(channel) {
 			applicable = append(applicable, channel)
+			if channel.IsShared() {
+				sharedIDs = append(sharedIDs, channel.Id)
+			}
 		}
 	}
+	applicable = a.withoutRemoteChannels(rctx, applicable, sharedIDs)
 	if len(applicable) == 0 {
 		return
 	}
@@ -243,6 +248,34 @@ func (a *App) NotifyNewChannelAdminOfMissingRequiredAttributes(rctx request.CTX,
 	}
 
 	a.sendMissingRequiredAttributesDM(rctx, user, groupID, entries)
+}
+
+// withoutRemoteChannels drops channels shared in from another server, whose
+// values are owned there, so this DM skips the same channels the bulk notify
+// does. sharedIDs lists the candidates flagged shared; when they can't be
+// resolved, all of them are dropped rather than risk messaging about one.
+func (a *App) withoutRemoteChannels(rctx request.CTX, channels []*model.Channel, sharedIDs []string) []*model.Channel {
+	if len(sharedIDs) == 0 {
+		return channels
+	}
+
+	remoteIDs, err := a.Srv().Store().SharedChannel().GetRemoteChannelIds(sharedIDs)
+	if err != nil {
+		rctx.Logger().Warn("Failed to check which shared channels are remote, leaving them out of the new channel admin message", mlog.Err(err))
+		remoteIDs = sharedIDs
+	}
+	drop := make(map[string]bool, len(remoteIDs))
+	for _, id := range remoteIDs {
+		drop[id] = true
+	}
+
+	kept := make([]*model.Channel, 0, len(channels))
+	for _, channel := range channels {
+		if !drop[channel.Id] {
+			kept = append(kept, channel)
+		}
+	}
+	return kept
 }
 
 func (a *App) sendMissingRequiredAttributesDM(rctx request.CTX, user *model.User, groupID string, entries []missingChannelAttributesForAdmin) {
