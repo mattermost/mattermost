@@ -451,7 +451,6 @@ func (s *SqlPropertyFieldStore) filteredFieldOptionsPage(replica *sqlxDBWrapper,
 		OrderBy("CreateAt ASC", "ID ASC").
 		Limit(uint64(perPage))
 	if field.Type == model.PropertyFieldTypeRank {
-		// A rank field has no edges: coverage is a number, the highest rank held.
 		// MAX over no rows is NULL, so held options that are unranked, deleted or
 		// not in the field's set cover nothing, as does a NULL candidate rank.
 		maxHeldRank := s.getSubQueryBuilder().

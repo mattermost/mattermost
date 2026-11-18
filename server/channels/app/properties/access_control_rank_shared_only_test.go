@@ -170,7 +170,6 @@ func TestRankSharedOnly_Value(t *testing.T) {
 		return pv
 	}
 
-	// The caller holds Secret (rank 3 of 4).
 	callerID := model.NewId()
 	assignRank(t, callerID, "opt_secret")
 	rctxCaller := RequestContextWithCallerID(th.Context, callerID)

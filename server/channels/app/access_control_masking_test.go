@@ -2145,8 +2145,6 @@ func TestAppMaskingResolver_HierarchyAndLadderUseOptionNames(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, model.MaskingFieldAccessSharedOnly, info.Access)
 		assert.False(t, info.IsValueHidden("Confidential"), "the caller's own rank")
-		// A rank is covered by rank order: what the caller holds and everything
-		// ranked below it shows, and anything above stays hidden.
 		assert.False(t, info.IsValueHidden("Public"), "a rank below the caller's")
 		assert.True(t, info.IsValueHidden("Secret"), "a rank above the caller's")
 	})
