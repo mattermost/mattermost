@@ -86,7 +86,9 @@ const Input = React.forwardRef((
     const [validationLabel, setValidationLabel] = useState<CustomMessageInputType>(null);
 
     const propLabel = customMessage?.value ? customMessage : null;
-    const customInputLabel = validationLabel ?? propLabel;
+
+    // A parent-supplied error is more specific than local validation, but local errors outrank parent info/warnings.
+    const customInputLabel = propLabel?.type === ItemStatus.ERROR ? propLabel : (validationLabel ?? propLabel);
 
     const errorId = `error_${name || ''}`;
     const inputId = `input_${name || ''}`;
