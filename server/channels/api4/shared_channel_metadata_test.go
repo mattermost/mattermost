@@ -606,11 +606,13 @@ func TestSharedChannelPostMetadataSync(t *testing.T) {
 
 		// STEP 3: User on Server B acknowledges the post
 		t.Log("=== STEP 3: User on Server B acknowledges the post ===")
+		// The acknowledgement arrives from Server B through sync, so it carries Server B's RemoteId.
 		ackFromServerB := &model.PostAcknowledgement{
 			PostId:         syncedPostIdOnServerB,
 			UserId:         remoteUserFromClusterB.Id,
 			ChannelId:      testChannel.Id,
 			AcknowledgedAt: model.GetMillis(),
+			RemoteId:       new(clusterB.RemoteId),
 		}
 		_, appErr = th.App.SaveAcknowledgementForPostWithModel(th.Context, ackFromServerB)
 		require.Nil(t, appErr)

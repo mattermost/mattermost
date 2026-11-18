@@ -34,6 +34,7 @@ Object.defineProperty(document, 'queryCommandSupported', {
 
 Object.defineProperty(document, 'execCommand', {
     value: (cmd: string) => supportedCommands.includes(cmd),
+    writable: true,
 });
 
 document.documentElement.style.fontSize = '12px';

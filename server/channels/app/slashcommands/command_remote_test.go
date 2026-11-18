@@ -80,6 +80,20 @@ func remoteClusterCount(t *testing.T, th *TestHelper) int {
 	return len(all)
 }
 
+// remoteClusterNamesFor returns the names of every row stored for remoteID, including deleted ones.
+func remoteClusterNamesFor(t *testing.T, th *TestHelper, remoteID string) []string {
+	t.Helper()
+	all, appErr := th.App.GetAllRemoteClusters(0, 999999, model.RemoteClusterQueryFilter{IncludeDeleted: true})
+	require.Nil(t, appErr)
+	var names []string
+	for _, rc := range all {
+		if rc.RemoteId == remoteID {
+			names = append(names, rc.Name)
+		}
+	}
+	return names
+}
+
 func TestRemoteProviderDoCommand(t *testing.T) {
 	th := setupForSharedChannels(t).initBasic(t)
 	T := i18n.GetUserTranslations("en")
@@ -187,6 +201,13 @@ func TestRemoteProviderDoCreate(t *testing.T) {
 
 func newConfirmInviteServer(t *testing.T, status, errMsg string) (*httptest.Server, <-chan model.RemoteClusterInvite) {
 	t.Helper()
+	return newConfirmInviteSequenceServer(t, errMsg, status)
+}
+
+// newConfirmInviteSequenceServer answers the nth confirmation with statuses[n], repeating the last status.
+func newConfirmInviteSequenceServer(t *testing.T, errMsg string, statuses ...string) (*httptest.Server, <-chan model.RemoteClusterInvite) {
+	t.Helper()
+	var confirmCount atomic.Int32
 	confirms := make(chan model.RemoteClusterInvite, 1)
 	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var frame model.RemoteClusterFrame
@@ -204,6 +225,7 @@ func newConfirmInviteServer(t *testing.T, status, errMsg string) (*httptest.Serv
 				default:
 				}
 			}
+			status := statuses[min(int(confirmCount.Add(1))-1, len(statuses)-1)]
 			_ = json.NewEncoder(w).Encode(map[string]string{"status": status, "err": errMsg})
 		case strings.HasSuffix(r.URL.Path, "/ping"):
 			var ping model.RemoteClusterPing
@@ -310,8 +332,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("remote site answering with a non-JSON page replies with a translated invalid response error", func(t *testing.T) {
@@ -324,8 +345,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.invalid_response.app_error")}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("unreachable remote site with markdown in its address replies with the address escaped", func(t *testing.T) {
@@ -338,8 +358,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": escapedURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
 		require.NotContains(t, text, "](")
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	for _, tc := range []struct {
@@ -364,8 +383,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 			text := runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name remote1 --password "+password+" --invite "+quoteArg(code))
 
 			require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T(tc.errorID)}), text)
-			_, appErr := th.App.GetRemoteCluster(remoteID, false)
-			require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+			require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 		})
 	}
 
@@ -385,8 +403,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		unreachable := T("api.remote_cluster.accept_invitation.unreachable.app_error", map[string]any{"URL": ts.URL + "/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": unreachable}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("malformed remote site address replies with a translated invalid address error", func(t *testing.T) {
@@ -400,8 +417,7 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		invalidURL := T("api.remote_cluster.accept_invitation.invalid_url.app_error", map[string]any{"URL": "http://remote.example.com/%7F/" + remotecluster.ConfirmInviteURL})
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": invalidURL}), text)
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the unconfirmed connection must not remain active")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the unconfirmed connection must not be kept, even as deleted")
 	})
 
 	t.Run("site URL not set", func(t *testing.T) {
@@ -424,12 +440,36 @@ func TestRemoteProviderDoAccept(t *testing.T) {
 
 		require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.rejected.app_error")}), text)
 
-		_, appErr := th.App.GetRemoteCluster(remoteID, false)
-		require.NotNil(t, appErr, "the refused connection must not remain active")
-		rc, appErr := th.App.GetRemoteCluster(remoteID, true)
-		require.Nil(t, appErr, "the refused connection is saved before the confirmation is sent")
-		require.NotZero(t, rc.DeleteAt, "the refused connection must be deleted")
+		require.Empty(t, remoteClusterNamesFor(t, th, remoteID), "the refused connection must not be kept, even as deleted")
 	})
+
+	for _, tc := range []struct {
+		name      string
+		retryName string
+	}{
+		{"same name", "sitea"},
+		{"different name", "siteb"},
+	} {
+		t.Run("retrying a refused invite with the "+tc.name+" succeeds and leaves one connection", func(t *testing.T) {
+			ts, _ := newConfirmInviteSequenceServer(t, "", model.StatusFail, model.StatusOk)
+			code, remoteID := makeInvite(t, ts.URL)
+			accept := func(name string) string {
+				return runCommand(th, &RemoteProvider{}, adminID, th.BasicChannel.Id, "/secure-connection accept --name "+name+" --password "+password+" --invite "+quoteArg(code))
+			}
+
+			text := accept("sitea")
+			require.Equal(t, T("api.command_remote.accept_invitation.error", map[string]any{"Error": T("api.remote_cluster.accept_invitation.rejected.app_error")}), text)
+
+			text = accept(tc.retryName)
+			require.Equal(t, "##### "+T("api.command_remote.accept_invitation", map[string]any{"SiteURL": ts.URL}), text)
+			waitForFirstPing(t, th, remoteID)
+
+			require.Equal(t, []string{tc.retryName}, remoteClusterNamesFor(t, th, remoteID))
+			rc, appErr := th.App.GetRemoteCluster(remoteID, false)
+			require.Nil(t, appErr)
+			require.Equal(t, tc.retryName, rc.Name)
+		})
+	}
 
 	t.Run("success", func(t *testing.T) {
 		ts, confirms := newConfirmInviteServer(t, model.StatusOk, "")

@@ -36,6 +36,7 @@ import BotDefaultIcon from 'images/bot_default_icon.png';
 import {getHistory} from 'utils/browser_history';
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
+import {usernameFromDisplayName} from 'utils/username';
 import * as Utils from 'utils/utils';
 
 import {
@@ -134,6 +135,9 @@ export default class AddBot extends React.PureComponent<Props, State> {
     private readonly fileInputRef = React.createRef<HTMLInputElement>();
     private submitting = false;
     private unmounted = false;
+
+    // Whether the user typed their own username, which stops it from following the display name.
+    private usernameEdited = false;
 
     constructor(props: Props) {
         super(props);
@@ -253,14 +257,22 @@ export default class AddBot extends React.PureComponent<Props, State> {
     };
 
     updateUsername = (e: ChangeEvent<HTMLInputElement>) => {
+        this.usernameEdited = e.target.value !== '';
         this.setState({
             username: e.target.value,
         });
     };
 
     updateDisplayName = (e: ChangeEvent<HTMLInputElement>) => {
+        const displayName = e.target.value;
+        if (this.props.bot || this.usernameEdited) {
+            this.setState({displayName});
+            return;
+        }
+
         this.setState({
-            displayName: e.target.value,
+            displayName,
+            username: usernameFromDisplayName(displayName),
         });
     };
 
@@ -567,6 +579,33 @@ export default class AddBot extends React.PureComponent<Props, State> {
                         <div className='form-group'>
                             <label
                                 className='control-label col-sm-4'
+                                htmlFor='displayName'
+                            >
+                                <FormattedMessage
+                                    id='bots.add.displayName'
+                                    defaultMessage='Display Name'
+                                />
+                            </label>
+                            <div className='col-md-5 col-sm-8'>
+                                <input
+                                    id='displayName'
+                                    type='text'
+                                    maxLength={64}
+                                    className='form-control'
+                                    value={this.state.displayName}
+                                    onChange={this.updateDisplayName}
+                                />
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id='bot.add.display_name.help'
+                                        defaultMessage={'(Optional) You can choose to display your bot\'s full name rather than its username.'}
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <div className='form-group'>
+                            <label
+                                className='control-label col-sm-4'
                                 htmlFor='username'
                             >
                                 <FormattedMessage
@@ -629,33 +668,6 @@ export default class AddBot extends React.PureComponent<Props, State> {
                                         defaultMessage='Upload Image'
                                     />
                                 </Button>
-                            </div>
-                        </div>
-                        <div className='form-group'>
-                            <label
-                                className='control-label col-sm-4'
-                                htmlFor='displayName'
-                            >
-                                <FormattedMessage
-                                    id='bots.add.displayName'
-                                    defaultMessage='Display Name'
-                                />
-                            </label>
-                            <div className='col-md-5 col-sm-8'>
-                                <input
-                                    id='displayName'
-                                    type='text'
-                                    maxLength={64}
-                                    className='form-control'
-                                    value={this.state.displayName}
-                                    onChange={this.updateDisplayName}
-                                />
-                                <div className='form__help'>
-                                    <FormattedMessage
-                                        id='bot.add.display_name.help'
-                                        defaultMessage={'(Optional) You can choose to display your bot\'s full name rather than its username.'}
-                                    />
-                                </div>
                             </div>
                         </div>
                         <div className='form-group'>

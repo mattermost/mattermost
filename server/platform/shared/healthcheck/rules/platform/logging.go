@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	healthcheck.Register(logDebugProd, logFileOff, metricsOff)
+	healthcheck.Register(logDebugProd, logFileOff, logWebhookPayloads, metricsOff)
 }
 
 const loggingConsolePath = "/admin_console/environment/logging"
@@ -46,6 +46,21 @@ var logFileOff = healthcheck.Rule{
 	Eval:       healthcheck.Single(evalLogFileOff),
 }
 
+var logWebhookPayloads = healthcheck.Rule{
+	Code:     "LOG_WEBHOOK_PAYLOADS",
+	Area:     model.AreaPlatform,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.log_webhook_payloads.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.log_webhook_payloads.remediation"),
+		ConsolePath:   loggingConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Subject:    "LogSettings.EnableWebhookDebugging",
+	Eval:       healthcheck.Single(evalLogWebhookPayloads),
+}
+
 var metricsOff = healthcheck.Rule{
 	Code:     "METRICS_OFF",
 	Area:     model.AreaPlatform,
@@ -63,6 +78,18 @@ var metricsOff = healthcheck.Rule{
 
 func fileLogging(s *healthcheck.Snapshot) (bool, bool) {
 	return s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LogSettings.EnableFile })
+}
+
+func evalLogWebhookPayloads(s *healthcheck.Snapshot) healthcheck.Result {
+	enabled, ok := s.ConfigBool(func(cfg *model.Config) *bool { return cfg.LogSettings.EnableWebhookDebugging })
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case enabled:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.log_webhook_payloads.message"))
+	default:
+		return healthcheck.Resolved()
+	}
 }
 
 func evalLogDebugProd(s *healthcheck.Snapshot) healthcheck.Result {

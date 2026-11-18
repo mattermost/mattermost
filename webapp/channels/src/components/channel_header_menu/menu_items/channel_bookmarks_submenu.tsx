@@ -16,6 +16,8 @@ import type {Channel} from '@mattermost/types/channels';
 
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 
+import {getChannelBookmarksMenuPluginComponents} from 'selectors/plugins';
+
 import {useBookmarkAddActions} from 'components/channel_bookmarks/channel_bookmarks_menu';
 import {MAX_BOOKMARKS_PER_CHANNEL, useCanUploadFiles, useChannelBookmarkPermission} from 'components/channel_bookmarks/utils';
 import * as Menu from 'components/menu';
@@ -32,6 +34,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
     const {handleCreateLink, handleCreateFile} = useBookmarkAddActions(props.channel.id);
     const canAdd = useChannelBookmarkPermission(props.channel.id, 'add');
     const canUploadFiles = useCanUploadFiles();
+    const pluginItems = useSelector((state: GlobalState) => getChannelBookmarksMenuPluginComponents(state, props.channel.id));
 
     const limitReached = useSelector((state: GlobalState) => {
         const bookmarks = getChannelBookmarks(state, props.channel.id);
@@ -110,6 +113,20 @@ const ChannelBookmarksSubmenu = (props: Props) => {
                     }}
                 />
             )}
+            {pluginItems.map((item) => (
+                <Menu.Item
+                    key={item.id}
+                    id={`channel-menu-${channelId}-bookmarks-plugin-${item.id}`}
+                    leadingElement={item.icon}
+                    aria-disabled={limitReached}
+                    labels={addItemLabels(<>{item.text}</>)}
+                    onClick={() => {
+                        if (!limitReached) {
+                            item.action(channelId);
+                        }
+                    }}
+                />
+            ))}
         </Menu.SubMenu>
     );
 };

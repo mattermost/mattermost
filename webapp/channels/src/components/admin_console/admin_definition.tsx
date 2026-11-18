@@ -82,7 +82,6 @@ import {
     GuestAccessFeatureDiscovery,
     LDAPFeatureDiscovery,
     MobileSecurityFeatureDiscovery,
-    OpenIDCustomFeatureDiscovery,
     OpenIDFeatureDiscovery,
     SAMLFeatureDiscovery,
     SystemRolesFeatureDiscovery,
@@ -101,7 +100,7 @@ import GroupDetails from './group_settings/group_details';
 import GroupSettings from './group_settings/group_settings';
 import HealthDashboard from './health_dashboard';
 import IPFiltering from './ip_filtering';
-import LDAPWizard from './ldap_wizard';
+import LDAPWizard, {searchableStrings as ldapWizardSearchableStrings} from './ldap_wizard';
 import LicenseSettings from './license_settings';
 import {searchableStrings as licenseSettingsSearchableStrings} from './license_settings/license_settings';
 import LicensedSectionContainer from './licensed_section_container';
@@ -123,6 +122,7 @@ import SecureConnections, {searchableStrings as secureConnectionsSearchableStrin
 import SecureConnectionDetail from './secure_connections/secure_connection_detail';
 import ServerLogs from './server_logs';
 import {searchableStrings as serverLogsSearchableStrings} from './server_logs/logs';
+import {canViewServerLogs} from './server_logs/url_filters';
 import SessionAttributesPage, {searchableStrings as sessionAttributesSearchableStrings} from './session_attributes';
 import SessionLengthSettings, {searchableStrings as sessionLengthSearchableStrings} from './session_length_settings';
 import SystemRoles from './system_roles';
@@ -295,7 +295,7 @@ const adminDefinitionMessages = defineMessages({
 
 const siteHealthHidden = it.any(
     it.not(it.configIsTrue('FeatureFlags', 'HealthDashboard')),
-    it.not(it.minLicenseTier(LicenseSkus.Enterprise)),
+    it.not(it.minLicenseTier(LicenseSkus.Professional)),
     it.not(it.isSystemAdmin),
 );
 
@@ -425,10 +425,7 @@ const AdminDefinition: AdminDefinitionType = {
             server_logs: {
                 url: 'reporting/server_logs',
                 title: defineMessage({id: 'admin.sidebar.logs', defaultMessage: 'Server Logs'}),
-                isHidden: it.any(
-                    it.configIsTrue('ExperimentalSettings', 'RestrictSystemAdmin'),
-                    it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.REPORTING.SERVER_LOGS)),
-                ),
+                isHidden: (config, state, license, enterpriseReady, consoleAccess) => !canViewServerLogs(config, consoleAccess),
                 isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.REPORTING.SERVER_LOGS)),
                 searchableStrings: serverLogsSearchableStrings,
                 schema: {
@@ -794,6 +791,8 @@ const AdminDefinition: AdminDefinitionType = {
                     sections: [
                         {
                             key: 'admin.accesscontrol.settings',
+                            title: defineMessage({id: 'admin.accesscontrol.sections.settings.title', defaultMessage: 'Access Control'}),
+                            description: defineMessage({id: 'admin.accesscontrol.sections.settings.description', defaultMessage: 'Enable attribute-based access control and related membership policy settings.'}),
                             settings: [
                                 {
                                     type: 'bool',
@@ -834,6 +833,7 @@ const AdminDefinition: AdminDefinitionType = {
                         {
                             key: 'admin.accesscontrol.session_attributes',
                             title: defineMessage({id: 'admin.accesscontrol.session_attributes', defaultMessage: 'Session Attributes'}),
+                            description: defineMessage({id: 'admin.accesscontrol.sections.session_attributes.description', defaultMessage: 'Configure how device identity is trusted and validated for session attributes.'}),
                             isHidden: it.any(
                                 it.configIsFalse('FeatureFlags', 'SessionAttributes'),
                                 it.not(it.minLicenseTier(LicenseSkus.EnterpriseAdvanced)),
@@ -1045,7 +1045,10 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: defineMessage({id: 'admin.service.siteURLDescription', defaultMessage: 'The URL that users will use to access Mattermost. Standard ports, such as 80 and 443, can be omitted, but non-standard ports are required. For example: http://example.com:8065. This setting is required.\n \nMattermost may be hosted at a subpath. For example: http://example.com:8065/company/mattermost. A restart is required before the server will work correctly.'}), // eslint-disable-line formatjs/no-multiple-whitespaces
                             help_text_markdown: true,
                             placeholder: defineMessage({id: 'admin.service.siteURLExample', defaultMessage: 'E.g.: "http://example.com:8065"'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
+                            ),
                         },
                         {
                             type: 'button',
@@ -1119,8 +1122,8 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'ServiceSettings.UseLetsEncrypt',
                             label: defineMessage({id: 'admin.service.useLetsEncrypt', defaultMessage: 'Use Let\'s Encrypt:'}),
-                            help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.'}),
-                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}), // eslint-disable-line formatjs/no-multiple-whitespaces
+                            help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription', defaultMessage: 'Enable the automatic retrieval of certificates from Let\'s Encrypt. A certificate will only be retrieved for the hostname of the Site URL.'}),
+                            disabled_help_text: defineMessage({id: 'admin.service.useLetsEncryptDescription.disabled', defaultMessage: "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true."}), // eslint-disable-line formatjs/no-multiple-whitespaces
                             disabled_help_text_markdown: true,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
@@ -1767,7 +1770,10 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.environment.smtp.smtpServer.title', defaultMessage: 'SMTP Server:'}),
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpServer.placeholder', defaultMessage: 'Ex: "smtp.yourcompany.com", "email-smtp.us-east-1.amazonaws.com"'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpServer.description', defaultMessage: 'Location of SMTP email server.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'text',
@@ -1775,14 +1781,20 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.environment.smtp.smtpPort.title', defaultMessage: 'SMTP Server Port:'}),
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpPort.placeholder', defaultMessage: 'Ex: "25", "465", "587"'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpPort.description', defaultMessage: 'Port of SMTP email server.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'bool',
                             key: 'EmailSettings.EnableSMTPAuth',
                             label: defineMessage({id: 'admin.environment.smtp.smtpAuth.title', defaultMessage: 'Enable SMTP Authentication:'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpAuth.description', defaultMessage: 'When true, SMTP Authentication is enabled.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'text',
@@ -1791,6 +1803,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpUsername.placeholder', defaultMessage: 'Ex: "admin@yourcompany.com", "AKIADTOVBGERKLCBV"'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpUsername.description', defaultMessage: 'Obtain this credential from the administrator setting up your email server.'}),
                             isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                                 it.stateIsFalse('EmailSettings.EnableSMTPAuth'),
                             ),
@@ -1802,6 +1815,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.environment.smtp.smtpPassword.placeholder', defaultMessage: 'Ex: "yourpassword", "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
                             help_text: defineMessage({id: 'admin.environment.smtp.smtpPassword.description', defaultMessage: 'Obtain this credential from the administrator setting up your email server.'}),
                             isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
                                 it.stateIsFalse('EmailSettings.EnableSMTPAuth'),
                             ),
@@ -1825,7 +1839,10 @@ const AdminDefinition: AdminDefinitionType = {
                                     display_name: defineMessage({id: 'admin.environment.smtp.connectionSecurity.option.starttls', defaultMessage: 'STARTTLS'}),
                                 },
                             ],
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'button',
@@ -1847,7 +1864,10 @@ const AdminDefinition: AdminDefinitionType = {
                                 title: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerificationProductionWarning.title', defaultMessage: 'Skipping certificate verification is not recommended for production environments'}),
                                 text: defineMessage({id: 'admin.environment.smtp.skipServerCertificateVerificationProductionWarning.text', defaultMessage: "Mattermost will not validate the SMTP server's TLS certificate, exposing email delivery to man-in-the-middle attacks. Enable only while troubleshooting."}),
                             },
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            isDisabled: it.any(
+                                it.not(it.isSystemAdmin),
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.SMTP)),
+                            ),
                         },
                         {
                             type: 'bool',
@@ -2207,7 +2227,7 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'bool',
                             key: 'LogSettings.EnableWebhookDebugging',
                             label: defineMessage({id: 'admin.log.enableWebhookDebugging', defaultMessage: 'Enable Webhook Debugging:'}),
-                            help_text: defineMessage({id: 'admin.log.enableWebhookDebuggingDescription', defaultMessage: 'When true, sends webhook debug messages to the server logs. To also output the request body of incoming webhooks, set {boldedLogLevel} to "DEBUG".'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            help_text: defineMessage({id: 'admin.log.enableWebhookDebuggingPayloadDescription', defaultMessage: 'When true, failed incoming webhook requests are logged with their payload at the "DEBUG" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
                             help_text_values: {
                                 boldedLogLevel: (
                                     <strong>
@@ -3056,16 +3076,16 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'number',
                             key: 'TeamSettings.MaxUsersPerTeam',
                             label: defineMessage({id: 'admin.team.maxUsersTitle', defaultMessage: 'Max Users Per Team:'}),
-                            help_text: defineMessage({id: 'admin.team.maxUsersDescription', defaultMessage: 'Maximum number of active users per team. Deactivated users are not counted toward this limit.'}),
-                            placeholder: defineMessage({id: 'admin.team.maxUsersExample', defaultMessage: 'E.g.: "25"'}),
+                            help_text: defineMessage({id: 'admin.team.maxUsersDescription', defaultMessage: 'Maximum number of active users per team. Deactivated users are not counted toward this limit. Set to 0 for no limit.'}),
+                            placeholder: defineMessage({id: 'admin.team.maxUsersExample', defaultMessage: 'E.g.: "25", or "0" for no limit'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
                             type: 'number',
                             key: 'TeamSettings.MaxChannelsPerTeam',
                             label: defineMessage({id: 'admin.team.maxChannelsTitle', defaultMessage: 'Max Channels Per Team:'}),
-                            help_text: defineMessage({id: 'admin.team.maxChannelsDescription', defaultMessage: 'Maximum total number of channels per team, including both active and archived channels.'}),
-                            placeholder: defineMessage({id: 'admin.team.maxChannelsExample', defaultMessage: 'E.g.: "100"'}),
+                            help_text: defineMessage({id: 'admin.team.maxChannelsDescription', defaultMessage: 'Maximum total number of channels per team, including both active and archived channels. Set to 0 for no limit.'}),
+                            placeholder: defineMessage({id: 'admin.team.maxChannelsExample', defaultMessage: 'E.g.: "100", or "0" for no limit'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.USERS_AND_TEAMS)),
                         },
                         {
@@ -4624,6 +4644,22 @@ const AdminDefinition: AdminDefinitionType = {
                             banner_type: 'info',
                         },
                         {
+                            type: 'banner',
+                            label: defineMessage({id: 'admin.mfa.fipsBannerDesc', defaultMessage: 'TOTP code generation for multi-factor authentication uses HMAC-SHA1 and is not strictly FIPS compliant. <link>Learn more</link>'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided
+                            label_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DocLinks.FIPS_MFA_TOTP}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            banner_type: 'warning',
+                            isHidden: it.clientConfigIsFalse('IsFipsEnabled'),
+                        },
+                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnableMultifactorAuthentication',
                             label: defineMessage({id: 'admin.service.mfaTitle', defaultMessage: 'Enable Multi-factor Authentication:'}),
@@ -4658,6 +4694,7 @@ const AdminDefinition: AdminDefinitionType = {
             ldap: {
                 url: 'authentication/ldap',
                 title: defineMessage({id: 'admin.sidebar.ldap', defaultMessage: 'AD/LDAP'}),
+                searchableStrings: ldapWizardSearchableStrings,
                 isHidden: it.any(
                     it.not(it.licensedForFeature('LDAP')),
                     it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
@@ -5581,7 +5618,6 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'openidType',
                             label: defineMessage({id: 'admin.openid.select', defaultMessage: 'Select service provider:'}),
-                            isHelpHidden: it.all(it.stateEquals('openidType', Constants.OPENID_SERVICE), it.licensedForCloudStarter),
                             options: [
                                 {
                                     value: 'off',
@@ -5791,7 +5827,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.buttonTextTitle', defaultMessage: 'Button Name:'}),
                             placeholder: defineMessage({id: 'admin.openid.buttonTextEx', defaultMessage: 'Custom Button Name'}),
                             help_text: defineMessage({id: 'admin.openid.buttonTextDesc', defaultMessage: 'The text that will show on the login button.'}),
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5800,7 +5836,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.buttonColorTitle', defaultMessage: 'Button Color:'}),
                             help_text: defineMessage({id: 'admin.openid.buttonColorDesc', defaultMessage: 'Specify the color of the OpenID login button for white labeling purposes. Use a hex code with a #-sign before the code.'}),
                             help_text_markdown: false,
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5810,7 +5846,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder: defineMessage({id: 'admin.openid.discovery.placeholder', defaultMessage: 'https://id.mydomain.com/.well-known/openid-configuration'}),
                             help_text: defineMessage({id: 'admin.openid.discoveryEndpointDesc', defaultMessage: 'Enter the URL of the discovery document of the OpenID Connect provider you want to connect with.'}),
                             help_text_markdown: false,
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5819,7 +5855,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.clientIdTitle', defaultMessage: 'Client ID:'}),
                             help_text: defineMessage({id: 'admin.openid.clientIdDescription', defaultMessage: 'Obtaining the Client ID differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.openid.clientIdExample', defaultMessage: 'E.g.: "adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq"'}),
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5828,7 +5864,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.clientSecretTitle', defaultMessage: 'Client Secret:'}),
                             help_text: defineMessage({id: 'admin.openid.clientSecretDescription', defaultMessage: 'Obtaining the Client Secret differs across providers. Please check your provider\'s documentation.'}),
                             placeholder: defineMessage({id: 'admin.openid.clientSecretExample', defaultMessage: 'E.g.: "H8sz0Az-dDs2p15-7QzD231"'}),
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5837,7 +5873,7 @@ const AdminDefinition: AdminDefinitionType = {
                             label: defineMessage({id: 'admin.openid.additionalScopesTitle', defaultMessage: 'Additional Scopes:'}),
                             help_text: defineMessage({id: 'admin.openid.additionalScopesDescription', defaultMessage: 'Space-separated scopes to request in addition to profile, openid and email, for claims your provider releases only under another scope, such as groups.'}),
                             placeholder: defineMessage({id: 'admin.openid.additionalScopesExample', defaultMessage: 'E.g.: "groups"'}),
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5877,13 +5913,6 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.licensedForFeature('OpenId')),
                                 it.not(it.configIsTrue('FeatureFlags', 'OpenIdAttributeSync')),
                             ),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
-                        },
-                        {
-                            type: 'custom',
-                            key: 'OpenIDCustomFeatureDiscovery',
-                            component: OpenIDCustomFeatureDiscovery,
-                            isHidden: it.not(it.all(it.stateEquals('openidType', Constants.OPENID_SERVICE), it.licensedForCloudStarter)),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                     ],
@@ -6870,13 +6899,6 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'ExperimentalSettings.DelayChannelAutocomplete',
                             label: defineMessage({id: 'admin.experimental.delayChannelAutocomplete.title', defaultMessage: 'Delay Channel Autocomplete:'}),
                             help_text: defineMessage({id: 'admin.experimental.delayChannelAutocomplete.desc', defaultMessage: 'When true, the autocomplete for channel links (such as ~town-square) will only trigger after typing a tilde followed by a couple letters. When false, the autocomplete will appear as soon as the user types a tilde.'}),
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.YoutubeReferrerPolicy',
-                            label: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.title', defaultMessage: 'YouTube Referrer Policy:'}),
-                            help_text: defineMessage({id: 'admin.experimental.youtubeReferrerPolicy.desc', defaultMessage: 'When true, the referrer policy for embedded YouTube videos will be set to "strict-origin-when-cross-origin" which resolves issues where YouTube video previews display as unavailable, while balancing the need to protect user privacy with some degree of referral data to support web functionalities, like analytics, logging, and third-party integrations. When false, the referrer policy will be set to "no-referrer" which enhances user privacy by not disclosing the source URL, but limits the ability to track user engagement and traffic sources in analytics tools.'}),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

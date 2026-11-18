@@ -327,7 +327,7 @@ export default function PlainLogList({
                     leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
                 >
                     <FormattedMessage
-                        id='admin.logs.reload'
+                        id='admin.logs.ReloadLogs'
                         defaultMessage='Reload'
                     />
                 </Button>
@@ -342,7 +342,7 @@ export default function PlainLogList({
                         href={downloadUrl}
                     >
                         <FormattedMessage
-                            id='admin.logs.download'
+                            id='admin.logs.DownloadLogs'
                             defaultMessage='Download'
                         />
                     </ExternalLink>
@@ -364,7 +364,7 @@ export default function PlainLogList({
                         <LoadingSpinner
                             text={
                                 <FormattedMessage
-                                    id='admin.logs.plain.loading'
+                                    id='admin.logs.loading'
                                     defaultMessage='Loading logs'
                                 />
                             }

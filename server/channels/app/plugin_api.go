@@ -339,7 +339,11 @@ func (api *PluginAPI) CreateSession(session *model.Session) (*model.Session, *mo
 }
 
 func (api *PluginAPI) CreateScopedSession(userID string, scope *model.SessionScope, expiresAt int64) (*model.Session, *model.AppError) {
-	return api.app.CreateScopedSession(api.ctx, api.id, userID, scope, expiresAt)
+	session, err := api.app.CreateScopedSession(api.ctx, api.id, userID, scope, expiresAt)
+	if err != nil {
+		return nil, model.AsAppError(err)
+	}
+	return session, nil
 }
 
 func (api *PluginAPI) ExtendSessionExpiry(sessionID string, expiresAt int64) *model.AppError {
@@ -926,7 +930,24 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 	// UserId, system types, etc.); we do not clear RemoteId here.
 	post.SanitizeProps()
 
-	post, _, appErr = api.app.CreatePost(api.ctx, post, channel, model.CreatePostFlags{
+	rctx := api.ctx
+	if values := post.Metadata.GetPropertyValues(); len(values) > 0 {
+		// The property hook judges the write against the plugin's own grants when CreatePost
+		// stores the values after the save; a denial there removes the post again.
+		rctx = api.psaPluginContext()
+
+		// With the flag off, CreatePost refuses the values itself before saving.
+		if api.app.Config().FeatureFlags.PostAttributes {
+			var prepared []*model.PropertyValue
+			prepared, _, appErr = api.app.PreparePostPropertyValuesForCreate(rctx, values, channel)
+			if appErr != nil {
+				return nil, appErr
+			}
+			post.Metadata.PropertyValues = prepared
+		}
+	}
+
+	post, _, appErr = api.app.CreatePost(rctx, post, channel, model.CreatePostFlags{
 		TriggerWebhooks:    true,
 		SetOnline:          true,
 		FromPlugin:         true,
@@ -1388,6 +1409,10 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 	return api.app.ListPluginKeys(api.id, page, perPage)
 }
 
+func (api *PluginAPI) KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError) {
+	return api.app.ListPluginKeysWithOptions(api.id, options, page, perPage)
+}
+
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
 	ev := model.NewWebSocketEvent(model.WebsocketEventType(fmt.Sprintf("custom_%v_%v", api.id, event)), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
@@ -1655,8 +1680,8 @@ func (api *PluginAPI) UpdateCommand(commandID string, updatedCmd *model.Command)
 		updatedCmd.TeamId = oldCmd.TeamId
 	}
 
-	if appErr := api.app.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); appErr != nil {
-		return nil, appErr
+	if err := api.app.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); err != nil {
+		return nil, err
 	}
 
 	return api.app.Srv().Store().Command().Update(updatedCmd)
@@ -1840,6 +1865,10 @@ func (api *PluginAPI) UnshareChannel(channelID string) (unshared bool, err error
 
 func (api *PluginAPI) UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
 	return api.app.UpdateSharedChannelCursor(channelID, remoteID, cusror)
+}
+
+func (api *PluginAPI) GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error) {
+	return api.app.GetSharedChannelCursor(api.id, channelID, remoteID)
 }
 
 func (api *PluginAPI) SyncSharedChannel(channelID string) error {

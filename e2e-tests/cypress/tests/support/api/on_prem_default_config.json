@@ -166,7 +166,7 @@
         "FileLevel": "DEBUG",
         "FileJson": true,
         "FileLocation": "",
-        "EnableWebhookDebugging": true,
+        "EnableWebhookDebugging": false,
         "EnableDiagnostics": false,
         "EnableSentry": false,
         "AdvancedLoggingJSON": {},
@@ -558,7 +558,8 @@
         "RequirePluginSignature": false,
         "MarketplaceURL": "https://api.integrations.mattermost.com",
         "SignaturePublicKeyFiles": [],
-        "ChimeraOAuthProxyURL": ""
+        "ChimeraOAuthProxyURL": "",
+        "RestrictUnauthenticatedWebappPlugins": true
     },
     "DisplaySettings": {
         "CustomURLSchemes": [],

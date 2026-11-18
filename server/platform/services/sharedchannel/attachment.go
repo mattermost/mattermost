@@ -199,12 +199,27 @@ func (scs *Service) onReceiveUploadCreate(msg model.RemoteClusterMsg, rc *model.
 
 	us.RemoteId = rc.RemoteId // don't let remotes try to impersonate each other
 
-	// create upload session.
-	usSaved, appErr := scs.app.CreateUploadSession(request.EmptyContext(scs.server.Log()), &us)
+	rctx := request.EmptyContext(scs.server.Log())
+	usSaved, appErr := scs.app.CreateUploadSession(rctx, &us)
 	if appErr != nil {
-		return appErr
+		// The transport can resend this request after the first copy already saved the session.
+		existing, err := scs.server.GetStore().UploadSession().Get(rctx, us.Id)
+		if err != nil || !isSameUploadRequest(existing, &us) {
+			return appErr
+		}
+		usSaved = existing
 	}
 
 	response.SetPayload(usSaved)
 	return nil
+}
+
+func isSameUploadRequest(saved, req *model.UploadSession) bool {
+	return saved.RemoteId == req.RemoteId &&
+		saved.Type == req.Type &&
+		saved.UserId == req.UserId &&
+		saved.ChannelId == req.ChannelId &&
+		saved.Filename == req.Filename &&
+		saved.FileSize == req.FileSize &&
+		saved.ReqFileId == req.ReqFileId
 }

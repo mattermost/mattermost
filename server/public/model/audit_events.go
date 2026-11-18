@@ -148,12 +148,15 @@ const (
 	AuditEventAutoSelectPushNotificationServer = "autoSelectPushNotificationServer" // automatically switch push notification server based on license entitlement
 	AuditEventConfigReload                     = "configReload"                     // reload server configuration
 	AuditEventGetConfig                        = "getConfig"                        // get current server configuration
+	AuditEventGetConfigHistory                 = "getConfigHistory"                 // list saved server configurations
+	AuditEventGetHistoricalConfig              = "getHistoricalConfig"              // get a saved server configuration
 	AuditEventLocalGetClientConfig             = "localGetClientConfig"             // get client configuration locally
 	AuditEventLocalGetConfig                   = "localGetConfig"                   // get server configuration locally
 	AuditEventLocalPatchConfig                 = "localPatchConfig"                 // update server configuration locally
 	AuditEventLocalUpdateConfig                = "localUpdateConfig"                // update server configuration locally
 	AuditEventMigrateConfig                    = "migrateConfig"                    // migrate configs with file values from one store to another
 	AuditEventPatchConfig                      = "patchConfig"                      // update server configuration
+	AuditEventRestoreHistoricalConfig          = "restoreHistoricalConfig"          // replace the server configuration with a saved one
 	AuditEventUpdateConfig                     = "updateConfig"                     // update server configuration
 )
 
@@ -176,6 +179,8 @@ const (
 	AuditEventDeletePropertyField = "deletePropertyField" // delete property field
 	AuditEventGetPropertyFields   = "getPropertyFields"   // list property fields
 	AuditEventPatchPropertyField  = "patchPropertyField"  // update property field
+
+	AuditEventSearchGlobalAttributeListing = "searchGlobalAttributeListing" // search the Global Attributes listing
 )
 
 // Property Field Options
@@ -322,6 +327,8 @@ const (
 	AuditEventGetFirstAdminVisitMarketplaceStatus = "getFirstAdminVisitMarketplaceStatus" // get first admin visit status
 	AuditEventInstallMarketplacePlugin            = "installMarketplacePlugin"            // install plugin from official marketplace
 	AuditEventInstallPluginFromURL                = "installPluginFromURL"                // install plugin from external URL
+	AuditEventLocalAddPluginPublicKey             = "localAddPluginPublicKey"             // add plugin signature public key locally
+	AuditEventLocalDeletePluginPublicKey          = "localDeletePluginPublicKey"          // delete plugin signature public key locally
 	AuditEventRemovePlugin                        = "removePlugin"                        // delete plugin
 	AuditEventSetFirstAdminVisitMarketplaceStatus = "setFirstAdminVisitMarketplaceStatus" // set first admin visit status
 	AuditEventUploadPlugin                        = "uploadPlugin"                        // upload plugin file to server for installation

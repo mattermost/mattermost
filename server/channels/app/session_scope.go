@@ -206,13 +206,9 @@ func (a *App) scopedViewUsersRestrictions(rctx request.CTX, session *model.Sessi
 // CreateScopedSession creates a session for userID that can only read what scope
 // allows, on behalf of the plugin pluginID. It is the only way to create a
 // scoped session.
-func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, scope *model.SessionScope, expiresAt int64) (session *model.Session, appErr *model.AppError) {
+func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, scope *model.SessionScope, expiresAt int64) (session *model.Session, err error) {
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventCreateScopedSession, model.AuditStatusFail)
 	defer func() {
-		var err error
-		if appErr != nil {
-			err = appErr
-		}
 		a.LogAuditRec(rctx, auditRec, err)
 	}()
 	model.AddEventParameterToAuditRec(auditRec, "user_id", userID)
@@ -279,9 +275,9 @@ func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, sco
 		}
 	}
 
-	scopeJSON, err := json.Marshal(scopeCopy)
-	if err != nil {
-		return nil, model.NewAppError("CreateScopedSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	scopeJSON, jsonErr := json.Marshal(scopeCopy)
+	if jsonErr != nil {
+		return nil, model.NewAppError("CreateScopedSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
 	}
 
 	session = &model.Session{
@@ -299,9 +295,9 @@ func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, sco
 		session.AddProp(model.SessionPropIsGuest, "false")
 	}
 
-	session, appErr = a.createSession(rctx, session)
-	if appErr != nil {
-		return nil, appErr
+	session, err = a.createSession(rctx, session)
+	if err != nil {
+		return nil, err
 	}
 
 	auditRec.Success()
@@ -312,13 +308,13 @@ func (a *App) CreateScopedSession(rctx request.CTX, pluginID, userID string, sco
 
 // RevokeScopedSessionsForPlugin revokes every live session minted by the plugin.
 // It runs when the plugin is disabled; session expiry is the backstop.
-func (a *App) RevokeScopedSessionsForPlugin(rctx request.CTX, pluginID string) *model.AppError {
+func (a *App) RevokeScopedSessionsForPlugin(rctx request.CTX, pluginID string) error {
 	return a.RevokeScopedSessionsForPlugins(rctx, []string{pluginID})
 }
 
 // RevokeScopedSessionsForPlugins revokes every live session minted by any of the
 // plugins, with one session lookup however many plugins there are.
-func (a *App) RevokeScopedSessionsForPlugins(rctx request.CTX, pluginIDs []string) *model.AppError {
+func (a *App) RevokeScopedSessionsForPlugins(rctx request.CTX, pluginIDs []string) error {
 	return a.revokeScopedSessions(rctx.WithLogFields(mlog.Any("plugin_ids", pluginIDs)), func(scope *model.SessionScope) bool {
 		return slices.Contains(pluginIDs, scope.CreatedByPluginID)
 	})
@@ -326,13 +322,13 @@ func (a *App) RevokeScopedSessionsForPlugins(rctx request.CTX, pluginIDs []strin
 
 // RevokeAllScopedSessions revokes every live scoped session. It runs when
 // plugins are turned off server-wide.
-func (a *App) RevokeAllScopedSessions(rctx request.CTX) *model.AppError {
+func (a *App) RevokeAllScopedSessions(rctx request.CTX) error {
 	return a.revokeScopedSessions(rctx, func(*model.SessionScope) bool { return true })
 }
 
 // revokeScopedSessions revokes the scoped sessions whose scope matches. It keeps
 // going past a failed revocation and returns the failures together.
-func (a *App) revokeScopedSessions(rctx request.CTX, match func(*model.SessionScope) bool) *model.AppError {
+func (a *App) revokeScopedSessions(rctx request.CTX, match func(*model.SessionScope) bool) error {
 	sessions, err := a.Srv().Store().Session().GetScopedSessions(rctx)
 	if err != nil {
 		return model.NewAppError("revokeScopedSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -367,15 +363,15 @@ func (ch *Channels) revokeScopedSessionsForPlugin(pluginID string) {
 
 func (ch *Channels) revokeScopedSessionsForPlugins(pluginIDs []string) {
 	rctx := request.EmptyContext(ch.srv.Log())
-	if appErr := New(ServerConnector(ch)).RevokeScopedSessionsForPlugins(rctx, pluginIDs); appErr != nil {
-		rctx.Logger().Error("Failed to revoke scoped sessions for plugins", mlog.Any("plugin_ids", pluginIDs), mlog.Err(appErr))
+	if err := New(ServerConnector(ch)).RevokeScopedSessionsForPlugins(rctx, pluginIDs); err != nil {
+		rctx.Logger().Error("Failed to revoke scoped sessions for plugins", mlog.Any("plugin_ids", pluginIDs), mlog.Err(err))
 	}
 }
 
 func (ch *Channels) revokeAllScopedSessions() {
 	rctx := request.EmptyContext(ch.srv.Log())
-	if appErr := New(ServerConnector(ch)).RevokeAllScopedSessions(rctx); appErr != nil {
-		rctx.Logger().Error("Failed to revoke scoped sessions", mlog.Err(appErr))
+	if err := New(ServerConnector(ch)).RevokeAllScopedSessions(rctx); err != nil {
+		rctx.Logger().Error("Failed to revoke scoped sessions", mlog.Err(err))
 	}
 }
 

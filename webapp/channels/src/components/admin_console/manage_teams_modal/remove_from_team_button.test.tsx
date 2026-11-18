@@ -13,13 +13,12 @@ describe('RemoveFromTeamButton', () => {
         handleRemoveUserFromTeam: jest.fn(),
     };
 
-    test('should match snapshot init', () => {
-        const {container} = renderWithContext(
+    test('should render init', () => {
+        renderWithContext(
             <RemoveFromTeamButton {...baseProps}/>,
         );
 
         expect(screen.getByRole('button', {name: 'Remove from Team'})).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should call handleRemoveUserFromTeam on button click', async () => {

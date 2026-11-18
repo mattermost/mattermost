@@ -19,6 +19,8 @@ export default class TeamSettingsModal {
     readonly saveButton;
     readonly undoButton;
 
+    readonly policyChannelRemoveLink;
+
     readonly infoSettings;
     readonly accessSettings;
 
@@ -33,6 +35,9 @@ export default class TeamSettingsModal {
 
         this.saveButton = container.getByTestId('SaveChangesPanel__save-btn');
         this.undoButton = container.getByTestId('SaveChangesPanel__cancel-btn');
+
+        // Exact link match: the policy editor's delete subtitle also starts with "Remove".
+        this.policyChannelRemoveLink = container.getByRole('link', {name: 'Remove', exact: true});
 
         this.infoSettings = new InfoSettings(container);
         this.accessSettings = new AccessSettings(container);

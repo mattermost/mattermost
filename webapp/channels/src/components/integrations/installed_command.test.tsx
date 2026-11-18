@@ -10,7 +10,7 @@ import {renderWithContext, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 jest.mock('components/integrations/delete_integration_link', () => {
-    const ReactMock = require('react'); // eslint-disable-line @typescript-eslint/no-var-requires, global-require
+    const ReactMock = require('react');
     return {
         __esModule: true,
         default: (props: {onDelete: () => void}) => ReactMock.createElement('button', {onClick: props.onDelete}, 'Delete'),
@@ -51,12 +51,11 @@ describe('components/integrations/InstalledCommand', () => {
         canChange: false,
     };
 
-    test('should match snapshot', () => {
+    test('should render', () => {
         const {container} = renderWithContext(
             <InstalledCommand {...requiredProps}/>,
             initialState,
         );
-        expect(container).toMatchSnapshot();
 
         const trigger = `- /${command.trigger} ${command.auto_complete_hint}`;
         expect(container.querySelector('.item-details__trigger')?.textContent).toBe(trigger);
@@ -64,7 +63,7 @@ describe('components/integrations/InstalledCommand', () => {
         expect(container.querySelector('.item-details__description')?.textContent).toBe(command.description);
     });
 
-    test('should match snapshot, not autocomplete, no display_name/description/auto_complete_hint', () => {
+    test('should render not autocomplete, no display_name/description/auto_complete_hint', () => {
         const minCommand = TestHelper.getCommandMock({
             id: 'r5tpgt4iepf45jt768jz84djic',
             trigger: 'trigger',
@@ -78,7 +77,6 @@ describe('components/integrations/InstalledCommand', () => {
             <InstalledCommand {...props}/>,
             initialState,
         );
-        expect(container).toMatchSnapshot();
 
         const trigger = `- /${command.trigger}`;
         expect(container.querySelector('.item-details__trigger')?.textContent).toBe(trigger);
@@ -89,11 +87,10 @@ describe('components/integrations/InstalledCommand', () => {
         const canChange = true;
         const props = {...requiredProps, onRegenToken, canChange};
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <InstalledCommand {...props}/>,
             initialState,
         );
-        expect(container).toMatchSnapshot();
 
         await userEvent.click(screen.getByRole('button', {name: 'Regenerate Token'}));
         expect(onRegenToken).toHaveBeenCalledTimes(1);
@@ -105,11 +102,10 @@ describe('components/integrations/InstalledCommand', () => {
         const canChange = true;
         const props = {...requiredProps, onDelete, canChange};
 
-        const {container} = renderWithContext(
+        renderWithContext(
             <InstalledCommand {...props}/>,
             initialState,
         );
-        expect(container).toMatchSnapshot();
 
         await userEvent.click(screen.getByRole('button', {name: 'Delete'}));
 

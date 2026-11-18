@@ -115,6 +115,7 @@ func (a *App) CreatePropertyValue(rctx request.CTX, value *model.PropertyValue) 
 	}
 
 	a.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{createdValue})
+	a.runPropertyValuesHaveBeenUpdatedHook(rctx, createdValue.GroupID, []*model.PropertyValue{createdValue}, nil)
 	return createdValue, nil
 }
 
@@ -136,6 +137,9 @@ func (a *App) CreatePropertyValues(rctx request.CTX, values []*model.PropertyVal
 	}
 
 	a.invalidateUserPropertyValuesEpochs(createdValues)
+	if len(createdValues) > 0 && createdValues[0] != nil {
+		a.runPropertyValuesHaveBeenUpdatedHook(rctx, createdValues[0].GroupID, createdValues, nil)
+	}
 	return createdValues, nil
 }
 
@@ -181,6 +185,7 @@ func (a *App) UpdatePropertyValue(rctx request.CTX, groupID string, value *model
 		return nil, model.NewAppError("UpdatePropertyValue", "app.property_value.invalid_input.app_error", nil, "property value is required", http.StatusBadRequest)
 	}
 	value.Value = model.SanitizePropertyValue(value.Value)
+	previous := a.previousPropertyValues(rctx, groupID, []*model.PropertyValue{value})
 
 	updatedValue, err := a.Srv().propertyService.UpdatePropertyValue(rctx, groupID, value)
 	if err != nil {
@@ -191,6 +196,7 @@ func (a *App) UpdatePropertyValue(rctx request.CTX, groupID string, value *model
 	}
 
 	a.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{updatedValue})
+	a.runPropertyValuesHaveBeenUpdatedHook(rctx, groupID, []*model.PropertyValue{updatedValue}, previous)
 	return updatedValue, nil
 }
 
@@ -202,6 +208,7 @@ func (a *App) UpdatePropertyValues(rctx request.CTX, groupID string, values []*m
 	for _, v := range values {
 		v.Value = model.SanitizePropertyValue(v.Value)
 	}
+	previous := a.previousPropertyValues(rctx, groupID, values)
 
 	updatedValues, err := a.Srv().propertyService.UpdatePropertyValues(rctx, groupID, values)
 	if err != nil {
@@ -212,6 +219,7 @@ func (a *App) UpdatePropertyValues(rctx request.CTX, groupID string, values []*m
 	}
 
 	a.invalidateUserPropertyValuesEpochs(updatedValues)
+	a.runPropertyValuesHaveBeenUpdatedHook(rctx, groupID, updatedValues, previous)
 	return updatedValues, nil
 }
 
@@ -221,6 +229,7 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 		return nil, model.NewAppError("UpsertPropertyValue", "app.property_value.invalid_input.app_error", nil, "property value is required", http.StatusBadRequest)
 	}
 	value.Value = model.SanitizePropertyValue(value.Value)
+	previous := a.previousPropertyValues(rctx, value.GroupID, []*model.PropertyValue{value})
 
 	upsertedValue, err := a.Srv().propertyService.UpsertPropertyValue(rctx, value)
 	if err != nil {
@@ -231,6 +240,7 @@ func (a *App) UpsertPropertyValue(rctx request.CTX, value *model.PropertyValue) 
 	}
 
 	a.invalidateUserPropertyValuesEpochs([]*model.PropertyValue{upsertedValue})
+	a.runPropertyValuesHaveBeenUpdatedHook(rctx, upsertedValue.GroupID, []*model.PropertyValue{upsertedValue}, previous)
 	return upsertedValue, nil
 }
 
@@ -353,6 +363,8 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 		}
 	}
 
+	previous := a.previousPropertyValues(rctx, groupID, values)
+
 	result, err := a.Srv().propertyService.UpsertPropertyValues(rctx, values)
 	if err != nil {
 		if appErr := mapPropertyServiceError("UpsertPropertyValues", err); appErr != nil {
@@ -362,6 +374,7 @@ func (a *App) UpsertPropertyValues(rctx request.CTX, values []*model.PropertyVal
 	}
 
 	a.invalidateUserPropertyValuesEpochs(result)
+	a.runPropertyValuesHaveBeenUpdatedHook(rctx, groupID, result, previous)
 
 	// Only publish websocket events for PSAv2 properties (those with an ObjectType)
 	if objectType != "" {
@@ -401,6 +414,11 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 		return appErr
 	}
 
+	var previous []*model.PropertyValue
+	if a.propertyValuesHookEnabled() {
+		previous = a.storedPropertyValues(rctx, groupID, propertyValuesTarget{value.TargetType, value.TargetID}, map[string]bool{value.FieldID: true})
+	}
+
 	if err := a.Srv().propertyService.DeletePropertyValue(rctx, groupID, valueID); err != nil {
 		if mappedErr := mapPropertyServiceError("DeletePropertyValue", err); mappedErr != nil {
 			return mappedErr
@@ -409,6 +427,7 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 	}
 
 	a.invalidateUserPropertyValuesEpoch(value.TargetType, value.TargetID)
+	a.runPropertyValuesHaveBeenUpdatedHook(rctx, groupID, nil, previous)
 
 	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, value.TargetType, value.TargetID)
 	if appErr != nil {
@@ -438,6 +457,11 @@ func (a *App) DeletePropertyValue(rctx request.CTX, groupID, valueID string) *mo
 
 // DeletePropertyValuesForTarget deletes all property values for a target and broadcasts a property_values_updated event.
 func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetType, targetID string) *model.AppError {
+	var previous []*model.PropertyValue
+	if a.propertyValuesHookEnabled() {
+		previous = a.storedPropertyValues(rctx, groupID, propertyValuesTarget{targetType, targetID}, nil)
+	}
+
 	if err := a.Srv().propertyService.DeletePropertyValuesForTarget(rctx, groupID, targetType, targetID); err != nil {
 		if appErr := mapPropertyServiceError("DeletePropertyValuesForTarget", err); appErr != nil {
 			return appErr
@@ -446,6 +470,7 @@ func (a *App) DeletePropertyValuesForTarget(rctx request.CTX, groupID, targetTyp
 	}
 
 	a.invalidateUserPropertyValuesEpoch(targetType, targetID)
+	a.runPropertyValuesHaveBeenUpdatedHook(rctx, groupID, nil, previous)
 
 	teamID, channelID, appErr := a.resolveValueBroadcastParams(rctx, targetType, targetID)
 	if appErr != nil {

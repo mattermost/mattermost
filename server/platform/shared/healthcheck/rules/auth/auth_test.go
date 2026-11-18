@@ -32,6 +32,10 @@ var allRules = []healthcheck.Rule{
 	samlProbeFailed,
 }
 
+var multiSubjectRules = []healthcheck.Rule{
+	oauthProbeFailed,
+}
+
 type want struct {
 	state     healthcheck.State
 	messageID string
@@ -53,11 +57,17 @@ func (w want) withValue(v float64) want {
 	return w
 }
 
-// licensedDiag returns leader diagnostics whose license grants LDAP and SAML.
+// licensedDiag returns leader diagnostics whose license grants every auth feature under test.
 func licensedDiag() *model.SupportPacketDiagnostics {
 	return &model.SupportPacketDiagnostics{License: model.SupportPacketLicense{
 		SkuShortName: model.LicenseShortSkuEnterprise,
-		Features:     &model.Features{LDAP: new(true), SAML: new(true)},
+		Features: &model.Features{
+			LDAP:           new(true),
+			SAML:           new(true),
+			GoogleOAuth:    new(true),
+			Office365OAuth: new(true),
+			OpenId:         new(true),
+		},
 	}}
 }
 
@@ -125,10 +135,12 @@ func TestRegistered(t *testing.T) {
 		"SESSION_EXTEND_OFF":        healthcheck.SeverityInfo,
 		"LDAP_PROBE_FAILED":         healthcheck.SeverityWarning,
 		"SAML_PROBE_FAILED":         healthcheck.SeverityWarning,
+		"OAUTH_PROBE_FAILED":        healthcheck.SeverityWarning,
 	}
-	require.Len(t, severities, len(allRules))
+	registeredRules := slices.Concat(allRules, multiSubjectRules)
+	require.Len(t, severities, len(registeredRules))
 
-	for _, rule := range allRules {
+	for _, rule := range registeredRules {
 		registered, ok := registry.Get(rule.Code)
 		require.True(t, ok, rule.Code)
 		assert.Equal(t, severities[rule.Code], registered.Severity, rule.Code)

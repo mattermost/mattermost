@@ -31,6 +31,14 @@ describe('AttributeAppliesTo', () => {
         );
     };
 
+    it('renders as a Compass AdminPanel with title and subtitle', () => {
+        const {container} = renderComponent();
+
+        expect(container.querySelector('#attribute_applies_to.AdminPanel')).toBeInTheDocument();
+        expect(screen.getByRole('heading', {name: 'Applies to'})).toBeInTheDocument();
+        expect(screen.getByText('Resources this attribute applies to, and who can set the value on each.')).toBeInTheDocument();
+    });
+
     it('renders the empty state when appliesTo is empty', () => {
         renderComponent();
         expect(screen.getByTestId('attributeAppliesToEmptyState')).toBeInTheDocument();

@@ -8,6 +8,7 @@ export default class PostDotMenu {
     readonly container: Locator;
 
     readonly replyMenuItem;
+    readonly quoteMenuItem;
     readonly forwardMenuItem;
     readonly followMessageMenuItem;
     readonly markAsUnreadMenuItem;
@@ -30,6 +31,7 @@ export default class PostDotMenu {
         const getMenuItem = (hasText: string) => container.getByRole('menuitem').filter({hasText});
 
         this.replyMenuItem = getMenuItem('Reply');
+        this.quoteMenuItem = getMenuItem('Quote');
         this.forwardMenuItem = getMenuItem('Forward');
         this.followMessageMenuItem = getMenuItem('Follow message');
         this.markAsUnreadMenuItem = getMenuItem('Mark as Unread');

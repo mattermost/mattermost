@@ -5,10 +5,10 @@ import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import {BookmarkIcon, BookmarkOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
-
-import FlagIcon from 'components/widgets/icons/flag_icon';
-import FlagIconFilled from 'components/widgets/icons/flag_icon_filled';
 
 import {Locations, A11yCustomEventTypes} from 'utils/constants';
 
@@ -56,14 +56,15 @@ const PostFlagIcon = ({
             setA11yActive(false);
         }
 
-        if (buttonRef.current) {
-            buttonRef.current.addEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
-            buttonRef.current.addEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
+        const button = buttonRef.current;
+        if (button) {
+            button.addEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
+            button.addEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
         }
         return () => {
-            if (buttonRef.current) {
-                buttonRef.current.removeEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
-                buttonRef.current.removeEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
+            if (button) {
+                button.removeEventListener(A11yCustomEventTypes.ACTIVATE, handleA11yActivateEvent);
+                button.removeEventListener(A11yCustomEventTypes.DEACTIVATE, handleA11yDeactivateEvent);
             }
         };
     }, []);
@@ -74,12 +75,7 @@ const PostFlagIcon = ({
         }
     }, [a11yActive]);
 
-    let flagIcon;
-    if (isFlagged) {
-        flagIcon = <FlagIconFilled className={classNames('icon', 'icon--small', 'icon--small-filled', {'post-menu__item--selected': isFlagged})}/>;
-    } else {
-        flagIcon = <FlagIcon className={classNames('icon', 'icon--small')}/>;
-    }
+    const label = isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}) : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save Message'});
 
     return (
         <WithTooltip
@@ -98,15 +94,19 @@ const PostFlagIcon = ({
                 )
             }
         >
-            <button
+            <IconButton
                 ref={buttonRef}
                 id={`${location}_flagIcon_${postId}`}
-                aria-label={isFlagged ? intl.formatMessage({id: 'flag_post.unflag', defaultMessage: 'Remove from Saved'}).toLowerCase() : intl.formatMessage({id: 'flag_post.flag', defaultMessage: 'Save Message'}).toLowerCase()}
-                className='post-menu__item'
+                size='small'
+                padding='compact'
+                className={classNames('post-menu__item', {
+                    'post-menu__item--active': isFlagged,
+                })}
+                icon={<Icon glyph={isFlagged ? <BookmarkIcon/> : <BookmarkOutlineIcon/>}/>}
+                active={isFlagged}
+                aria-label={label.toLowerCase()}
                 onClick={handlePress}
-            >
-                {flagIcon}
-            </button>
+            />
         </WithTooltip>
     );
 };

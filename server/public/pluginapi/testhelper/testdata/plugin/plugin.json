@@ -1,0 +1,12 @@
+{
+    "id": "com.mattermost.testhelper-test",
+    "name": "Testhelper Test Plugin",
+    "description": "An empty plugin that the testhelper package's own integration tests deploy.",
+    "version": "0.1.0",
+    "server": {
+        "executables": {
+            "linux-amd64": "server/dist/plugin-linux-amd64",
+            "linux-arm64": "server/dist/plugin-linux-arm64"
+        }
+    }
+}

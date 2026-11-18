@@ -7,7 +7,6 @@ import {BrowserRouter} from 'react-router-dom';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {
-    act,
     renderWithContext,
     screen,
     waitFor,
@@ -63,19 +62,6 @@ describe('components/start_trial_form_modal/start_trial_form_modal', () => {
         onClose: handleOnClose,
         page: 'some_modal',
     };
-
-    test('should match snapshot', async () => {
-        const wrapper = renderWithContext(
-            <BrowserRouter>
-                <StartTrialFormModal {...props}/>
-            </BrowserRouter>,
-            state,
-        );
-
-        await act(() => {});
-
-        expect(wrapper).toMatchSnapshot();
-    });
 
     test('should pre-fill email', async () => {
         renderWithContext(

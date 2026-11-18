@@ -13,8 +13,17 @@ import {
 import configureStore from 'store';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
+import {loadPluginsIfNecessary} from 'plugins';
+
+jest.mock('plugins', () => ({
+    loadPluginsIfNecessary: jest.fn(() => Promise.resolve()),
+}));
 
 describe('actions/views/login', () => {
+    beforeEach(() => {
+        jest.mocked(loadPluginsIfNecessary).mockClear();
+    });
+
     describe('login', () => {
         test('should return successful when login is successful', async () => {
             const store = configureStore();
@@ -29,6 +38,38 @@ describe('actions/views/login', () => {
             expect(result).toEqual({data: true});
         });
 
+        test('should finish loading plugins before resolving a successful login', async () => {
+            const store = configureStore();
+
+            let finishLoadingPlugins: () => void = () => {};
+            const pluginLoadStarted = new Promise<void>((started) => {
+                jest.mocked(loadPluginsIfNecessary).mockImplementationOnce(() => new Promise((resolve) => {
+                    finishLoadingPlugins = resolve;
+                    started();
+                }));
+            });
+
+            TestHelper.initBasic(Client4);
+            nock(Client4.getBaseRoute()).
+                post('/users/login').
+                reply(200, {...TestHelper.basicUser});
+
+            let resolved = false;
+            const promise = store.dispatch(login('user', 'password', '')).then((result) => {
+                resolved = true;
+                return result;
+            });
+
+            await pluginLoadStarted;
+            await new Promise((resolve) => setTimeout(resolve, 0));
+            expect(loadPluginsIfNecessary).toHaveBeenCalledTimes(1);
+            expect(resolved).toBe(false);
+
+            finishLoadingPlugins();
+
+            expect(await promise).toEqual({data: true});
+        });
+
         test('should return error when when login fails', async () => {
             const store = configureStore();
 
@@ -40,6 +81,7 @@ describe('actions/views/login', () => {
             const result = await store.dispatch(login('user', 'password', ''));
 
             expect(Object.keys(result)[0]).toEqual('error');
+            expect(loadPluginsIfNecessary).not.toHaveBeenCalled();
         });
     });
 

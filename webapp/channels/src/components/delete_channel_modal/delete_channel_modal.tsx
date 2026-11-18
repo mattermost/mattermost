@@ -3,16 +3,23 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import {Button} from '@mattermost/compass-ui/components/button';
 import type {Channel} from '@mattermost/types/channels';
 
+import type {KindMessages} from 'utils/channel_kind';
+import {channelKindMessages} from 'utils/channel_kind_messages';
 import Constants from 'utils/constants';
+
+import type {ChannelKind} from 'types/store/plugins';
 
 export type Props = {
     onExited: () => void;
     channel: Channel;
+
+    /** The kind of channel, so the modal says "board" rather than "channel" for a board. */
+    channelKind?: ChannelKind;
     actions: {
         deleteChannel: (channelId: string) => void;
     };
@@ -41,6 +48,8 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
     };
 
     render() {
+        const {channelKind = 'channel'} = this.props;
+
         return (
             <Modal
                 dialogClassName='a11y__modal'
@@ -56,24 +65,17 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                         componentClass='h1'
                         id='deleteChannelModalLabel'
                     >
-                        <FormattedMessage
-                            id='delete_channel.confirm'
-                            defaultMessage='Confirm ARCHIVE Channel'
-                        />
+                        <FormattedMessage {...messages.title[channelKind]}/>
                     </Modal.Title>
                 </Modal.Header>
                 <Modal.Body>
                     <div className='alert alert-danger'>
                         <p>
-                            <FormattedMessage
-                                id='deleteChannelModal.canViewArchivedChannelsWarning'
-                                defaultMessage='This will archive the channel from the team. Channel contents will still be accessible by channel members.'
-                            />
+                            <FormattedMessage {...channelKindMessages.archivedChannelsWarning[channelKind]}/>
                         </p>
                         <p>
                             <FormattedMessage
-                                id='deleteChannelModal.confirmArchive'
-                                defaultMessage='Are you sure you wish to archive the <strong>{display_name}</strong> channel?'
+                                {...channelKindMessages.confirmArchive[channelKind]}
                                 values={{
                                     display_name: this.props.channel.display_name,
                                     strong: (chunks) => <strong>{chunks}</strong>,
@@ -111,3 +113,18 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
         );
     }
 }
+
+/* eslint-disable formatjs/enforce-placeholders -- values are passed where each message is rendered */
+const messages = {
+    title: {
+        channel: defineMessage({
+            id: 'delete_channel.confirm',
+            defaultMessage: 'Confirm ARCHIVE Channel',
+        }),
+        board: defineMessage({
+            id: 'delete_channel.confirm.board',
+            defaultMessage: 'Confirm ARCHIVE Board',
+        }),
+    },
+} satisfies Record<string, KindMessages>;
+/* eslint-enable formatjs/enforce-placeholders */

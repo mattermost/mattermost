@@ -86,8 +86,8 @@ func (f *scopeFixture) scope() *model.SessionScope {
 
 func mintScoped(t *testing.T, th *TestHelper, userID string, scope *model.SessionScope) *model.Session {
 	t.Helper()
-	session, appErr := th.App.CreateScopedSession(th.Context, scopeTestPluginID, userID, scope, model.GetMillis()+30*60*1000)
-	require.Nil(t, appErr)
+	session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, userID, scope, model.GetMillis()+30*60*1000)
+	require.NoError(t, err)
 	return session
 }
 
@@ -497,8 +497,8 @@ func TestCreateScopedSession(t *testing.T) {
 		scope := f.scope()
 		scope.Resources.PublicChannelTeamIDs = []string{f.closedTeam.Id}
 		scope.CreatedByPluginID = "forged"
-		session, appErr := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, scope, expiresAt)
-		require.Nil(t, appErr)
+		session, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, scope, expiresAt)
+		require.NoError(t, err)
 		assert.NotEmpty(t, session.Token)
 		assert.Equal(t, expiresAt, session.ExpiresAt)
 		assert.False(t, session.Local)
@@ -551,8 +551,8 @@ func TestCreateScopedSession(t *testing.T) {
 		"invalid behalf of": {scopeTestPluginID, f.bot.Id, func() *model.SessionScope { s := f.scope(); s.OnBehalfOfUserID = "x"; return s }, expiresAt},
 	} {
 		t.Run(name, func(t *testing.T) {
-			session, appErr := th.App.CreateScopedSession(th.Context, tc.pluginID, tc.userID, tc.scope(), tc.expiresAt)
-			require.NotNil(t, appErr)
+			session, err := th.App.CreateScopedSession(th.Context, tc.pluginID, tc.userID, tc.scope(), tc.expiresAt)
+			require.Error(t, err)
 			assert.Nil(t, session)
 		})
 	}
@@ -561,8 +561,8 @@ func TestCreateScopedSession(t *testing.T) {
 		user := th.CreateUser(t)
 		_, appErr := th.App.UpdateActive(th.Context, user, false)
 		require.Nil(t, appErr)
-		_, appErr = th.App.CreateScopedSession(th.Context, scopeTestPluginID, user.Id, f.scope(), expiresAt)
-		require.NotNil(t, appErr)
+		_, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, user.Id, f.scope(), expiresAt)
+		require.Error(t, err)
 	})
 
 	t.Run("CreateSession rejects a scope prop", func(t *testing.T) {
@@ -586,14 +586,14 @@ func TestRevokeScopedSessionsForPlugin(t *testing.T) {
 	f := newScopeFixture(t, th)
 	expiresAt := model.GetMillis() + 30*60*1000
 
-	mine, appErr := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, f.scope(), expiresAt)
-	require.Nil(t, appErr)
-	theirs, appErr := th.App.CreateScopedSession(th.Context, "com.example.other", f.bot.Id, f.scope(), expiresAt)
-	require.Nil(t, appErr)
+	mine, err := th.App.CreateScopedSession(th.Context, scopeTestPluginID, f.bot.Id, f.scope(), expiresAt)
+	require.NoError(t, err)
+	theirs, err := th.App.CreateScopedSession(th.Context, "com.example.other", f.bot.Id, f.scope(), expiresAt)
+	require.NoError(t, err)
 	unscoped, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: f.bot.Id})
 	require.Nil(t, appErr)
 
-	require.Nil(t, th.App.RevokeScopedSessionsForPlugin(th.Context, scopeTestPluginID))
+	require.NoError(t, th.App.RevokeScopedSessionsForPlugin(th.Context, scopeTestPluginID))
 
 	_, appErr = th.App.GetSession(mine.Token)
 	assert.NotNil(t, appErr, "the plugin's scoped session is revoked")
@@ -611,15 +611,16 @@ func TestRevokeScopedSessionsForPlugin(t *testing.T) {
 		time.Sleep(2 * time.Millisecond)
 		next := mintScoped(t, th, f.bot.Id, f.scope())
 
-		appErr := th.App.RevokeScopedSessionsForPlugin(th.Context, scopeTestPluginID)
-		require.NotNil(t, appErr)
+		revokeErr := th.App.RevokeScopedSessionsForPlugin(th.Context, scopeTestPluginID)
+		var appErr *model.AppError
+		require.ErrorAs(t, revokeErr, &appErr)
 		assert.Equal(t, "app.session.revoke_scoped.app_error", appErr.Id)
 		_, appErr = th.App.GetSession(next.Token)
 		assert.NotNil(t, appErr, "the session after the failure is revoked")
 	})
 
 	t.Run("all scoped sessions", func(t *testing.T) {
-		require.Nil(t, th.App.RevokeAllScopedSessions(th.Context))
+		require.NoError(t, th.App.RevokeAllScopedSessions(th.Context))
 		_, appErr := th.App.GetSession(theirs.Token)
 		assert.NotNil(t, appErr)
 		_, appErr = th.App.GetSession(unscoped.Token)
