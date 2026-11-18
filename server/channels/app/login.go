@@ -71,7 +71,7 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
 		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
-		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); err != nil && !ok {
 			rctx.Logger().Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

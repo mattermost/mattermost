@@ -40,13 +40,10 @@ func (a *App) getChannelIDFromJobData(jobData model.StringMap) string {
 func (a *App) GetJob(rctx request.CTX, id string) (*model.Job, *model.AppError) {
 	job, err := a.Srv().Store().Job().Get(rctx, id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return job, nil
