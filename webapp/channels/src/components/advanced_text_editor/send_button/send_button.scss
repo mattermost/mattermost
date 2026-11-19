@@ -1,7 +1,7 @@
 // Channel send uses the medium corner, so the split arrow and the schedule
 // chevron share that shape.
-// Agent send adds --round and uses the same medium corner. The schedule
-// split is hidden there.
+// Agent send adds --round: 44px wide, 32px tall, same medium corner. The
+// schedule split is hidden there.
 .splitSendButton {
     display: flex;
     overflow: hidden;
@@ -98,11 +98,11 @@
     }
 }
 
-// Agent send is 32px with the medium corner, the same shape as stop, and the
-// primary fill. The paper plane's mass sits left of center; 2px
-// (--spacing-xxxxs) centers it.
+// Agent send is 44px wide and 32px tall, with the medium corner and the
+// primary fill. The paper plane's mass sits left of center; 1px brings it
+// toward the middle.
 .splitSendButton--round {
-    width: 32px;
+    width: 44px;
     height: 32px;
     border-radius: var(--radius-m);
 
@@ -117,5 +117,5 @@
 }
 
 .SendMessageButton__icon {
-    transform: translateX(var(--spacing-xxxxs));
+    transform: translateX(1px);
 }

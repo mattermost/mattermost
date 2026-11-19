@@ -253,7 +253,9 @@
         position: relative;
 
         [data-testid='formattingBarContainer'] {
-            padding-right: 62px;
+            // Clears the 44px send button, the 7px inset, and the gap to the
+            // formatting icons.
+            padding-right: 74px;
             padding-left: 46px;
         }
     }
