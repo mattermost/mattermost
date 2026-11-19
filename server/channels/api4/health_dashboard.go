@@ -33,7 +33,7 @@ func requireHealthDashboard(c *Context) bool {
 		return false
 	}
 
-	if !model.MinimumEnterpriseLicense(c.App.Channels().License()) {
+	if !model.MinimumProfessionalLicense(c.App.Channels().License()) {
 		c.Err = model.NewAppError("requireHealthDashboard", "api.health_finding.license.app_error", nil, "", http.StatusNotImplemented)
 		return false
 	}

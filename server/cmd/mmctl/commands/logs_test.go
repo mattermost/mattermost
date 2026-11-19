@@ -64,6 +64,15 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			Times(1)
 	}
 
+	// expectPlugins expects the plugin list --plugin checks its IDs against
+	expectPlugins := func(ids ...string) {
+		plugins := &model.PluginsResponse{}
+		for _, id := range ids {
+			plugins.Active = append(plugins.Active, &model.PluginInfo{Manifest: model.Manifest{Id: id}})
+		}
+		s.client.EXPECT().GetPlugins(gomock.Any()).Return(plugins, &model.Response{}, nil).Times(1)
+	}
+
 	s.Run("Display single log line", func() {
 		cmd := newTestCmd(s.T(), LogsCmd)
 		expectLogFormat(new(true))
@@ -134,8 +143,11 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Require().NoError(cmd.Flags().Set("search", "8xyz7gqnfjb1jrkpd5xnqk5mbo"))
 		s.Equal("search", cmd.Flags().ShorthandLookup("s").Name)
 		s.Require().NoError(cmd.Flags().Set("since", "15m"))
+		s.Require().NoError(cmd.Flags().Set("plugin", " com.mattermost.calls,github"))
+		s.Require().NoError(cmd.Flags().Set("plugin", "github"))
 
 		expectServerVersion("12.2.0.12345.abcdef.true")
+		expectPlugins("com.mattermost.calls", "github")
 		before := time.Now()
 		var filter *model.LogFilter
 		s.client.
@@ -143,7 +155,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			QueryLogs(gomock.Any(), 0, 50, gomock.Any()).
 			DoAndReturn(func(_ context.Context, _, _ int, f *model.LogFilter) (map[string][]json.RawMessage, *model.Response, error) {
 				filter = f
-				return map[string][]json.RawMessage{"node-1": {testLogLine(time.Now(), "error", "8xyz7gqnfjb1jrkpd5xnqk5mbo failed")}}, &model.Response{}, nil
+				return map[string][]json.RawMessage{"node-1": {testLogLine(time.Now(), "error", "8xyz7gqnfjb1jrkpd5xnqk5mbo failed", "plugin_id", "github")}}, &model.Response{}, nil
 			}).
 			Times(1)
 
@@ -154,6 +166,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 		s.Equal([]string{"node-1", "node-2"}, filter.ServerNames)
 		s.Equal([]string{"panic", "fatal", "critical", "error", "info", "stdlog"}, filter.LogLevels)
 		s.Equal("8xyz7gqnfjb1jrkpd5xnqk5mbo", filter.Search)
+		s.Equal(map[string][]string{"plugin_id": {"com.mattermost.calls", "github"}}, filter.Fields)
 		dateFrom, err := time.Parse(model.LogFilterDateLayout, filter.DateFrom)
 		s.Require().NoError(err)
 		s.WithinRange(dateFrom, before.Add(-15*time.Minute-time.Second), time.Now().Add(-15*time.Minute))
@@ -355,20 +368,30 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	})
 
 	s.Run("Fail when the server can't query the logs and the flags need it", func() {
-		cmd := newTestCmd(s.T(), LogsCmd)
-		s.Require().NoError(cmd.Flags().Set("follow", "true"))
+		// GET /api/v4/logs can't filter, so --plugin alone needs the query too
+		for _, flag := range []string{"follow", "plugin"} {
+			s.Run(flag, func() {
+				cmd := newTestCmd(s.T(), LogsCmd)
+				value := map[string]string{"follow": "true", "plugin": "github"}[flag]
+				s.Require().NoError(cmd.Flags().Set(flag, value))
 
-		// Local mode doesn't report a version
-		expectServerVersion("")
-		expectLogFormat(nil)
-		s.client.
-			EXPECT().
-			QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
-			Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
-			Times(1)
+				// Local mode doesn't report a version
+				expectServerVersion("")
+				if flag == "plugin" {
+					expectPlugins("github")
+				}
+				expectLogFormat(nil)
+				s.client.
+					EXPECT().
+					QueryLogs(gomock.Any(), 0, DefaultPageSize, gomock.Any()).
+					Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).
+					Times(1)
 
-		_, _, err := testLogsCmdF(s.client, cmd, []string{})
-		s.Require().ErrorIs(err, errQueryLogsNotFound)
+				_, _, err := testLogsCmdF(s.client, cmd, []string{})
+				s.Require().ErrorIs(err, errQueryLogsNotFound)
+				s.Contains(err.Error(), "--"+flag)
+			})
+		}
 	})
 
 	s.Run("Cap the number of entries at the server's limit", func() {
@@ -389,6 +412,12 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 	})
 
 	s.Run("Reject invalid flags", func() {
+		ids := make([]string, model.LogFilterFieldMaxValues+1)
+		for i := range ids {
+			ids[i] = fmt.Sprintf("plugin%d", i)
+		}
+		tooManyPluginIDs := strings.Join(ids, ",")
+
 		for _, tc := range []struct {
 			name  string
 			flags map[string]string
@@ -399,6 +428,10 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			{"long search", map[string]string{"search": strings.Repeat("a", 257)}, "the search text must be at most 256 characters long"},
 			{"negative number", map[string]string{"number": "-1"}, "--number must not be negative"},
 			{"negative since", map[string]string{"since": "-1m"}, "--since must not be negative"},
+			{"invalid plugin ID", map[string]string{"plugin": "github,not a plugin"}, `invalid plugin ID "not a plugin"`},
+			{"empty plugin ID", map[string]string{"plugin": "github,"}, `invalid plugin ID ""`},
+			{"no plugin ID", map[string]string{"plugin": ""}, "--plugin needs at least one plugin ID"},
+			{"too many plugin IDs", map[string]string{"plugin": tooManyPluginIDs}, "--plugin accepts at most 20 plugin IDs"},
 		} {
 			s.Run(tc.name, func() {
 				cmd := newTestCmd(s.T(), LogsCmd)
@@ -445,6 +478,7 @@ func (s *MmctlUnitTestSuite) TestLogsCmd() {
 			{"level", map[string]string{"level": "error"}, "--level needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"search", map[string]string{"search": "abc"}, "--search needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"since", map[string]string{"since": "15m"}, "--since needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
+			{"plugin", map[string]string{"plugin": "github"}, "--plugin needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"node", map[string]string{"node": "node-1"}, "--node needs a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without it"},
 			{"several", map[string]string{"follow": "true", "level": "error", "search": "abc", "node": "node-1"}, "--follow, --level, --node and --search need a v12.2.0 or later server, and the server runs v12.1.1. Upgrade the server, or run mmctl logs without them"},
 		} {
@@ -724,7 +758,7 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		)
 
 		s.Len(testLogMessages(stdout), logsMaxPerPage)
-		s.Equal(fmt.Sprintf("node \"default\" logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level or --search\n", logsMaxPerPage), stderr)
+		s.Equal(fmt.Sprintf("node \"default\" logged more than %d matching entries since the previous poll, so the older ones were skipped. Poll more often with a shorter --interval, or narrow the logs with --level, --plugin or --search\n", logsMaxPerPage), stderr)
 	})
 
 	s.Run("Don't warn about a full page that reaches past the poll's start", func() {
@@ -801,6 +835,33 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		s.Equal(warning+warning, stderr)
 	})
 
+	s.Run("Warn when a node's scan stopped at its limit, whatever the filters", func() {
+		limited := json.RawMessage(`{"level":"warn","msg":"Log scan stopped at its limit","scan_limited":true,"scanned_back_to":"2026-11-03 07:00:00.000 Z","timestamp":"2026-11-03 08:00:01.000 Z"}`)
+		limitedNoTime := json.RawMessage(`{"level":"warn","msg":"Log scan stopped at its limit","scan_limited":true,"timestamp":"2026-11-03 08:00:01.000 Z"}`)
+
+		_, stdout, stderr := follow(&logsOptions{number: 10, levels: logLevelGroups["error"], plugins: []string{"github"}},
+			respond(map[string][]json.RawMessage{
+				"node-1": {testLogLine(t0, "error", "kept", "plugin_id", "github"), limited},
+				"node-2": {limitedNoTime},
+			}),
+		)
+
+		s.Equal([]string{"[node-1] kept"}, testLogMessages(stdout))
+		s.Equal("the search on node \"node-1\" stopped at its limit, so entries logged before 2026-11-03 07:00:00.000 Z weren't searched. Narrow the search with --since\n"+
+			"the search on node \"node-2\" stopped at its limit, so older entries weren't searched. Narrow the search with --since\n", stderr)
+	})
+
+	s.Run("Don't warn about a scan stopped at its limit with --number 0", func() {
+		limited := json.RawMessage(`{"level":"warn","msg":"Log scan stopped at its limit","scan_limited":true,"timestamp":"2026-11-03 08:00:01.000 Z"}`)
+
+		_, stdout, stderr := follow(&logsOptions{number: 0},
+			respond(map[string][]json.RawMessage{"default": {limited}}),
+		)
+
+		s.Empty(stdout)
+		s.Empty(stderr)
+	})
+
 	s.Run("Print the entries of several nodes in timestamp order, prefixed with their node", func() {
 		_, stdout, _ := follow(&logsOptions{number: 10},
 			respond(map[string][]json.RawMessage{
@@ -824,6 +885,22 @@ func (s *MmctlUnitTestSuite) TestLogFollower() {
 		)
 
 		s.Equal([]string{"has the marker", "has the level"}, testLogMessages(stdout))
+	})
+
+	s.Run("Apply the plugin filter on the client too", func() {
+		_, stdout, _ := follow(&logsOptions{number: 10, plugins: []string{"github", "jira", "12345"}},
+			respond(map[string][]json.RawMessage{"default": {
+				testLogLine(t0, "info", "github", "plugin_id", "github"),
+				testLogLine(t0, "info", "jira", "plugin_id", "jira"),
+				json.RawMessage(`{"timestamp":"2026-11-03 08:00:00.000 Z","level":"info","msg":"a number, compared as its JSON","plugin_id":12345}`),
+				testLogLine(t0, "info", "another plugin", "plugin_id", "zoom"),
+				testLogLine(t0, "info", "a different case", "plugin_id", "GitHub"),
+				testLogLine(t0, "info", "no plugin_id", "url", "https://example.com/plugins/github"),
+				json.RawMessage(`{"timestamp":"2026-11-03 08:00:00.000 Z","level":"info","msg":"not a string","plugin_id":42}`),
+			}}),
+		)
+
+		s.Equal([]string{"github", "jira", "a number, compared as its JSON"}, testLogMessages(stdout))
 	})
 }
 
@@ -940,4 +1017,37 @@ func testLogsCmdF(client client.Client, cmd *cobra.Command, args []string) (stdo
 	data = data[:len(data)-1]
 
 	return data, errBuf.String(), nil
+}
+
+func (s *MmctlUnitTestSuite) TestWarnUnknownPlugins() {
+	s.Run("Warn about the IDs no installed plugin has", func() {
+		s.client.
+			EXPECT().
+			GetPlugins(gomock.Any()).
+			Return(&model.PluginsResponse{
+				Active:   []*model.PluginInfo{{Manifest: model.Manifest{Id: "github"}}},
+				Inactive: []*model.PluginInfo{{Manifest: model.Manifest{Id: "jira"}}},
+			}, &model.Response{}, nil).
+			Times(1)
+
+		var warnings []string
+		warnUnknownPlugins(s.T().Context(), s.client, []string{"github", "jira", "Calls"}, func(msg string) { warnings = append(warnings, msg) })
+		s.Equal([]string{`no installed plugin has the ID "Calls". --plugin takes plugin IDs, not names`}, warnings)
+	})
+
+	s.Run("Say nothing when the plugins can't be read", func() {
+		s.client.
+			EXPECT().
+			GetPlugins(gomock.Any()).
+			Return(nil, &model.Response{StatusCode: http.StatusForbidden}, errors.New("forbidden")).
+			Times(1)
+
+		var warnings []string
+		warnUnknownPlugins(s.T().Context(), s.client, []string{"Calls"}, func(msg string) { warnings = append(warnings, msg) })
+		s.Empty(warnings)
+	})
+
+	s.Run("Don't read the plugins without --plugin", func() {
+		warnUnknownPlugins(s.T().Context(), s.client, nil, func(msg string) { s.Fail("unexpected warning", msg) })
+	})
 }

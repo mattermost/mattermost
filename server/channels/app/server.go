@@ -15,7 +15,6 @@ import (
 	"os"
 	"os/exec"
 	"path"
-	"slices"
 	"strings"
 	"sync"
 	"syscall"
@@ -28,6 +27,7 @@ import (
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme"
 	"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
@@ -1053,15 +1053,43 @@ func stripPort(hostport string) string {
 
 // recordServedCertificate passes the leaf of each certificate getCertificate serves to record. autocert
 // swaps in renewed certificates without a restart, so this follows renewals. ACME challenge certificates
-// are skipped.
+// are skipped, using autocert's own test: the only offered protocol is acme-tls/1.
 func recordServedCertificate(getCertificate func(*tls.ClientHelloInfo) (*tls.Certificate, error), record func(*x509.Certificate)) func(*tls.ClientHelloInfo) (*tls.Certificate, error) {
 	return func(hello *tls.ClientHelloInfo) (*tls.Certificate, error) {
 		cert, err := getCertificate(hello)
-		if err == nil && cert != nil && cert.Leaf != nil && !slices.Contains(hello.SupportedProtos, acme.ALPNProto) {
+		challenge := len(hello.SupportedProtos) == 1 && hello.SupportedProtos[0] == acme.ALPNProto
+		if err == nil && cert != nil && cert.Leaf != nil && !challenge {
 			record(cert.Leaf)
 		}
 		return cert, err
 	}
+}
+
+func (s *Server) newLetsEncryptManager() *autocert.Manager {
+	return &autocert.Manager{
+		Cache:      autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: s.letsEncryptHostPolicy,
+	}
+}
+
+// letsEncryptHostPolicy only allows certificates for the Site URL hostname, so clients
+// presenting arbitrary hostnames (e.g. internet scanners) cannot trigger issuance.
+func (s *Server) letsEncryptHostPolicy(ctx context.Context, host string) error {
+	siteURL, err := url.Parse(*s.platform.Config().ServiceSettings.SiteURL)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse Site URL")
+	}
+	if siteURL.Hostname() == "" {
+		return errors.New("the Site URL must include a hostname to obtain a Let's Encrypt certificate")
+	}
+	// HostWhitelist normalizes its entries but not the requested host, which the
+	// HTTP-01 handler passes through exactly as the client sent it.
+	normalizedHost, err := idna.Lookup.ToASCII(host)
+	if err != nil {
+		return errors.Wrapf(err, "invalid hostname %q", host)
+	}
+	return autocert.HostWhitelist(siteURL.Hostname())(ctx, normalizedHost)
 }
 
 func (s *Server) Start() error {
@@ -1225,10 +1253,7 @@ func (s *Server) Start() error {
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
-	m := &autocert.Manager{
-		Cache:  autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
-		Prompt: autocert.AcceptTOS,
-	}
+	m := s.newLetsEncryptManager()
 
 	if *s.platform.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {

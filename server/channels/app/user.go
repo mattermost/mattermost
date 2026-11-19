@@ -1763,7 +1763,7 @@ func (a *App) UpdatePasswordByUserIdSendEmail(rctx request.CTX, userID, newPassw
 
 func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError {
 	if err := a.IsPasswordValid(rctx, newPassword); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	// remote/synthetic users cannot update password via any mechanism
