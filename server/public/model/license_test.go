@@ -14,17 +14,24 @@ import (
 )
 
 func TestLicenseSkuDisplayName(t *testing.T) {
-	for sku, want := range map[string]string{
-		LicenseShortSkuE20:                "Enterprise E20",
-		LicenseShortSkuE10:                "Enterprise E10",
-		LicenseShortSkuProfessional:       "Professional",
-		LicenseShortSkuEnterprise:         "Enterprise",
-		LicenseShortSkuMattermostEntry:    "Entry",
-		LicenseShortSkuEnterpriseAdvanced: "Enterprise Advanced",
-		"starter":                         "starter",
-		"":                                "",
+	for _, tc := range []struct {
+		sku  string
+		gov  bool
+		want string
+	}{
+		{LicenseShortSkuE20, false, "Enterprise E20"},
+		{LicenseShortSkuE10, false, "Enterprise E10"},
+		{LicenseShortSkuProfessional, false, "Professional"},
+		{"starter", false, "Starter"},
+		{LicenseShortSkuEnterprise, false, "Enterprise"},
+		{LicenseShortSkuMattermostEntry, false, "Entry"},
+		{LicenseShortSkuEnterpriseAdvanced, false, "Enterprise Advanced"},
+		{LicenseShortSkuEnterpriseAdvanced, true, "Enterprise Advanced Gov"},
+		{"unknown", false, "unknown"},
+		{"unknown", true, "unknown Gov"},
+		{"", false, ""},
 	} {
-		assert.Equal(t, want, LicenseSkuDisplayName(sku), sku)
+		assert.Equal(t, tc.want, LicenseSkuDisplayName(tc.sku, tc.gov), "%s gov=%t", tc.sku, tc.gov)
 	}
 }
 

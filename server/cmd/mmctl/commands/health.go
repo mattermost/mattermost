@@ -63,7 +63,7 @@ var HealthCheckCmd = &cobra.Command{
 var HealthExportCmd = &cobra.Command{
 	Use:   "export <html|md>",
 	Short: "Export health findings as an HTML or Markdown report",
-	Long: "Export the server's latest health findings as an HTML or Markdown report to share, written to stdout or to the file given with --output. The report includes resolved and muted findings.\n\n" +
+	Long: "Export the server's latest health findings as an HTML or Markdown report to share, written to stdout or to the file given with --output. The report includes resolved and muted findings. --json can't be used with this command.\n\n" +
 		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed.",
 	Example:   "  health export html --output health-report.html\n  health export md --packet mm_support_packet.zip",
 	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
@@ -151,7 +151,7 @@ func healthExportCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 		opts.ServerVersion = config["Version"]
 	}
 	if license, _, licenseErr := c.GetOldClientLicense(context.TODO(), ""); licenseErr == nil && license["IsLicensed"] == "true" {
-		opts.License = model.LicenseSkuDisplayName(license["SkuShortName"])
+		opts.License = model.LicenseSkuDisplayName(license["SkuShortName"], license["IsGovSku"] == "true")
 		opts.Company = license["Company"]
 	}
 	return exportHealthReport(cmd, args[0], list, opts)
@@ -284,7 +284,7 @@ func evaluateHealthPacket(ctx context.Context, packetPath string, filter model.H
 	opts.SiteURL, _ = p.Snapshot.ConfigString(func(cfg *model.Config) *string { return cfg.ServiceSettings.SiteURL })
 	opts.ServerVersion = p.Snapshot.Version.Current
 	if license, ok := p.Snapshot.License(); ok {
-		opts.License = model.LicenseSkuDisplayName(license.SkuShortName)
+		opts.License = model.LicenseSkuDisplayName(license.SkuShortName, license.IsGovSKU)
 		opts.Company = license.Company
 	}
 	return list, opts, nil

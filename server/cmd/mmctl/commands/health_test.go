@@ -1059,7 +1059,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 		s.client.
 			EXPECT().
 			GetOldClientLicense(context.TODO(), "").
-			Return(map[string]string{"IsLicensed": "true", "SkuShortName": "advanced", "Company": "Acme Corp"}, &model.Response{}, nil).
+			Return(map[string]string{"IsLicensed": "true", "SkuShortName": "advanced", "IsGovSku": "true", "Company": "Acme Corp"}, &model.Response{}, nil).
 			Times(1)
 	}
 
@@ -1068,7 +1068,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 		want   []string
 	}{
 		{"html", []string{"<!DOCTYPE html>", "<dt>Site URL</dt>", "<dt>Licensed to</dt>"}},
-		{"md", []string{"# Health report\n", "- **Site URL:** https://chat.example.com\n", "- **License:** Enterprise Advanced\n", "- **Licensed to:** Acme Corp\n"}},
+		{"md", []string{"# Health report\n", "- **Site URL:** https://chat.example.com\n", "- **License:** Enterprise Advanced Gov\n", "- **Licensed to:** Acme Corp\n"}},
 	} {
 		s.Run("online "+tc.format+" export includes resolved and muted findings", func() {
 			printer.Clean()
@@ -1080,7 +1080,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 			s.Require().NoError(err)
 
 			output := s.printedHealthFindings()
-			for _, want := range append(tc.want, "https://chat.example.com", "12.2.0", "Enterprise Advanced", "Acme Corp",
+			for _, want := range append(tc.want, "https://chat.example.com", "12.2.0", "Enterprise Advanced Gov", "Acme Corp",
 				"Push notification server is not HTTPS", "Site URL is not HTTPS", "Site URL is empty", "Muted finding") {
 				s.Contains(output, want)
 			}
@@ -1148,7 +1148,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 	cfgJSON, err := json.Marshal(cfg)
 	s.Require().NoError(err)
 	packetFiles[model.SupportPacketConfigFileName] = string(cfgJSON)
-	packetFiles[model.SupportPacketDiagnosticsFileName] = strings.Replace(packetFiles[model.SupportPacketDiagnosticsFileName], "license:\n", "license:\n  company: Acme Corp\n", 1)
+	packetFiles[model.SupportPacketDiagnosticsFileName] = strings.Replace(packetFiles[model.SupportPacketDiagnosticsFileName], "license:\n", "license:\n  company: Acme Corp\n  is_gov_sku: true\n", 1)
 	packetPath := s.writeHealthTestPacket(packetFiles)
 	internalTitle := "File logging at debug or trace level"
 
@@ -1168,7 +1168,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 		{"md", []string{
 			"# Health report\n", "> " + healthPacketDisclaimer + "\n",
 			"- **Data collected:** " + time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04 MST") + "\n",
-			"- **Site URL:** https://chat.example.com\n", "- **Server version:** 11.0.4\n", "- **License:** Enterprise\n", "- **Licensed to:** Acme Corp\n",
+			"- **Site URL:** https://chat.example.com\n", "- **Server version:** 11.0.4\n", "- **License:** Enterprise Gov\n", "- **Licensed to:** Acme Corp\n",
 		}},
 	} {
 		s.Run("packet "+tc.format+" export leaves out internal findings", func() {
@@ -1178,7 +1178,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 			s.Require().NoError(healthExportRunE(s.healthTestCommand(HealthExportCmd, "packet", packetPath), []string{tc.format}))
 
 			output := s.printedHealthFindings()
-			for _, want := range append(tc.want, "https://chat.example.com", "11.0.4", "Enterprise", "Acme Corp",
+			for _, want := range append(tc.want, "https://chat.example.com", "11.0.4", "Enterprise Gov", "Acme Corp",
 				"Evaluated locally from a Support Packet", "PushNotificationServer does not use https://") {
 				s.Contains(output, want)
 			}

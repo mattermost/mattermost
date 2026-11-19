@@ -9,7 +9,7 @@ Synopsis
 ~~~~~~~~
 
 
-Export the server's latest health findings as an HTML or Markdown report to share, written to stdout or to the file given with --output. The report includes resolved and muted findings.
+Export the server's latest health findings as an HTML or Markdown report to share, written to stdout or to the file given with --output. The report includes resolved and muted findings. --json can't be used with this command.
 
 With --packet, evaluate a Support Packet on this machine instead. No server connection is needed.
 
