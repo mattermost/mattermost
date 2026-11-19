@@ -153,17 +153,14 @@ mmctl health run
 
 ### Export a health report
 
-To share the findings as a file, export them as HTML or Markdown:
+To share the findings as a file, export them as HTML or Markdown with `mmctl health export`:
 
 ```sh
-mmctl health check --output-format html --output health-report.html
+mmctl health export html --output health-report.html
 ```
 
-| Flag | Description |
-| --- | --- |
-| `--output-format <html\|md>` | Export the report as HTML or Markdown instead of printing the findings. |
-| `-o`, `--output <file>` | Write the export to this file. Without it, the export goes to standard output. Requires `--output-format`. |
+The report includes resolved and muted findings. Without `--output`, it goes to standard output. Use `--packet` to export a Support Packet without a server connection:
 
-An export includes resolved and muted findings, so `--output-format` can't be combined with `--include-resolved` or `--include-muted`. It also can't be combined with `--json`.
-
-`--output-format` also works with `--packet`, so a Support Packet can be exported without a server connection.
+```sh
+mmctl health export md --packet mm_support_packet.zip
+```

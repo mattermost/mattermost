@@ -54,11 +54,21 @@ var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
 	Short: "Report current health findings",
 	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
-		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.\n\n" +
-		"With --output-format, export the report as HTML or Markdown to share it, written to stdout or to the file given with --output. An export includes resolved and muted findings.",
-	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip\n  health check --output-format html --output health-report.html\n  health check --packet mm_support_packet.zip --output-format md",
+		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.",
+	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip",
 	Args:    cobra.NoArgs,
 	RunE:    healthCheckRunE,
+}
+
+var HealthExportCmd = &cobra.Command{
+	Use:   "export <html|md>",
+	Short: "Export health findings as an HTML or Markdown report",
+	Long: "Export the server's latest health findings as an HTML or Markdown report to share, written to stdout or to the file given with --output. The report includes resolved and muted findings.\n\n" +
+		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed.",
+	Example:   "  health export html --output health-report.html\n  health export md --packet mm_support_packet.zip",
+	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
+	ValidArgs: []string{"html", "md"},
+	RunE:      healthExportRunE,
 }
 
 var HealthRunCmd = &cobra.Command{
@@ -75,57 +85,30 @@ func init() {
 	HealthCheckCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthCheckCmd.Flags().Bool("include-muted", false, "Include muted findings")
 	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate without a server")
-	HealthCheckCmd.Flags().String("output-format", "", "Export the report in this format instead of printing it: html or md")
-	HealthCheckCmd.Flags().StringP("output", "o", "", "File to write the export to, instead of stdout. Requires --output-format")
 	HealthRunCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthRunCmd.Flags().Bool("include-muted", false, "Include muted findings")
+	HealthExportCmd.Flags().StringP("output", "o", "", "File to write the report to, instead of stdout")
+	HealthExportCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate without a server")
 
-	HealthCmd.AddCommand(HealthCheckCmd, HealthRunCmd)
+	HealthCmd.AddCommand(HealthCheckCmd, HealthRunCmd, HealthExportCmd)
 	RootCmd.AddCommand(HealthCmd)
 }
 
 // healthCheckRunE dispatches before any client is built: withClient connects eagerly, and
 // --packet must work with no server.
 func healthCheckRunE(cmd *cobra.Command, args []string) error {
-	if err := validateHealthExportFlags(cmd); err != nil {
-		return err
-	}
 	if packetPath, _ := cmd.Flags().GetString("packet"); packetPath != "" {
 		return healthCheckPacketCmdF(cmd, args)
 	}
 	return withClient(healthCheckCmdF)(cmd, args)
 }
 
-func validateHealthExportFlags(cmd *cobra.Command) error {
-	format, _ := cmd.Flags().GetString("output-format")
-	if format == "" {
-		if output, _ := cmd.Flags().GetString("output"); output != "" {
-			return errors.New("--output requires --output-format")
-		}
-		return nil
-	}
-
-	if format != "html" && format != "md" {
-		return fmt.Errorf("invalid --output-format %q: use html or md", format)
-	}
-	if printer.GetFormat() == printer.FormatJSON {
-		return errors.New("--json cannot be used with --output-format")
-	}
-	for _, flag := range []string{"include-resolved", "include-muted"} {
-		if include, _ := cmd.Flags().GetBool(flag); include {
-			return fmt.Errorf("--%s cannot be used with --output-format: exports already include resolved and muted findings", flag)
-		}
-	}
-	return nil
-}
-
 func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	includeResolved, _ := cmd.Flags().GetBool("include-resolved")
 	includeMuted, _ := cmd.Flags().GetBool("include-muted")
-	format, _ := cmd.Flags().GetString("output-format")
 
 	filter := model.HealthFindingFilter{}
-	if includeMuted || format != "" {
+	if includeMuted {
 		filter.Muted = model.MutedIncluded
 	}
 
@@ -134,11 +117,35 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get health findings: %w", err)
 	}
 
-	opts := report.Options{GeneratedAt: time.Now()}
-	if format == "" {
-		return printHealthFindings(list, includeResolved, opts)
+	return printHealthFindings(list, includeResolved, report.Options{GeneratedAt: time.Now()})
+}
+
+// healthExportRunE dispatches before any client is built, as healthCheckRunE does.
+func healthExportRunE(cmd *cobra.Command, args []string) error {
+	if printer.GetFormat() == printer.FormatJSON {
+		return errors.New("--json cannot be used with health export")
 	}
 
+	packetPath, _ := cmd.Flags().GetString("packet")
+	if packetPath == "" {
+		return withClient(healthExportCmdF)(cmd, args)
+	}
+
+	// An export is meant to be shared, so it leaves out the findings meant for support engineers.
+	list, opts, err := evaluateHealthPacket(cmd.Context(), packetPath, model.HealthFindingFilter{Surfaces: []string{string(healthcheck.SurfaceProduct)}})
+	if err != nil {
+		return err
+	}
+	return exportHealthReport(cmd, args[0], list, opts)
+}
+
+func healthExportCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	list, _, err := c.GetHealthFindings(context.TODO(), model.HealthFindingFilter{Muted: model.MutedIncluded})
+	if err != nil {
+		return fmt.Errorf("failed to get health findings: %w", err)
+	}
+
+	opts := report.Options{GeneratedAt: time.Now()}
 	if config, _, configErr := c.GetClientConfig(context.TODO(), ""); configErr == nil {
 		opts.SiteURL = config["SiteURL"]
 		opts.ServerVersion = config["Version"]
@@ -147,7 +154,7 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		opts.License = model.LicenseSkuDisplayName(license["SkuShortName"])
 		opts.Company = license["Company"]
 	}
-	return exportHealthReport(cmd, format, list, opts)
+	return exportHealthReport(cmd, args[0], list, opts)
 }
 
 func healthRunCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -204,8 +211,6 @@ func runHealthCheckAndWait(ctx context.Context, c client.Client, timeout time.Du
 	}
 }
 
-// healthCheckPacketCmdF evaluates a Support Packet with the same engine and reconciler the
-// server uses, against an in-memory store, and renders with the English catalog built into mmctl.
 func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	packetPath, _ := cmd.Flags().GetString("packet")
 	includeResolved, _ := cmd.Flags().GetBool("include-resolved")
@@ -213,13 +218,24 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		return errors.New("--include-muted cannot be used with --packet: findings evaluated from a packet are never muted")
 	}
 
+	list, opts, err := evaluateHealthPacket(cmd.Context(), packetPath, model.HealthFindingFilter{})
+	if err != nil {
+		return err
+	}
+	return printHealthFindings(list, includeResolved, opts)
+}
+
+// evaluateHealthPacket evaluates a Support Packet with the same engine and reconciler the server
+// uses, against an in-memory store, and renders the findings filter selects with the English
+// catalog built into mmctl. The returned options describe the packet's server.
+func evaluateHealthPacket(ctx context.Context, packetPath string, filter model.HealthFindingFilter) (*model.HealthFindingList, report.Options, error) {
 	p, err := packet.ReadFile(packetPath)
 	if err != nil {
-		return fmt.Errorf("failed to read Support Packet: %w", err)
+		return nil, report.Options{}, fmt.Errorf("failed to read Support Packet: %w", err)
 	}
 
 	notes := []string{healthPacketDisclaimer}
-	if note := fillLatestVersion(cmd.Context(), p.Snapshot); note != "" {
+	if note := fillLatestVersion(ctx, p.Snapshot); note != "" {
 		notes = append(notes, note)
 	}
 	notes = append(notes, p.Warnings...)
@@ -240,22 +256,16 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{Registry: registry, Now: now})
 	reconciler := healthcheck.NewReconciler(healthcheck.ReconcilerOpts{Store: store, Registry: registry, Now: now})
 	if _, err = reconciler.Reconcile(engine.Evaluate(p.Snapshot)); err != nil {
-		return fmt.Errorf("failed to evaluate Support Packet: %w", err)
+		return nil, report.Options{}, fmt.Errorf("failed to evaluate Support Packet: %w", err)
 	}
 
-	// An export is meant to be shared, so it leaves out the findings meant for support engineers.
-	format, _ := cmd.Flags().GetString("output-format")
-	filter := model.HealthFindingFilter{}
-	if format != "" {
-		filter.Surfaces = []string{string(healthcheck.SurfaceProduct)}
-	}
 	stored, err := store.List(filter)
 	if err != nil {
-		return fmt.Errorf("failed to list health findings: %w", err)
+		return nil, report.Options{}, fmt.Errorf("failed to list health findings: %w", err)
 	}
 
 	if err = i18n.TranslationsPreInitFromFileBytes("en.json", serveri18n.English); err != nil {
-		return fmt.Errorf("failed to load translations: %w", err)
+		return nil, report.Options{}, fmt.Errorf("failed to load translations: %w", err)
 	}
 
 	findings := make([]*model.HealthFinding, 0, len(stored))
@@ -271,17 +281,13 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		PointInTime: true,
 		Notes:       notes,
 	}
-	if format == "" {
-		return printHealthFindings(list, includeResolved, opts)
-	}
-
 	opts.SiteURL, _ = p.Snapshot.ConfigString(func(cfg *model.Config) *string { return cfg.ServiceSettings.SiteURL })
 	opts.ServerVersion = p.Snapshot.Version.Current
 	if license, ok := p.Snapshot.License(); ok {
 		opts.License = model.LicenseSkuDisplayName(license.SkuShortName)
 		opts.Company = license.Company
 	}
-	return exportHealthReport(cmd, format, list, opts)
+	return list, opts, nil
 }
 
 // exportHealthReport renders the report as format, to the --output file or to stdout.

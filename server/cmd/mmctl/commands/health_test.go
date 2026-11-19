@@ -1026,8 +1026,8 @@ Could not evaluate
 	})
 }
 
-func (s *MmctlUnitTestSuite) healthExportTestCommand(flags ...string) *cobra.Command {
-	cmd := newTestCmd(s.T(), HealthCheckCmd)
+func (s *MmctlUnitTestSuite) healthTestCommand(command *cobra.Command, flags ...string) *cobra.Command {
+	cmd := newTestCmd(s.T(), command)
 	cmd.SetContext(context.Background())
 	for i := 0; i < len(flags); i += 2 {
 		s.Require().NoError(cmd.Flags().Set(flags[i], flags[i+1]))
@@ -1035,7 +1035,7 @@ func (s *MmctlUnitTestSuite) healthExportTestCommand(flags ...string) *cobra.Com
 	return cmd
 }
 
-func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
+func (s *MmctlUnitTestSuite) TestHealthExport() {
 	s.serveLatestRelease(healthTestRelease("v12.4.0"))
 	lastSeen := time.Now().Add(-5 * time.Minute)
 	exportList := func() *model.HealthFindingList {
@@ -1076,7 +1076,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 			expectFindings()
 			expectSite()
 
-			err := healthCheckCmdF(s.client, s.healthExportTestCommand("output-format", tc.format), []string{})
+			err := healthExportCmdF(s.client, s.healthTestCommand(HealthExportCmd), []string{tc.format})
 			s.Require().NoError(err)
 
 			output := s.printedHealthFindings()
@@ -1094,7 +1094,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		expectFindings()
 		expectSite()
 
-		err := healthCheckCmdF(s.client, s.healthExportTestCommand("output-format", "md", "output", path), []string{})
+		err := healthExportCmdF(s.client, s.healthTestCommand(HealthExportCmd, "output", path), []string{"md"})
 		s.Require().NoError(err)
 
 		s.Equal([]any{"Wrote the health report to " + path}, printer.GetLines())
@@ -1119,7 +1119,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 			Return(map[string]string{"IsLicensed": "false"}, &model.Response{}, nil).
 			Times(1)
 
-		err := healthCheckCmdF(s.client, s.healthExportTestCommand("output-format", "md"), []string{})
+		err := healthExportCmdF(s.client, s.healthTestCommand(HealthExportCmd), []string{"md"})
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
@@ -1136,7 +1136,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		expectFindings()
 		expectSite()
 
-		err := healthCheckCmdF(s.client, s.healthExportTestCommand("output-format", "html", "output", path), []string{})
+		err := healthExportCmdF(s.client, s.healthTestCommand(HealthExportCmd, "output", path), []string{"html"})
 		s.Require().ErrorContains(err, "failed to write the health report")
 		s.Empty(printer.GetLines())
 	})
@@ -1152,11 +1152,11 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 	packetPath := s.writeHealthTestPacket(packetFiles)
 	internalTitle := "File logging at debug or trace level"
 
-	s.Run("packet text output includes internal findings", func() {
+	s.Run("health check of the packet includes internal findings", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		s.Require().NoError(healthCheckRunE(s.healthExportTestCommand("packet", packetPath), []string{}))
+		s.Require().NoError(healthCheckRunE(s.healthTestCommand(HealthCheckCmd, "packet", packetPath), []string{}))
 		s.Contains(s.printedHealthFindings(), internalTitle)
 	})
 
@@ -1175,7 +1175,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 			printer.Clean()
 			printer.SetFormat(printer.FormatPlain)
 
-			s.Require().NoError(healthCheckRunE(s.healthExportTestCommand("packet", packetPath, "output-format", tc.format), []string{}))
+			s.Require().NoError(healthExportRunE(s.healthTestCommand(HealthExportCmd, "packet", packetPath), []string{tc.format}))
 
 			output := s.printedHealthFindings()
 			for _, want := range append(tc.want, "https://chat.example.com", "11.0.4", "Enterprise", "Acme Corp",
@@ -1193,37 +1193,24 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		files := healthTestPacketFiles()
 		delete(files, model.PacketMetadataFileName)
 
-		s.Require().NoError(healthCheckRunE(s.healthExportTestCommand("packet", s.writeHealthTestPacket(files), "output-format", "md"), []string{}))
+		s.Require().NoError(healthExportRunE(s.healthTestCommand(HealthExportCmd, "packet", s.writeHealthTestPacket(files)), []string{"md"}))
 		s.Contains(s.printedHealthFindings(), "- **Data collected:** Unknown\n")
 	})
 }
 
-func (s *MmctlUnitTestSuite) TestHealthCheckExportRejectedFlags() {
-	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
+func (s *MmctlUnitTestSuite) TestHealthExportRejectedInput() {
+	s.Run("--json", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
 
-	for _, tc := range []struct {
-		name   string
-		json   bool
-		flags  []string
-		errMsg string
-	}{
-		{"--include-resolved", false, []string{"output-format", "html", "include-resolved", "true"}, "--include-resolved cannot be used with --output-format: exports already include resolved and muted findings"},
-		{"--include-muted", false, []string{"output-format", "md", "include-muted", "true"}, "--include-muted cannot be used with --output-format: exports already include resolved and muted findings"},
-		{"--include-muted with --packet", false, []string{"packet", packetPath, "output-format", "html", "include-muted", "true"}, "--include-muted cannot be used with --output-format: exports already include resolved and muted findings"},
-		{"--json", true, []string{"output-format", "html"}, "--json cannot be used with --output-format"},
-		{"an unknown format", false, []string{"output-format", "pdf"}, `invalid --output-format "pdf": use html or md`},
-		{"--output without --output-format", false, []string{"output", "report.html"}, "--output requires --output-format"},
-	} {
-		s.Run(tc.name, func() {
-			printer.Clean()
-			printer.SetFormat(printer.FormatPlain)
-			if tc.json {
-				printer.SetFormat(printer.FormatJSON)
-			}
+		err := healthExportRunE(s.healthTestCommand(HealthExportCmd), []string{"html"})
+		s.Require().EqualError(err, "--json cannot be used with health export")
+		s.Empty(printer.GetLines())
+	})
 
-			err := healthCheckRunE(s.healthExportTestCommand(tc.flags...), []string{})
-			s.Require().EqualError(err, tc.errMsg)
-			s.Empty(printer.GetLines())
+	for _, args := range [][]string{{}, {"pdf"}, {"html", "md"}} {
+		s.Run(fmt.Sprintf("args %q", args), func() {
+			s.Require().Error(HealthExportCmd.Args(HealthExportCmd, args))
 		})
 	}
 }
