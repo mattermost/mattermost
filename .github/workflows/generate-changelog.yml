@@ -25,9 +25,65 @@ name: Generate Changelog
 #   CHANGELOG_SECTION_REVIEWERS — JSON mapping a section pattern to reviewers, e.g.
 #                                 {"Upgrade Impact/*": ["org/team"], "API Changes": ["login"]};
 #                                 requested on the changelog PR for the sections a run adds to
+#   CHANGELOG_DEFAULT_REVIEWERS — logins or org/team slugs (comma or space separated)
+#                                 requested, besides the section reviewers, when the PR is
+#                                 marked ready for review
+#   CHANGELOG_RELEASE_MANAGER   — GitHub login (or org/team) asked to review the blog link fix
+#                                 PR; unset, no review is requested
+#   CHANGELOG_AUTO_MERGE        — true to add the AutoMerge label to the changelog PR on Release
+#                                 Day when every condition holds; anything else (the default,
+#                                 false) only reports what would happen
+#
+# After the changelog PR is written, an auto run (CHANGELOG_SCHEDULE_MODE=auto, or a
+# dispatch in auto mode) also:
+#   - suggests a rewrite for each weak note the readiness report flags (machine-generated,
+#     under six words, a bare ticket reference), as a review comment with a suggestion
+#     block on that bullet, once per bullet, built from the PR's title, description and the
+#     files it changes (PRs in this public repo only). It never edits the text. Suggestions
+#     accepted, dismissed and pending are counted in sections.json's metrics;
+#   - on the first scheduled run on or after RC-1 + 1 working day (T-15; weekends skipped),
+#     marks the draft PR ready for review and requests the section and default reviewers,
+#     unless the preflight has a blocking failure. A PR that was ready once is not marked again;
+#   - sets the changelog labels on the source PRs in mattermost/mattermost and
+#     mattermost/enterprise, so developers don't have to: Changelog/Done on each PR whose
+#     note is in the entry, Changelog/Not Needed on each merged milestone PR skipped as
+#     having no note (NONE or an opt-out label). A PR with the right label is skipped, one
+#     with the other label (a person's choice) is left alone, and no label is removed.
+#     Never in dry_run or regenerate. The run summary has counts per repo; a PR the token
+#     can't label is listed in sections.json, which the release automation's status post reads.
+#
+# Release Day is the day the vX.Y.0 GitHub release is published (not as a pre-release). Its
+# `released` event, the hourly merge cron and a dispatch in merge mode run the merge job. It
+# never merges: it adds the team's AutoMerge label to the changelog PR, once, when the PR
+# targets master, no "Release day: TBD" is left, the generator's report is clean (benchmarking
+# ready, every note placed, no blocking preflight failure) and the blog link is set; the
+# AutoMerge automation then merges after reviews and checks. A label someone took off is not
+# added again. Otherwise the run summary lists what is missing.
+#
+# The blog link is found on the public releases category page only (a post whose slug starts
+# with mattermost-vX-Y- or whose title names vX.Y), and committed to the changelog PR's branch.
+# A link a person sets in the PR instead is the override, and is kept. If the post isn't listed by 23:00 UTC on Release
+# Day, the releases category page is linked and the label added anyway. After the merge, until
+# 10 working days after Release Day, once the post is listed and master links anything else,
+# the job opens one PR (branch changelog/vX.Y.0-blog-link) changing only that link and requests
+# review from CHANGELOG_RELEASE_MANAGER. It never pushes to master, and never opens a second fix
+# PR for a release. Once the changelog PR is merged, it also swaps Changelog/Done for
+# Changelog/Not Needed on each PR whose bullet a reviewer deleted, only where this workflow's
+# app added Changelog/Done; a dispatch in merge mode does the same after a hand-merge.
+#
+# Every write-app token names its permissions: contents: write, pull-requests: write,
+# checks: read and statuses: read, for mattermost/mattermost only. The labelling steps mint
+# their own token for mattermost/mattermost and mattermost/enterprise with Pull requests:
+# write only.
 on:
   schedule:
     - cron: '0 6 * * 1-5'
+    # The merge job only: on Release Day, until the changelog PR has the AutoMerge label, and for
+    # 10 working days after it, until its blog link is the published post. Weekends too, so a
+    # Friday release linked to the category page at 23:00 UTC is labelled that night.
+    - cron: '37 * * * *'
+  release:
+    types: [released]
   workflow_dispatch:
     inputs:
       version:
@@ -62,11 +118,11 @@ on:
         required: false
         type: string
       blog_post_url:
-        description: 'Blog post URL for the Improvements section — if omitted, auto-constructed from version (e.g. https://mattermost.com/blog/mattermost-v11-9-is-now-available/)'
+        description: 'Blog post URL for the Improvements section — if omitted, auto-constructed from version (e.g. https://mattermost.com/blog/mattermost-v11-9-is-now-available/); set to the published post on Release Day'
         required: false
         type: string
       mode:
-        description: 'auto: add notes from newly merged PRs to the open changelog PR without touching existing lines, or open a draft PR if there is none. regenerate: rebuild the entry from scratch, discarding edits made in the PR. dry_run: generate only, into the run summary and an artifact; nothing is pushed.'
+        description: 'auto: add notes from newly merged PRs to the open changelog PR without touching existing lines, or open a draft PR if there is none. regenerate: rebuild the entry from scratch, discarding edits made in the PR. dry_run: generate only, into the run summary and an artifact; nothing is pushed. merge: Release Day for the version: set the blog link and add the AutoMerge label if every condition holds and CHANGELOG_AUTO_MERGE is true; after a merge, reconcile the changelog labels.'
         required: false
         default: 'auto'
         type: choice
@@ -74,6 +130,7 @@ on:
           - auto
           - regenerate
           - dry_run
+          - merge
 
 jobs:
   # Decides what the run is for. A scheduled run picks the release between its RC-1
@@ -85,7 +142,7 @@ jobs:
   # milestone disagree on the major version, which would file one release's notes
   # under another's.
   resolve:
-    if: github.repository == 'mattermost/mattermost'
+    if: github.repository == 'mattermost/mattermost' && github.event_name != 'release' && inputs.mode != 'merge' && github.event.schedule != '37 * * * *'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -171,6 +228,11 @@ jobs:
           client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
           private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
           owner: mattermost
+          repositories: mattermost
+          permission-contents: write
+          permission-pull-requests: write
+          permission-checks: read
+          permission-statuses: read
 
       - name: Checkout repo
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -198,7 +260,7 @@ jobs:
         run: |
           # Run the generator from this checkout even after the PR branch is checked out
           # below: that branch was cut when the PR was opened and may carry an older copy.
-          cp .github/scripts/generate_changelog.py .github/scripts/changelog_release.py .github/scripts/check_config_changes_ci.py "$RUNNER_TEMP/"
+          cp .github/scripts/generate_changelog.py .github/scripts/changelog_release.py .github/scripts/check_config_changes_ci.py .github/scripts/changelog_automation.py "$RUNNER_TEMP/"
 
           PR_NUMBER="$(gh pr list --repo "$GITHUB_REPOSITORY" --head "changelog/$VERSION" --state open --json number --jq '.[0].number // empty')"
           BODY_FILE=""
@@ -290,13 +352,6 @@ jobs:
             echo "::endgroup::"
           fi
 
-      - name: Upload changelog output
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
-        with:
-          name: changelog-output
-          path: ${{ runner.temp }}/changelog-output/
-          if-no-files-found: error
-
       # Dispatch inputs and repo variables are bound to environment variables rather than
       # interpolated directly into the script body. Interpolated ${{ }} expressions are
       # substituted before bash runs, so a value containing shell metacharacters would be
@@ -328,7 +383,7 @@ jobs:
             if [ "$CHANGED" != "true" ]; then
               # The text is unchanged, but the body may list notes the model left out.
               if [ "$BODY_CHANGED" = "true" ]; then
-                gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+                gh api --method PATCH "repos/mattermost/mattermost/pulls/$PR_NUMBER" -F "body=@$BODY_FILE" --silent
                 echo "No new release notes in the text — updated the body of changelog PR #$PR_NUMBER"
               else
                 echo "No new release notes — changelog PR #$PR_NUMBER left unchanged"
@@ -339,7 +394,7 @@ jobs:
             git diff --staged --quiet && echo "No changes to commit" && exit 0
             git commit -m "docs: add release notes from $ADDED_PRS newly merged PR(s) and $ADDED_DERIVED release change(s) to the $VERSION changelog, and correct ${CORRECTED:-0} bullet(s)"
             git push origin "HEAD:changelog/$VERSION"
-            gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+            gh api --method PATCH "repos/mattermost/mattermost/pulls/$PR_NUMBER" -F "body=@$BODY_FILE" --silent
             echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -351,7 +406,7 @@ jobs:
           git commit -m "docs: add changelog for $VERSION"
           git push origin "changelog/$VERSION" --force
           if [ -n "$PR_NUMBER" ]; then
-            gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --body-file "$BODY_FILE"
+            gh api --method PATCH "repos/mattermost/mattermost/pulls/$PR_NUMBER" -F "body=@$BODY_FILE" --silent
           else
             PR_URL="$(gh pr create \
               --repo mattermost/mattermost \
@@ -364,6 +419,8 @@ jobs:
           fi
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
+      # Reviewers are requested with REST (changelog_automation.py request-reviewers), which the
+      # write token's Pull requests: write is enough for, teams included.
       - name: Request reviewers by section
         if: steps.publish.outputs.number != '' && vars.CHANGELOG_SECTION_REVIEWERS != ''
         env:
@@ -377,5 +434,149 @@ jobs:
             exit 0
           fi
           echo "Requesting review from $REVIEWERS"
-          gh pr edit "$PR_NUMBER" --repo mattermost/mattermost --add-reviewer "$REVIEWERS" \
-            || echo "::warning::Could not request review from $REVIEWERS on #$PR_NUMBER"
+          REVIEWERS="$REVIEWERS" python3 "$RUNNER_TEMP/changelog_automation.py" request-reviewers
+
+      # An auto run only; the scripts are the copies made from this checkout above.
+      # Marks the draft PR ready on the first scheduled run on or after RC-1 + 1 working
+      # day (T-15), unless the preflight has a blocking failure or the PR was ready once before.
+      - name: Decide whether to mark the PR ready
+        id: ready
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' && github.event_name == 'schedule' && needs.resolve.outputs.mode == 'auto' && (steps.publish.outputs.number != '' || steps.pr.outputs.number != '') }}
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          PR_NUMBER: ${{ steps.publish.outputs.number || steps.pr.outputs.number }}
+          EVENT_NAME: ${{ github.event_name }}
+          MODE: ${{ needs.resolve.outputs.mode }}
+          OUTPUT_DIR: ${{ runner.temp }}/changelog-output
+          SECTION_REVIEWERS: ${{ vars.CHANGELOG_SECTION_REVIEWERS }}
+          DEFAULT_REVIEWERS: ${{ vars.CHANGELOG_DEFAULT_REVIEWERS }}
+        run: python3 "$RUNNER_TEMP/changelog_automation.py" ready
+
+      - name: Mark the PR ready for review
+        if: steps.ready.outputs.ready == 'true'
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          PR_NUMBER: ${{ steps.publish.outputs.number || steps.pr.outputs.number }}
+          REVIEWERS: ${{ steps.ready.outputs.reviewers }}
+        run: |
+          gh pr ready "$PR_NUMBER" --repo mattermost/mattermost
+          python3 "$RUNNER_TEMP/changelog_automation.py" request-reviewers
+
+      # A review comment with a suggestion block on each weak bullet, once per bullet.
+      # Comments only: the changelog text is never edited. The counts of suggestions
+      # accepted, dismissed and pending go into sections.json's metrics.
+      - name: Suggest rewrites for weak notes
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' && needs.resolve.outputs.mode == 'auto' && (steps.publish.outputs.number != '' || steps.pr.outputs.number != '') }}
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          SOURCE_TOKEN: ${{ steps.readToken.outputs.token }} # reads the source PRs; only this repo's get a rewrite
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+          PR_NUMBER: ${{ steps.publish.outputs.number || steps.pr.outputs.number }}
+          OUTPUT_DIR: ${{ runner.temp }}/changelog-output
+        run: python3 "$RUNNER_TEMP/changelog_automation.py" suggest
+
+      # Changelog/Done and Changelog/Not Needed on the source PRs, after the PR is updated.
+      # An auto run only: never dry_run or regenerate. Writes what it did into sections.json;
+      # the summary has counts only. The source PRs are in mattermost/mattermost and
+      # mattermost/enterprise: a token for those two repos with Pull requests: write only.
+      # Labels are best effort: a token that can't be minted skips labelling (with a
+      # warning), never the rest of the run.
+      - name: Get labels token (source repos)
+        id: labelToken
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' && needs.resolve.outputs.mode == 'auto' }}
+        continue-on-error: true
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost,enterprise
+          permission-pull-requests: write
+
+      - name: Explain a failed labels token
+        if: ${{ !cancelled() && steps.labelToken.outcome == 'failure' }}
+        run: echo "::warning title=Changelog labels not set::Could not get a changelog write app token for mattermost/mattermost and mattermost/enterprise with Pull requests write, so no labels were set this run."
+
+      - name: Set changelog labels on the source PRs
+        if: ${{ !cancelled() && steps.labelToken.outcome == 'success' }}
+        env:
+          GH_TOKEN: ${{ steps.labelToken.outputs.token }}
+          MODE: ${{ needs.resolve.outputs.mode }}
+          OUTPUT_DIR: ${{ runner.temp }}/changelog-output
+        run: python3 "$RUNNER_TEMP/changelog_automation.py" label
+
+      # Last, so the artifact carries the suggestion metrics and labels written to sections.json.
+      # The release automation's daily status post reads it from here.
+      - name: Upload changelog output
+        if: ${{ !cancelled() && steps.generate.outcome == 'success' }}
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: changelog-output
+          path: ${{ runner.temp }}/changelog-output/
+          if-no-files-found: error
+
+  # Release Day: the `released` event of the vX.Y.0 GitHub release, the hourly cron, or a
+  # dispatch in merge mode. Sets the blog link and adds the AutoMerge label when
+  # CHANGELOG_AUTO_MERGE is true and nothing is missing; the AutoMerge automation merges.
+  # Otherwise the run summary lists what is missing. It never merges itself.
+  merge:
+    if: github.repository == 'mattermost/mattermost' && (github.event_name == 'release' || github.event.schedule == '37 * * * *' || (github.event_name == 'workflow_dispatch' && inputs.mode == 'merge'))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: generate-changelog-merge
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read # the generator's report is read from its last run's artifact
+    steps:
+      - name: Get write token (this repo)
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: writeToken
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost
+          permission-contents: write
+          permission-pull-requests: write
+          permission-checks: read
+          permission-statuses: read
+
+      # Only for swapping the changelog labels on the source PRs in both repos after the merge:
+      # Pull requests: write only. It never blocks the AutoMerge label: without it, only the
+      # swap is skipped (the summary says so).
+      - name: Get labels token (source repos)
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        id: labelToken
+        continue-on-error: true
+        with:
+          client-id: ${{ vars.CHANGELOG_WRITE_CLIENT_ID }}
+          private-key: ${{ secrets.CHANGELOG_WRITE_PRIVATE_KEY }}
+          owner: mattermost
+          repositories: mattermost,enterprise
+          permission-pull-requests: write
+
+      # master, not the release tag a `released` event would check out: the tag may have been
+      # cut before changelog_automation.py existed.
+      - name: Checkout repo
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          ref: master
+          persist-credentials: false
+
+      - name: Label the changelog PR for AutoMerge if it is ready
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          ACTIONS_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          INPUT_VERSION: ${{ inputs.version }}
+          AUTO_MERGE: ${{ vars.CHANGELOG_AUTO_MERGE }}
+          # GitHub login (or org/team) asked to review the blog link fix PR.
+          RELEASE_MANAGER: ${{ vars.CHANGELOG_RELEASE_MANAGER }}
+          LABEL_TOKEN: ${{ steps.labelToken.outputs.token }}
+          # Changelog/Done is swapped only on PRs this app labelled.
+          LABEL_ACTOR: ${{ steps.labelToken.outputs.app-slug }}[bot]
+        run: python3 .github/scripts/changelog_automation.py merge

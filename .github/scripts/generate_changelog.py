@@ -1805,13 +1805,16 @@ def preflight_checks(changelog_path: str, mode: str, milestones: dict, go_source
 
 
 def gap_status(derived: list[dict], refs_read: bool, go_version: str, go_source: str | None,
-               previous_go: str | None, entry_go: dict | None = None) -> list[dict]:
+               previous_go: str | None, entry_go: dict | None = None, benchmark_gap: dict | None = None) -> list[dict]:
     """The sections no developer note fills: ready, no_changes_this_release, not_yet_checked
     or needs_review.
 
     A section is never ready just because nothing was found; with no refs to diff it
     was not checked at all. ``entry_go`` is given in update mode: ``{"had": version}``,
     the Go version the entry said before this run, None when it has no Go line.
+    ``benchmark_gap`` is ``changelog_release.benchmark()``'s account of the performance
+    comparison: pending until it is published, flagged for a person when its Delta is
+    outside the prediction interval or can't be read.
     """
     def of(prefix):
         return [note["source"] for note in derived if note["source"].startswith(prefix)]
@@ -1848,10 +1851,13 @@ def gap_status(derived: list[dict], refs_read: bool, go_version: str, go_source:
         gaps.append({"section": "Go version", "status": "ready", "detail": f"{formatted} from {go_source}{note}"})
     else:
         gaps.append({"section": "Go version", "status": "not_yet_checked", "detail": "not read from the release branch"})
-    benchmark = of("benchmark:")
-    gaps.append({"section": "Benchmarking", "status": "ready", "detail": "read from the performance comparison"} if benchmark
-                else {"section": "Benchmarking", "status": "not_yet_checked", "blocks_publish": True,
-                      "detail": "no performance comparison published for this release yet"})
+    if benchmark_gap is not None:
+        gaps.append(benchmark_gap)
+    elif of("benchmark:"):
+        gaps.append({"section": "Benchmarking", "status": "ready", "detail": "read from the performance comparison"})
+    else:
+        gaps.append({"section": "Benchmarking", "status": "not_yet_checked", "blocks_publish": True,
+                     "detail": "no performance comparison published for this release yet"})
     return gaps
 
 
@@ -2580,7 +2586,8 @@ def main():
     # between the previous release's tag and this release's branch.
     base_ref = os.environ.get("RELEASE_BASE_REF", "").strip()
     head_ref = os.environ.get("RELEASE_HEAD_REF", "").strip()
-    derived = changelog_release.derived_notes(base_ref, head_ref) + changelog_release.benchmark_notes(VERSION)
+    benchmark = changelog_release.benchmark(VERSION)
+    derived = changelog_release.derived_notes(base_ref, head_ref) + benchmark["notes"]
     if derived:
         print(f"🔧 {len(derived)} change(s) read from the {base_ref}..{head_ref} diff and the performance comparison:")
         for note in derived:
@@ -2717,7 +2724,8 @@ def main():
         "doc_links": [{"source": source, **link} for source, link in docs_links.items() if link.get("url")],
         "doc_links_unclear": [{"source": source, **link} for source, link in docs_links.items() if link.get("candidates")],
         "doc_links_named_broken": named_broken,
-        "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go, entry_go),
+        "gaps": gap_status(derived, bool(base_ref and head_ref), go_version, go_source, previous_go, entry_go,
+                           benchmark["gap"]),
         "reconciled": reconciled,
     }
     blocking = [check for check in readiness["preflight"] if check["status"] == "fail" and check["blocking"]]
