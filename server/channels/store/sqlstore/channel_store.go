@@ -4388,6 +4388,13 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 	return members, nil
 }
 
+// channelHasNoRemoteMembersCond excludes DMs/GMs with shared channel remote users, which can't be imported.
+var channelHasNoRemoteMembersCond = sq.Expr(`NOT EXISTS (
+	SELECT 1 FROM ChannelMembers rcm
+	INNER JOIN Users ru ON ru.Id = rcm.UserId
+	WHERE rcm.ChannelId = Channels.Id AND COALESCE(ru.RemoteId, '') <> ''
+)`)
+
 func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 	directChannelsForExport := []*model.DirectChannelForExport{}
 	query := s.getQueryBuilder().
@@ -4396,6 +4403,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		Where(sq.And{
 			sq.Gt{"Channels.Id": afterId},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
+			channelHasNoRemoteMembersCond,
 		}).
 		OrderBy("Channels.Id").
 		Limit(uint64(limit))

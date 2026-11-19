@@ -1787,6 +1787,122 @@ func TestExportDeactivatedUserDMs(t *testing.T) {
 		"Threaded reply from deactivated user should be imported")
 }
 
+func TestExportSkipsRemoteUsers(t *testing.T) {
+	mainHelper.Parallel(t)
+	th1 := Setup(t).InitBasic(t)
+	remoteUser, err := th1.App.Srv().Store().User().Save(th1.Context, &model.User{
+		Username: "remote" + model.NewId()[:8] + ":connection-to-remote",
+		Email:    model.NewId() + "@remote.test",
+		RemoteId: new(model.NewId()),
+	})
+	require.NoError(t, err)
+	th1.LinkUserToTeam(t, remoteUser, th1.BasicTeam)
+	th1.AddUserToChannel(t, remoteUser, th1.BasicChannel)
+
+	remoteRoot, _, appErr := th1.App.CreatePost(th1.Context, &model.Post{
+		ChannelId: th1.BasicChannel.Id,
+		UserId:    remoteUser.Id,
+		Message:   "remote root post",
+	}, th1.BasicChannel, model.CreatePostFlags{})
+	require.Nil(t, appErr)
+
+	localRoot := th1.CreatePost(t, th1.BasicChannel)
+	for _, user := range []*model.User{remoteUser, th1.BasicUser2} {
+		_, _, appErr = th1.App.CreatePost(th1.Context, &model.Post{
+			ChannelId: th1.BasicChannel.Id,
+			UserId:    user.Id,
+			RootId:    localRoot.Id,
+			Message:   "reply from " + user.Username,
+		}, th1.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+		_, appErr = th1.App.SaveReactionForPost(th1.Context, &model.Reaction{
+			UserId:    user.Id,
+			PostId:    localRoot.Id,
+			EmojiName: "smile",
+		})
+		require.Nil(t, appErr)
+		_, err = th1.App.Srv().Store().PostAcknowledgement().BatchSave([]*model.PostAcknowledgement{{
+			PostId:         localRoot.Id,
+			UserId:         user.Id,
+			ChannelId:      localRoot.ChannelId,
+			AcknowledgedAt: localRoot.CreateAt + 1,
+		}})
+		require.NoError(t, err)
+	}
+	_, err = th1.App.Srv().Store().PostPriority().Save(&model.PostPriority{
+		PostId:       localRoot.Id,
+		ChannelId:    localRoot.ChannelId,
+		Priority:     new(model.PostPriorityUrgent),
+		RequestedAck: new(true),
+	})
+	require.NoError(t, err)
+
+	remoteDM, err := th1.App.Srv().Store().Channel().CreateDirectChannel(th1.Context, th1.BasicUser, remoteUser)
+	require.NoError(t, err)
+	_, err = th1.App.Srv().Store().Post().Save(th1.Context, &model.Post{
+		ChannelId: remoteDM.Id,
+		UserId:    th1.BasicUser.Id,
+		Message:   "dm with remote user",
+	})
+	require.NoError(t, err)
+	localDMPost := th1.CreatePost(t, th1.CreateDmChannel(t, th1.BasicUser2))
+
+	var b bytes.Buffer
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
+	require.Nil(t, appErr)
+
+	exported := b.String()
+	assert.NotContains(t, exported, remoteUser.Username)
+	assert.NotContains(t, exported, remoteRoot.Message)
+	assert.NotContains(t, exported, "dm with remote user")
+
+	th2 := Setup(t)
+	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	require.Nil(t, appErr)
+	require.Equal(t, 0, i)
+
+	_, appErr = th2.App.GetUserByUsername(remoteUser.Username)
+	require.NotNil(t, appErr)
+
+	team, appErr := th2.App.GetTeamByName(th1.BasicTeam.Name)
+	require.Nil(t, appErr)
+	channel, appErr := th2.App.GetChannelByName(th2.Context, th1.BasicChannel.Name, team.Id, false)
+	require.Nil(t, appErr)
+	importedRoots, err := th2.App.Srv().Store().Post().GetPostsCreatedAt(channel.Id, localRoot.CreateAt)
+	require.NoError(t, err)
+	require.Len(t, importedRoots, 1)
+	assert.Equal(t, localRoot.Message, importedRoots[0].Message)
+
+	importedUser2, appErr := th2.App.GetUserByUsername(th1.BasicUser2.Username)
+	require.Nil(t, appErr)
+	importedRootID := importedRoots[0].Id
+
+	thread, err := th2.App.Srv().Store().Post().Get(th2.Context, importedRootID, model.GetPostsOptions{}, "", nil)
+	require.NoError(t, err)
+	require.Len(t, thread.Posts, 2)
+	for _, post := range thread.Posts {
+		if post.Id != importedRootID {
+			assert.Equal(t, "reply from "+th1.BasicUser2.Username, post.Message)
+		}
+	}
+	reactions, err := th2.App.Srv().Store().Reaction().GetForPost(importedRootID, false)
+	require.NoError(t, err)
+	require.Len(t, reactions, 1)
+	assert.Equal(t, importedUser2.Id, reactions[0].UserId)
+	acks, err := th2.App.Srv().Store().PostAcknowledgement().GetForPost(importedRootID)
+	require.NoError(t, err)
+	require.Len(t, acks, 1)
+	assert.Equal(t, importedUser2.Id, acks[0].UserId)
+	membership, err := th2.App.Srv().Store().Thread().GetMembershipForUser(importedUser2.Id, importedRootID)
+	require.NoError(t, err)
+	assert.True(t, membership.Following)
+
+	dmPosts, err := th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, strings.Repeat("0", 26), false)
+	require.NoError(t, err)
+	require.Len(t, dmPosts, 1)
+	assert.Equal(t, localDMPost.Message, dmPosts[0].Message)
+}
+
 func TestGeneratePresignURLForExport(t *testing.T) {
 	mainHelper.Parallel(t)
 

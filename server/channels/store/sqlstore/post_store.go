@@ -2984,6 +2984,7 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 			InnerJoin("Teams ON Channels.TeamId = Teams.Id").
 			InnerJoin("Users ON p1.UserId = Users.Id").
 			Where(excludeDeletedCond).
+			Where(sq.Eq{"COALESCE(Users.RemoteId, '')": ""}).
 			GroupBy(fmt.Sprintf("%s, Users.Username, Teams.Name, Channels.Name", strings.Join(postSliceColumnsWithName("p1"), ", "))).
 			OrderBy("p1.Id")
 
@@ -2992,7 +2993,8 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 		}
 
 		if len(result) == 0 {
-			// All of the posts were in channels or teams that were deleted.
+			// All of the posts were in channels or teams that were deleted,
+			// or were authored by remote users.
 			// Update the afterId and try again.
 			afterId = rootIds[len(rootIds)-1]
 			continue
@@ -3012,7 +3014,11 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 		LeftJoin("Preferences ON Posts.Id = Preferences.Name").
 		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
 		InnerJoin("Users u2 ON Posts.UserId = u2.Id").
-		Where(sq.And{sq.Eq{"Posts.RootId": rootId}, sq.Eq{"Posts.DeleteAt": 0}}).
+		Where(sq.And{
+			sq.Eq{"Posts.RootId": rootId},
+			sq.Eq{"Posts.DeleteAt": 0},
+			sq.Eq{"COALESCE(u2.RemoteId, '')": ""},
+		}).
 		GroupBy("Posts.Id, u2.Username").
 		OrderBy("Posts.Id")
 
@@ -3041,6 +3047,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			sq.Eq{"p.RootId": ""},
 			sq.Eq{"p.DeleteAt": 0},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
+			channelHasNoRemoteMembersCond,
 		}).
 		GroupBy("p.Id, u2.Username").
 		OrderBy("p.Id").

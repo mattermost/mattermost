@@ -695,8 +695,9 @@ func (a *App) exportAllUsers(rctx request.CTX, job *model.Job, writer io.Writer,
 		for _, user := range users {
 			afterId = user.Id
 
-			// Skip bots as they are exported separately.
-			if user.IsBot {
+			// Skip bots as they are exported separately, and shared channel
+			// remote users as their usernames can't be imported.
+			if user.IsBot || user.IsRemote() {
 				continue
 			}
 
@@ -1224,6 +1225,9 @@ func (a *App) BuildPostReactions(rctx request.CTX, postID string) (*[]ReactionIm
 			}
 			return nil, model.NewAppError("BuildPostReactions", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if user.IsRemote() {
+			continue
+		}
 		reactionsOfPost = append(reactionsOfPost, *importReactionFromPost(user, reaction))
 	}
 
@@ -1265,7 +1269,9 @@ func (a *App) buildPostPriorities(rctx request.CTX, postIDs []string) (map[strin
 	}
 	usernames := make(map[string]string, len(users))
 	for _, user := range users {
-		usernames[user.Id] = user.Username
+		if !user.IsRemote() {
+			usernames[user.Id] = user.Username
+		}
 	}
 
 	acknowledgements := make(map[string]*[]imports.PostAcknowledgementImportData, len(acks))

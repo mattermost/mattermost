@@ -543,6 +543,7 @@ func (s *SqlThreadStore) GetThreadMembershipsForExport(postID string) ([]*model.
 	fetchConditions := sq.And{
 		sq.Eq{"PostId": postID},
 		sq.Eq{"Following": true},
+		sq.Eq{"COALESCE(Users.RemoteId, '')": ""},
 	}
 
 	query := s.getQueryBuilder().
