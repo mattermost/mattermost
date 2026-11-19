@@ -480,7 +480,8 @@ def request_reviewers(api, number: int, names: list[str], repo: str = REPO) -> s
 
 # ── 3. Release Day: the AutoMerge label ─────────────────────────────────────────────
 
-BENCHMARK_BULLET = re.compile(r"^ *[-*] +Benchmarking test results\b", re.MULTILINE)
+# The generator's in-range sentence must not count: a stale one survives a flip to needs_review.
+BENCHMARK_BULLET = re.compile(r"^ *[-*] +Benchmarking test results\b(?! showed no significant difference)", re.MULTILINE)
 
 
 def blocking_report_problems(report: dict | None, entry: str = "") -> list[str]:
