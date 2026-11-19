@@ -19,7 +19,6 @@ import {COMPOSER_PLUS_MENU_ID, ComposerSubmenuHoverProvider, useComposerSubmenuH
 
 const AgentComposerMenuTrigger = Menu.createMenuIconButtonTrigger({
     size: 'small',
-    rounded: true,
     className: 'agent-composer-menu-button',
 });
 

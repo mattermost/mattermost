@@ -83,16 +83,15 @@
         --right-padding-for-preview-button: 0px;
     }
 
-    // The body is the capsule, in agent mode and in a channel composer.
-    // 24px is about half of one text line, so a single line reads as a pill
-    // and a taller box keeps the same corner. Resting shadow lifts it; focus
-    // lifts it further. Hover and focus darken the border.
+    // The body is the composer box, in agent mode and in a channel composer.
+    // The large corner stays the same as the box grows. Resting shadow lifts
+    // it; focus lifts it further. Hover and focus darken the border.
     &__body {
         position: relative;
         max-width: 100%;
         flex: 1;
         border: var(--border-default);
-        border-radius: 24px;
+        border-radius: var(--radius-l);
         background-color: var(--center-channel-bg);
         box-shadow: var(--elevation-4);
         transition: border-color var(--duration-quick) var(--ease-transition), box-shadow var(--duration-quick) var(--ease-transition);
@@ -227,8 +226,13 @@
         z-index: 2;
         bottom: 7px;
         left: 7px;
+        border-radius: var(--radius-m);
 
-        .agent-composer-menu-button {
+        // Compass IconButton's rounded state uses an undefined pill radius and
+        // falls back to the small corner. Repeat the class so this medium
+        // corner wins over that rule.
+        button.agent-composer-menu-button.agent-composer-menu-button {
+            border-radius: var(--radius-m);
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
