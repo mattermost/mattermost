@@ -5,7 +5,6 @@ package commands
 
 import (
 	"cmp"
-	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"slices"
@@ -45,16 +44,12 @@ func (s *MmctlE2ETestSuite) TestHealthCheckPacketMatchesLiveFindings() {
 	})
 
 	// The health check reads the latest release from a cache that isn't keyed by URL, so filling
-	// it from a stub keeps the run off GitHub. An earlier test may have filled it already; mmctl
-	// is served whatever the server holds.
+	// it from a stub keeps the run off GitHub. mmctl is served whatever the cache holds.
 	stub := httptest.NewServer(healthTestRelease("v99.0.0"))
 	s.T().Cleanup(stub.Close)
 	latest, appErr := s.th.App.GetLatestVersion(s.th.Context, stub.URL)
-	latestRelease := func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusBadGateway) }
-	if appErr == nil {
-		latestRelease = healthTestRelease(latest.TagName)
-	}
-	fetch := httptest.NewServer(http.HandlerFunc(latestRelease))
+	s.Require().Nil(appErr, "a cached latest-release failure would leave mmctl's fetch uncompared")
+	fetch := httptest.NewServer(healthTestRelease(latest.TagName))
 	s.T().Cleanup(fetch.Close)
 	originalURL := healthLatestVersionURL
 	healthLatestVersionURL = fetch.URL

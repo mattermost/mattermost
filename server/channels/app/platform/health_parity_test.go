@@ -58,8 +58,23 @@ type parityCase struct {
 	// allow lists the codes live and offline may evaluate differently, each with the reason.
 	allow map[string]string
 	// knownGap is the ticket that will make live and offline agree. Until it lands the case is
-	// skipped when they don't.
+	// skipped if every difference has the shape gapShape describes; any other difference fails.
 	knownGap string
+	gapShape func(d parityDifference) bool
+}
+
+// unknownLive is the shape of a failed section: live can't evaluate what offline reads from the
+// data the failed collector wrote anyway.
+func unknownLive(d parityDifference) bool {
+	return d.live != nil && (d.live.State == healthcheck.StateUnknown || (d.offline != nil && d.live.State == d.offline.State))
+}
+
+// missingOffline is the shape of a node that failed during packet generation: offline has nothing
+// for it.
+func missingOffline(hostname string) func(d parityDifference) bool {
+	return func(d parityDifference) bool {
+		return d.scope == hostname && d.live != nil && d.offline == nil
+	}
 }
 
 // Live and offline evaluations of the same server agree: a live snapshot, written the way the
@@ -79,6 +94,7 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 				delete(replies, "app-3.example.com")
 			},
 			knownGap: "MM-72006",
+			gapShape: missingOffline("app-3.example.com"),
 		},
 		{
 			name:   "the leader failed during packet generation",
@@ -87,6 +103,7 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 				delete(replies, "app-2.example.com")
 			},
 			knownGap: "MM-72006",
+			gapShape: missingOffline("app-2.example.com"),
 		},
 		{
 			name: "security fix alerts are off",
@@ -141,8 +158,41 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 				}
 			},
 			knownGap: "MM-71665",
+			gapShape: unknownLive,
 		})
 	}
+	// Each workspace collector fails the way it can: stats and jobs keep what they collected, and
+	// the plugins list is not written at all.
+	collectionFailed := errors.New("collection failed")
+	cases = append(cases,
+		parityCase{
+			name: "section stats failed",
+			mutate: func(live *healthcheck.Snapshot) {
+				live.Stats.Channels = nil
+				live.Sections[model.SectionStats] = collectionFailed
+			},
+			knownGap: "MM-71665",
+			gapShape: unknownLive,
+		},
+		parityCase{
+			name: "section jobs failed",
+			mutate: func(live *healthcheck.Snapshot) {
+				live.Jobs.DataRetentionJobs = nil
+				live.Sections[model.SectionJobs] = collectionFailed
+			},
+			knownGap: "MM-71665",
+			gapShape: unknownLive,
+		},
+		parityCase{
+			name: "section plugins failed",
+			mutate: func(live *healthcheck.Snapshot) {
+				live.Plugins = nil
+				live.Sections[model.SectionPlugins] = collectionFailed
+			},
+			knownGap: "MM-71665",
+			gapShape: unknownLive,
+		},
+	)
 
 	evaluated := map[string]bool{}
 	allowedDiffered := map[string]map[string]bool{}
@@ -172,25 +222,29 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 					Now:      func() time.Time { return live.CollectedAt },
 				})
 				liveEvaluations := engine.Evaluate(live)
-				var differences []string
-				for code, descriptions := range parityDifferences(liveEvaluations, engine.Evaluate(offline)) {
-					if _, ok := tc.allow[code]; ok {
+				var differences, gap, unexpected []string
+				for _, d := range parityDifferences(liveEvaluations, engine.Evaluate(offline)) {
+					if _, ok := tc.allow[d.code]; ok {
 						if allowedDiffered[tc.name] == nil {
 							allowedDiffered[tc.name] = map[string]bool{}
 						}
-						allowedDiffered[tc.name][code] = true
+						allowedDiffered[tc.name][d.code] = true
 						continue
 					}
-					differences = append(differences, descriptions...)
+					differences = append(differences, d.String())
+					if tc.gapShape != nil && tc.gapShape(d) {
+						gap = append(gap, d.String())
+					} else {
+						unexpected = append(unexpected, d.String())
+					}
 				}
-				slices.Sort(differences)
-				if tc.knownGap != "" && len(differences) > 0 {
-					t.Skipf("%s: live and offline differ in %s", tc.knownGap, strings.Join(differences, "; "))
+				if tc.knownGap != "" && len(differences) > 0 && len(unexpected) == 0 {
+					t.Skipf("%s: live and offline differ in %s", tc.knownGap, strings.Join(gap, "; "))
 				}
-				assert.Empty(t, differences)
+				assert.Empty(t, unexpected)
 
 				for _, evaluation := range liveEvaluations {
-					if evaluation.Result.State != healthcheck.StateUnknown {
+					if _, allowed := tc.allow[evaluation.Code]; !allowed && evaluation.Result.State != healthcheck.StateUnknown {
 						evaluated[evaluation.Code] = true
 					}
 				}
@@ -289,15 +343,18 @@ func parityRoundTrip(t *testing.T, live *healthcheck.Snapshot, latestRelease htt
 	addIn := func(dir string) func(*model.FileData, error) {
 		return func(file *model.FileData, err error) {
 			require.NoError(t, err)
-			require.NotNil(t, file)
+			if file == nil {
+				return
+			}
 			files = append(files, model.FileData{Filename: path.Join(dir, file.Filename), Body: file.Body})
 		}
 	}
 
 	for _, node := range live.Nodes() {
-		// A node that failed to generate its files leaves no directory.
+		// A node that failed to generate its files leaves only its error, as the cluster writes it.
 		diag, ok := node.Diag()
 		if !ok {
+			files = append(files, model.FileData{Filename: path.Join(node.Hostname, model.SupportPacketErrorFile), Body: []byte("failed to generate the node's Support Packet")})
 			continue
 		}
 		dir := ""
@@ -341,13 +398,36 @@ func parityRoundTrip(t *testing.T, live *healthcheck.Snapshot, latestRelease htt
 	return p.Snapshot
 }
 
-// parityDifferences describes each result live and offline disagree on, by code.
-func parityDifferences(live, offline []healthcheck.Evaluation) map[string][]string {
+type parityDifference struct {
+	code, subject, scope string
+	// live and offline are nil when that side has no result.
+	live, offline *healthcheck.Result
+}
+
+func (d parityDifference) String() string {
+	name := d.code
+	if d.scope != "" {
+		name += " on " + d.scope
+	}
+	if d.subject != "" {
+		name += " for " + d.subject
+	}
+	describe := func(result *healthcheck.Result) string {
+		if result == nil {
+			return "missing"
+		}
+		return fmt.Sprintf("%s (%s)", result.State, result.MessageID)
+	}
+	return fmt.Sprintf("%s is %s live, %s offline", name, describe(d.live), describe(d.offline))
+}
+
+// parityDifferences returns each result live and offline disagree on, sorted.
+func parityDifferences(live, offline []healthcheck.Evaluation) []parityDifference {
 	type key struct{ code, subject, scope string }
-	index := func(evaluations []healthcheck.Evaluation) map[key]healthcheck.Result {
-		results := map[key]healthcheck.Result{}
+	index := func(evaluations []healthcheck.Evaluation) map[key]*healthcheck.Result {
+		results := map[key]*healthcheck.Result{}
 		for _, evaluation := range evaluations {
-			results[key{evaluation.Code, evaluation.Result.Subject, evaluation.Result.Scope}] = evaluation.Result
+			results[key{evaluation.Code, evaluation.Result.Subject, evaluation.Result.Scope}] = &evaluation.Result
 		}
 		return results
 	}
@@ -360,29 +440,15 @@ func parityDifferences(live, offline []healthcheck.Evaluation) map[string][]stri
 		}
 	}
 
-	describe := func(result healthcheck.Result, ok bool) string {
-		if !ok {
-			return "missing"
-		}
-		return fmt.Sprintf("%s (%s)", result.State, result.MessageID)
-	}
-
-	differences := map[string][]string{}
+	var differences []parityDifference
 	for _, k := range keys {
-		liveResult, liveOK := liveResults[k]
-		offlineResult, offlineOK := offlineResults[k]
-		if liveOK && offlineOK && assert.ObjectsAreEqual(liveResult, offlineResult) {
+		liveResult, offlineResult := liveResults[k], offlineResults[k]
+		if liveResult != nil && offlineResult != nil && assert.ObjectsAreEqual(*liveResult, *offlineResult) {
 			continue
 		}
-		name := k.code
-		if k.scope != "" {
-			name += " on " + k.scope
-		}
-		if k.subject != "" {
-			name += " for " + k.subject
-		}
-		differences[k.code] = append(differences[k.code], fmt.Sprintf("%s is %s live, %s offline", name, describe(liveResult, liveOK), describe(offlineResult, offlineOK)))
+		differences = append(differences, parityDifference{code: k.code, subject: k.subject, scope: k.scope, live: liveResult, offline: offlineResult})
 	}
+	slices.SortFunc(differences, func(a, b parityDifference) int { return strings.Compare(a.String(), b.String()) })
 	return differences
 }
 
