@@ -471,7 +471,6 @@ func TestExportHealthFindings(t *testing.T) {
 			assert.Contains(t, report, "https://chat.example.com/admin_console/environment/web_server")
 			assert.Contains(t, report, "My awesome Company")
 			assert.Contains(t, report, model.CurrentVersion)
-			assert.Contains(t, report, model.LicenseShortSkuEnterprise)
 			assert.Contains(t, report, "SiteURL uses http:// (not https://)")
 			assert.NotContains(t, report, "Push notification server connection test failed")
 		})
@@ -483,6 +482,7 @@ func TestExportHealthFindings(t *testing.T) {
 
 		report := string(data)
 		assert.Contains(t, report, " +14\n", "times are in the admin's timezone")
+		assert.Contains(t, report, "\n- **License:** Enterprise\n")
 		assert.Contains(t, report, "\n## Muted\n\n- **ServiceSettings.SiteURL is empty** `SITE_URL_EMPTY` (Warning)")
 		assert.Contains(t, report, "\n## Resolved\n\n- PushNotificationServer does not use https:// `PUSH_BAD_SCHEME`\n")
 	})

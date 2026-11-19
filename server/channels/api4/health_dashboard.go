@@ -124,9 +124,9 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	list.Findings = renderFindings(c, list.Findings)
 
-	var sku, company string
+	var tier, company string
 	if license := c.App.Channels().License(); license != nil {
-		sku = license.SkuShortName
+		tier = model.LicenseSkuDisplayName(license.SkuShortName)
 		if license.Customer != nil {
 			company = license.Customer.Company
 		}
@@ -141,7 +141,7 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		GeneratedAt:   now,
 		SiteURL:       *cfg.ServiceSettings.SiteURL,
 		ServerVersion: model.CurrentVersion,
-		License:       sku,
+		License:       tier,
 		Company:       company,
 	})
 
