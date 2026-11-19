@@ -5,6 +5,7 @@ package app
 
 import (
 	"bytes"
+	"cmp"
 	"context"
 	"crypto/tls"
 	"fmt"
@@ -80,6 +81,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/services/upgrader"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/templates"
 )
 
@@ -169,6 +171,14 @@ type Server struct {
 
 	// notifyAdminCoolOffDaysOverride overrides MM_NOTIFY_ADMIN_COOL_OFF_DAYS.
 	notifyAdminCoolOffDaysOverride string
+
+	// latestVersionURLOverride overrides releases.LatestURL.
+	latestVersionURLOverride string
+}
+
+// LatestVersionURL is where the server looks up the latest release.
+func (s *Server) LatestVersionURL() string {
+	return cmp.Or(s.latestVersionURLOverride, releases.LatestURL)
 }
 
 // SetCWSTokenOverride sets the CWS token override for CWS login authentication.
