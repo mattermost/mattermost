@@ -1807,14 +1807,18 @@ func TestExportSkipsRemoteUsers(t *testing.T) {
 	require.Nil(t, appErr)
 
 	localRoot := th1.CreatePost(t, th1.BasicChannel)
+	flaggedPostIDs := []string{localRoot.Id}
 	for _, user := range []*model.User{remoteUser, th1.BasicUser2} {
-		_, _, appErr = th1.App.CreatePost(th1.Context, &model.Post{
+		reply, _, createErr := th1.App.CreatePost(th1.Context, &model.Post{
 			ChannelId: th1.BasicChannel.Id,
 			UserId:    user.Id,
 			RootId:    localRoot.Id,
 			Message:   "reply from " + user.Username,
 		}, th1.BasicChannel, model.CreatePostFlags{})
-		require.Nil(t, appErr)
+		require.Nil(t, createErr)
+		if user.Id == th1.BasicUser2.Id {
+			flaggedPostIDs = append(flaggedPostIDs, reply.Id)
+		}
 		_, appErr = th1.App.SaveReactionForPost(th1.Context, &model.Reaction{
 			UserId:    user.Id,
 			PostId:    localRoot.Id,
@@ -1860,6 +1864,15 @@ func TestExportSkipsRemoteUsers(t *testing.T) {
 	require.NoError(t, err)
 	require.NoError(t, th1.App.Srv().Store().Channel().RemoveMember(th1.Context, localGM.Id, remoteUser.Id))
 	localDMPost := th1.CreatePost(t, th1.CreateDmChannel(t, th1.BasicUser2))
+	flaggedPostIDs = append(flaggedPostIDs, localDMPost.Id)
+	for _, postID := range flaggedPostIDs {
+		require.NoError(t, th1.App.Srv().Store().Preference().Save(model.Preferences{{
+			UserId:   remoteUser.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     postID,
+			Value:    "true",
+		}}))
+	}
 
 	var b bytes.Buffer
 	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})

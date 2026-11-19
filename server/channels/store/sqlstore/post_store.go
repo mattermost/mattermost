@@ -2979,7 +2979,7 @@ func (s *SqlPostStore) GetParentsForExportAfter(limit int, afterId string, inclu
 			Select(fmt.Sprintf("%s, Users.Username as Username, Teams.Name as TeamName, Channels.Name as ChannelName, %s as FlaggedBy", strings.Join(postSliceColumnsWithName("p1"), ", "), aggFn)).
 			FromSelect(sq.Select(postSliceColumnsWithName("Posts")...).From("Posts").Where(sq.Eq{"Posts.Id": rootIds}), "p1").
 			LeftJoin("Preferences ON p1.Id = Preferences.Name").
-			LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
+			LeftJoin("Users u1 ON Preferences.UserId = u1.Id AND COALESCE(u1.RemoteId, '') = ''").
 			InnerJoin("Channels ON p1.ChannelId = Channels.Id").
 			InnerJoin("Teams ON Channels.TeamId = Teams.Id").
 			InnerJoin("Users ON p1.UserId = Users.Id").
@@ -3012,7 +3012,7 @@ func (s *SqlPostStore) GetRepliesForExport(rootId string) ([]*model.ReplyForExpo
 		Column("u2.Username as Username").
 		Column(fmt.Sprintf("%s as FlaggedBy", aggFn)).
 		LeftJoin("Preferences ON Posts.Id = Preferences.Name").
-		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
+		LeftJoin("Users u1 ON Preferences.UserId = u1.Id AND COALESCE(u1.RemoteId, '') = ''").
 		InnerJoin("Users u2 ON Posts.UserId = u2.Id").
 		Where(sq.And{
 			sq.Eq{"Posts.RootId": rootId},
@@ -3039,7 +3039,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 		Column(fmt.Sprintf("%s as FlaggedBy", aggFn)).
 		From("Posts p").
 		LeftJoin("Preferences ON p.Id = Preferences.Name").
-		LeftJoin("Users u1 ON Preferences.UserId = u1.Id").
+		LeftJoin("Users u1 ON Preferences.UserId = u1.Id AND COALESCE(u1.RemoteId, '') = ''").
 		Join("Channels ON p.ChannelId = Channels.Id").
 		Join("Users u2 ON p.UserId = u2.Id").
 		Where(sq.And{
