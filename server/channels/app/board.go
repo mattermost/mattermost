@@ -54,22 +54,19 @@ func (a *App) CreateBoardChannel(rctx request.CTX, channel *model.Channel) (*mod
 	// Atomically save channel + view
 	sc, savedView, nErr := a.Srv().Store().Channel().SaveBoardChannel(rctx, channel, *a.Config().TeamSettings.MaxChannelsPerTeam, view)
 	if nErr != nil {
-		var appError *model.AppError
-		var invErr *store.ErrInvalidInput
-		var cErr *store.ErrConflict
-		var ltErr *store.ErrLimitExceeded
-		switch {
-		case errors.As(nErr, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](nErr); ok {
 			return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.invalid.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &cErr):
-			return nil, model.NewAppError("CreateBoardChannel", "store.sql_channel.save_channel.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &ltErr):
-			return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.limit.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
-		case errors.As(nErr, &appError):
-			return nil, appError
-		default:
-			return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
+		if _, ok := errors.AsType[*store.ErrConflict](nErr); ok {
+			return nil, model.NewAppError("CreateBoardChannel", "store.sql_channel.save_channel.exists.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+		}
+		if _, ok := errors.AsType[*store.ErrLimitExceeded](nErr); ok {
+			return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.limit.app_error", nil, "", http.StatusBadRequest).Wrap(nErr)
+		}
+		if appError, ok := errors.AsType[*model.AppError](nErr); ok {
+			return nil, appError
+		}
+		return nil, model.NewAppError("CreateBoardChannel", "app.channel.create_board_channel.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	// Add creator as admin member

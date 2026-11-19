@@ -21,6 +21,7 @@ import {
     getBool,
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
+import {isChannelWriteDenied} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam, getTeam, getTeamMemberships} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -172,7 +173,7 @@ function makeMapStateToProps() {
 
         const isPostBurnOnRead = isBurnOnReadPost(state, post.id);
         const isSearchPopout = isPopoutWindow() && ownProps.location === Locations.SEARCH;
-        const canReply = !isPostBurnOnRead && (isDMorGM || isSearchPopout || (channel.team_id === currentTeam?.id));
+        const canReply = !isPostBurnOnRead && !isChannelWriteDenied(state, channel.id) && (isDMorGM || isSearchPopout || (channel.team_id === currentTeam?.id));
         const directTeammate = getDirectTeammate(state, channel.id);
 
         const previewCollapsed = get(

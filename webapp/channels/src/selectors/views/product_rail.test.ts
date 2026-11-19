@@ -119,6 +119,11 @@ describe('getProductRailFilter', () => {
         expect(getProductRailFilter(getState({section: 'channels'}))).toBe('channels');
     });
 
+    test('should not narrow to boards when the product rail is off', () => {
+        const state = getState({enabled: false, section: 'boards'});
+        expect(getProductRailFilter(state)).toBeNull();
+    });
+
     test('should not narrow Channels while it lists boards too', () => {
         const state = getState({section: 'channels'});
         const withBoardsShown = {
