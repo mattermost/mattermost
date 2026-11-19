@@ -103,3 +103,61 @@ test('reads every attribute from the hover card, overflow included', {tag: '@pos
         await deleteFields(adminClient, created);
     }
 });
+
+/**
+ * @objective Verify the hover card closes when the pointer leaves it, and that its `Edit`
+ * button opens the attributes modal and takes the card away.
+ *
+ * @precondition The PostAttributes feature flag is enabled.
+ */
+test('closes when the pointer leaves, and Edit opens the modal', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.ensureFeatureFlag('PostAttributes', true);
+
+    // # Provision a select field and set it on a post
+    const {adminClient, user, userClient, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
+
+    try {
+        await purgeFields(adminClient);
+
+        const classification = await createField(adminClient, fieldName('classification', suffix), {
+            options: ['SECRET'],
+        });
+        created.push(classification);
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const post = await userClient.createTestPost({channel_id: channel.id, message: 'card to modal'});
+        await setPostValues(adminClient, post.id, [
+            {field_id: classification.id, value: optionId(classification, 'SECRET')},
+        ]);
+
+        const {page, channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        const postOnScreen = await channelsPage.centerView.getPostById(post.id);
+        const chips = postOnScreen.container.getByTestId(CHIPS);
+        const card = page.getByTestId(CARD);
+
+        // # Hover the row, then move the pointer well away from it and from the card
+        await chips.hover();
+        await expect(card).toBeVisible();
+        await page.mouse.move(5, 5);
+
+        // * Verify the card closed
+        await expect(card).toBeHidden();
+
+        // # Open it again and press Edit
+        await chips.hover();
+        await expect(card).toBeVisible();
+        await card.getByRole('button', {name: 'Edit'}).click();
+
+        // * Verify the modal opened on this post's attribute and the card is gone
+        await expect(page.locator('#postAttributesModal')).toBeVisible();
+        await expect(page.getByTestId(`post-attribute-row-${classification.name}`)).toBeVisible();
+        await expect(card).toBeHidden();
+    } finally {
+        await deleteFields(adminClient, created);
+    }
+});

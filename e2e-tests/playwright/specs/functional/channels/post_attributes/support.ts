@@ -39,6 +39,10 @@ type CreateOptions = {
     visibility?: 'always' | 'when_set' | 'hidden';
     sortOrder?: number;
 
+    // A text field's subtype: `channel`, `team`, `timestamp` or `post` store an id or an
+    // epoch the chip resolves, and any other string is shown as plain text.
+    subType?: string;
+
     // Who may write a value. Omitted means the server's default, which for a
     // post-object field is `member` — so a field created without this is already
     // writable by any member of the channel, and only a field that needs to render
@@ -57,7 +61,7 @@ type CreateOptions = {
 export async function createField(
     adminClient: Client4,
     name: string,
-    {type, options = [], channelId, teamId, visibility, sortOrder, permissionValues}: CreateOptions = {},
+    {type, options = [], channelId, teamId, visibility, sortOrder, subType, permissionValues}: CreateOptions = {},
 ): Promise<PropertyField> {
     const attrs: Record<string, unknown> = {};
 
@@ -76,6 +80,9 @@ export async function createField(
     }
     if (sortOrder !== undefined) {
         attrs.sort_order = sortOrder;
+    }
+    if (subType) {
+        attrs.subType = subType;
     }
 
     const field: Record<string, unknown> = {
@@ -114,6 +121,32 @@ export async function setPostValues(
     items: Array<{field_id: string; value: unknown}>,
 ): Promise<void> {
     await client.patchPropertyValues(GROUP, OBJECT_TYPE, postId, items as Array<{field_id: string; value: unknown}>);
+}
+
+/**
+ * Changes some of a field's attrs, keeping the rest. A patch replaces `attrs` as a whole,
+ * so the field's current ones are sent back with the change applied.
+ */
+export async function patchFieldAttrs(
+    adminClient: Client4,
+    field: PropertyField,
+    attrs: Record<string, unknown>,
+): Promise<PropertyField> {
+    return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {attrs: {...field.attrs, ...attrs}});
+}
+
+/**
+ * Counts full page loads after the point it is called, so "without a reload" is asserted
+ * rather than assumed: a value or field that changes in place leaves the count at zero.
+ */
+export function countLoads(page: Page): () => number {
+    let loads = 0;
+
+    page.on('load', () => {
+        loads++;
+    });
+
+    return () => loads;
 }
 
 export async function deleteFields(adminClient: Client4, fields: PropertyField[]): Promise<void> {

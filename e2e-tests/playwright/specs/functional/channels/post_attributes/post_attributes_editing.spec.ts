@@ -9,6 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {
     VALUES_ROUTE,
+    countLoads,
     createField,
     deleteFields,
     fieldName,
@@ -44,23 +45,6 @@ function clearOf(page: Page, field: PropertyField) {
 
 function pickerItemOf(page: Page, field: PropertyField) {
     return page.getByTestId(`post-attribute-add-${field.name}`);
-}
-
-/**
- * Counts full page loads after the point it is called.
- *
- * The write path's whole claim is that a value changes in place, and "without a
- * reload" is otherwise asserted only by the test not writing one — which proves
- * nothing about the code reloading on its own.
- */
-function countLoads(page: Page): () => number {
-    let loads = 0;
-
-    page.on('load', () => {
-        loads++;
-    });
-
-    return () => loads;
 }
 
 /**
