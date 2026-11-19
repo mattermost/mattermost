@@ -126,7 +126,7 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var tier, company string
 	if license := c.App.Channels().License(); license != nil {
-		tier = model.LicenseSkuDisplayName(license.SkuShortName)
+		tier = model.LicenseSkuDisplayName(license.SkuShortName, license.IsGovSku)
 		if license.Customer != nil {
 			company = license.Customer.Company
 		}
