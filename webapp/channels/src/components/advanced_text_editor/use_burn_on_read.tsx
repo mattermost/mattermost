@@ -120,7 +120,8 @@ const useBurnOnRead = (
 
     const canSetBurnOnRead = Boolean(!rootId && isEnabled && allowedByPolicy && isAllowedInChannel);
 
-    // Button component with tour tip wrapper (in formatting bar)
+    // Formatting-bar control. The + menu row is separate and only mounted while
+    // this control is not in the bar. The tour tip anchors to this button.
     const additionalControl = useMemo(() =>
         (canSetBurnOnRead ? (
             <div

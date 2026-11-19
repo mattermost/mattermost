@@ -1499,7 +1499,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
         };
 
-        it('puts emoji and priority in the formatting bar, and the rest in the left plus', async () => {
+        const expectBurnBesidePriority = () => {
+            const bar = screen.getByTestId('formattingBarContainer');
+            const buttons = Array.from(bar.querySelectorAll('button'));
+            const priorityIndex = buttons.findIndex((button) => button.getAttribute('aria-label') === 'Message priority');
+            const burnIndex = buttons.findIndex((button) => (/burn-on-read/i).test(button.getAttribute('aria-label') || ''));
+            expect(priorityIndex).toBeGreaterThanOrEqual(0);
+            expect(burnIndex).toBe(priorityIndex + 1);
+        };
+
+        it('puts emoji, priority, and burn-on-read in the formatting bar, and the rest in the left plus', async () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 chromeState,
@@ -1509,8 +1518,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('button', {name: 'Schedule message'})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message priority'})).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'select an emoji'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
             expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
             const channelSend = screen.getByTestId('SendMessageButton').closest('.splitSendButton');
@@ -1527,11 +1536,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const bar = screen.getByTestId('formattingBarContainer');
             expect(bar).toContainElement(screen.getByRole('button', {name: 'Message priority'}));
             expect(bar).toContainElement(screen.getByRole('button', {name: 'select an emoji'}));
+            expect(bar).toContainElement(screen.getByRole('button', {name: /burn-on-read/i}));
+            expectBurnBesidePriority();
 
             await openMenu();
             expect(screen.queryByRole('menuitem', {name: 'Message priority'})).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', {name: 'Emoji'})).not.toBeInTheDocument();
-            expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Burn-on-read'})).not.toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
         });
@@ -1707,6 +1718,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await openMenu();
 
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Attach files'})).toHaveFocus();
             expect(screen.getByRole('menuitem', {name: 'Emoji'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
@@ -1743,6 +1755,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
             expect(screen.queryByRole('menuitem', {name: 'Message priority'})).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', {name: 'Emoji'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Burn-on-read'})).not.toBeInTheDocument();
             await userEvent.keyboard('{Escape}');
             await waitFor(() => {
                 expect(document.querySelector('.menu_menuStyled')).not.toBeInTheDocument();
@@ -1754,8 +1767,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(bar).toContainElement(screen.getByRole('button', {name: 'Message priority'}));
             expect(bar).toContainElement(screen.getByRole('button', {name: 'select an emoji'}));
+            expect(bar).toContainElement(screen.getByRole('button', {name: /burn-on-read/i}));
+            expectBurnBesidePriority();
             expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(savePreferences).not.toHaveBeenCalled();
 
             savePreferences.mockRestore();
@@ -1986,6 +2000,100 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             });
             expect(screen.getByTestId('formattingBarContainer')).toContainElement(screen.getByRole('button', {name: 'select an emoji'}));
             expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Burn-on-read'})).not.toBeInTheDocument();
+            expect(document.querySelector('.tour-tip__pulsating-dot-ctr')).not.toBeInTheDocument();
+        });
+
+        it('anchors the burn-on-read tour tip to the control that opens it', () => {
+            const seenPlus = mergeObjects(chromeState, {
+                entities: {
+                    preferences: {
+                        myPreferences: {
+                            [`${COMPOSER_PLUS_TOUR_TIP_PREFERENCE}--${currentUserId}`]: {
+                                category: COMPOSER_PLUS_TOUR_TIP_PREFERENCE,
+                                name: currentUserId,
+                                user_id: currentUserId,
+                                value: '1',
+                            },
+                        },
+                    },
+                },
+            });
+
+            const openBar = renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                seenPlus,
+            );
+            const bar = screen.getByTestId('formattingBarContainer');
+            const burnControl = bar.querySelector('.BurnOnReadControl');
+            expect(burnControl?.querySelector('.tour-tip__pulsating-dot-ctr')).toBeInTheDocument();
+            expect(screen.getByTestId('composer-plus').querySelector('.tour-tip__pulsating-dot-ctr')).not.toBeInTheDocument();
+            openBar.unmount();
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                seenPlus,
+            );
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
+            expect(screen.getByTestId('composer-plus').querySelector('.tour-tip__pulsating-dot-ctr')).toBeInTheDocument();
+        });
+
+        it('keeps the composer plus tour on the center plus while burn-on-read is in the bar', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                chromeState,
+            );
+
+            const plus = screen.getByTestId('composer-plus');
+            const tourPoint = plus.querySelector('#tipButton');
+            expect(tourPoint).toBeInTheDocument();
+            expect(screen.getByTestId('formattingBarContainer').querySelector('.BurnOnReadControl .tour-tip__pulsating-dot-ctr')).toBeInTheDocument();
+
+            await userEvent.click(tourPoint!);
+
+            expect(screen.getByText('Message options moved here')).toBeInTheDocument();
+        });
+
+        it('omits burn-on-read while editing', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    isInEditMode={true}
+                />,
+                chromeState,
+            );
+
+            expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
+            expect(document.querySelector('.BurnOnReadControl')).not.toBeInTheDocument();
+            await openMenu();
+            expect(screen.queryByRole('menuitem', {name: 'Burn-on-read'})).not.toBeInTheDocument();
+        });
+
+        it('disables burn-on-read in the formatting bar while preview is open', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                mergeObjects(chromeState, {
+                    storage: {
+                        storage: {
+                            [StoragePrefixes.DRAFT + channelId]: {
+                                value: TestHelper.getPostDraftMock({
+                                    message: 'hello',
+                                }),
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeEnabled();
+            await userEvent.click(screen.getByRole('button', {name: 'preview'}));
+            expect(screen.getByRole('button', {name: /burn-on-read/i})).toBeDisabled();
         });
 
         it('lets a plugin replace send, and ignores that slot when the mode is off', () => {

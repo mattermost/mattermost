@@ -560,6 +560,7 @@ const AdvancedTextEditor = ({
     );
     const {
         labels: burnOnReadLabels,
+        additionalControl: burnOnReadAdditionalControl,
         canSetBurnOnRead,
         hasBurnOnReadSet,
         handleBurnOnReadApply,
@@ -914,8 +915,9 @@ const AdvancedTextEditor = ({
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
     const agentLinkEditor = agentLinkPopoverOpen ? wysiwygRef.current?.getEditor() ?? null : null;
 
-    // Emoji and priority sit in the formatting bar while it is open, and fall
-    // back to the + menu while it is hidden.
+    // Emoji, message priority, and burn-on-read sit in the formatting bar while
+    // it is open, and fall back to the + menu while it is hidden. Burn-on-read
+    // stays beside message priority.
     const controlsInToolbar = showFormattingBar;
     const additionalControls = useMemo(() => {
         const controls = (pluginItems || []).filter(Boolean);
@@ -927,8 +929,9 @@ const AdvancedTextEditor = ({
             ...controls,
             emojiPicker ? <Fragment key='composer-emoji'>{emojiPicker}</Fragment> : null,
             isInEditMode || hidePriority ? null : priorityAdditionalControl,
+            isInEditMode || hideBurnOnRead ? null : burnOnReadAdditionalControl,
         ].filter(Boolean);
-    }, [controlsInToolbar, emojiPicker, hidePriority, isInEditMode, pluginItems, priorityAdditionalControl]);
+    }, [burnOnReadAdditionalControl, controlsInToolbar, emojiPicker, hideBurnOnRead, hidePriority, isInEditMode, pluginItems, priorityAdditionalControl]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -1027,7 +1030,7 @@ const AdvancedTextEditor = ({
             data-testid='composer-plus'
         >
             {showComposerPlusTour && <ComposerPlusTourTip/>}
-            {!hideBurnOnRead && !isInEditMode && canSetBurnOnRead && !showComposerPlusTour && (
+            {!hideBurnOnRead && !isInEditMode && canSetBurnOnRead && !showFormattingBar && !showComposerPlusTour && (
                 <BurnOnReadTourTip
                     anchorId='agentComposerMenuButton'
                     onTryItOut={() => handleBurnOnReadApply(true)}
@@ -1046,7 +1049,7 @@ const AdvancedTextEditor = ({
                 onToggleFormatting={toggleAdvanceTextEditor}
                 emojiAnchorRef={showFormattingBar ? undefined : setEmojiReference}
                 priorityItem={showFormattingBar || isInEditMode || hidePriority ? null : priorityAdditionalControl}
-                burnOnRead={!hideBurnOnRead && !isInEditMode && canSetBurnOnRead ? {
+                burnOnRead={!showFormattingBar && !hideBurnOnRead && !isInEditMode && canSetBurnOnRead ? {
                     on: hasBurnOnReadSet,
                     disabled: showPreview,
                     onToggle: () => handleBurnOnReadApply(!hasBurnOnReadSet),
