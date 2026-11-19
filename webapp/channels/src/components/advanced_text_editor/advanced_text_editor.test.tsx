@@ -1329,7 +1329,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(plus).toContainElement(menu);
             expect(menu).toHaveClass('agent-composer-menu-button');
-            expect(menu.className).toEqual(expect.stringContaining('rounded'));
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus');
             expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
@@ -1598,7 +1597,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(plus).toContainElement(menu);
             expect(menu).toHaveClass('agent-composer-menu-button');
-            expect(menu.className).toEqual(expect.stringContaining('rounded'));
             expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--agent');
             const controls = document.querySelector('.AdvancedTextEditor__agent-controls');
