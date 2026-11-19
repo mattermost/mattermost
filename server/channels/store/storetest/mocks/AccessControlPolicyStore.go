@@ -128,6 +128,36 @@ func (_m *AccessControlPolicyStore) GetActionsForPolicy(rctx request.CTX, policy
 	return r0, r1
 }
 
+// GetByType provides a mock function with given fields: rctx, policyType, cursor, limit
+func (_m *AccessControlPolicyStore) GetByType(rctx request.CTX, policyType string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.AccessControlPolicy, error) {
+	ret := _m.Called(rctx, policyType, cursor, limit)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByType")
+	}
+
+	var r0 []*model.AccessControlPolicy
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.AccessControlPolicyCursor, int) ([]*model.AccessControlPolicy, error)); ok {
+		return rf(rctx, policyType, cursor, limit)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string, model.AccessControlPolicyCursor, int) []*model.AccessControlPolicy); ok {
+		r0 = rf(rctx, policyType, cursor, limit)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.AccessControlPolicy)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string, model.AccessControlPolicyCursor, int) error); ok {
+		r1 = rf(rctx, policyType, cursor, limit)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetEtagEpoch provides a mock function with given fields: rctx, channelID
 func (_m *AccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
 	ret := _m.Called(rctx, channelID)

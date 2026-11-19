@@ -848,6 +848,37 @@ func (s *SqlAccessControlPolicyStore) SearchPolicies(rctx request.CTX, opts mode
 	return policies, total, nil
 }
 
+func (s *SqlAccessControlPolicyStore) GetByType(rctx request.CTX, policyType string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.AccessControlPolicy, error) {
+	if limit <= 0 {
+		return nil, store.NewErrInvalidInput("AccessControlPolicy", "limit", limit)
+	}
+
+	query := s.selectQueryBuilder.
+		Where(sq.Eq{"Type": policyType}).
+		Where(sq.Gt{"Id": cursor.ID}).
+		OrderBy("Id ASC").
+		Limit(uint64(limit))
+
+	sql, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_type_tosql")
+	}
+
+	p := []storeAccessControlPolicy{}
+	if err = s.DBXFromContext(rctx.Context()).Select(&p, sql, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find policies with type=%s", policyType)
+	}
+
+	policies := make([]*model.AccessControlPolicy, len(p))
+	for i := range p {
+		policies[i], err = p[i].toModel()
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to parse policy with id=%s", p[i].ID)
+		}
+	}
+	return policies, nil
+}
+
 // actionsAggregationSQL is the per-policy action-union expression embedded in
 // both GetActionsForPolicy and GetActionsForPolicies. It produces a JSONB
 // object whose keys are the distinct action strings declared by the policy's

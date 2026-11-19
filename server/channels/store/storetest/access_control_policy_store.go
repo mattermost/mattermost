@@ -27,6 +27,7 @@ func TestAccessControlPolicyStore(t *testing.T, rctx request.CTX, ss store.Store
 	t.Run("Delete", func(t *testing.T) { testAccessControlPolicyStoreDelete(t, rctx, ss) })
 	t.Run("SetMembershipAutoAdd", func(t *testing.T) { testAccessControlPolicyStoreSetMembershipAutoAdd(t, rctx, ss) })
 	t.Run("GetAll", func(t *testing.T) { testAccessControlPolicyStoreGetAll(t, rctx, ss) })
+	t.Run("GetByType", func(t *testing.T) { testAccessControlPolicyStoreGetByType(t, rctx, ss) })
 	t.Run("Search", func(t *testing.T) { testAccessControlPolicyStoreSearch(t, rctx, ss) })
 	t.Run("SearchChildCounts", func(t *testing.T) { testAccessControlPolicyStoreSearchChildCounts(t, rctx, ss) })
 	t.Run("SearchByActions", func(t *testing.T) { testAccessControlPolicyStoreSearchByActions(t, rctx, ss) })
@@ -832,6 +833,94 @@ func testAccessControlPolicyStoreSetMembershipAutoAdd(t *testing.T, rctx request
 		updated, err := ss.AccessControlPolicy().SetMembershipAutoAdd(rctx, nil)
 		require.NoError(t, err)
 		require.Empty(t, updated)
+	})
+}
+
+func testAccessControlPolicyStoreGetByType(t *testing.T, rctx request.CTX, ss store.Store) {
+	save := func(policy *model.AccessControlPolicy) string {
+		t.Helper()
+		policy.Name = "GetByType " + policy.ID
+		policy.Active = true
+		policy.Revision = 1
+		_, err := ss.AccessControlPolicy().Save(rctx, policy)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			require.NoError(t, ss.AccessControlPolicy().Delete(rctx, policy.ID))
+		})
+		return policy.ID
+	}
+	settingRules := []model.AccessControlPolicyRule{{
+		Actions:    []string{model.ClientConfigKeyMobileEnableBiometrics},
+		Expression: "true",
+		Value:      "true",
+	}}
+	saveSettingPolicy := func(idPrefix string) string {
+		t.Helper()
+		return save(&model.AccessControlPolicy{
+			ID:      idPrefix + model.NewId()[len(idPrefix):],
+			Type:    model.AccessControlPolicyTypeSystemSetting,
+			Version: model.AccessControlPolicyVersionV0_3,
+			Roles:   []string{model.SystemUserRoleId},
+			Rules:   settingRules,
+		})
+	}
+
+	first := saveSettingPolicy("aaa")
+	second := saveSettingPolicy("mmm")
+	third := saveSettingPolicy("zzz")
+	save(&model.AccessControlPolicy{
+		ID:      model.NewId(),
+		Type:    model.AccessControlPolicyTypeParent,
+		Version: model.AccessControlPolicyVersionV0_2,
+		Imports: []string{},
+		Rules: []model.AccessControlPolicyRule{{
+			Actions:    []string{"action"},
+			Expression: "true",
+		}},
+	})
+
+	ids := func(policies []*model.AccessControlPolicy) []string {
+		result := make([]string, 0, len(policies))
+		for _, p := range policies {
+			result = append(result, p.ID)
+		}
+		return result
+	}
+
+	t.Run("returns policies of the type ordered by ID", func(t *testing.T) {
+		policies, err := ss.AccessControlPolicy().GetByType(rctx, model.AccessControlPolicyTypeSystemSetting, model.AccessControlPolicyCursor{}, 100)
+		require.NoError(t, err)
+		require.Equal(t, []string{first, second, third}, ids(policies))
+		require.Equal(t, settingRules, policies[0].Rules)
+		require.Equal(t, []string{model.SystemUserRoleId}, policies[0].Roles)
+	})
+
+	t.Run("pages after the cursor", func(t *testing.T) {
+		page, err := ss.AccessControlPolicy().GetByType(rctx, model.AccessControlPolicyTypeSystemSetting, model.AccessControlPolicyCursor{}, 2)
+		require.NoError(t, err)
+		require.Equal(t, []string{first, second}, ids(page))
+
+		page, err = ss.AccessControlPolicy().GetByType(rctx, model.AccessControlPolicyTypeSystemSetting, model.AccessControlPolicyCursor{ID: second}, 2)
+		require.NoError(t, err)
+		require.Equal(t, []string{third}, ids(page))
+	})
+
+	t.Run("reads from the master when requested", func(t *testing.T) {
+		policies, err := ss.AccessControlPolicy().GetByType(store.RequestContextWithMaster(rctx), model.AccessControlPolicyTypeSystemSetting, model.AccessControlPolicyCursor{}, 100)
+		require.NoError(t, err)
+		require.Equal(t, []string{first, second, third}, ids(policies))
+	})
+
+	t.Run("returns nothing for a type without policies", func(t *testing.T) {
+		policies, err := ss.AccessControlPolicy().GetByType(rctx, testPluginPolicyType, model.AccessControlPolicyCursor{}, 100)
+		require.NoError(t, err)
+		require.Empty(t, policies)
+	})
+
+	t.Run("rejects a non-positive limit", func(t *testing.T) {
+		_, err := ss.AccessControlPolicy().GetByType(rctx, model.AccessControlPolicyTypeSystemSetting, model.AccessControlPolicyCursor{}, 0)
+		var invErr *store.ErrInvalidInput
+		require.ErrorAs(t, err, &invErr)
 	})
 }
 

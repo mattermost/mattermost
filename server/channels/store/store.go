@@ -1352,6 +1352,8 @@ type AccessControlPolicyStore interface {
 	// fires no SQL.
 	GetTypesByIDs(rctx request.CTX, ids []string) (map[string]string, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
+	// GetByType reads from the master when rctx requests it, unlike SearchPolicies.
+	GetByType(rctx request.CTX, policyType string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.AccessControlPolicy, error)
 	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)
 
 	// GetActionsForPolicy returns the union of action keys declared by the
