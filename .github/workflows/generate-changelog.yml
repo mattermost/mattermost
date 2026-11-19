@@ -61,7 +61,12 @@ run-name: ${{ (github.event_name == 'release' || github.event.schedule == '37 * 
 # targets master, no "Release day: TBD" is left, the generator's report is clean (benchmarking
 # ready, every note placed, no blocking preflight failure) and the blog link is set; the
 # AutoMerge automation then merges after reviews and checks. A label someone took off is not
-# added again. Otherwise the run summary lists what is missing.
+# added again. Otherwise the run summary lists what is missing. The report is the newest one
+# from a run that published the PR (never a dry run's preview), and the PR is read again just
+# before the label is added. When benchmarking needs a person (a supported-user Delta outside
+# [-5%, +5%], or a report whose table can't be read), the generator writes no Performance
+# bullet: a reviewer writes it in the PR ("Benchmarking test results ..."), with the
+# performance team for a large Delta, and that bullet clears the condition.
 #
 # The blog link is found on the public releases category page only (a post whose slug starts
 # with mattermost-vX-Y- or whose title names vX.Y), and committed to the changelog PR's branch.
@@ -422,6 +427,16 @@ jobs:
           fi
           echo "number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
 
+      # The report says which PR it describes. A dry run never gets here, so its preview is never
+      # read as the PR's report on Release Day or by the label reconcile.
+      - name: Record the published PR in the report
+        if: ${{ !cancelled() && steps.publish.outcome == 'success' && (steps.publish.outputs.number != '' || steps.pr.outputs.number != '') }}
+        env:
+          PR_NUMBER: ${{ steps.publish.outputs.number || steps.pr.outputs.number }}
+          MODE: ${{ needs.resolve.outputs.mode }}
+          OUTPUT_DIR: ${{ runner.temp }}/changelog-output
+        run: HEAD_SHA="$(git rev-parse HEAD)" python3 "$RUNNER_TEMP/changelog_automation.py" published
+
       # Reviewers are requested with REST (changelog_automation.py request-reviewers), which the
       # write token's Pull requests: write is enough for, teams included.
       - name: Request reviewers by section
@@ -465,6 +480,16 @@ jobs:
         run: |
           gh pr ready "$PR_NUMBER" --repo mattermost/mattermost
           python3 "$RUNNER_TEMP/changelog_automation.py" request-reviewers
+
+      # A PR marked ready on an earlier run whose reviewer request failed: nobody is asked to
+      # review it and nobody has, so the request is made again (the PR is not marked ready again).
+      - name: Request reviewers again
+        if: steps.ready.outputs.request == 'true'
+        env:
+          GH_TOKEN: ${{ steps.writeToken.outputs.token }}
+          PR_NUMBER: ${{ steps.publish.outputs.number || steps.pr.outputs.number }}
+          REVIEWERS: ${{ steps.ready.outputs.reviewers }}
+        run: python3 "$RUNNER_TEMP/changelog_automation.py" request-reviewers
 
       # A review comment with a suggestion block on each weak bullet, once per bullet.
       # Comments only: the changelog text is never edited. The counts of suggestions

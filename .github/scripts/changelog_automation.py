@@ -121,17 +121,23 @@ class Api:
 
 def file_text(api, repo: str, path: str, ref: str) -> str | None:
     """A file at ``ref``, or None when it doesn't exist there."""
+    return file_blob(api, repo, path, ref)[0]
+
+
+def file_blob(api, repo: str, path: str, ref: str) -> tuple[str | None, str | None]:
+    """(a file at ``ref``, its blob sha), or (None, None) when it doesn't exist there. The sha is
+    what a commit replacing exactly this text must name."""
     try:
         found = api.get(f"/repos/{repo}/contents/{urllib.parse.quote(path)}", ref=ref)
         if isinstance(found, dict) and not found.get("content") and found.get("sha"):
             found = api.get(f"/repos/{repo}/git/blobs/{found['sha']}")  # over 1 MB
     except ApiError as err:
         if err.status == 404:
-            return None
+            return None, None
         raise
     if not isinstance(found, dict) or found.get("encoding") != "base64":
-        return None
-    return base64.b64decode(found.get("content") or "").decode("utf-8", errors="replace")
+        return None, None
+    return base64.b64decode(found.get("content") or "").decode("utf-8", errors="replace"), found.get("sha")
 
 
 def find_changelog_pr(api, version: str, repo: str = REPO, state: str = "open") -> dict | None:
@@ -161,9 +167,11 @@ def weak_bullets(report: dict, content: str | None, version: str) -> list[dict]:
     """The bullets of weak notes (``readiness.note_quality``) as they stand in the entry.
 
     A weak note whose bullet was edited since, or spans several lines, is not found and is
-    left alone: the bullet is no longer the generated one.
+    left alone: the bullet is no longer the generated one. So is one whose text is on more than
+    one bullet: the bullet can't be told from another note's, and the rewrite would land on it.
     """
     lines = entry_lines(content, version)
+    texts = [match.group(2).strip() for _, line in lines if (match := _BULLET.match(line))]
     items = [item for group in report.get("sections", []) for item in group.get("items", [])]
     found, used = [], set()
     for note in report.get("readiness", {}).get("note_quality", []):
@@ -171,7 +179,7 @@ def weak_bullets(report: dict, content: str | None, version: str) -> list[dict]:
         if any(entry["source"] == source for entry in found):
             continue
         for item in items:
-            if source not in item.get("sources", []):
+            if source not in item.get("sources", []) or texts.count(item["text"].strip()) != 1:
                 continue
             for number, line in lines:
                 match = _BULLET.match(line)
@@ -417,6 +425,19 @@ def decide_ready(api, version: str, pr: dict, report: dict, today: date, event: 
     return True, f"{today.isoformat()} is on or after RC-1 + 1 working day ({due.isoformat()})"
 
 
+def reviewers_missing(api, pr: dict, event: str, mode: str, repo: str = REPO) -> bool:
+    """Whether a PR marked ready before still has nobody asked to review it: no requested reviewer
+    or team and no review. The request after marking it ready failed, so it is made again, without
+    marking the PR ready again."""
+    if event != "schedule" or mode != "auto" or pr.get("draft"):
+        return False
+    if pr.get("requested_reviewers") or pr.get("requested_teams"):
+        return False
+    if not any(e.get("event") == "ready_for_review" for e in api.paginate(f"/repos/{repo}/issues/{pr['number']}/events")):
+        return False
+    return not api.paginate(f"/repos/{repo}/pulls/{pr['number']}/reviews")
+
+
 def entry_sections(content: str | None, version: str) -> list[dict]:
     """The entry's sections as ``reviewers_for`` reads them, so every section of the PR is covered."""
     groups, section = [], None
@@ -459,16 +480,26 @@ def request_reviewers(api, number: int, names: list[str], repo: str = REPO) -> s
 
 # ── 3. Release Day: the AutoMerge label ─────────────────────────────────────────────
 
-def blocking_report_problems(report: dict | None) -> list[str]:
-    """What in the generator's report keeps the changelog from merging: it must be clean."""
+BENCHMARK_BULLET = re.compile(r"^ *[-*] +Benchmarking test results\b", re.MULTILINE)
+
+
+def blocking_report_problems(report: dict | None, entry: str = "") -> list[str]:
+    """What in the generator's report keeps the changelog from merging: it must be clean.
+
+    Benchmarking flagged for a person (a Delta outside [-5%, +5%], or a report whose table can't
+    be read) is cleared by the Performance bullet they write in the PR ("Benchmarking test
+    results ..."). Benchmarking with no report published yet is never cleared here."""
     if report is None:
         return ["no generator report was found, so benchmarking and unplaced notes can't be checked"]
     problems = []
     readiness = report.get("readiness", {})
     benchmark = next((gap for gap in readiness.get("gaps", []) if gap.get("section") == "Benchmarking"), None)
-    if benchmark is None or benchmark.get("status") != "ready":
-        problems.append("benchmarking needs a person (see the run summary)" if benchmark and benchmark.get("status") == "needs_review"
-                        else "benchmarking is pending")
+    status = (benchmark or {}).get("status")
+    if status == "needs_review" and not BENCHMARK_BULLET.search(entry):
+        problems.append("benchmarking needs a person: write the Performance bullet (\"Benchmarking test results ...\") "
+                        "in the PR from the performance report")
+    elif status not in ("ready", "needs_review"):
+        problems.append("benchmarking is pending")
     if readiness.get("not_placed"):
         problems.append(f"{len(readiness['not_placed'])} note(s) not placed by the model")
     if blocking_failures(report):
@@ -476,21 +507,28 @@ def blocking_report_problems(report: dict | None) -> list[str]:
     return problems
 
 
-def label_problems(version: str, pr: dict, content: str | None, report: dict | None) -> list[str]:
-    """Everything still missing before the AutoMerge label is added, in words safe for the public
-    log. Reviews and checks are the AutoMerge automation's to wait for."""
+def pr_problems(pr: dict) -> list[str]:
     problems = []
+    if pr.get("state", "open") != "open":
+        problems.append("the PR is no longer open")
     if pr.get("draft"):
         problems.append("the PR is still a draft")
     base = (pr.get("base") or {}).get("ref")
     if base != "master":
         problems.append(f"the PR targets {base or 'an unknown branch'} instead of master")
+    return problems
+
+
+def label_problems(version: str, pr: dict, content: str | None, report: dict | None) -> list[str]:
+    """Everything still missing before the AutoMerge label is added, in words safe for the public
+    log. Reviews and checks are the AutoMerge automation's to wait for."""
+    problems = pr_problems(pr)
     entry = "\n".join(line for _, line in entry_lines(content, version))
     if not entry:
         problems.append("the PR's changelog file has no entry for the release")
     elif RELEASE_DAY_TBD.search(entry):
         problems.append("the entry still says Release day: TBD")
-    return problems + blocking_report_problems(report)
+    return problems + blocking_report_problems(report, entry)
 
 
 def fetch_reports(version: str, env: dict, run=subprocess.run, repo: str = REPO, limit: int = 30):
@@ -518,7 +556,9 @@ def fetch_reports(version: str, env: dict, run=subprocess.run, repo: str = REPO,
                   "-D", target).returncode != 0:
                 continue
             report = _load_report(os.path.join(target, "sections.json"))
-            if report and report.get("version") == version:
+            # Only a run that published the changelog PR: a dry run's preview describes text the PR
+            # never got, so its bullets and its readiness are not the PR's.
+            if report and report.get("version") == version and report.get("published"):
                 yield report
 
 
@@ -589,12 +629,21 @@ def run_release_day(api, version: str, load_report, auto_merge: bool, find, now:
         outcome["problems"] = [f"{version} is not released yet: Release Day is when its GitHub release is published, "
                                "not as a pre-release"]
         return outcome
-    content = file_text(api, repo, changelog_release.changelog_path(version), pr["head"]["sha"])
+    content, blob = file_blob(api, repo, changelog_release.changelog_path(version), pr["head"]["sha"])
     problems = label_problems(version, pr, content, load_report())
-    blog_problems, outcome["blog_link"] = blog_step(api, version, pr, content, find, auto_merge, now,
-                                                    release_day, repo)
+    blog_problems, outcome["blog_link"], committed = blog_step(api, version, pr, content, find, auto_merge, now,
+                                                               release_day, repo, blob)
     outcome["problems"] = problems + blog_problems
     if outcome["problems"] or not auto_merge:
+        return outcome
+    # The PR as it is now: someone may have made it a draft, retargeted it or pushed to it while
+    # the report and the blog post were read. Only this run's own blog link commit is expected.
+    now_pr = api.get(f"/repos/{repo}/pulls/{pr['number']}")
+    changed = pr_problems(now_pr)
+    if not committed and (now_pr.get("head") or {}).get("sha") != pr["head"]["sha"]:
+        changed.append("the PR got new commits during this run; it is checked again on the next run")
+    if changed:
+        outcome["problems"] = changed
         return outcome
     try:
         api.post(f"/repos/{repo}/issues/{pr['number']}/labels", {"labels": [AUTOMERGE_LABEL]})
@@ -633,8 +682,9 @@ def set_by_automation(url: str | None, version: str) -> bool:
 
 
 def names_version(title: str, major: int, minor: int) -> bool:
-    """Whether ``title`` names vX.Y itself: 12.2 or v12.2, not 12.20, 112.2 or the dot release 12.2.1."""
-    return re.search(rf"(?<![\d.]){major}\.{minor}(?![\d]|\.\d)", title) is not None
+    """Whether ``title`` names vX.Y itself: 12.2 or v12.2, not 12.20, 112.2, the dot release 12.2.1 or
+    a release candidate (12.2-rc1, 12.2 RC1)."""
+    return re.search(rf"(?<![\d.]){int(major)}\.{int(minor)}(?!\d|\.\d|[\s.-]*rc\d)", title, re.IGNORECASE) is not None
 
 
 def post_slug(url: str) -> str | None:
@@ -699,19 +749,21 @@ def with_blog_link(content: str, version: str, url: str) -> str:
     return "\n".join(lines)
 
 
-def put_file(api, repo: str, path: str, branch: str, text: str, message: str) -> None:
-    """Commit ``text`` as ``path`` on ``branch`` (a branch, never master: callers pass the PR's)."""
+def put_file(api, repo: str, path: str, branch: str, text: str, message: str, blob: str) -> None:
+    """Commit ``text`` as ``path`` on ``branch`` (a branch, never master: callers pass the PR's).
+
+    ``blob`` is the sha of the file ``text`` was made from: if someone changed the file on the
+    branch since, GitHub refuses the commit (409) rather than overwrite their edit."""
     if branch in ("master", "main"):
         raise ValueError("never commits to master")
-    found = api.get(f"/repos/{repo}/contents/{urllib.parse.quote(path)}", ref=branch)
     api.put(f"/repos/{repo}/contents/{urllib.parse.quote(path)}", {
-        "message": message, "branch": branch, "sha": found["sha"],
+        "message": message, "branch": branch, "sha": blob,
         "content": base64.b64encode(text.encode()).decode()})
 
 
 def blog_step(api, version: str, pr: dict, content: str | None, find, write: bool, now: datetime, release_day: date,
-              repo: str = REPO) -> tuple[list[str], str | None]:
-    """(what still keeps the label off, "post", "category" or "person").
+              repo: str = REPO, blob: str | None = None) -> tuple[list[str], str | None, bool]:
+    """(what still keeps the label off, "post", "category" or "person", whether it committed).
 
     The blog post found: the entry links it. Not found: wait, rechecked each run until 23:00 UTC
     on Release Day, then link the releases category page (the fix-up PR replaces it once the post
@@ -719,7 +771,7 @@ def blog_step(api, version: str, pr: dict, content: str | None, find, write: boo
     short = changelog_release.short_version(version)
     current = entry_blog_link(content, version)
     if current is not None and not set_by_automation(current, version):
-        return [], "person"
+        return [], "person", False
     post, problem = find(version)
     deadline = datetime(release_day.year, release_day.month, release_day.day, BLOG_DEADLINE, tzinfo=timezone.utc)
     if post:
@@ -727,24 +779,26 @@ def blog_step(api, version: str, pr: dict, content: str | None, find, write: boo
     elif now < deadline:
         why = f" ({problem})" if problem else ""
         return [f"waiting for the {short} blog post{why}: checked again each run until {BLOG_DEADLINE}:00 UTC on Release "
-                f"Day ({release_day.isoformat()}), then the releases category page is linked"], None
+                f"Day ({release_day.isoformat()}), then the releases category page is linked"], None, False
     else:
         target, kind = CATEGORY_URL, "category"
     if current is None:
-        return [f"the {short} entry has no \"this blog post\" link to set; add it in the PR"], kind
+        return [f"the {short} entry has no \"this blog post\" link to set; add it in the PR"], kind, False
     if same_page(current, target):
-        return [], kind
+        return [], kind, False
     if not write:
-        return [f"the blog link would be set to {target}"], kind
+        return [f"the blog link would be set to {target}"], kind, False
     branch = (pr.get("head") or {}).get("ref") or f"changelog/{version}"
     try:
         put_file(api, repo, changelog_release.changelog_path(version), branch, with_blog_link(content, version, target),
                  f"docs: link the {short} blog post in the changelog" if kind == "post"
-                 else f"docs: link the releases category in the {short} changelog until the blog post is out")
+                 else f"docs: link the releases category in the {short} changelog until the blog post is out", blob)
     except ApiError as err:
-        return [f"the blog link couldn't be set (HTTP {err.status})"], kind
+        if err.status == 409:
+            return ["the changelog changed on the PR branch during this run; the blog link is set on the next run"], kind, False
+        return [f"the blog link couldn't be set (HTTP {err.status})"], kind, False
     print(f"Set the {short} blog link to {target}")
-    return [], kind
+    return [], kind, True
 
 
 def fixup_branch(version: str) -> str:
@@ -784,8 +838,10 @@ def run_blog_fixup(api, version: str, today: date, find, reviewers: str = "", re
     except ApiError as err:
         if err.status != 422:  # 422: the branch is there from a run that stopped before opening the PR
             raise
-    if entry_blog_link(file_text(api, repo, path, branch), version) != post:
-        put_file(api, repo, path, branch, with_blog_link(content, version, post), f"docs: link the {short} blog post in the changelog")
+    on_branch, blob = file_blob(api, repo, path, branch)
+    if on_branch is not None and entry_blog_link(on_branch, version) != post:
+        put_file(api, repo, path, branch, with_blog_link(on_branch, version, post),
+                 f"docs: link the {short} blog post in the changelog", blob)
     created = api.post(f"/repos/{repo}/pulls", {
         "title": f"Link the {short} blog post in the changelog", "head": branch, "base": "master",
         "body": f"The {short} changelog was merged linking {current}. The blog post is now published: {post}.\n\n"
@@ -952,20 +1008,24 @@ def added_by(api, source: str, label: str, actor: str) -> bool:
 
 def reconcile_labels(api, reports: list[dict], suggestions: list[dict], content: str | None, version: str,
                      actor: str) -> dict:
-    """At T-0: swap Changelog/Done for Changelog/Not Needed on each PR whose bullet a reviewer
-    deleted, only where the workflow (``actor``) added Changelog/Done."""
+    """After the merge: swap Changelog/Done for Changelog/Not Needed on each PR whose bullet a
+    reviewer deleted, only where the workflow (``actor``) added Changelog/Done.
+
+    Not Needed is added before Done is removed, so a failure in between leaves both labels, never
+    neither, and the next run (or a dispatch) finishes the swap."""
     result = {"swapped": {repo: 0 for repo in LABEL_REPOS}, "person": 0, "failed": {repo: 0 for repo in LABEL_REPOS}}
     for source in deleted_sources(reports, suggestions, content, version):
         repo = source.partition("#")[0]
         try:
             labels = {found.get("name") for found in api.paginate(f"{_issue_path(source)}/labels")}
-            if DONE not in labels or NOT_NEEDED in labels:
+            if DONE not in labels:
                 continue
             if not added_by(api, source, DONE, actor):
                 result["person"] += 1
                 continue
+            if NOT_NEEDED not in labels:
+                api.post(f"{_issue_path(source)}/labels", {"labels": [NOT_NEEDED]})
             api.delete(_label_path(source, DONE))
-            api.post(f"{_issue_path(source)}/labels", {"labels": [NOT_NEEDED]})
         except ApiError:
             result["failed"][repo] += 1
             continue
@@ -1053,11 +1113,15 @@ def cmd_ready(env: dict) -> int:
     today = date.fromisoformat(env["TODAY"]) if env.get("TODAY") else datetime.now(timezone.utc).date()
     ready, why = decide_ready(api, version, pr, report, today, env.get("EVENT_NAME", ""), env.get("MODE", ""))
     reviewers = []
-    if ready:
+    retry = not ready and reviewers_missing(api, pr, env.get("EVENT_NAME", ""), env.get("MODE", ""))
+    if ready or retry:
         content = file_text(api, REPO, changelog_release.changelog_path(version), pr["head"]["sha"])
         reviewers = reviewers_to_request(content, version, json.loads(env.get("SECTION_REVIEWERS") or "{}"),
                                          env.get("DEFAULT_REVIEWERS", ""))
-    _outputs({"ready": "true" if ready else "false", "reviewers": ",".join(reviewers)})
+    _outputs({"ready": "true" if ready else "false", "request": "true" if retry and reviewers else "false",
+              "reviewers": ",".join(reviewers)})
+    if retry:
+        why += "; nobody is asked to review it yet, so the reviewers are requested again"
     _summary(f"Changelog PR mattermost#{number}: {'marking ready for review' if ready else 'left as it is'} ({why}).")
     return 0
 
@@ -1144,9 +1208,31 @@ def merge_labels(api, version: str, reports: list[dict], actor: str, label_api=N
         return "Changelog labels are reconciled once the changelog PR is merged."
     if not reports:
         return "Changelog labels not reconciled: no generator report was found, so the bullets each PR got are unknown."
-    content = file_text(api, REPO, changelog_release.changelog_path(version), pr["head"]["sha"])
+    # The file as the merge left it on master (merge_commit_sha, for squash and rebase merges too),
+    # not the PR branch, which can lack bullets master had.
+    content = file_text(api, REPO, changelog_release.changelog_path(version), pr.get("merge_commit_sha") or pr["head"]["sha"])
+    if not entry_lines(content, version):
+        return ("Changelog labels not reconciled: the merged changelog's entry for the release couldn't be read, "
+                "so no bullet is taken as deleted.")
     result = reconcile_labels(label_api, reports, bot_suggestions(api, REPO, pr["number"]), content, version, actor)
     return reconcile_summary(result)
+
+
+def cmd_published(env: dict) -> int:
+    """Record in sections.json which PR this run published and at which commit. Release Day and the
+    label reconcile only read reports with this record, so a dry run's preview (never pushed) is
+    never taken for the PR's."""
+    path = os.path.join(env["OUTPUT_DIR"], "sections.json")
+    report = _load_report(path)
+    if report is None:
+        print("No sections.json; nothing to record.")
+        return 0
+    report["published"] = {"pr": int(env["PR_NUMBER"]), "head": env.get("HEAD_SHA", ""), "mode": env.get("MODE", "")}
+    with open(path, "w", encoding="utf-8") as f:
+        json.dump(report, f, indent=2)
+        f.write("\n")
+    print(f"Recorded that this run published mattermost#{report['published']['pr']}.")
+    return 0
 
 
 def cmd_label(env: dict) -> int:
@@ -1165,6 +1251,7 @@ def cmd_label(env: dict) -> int:
 
 
 COMMANDS = {"suggest": cmd_suggest, "ready": cmd_ready, "request-reviewers": cmd_request_reviewers,
+            "published": cmd_published,
             "merge": cmd_merge, "label": cmd_label}
 
 

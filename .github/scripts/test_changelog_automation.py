@@ -1,5 +1,8 @@
 import base64
+import json
+import os
 import re
+import tempfile
 import unittest
 import urllib.parse
 from datetime import date, datetime, timezone
@@ -161,6 +164,10 @@ class SuggestionTest(unittest.TestCase):
         lines = ca.weak_bullets(REPORT, CHANGELOG, VERSION)
         self.assertEqual([b["line"] for b in lines], [12])
 
+    def test_a_weak_bullet_whose_text_is_on_two_bullets_is_left_alone(self):
+        twice = CHANGELOG.replace(" - Added the ``Foo`` table.", " - Updated sidebar.", 1)
+        self.assertEqual(ca.weak_bullets(REPORT, twice, VERSION), [])
+
     def test_an_unusable_rewrite_posts_nothing(self):
         for bad in ("", "Too short.", "Ping @here about the fix to the sidebar state please.", "```x``` " + "word " * 8,
                     "MM-123"):
@@ -278,6 +285,16 @@ class ReadyTest(unittest.TestCase):
     def test_only_scheduled_auto_runs(self):
         self.assertFalse(self.decide(self.api(), event="workflow_dispatch")[0])
         self.assertFalse(self.decide(self.api(), mode="dry_run")[0])
+
+    def test_reviewers_are_requested_again_when_nobody_is_asked(self):
+        api = self.api(ready_events=["ready_for_review"])
+        api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/reviews")] = []
+        pull = {"number": 50, "draft": False, "requested_reviewers": [], "requested_teams": []}
+        self.assertTrue(ca.reviewers_missing(api, pull, "schedule", "auto"))
+        self.assertFalse(ca.reviewers_missing(api, {**pull, "requested_teams": [{"slug": "docs"}]}, "schedule", "auto"))
+        api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/reviews")] = [{"state": "COMMENTED"}]
+        self.assertFalse(ca.reviewers_missing(api, pull, "schedule", "auto"))
+        self.assertFalse(ca.reviewers_missing(self.api(), pull, "schedule", "auto"))  # never marked ready by the run
 
     def test_reviewers_are_the_section_reviewers_plus_the_default(self):
         names = ca.reviewers_to_request(CHANGELOG, VERSION, {"Upgrade Impact/*": ["org/db"], "Improvements": "ui-lead"}, "amy, ui-lead  bob")
@@ -447,6 +464,41 @@ class ReconcileTest(unittest.TestCase):
         self.assertFalse([c for c in repo_api.calls if "/issues/" in c[1]])  # no label call with the repo token
         self.assertFalse([c for c in label_api.calls if "/contents/" in c[1] or c[1].endswith("/pulls")])
 
+    def test_a_swap_that_failed_half_way_is_finished_next_time(self):
+        api = self.labelled_by("changelog-app[bot]")
+        api.labels[SRC].append("Changelog/Not Needed")  # added, then removing Done failed
+        result = self.reconcile(api)
+        self.assertEqual(api.labels[SRC], ["Changelog/Not Needed"])
+        self.assertEqual(result["swapped"]["mattermost/mattermost"], 1)
+
+    def test_not_needed_is_added_before_done_is_removed(self):
+        api = self.labelled_by("changelog-app[bot]")
+        self.reconcile(api)
+        writes = [(m, p) for m, p, _ in api.calls if m in ("POST", "DELETE") and "/issues/101/" in p]
+        self.assertEqual([m for m, _ in writes], ["POST", "DELETE"])
+
+    def test_an_unreadable_merged_entry_deletes_nothing(self):
+        api = self.labelled_by("changelog-app[bot]")
+        api.routes[("GET", "/repos/mattermost/mattermost/pulls")] = [{**pr(), "merged_at": "2026-11-16T10:00:00Z"}]
+        api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/comments")] = []
+        summary = ca.merge_labels(api, VERSION, [REPORT], "changelog-app[bot]")  # the contents read is a 404
+        self.assertIn("couldn't be read", summary)
+        self.assertEqual(api.labels[SRC], ["Changelog/Done"])
+
+    def test_the_merged_entry_is_read_at_the_merge_commit(self):
+        api = self.labelled_by("changelog-app[bot]")
+        base = "/repos/mattermost/mattermost"
+        api.routes[("GET", f"{base}/pulls")] = [{**pr(), "merged_at": "2026-11-16T10:00:00Z", "merge_commit_sha": "m1"}]
+        api.routes[("GET", f"{base}/pulls/50/comments")] = []
+        refs = []
+
+        def contents(params):
+            refs.append(params["ref"])
+            return {"encoding": "base64", "content": base64.b64encode(MERGED.encode()).decode()}
+        api.routes[("GET", f"{base}/contents/{ca.urllib.parse.quote(FILE)}")] = contents
+        ca.merge_labels(api, VERSION, [REPORT], "changelog-app[bot]")
+        self.assertEqual(refs, ["m1"])
+
     def test_reconciled_only_once_the_pr_is_merged(self):
         api = self.labelled_by("changelog-app[bot]")
         api.routes[("GET", "/repos/mattermost/mattermost/pulls")] = [{"number": 49, "merged_at": None}]
@@ -479,9 +531,25 @@ class FetchReportTest(unittest.TestCase):
         return run, calls
 
     def test_the_newest_run_for_the_version_is_used(self):
-        run, calls = self.runner({3: {"version": "v12.3.0"}, 2: {"version": VERSION, "n": 2}, 1: {"version": VERSION, "n": 1}})
-        self.assertEqual(ca.fetch_report(VERSION, {"ACTIONS_TOKEN": "actions-token"}, run), {"version": VERSION, "n": 2})
+        published = {"pr": 50, "head": "abc", "mode": "auto"}
+        run, calls = self.runner({3: {"version": "v12.3.0", "published": published},
+                                  2: {"version": VERSION, "n": 2, "published": published},
+                                  1: {"version": VERSION, "n": 1, "published": published}})
+        self.assertEqual(ca.fetch_report(VERSION, {"ACTIONS_TOKEN": "actions-token"}, run)["n"], 2)
         self.assertEqual([c[3] for c in calls if c[2] == "download"], ["3", "2"])
+
+    def test_a_dry_runs_preview_is_never_the_prs_report(self):
+        run, calls = self.runner({3: {"version": VERSION, "n": 3},  # dry run: never published
+                                  2: {"version": VERSION, "n": 2, "published": {"pr": 50, "head": "abc", "mode": "auto"}}})
+        self.assertEqual(ca.fetch_report(VERSION, {"ACTIONS_TOKEN": "actions-token"}, run)["n"], 2)
+
+    def test_the_published_command_records_the_pr(self):
+        with tempfile.TemporaryDirectory() as directory:
+            with open(os.path.join(directory, "sections.json"), "w") as f:
+                json.dump({"version": VERSION}, f)
+            ca.cmd_published({"OUTPUT_DIR": directory, "PR_NUMBER": "50", "HEAD_SHA": "abc", "MODE": "auto"})
+            with open(os.path.join(directory, "sections.json")) as f:
+                self.assertEqual(json.load(f)["published"], {"pr": 50, "head": "abc", "mode": "auto"})
 
     def test_none_when_no_run_has_it(self):
         run, _ = self.runner({3: {"version": "v12.3.0"}})
@@ -527,6 +595,8 @@ class Repo(FakeApi):
         self.files = {"changelog/v12.2.0": content, "master": content if merged else CHANGELOG}
         self.merged, self.opened, self.refs, self.reviewers = merged, [], [], []
         self.pull = pull or pr()
+        self.commits = {self.pull["head"]["sha"]: "changelog/v12.2.0", "merge1": "master"}
+        self.live = {}  # changes a person makes to the PR while a run is going
         self.events = [{"event": "labeled", "label": {"name": name}} for name in events]
         self.release = release if release is not None else {"published_at": "2026-11-16T09:00:00Z", "prerelease": False,
                                                             "draft": False}
@@ -543,14 +613,21 @@ class Repo(FakeApi):
             return [] if self.merged else [self.pull]
         if path == contents and method == "GET":
             ref = payload["ref"]
-            text = self.files.get("changelog/v12.2.0" if ref == self.pull["head"]["sha"] else ref)
+            text = self.files.get(self.commits.get(ref, ref))
             if text is None:
                 raise ca.ApiError(404)
-            return {"encoding": "base64", "content": base64.b64encode(text.encode()).decode(), "sha": f"blob-{ref}"}
+            return {"encoding": "base64", "content": base64.b64encode(text.encode()).decode(), "sha": blob_of(text)}
         if path == contents and method == "PUT":
             assert payload["branch"] != "master", "never pushes to master"
+            if payload["sha"] != blob_of(self.files[payload["branch"]]):
+                raise ca.ApiError(409)  # the file changed since the text was read
             self.files[payload["branch"]] = base64.b64decode(payload["content"]).decode()
+            if payload["branch"] == "changelog/v12.2.0":
+                self.pull["head"]["sha"] += "x"  # a new commit on the PR branch
+                self.commits[self.pull["head"]["sha"]] = "changelog/v12.2.0"
             return {}
+        if path == f"{base}/pulls/50" and method == "GET":
+            return {**self.pull, **self.live}
         if path == f"{base}/releases/tags/v12.2.0":
             if not self.release:
                 raise ca.ApiError(404)
@@ -583,6 +660,10 @@ class Repo(FakeApi):
     def labelled(self):
         return [name for method, path, body in self.calls if method == "POST" and path.endswith("/issues/50/labels")
                 for name in body["labels"]]
+
+
+def blob_of(text):
+    return "blob-" + str(abs(hash(text)))
 
 
 def finder(*answers):
@@ -649,7 +730,8 @@ class ReleaseDayTest(unittest.TestCase):
         pending = {**REPORT, "readiness": {**REPORT["readiness"], "gaps": [{"section": "Benchmarking", "status": "not_yet_checked"}]}}
         self.assert_not_labelled(Repo(), "benchmarking is pending", pending)
         flagged = {**REPORT, "readiness": {**REPORT["readiness"], "gaps": [{"section": "Benchmarking", "status": "needs_review"}]}}
-        self.assert_not_labelled(Repo(), "benchmarking needs a person (see the run summary)", flagged)
+        self.assert_not_labelled(Repo(), "benchmarking needs a person: write the Performance bullet (\"Benchmarking "
+                                         "test results ...\") in the PR from the performance report", flagged)
         old = {**REPORT, "readiness": {"preflight": []}}  # a report from before the readiness section
         self.assert_not_labelled(Repo(), "benchmarking is pending", old)
 
@@ -694,6 +776,29 @@ class ReleaseDayTest(unittest.TestCase):
         outcome = self.run_day(repo)
         self.assertEqual((outcome["labelled"], outcome["problems"]), (False, ["the AutoMerge label couldn't be added (HTTP 403)"]))
 
+    def test_a_hand_written_performance_bullet_clears_benchmarking_that_needs_a_person(self):
+        flagged = {**REPORT, "readiness": {**REPORT["readiness"], "gaps": [{"section": "Benchmarking", "status": "needs_review"}]}}
+        written = BLOG_CHANGELOG.replace("#### User Interface\n", "#### Performance\n - Benchmarking test results showed a "
+                                         "7.50% increase in the number of supported users.\n\n#### User Interface\n", 1)
+        self.assertTrue(self.run_day(Repo(written), report=flagged)["labelled"])
+        pending = {**REPORT, "readiness": {**REPORT["readiness"], "gaps": [{"section": "Benchmarking", "status": "not_yet_checked"}]}}
+        self.assertFalse(self.run_day(Repo(written), report=pending)["labelled"])  # no report published: never cleared
+
+    def test_the_pr_is_read_again_before_the_label(self):
+        for change, problem in (({"draft": True}, "the PR is still a draft"),
+                                ({"base": {"ref": "release-12.2"}}, "the PR targets release-12.2 instead of master"),
+                                ({"head": {"sha": "zzz", "ref": "changelog/v12.2.0"}},
+                                 "the PR got new commits during this run; it is checked again on the next run")):
+            repo = Repo()
+            repo.live = change  # made while the run read the report and the blog
+            outcome = self.run_day(repo)
+            self.assertEqual((outcome["labelled"], outcome["problems"]), (False, [problem]))
+            self.assertEqual(repo.labelled(), [])
+
+    def test_the_runs_own_blog_commit_is_not_a_change(self):
+        repo = Repo()
+        self.assertTrue(self.run_day(repo, find=finder(POST))["labelled"])
+
     def test_no_changelog_pr(self):
         repo = Repo(merged=True)
         self.assertEqual(self.run_day(repo)["problems"], ["no open changelog PR for v12.2.0"])
@@ -723,6 +828,12 @@ class BlogFinderTest(unittest.TestCase):
         url = "https://mattermost.com/blog/faster-search-in-mattermost/"
         page = CATEGORY_PAGE.replace("</body>", f'<a href="{url}">Mattermost&nbsp;v12.2: faster search</a></body>')
         self.assertEqual(ca.find_blog_post(page, 12, 2), url)
+
+    def test_a_release_candidate_title_is_not_it(self):
+        for title in ("Mattermost v12.2-rc1 is out for testing", "Mattermost 12.2 RC2", "Try v12.2.rc1"):
+            page = f'<a href="https://mattermost.com/blog/testing-the-next-release/">{title}</a>'
+            self.assertIsNone(ca.find_blog_post(page, 12, 2), title)
+        self.assertTrue(ca.names_version("Mattermost v12.2: faster search", 12, 2))
 
     def test_other_releases_dot_releases_and_other_pages_are_not_it(self):
         self.assertIsNone(ca.find_blog_post(CATEGORY_PAGE, 12, 2))  # v12.20, 12.2.1 and an author page only
@@ -786,6 +897,21 @@ class BlogLinkTest(unittest.TestCase):
         self.assertEqual(repo.files["changelog/v12.2.0-blog-link"], repo.files["master"].replace(ca.CATEGORY_URL, POST, 1))
         self.assertEqual(self.link_on(repo, "master"), ca.CATEGORY_URL)  # master untouched
 
+    def test_an_edit_made_since_the_read_is_never_overwritten(self):
+        repo = Repo()
+        original = repo._route
+
+        def edit_first(method, path, payload):
+            if method == "PUT" and "/contents/" in path:  # a reviewer edits a bullet just before the commit
+                repo.files["changelog/v12.2.0"] = repo.files["changelog/v12.2.0"].replace("Updated sidebar.", "Edited.")
+            return original(method, path, payload)
+        repo._route = edit_first
+        outcome = self.run_day(repo, finder(POST), at(RELEASE_DAY, 10))
+        self.assertFalse(outcome["labelled"])
+        self.assertIn("the changelog changed on the PR branch during this run", outcome["problems"][0])
+        self.assertIn("Edited.", repo.files["changelog/v12.2.0"])
+        self.assertEqual(self.link_on(repo, "changelog/v12.2.0"), GUESS)
+
     def test_an_entry_without_a_blog_line_is_not_labelled(self):
         repo = Repo(CHANGELOG)
         outcome = self.run_day(repo, finder(POST), at(RELEASE_DAY, 10))
@@ -812,7 +938,7 @@ class BlogLinkTest(unittest.TestCase):
 
     def test_never_commits_to_master(self):
         with self.assertRaises(ValueError):
-            ca.put_file(FakeApi(), ca.REPO, FILE, "master", "x", "m")
+            ca.put_file(FakeApi(), ca.REPO, FILE, "master", "x", "m", "blob")
 
 
 class MergeCommandTest(unittest.TestCase):
