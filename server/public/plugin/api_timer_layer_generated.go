@@ -1070,6 +1070,27 @@ func (api *apiTimerLayer) KVSetWithExpiry(key string, value []byte, expireInSeco
 	return _returnsA
 }
 
+func (api *apiTimerLayer) CacheSet(key string, value []byte, ttlInSeconds int64) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.CacheSet(key, value, ttlInSeconds)
+	api.recordTime(startTime, "CacheSet", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) CacheGet(key string) ([]byte, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CacheGet(key)
+	api.recordTime(startTime, "CacheGet", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CacheDelete(key string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.CacheDelete(key)
+	api.recordTime(startTime, "CacheDelete", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) KVGet(key string) ([]byte, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.KVGet(key)
