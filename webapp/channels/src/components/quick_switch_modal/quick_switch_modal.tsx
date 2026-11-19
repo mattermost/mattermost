@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {type JSX} from 'react';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
 
 import {GenericModal} from '@mattermost/components';
@@ -29,6 +29,14 @@ import type {ProductRailChannelSectionRegistration} from 'types/store/plugins';
 import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';
+
+const messages = defineMessages({
+    switchChannels: {
+        id: 'quick_switch_modal.switchChannels',
+        defaultMessage: 'Find Channels',
+        description: 'Title of the channel switcher modal (Ctrl+K) used to quickly find and jump to a channel.',
+    },
+});
 
 export type Props = WrappedComponentProps & {
     onExited: () => void;
@@ -179,7 +187,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
     public render = (): JSX.Element => {
         const providers: SwitchChannelProvider[] = this.channelProviders;
         const sectionMessages = this.props.railSection?.sidebarMessages;
-        const title = sectionMessages?.channelSwitcherLabel ?? {id: 'quick_switch_modal.switchChannels', defaultMessage: 'Find Channels'};
+        const title = sectionMessages?.channelSwitcherLabel ?? messages.switchChannels;
 
         const header = (
             <h2 id='quickSwitchHeader'>
