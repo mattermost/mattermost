@@ -924,7 +924,7 @@ class WorkflowTest(unittest.TestCase):
     def test_the_merge_cron_runs_on_weekends(self):
         crons = re.findall(r"- cron: '([^']+)'", self.text)
         self.assertIn("37 * * * *", crons)
-        self.assertEqual(self.text.count("github.event.schedule == '37 * * * *'"), 1)
+        self.assertEqual(self.text.count("github.event.schedule == '37 * * * *'"), 2)  # the merge job and run-name
         self.assertEqual(self.text.count("github.event.schedule != '37 * * * *'"), 1)
 
 
