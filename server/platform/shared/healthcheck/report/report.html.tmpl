@@ -21,6 +21,7 @@ dl.header dd { margin: 0; }
 .info .finding { border-left-color: #5d89ea; }
 .tag { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; background: #eceef0; font-size: 12px; font-weight: 600; vertical-align: 1px; }
 .label { font-weight: 600; }
+.code { font-size: 12px; font-weight: normal; color: #5d6670; }
 details { margin-top: 8px; }
 summary { cursor: pointer; font-weight: 600; }
 details dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; margin: 4px 0 0; }
@@ -56,26 +57,28 @@ a { color: #1c58d9; }
 <h2>{{.Title}}</h2>
 {{- if eq .Kind "unknown"}}
 <ul class="findings">
-{{range .Findings}}<li><span class="label">{{.Title}}</span>: {{.Message}}</li>
+{{range .Findings}}<li><span class="label">{{.Title}}</span>{{template "code" .}}: {{.Message}}</li>
 {{end -}}
 </ul>
 {{- else if eq .Kind "muted"}}
 <ul class="findings">
-{{range .Findings}}<li><span class="label">{{.Title}}</span> <span class="tag">{{.Severity}}</span>{{with .Message}} {{.}}{{end}}</li>
+{{range .Findings}}<li><span class="label">{{.Title}}</span>{{template "code" .}} <span class="tag">{{.Severity}}</span>{{with .Message}} {{.}}{{end}}</li>
 {{end -}}
 </ul>
 {{- else if eq .Kind "resolved"}}
 <ul class="findings">
-{{range .Findings}}<li>{{.Title}}</li>
+{{range .Findings}}<li>{{.Title}}{{template "code" .}}</li>
 {{end -}}
 </ul>
 {{- else}}
 {{- range .Findings}}
 <div class="finding">
-<h3><span class="tag">{{.Area}}</span>{{.Title}}</h3>
+<h3><span class="tag">{{.Area}}</span>{{.Title}}{{template "code" .}}</h3>
 {{with .Message}}<p>{{.}}</p>
 {{end -}}
 {{with .Remediation}}<p><span class="label">{{$.Labels.Remediation}}:</span> {{.}}</p>
+{{end -}}
+{{with .ConsoleURL}}<p><a href="{{.}}">{{$.Labels.Console}}</a></p>
 {{end -}}
 {{with .DocsURL}}<p><a href="{{.}}">{{$.Labels.Documentation}}</a></p>
 {{end -}}
@@ -94,3 +97,4 @@ a { color: #1c58d9; }
 {{- end}}
 </body>
 </html>
+{{- define "code"}}{{with .Code}} <code class="code">{{.}}</code>{{end}}{{end}}

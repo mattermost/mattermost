@@ -681,7 +681,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 
 		s.Equal(healthPacketDisclaimer+`
 
-Last evaluated: `+evaluatedAt+`
+Data collected: `+evaluatedAt+`
 
 Critical
   [Notifications] PushNotificationServer does not use https://

@@ -21,6 +21,7 @@ dl.header dd { margin: 0; }
 .info .finding { border-left-color: #5d89ea; }
 .tag { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; background: #eceef0; font-size: 12px; font-weight: 600; vertical-align: 1px; }
 .label { font-weight: 600; }
+.code { font-size: 12px; font-weight: normal; color: #5d6670; }
 details { margin-top: 8px; }
 summary { cursor: pointer; font-weight: 600; }
 details dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; margin: 4px 0 0; }
@@ -42,10 +43,10 @@ a { color: #1c58d9; }
 <dl class="header">
 <dt>Generated</dt><dd>2026-11-18 09:50 UTC</dd>
 <dt>Last evaluated</dt><dd>2026-11-18 09:30 UTC</dd>
-<dt>Site name</dt><dd>Example Chat</dd>
 <dt>Site URL</dt><dd>https://chat.example.com</dd>
 <dt>Server version</dt><dd>12.3.0</dd>
 <dt>License</dt><dd>Enterprise</dd>
+<dt>Licensed to</dt><dd>Example Corp</dd>
 </dl>
 <h2>Summary</h2>
 <p>2 critical, 2 warnings, 1 info, 1 could not be evaluated</p>
@@ -54,9 +55,10 @@ a { color: #1c58d9; }
 <section class="critical">
 <h2>Critical</h2>
 <div class="finding">
-<h3><span class="tag">Notifications</span>PushNotificationServer does not use https://</h3>
+<h3><span class="tag">Notifications</span>PushNotificationServer does not use https:// <code class="code">PUSH_BAD_SCHEME</code></h3>
 <p>PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.</p>
 <p><span class="label">How to fix it:</span> Prefix PushNotificationServer with https:// and verify reachability from the app node.</p>
+<p><a href="https://chat.example.com/admin_console/environment/push_notification_server">Open this setting in the System Console</a></p>
 <p><a href="https://docs.mattermost.com/configure/environment-configuration-settings.html#push-notification-server">Read the documentation</a></p>
 <details>
 <summary>Details</summary>
@@ -67,7 +69,7 @@ a { color: #1c58d9; }
 </details>
 </div>
 <div class="finding">
-<h3><span class="tag">Updates</span>Mattermost version is past end-of-life</h3>
+<h3><span class="tag">Updates</span>Mattermost version is past end-of-life <code class="code">VERSION_EOL</code></h3>
 <p>Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15.</p>
 <p><span class="label">How to fix it:</span> Plan a staged upgrade to a supported release.</p>
 </div>
@@ -75,38 +77,39 @@ a { color: #1c58d9; }
 <section class="warning">
 <h2>Warning</h2>
 <div class="finding">
-<h3><span class="tag">Authentication</span>AD/LDAP synchronization has not run recently</h3>
+<h3><span class="tag">Authentication</span>AD/LDAP synchronization has not run recently <code class="code">LDAP_SYNC_OLD</code></h3>
 </div>
 <div class="finding">
-<h3><span class="tag">Platform</span>File storage disk space is low on app-1.example.com</h3>
+<h3><span class="tag">Platform</span>File storage disk space is low on app-1.example.com <code class="code">FILESTORE_DISK_LOW</code></h3>
 <p>The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB.</p>
 <p><span class="label">How to fix it:</span> Expand the volume.</p>
+<p><a href="https://chat.example.com/admin_console/environment/file_storage">Open this setting in the System Console</a></p>
 </div>
 </section>
 <section class="info">
 <h2>Info</h2>
 <div class="finding">
-<h3><span class="tag">experimental</span>A rule in an area this build does not know</h3>
+<h3><span class="tag">experimental</span>A rule in an area this build does not know <code class="code">CUSTOM</code></h3>
 <p>Shown under its raw area name. Pasting @channel stays inert, and https://example.com/a_b stays linked.</p>
 </div>
 </section>
 <section class="unknown">
 <h2>Could not evaluate</h2>
 <ul class="findings">
-<li><span class="label">Host load is high on app-2.example.com</span>: Server diagnostics unavailable.</li>
+<li><span class="label">Host load is high on app-2.example.com</span> <code class="code">NODE_HOST_LOAD_HIGH</code>: Server diagnostics unavailable.</li>
 </ul>
 </section>
 <section class="muted">
 <h2>Muted</h2>
 <ul class="findings">
-<li><span class="label">Site URL is not HTTPS</span> <span class="tag">Warning</span> SiteURL http://chat.example.com does not use https://.</li>
-<li><span class="label">GOMAXPROCS exceeds the container CPU limit</span> <span class="tag">Warning</span></li>
+<li><span class="label">Site URL is not HTTPS</span> <code class="code">SITE_URL_HTTP</code> <span class="tag">Warning</span> SiteURL http://chat.example.com does not use https://.</li>
+<li><span class="label">GOMAXPROCS exceeds the container CPU limit</span> <code class="code">GOMAXPROCS</code> <span class="tag">Warning</span></li>
 </ul>
 </section>
 <section class="resolved">
 <h2>Resolved</h2>
 <ul class="findings">
-<li>Site URL is empty</li>
+<li>Site URL is empty <code class="code">SITE_URL_EMPTY</code></li>
 </ul>
 </section>
 </body>

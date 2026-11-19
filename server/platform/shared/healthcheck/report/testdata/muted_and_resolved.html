@@ -21,6 +21,7 @@ dl.header dd { margin: 0; }
 .info .finding { border-left-color: #5d89ea; }
 .tag { display: inline-block; margin-right: 6px; padding: 0 6px; border-radius: 4px; background: #eceef0; font-size: 12px; font-weight: 600; vertical-align: 1px; }
 .label { font-weight: 600; }
+.code { font-size: 12px; font-weight: normal; color: #5d6670; }
 details { margin-top: 8px; }
 summary { cursor: pointer; font-weight: 600; }
 details dl { display: grid; grid-template-columns: max-content 1fr; gap: 2px 16px; margin: 4px 0 0; }
@@ -42,10 +43,10 @@ a { color: #1c58d9; }
 <dl class="header">
 <dt>Generated</dt><dd>2026-11-18 09:50 UTC</dd>
 <dt>Last evaluated</dt><dd>2026-11-18 09:30 UTC</dd>
-<dt>Site name</dt><dd>Example Chat</dd>
 <dt>Site URL</dt><dd>https://chat.example.com</dd>
 <dt>Server version</dt><dd>12.3.0</dd>
 <dt>License</dt><dd>Enterprise</dd>
+<dt>Licensed to</dt><dd>Example Corp</dd>
 </dl>
 <h2>Summary</h2>
 <p>1 critical</p>
@@ -54,19 +55,19 @@ a { color: #1c58d9; }
 <section class="critical">
 <h2>Critical</h2>
 <div class="finding">
-<h3><span class="tag">Notifications</span>PushNotificationServer does not use https://</h3>
+<h3><span class="tag">Notifications</span>PushNotificationServer does not use https:// <code class="code">PUSH_BAD_SCHEME</code></h3>
 </div>
 </section>
 <section class="muted">
 <h2>Muted</h2>
 <ul class="findings">
-<li><span class="label">Audit logging is off</span> <span class="tag">Info</span> No audit log target is configured.</li>
+<li><span class="label">Audit logging is off</span> <code class="code">AUDIT_LOG_OFF</code> <span class="tag">Info</span> No audit log target is configured.</li>
 </ul>
 </section>
 <section class="resolved">
 <h2>Resolved</h2>
 <ul class="findings">
-<li>Site URL is not HTTPS</li>
+<li>Site URL is not HTTPS <code class="code">SITE_URL_HTTP</code></li>
 </ul>
 </section>
 </body>

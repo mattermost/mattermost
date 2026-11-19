@@ -57,12 +57,12 @@ func (r *Report) WriteMarkdown(w io.Writer) error {
 		case SectionUnknown:
 			b.WriteString("\n")
 			for _, f := range section.Findings {
-				fmt.Fprintf(&b, "- **%s:** %s\n", escapeMarkdown(f.Title), escapeMarkdown(f.Message))
+				fmt.Fprintf(&b, "- **%s**%s: %s\n", escapeMarkdown(f.Title), codeSuffix(f.Code), escapeMarkdown(f.Message))
 			}
 		case SectionMuted:
 			b.WriteString("\n")
 			for _, f := range section.Findings {
-				fmt.Fprintf(&b, "- **%s** (%s)", escapeMarkdown(f.Title), escapeMarkdown(f.Severity))
+				fmt.Fprintf(&b, "- **%s**%s (%s)", escapeMarkdown(f.Title), codeSuffix(f.Code), escapeMarkdown(f.Severity))
 				if f.Message != "" {
 					fmt.Fprintf(&b, ": %s", escapeMarkdown(f.Message))
 				}
@@ -71,16 +71,19 @@ func (r *Report) WriteMarkdown(w io.Writer) error {
 		case SectionResolved:
 			b.WriteString("\n")
 			for _, f := range section.Findings {
-				fmt.Fprintf(&b, "- %s\n", escapeMarkdown(f.Title))
+				fmt.Fprintf(&b, "- %s%s\n", escapeMarkdown(f.Title), codeSuffix(f.Code))
 			}
 		default:
 			for _, f := range section.Findings {
-				fmt.Fprintf(&b, "\n### \\[%s\\] %s\n", escapeMarkdown(f.Area), escapeMarkdown(f.Title))
+				fmt.Fprintf(&b, "\n### \\[%s\\] %s%s\n", escapeMarkdown(f.Area), escapeMarkdown(f.Title), codeSuffix(f.Code))
 				if f.Message != "" {
 					fmt.Fprintf(&b, "\n%s\n", escapeMarkdown(f.Message))
 				}
 				if f.Remediation != "" {
 					fmt.Fprintf(&b, "\n**%s:** %s\n", escapeMarkdown(r.Labels.Remediation), escapeMarkdown(f.Remediation))
+				}
+				if f.ConsoleURL != "" {
+					fmt.Fprintf(&b, "\n%s\n", markdownLink(r.Labels.Console, f.ConsoleURL))
 				}
 				if f.DocsURL != "" {
 					fmt.Fprintf(&b, "\n%s\n", markdownLink(r.Labels.Documentation, f.DocsURL))
@@ -138,6 +141,19 @@ func escapeMarkdown(s string) string {
 		return s[:digits] + `\` + s[digits:]
 	}
 	return s
+}
+
+// codeSuffix shows a rule code after a title as inline code, or as escaped text if a backtick
+// or line break would end the code span early.
+func codeSuffix(code string) string {
+	switch {
+	case code == "":
+		return ""
+	case strings.ContainsAny(code, "`\r\n"):
+		return " " + escapeMarkdown(code)
+	default:
+		return " `" + code + "`"
+	}
 }
 
 // markdownLink links only to plain http(s) URLs; anything else is shown as text.

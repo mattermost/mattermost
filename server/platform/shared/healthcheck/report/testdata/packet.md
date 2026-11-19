@@ -5,7 +5,7 @@
 > The packet has no metadata.yaml.
 
 - **Generated:** 2026-12-18 09:30 UTC
-- **Last evaluated:** 2026-11-18 09:30 UTC
+- **Data collected:** 2026-11-18 09:30 UTC
 - **Server version:** 12.3.0
 
 ## Summary
@@ -14,7 +14,7 @@
 
 ## Critical
 
-### \[Notifications\] PushNotificationServer does not use https://
+### \[Notifications\] PushNotificationServer does not use https:// `PUSH_BAD_SCHEME`
 
 PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.
 
@@ -22,7 +22,7 @@ PushNotificationServer http://push.example.com uses http://, so push notificatio
 
 [Read the documentation](https://docs.mattermost.com/configure/environment-configuration-settings.html#push-notification-server)
 
-### \[Updates\] Mattermost version is past end-of-life
+### \[Updates\] Mattermost version is past end-of-life `VERSION_EOL`
 
 Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15.
 
@@ -30,9 +30,9 @@ Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15.
 
 ## Warning
 
-### \[Authentication\] AD/LDAP synchronization has not run recently
+### \[Authentication\] AD/LDAP synchronization has not run recently `LDAP_SYNC_OLD`
 
-### \[Platform\] File storage disk space is low on app-1.example.com
+### \[Platform\] File storage disk space is low on app-1.example.com `FILESTORE_DISK_LOW`
 
 The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB.
 
@@ -40,10 +40,10 @@ The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 10
 
 ## Info
 
-### \[experimental\] A rule in an area this build does not know
+### \[experimental\] A rule in an area this build does not know `CUSTOM`
 
 Shown under its raw area name. Pasting `@channel` stays inert, and https://example.com/a_b stays linked.
 
 ## Could not evaluate
 
-- **Host load is high on app-2.example.com:** Server diagnostics unavailable.
+- **Host load is high on app-2.example.com** `NODE_HOST_LOAD_HIGH`: Server diagnostics unavailable.

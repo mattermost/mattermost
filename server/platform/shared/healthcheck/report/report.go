@@ -9,6 +9,7 @@ package report
 import (
 	"cmp"
 	"maps"
+	"net/url"
 	"slices"
 	"strings"
 	"time"
@@ -34,10 +35,12 @@ type Options struct {
 	// says nothing about whether evaluation stopped.
 	PointInTime bool
 
-	SiteName      string
+	// SiteURL also turns each finding's System Console path into a link; without it there is none.
 	SiteURL       string
 	ServerVersion string
 	License       string
+	// Company is who the license is issued to.
+	Company string
 
 	// Notes open the report, such as the Support Packet disclaimer.
 	Notes []string
@@ -77,6 +80,7 @@ type Labels struct {
 	Summary       string
 	Remediation   string
 	Documentation string
+	Console       string
 	Details       string
 }
 
@@ -100,6 +104,8 @@ type Section struct {
 }
 
 type Finding struct {
+	// Code is the rule's stable identifier, for referring to the finding in a ticket.
+	Code     string
 	Area     string
 	Severity string
 	// Title names the node too for a node-scoped finding.
@@ -107,6 +113,9 @@ type Finding struct {
 	Message     string
 	Remediation string
 	DocsURL     string
+	// ConsoleURL opens the finding's setting in the System Console; it is empty unless the
+	// report has a site URL.
+	ConsoleURL string
 	// Details is sorted by label.
 	Details []Field
 }
@@ -125,12 +134,17 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 			Summary:       T("health.report.label.summary"),
 			Remediation:   T("health.report.label.remediation"),
 			Documentation: T("health.report.label.documentation"),
+			Console:       T("health.report.label.console"),
 			Details:       T("health.report.label.details"),
 		},
 	}
 
 	r.GeneratedAt = Field{T("health.report.header.generated_at"), formatTime(opts.GeneratedAt)}
 	r.EvaluatedAt = Field{T("health.report.header.evaluated_at"), T("health.report.header.not_evaluated")}
+	if opts.PointInTime {
+		// The checks run when the report is built; the time that matters is when the data was collected.
+		r.EvaluatedAt.Label = T("health.report.header.collected_at")
+	}
 	if list.EvaluatedAt != 0 {
 		evaluatedAt := time.UnixMilli(list.EvaluatedAt)
 		r.EvaluatedAt.Value = formatTime(evaluatedAt)
@@ -142,10 +156,10 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 		}
 	}
 	for _, field := range []Field{
-		{T("health.report.header.site_name"), opts.SiteName},
 		{T("health.report.header.site_url"), opts.SiteURL},
 		{T("health.report.header.server_version"), opts.ServerVersion},
 		{T("health.report.header.license"), opts.License},
+		{T("health.report.header.company"), opts.Company},
 	} {
 		if field.Value != "" {
 			r.Site = append(r.Site, field)
@@ -158,7 +172,7 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 	bySection := map[SectionKind][]Finding{}
 	for _, finding := range findings {
 		kind := sectionOf(finding)
-		bySection[kind] = append(bySection[kind], newFinding(finding, T))
+		bySection[kind] = append(bySection[kind], newFinding(finding, T, opts.SiteURL))
 	}
 	for _, kind := range sectionOrder {
 		if len(bySection[kind]) > 0 {
@@ -223,7 +237,7 @@ func sectionOf(finding *model.HealthFinding) SectionKind {
 	}
 }
 
-func newFinding(finding *model.HealthFinding, T i18n.TranslateFunc) Finding {
+func newFinding(finding *model.HealthFinding, T i18n.TranslateFunc, siteURL string) Finding {
 	title := finding.Title
 	if finding.Scope != "" {
 		title = T("health.report.finding.title_on_node", map[string]any{"Title": finding.Title, "Node": finding.Scope})
@@ -235,14 +249,29 @@ func newFinding(finding *model.HealthFinding, T i18n.TranslateFunc) Finding {
 	}
 
 	return Finding{
+		Code:        finding.Code,
 		Area:        areaLabel(finding.Area, T),
 		Severity:    severityLabel(finding.Severity, T),
 		Title:       title,
 		Message:     finding.Message,
 		Remediation: finding.Remediation,
 		DocsURL:     finding.DocsURL,
+		ConsoleURL:  consoleURL(siteURL, finding.ConsolePath),
 		Details:     details,
 	}
+}
+
+// consoleURL resolves a System Console path against the site URL, keeping any subpath the
+// site is served under. A report is a file, so a bare path would not lead anywhere.
+func consoleURL(siteURL, consolePath string) string {
+	if siteURL == "" || consolePath == "" {
+		return ""
+	}
+	link, err := url.JoinPath(siteURL, consolePath)
+	if err != nil {
+		return ""
+	}
+	return link
 }
 
 func compareFindings(a, b *model.HealthFinding) int {

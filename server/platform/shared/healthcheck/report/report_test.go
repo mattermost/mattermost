@@ -39,10 +39,10 @@ func testOptions() Options {
 		T:             i18n.T,
 		Location:      time.UTC,
 		GeneratedAt:   generatedAt,
-		SiteName:      "Example Chat",
 		SiteURL:       "https://chat.example.com",
 		ServerVersion: "12.3.0",
 		License:       "Enterprise",
+		Company:       "Example Corp",
 	}
 }
 
@@ -62,6 +62,7 @@ func everySectionFindings() []*model.HealthFinding {
 	push.Message = "PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext."
 	push.Remediation = "Prefix PushNotificationServer with https:// and verify reachability from the app node."
 	push.DocsURL = "https://docs.mattermost.com/configure/environment-configuration-settings.html#push-notification-server"
+	push.ConsolePath = "/admin_console/environment/push_notification_server"
 	push.Details = map[string]string{"push_server": "http://push.example.com", "config_key": "EmailSettings.PushNotificationServer"}
 
 	eol := finding("VERSION_EOL", "critical", "firing", model.AreaVersion, "Mattermost version is past end-of-life")
@@ -72,6 +73,7 @@ func everySectionFindings() []*model.HealthFinding {
 	disk.Scope = "app-1.example.com"
 	disk.Message = "The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB."
 	disk.Remediation = "Expand the volume."
+	disk.ConsolePath = "/admin_console/environment/file_storage"
 
 	ldap := finding("LDAP_SYNC_OLD", "warning", "firing", model.AreaAuth, "AD/LDAP synchronization has not run recently")
 
@@ -114,7 +116,7 @@ func mutedAndResolvedFindings() []*model.HealthFinding {
 
 func TestGolden(t *testing.T) {
 	packetOptions := testOptions()
-	packetOptions.SiteName, packetOptions.SiteURL, packetOptions.License = "", "", ""
+	packetOptions.SiteURL, packetOptions.License, packetOptions.Company = "", "", ""
 	packetOptions.PointInTime = true
 	packetOptions.Notes = []string{
 		"Evaluated offline from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state.",
@@ -221,6 +223,20 @@ func TestBuild(t *testing.T) {
 		assert.Empty(t, Build(list, opts).Stale)
 	})
 
+	t.Run("links a finding's setting into the System Console under the site URL", func(t *testing.T) {
+		for siteURL, want := range map[string]string{
+			"https://chat.example.com":       "https://chat.example.com/admin_console/environment/file_storage",
+			"https://example.com/chat/":      "https://example.com/chat/admin_console/environment/file_storage",
+			"":                               "",
+			"https://chat.example.com/%zz/x": "",
+		} {
+			opts := testOptions()
+			opts.SiteURL = siteURL
+			r := Build(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: everySectionFindings()[6:7]}, opts)
+			assert.Equal(t, want, r.Sections[0].Findings[0].ConsoleURL, siteURL)
+		}
+	})
+
 	t.Run("never exports who muted a finding", func(t *testing.T) {
 		var html, markdown bytes.Buffer
 		r := Build(list, testOptions())
@@ -244,9 +260,10 @@ func TestEscaping(t *testing.T) {
 
 	unknown := finding("EVIL_UNKNOWN", "warning", "unknown", model.AreaAuth, "1. "+hostile)
 	unknown.Message = "+ " + hostile
+	unknown.Code = "EVIL`CODE"
 
 	opts := testOptions()
-	opts.SiteName = hostile
+	opts.Company = hostile
 	opts.Notes = []string{hostile}
 	r := Build(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: []*model.HealthFinding{evil, unknown}}, opts)
 
@@ -272,7 +289,7 @@ func TestEscaping(t *testing.T) {
 		assert.Equal(t, 7, strings.Count(out, escaped), "every hostile value renders escaped")
 		assert.Contains(t, out, `on \<img src=x onerror=alert(1)\>`)
 		assert.Contains(t, out, `- **1\. `+escaped)
-		assert.Contains(t, out, `:** \+ `+escaped)
+		assert.Contains(t, out, "** EVIL\\`CODE: \\+ "+escaped, "a backtick in a rule code cannot open a code span")
 		assert.Contains(t, out, `\[\<i\>area\</i\>\]`)
 		assert.Contains(t, out, "\nRead the documentation: javascript:alert(1)\n")
 

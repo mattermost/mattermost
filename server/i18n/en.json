@@ -14612,6 +14612,16 @@
     "description": "Title of a finding that applies to one server node in the shareable health report (Site health export and mmctl health check output); {{.Title}} is the finding title and {{.Node}} the node's hostname."
   },
   {
+    "id": "health.report.header.collected_at",
+    "translation": "Data collected",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output) for a one-off evaluation such as a Support Packet; followed by the date and time the evaluated data was collected, which can be long before the report was made."
+  },
+  {
+    "id": "health.report.header.company",
+    "translation": "Licensed to",
+    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the name of the company the Mattermost license is issued to."
+  },
+  {
     "id": "health.report.header.evaluated_at",
     "translation": "Last evaluated",
     "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the date and time the health checks last ran."
@@ -14637,11 +14647,6 @@
     "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the Mattermost server version."
   },
   {
-    "id": "health.report.header.site_name",
-    "translation": "Site name",
-    "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the server's site name."
-  },
-  {
     "id": "health.report.header.site_url",
     "translation": "Site URL",
     "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the server's Site URL."
@@ -14650,6 +14655,11 @@
     "id": "health.report.header.stale",
     "translation": "Evaluation appears to have stopped.",
     "description": "Warning in the header of the shareable health report (Site health export and mmctl health check output) when the last evaluation is more than two hours old."
+  },
+  {
+    "id": "health.report.label.console",
+    "translation": "Open this setting in the System Console",
+    "description": "Link text in the shareable health report (Site health export and mmctl health check output) that opens the System Console page where the finding's setting is changed."
   },
   {
     "id": "health.report.label.details",

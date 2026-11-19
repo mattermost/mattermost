@@ -2,10 +2,10 @@
 
 - **Generated:** 2026-11-18 09:50 UTC
 - **Last evaluated:** 2026-11-18 09:30 UTC
-- **Site name:** Example Chat
 - **Site URL:** https://chat.example.com
 - **Server version:** 12.3.0
 - **License:** Enterprise
+- **Licensed to:** Example Corp
 
 ## Summary
 
@@ -15,15 +15,17 @@ Also included: 2 muted, 1 resolved.
 
 ## Critical
 
-### \[Notifications\] PushNotificationServer does not use https://
+### \[Notifications\] PushNotificationServer does not use https:// `PUSH_BAD_SCHEME`
 
 PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.
 
 **How to fix it:** Prefix PushNotificationServer with https:// and verify reachability from the app node.
 
+[Open this setting in the System Console](https://chat.example.com/admin_console/environment/push_notification_server)
+
 [Read the documentation](https://docs.mattermost.com/configure/environment-configuration-settings.html#push-notification-server)
 
-### \[Updates\] Mattermost version is past end-of-life
+### \[Updates\] Mattermost version is past end-of-life `VERSION_EOL`
 
 Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15.
 
@@ -31,29 +33,31 @@ Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15.
 
 ## Warning
 
-### \[Authentication\] AD/LDAP synchronization has not run recently
+### \[Authentication\] AD/LDAP synchronization has not run recently `LDAP_SYNC_OLD`
 
-### \[Platform\] File storage disk space is low on app-1.example.com
+### \[Platform\] File storage disk space is low on app-1.example.com `FILESTORE_DISK_LOW`
 
 The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB.
 
 **How to fix it:** Expand the volume.
 
+[Open this setting in the System Console](https://chat.example.com/admin_console/environment/file_storage)
+
 ## Info
 
-### \[experimental\] A rule in an area this build does not know
+### \[experimental\] A rule in an area this build does not know `CUSTOM`
 
 Shown under its raw area name. Pasting `@channel` stays inert, and https://example.com/a_b stays linked.
 
 ## Could not evaluate
 
-- **Host load is high on app-2.example.com:** Server diagnostics unavailable.
+- **Host load is high on app-2.example.com** `NODE_HOST_LOAD_HIGH`: Server diagnostics unavailable.
 
 ## Muted
 
-- **Site URL is not HTTPS** (Warning): SiteURL http://chat.example.com does not use https://.
-- **GOMAXPROCS exceeds the container CPU limit** (Warning)
+- **Site URL is not HTTPS** `SITE_URL_HTTP` (Warning): SiteURL http://chat.example.com does not use https://.
+- **GOMAXPROCS exceeds the container CPU limit** `GOMAXPROCS` (Warning)
 
 ## Resolved
 
-- Site URL is empty
+- Site URL is empty `SITE_URL_EMPTY`
