@@ -12,7 +12,7 @@ import (
 )
 
 func init() {
-	healthcheck.Register(pushIDOnly, maxNotificationsPerChannel, smtpUnreachable)
+	healthcheck.Register(pushIDOnly, maxNotificationsPerChannel, smtpNotConfigured, smtpUnreachable)
 }
 
 const (
@@ -53,6 +53,21 @@ var maxNotificationsPerChannel = healthcheck.Rule{
 	Eval:       healthcheck.Single(evalMaxNotificationsPerChannel),
 }
 
+var smtpNotConfigured = healthcheck.Rule{
+	Code:     "SMTP_NOT_CONFIGURED",
+	Area:     model.AreaNotifications,
+	Severity: healthcheck.SeverityWarning,
+	RuleText: model.RuleText{
+		TitleID:       healthcheck.TranslationId("health.rule.smtp_not_configured.title"),
+		RemediationID: healthcheck.TranslationId("health.rule.smtp_not_configured.remediation"),
+		ConsolePath:   smtpConsolePath,
+	},
+	Surface:    healthcheck.SurfaceProduct,
+	Volatility: healthcheck.VolatilityStable,
+	Subject:    "EmailSettings.SMTPServer",
+	Eval:       healthcheck.Gate(smtpInUse, healthcheck.ReasonConfigUnavailable, evalSMTPNotConfigured),
+}
+
 var smtpUnreachable = healthcheck.Rule{
 	Code:     "SMTP_UNREACHABLE",
 	Area:     model.AreaNotifications,
@@ -65,7 +80,7 @@ var smtpUnreachable = healthcheck.Rule{
 	Surface:    healthcheck.SurfaceProduct,
 	Volatility: healthcheck.VolatilityProbe,
 	Subject:    "EmailSettings.SMTPServer",
-	Eval:       healthcheck.Gate(smtpInUse, healthcheck.ReasonConfigUnavailable, evalSMTPUnreachable),
+	Eval:       healthcheck.Gate(smtpInUseAndConfigured, healthcheck.ReasonConfigUnavailable, evalSMTPUnreachable),
 }
 
 func evalPushIDOnly(s *healthcheck.Snapshot) healthcheck.Result {
@@ -121,13 +136,43 @@ func smtpInUse(s *healthcheck.Snapshot) (inUse, ok bool) {
 	return false, true
 }
 
+// smtpConfigured reports whether an SMTP server was set up, rather than left at the default.
+func smtpConfigured(s *healthcheck.Snapshot) (configured, ok bool) {
+	cfg, ok := s.ConfigRoot()
+	if !ok || cfg.EmailSettings.SMTPServer == nil {
+		return false, false
+	}
+	return cfg.EmailSettings.IsSMTPConfigured(), true
+}
+
+// smtpInUseAndConfigured keeps SMTP_UNREACHABLE quiet where SMTP_NOT_CONFIGURED fires, even when an older
+// node still probed the default server.
+func smtpInUseAndConfigured(s *healthcheck.Snapshot) (enabled, ok bool) {
+	if inUse, ok := smtpInUse(s); !ok || !inUse {
+		return false, ok
+	}
+	return smtpConfigured(s)
+}
+
+func evalSMTPNotConfigured(s *healthcheck.Snapshot) healthcheck.Result {
+	configured, ok := smtpConfigured(s)
+	switch {
+	case !ok:
+		return healthcheck.Unknown(healthcheck.ReasonConfigUnavailable)
+	case configured:
+		return healthcheck.Resolved()
+	default:
+		return healthcheck.Firing(healthcheck.TranslationId("health.rule.smtp_not_configured.message"))
+	}
+}
+
 func evalSMTPUnreachable(s *healthcheck.Snapshot) healthcheck.Result {
 	return probes.Eval(s, smtpProbe,
 		healthcheck.TranslationId("health.rule.smtp_unreachable.message"),
 		healthcheck.TranslationId("health.rule.smtp_unreachable.message.partial"))
 }
 
-// A disabled status means the node does not use SMTP, so it counts as passing.
+// A disabled status means the node does not use SMTP or has none configured, so it counts as passing.
 func smtpProbe(n *healthcheck.NodeSnapshot) (status, probeErr string) {
 	diag, ok := n.SectionDiag(model.SectionSMTPProbe)
 	if !ok {
