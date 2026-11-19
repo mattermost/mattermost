@@ -217,6 +217,7 @@ export default function ScheduledPostCustomTimeModal({
             errorText={errorMessage}
             timePickerInterval={timePickerInterval}
             isConfirmDisabled={isConfirming}
+            isConfirmLoading={isConfirming}
         />
     );
 }

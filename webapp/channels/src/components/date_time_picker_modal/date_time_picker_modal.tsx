@@ -36,6 +36,7 @@ type Props = {
     errorText?: string | React.ReactNode;
     timePickerInterval?: number;
     isConfirmDisabled?: boolean;
+    isConfirmLoading?: boolean;
 };
 
 export default function DateTimePickerModal({
@@ -56,6 +57,7 @@ export default function DateTimePickerModal({
     errorText,
     timePickerInterval,
     isConfirmDisabled,
+    isConfirmLoading,
 }: Props) {
     const userTimezone = useSelector(getCurrentTimezone);
     const currentTime = getCurrentMomentForTimezone(userTimezone);
@@ -117,6 +119,7 @@ export default function DateTimePickerModal({
             autoCloseOnConfirmButton={false}
             errorText={errorText}
             isConfirmDisabled={isConfirmDisabled}
+            isConfirmLoading={isConfirmLoading}
         >
             {bodyPrefix}
 

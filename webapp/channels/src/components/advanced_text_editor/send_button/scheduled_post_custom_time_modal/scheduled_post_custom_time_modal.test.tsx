@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 
 import ScheduledPostCustomTimeModal from './scheduled_post_custom_time_modal';
@@ -175,13 +175,16 @@ describe('ScheduledPostCustomTimeModal', () => {
 
         const scheduleButton = screen.getByRole('button', {name: 'Schedule'});
         expect(scheduleButton).toBeEnabled();
+        expect(within(scheduleButton).queryByRole('status', {hidden: true})).not.toBeInTheDocument();
 
         await userEvent.click(scheduleButton);
         expect(scheduleButton).toBeDisabled();
+        expect(within(scheduleButton).getByRole('status', {hidden: true})).toBeInTheDocument();
 
         resolveConfirm({error: 'Invalid scheduled at time.'});
         expect(await screen.findByText('Invalid scheduled at time.')).toBeInTheDocument();
         expect(scheduleButton).toBeEnabled();
+        expect(within(scheduleButton).queryByRole('status', {hidden: true})).not.toBeInTheDocument();
     });
 
     it('should not exit or show the error when dismissed while a request is pending', async () => {
