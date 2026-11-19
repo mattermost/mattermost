@@ -2,6 +2,8 @@
 #
 # CodeRabbit configuration for mattermost/mattermost
 
+inheritance: true
+
 reviews:
   # --- What to review ----------------------------------------------------------
   path_filters:
