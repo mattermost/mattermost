@@ -1069,12 +1069,19 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(textbox).toHaveValue('');
 
-            // Open the emoji picker and select an emoji
+            // The formatting-bar control opens the picker from that button.
             await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
             });
+            const barSurface = document.querySelector('.emoji-picker-surface');
+            expect(barSurface).toHaveClass('emoji-picker-surface--origin-bottom');
+            expect(barSurface).not.toHaveClass('emoji-picker-surface--origin-bottom-left');
+            expect(screen.queryByRole('menu', {name: 'Message options'})).not.toBeInTheDocument();
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+            await waitFor(() => {
+                expect(screen.queryByRole('button', {name: 'blush emoji'})).not.toBeInTheDocument();
+            });
 
             expect(textbox).toHaveFocus();
             expect(textbox).toHaveValue('\uD83D\uDE0A ');
@@ -1832,10 +1839,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await openMenu();
             await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
             await waitFor(() => {
+                expect(screen.queryByRole('menu', {name: 'Message options'})).not.toBeInTheDocument();
                 expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
             });
-            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
+            // Above the +, left edge against the button, like the other replacements.
+            expect(document.querySelector('.emoji-picker-surface')).toHaveClass('emoji-picker-surface--origin-bottom-left');
+
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
             expect(screen.getByTestId('post_textbox')).toHaveValue('\uD83D\uDE0A ');
         });
 

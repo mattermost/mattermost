@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, useCallback, useContext, useState, type ReactNode, type Ref} from 'react';
+import React, {memo, useCallback, useContext, useState, type ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -33,7 +33,6 @@ type Props = {
     formattingOpen: boolean;
     formattingDisabled: boolean;
     onToggleFormatting: () => void;
-    emojiAnchorRef?: Ref<HTMLSpanElement>;
     priorityItem?: ReactNode;
     burnOnRead?: {
         on: boolean;
@@ -110,6 +109,44 @@ type AttachFilesItemProps = FirstMenuItemProps & {
     onAttach: () => void;
 };
 
+type EmojiMenuItemProps = FirstMenuItemProps & {
+    disabled: boolean;
+    onEmoji: () => void;
+};
+
+/**
+ * Emoji closes the + menu, then opens the existing picker above this button.
+ * The click runs now so the close listener is registered before the menu
+ * starts closing. The picker re-reads the button when it opens: the close
+ * can replace that node, and a detached one sits at the viewport corner.
+ */
+const EmojiMenuItem = ({disabled, onEmoji, ...otherProps}: EmojiMenuItemProps) => {
+    const menu = useContext(MenuContext);
+    const dispatch = useDispatch();
+
+    const handleClick = () => {
+        const open = () => onEmoji();
+        if (menu.close) {
+            menu.addOnClosedListener(open);
+            menu.close();
+            return;
+        }
+        dispatch(closeModal(COMPOSER_PLUS_MENU_ID));
+        open();
+    };
+
+    return (
+        <Menu.Item
+            {...otherProps}
+            labels={emojiLabel}
+            leadingElement={<EmoticonHappyOutlineIcon size={18}/>}
+            onClick={handleClick}
+            disabled={disabled}
+            disableCloseOnSelect={true}
+        />
+    );
+};
+
 /**
  * Opens the file dialog in this click. Other menu items run onClick after the
  * close animation, and Safari rejects a file dialog that is no longer part of
@@ -165,7 +202,6 @@ const AgentComposerMenuContents = ({
     formattingOpen,
     formattingDisabled,
     onToggleFormatting,
-    emojiAnchorRef,
     priorityItem,
     burnOnRead,
     aiActions,
@@ -189,76 +225,72 @@ const AgentComposerMenuContents = ({
     }, [claimRow]);
 
     return (
-        <span ref={emojiAnchorRef}>
-            <Menu.Container
-                menuButton={{
-                    id: 'agentComposerMenuButton',
-                    dataTestId: 'agent-composer-menu-button',
-                    as: AgentComposerMenuTrigger,
-                    'aria-label': label,
-                    children: <Icon glyph={<PlusIcon/>}/>,
-                }}
-                menuButtonTooltip={{text: label}}
-                menu={{
-                    id: COMPOSER_PLUS_MENU_ID,
-                    'aria-label': label,
-                    onToggle: handleToggle,
-                    compass: true,
-                }}
-                anchorOrigin={{vertical: 'top', horizontal: 'left'}}
-                transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
-            >
-                {canAttach && (
-                    <AttachFilesItem
-                        disabled={attachDisabled}
-                        onAttach={onAttach}
-                        onMouseEnter={claim('attach')}
-                    />
-                )}
-                {enableEmojiPicker && (
-                    <Menu.Item
-                        labels={emojiLabel}
-                        leadingElement={<EmoticonHappyOutlineIcon size={18}/>}
-                        onClick={onEmoji}
-                        onMouseEnter={claim('emoji')}
-                        disabled={emojiDisabled}
-                    />
-                )}
-                {showAttributes && (
-                    <Menu.Item
-                        labels={attributesLabel}
-                        leadingElement={<TagOutlineIcon size={18}/>}
-                        onMouseEnter={claim('attributes')}
-                        disabled={true}
-                    />
-                )}
-                {priorityItem}
-                {burnOnRead && (
-                    <Menu.Item
-                        labels={burnOnReadLabel}
-                        leadingElement={<FireIcon size={18}/>}
-                        trailingElements={burnOnRead.on ? <CheckIcon size={18}/> : undefined}
-                        disabled={burnOnRead.disabled}
-                        onClick={burnOnRead.onToggle}
-                        onMouseEnter={claim('burn-on-read')}
-                    />
-                )}
-                {aiActions && (
-                    <AIActionsMenu
-                        {...aiActions}
-                        embedded={true}
-                        parentOpen={menuOpen}
-                    />
-                )}
-                <Menu.Item
-                    labels={formattingOpen ? hideFormattingLabel : showFormattingLabel}
-                    leadingElement={<FormatLetterCaseIcon size={18}/>}
-                    onClick={onToggleFormatting}
-                    onMouseEnter={claim('formatting')}
-                    disabled={formattingDisabled}
+        <Menu.Container
+            menuButton={{
+                id: 'agentComposerMenuButton',
+                dataTestId: 'agent-composer-menu-button',
+                as: AgentComposerMenuTrigger,
+                'aria-label': label,
+                children: <Icon glyph={<PlusIcon/>}/>,
+            }}
+            menuButtonTooltip={{text: label}}
+            menu={{
+                id: COMPOSER_PLUS_MENU_ID,
+                'aria-label': label,
+                onToggle: handleToggle,
+                compass: true,
+            }}
+            anchorOrigin={{vertical: 'top', horizontal: 'left'}}
+            transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
+        >
+            {canAttach && (
+                <AttachFilesItem
+                    disabled={attachDisabled}
+                    onAttach={onAttach}
+                    onMouseEnter={claim('attach')}
                 />
-            </Menu.Container>
-        </span>
+            )}
+            {enableEmojiPicker && (
+                <EmojiMenuItem
+                    disabled={emojiDisabled}
+                    onEmoji={onEmoji}
+                    onMouseEnter={claim('emoji')}
+                />
+            )}
+            {showAttributes && (
+                <Menu.Item
+                    labels={attributesLabel}
+                    leadingElement={<TagOutlineIcon size={18}/>}
+                    onMouseEnter={claim('attributes')}
+                    disabled={true}
+                />
+            )}
+            {priorityItem}
+            {burnOnRead && (
+                <Menu.Item
+                    labels={burnOnReadLabel}
+                    leadingElement={<FireIcon size={18}/>}
+                    trailingElements={burnOnRead.on ? <CheckIcon size={18}/> : undefined}
+                    disabled={burnOnRead.disabled}
+                    onClick={burnOnRead.onToggle}
+                    onMouseEnter={claim('burn-on-read')}
+                />
+            )}
+            {aiActions && (
+                <AIActionsMenu
+                    {...aiActions}
+                    embedded={true}
+                    parentOpen={menuOpen}
+                />
+            )}
+            <Menu.Item
+                labels={formattingOpen ? hideFormattingLabel : showFormattingLabel}
+                leadingElement={<FormatLetterCaseIcon size={18}/>}
+                onClick={onToggleFormatting}
+                onMouseEnter={claim('formatting')}
+                disabled={formattingDisabled}
+            />
+        </Menu.Container>
     );
 };
 

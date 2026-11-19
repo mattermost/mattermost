@@ -30,6 +30,20 @@ import EmojiPickerTabs from './emoji_picker_tabs';
 
 export const useEmojiPickerOffset = 4;
 
+// The corner of the picker that stays against its reference while the surface scales.
+// `top` / `bottom` stay centered, matching the formatting-bar button. `*-start` and
+// `*-end` pin that corner to the reference edge, matching a menu anchored to the +.
+function emojiSurfaceOrigin(placement: string): string {
+    const vertical = placement.startsWith('bottom') ? 'top' : 'bottom';
+    if (placement.endsWith('-start')) {
+        return `${vertical}-left`;
+    }
+    if (placement.endsWith('-end')) {
+        return `${vertical}-right`;
+    }
+    return vertical;
+}
+
 type UseEmojiPickerOptions = {
     showEmojiPicker: boolean;
     setShowEmojiPicker: (showEmojiPicker: boolean) => void;
@@ -43,6 +57,12 @@ type UseEmojiPickerOptions = {
      * Replaces the middleware for positioning the emoji picker in cases where we want it positioned differently.
      */
     overrideMiddleware?: UseFloatingOptions['middleware'];
+
+    /**
+     * Where the picker sits relative to its reference. Defaults to centered above it.
+     * The composer + menu uses top-start so the picker grows over the composer.
+     */
+    placement?: UseFloatingOptions['placement'];
 };
 
 type UseEmojiPickerReturn = {
@@ -61,6 +81,7 @@ export default function useEmojiPicker({
     onGifClick,
 
     overrideMiddleware,
+    placement: requestedPlacement = 'top',
 }: UseEmojiPickerOptions): UseEmojiPickerReturn {
     const isMobileView = useSelector(getIsMobileView);
 
@@ -100,7 +121,7 @@ export default function useEmojiPicker({
         onOpenChange: setShowEmojiPicker,
 
         middleware,
-        placement: 'top',
+        placement: requestedPlacement,
     });
 
     const clickInteractions = useClick(floatingContext);
@@ -132,7 +153,7 @@ export default function useEmojiPicker({
             </div>
         );
     } else {
-        const origin = placement.startsWith('bottom') ? 'top' : 'bottom';
+        const origin = emojiSurfaceOrigin(placement);
         emojiPicker = (
             <div
                 ref={refs.setFloating}

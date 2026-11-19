@@ -9,11 +9,12 @@ import useEmojiPicker from './use_emoji_picker';
 
 jest.mock('./emoji_picker_tabs', () => () => <div className='emoji-picker'>{'picker'}</div>);
 
-function Harness({open}: {open: boolean}) {
+function Harness({open, placement}: {open: boolean; placement?: 'top' | 'top-start'}) {
     const {emojiPicker, setReference} = useEmojiPicker({
         showEmojiPicker: open,
         setShowEmojiPicker: jest.fn(),
         onEmojiClick: jest.fn(),
+        placement,
     });
 
     return (
@@ -32,5 +33,16 @@ describe('useEmojiPicker', () => {
         expect(surface).toBeInTheDocument();
         expect(surface).toHaveClass('emoji-picker-surface--origin-bottom');
         expect(surface).toContainElement(screen.getByText('picker'));
+    });
+
+    it('pins the scale origin to the reference edge when placement is top-start', () => {
+        renderWithContext(
+            <Harness
+                open={true}
+                placement='top-start'
+            />,
+        );
+
+        expect(document.querySelector('.emoji-picker-surface')).toHaveClass('emoji-picker-surface--origin-bottom-left');
     });
 });

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {flip, offset, shift} from '@floating-ui/react';
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -37,8 +37,34 @@ const useEditorEmojiPicker = (
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
+    // The + menu anchors the picker to the button's top-left, like message
+    // priority and rewrite. The formatting-bar button keeps the centered placement.
+    const [anchorToPlus, setAnchorToPlus] = useState(false);
+    const openedFromMenu = useRef(false);
+    const anchoredTo = useRef<HTMLElement | null>(null);
+
+    const setPickerOpen = useCallback((open: boolean) => {
+        if (!open || !openedFromMenu.current) {
+            setAnchorToPlus(false);
+            openedFromMenu.current = false;
+            anchoredTo.current = null;
+        }
+        setShowEmojiPicker(open);
+    }, []);
+
     const toggleEmojiPicker = useCallback((e?: React.MouseEvent<HTMLButtonElement, MouseEvent>): void => {
         e?.stopPropagation();
+
+        // The formatting bar owns this shortcut while its button is mounted.
+        // With the bar hidden, the + button is the only anchor.
+        if (document.getElementById('emojiPickerButton')) {
+            openedFromMenu.current = false;
+            anchoredTo.current = null;
+            setAnchorToPlus(false);
+        } else {
+            openedFromMenu.current = true;
+            setAnchorToPlus(true);
+        }
         setShowEmojiPicker((prev) => !prev);
     }, []);
 
@@ -70,14 +96,14 @@ const useEditorEmojiPicker = (
             insertTextAtCaret(`:${emojiAlias}:`);
         }
 
-        setShowEmojiPicker(false);
-    }, [insertTextAtCaret, textboxId]);
+        setPickerOpen(false);
+    }, [insertTextAtCaret, setPickerOpen, textboxId]);
 
     const handleGifClick = useCallback((gif: string) => {
         insertTextAtCaret(gif);
 
-        setShowEmojiPicker(false);
-    }, [insertTextAtCaret]);
+        setPickerOpen(false);
+    }, [insertTextAtCaret, setPickerOpen]);
 
     const {
         emojiPicker,
@@ -85,7 +111,8 @@ const useEditorEmojiPicker = (
         setReference,
     } = useEmojiPicker({
         showEmojiPicker,
-        setShowEmojiPicker,
+        setShowEmojiPicker: setPickerOpen,
+        placement: anchorToPlus ? 'top-start' : 'top',
 
         enableGifPicker,
         onGifClick: handleGifClick,
@@ -102,6 +129,32 @@ const useEditorEmojiPicker = (
             }),
         ],
     });
+
+    const bindPlusButton = useCallback(() => {
+        // The menu close can replace the + button. A detached node measures as
+        // 0,0 and the picker jumps to the viewport corner, so read the live one
+        // now, and again after this render in case that close replaced it.
+        const live = document.getElementById('agentComposerMenuButton');
+        if (!live) {
+            return;
+        }
+        anchoredTo.current = live;
+        setReference(live);
+    }, [setReference]);
+
+    const openEmojiPickerFromMenu = useCallback(() => {
+        openedFromMenu.current = true;
+        setAnchorToPlus(true);
+        bindPlusButton();
+        setShowEmojiPicker(true);
+    }, [bindPlusButton]);
+
+    useLayoutEffect(() => {
+        if (!showEmojiPicker || !openedFromMenu.current) {
+            return;
+        }
+        bindPlusButton();
+    }, [bindPlusButton, showEmojiPicker]);
 
     let emojiPickerControls = null;
     if (enableEmojiPicker && !isDisabled) {
@@ -140,7 +193,7 @@ const useEditorEmojiPicker = (
         emojiPickerPortal: enableEmojiPicker && !isDisabled ? emojiPicker : null,
         enableEmojiPicker,
         toggleEmojiPicker,
-        setEmojiReference: setReference,
+        openEmojiPickerFromMenu,
     };
 };
 

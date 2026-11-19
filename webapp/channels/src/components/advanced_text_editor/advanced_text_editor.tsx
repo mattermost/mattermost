@@ -543,7 +543,7 @@ const AdvancedTextEditor = ({
         emojiPickerPortal,
         enableEmojiPicker,
         toggleEmojiPicker,
-        setEmojiReference,
+        openEmojiPickerFromMenu,
     } = useEditorEmojiPicker(
         textboxId,
         isDisabled,
@@ -1050,12 +1050,11 @@ const AdvancedTextEditor = ({
                 onAttach={openFileDialog}
                 enableEmojiPicker={enableEmojiPicker && !showFormattingBar}
                 emojiDisabled={showPreview}
-                onEmoji={toggleEmojiPicker}
+                onEmoji={openEmojiPickerFromMenu}
                 showAttributes={postAttributesEnabled && !isInEditMode && !hideAttributes}
                 formattingOpen={showFormattingBar}
                 formattingDisabled={showPreview}
                 onToggleFormatting={toggleAdvanceTextEditor}
-                emojiAnchorRef={showFormattingBar ? undefined : setEmojiReference}
                 priorityItem={showFormattingBar || isInEditMode || hidePriority ? null : priorityAdditionalControl}
                 burnOnRead={!showFormattingBar && !hideBurnOnRead && !isInEditMode && canSetBurnOnRead ? {
                     on: hasBurnOnReadSet,
