@@ -1687,6 +1687,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByRole('menuitem', {name: 'Message priority'})).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', {name: 'Emoji'})).not.toBeInTheDocument();
             await userEvent.keyboard('{Escape}');
+            await waitFor(() => {
+                expect(document.querySelector('.menu_menuStyled')).not.toBeInTheDocument();
+            });
             const textbox = screen.getByTestId('post_textbox');
             const bar = screen.getByTestId('formattingBarContainer');
             const controls = document.querySelector('.AdvancedTextEditor__agent-controls');
@@ -1904,6 +1907,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('menuitem', {name: 'Attach files'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Emoji'})).toBeInTheDocument();
             await userEvent.keyboard('{Escape}');
+            await waitFor(() => {
+                expect(document.querySelector('.menu_menuStyled')).not.toBeInTheDocument();
+            });
             await openMenu();
             await userEvent.click(screen.getByRole('menuitem', {name: 'Show formatting'}));
             await waitFor(() => {

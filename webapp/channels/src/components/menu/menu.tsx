@@ -35,6 +35,7 @@ import CompassDesignProvider from 'components/compass_design_provider';
 import Constants, {A11yClassNames} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
+import {compassSurfaceOriginClass, useCompassMenuPresence} from './compass_menu_motion';
 import {MenuContext, useMenuContextValue} from './menu_context';
 
 import './menu.scss';
@@ -155,11 +156,17 @@ function renderMenuSurface({
     header,
     footer,
     list,
+    open,
+    onExited,
+    originClass,
 }: {
     compass: boolean;
     header?: ReactNode;
     footer?: ReactNode;
     list: ReactNode;
+    open?: boolean;
+    onExited?: () => void;
+    originClass?: string;
 }) {
     if (!compass) {
         return (
@@ -174,7 +181,9 @@ function renderMenuSurface({
     return (
         <PopoverMenu
             variant='parent'
-            className='menu_menuStyled__surface'
+            className={classNames('menu_menuStyled__surface', originClass)}
+            open={open}
+            onExited={onExited}
         >
             {header}
             {list}
@@ -424,6 +433,11 @@ export function Menu(props: Props) {
     const compass = Boolean(props.menu.compass);
     const anchorOrigin = props.anchorOrigin || defaultAnchorOrigin;
     const transformOrigin = props.transformOrigin || defaultTransformOrigin;
+    const {present: compassPresent, onExited: compassExited} = useCompassMenuPresence(isMenuOpen);
+    const handleCompassExited = useCallback(() => {
+        compassExited();
+        providerValue.handleClosed();
+    }, [compassExited, providerValue]);
 
     // The shared paper margin offsets menus that open below the trigger.
     // These origins open above it, and the above class reverses that margin
@@ -445,7 +459,7 @@ export function Menu(props: Props) {
                     <MuiPopover
                         anchorEl={menuButton}
                         container={props.menu.container}
-                        open={isMenuOpen}
+                        open={compass ? compassPresent : isMenuOpen}
                         onClose={handleMenuClose}
                         onClick={handleMenuClick}
                         onKeyDown={handleMenuKeyDown}
@@ -475,10 +489,11 @@ export function Menu(props: Props) {
                                 } : undefined),
                             },
                         } : undefined}
+                        transitionDuration={compass ? 0 : undefined}
                         TransitionProps={{
                             mountOnEnter: true,
                             unmountOnExit: true,
-                            timeout: {
+                            timeout: compass ? 0 : {
                                 enter: MENU_OPEN_ANIMATION_DURATION,
                                 exit: MENU_CLOSE_ANIMATION_DURATION,
                             },
@@ -496,12 +511,15 @@ export function Menu(props: Props) {
                                 },
                             },
                         }}
-                        onTransitionExited={providerValue.handleClosed}
+                        onTransitionExited={compass ? undefined : providerValue.handleClosed}
                     >
                         {renderMenuSurface({
                             compass,
                             header: props.menuHeader,
                             footer: props.menuFooter,
+                            open: compass ? isMenuOpen : undefined,
+                            onExited: compass ? handleCompassExited : undefined,
+                            originClass: compass ? compassSurfaceOriginClass(transformOrigin) : undefined,
                             list: (
                                 <MuiMenuList
                                     id={props.menu.id}

@@ -3,6 +3,7 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
+import classNames from 'classnames';
 import React, {useCallback, useContext, useState, memo, useMemo, useEffect, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -19,6 +20,7 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {submenuPointerDestination, useComposerSubmenuHover, useDelayedSubmenuClose} from 'components/advanced_text_editor/composer_submenu_hover';
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
+import {compassSideClass, compassSurfaceOriginClass, useCompassMenuPresence} from 'components/menu/compass_menu_motion';
 import {MenuContext} from 'components/menu/menu_context';
 
 import Constants from 'utils/constants';
@@ -271,6 +273,18 @@ function PostPriorityPicker({
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [itemAnchor, presentation]);
 
+    const itemAnchorRef = useRef<HTMLElement | null>(null);
+    if (itemAnchor) {
+        itemAnchorRef.current = itemAnchor;
+    }
+    const itemPlacementAnchor = itemAnchor ?? itemAnchorRef.current;
+    const itemOpen = presentation === 'item' && Boolean(itemAnchor);
+    const {present: itemPresent, onExited: itemExited} = useCompassMenuPresence(itemOpen);
+    const itemOrigins = useMemo(() => ({
+        anchorOrigin: {vertical: 'bottom' as const, horizontal: 'right' as const},
+        transformOrigin: {vertical: 'bottom' as const, horizontal: 'left' as const},
+    }), []);
+
     const closeItemPanel = useCallback(() => {
         setItemAnchor(null);
     }, []);
@@ -368,43 +382,47 @@ function PostPriorityPicker({
                         }
                     }}
                 />
-                <MuiPopover
-                    open={Boolean(itemAnchor)}
-                    anchorEl={itemAnchor}
-                    anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'bottom', horizontal: 'left'}}
-                    className='menu_menuStyled AsSubMenu menu_menuStyled--compass'
-                    disableAutoFocus={true}
-                    disableEnforceFocus={true}
-                    disableRestoreFocus={true}
-                    hideBackdrop={true}
-                    transitionDuration={0}
-                    onClose={closeItemPanel}
-                    slotProps={{
-                        paper: {
-                            ref: panelRef,
-                            style: {
-                                overflow: 'visible',
-                                background: 'transparent',
-                                boxShadow: 'none',
-                                maxHeight: 'none',
+                {itemPresent && itemPlacementAnchor && (
+                    <MuiPopover
+                        open={true}
+                        anchorEl={itemPlacementAnchor}
+                        anchorOrigin={itemOrigins.anchorOrigin}
+                        transformOrigin={itemOrigins.transformOrigin}
+                        className={classNames('menu_menuStyled AsSubMenu menu_menuStyled--compass', compassSideClass(itemOrigins.anchorOrigin, itemOrigins.transformOrigin))}
+                        disableAutoFocus={true}
+                        disableEnforceFocus={true}
+                        disableRestoreFocus={true}
+                        hideBackdrop={true}
+                        transitionDuration={0}
+                        onClose={closeItemPanel}
+                        slotProps={{
+                            paper: {
+                                ref: panelRef,
+                                style: {
+                                    overflow: 'visible',
+                                    background: 'transparent',
+                                    boxShadow: 'none',
+                                    maxHeight: 'none',
+                                },
+                                onMouseEnter: cancelClose,
+                                onMouseLeave: (event) => closeItemUnlessInside(event.relatedTarget, itemAnchor),
                             },
-                            onMouseEnter: cancelClose,
-                            onMouseLeave: (event) => closeItemUnlessInside(event.relatedTarget, itemAnchor),
-                        },
-                    }}
-                >
-                    <div style={{pointerEvents: 'auto'}}>
-                        <MenuContext.Provider value={compassMenu}>
-                            <PopoverMenu
-                                variant='child'
-                                className='menu_menuStyled__surface'
-                            >
-                                {pickerBody}
-                            </PopoverMenu>
-                        </MenuContext.Provider>
-                    </div>
-                </MuiPopover>
+                        }}
+                    >
+                        <div style={{pointerEvents: 'auto'}}>
+                            <MenuContext.Provider value={compassMenu}>
+                                <PopoverMenu
+                                    variant='child'
+                                    open={itemOpen}
+                                    onExited={itemExited}
+                                    className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(itemOrigins.transformOrigin))}
+                                >
+                                    {pickerBody}
+                                </PopoverMenu>
+                            </MenuContext.Provider>
+                        </div>
+                    </MuiPopover>
+                )}
             </CompassDesignProvider>
         );
     }

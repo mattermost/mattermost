@@ -24,6 +24,18 @@ a.MuiMenuItem-root {
     &.menu_menuStyled--above .MuiPaper-root {
         margin-block-start: -4px;
     }
+
+    // Submenus open beside a row. The block margin would slide them off that
+    // row, so the 4px gap is on the side facing the row.
+    &.menu_menuStyled--side-right .MuiPaper-root {
+        margin-block-start: 0;
+        margin-inline-start: 4px;
+    }
+
+    &.menu_menuStyled--side-left .MuiPaper-root {
+        margin-block-start: 0;
+        margin-inline-start: -4px;
+    }
     &.AsSubMenu {
         pointer-events: none;
         & .MuiPaper-root {
@@ -44,6 +56,24 @@ a.MuiMenuItem-root {
         max-height: none;
         background-color: transparent;
         box-shadow: none;
+    }
+}
+
+.menu_menuStyled--compass {
+    .menu_menuStyled__surface--origin-top-left {
+        transform-origin: top left;
+    }
+
+    .menu_menuStyled__surface--origin-top-right {
+        transform-origin: top right;
+    }
+
+    .menu_menuStyled__surface--origin-bottom-left {
+        transform-origin: bottom left;
+    }
+
+    .menu_menuStyled__surface--origin-bottom-right {
+        transform-origin: bottom right;
     }
 }
 

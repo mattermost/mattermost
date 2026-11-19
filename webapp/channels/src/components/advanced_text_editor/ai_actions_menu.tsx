@@ -15,6 +15,7 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 
 import * as Menu from 'components/menu';
+import {compassSideClass, compassSurfaceOriginClass, useCompassMenuPresence} from 'components/menu/compass_menu_motion';
 import {MenuContext} from 'components/menu/menu_context';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
@@ -175,10 +176,20 @@ const AIActionsMenu = ({
         };
     }, [draft, getSelectedText, updateText, channelId, isRHS, handleToggle]);
 
+    const submenuAnchorRef = useRef<HTMLElement | null>(null);
+    if (submenuAnchorEl) {
+        submenuAnchorRef.current = submenuAnchorEl;
+    }
+    const placementAnchor = submenuAnchorEl ?? submenuAnchorRef.current;
+    const displayedSubmenuRef = useRef<string | null>(null);
+    if (activeSubmenu) {
+        displayedSubmenuRef.current = activeSubmenu;
+    }
+
     const submenuOrigins = useMemo((): {anchorOrigin: PopoverOrigin; transformOrigin: PopoverOrigin} => {
         const MIN_SUBMENU_WIDTH = 400;
-        if (submenuAnchorEl) {
-            const rightSpace = window.innerWidth - (submenuAnchorEl.getBoundingClientRect()?.right ?? 0);
+        if (placementAnchor) {
+            const rightSpace = window.innerWidth - (placementAnchor.getBoundingClientRect()?.right ?? 0);
             if (rightSpace < MIN_SUBMENU_WIDTH) {
                 return {
                     anchorOrigin: {vertical: 'bottom', horizontal: 'left'},
@@ -190,27 +201,30 @@ const AIActionsMenu = ({
             anchorOrigin: {vertical: 'bottom', horizontal: 'right'},
             transformOrigin: {vertical: 'bottom', horizontal: 'left'},
         };
-    }, [submenuAnchorEl]);
+    }, [placementAnchor]);
+
+    const menuIsOpen = embedded ? parentOpen : isMenuOpen;
+    const submenuOpen = Boolean(activeSubmenu) && menuIsOpen;
+    const {present: submenuPresent, onExited: submenuExited} = useCompassMenuPresence(submenuOpen);
 
     if (!hasItems) {
         return null;
     }
 
-    const isRewriteSubmenu = activeSubmenu === '__rewrite__';
-    const activePluginItem = activeSubmenu && !isRewriteSubmenu ? sortedItems.find((item) => item.id === activeSubmenu && item.component) : null;
-    const hasActiveSubmenu = Boolean(activeSubmenu) && (isRewriteSubmenu || Boolean(activePluginItem));
+    const panelSubmenu = activeSubmenu ?? displayedSubmenuRef.current;
+    const isRewriteSubmenu = panelSubmenu === '__rewrite__';
+    const activePluginItem = panelSubmenu && !isRewriteSubmenu ? sortedItems.find((item) => item.id === panelSubmenu && item.component) : null;
 
     const submenuClassName = classNames(
         'menu_menuStyled',
         'AsSubMenu',
         'ai-actions-submenu',
         'menu_menuStyled--compass',
+        compassSideClass(submenuOrigins.anchorOrigin, submenuOrigins.transformOrigin),
         {
             'ai-actions-submenu-rewrite': isRewriteSubmenu,
         },
     );
-
-    const menuIsOpen = embedded ? parentOpen : isMenuOpen;
 
     const rows = (
         <>
@@ -272,10 +286,10 @@ const AIActionsMenu = ({
         </>
     );
 
-    const submenu = hasActiveSubmenu && menuIsOpen && (
+    const submenu = submenuPresent && placementAnchor && (isRewriteSubmenu || activePluginItem) && (
         <MuiPopover
             open={true}
-            anchorEl={submenuAnchorEl}
+            anchorEl={placementAnchor}
             anchorOrigin={submenuOrigins.anchorOrigin}
             transformOrigin={submenuOrigins.transformOrigin}
             className={submenuClassName}
@@ -304,7 +318,9 @@ const AIActionsMenu = ({
                 <MenuContext.Provider value={submenuMenuContext}>
                     <PopoverMenu
                         variant='child'
-                        className={classNames('menu_menuStyled__surface', {
+                        open={submenuOpen}
+                        onExited={submenuExited}
+                        className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(submenuOrigins.transformOrigin), {
                             'menu_menuStyled__surface--flush': !isRewriteSubmenu && Boolean(activePluginItem?.component),
                         })}
                     >

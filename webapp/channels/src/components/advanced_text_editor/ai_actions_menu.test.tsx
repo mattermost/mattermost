@@ -5,7 +5,7 @@ import {act, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 
 import type {PostDraft} from 'types/store/draft';
 
@@ -424,7 +424,7 @@ describe('AIActionsMenu', () => {
         expect(receivedProps.updateText).toBeDefined();
     });
 
-    test('should close the submenu when the pointer moves to another row', () => {
+    test('should close the submenu when the pointer moves to another row', async () => {
         renderWithContext(
             <AIActionsMenu
                 {...getBaseProps()}
@@ -466,7 +466,9 @@ describe('AIActionsMenu', () => {
         expect(screen.getByTestId('plugin-submenu')).toBeInTheDocument();
 
         fireEvent.mouseEnter(screen.getByText('Do Something').closest('li')!);
-        expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+        });
     });
 
     test('should keep the submenu open while the pointer is in its panel', async () => {
@@ -510,7 +512,7 @@ describe('AIActionsMenu', () => {
         expect(screen.getByTestId('plugin-submenu')).toBeInTheDocument();
     });
 
-    test('closes an embedded submenu when another row in the plus menu is hovered', () => {
+    test('closes an embedded submenu when another row in the plus menu is hovered', async () => {
         const baseState = {
             entities: {
                 general: {config: {}},
@@ -564,7 +566,9 @@ describe('AIActionsMenu', () => {
         expect(screen.getByTestId('plugin-submenu')).toBeInTheDocument();
 
         fireEvent.mouseEnter(screen.getByRole('button', {name: 'Other row', hidden: true}));
-        expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+        await waitFor(() => {
+            expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+        });
     });
 
     test('treats a nested menu item as part of the open panel', () => {
