@@ -203,7 +203,7 @@ func (a *App) ValidateTeamAdminPolicyOwnership(rctx request.CTX, teamID, policyI
 // visible is false when the requester does not satisfy that rule. A non-nil
 // error means the expression could not be evaluated; the listing hides the
 // policy, and a single-policy caller fails closed.
-func (a *App) teamPolicyVisibleToRequester(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string, idToType map[string]model.ChannelType, batchLookupFailed bool) (bool, *model.AppError) {
+func (a *App) teamPolicyVisibleToRequester(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string, idToType map[string]model.ChannelType, batchLookupFailed bool) (bool, error) {
 	if len(policy.EffectiveRules()) == 0 || !policyAppliesToPrivateChannel(rctx, policy, idToType, batchLookupFailed) {
 		return true, nil
 	}
@@ -213,12 +213,16 @@ func (a *App) teamPolicyVisibleToRequester(rctx request.CTX, policy *model.Acces
 // requesterMatchesFirstEffectiveRule reports whether requesterID satisfies the
 // policy's first effective rule. No effective rules is a match. Expression
 // errors are returned to the caller.
-func (a *App) requesterMatchesFirstEffectiveRule(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string) (bool, *model.AppError) {
+func (a *App) requesterMatchesFirstEffectiveRule(rctx request.CTX, policy *model.AccessControlPolicy, requesterID string) (bool, error) {
 	effectiveRules := policy.EffectiveRules()
 	if len(effectiveRules) == 0 {
 		return true, nil
 	}
-	return a.ValidateExpressionAgainstRequester(rctx, effectiveRules[0].Expression, requesterID)
+	matches, appErr := a.ValidateExpressionAgainstRequester(rctx, effectiveRules[0].Expression, requesterID)
+	if appErr != nil {
+		return false, appErr
+	}
+	return matches, nil
 }
 
 // ValidateTeamAdminPolicySelfInclusion reports whether userID satisfies the
@@ -233,7 +237,7 @@ func (a *App) requesterMatchesFirstEffectiveRule(rctx request.CTX, policy *model
 // Returns (true, nil) when the check passes, (false, nil) when it does not,
 // or (false, err) when the policy cannot be loaded or the expression cannot
 // be evaluated.
-func (a *App) ValidateTeamAdminPolicySelfInclusion(rctx request.CTX, userID, policyID string, addedChannelIDs []string) (bool, *model.AppError) {
+func (a *App) ValidateTeamAdminPolicySelfInclusion(rctx request.CTX, userID, policyID string, addedChannelIDs []string) (bool, error) {
 	acs := a.Srv().ch.AccessControl
 	if acs == nil {
 		return false, model.NewAppError("ValidateTeamAdminPolicySelfInclusion", "app.pap.search_access_control_policies.app_error", nil, "Policy Administration Point is not initialized", http.StatusNotImplemented)

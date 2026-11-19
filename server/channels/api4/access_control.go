@@ -128,9 +128,9 @@ func searchAccessControlDecisionActions(c *Context, w http.ResponseWriter, r *ht
 // admin and writes the same permission error as a failed ownership check.
 // Returns false when the handler should stop.
 func requireTeamAdminPolicySelfInclusion(c *Context, policyID string, addedChannelIDs []string) bool {
-	included, appErr := c.App.ValidateTeamAdminPolicySelfInclusion(c.AppContext, c.AppContext.Session().UserId, policyID, addedChannelIDs)
-	if appErr != nil {
-		c.Err = appErr
+	included, err := c.App.ValidateTeamAdminPolicySelfInclusion(c.AppContext, c.AppContext.Session().UserId, policyID, addedChannelIDs)
+	if err != nil {
+		c.Err = model.AsAppError(err)
 		return false
 	}
 	if !included {

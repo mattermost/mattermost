@@ -906,8 +906,8 @@ func TestValidateTeamAdminPolicySelfInclusion_NormalizesStoredRules(t *testing.T
 		"user.attributes.department == 'x'", mock.Anything).
 		Return([]*model.User{{Id: th.BasicUser.Id}}, int64(1), nil)
 
-	included, appErr := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
-	require.Nil(t, appErr)
+	included, err := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
+	require.NoError(t, err)
 	assert.True(t, included)
 }
 
@@ -922,8 +922,8 @@ func TestValidateTeamAdminPolicySelfInclusion_NormalizeFailureFailsClosed(t *tes
 	_, err := th.App.Srv().Store().AccessControlPolicy().Save(th.Context, parentPolicy)
 	require.NoError(t, err)
 
-	included, appErr := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
-	require.NotNil(t, appErr)
+	included, err := th.App.ValidateTeamAdminPolicySelfInclusion(th.Context, th.BasicUser.Id, parentPolicy.ID, nil)
+	require.Error(t, err)
 	assert.False(t, included)
 	mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
 }
