@@ -1,10 +1,6 @@
 # yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
 #
 # CodeRabbit configuration for mattermost/mattermost
-# Goal: keep the findings (most are acted on), cut the packaging around them,
-# stop review loops, and give the reviewer the context it was missing.
-# Based on an audit of all 1,557 PRs merged 2026-08-14 .. 2026-11-14
-# (1,034 non-cherry-pick, 899 reviewed, 1,436 inline findings).
 
 language: en-US
 
@@ -63,18 +59,14 @@ reviews:
     auto_incremental_review: true
     # Auto-pause is the main reason CodeRabbit "gets stuck": 257 of 898 reviewed PRs
     # paused at the default of 5, and 133 merged with code CodeRabbit never saw while
-    # its earlier approval or change request stood. Raising to 10 would have paused
-    # about 94 PRs instead of 257. Loops are cut by nit suppression and the agent
-    # rule to batch fixes into one push per round, not by pausing earlier.
+    # its earlier approval or change request stood. Loops are cut by nit suppression
+    # and the agent rule to batch fixes into one push per round, not by pausing earlier.
     # After a pause, use `@coderabbitai resume` (not `review`).
-    auto_pause_after_reviewed_commits: 10
+    auto_pause_after_reviewed_commits: 8
     ignore_title_keywords:
       - "Automated cherry pick"
       - "WIP"
       - "DO NOT MERGE"
-    ignore_usernames:
-      - "mattermost-build"
-      - "mattermost-code"
 
   # --- What to review ----------------------------------------------------------
   path_filters:
@@ -308,30 +300,3 @@ reviews:
       enabled: false
     psscriptanalyzer:
       enabled: false
-
-  # Request-changes / automatic approval: KEEP. CodeRabbit's approval is one of the
-  # two approvals master requires. It is on today only via the org UI, and this key
-  # defaults to false, so set it explicitly here.
-  # Do not also set the legacy `request_changes_workflow` key: if the two disagree,
-  # CodeRabbit disables approvals.
-  auto_approvals:
-    enabled: true
-    # 49 of 65 `@coderabbitai approve` commands came from the PR's own author, which
-    # let authors supply one of the two required approvals. Another developer can
-    # still use the command.
-    allow_author_approval: false
-
-chat:
-  auto_reply: true
-  allow_non_org_members: false
-
-knowledge_base:
-  opt_out: false
-  code_guidelines:
-    enabled: true             # already reads AGENTS.md / CLAUDE.md files by default
-  learnings:
-    scope: local              # public repo: `auto` already behaves as local; explicit for clarity
-    # New learnings wait 7 days and an admin can reject them before they apply.
-    # Learning-based findings were declined 38% of the time vs 17% overall, and
-    # 15 learnings were created from agent-written replies.
-    approval_delay: 7
