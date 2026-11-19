@@ -87,6 +87,7 @@ export type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     dynamic_value?: (value: any, config: Partial<AdminConfig>, state: any) => string;
     max_length?: number;
     default?: string | ((value: any, config: Partial<AdminConfig>, state: any) => string);
+    saveFalseWhenDisabled?: boolean;
 };
 
 type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {

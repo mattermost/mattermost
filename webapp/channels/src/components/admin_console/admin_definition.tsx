@@ -1080,6 +1080,9 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                                 it.not(it.stateMatches('ServiceSettings.ListenAddress', /:443$/)),
                             ),
+
+                            // The server refuses to start with this enabled while it can't apply.
+                            saveFalseWhenDisabled: true,
                         },
                         {
                             type: 'dropdown',
@@ -1129,6 +1132,9 @@ const AdminDefinition: AdminDefinitionType = {
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.WEB_SERVER)),
                                 it.stateIsFalse('ServiceSettings.Forward80To443'),
                             ),
+
+                            // The server refuses to start with this enabled while it can't apply.
+                            saveFalseWhenDisabled: true,
                         },
                         {
                             type: 'text',
