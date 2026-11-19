@@ -435,7 +435,13 @@ def reviewers_missing(api, pr: dict, event: str, mode: str, repo: str = REPO) ->
         return False
     if not any(e.get("event") == "ready_for_review" for e in api.paginate(f"/repos/{repo}/issues/{pr['number']}/events")):
         return False
-    return not api.paginate(f"/repos/{repo}/pulls/{pr['number']}/reviews")
+    # Bots' reviews (CodeRabbit, Cursor) don't stand in for the people the request asks.
+    return not any(not _is_bot(review.get("user") or {})
+                   for review in api.paginate(f"/repos/{repo}/pulls/{pr['number']}/reviews"))
+
+
+def _is_bot(user: dict) -> bool:
+    return user.get("type") == "Bot" or str(user.get("login", "")).endswith("[bot]")
 
 
 def entry_sections(content: str | None, version: str) -> list[dict]:
@@ -482,6 +488,23 @@ def request_reviewers(api, number: int, names: list[str], repo: str = REPO) -> s
 
 # The generator's in-range sentence must not count: a stale one survives a flip to needs_review.
 BENCHMARK_BULLET = re.compile(r"^ *[-*] +Benchmarking test results\b(?! showed no significant difference)", re.MULTILINE)
+_BENCHMARK_LINE = re.compile(r"^ *[-*] +Benchmarking test results\b.*$", re.MULTILINE)
+
+
+def benchmark_written(entry: str, gap: dict) -> bool:
+    """Whether a person has written the Performance bullet the flagged gap asks for.
+
+    The generator's in-range sentence never counts. When the report gives a Delta (one outside
+    [-5%, +5%]), the bullet must state that number, so a bullet written for an earlier, since
+    corrected report doesn't clear a new one."""
+    if not BENCHMARK_BULLET.search(entry):
+        return False
+    delta = str(gap.get("delta") or "").lstrip("+-")
+    if not delta:
+        return True
+    number = re.compile(rf"(?<![\d.]){re.escape(delta)}(?!\d)\s*%")
+    return any(number.search(line) and not line.lstrip(" -*").startswith("Benchmarking test results showed no significant")
+               for line in _BENCHMARK_LINE.findall(entry))
 
 
 def blocking_report_problems(report: dict | None, entry: str = "") -> list[str]:
@@ -496,7 +519,7 @@ def blocking_report_problems(report: dict | None, entry: str = "") -> list[str]:
     readiness = report.get("readiness", {})
     benchmark = next((gap for gap in readiness.get("gaps", []) if gap.get("section") == "Benchmarking"), None)
     status = (benchmark or {}).get("status")
-    if status == "needs_review" and not BENCHMARK_BULLET.search(entry):
+    if status == "needs_review" and not benchmark_written(entry, benchmark):
         problems.append("benchmarking needs a person: write the Performance bullet (\"Benchmarking test results ...\") "
                         "in the PR from the performance report")
     elif status not in ("ready", "needs_review"):

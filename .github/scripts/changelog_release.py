@@ -473,7 +473,8 @@ def benchmark(version: str, fetch=fetch_url) -> dict:
         return {"notes": [], "gap": gap("needs_review", f"the supported-user Delta in the [{short} performance "
                                         f"comparison]({page}) is {delta}%, outside the [-5%, +5%] prediction "
                                         "interval; write the Performance bullet (\"Benchmarking test results ...\") in the "
-                                        "PR by hand with the performance team, which clears this for the AutoMerge label")}
+                                        "PR by hand with the performance team, which clears this for the AutoMerge label")
+                | {"delta": delta}}
     text = benchmark_text(version, delta, branch)
     return {"notes": [{"source": f"benchmark:{short}", "text": text, "fallback": text, "derived": True}],
             "gap": gap("ready", f"{delta}% from the [{short} performance comparison]({page})")}

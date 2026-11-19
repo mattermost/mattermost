@@ -295,6 +295,10 @@ class ReadyTest(unittest.TestCase):
         api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/reviews")] = [{"state": "COMMENTED"}]
         self.assertFalse(ca.reviewers_missing(api, pull, "schedule", "auto"))
         self.assertFalse(ca.reviewers_missing(self.api(), pull, "schedule", "auto"))  # never marked ready by the run
+        # A bot's review (CodeRabbit, Cursor) isn't one of the people asked: the request is still retried.
+        api.routes[("GET", "/repos/mattermost/mattermost/pulls/50/reviews")] = [
+            {"state": "COMMENTED", "user": {"login": "coderabbitai[bot]", "type": "Bot"}}]
+        self.assertTrue(ca.reviewers_missing(api, pull, "schedule", "auto"))
 
     def test_reviewers_are_the_section_reviewers_plus_the_default(self):
         names = ca.reviewers_to_request(CHANGELOG, VERSION, {"Upgrade Impact/*": ["org/db"], "Improvements": "ui-lead"}, "amy, ui-lead  bob")
@@ -783,6 +787,19 @@ class ReleaseDayTest(unittest.TestCase):
         self.assertTrue(self.run_day(Repo(written), report=flagged)["labelled"])
         pending = {**REPORT, "readiness": {**REPORT["readiness"], "gaps": [{"section": "Benchmarking", "status": "not_yet_checked"}]}}
         self.assertFalse(self.run_day(Repo(written), report=pending)["labelled"])  # no report published: never cleared
+
+    def test_a_bullet_for_an_earlier_report_doesnt_clear_a_corrected_one(self):
+        flagged = {**REPORT, "readiness": {**REPORT["readiness"], "gaps": [
+            {"section": "Benchmarking", "status": "needs_review", "delta": "9.10"}]}}
+
+        def entry_with(bullet):
+            return BLOG_CHANGELOG.replace("#### User Interface\n", f"#### Performance\n - {bullet}\n\n#### User Interface\n", 1)
+        stale_generated = ("Benchmarking test results showed no significant difference: a 2.00% increase in the number "
+                           "of supported users for the new release.")
+        stale_person = "Benchmarking test results showed a 7.50% increase in the number of supported users."
+        current = "Benchmarking test results showed a 9.10% increase in the number of supported users."
+        for bullet, labelled in ((stale_generated, False), (stale_person, False), (current, True)):
+            self.assertEqual(self.run_day(Repo(entry_with(bullet)), report=flagged)["labelled"], labelled, bullet)
 
     def test_the_pr_is_read_again_before_the_label(self):
         for change, problem in (({"draft": True}, "the PR is still a draft"),

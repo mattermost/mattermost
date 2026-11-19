@@ -339,6 +339,7 @@ class BenchmarkTest(unittest.TestCase):
             self.assertTrue(result["gap"]["blocks_publish"])
             self.assertIn("outside the [-5%, +5%] prediction interval; write the Performance bullet", result["gap"]["detail"])
             self.assertIn("which clears this for the AutoMerge label", result["gap"]["detail"])
+            self.assertEqual(result["gap"]["delta"], delta.replace("\\", "").rstrip("%"))
         on_the_edge = cr.benchmark("v12.1.0", reports({("main", "v12.1"): V121.replace("\\-0.18%", "5.00%")}))
         self.assertEqual(len(on_the_edge["notes"]), 1)
 
