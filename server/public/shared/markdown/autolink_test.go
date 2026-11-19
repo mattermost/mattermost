@@ -1180,3 +1180,36 @@ func Test_isAllowedBeforeWWWLink(t *testing.T) {
 		})
 	}
 }
+
+func TestAutolinkInvalidUTF8(t *testing.T) {
+	inputs := []struct {
+		name  string
+		input string
+	}{
+		{name: "www followed by invalid byte", input: "www.\x80"},
+		{name: "url followed by invalid byte", input: "http://00\x80"},
+		{name: "invalid byte before trailing punctuation", input: "https://example.com/\x80\xff."},
+		{name: "invalid byte with unmatched parens", input: "https://example.com/\x80(a))"},
+		{name: "invalid byte with html entity", input: "https://example.com/\x80&amp;"},
+		{name: "invalid byte with angle bracket", input: "www.example.com/\x80<tag>"},
+		{name: "valid multibyte utf8 with trailing punctuation", input: "https://example.com/café."},
+	}
+
+	for _, tc := range inputs {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.NotPanics(t, func() {
+				Inspect(tc.input, func(any) bool { return true })
+			})
+			assert.NotPanics(t, func() {
+				_ = RenderHTML(tc.input)
+			})
+		})
+	}
+
+	t.Run("trimTrailingCharactersFromLink preserves byte offsets for invalid and multibyte UTF-8", func(t *testing.T) {
+		assert.Equal(t, len("www.\x80"), trimTrailingCharactersFromLink("www.\x80", 0, len("www.\x80")))
+		assert.Equal(t, len("http://00\x80"), trimTrailingCharactersFromLink("http://00\x80", 0, len("http://00\x80")))
+		assert.Equal(t, len("https://example.com/\x80"), trimTrailingCharactersFromLink("https://example.com/\x80.", 0, len("https://example.com/\x80.")))
+		assert.Equal(t, len("https://example.com/café"), trimTrailingCharactersFromLink("https://example.com/café.", 0, len("https://example.com/café.")))
+	})
+}

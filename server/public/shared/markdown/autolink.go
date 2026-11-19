@@ -171,32 +171,29 @@ func isValidHostCharacter(link string) bool {
 // Removes any trailing characters such as punctuation or stray brackets that shouldn't be part of the link.
 // Returns a new end position for the link. Equivalent to autolink_delim from the reference code.
 func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
-	runes := []rune(markdown[start:end])
-	linkEnd := len(runes)
+	s := markdown[start:end]
+	linkEnd := len(s)
 
 	// Cut off the link before an angle bracket if it contains one
-	for i, c := range runes {
-		if c == '<' || c == '>' {
-			linkEnd = i
-			break
-		}
+	if idx := strings.IndexAny(s, "<>"); idx != -1 {
+		linkEnd = idx
 	}
 
 	numClosing := 0
 	numOpening := 0
 	for i := range linkEnd {
-		if runes[i] == '(' {
+		if s[i] == '(' {
 			numOpening += 1
-		} else if runes[i] == ')' {
+		} else if s[i] == ')' {
 			numClosing += 1
 		}
 	}
 
 	trimLinkEnd := func(newEnd int) {
 		for i := newEnd; i < linkEnd; i++ {
-			if runes[i] == '(' {
+			if s[i] == '(' {
 				numOpening -= 1
-			} else if runes[i] == ')' {
+			} else if s[i] == ')' {
 				numClosing -= 1
 			}
 		}
@@ -204,7 +201,7 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 	}
 
 	for linkEnd > 0 {
-		c := runes[linkEnd-1]
+		c := s[linkEnd-1]
 
 		if !canEndAutolink(c) {
 			// Trim trailing quotes, periods, etc
@@ -213,11 +210,11 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 			// Trim a trailing HTML entity
 			newEnd := linkEnd - 2
 
-			for newEnd > 0 && ((runes[newEnd] >= 'a' && runes[newEnd] <= 'z') || (runes[newEnd] >= 'A' && runes[newEnd] <= 'Z')) {
+			for newEnd > 0 && ((s[newEnd] >= 'a' && s[newEnd] <= 'z') || (s[newEnd] >= 'A' && s[newEnd] <= 'Z')) {
 				newEnd -= 1
 			}
 
-			if newEnd < linkEnd-2 && runes[newEnd] == '&' {
+			if newEnd < linkEnd-2 && s[newEnd] == '&' {
 				trimLinkEnd(newEnd)
 			} else {
 				// This isn't actually an HTML entity, so just trim the semicolon
@@ -253,10 +250,10 @@ func trimTrailingCharactersFromLink(markdown string, start int, end int) int {
 		}
 	}
 
-	return start + len(string(runes[:linkEnd]))
+	return start + linkEnd
 }
 
-func canEndAutolink(c rune) bool {
+func canEndAutolink(c byte) bool {
 	switch c {
 	case '?', '!', '.', ',', ':', '*', '_', '~', '\'', '"':
 		return false
