@@ -28,6 +28,16 @@ You can export the following data types:
 
 <Note>
 
+Remote users from [Connected Workspaces](/administration-guide/onboard/connected-workspaces) aren't included in the export, because their usernames can't be imported. Content that depends on them is also left out:
+
+- Messages, replies, reactions, and acknowledgements by remote users, along with their thread follows and saved messages.
+- Threads started by a remote user, including replies from local users.
+- Direct and group message conversations that include a remote user, along with their messages.
+
+</Note>
+
+<Note>
+
 Configuration for data types such as exporting specific areas of the server, exporting additional types of posts, file attachments, webhooks, and bot messages is not yet supported. Deleted objects are also not yet supported.
 
 For requests to add additional attributes or objects to our exporter, please add a feature request on our [feature idea forum](https://portal.productboard.com/mattermost/33-what-matters-to-you).
