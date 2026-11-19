@@ -111,13 +111,16 @@ const ChannelAttributeLabels = ({channelId, surface, allowEmptyVisible = false, 
                 continue;
             }
             const fieldLabel = getPropertyFieldLabel(missingField);
-            entries.push({field: missingField, specs: [{
-                chipId: `missing:${missingField.id}`,
-                fieldLabel,
-                value: formatMessage({id: 'channel_attributes.labels.set_value', defaultMessage: 'Set {label}'}, {label: fieldLabel}),
-                missingFieldId: missingField.id,
-                missingFieldName: missingField.name,
-            }]});
+            entries.push({
+                field: missingField,
+                specs: [{
+                    chipId: `missing:${missingField.id}`,
+                    fieldLabel,
+                    value: formatMessage({id: 'channel_attributes.labels.set_value', defaultMessage: 'Set {label}'}, {label: fieldLabel}),
+                    missingFieldId: missingField.id,
+                    missingFieldName: missingField.name,
+                }],
+            });
         }
         for (const attribute of labels) {
             if (!attribute.displayValue) {
