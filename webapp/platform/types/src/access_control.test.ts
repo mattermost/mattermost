@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions, getAutoAddFromRules, getAutoAddModeFromRules, autoAddModeForToggle, hasEffectiveRules} from './access_control';
+import {getMembershipRule, buildRulesWithMembership, combineMembershipExpressions, getAutoAddFromRules, getAutoAddModeFromRules, autoAddModeForToggle, hasEffectiveRules, isEmptyPolicy} from './access_control';
 import type {AccessControlPolicyRule} from './access_control';
 
 describe('combineMembershipExpressions', () => {
@@ -212,5 +212,24 @@ describe('hasEffectiveRules', () => {
     test('is false for an empty or missing rules array', () => {
         expect(hasEffectiveRules([])).toBe(false);
         expect(hasEffectiveRules(undefined)).toBe(false);
+    });
+});
+
+describe('isEmptyPolicy', () => {
+    test('is true with no effective rules and no imports', () => {
+        expect(isEmptyPolicy([{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}], [])).toBe(true);
+        expect(isEmptyPolicy([], undefined)).toBe(true);
+        expect(isEmptyPolicy(undefined, undefined)).toBe(true);
+    });
+
+    test('is false while a permission rule remains after the membership rule is cleared', () => {
+        expect(isEmptyPolicy([
+            {actions: ['membership'], expression: ''},
+            {actions: ['file_upload'], expression: 'upload_expr'},
+        ], [])).toBe(false);
+    });
+
+    test('is false while the policy still imports a system policy', () => {
+        expect(isEmptyPolicy([], ['parent_policy_id'])).toBe(false);
     });
 });

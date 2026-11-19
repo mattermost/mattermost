@@ -24,6 +24,7 @@ import {
     getMembershipRule,
     getPermissionRules,
     hasOverlappingPermissionRules,
+    isEmptyPolicy,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -599,7 +600,7 @@ function ChannelSettingsPermissionsPolicyTab({
         // "Policy must either import or define rules"), so mirror the Membership
         // Policy tab and delete the channel policy instead — returning the
         // channel to standard access.
-        if (finalRules.length === 0 && originalImports.length === 0) {
+        if (isEmptyPolicy(finalRules, originalImports)) {
             const deleteResult = await actions.deleteChannelPolicy(channel.id);
 
             // A 404 means the policy was never persisted (rules added and removed
