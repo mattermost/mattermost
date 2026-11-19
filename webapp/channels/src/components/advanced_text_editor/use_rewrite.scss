@@ -1,4 +1,6 @@
 .rewrite-menu-header {
+    // This menu is its own popover, so it can be wider than a side submenu.
+    min-width: 400px;
     padding: 8px 12px 8px 12px;
 
     .Input_wrapper {
