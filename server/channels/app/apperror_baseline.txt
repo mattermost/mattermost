@@ -946,14 +946,10 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).attachChannelScop
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).attachFilesToPost
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).authenticateUser
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildContentReviewYAML
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildFavoritedByList
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildFileDownloadSubject
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildPostAttachments
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildPostPriorities
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildPostReplies
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildShownByList
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildThreadContextForRewrite
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildThreadFollowers
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildUserChannelMemberships
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildUserTeamAndChannelMemberships
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).bulkImport
@@ -992,7 +988,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).evaluateChannelMe
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).evaluateTeamMembership
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllBots
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllChannels
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllDirectChannels
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllDirectPosts
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllPosts
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllTeams
