@@ -1,15 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as ReactRedux from 'react-redux';
+import {waitFor} from '@testing-library/react';
 
+import {ClientError} from '@mattermost/client';
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {Client4} from 'mattermost-redux/client';
 import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 
 import {
     CLASSIFICATIONS_CHANNEL_FIELD_NAME,
     CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+    CLASSIFICATIONS_FIELD_TARGET_ID,
     CLASSIFICATIONS_FIELD_TARGET_TYPE,
 } from 'components/admin_console/classification_markings/utils';
 
@@ -18,11 +21,6 @@ import {renderHookWithContext} from 'tests/react_testing_utils';
 import useClassificationMarkings from './useClassificationMarkings';
 
 type PartialState = Parameters<typeof renderHookWithContext>[1];
-
-jest.mock('react-redux', () => ({
-    __esModule: true,
-    ...jest.requireActual('react-redux'),
-}));
 
 function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField {
     return {
@@ -46,12 +44,14 @@ function makeChannelField(overrides: Partial<PropertyField> = {}): PropertyField
 
 const GROUP_ID = 'group_access_control';
 
+const ADVANCED_LICENSE = {IsLicensed: 'true', SkuShortName: 'advanced'};
+const ENTRY_LICENSE = {IsLicensed: 'true', SkuShortName: 'entry'};
 const ENTERPRISE_LICENSE = {IsLicensed: 'true', SkuShortName: 'enterprise'};
 const STARTER_LICENSE = {IsLicensed: 'true', SkuShortName: 'starter'};
 
 function stateWith({featureFlag, license, fields = {}}: {
     featureFlag?: string;
-    license?: typeof ENTERPRISE_LICENSE | typeof STARTER_LICENSE | Record<string, never>;
+    license?: typeof ADVANCED_LICENSE | Record<string, never>;
     fields?: Record<string, PropertyField>;
 }): PartialState {
     // Fields are looked up through the group-scoped map, which the fetch action
@@ -77,45 +77,72 @@ function stateWith({featureFlag, license, fields = {}}: {
     } as PartialState;
 }
 
+function captureUnhandledRejections() {
+    const seen: unknown[] = [];
+    const onUnhandled = (reason: unknown) => {
+        seen.push(reason);
+    };
+    process.on('unhandledRejection', onUnhandled);
+    return {
+        seen,
+        stop: () => process.off('unhandledRejection', onUnhandled),
+    };
+}
+
+function macrotask() {
+    return new Promise((resolve) => {
+        setTimeout(resolve, 0);
+    });
+}
+
 describe('useClassificationMarkings', () => {
-    const dispatchMock = jest.fn();
-
-    beforeAll(() => {
-        jest.spyOn(ReactRedux, 'useDispatch').mockImplementation(() => dispatchMock);
-    });
-
-    afterAll(() => {
-        jest.restoreAllMocks();
-    });
+    let getPropertyFields: jest.SpyInstance;
 
     beforeEach(() => {
-        dispatchMock.mockClear();
+        getPropertyFields = jest.spyOn(Client4, 'getPropertyFields').mockResolvedValue([]);
+    });
+
+    afterEach(() => {
+        jest.restoreAllMocks();
     });
 
     test('returns available=false when feature flag is disabled', () => {
         const {result} = renderHookWithContext(
             () => useClassificationMarkings(),
-            stateWith({featureFlag: 'false', license: ENTERPRISE_LICENSE}),
+            stateWith({featureFlag: 'false', license: ADVANCED_LICENSE}),
         );
 
         expect(result.current.available).toBe(false);
         expect(result.current.loading).toBe(false);
         expect(result.current.levels).toEqual([]);
-        expect(dispatchMock).not.toHaveBeenCalled();
+        expect(getPropertyFields).not.toHaveBeenCalled();
     });
 
     test('returns available=false when feature flag is missing from config', () => {
         const {result} = renderHookWithContext(
             () => useClassificationMarkings(),
-            stateWith({license: ENTERPRISE_LICENSE}),
+            stateWith({license: ADVANCED_LICENSE}),
         );
 
         expect(result.current.available).toBe(false);
         expect(result.current.loading).toBe(false);
-        expect(dispatchMock).not.toHaveBeenCalled();
+        expect(getPropertyFields).not.toHaveBeenCalled();
     });
 
-    test('returns available=false when license is not Enterprise', () => {
+    // The server refuses channel-scoped access_control fields below Enterprise
+    // Advanced with a 501, so asking for them on Enterprise only produces an error.
+    test('does not request the channel field on an Enterprise license', () => {
+        const {result} = renderHookWithContext(
+            () => useClassificationMarkings(),
+            stateWith({featureFlag: 'true', license: ENTERPRISE_LICENSE}),
+        );
+
+        expect(result.current.available).toBe(false);
+        expect(result.current.loading).toBe(false);
+        expect(getPropertyFields).not.toHaveBeenCalled();
+    });
+
+    test('returns available=false when license is below Enterprise', () => {
         const {result} = renderHookWithContext(
             () => useClassificationMarkings(),
             stateWith({featureFlag: 'true', license: STARTER_LICENSE}),
@@ -123,7 +150,7 @@ describe('useClassificationMarkings', () => {
 
         expect(result.current.available).toBe(false);
         expect(result.current.loading).toBe(false);
-        expect(dispatchMock).not.toHaveBeenCalled();
+        expect(getPropertyFields).not.toHaveBeenCalled();
     });
 
     test('returns available=false when license is missing entirely', () => {
@@ -133,13 +160,16 @@ describe('useClassificationMarkings', () => {
         );
 
         expect(result.current.available).toBe(false);
-        expect(dispatchMock).not.toHaveBeenCalled();
+        expect(getPropertyFields).not.toHaveBeenCalled();
     });
 
-    test('returns loading=true and dispatches fetch when flag and license are on but no channel field', () => {
+    test.each([
+        ['Enterprise Advanced', ADVANCED_LICENSE],
+        ['Entry', ENTRY_LICENSE],
+    ])('requests the channel field and reports loading on an %s license', (_name, license) => {
         const {result} = renderHookWithContext(
             () => useClassificationMarkings(),
-            stateWith({featureFlag: 'true', license: ENTERPRISE_LICENSE}),
+            stateWith({featureFlag: 'true', license}),
         );
 
         expect(result.current.loading).toBe(true);
@@ -147,8 +177,55 @@ describe('useClassificationMarkings', () => {
         expect(result.current.channelField).toBeNull();
         expect(result.current.levels).toEqual([]);
 
-        // The hook dispatches one fetch for the channel field.
-        expect(dispatchMock).toHaveBeenCalledTimes(1);
+        expect(getPropertyFields).toHaveBeenCalledTimes(1);
+        expect(getPropertyFields).toHaveBeenCalledWith(
+            ACCESS_CONTROL_PROPERTY_GROUP,
+            CLASSIFICATIONS_CHANNEL_OBJECT_TYPE,
+            expect.objectContaining({targetType: CLASSIFICATIONS_FIELD_TARGET_TYPE, targetId: CLASSIFICATIONS_FIELD_TARGET_ID}),
+        );
+    });
+
+    test('becomes available once the fetched channel field lands in the store', async () => {
+        getPropertyFields.
+            mockResolvedValueOnce([makeChannelField()]).
+            mockResolvedValue([]);
+
+        const {result} = renderHookWithContext(
+            () => useClassificationMarkings(),
+            stateWith({featureFlag: 'true', license: ADVANCED_LICENSE}),
+        );
+
+        await waitFor(() => expect(result.current.available).toBe(true));
+        expect(result.current.loading).toBe(false);
+        expect(result.current.channelField?.id).toBe('channel1');
+        expect(result.current.levels.map((l) => l.name)).toEqual(['UNCLASSIFIED']);
+    });
+
+    test('a failed channel field request does not surface as an unhandled rejection', async () => {
+        getPropertyFields.mockRejectedValue(new ClientError(Client4.getUrl(), {
+            message: 'Channel attributes require an Enterprise Advanced license.',
+            server_error_id: 'api.property.channel_attributes.license.app_error',
+            status_code: 501,
+            url: '/api/v4/properties/groups/access_control/channel/fields',
+        }));
+        const rejections = captureUnhandledRejections();
+
+        try {
+            const {result} = renderHookWithContext(
+                () => useClassificationMarkings(),
+                stateWith({featureFlag: 'true', license: ADVANCED_LICENSE}),
+            );
+
+            await waitFor(() => expect(getPropertyFields).toHaveBeenCalledTimes(1));
+            await macrotask();
+
+            expect(rejections.seen).toEqual([]);
+            expect(getPropertyFields).toHaveBeenCalledTimes(1);
+            expect(result.current.available).toBe(false);
+            expect(result.current.channelField).toBeNull();
+        } finally {
+            rejections.stop();
+        }
     });
 
     test('returns available=true and derives levels from channel field options', () => {
@@ -163,7 +240,7 @@ describe('useClassificationMarkings', () => {
 
         const {result} = renderHookWithContext(
             () => useClassificationMarkings(),
-            stateWith({featureFlag: 'true', license: ENTERPRISE_LICENSE, fields: {channel1: channel}}),
+            stateWith({featureFlag: 'true', license: ADVANCED_LICENSE, fields: {channel1: channel}}),
         );
 
         expect(result.current.available).toBe(true);
@@ -181,28 +258,13 @@ describe('useClassificationMarkings', () => {
 
         const {result} = renderHookWithContext(
             () => useClassificationMarkings(),
-            stateWith({featureFlag: 'true', license: ENTERPRISE_LICENSE, fields: {channel1: channel}}),
+            stateWith({featureFlag: 'true', license: ADVANCED_LICENSE, fields: {channel1: channel}}),
         );
 
         expect(result.current.available).toBe(false);
         expect(result.current.loading).toBe(false);
         expect(result.current.channelField).toBe(channel);
         expect(result.current.levels).toEqual([]);
-    });
-
-    test('exposes channelField when it exists in the store', () => {
-        const channel = makeChannelField();
-
-        const {result} = renderHookWithContext(
-            () => useClassificationMarkings(),
-            stateWith({
-                featureFlag: 'true',
-                license: ENTERPRISE_LICENSE,
-                fields: {channel1: channel},
-            }),
-        );
-
-        expect(result.current.channelField).toBe(channel);
     });
 
     test('returns channelField=null when channel-linked field is missing linked_field_id', () => {
@@ -212,7 +274,7 @@ describe('useClassificationMarkings', () => {
             () => useClassificationMarkings(),
             stateWith({
                 featureFlag: 'true',
-                license: ENTERPRISE_LICENSE,
+                license: ADVANCED_LICENSE,
                 fields: {orphan},
             }),
         );
@@ -227,7 +289,7 @@ describe('useClassificationMarkings', () => {
             () => useClassificationMarkings(),
             stateWith({
                 featureFlag: 'true',
-                license: ENTERPRISE_LICENSE,
+                license: ADVANCED_LICENSE,
                 fields: {channel1: deleted},
             }),
         );
@@ -235,19 +297,18 @@ describe('useClassificationMarkings', () => {
         expect(result.current.channelField).toBeNull();
     });
 
-    test('does not dispatch fetch when channel field is already in the store', () => {
+    test('does not request the channel field when it is already in the store', () => {
         const channel = makeChannelField();
 
         renderHookWithContext(
             () => useClassificationMarkings(),
             stateWith({
                 featureFlag: 'true',
-                license: ENTERPRISE_LICENSE,
+                license: ADVANCED_LICENSE,
                 fields: {channel1: channel},
             }),
         );
 
-        expect(dispatchMock).not.toHaveBeenCalled();
+        expect(getPropertyFields).not.toHaveBeenCalled();
     });
 });
-

@@ -26,6 +26,10 @@ func userCreatePostPermissionCheckWithContext(c *Context, channelId string) {
 		c.SetPermissionError(model.PermissionCreatePost)
 		return
 	}
+
+	if !requireChannelWriteAccessByID(c, channelId) {
+		return
+	}
 }
 
 func postHardenedModeCheckWithContext(where string, c *Context, props model.StringInterface) {
@@ -152,9 +156,9 @@ func postAttributeValuesForCreate(c *Context, post *model.Post) ([]*model.Proper
 		return nil, appErr
 	}
 
-	values, fields, appErr := c.App.PreparePostPropertyValuesForCreate(c.AppContext, items, channel)
-	if appErr != nil {
-		return nil, appErr
+	values, fields, err := c.App.PreparePostPropertyValuesForCreate(c.AppContext, items, channel)
+	if err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	for _, field := range fields {

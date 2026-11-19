@@ -197,7 +197,7 @@ func (api *PluginAPI) GetTeamByName(name string) (*model.Team, *model.AppError) 
 }
 
 func (api *PluginAPI) GetTeamsUnreadForUser(userID string) ([]*model.TeamUnread, *model.AppError) {
-	return api.app.GetTeamsUnreadForUser("", userID, false)
+	return api.app.GetTeamsUnreadForUser(api.ctx, "", userID, false)
 }
 
 func (api *PluginAPI) UpdateTeam(team *model.Team) (*model.Team, *model.AppError) {
@@ -926,10 +926,9 @@ func (api *PluginAPI) CreatePost(post *model.Post) (*model.Post, *model.AppError
 
 		// With the flag off, CreatePost refuses the values itself before saving.
 		if api.app.Config().FeatureFlags.PostAttributes {
-			var prepared []*model.PropertyValue
-			prepared, _, appErr = api.app.PreparePostPropertyValuesForCreate(rctx, values, channel)
-			if appErr != nil {
-				return nil, appErr
+			prepared, _, err := api.app.PreparePostPropertyValuesForCreate(rctx, values, channel)
+			if err != nil {
+				return nil, model.AsAppError(err)
 			}
 			post.Metadata.PropertyValues = prepared
 		}

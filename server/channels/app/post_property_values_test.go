@@ -1218,8 +1218,9 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 
 	requireInvalid := func(t *testing.T, items ...*model.PropertyValue) {
 		t.Helper()
-		values, fields, appErr := th.App.PreparePostPropertyValuesForCreate(th.Context, items, th.BasicChannel)
-		require.NotNil(t, appErr)
+		values, fields, err := th.App.PreparePostPropertyValuesForCreate(th.Context, items, th.BasicChannel)
+		require.Error(t, err)
+		appErr := model.AsAppError(err)
 		assert.Equal(t, "api.post.create_post.invalid_attribute.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 		assert.Nil(t, values)
@@ -1227,12 +1228,12 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 	}
 
 	t.Run("system, team and channel values come back fresh, each with its field", func(t *testing.T) {
-		values, fields, appErr := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
+		values, fields, err := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
 			submitted(systemField.ID, `"sys"`),
 			submitted(teamField.ID, `"team"`),
 			submitted(channelField.ID, `"chan"`),
 		}, th.BasicChannel)
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		require.Len(t, values, 3)
 		require.Len(t, fields, 3)
@@ -1308,20 +1309,20 @@ func TestPreparePostPropertyValuesForCreate(t *testing.T) {
 		})
 
 		t.Run("values that fit are accepted", func(t *testing.T) {
-			values, _, appErr := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
+			values, _, err := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
 				submitted(numberField.ID, `42`),
 				submitted(checkboxField.ID, `true`),
 				submitted(channelField.ID, `"7"`),
 			}, th.BasicChannel)
-			require.Nil(t, appErr)
+			require.NoError(t, err)
 			require.Len(t, values, 3)
 		})
 
 		t.Run("null fits a number field", func(t *testing.T) {
-			_, _, appErr := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
+			_, _, err := th.App.PreparePostPropertyValuesForCreate(th.Context, []*model.PropertyValue{
 				submitted(numberField.ID, `null`),
 			}, th.BasicChannel)
-			require.Nil(t, appErr)
+			require.NoError(t, err)
 		})
 	})
 
