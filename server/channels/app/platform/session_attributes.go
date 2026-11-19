@@ -63,12 +63,12 @@ func (wc *WebConn) checkSessionAttributes(prompted map[string]int64) time.Durati
 	if session == nil {
 		return sessionAttributesFollowUpInterval
 	}
-	deadlines, appErr := wc.Suite.GetSessionAttributeDeadlines(rctx, session.Id)
-	if appErr != nil {
+	deadlines, err := wc.Suite.GetSessionAttributeDeadlines(rctx, session.Id)
+	if err != nil {
 		wc.Platform.Log().Warn("Failed to get session attribute deadlines",
 			mlog.String("user_id", session.UserId),
 			mlog.String("connection_id", wc.GetConnectionID()),
-			mlog.Err(appErr))
+			mlog.Err(err))
 		return sessionAttributesFollowUpInterval
 	}
 
@@ -151,9 +151,9 @@ func (wc *WebConn) recordSessionAttributes() {
 		wc.sessionAttributes = refuse
 		return
 	}
-	deadlines, appErr := wc.Suite.GetSessionAttributeDeadlines(rctx, session.Id)
-	epoch, err := wc.Platform.Store.SessionAttribute().GetEpoch(session.Id)
-	if appErr != nil || err != nil {
+	deadlines, deadlinesErr := wc.Suite.GetSessionAttributeDeadlines(rctx, session.Id)
+	epoch, epochErr := wc.Platform.Store.SessionAttribute().GetEpoch(session.Id)
+	if deadlinesErr != nil || epochErr != nil {
 		wc.sessionAttributes = refuse
 		return
 	}

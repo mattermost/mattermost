@@ -318,7 +318,7 @@ func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[stri
 // GetSessionAttributeDeadlines returns the TTL and grace deadlines of each attribute cached
 // for the session, so a websocket connection, which never refreshes them itself, can
 // prompt its client to resend them before they stop counting.
-func (a *App) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (map[string]model.SessionAttributeDeadline, *model.AppError) {
+func (a *App) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (map[string]model.SessionAttributeDeadline, error) {
 	if !a.sessionAttributesEnabled() {
 		return nil, nil
 	}

@@ -636,8 +636,8 @@ func TestGetSessionAttributeDeadlines(t *testing.T) {
 	}, refreshedAt))
 
 	t.Run("returns nothing while session attributes are disabled", func(t *testing.T) {
-		deadlines, appErr := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
-		require.Nil(t, appErr)
+		deadlines, err := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
+		require.NoError(t, err)
 		assert.Nil(t, deadlines)
 	})
 
@@ -653,8 +653,8 @@ func TestGetSessionAttributeDeadlines(t *testing.T) {
 	require.Nil(t, appErr)
 
 	t.Run("dates each cached attribute from its last refresh by its TTL and grace period", func(t *testing.T) {
-		deadlines, appErr := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
-		require.Nil(t, appErr)
+		deadlines, err := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
+		require.NoError(t, err)
 		assert.Equal(t, map[string]model.SessionAttributeDeadline{
 			model.SessionAttributesPropertyFieldIPAddress: {
 				RefreshedAt: refreshedAt,
@@ -665,8 +665,8 @@ func TestGetSessionAttributeDeadlines(t *testing.T) {
 	})
 
 	t.Run("returns nothing for a session without cached attributes", func(t *testing.T) {
-		deadlines, appErr := th.App.GetSessionAttributeDeadlines(th.Context, model.NewId())
-		require.Nil(t, appErr)
+		deadlines, err := th.App.GetSessionAttributeDeadlines(th.Context, model.NewId())
+		require.NoError(t, err)
 		assert.Nil(t, deadlines)
 	})
 
@@ -678,8 +678,8 @@ func TestGetSessionAttributeDeadlines(t *testing.T) {
 			th.ConfigStore.SetReadOnlyFF(true)
 		})
 
-		deadlines, appErr := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
-		require.Nil(t, appErr)
+		deadlines, err := th.App.GetSessionAttributeDeadlines(th.Context, sessionID)
+		require.NoError(t, err)
 		assert.Nil(t, deadlines)
 	})
 }

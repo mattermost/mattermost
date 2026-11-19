@@ -49,7 +49,7 @@ func (_m *SuiteIFace) GetSession(token string) (*model.Session, *model.AppError)
 }
 
 // GetSessionAttributeDeadlines provides a mock function with given fields: rctx, sessionID
-func (_m *SuiteIFace) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (map[string]model.SessionAttributeDeadline, *model.AppError) {
+func (_m *SuiteIFace) GetSessionAttributeDeadlines(rctx request.CTX, sessionID string) (map[string]model.SessionAttributeDeadline, error) {
 	ret := _m.Called(rctx, sessionID)
 
 	if len(ret) == 0 {
@@ -57,8 +57,8 @@ func (_m *SuiteIFace) GetSessionAttributeDeadlines(rctx request.CTX, sessionID s
 	}
 
 	var r0 map[string]model.SessionAttributeDeadline
-	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(request.CTX, string) (map[string]model.SessionAttributeDeadline, *model.AppError)); ok {
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (map[string]model.SessionAttributeDeadline, error)); ok {
 		return rf(rctx, sessionID)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string) map[string]model.SessionAttributeDeadline); ok {
@@ -69,12 +69,10 @@ func (_m *SuiteIFace) GetSessionAttributeDeadlines(rctx request.CTX, sessionID s
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
 		r1 = rf(rctx, sessionID)
 	} else {
-		if ret.Get(1) != nil {
-			r1 = ret.Get(1).(*model.AppError)
-		}
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
