@@ -50,6 +50,7 @@ func TestMetricsRouter(t *testing.T) {
 		"pprof block":                 {path: "/debug/pprof/block"},
 		"pprof cmdline":               {path: "/debug/pprof/cmdline"},
 		"pprof goroutine":             {path: "/debug/pprof/goroutine"},
+		"pprof goroutineleak":         {path: "/debug/pprof/goroutineleak"},
 		"pprof heap":                  {path: "/debug/pprof/heap"},
 		"pprof mutex":                 {path: "/debug/pprof/mutex"},
 		"pprof profile":               {path: "/debug/pprof/profile?seconds=1"},

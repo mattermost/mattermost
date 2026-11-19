@@ -153,6 +153,7 @@ func (pm *platformMetrics) initMetricsRouter() error {
 					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
 					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
 					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
+					<div><a href="/debug/pprof/goroutineleak">Profiling Goroutine Leaks</a></div>
 					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
 					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
 					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
@@ -184,6 +185,7 @@ func (pm *platformMetrics) initMetricsRouter() error {
 
 	// Manually add support for paths linked to by index page at /debug/pprof/
 	pm.router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	pm.router.Handle("/debug/pprof/goroutineleak", pprof.Handler("goroutineleak"))
 	pm.router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
 	pm.router.Handle("/debug/pprof/allocs", pprof.Handler("allocs"))
 	pm.router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
