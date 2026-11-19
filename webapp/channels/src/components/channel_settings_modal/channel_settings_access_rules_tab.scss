@@ -15,6 +15,14 @@
         margin-bottom: 20px;
     }
 
+    &__accessRulesError {
+        padding: 8px 12px;
+        border-radius: 4px;
+        background-color: rgba(var(--error-text-color-rgb, 210, 75, 78), 0.08);
+        color: var(--error-text);
+        font-size: 13px;
+    }
+
     &__accessRulesHeader {
         display: flex;
         flex-direction: column;

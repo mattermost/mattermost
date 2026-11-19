@@ -185,8 +185,10 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
             data: mockUserAttributes,
         });
 
-        // Mock getChannelPolicy to reject (no existing policy)
-        mockActions.getChannelPolicy.mockRejectedValue(new Error('Policy not found'));
+        // Mock getChannelPolicy for the "no existing policy" case. The real
+        // action (bindClientFunc) never rejects; a missing policy comes back as
+        // a resolved {error} with a 404 status_code, so mirror that here.
+        mockActions.getChannelPolicy.mockResolvedValue({error: {status_code: 404, message: 'Policy not found'}});
 
         // The table parser accepts the saved rule unless a test says otherwise
         mockActions.getVisualAST.mockReset();
@@ -722,6 +724,42 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 // Auto-sync should be auto-disabled and unchecked in empty state
                 expect(checkbox).not.toBeChecked();
                 expect(checkbox).toBeDisabled();
+            });
+        });
+
+        test('should not auto-disable sync when policy has imports even if systemPolicies failed to resolve', async () => {
+            // Parent policy ids are kept on the loaded channel policy even when
+            // useChannelSystemPolicies cannot resolve them. That is still not
+            // an empty rules state, so auto-sync must stay on.
+            mockActions.getChannelPolicy.mockResolvedValue({
+                data: {
+                    id: 'channel_id',
+                    name: 'Test Channel',
+                    type: 'channel',
+                    rules: [{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}],
+                    imports: ['parent-policy-id'],
+                },
+            });
+
+            mockUseChannelSystemPolicies.mockReturnValue({
+                policies: [],
+                loading: false,
+                error: null,
+            });
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            await waitFor(() => {
+                const checkbox = screen.getByRole('checkbox');
+                expect(checkbox).toBeChecked();
+                expect(checkbox).not.toBeDisabled();
             });
         });
 
@@ -2315,19 +2353,25 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
         const clearedMembershipRule = {actions: ['membership'], expression: '', metadata: {auto_add: ''}};
 
-        const renderAndClearMembership = async (rules: AccessControlPolicyRule[], state: typeof initialState = initialState) => {
+        const renderAndClearMembership = async (
+            rules: AccessControlPolicyRule[],
+            state: typeof initialState = initialState,
+            imports: string[] = [],
+            props: typeof baseProps = baseProps,
+        ) => {
             mockActions.getChannelPolicy.mockResolvedValue({
                 data: {
                     id: 'channel_id',
                     name: 'Test Channel',
                     type: 'channel',
                     rules,
+                    imports,
                 },
             });
             mockActions.searchUsers.mockResolvedValue({data: {users: []}});
 
             renderWithContext(
-                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                <ChannelSettingsAccessRulesTab {...props}/>,
                 state,
             );
 
@@ -2422,9 +2466,12 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
                 error: null,
             });
 
+            // The attached system policy is recorded as an import on the loaded
+            // channel policy — that is the authoritative source the save path
+            // reads, not the resolved system-policy objects.
             await renderAndClearMembership([
                 {actions: ['membership'], expression: membershipExpression},
-            ]);
+            ], initialState, ['policy1']);
 
             await waitFor(() => {
                 expect(mockActions.saveChannelPolicy).toHaveBeenCalledWith(expect.objectContaining({
@@ -2472,6 +2519,171 @@ describe('components/channel_settings_modal/ChannelSettingsAccessRulesTab', () =
 
             expect(await screen.findByText('Settings saved')).toBeVisible();
             expect(baseProps.setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
+        });
+
+        test('keeps the permission rules when clearing a legacy wildcard membership rule', async () => {
+            // Legacy v0.1/v0.2 policies stored the membership rule with a
+            // wildcard action instead of the explicit "membership" action.
+            await renderAndClearMembership([
+                {actions: ['*'], expression: membershipExpression},
+                uploadRule,
+                downloadRule,
+            ]);
+
+            await waitFor(() => {
+                expect(mockActions.saveChannelPolicy).toHaveBeenCalled();
+            });
+
+            expect(mockActions.deleteChannelPolicy).not.toHaveBeenCalled();
+            expect(mockActions.saveChannelPolicy).toHaveBeenCalledWith(expect.objectContaining({
+                rules: [clearedMembershipRule, uploadRule, downloadRule],
+            }));
+        });
+
+        test('deletes the policy on a public channel when the membership rule was the only rule', async () => {
+            const publicChannelProps = {
+                ...baseProps,
+                channel: TestHelper.getChannelMock({
+                    id: 'channel_id',
+                    name: 'public-channel',
+                    display_name: 'Test Channel',
+                    type: 'O',
+                }),
+            };
+
+            await renderAndClearMembership([
+                {actions: ['membership'], expression: membershipExpression},
+            ], initialState, [], publicChannelProps);
+
+            await waitFor(() => {
+                expect(mockActions.deleteChannelPolicy).toHaveBeenCalledWith('channel_id');
+            });
+
+            expect(mockActions.saveChannelPolicy).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('loading the channel policy', () => {
+        test('blocks the editor and surfaces an error when the policy load fails for a non-404 reason', async () => {
+            // The real action never rejects; a transient failure resolves with
+            // an {error} carrying a non-404 status_code. The editor must stay
+            // hidden so a save can't overwrite a policy that only failed to load.
+            mockActions.getChannelPolicy.mockResolvedValue({error: {status_code: 500, message: 'Something went wrong'}});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(await screen.findByTestId('access-rules-load-error')).toBeInTheDocument();
+            expect(screen.getByText('Something went wrong')).toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(screen.queryByText('Save')).not.toBeInTheDocument();
+        });
+
+        test('clears a previous channel\'s load error when the channel changes', async () => {
+            mockActions.getChannelPolicy.mockResolvedValueOnce({error: {status_code: 500, message: 'Something went wrong'}});
+
+            const {rerender} = renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            expect(await screen.findByTestId('access-rules-load-error')).toBeInTheDocument();
+
+            mockActions.getChannelPolicy.mockReturnValueOnce(new Promise(() => {}));
+
+            rerender(
+                <ChannelSettingsAccessRulesTab
+                    {...baseProps}
+                    channel={TestHelper.getChannelMock({...baseProps.channel, id: 'other_channel_id'})}
+                />,
+            );
+
+            await waitFor(() => {
+                expect(mockActions.getChannelPolicy).toHaveBeenCalledWith('other_channel_id');
+            });
+
+            expect(screen.queryByTestId('access-rules-load-error')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+        });
+
+        test('seeds empty defaults on a 404 so a first policy can be created', async () => {
+            mockActions.getChannelPolicy.mockResolvedValue({error: {status_code: 404, message: 'Policy not found'}});
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            expect(screen.queryByTestId('access-rules-load-error')).not.toBeInTheDocument();
+        });
+
+        test('does not render TableEditor or Save while getChannelPolicy is pending even after attributes load', async () => {
+            mockActions.getChannelPolicy.mockReturnValue(new Promise(() => {}));
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(mockActions.getAccessControlFields).toHaveBeenCalledWith('', 100);
+            });
+
+            // Attributes resolve immediately; the editor must still wait for the policy.
+            await act(async () => {
+                await Promise.resolve();
+            });
+
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+            expect(document.querySelector('.ChannelSettingsModal__accessRulesEditor')).not.toBeInTheDocument();
+            expect(screen.queryByText('Save')).not.toBeInTheDocument();
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+
+        test('renders TableEditor after a delayed getChannelPolicy success', async () => {
+            let resolvePolicy: (value: unknown) => void = () => {};
+            mockActions.getChannelPolicy.mockReturnValue(new Promise((resolve) => {
+                resolvePolicy = resolve;
+            }));
+
+            renderWithContext(
+                <ChannelSettingsAccessRulesTab {...baseProps}/>,
+                initialState,
+            );
+
+            await waitFor(() => {
+                expect(mockActions.getAccessControlFields).toHaveBeenCalledWith('', 100);
+            });
+
+            await act(async () => {
+                await Promise.resolve();
+            });
+
+            expect(screen.queryByTestId('table-editor')).not.toBeInTheDocument();
+
+            await act(async () => {
+                resolvePolicy({
+                    data: {
+                        id: 'channel_id',
+                        name: 'Test Channel',
+                        type: 'channel',
+                        rules: [{actions: ['membership'], expression: 'user.attributes.department == "Engineering"'}],
+                    },
+                });
+            });
+
+            await waitFor(() => {
+                expect(screen.getByTestId('table-editor')).toBeInTheDocument();
+            });
+
+            const lastCall = MockedTableEditor.mock.calls[MockedTableEditor.mock.calls.length - 1][0];
+            expect(lastCall.value).toBe('user.attributes.department == "Engineering"');
         });
     });
 
