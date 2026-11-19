@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image/png"
 	"io"
@@ -18,6 +19,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -30,6 +32,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -4146,6 +4150,18 @@ func TestGetUsersNotInChannelAbacMatchOnly(t *testing.T) {
 		model.AccessControlPolicyActionMembership,
 		mock.Anything,
 	).Return([]*model.User{user1}, int64(1), nil).Maybe()
+
+	// Reading the target channel is now gated on channel_read_access, and these
+	// channels carry a policy, so the gate asks whether that policy declares the
+	// action before the dispatcher is reached. A membership-only policy does not.
+	// That gate has its own coverage; answer it permissively here so a denial
+	// cannot be mistaken for the unfiltered branch.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+		Return(false, nil).Maybe()
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).
+		Return(false, nil).Maybe()
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil).Maybe()
 
 	listUsers := func(t *testing.T, channelID string, abacMatchOnly bool) []string {
 		t.Helper()
@@ -8706,6 +8722,141 @@ func TestLoginLockout(t *testing.T) {
 	// Check if lock is active
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
+}
+
+// countingCompareHasher counts CompareHashAndPassword calls for one password
+// that actually ran the inner hasher's key derivation, so that parallel tests
+// sharing the global test hasher do not affect the count.
+type countingCompareHasher struct {
+	inner    hashers.PasswordHasher
+	password string
+	compares atomic.Int64
+}
+
+func (h *countingCompareHasher) Hash(password string) (string, error) {
+	return h.inner.Hash(password)
+}
+
+func (h *countingCompareHasher) IsPHCValid(phc phcparser.PHC) bool {
+	return h.inner.IsPHCValid(phc)
+}
+
+func (h *countingCompareHasher) CompareHashAndPassword(phc phcparser.PHC, password string) error {
+	err := h.inner.CompareHashAndPassword(phc, password)
+	if password == h.password && (err == nil || errors.Is(err, hashers.ErrMismatchedHashAndPassword)) {
+		h.compares.Add(1)
+	}
+	return err
+}
+
+func TestLoginUnknownAccountHashesPassword(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		*cfg.EmailSettings.EnableSignInWithUsername = true
+		*cfg.ServiceSettings.MaximumLoginAttempts = 10
+	})
+
+	wrongPassword := "wrong-password-" + model.NewId()
+	previous := hashers.GetLatestHasher()
+	counter := &countingCompareHasher{inner: hashers.FastTestHasher(), password: wrongPassword}
+	hashers.SetTestHasher(counter)
+	t.Cleanup(func() { hashers.SetTestHasher(previous) })
+
+	user := th.CreateUser(t)
+
+	testCases := []struct {
+		name        string
+		loginID     string
+		wantCompare bool
+	}{
+		{
+			name:        "unknown username",
+			loginID:     "doesnotexist" + model.NewId(),
+			wantCompare: true,
+		},
+		{
+			name:        "unknown email",
+			loginID:     "doesnotexist-" + model.NewId() + "@example.com",
+			wantCompare: true,
+		},
+		{
+			// checkUserPassword resolves the hasher from the stored PHC string and never
+			// returns the installed test hasher, so the counter cannot observe this path.
+			name:    "existing user with wrong password",
+			loginID: user.Email,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			before := counter.compares.Load()
+
+			_, resp, err := th.Client.Login(context.Background(), tc.loginID, wrongPassword)
+			CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
+			CheckUnauthorizedStatus(t, resp)
+
+			if tc.wantCompare {
+				assert.GreaterOrEqual(t, counter.compares.Load()-before, int64(1), "expected a password hash comparison for an unknown account")
+			}
+		})
+	}
+}
+
+func TestLoginNonPasswordAccountHashesPassword(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		*cfg.EmailSettings.EnableSignInWithUsername = true
+		*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		*cfg.LdapSettings.Enable = false
+	})
+
+	wrongPassword := "wrong-password-" + model.NewId()
+	previous := hashers.GetLatestHasher()
+	counter := &countingCompareHasher{inner: hashers.FastTestHasher(), password: wrongPassword}
+	hashers.SetTestHasher(counter)
+	t.Cleanup(func() { hashers.SetTestHasher(previous) })
+
+	testCases := []struct {
+		name        string
+		authService string
+	}{
+		{name: "gitlab account", authService: model.UserAuthServiceGitlab},
+		{name: "saml account", authService: model.UserAuthServiceSaml},
+		{name: "openid account", authService: model.ServiceOpenid},
+		{name: "ldap account with ldap unavailable", authService: model.UserAuthServiceLdap},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			authData := model.NewId()
+			user, appErr := th.App.CreateUser(th.Context, &model.User{
+				Email:         "success+" + model.NewId() + "@simulator.amazonses.com",
+				Username:      "un_" + model.NewId(),
+				EmailVerified: true,
+				AuthService:   tc.authService,
+				AuthData:      &authData,
+			})
+			require.Nil(t, appErr)
+
+			before := counter.compares.Load()
+
+			_, resp, err := th.Client.Login(context.Background(), user.Email, wrongPassword)
+			CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
+			CheckUnauthorizedStatus(t, resp)
+
+			assert.GreaterOrEqual(t, counter.compares.Load()-before, int64(1), "expected a password hash comparison for an account whose login response is indistinguishable from an unknown account")
+		})
+	}
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
