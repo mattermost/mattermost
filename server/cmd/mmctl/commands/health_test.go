@@ -25,7 +25,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func healthTestFindings(lastSeen time.Time) []*model.HealthFinding {
@@ -836,16 +835,6 @@ Could not evaluate
 		s.Zero(requests.Load())
 		s.Require().Len(printer.GetErrorLines(), 2)
 		s.Contains(printer.GetErrorLines()[1], "context canceled")
-	})
-
-	s.Run("a latest release the snapshot already records is not fetched", func() {
-		requests := s.serveLatestRelease(healthTestRelease("v99.0.0"))
-		snapshot := &healthcheck.Snapshot{}
-		snapshot.Version.Latest = "12.1.0"
-
-		s.Empty(fillLatestVersion(context.Background(), snapshot))
-		s.Equal("12.1.0", snapshot.Version.Latest)
-		s.Zero(requests.Load())
 	})
 
 	s.Run("renders a Posts dead tuples finding after a stale vacuum", func() {

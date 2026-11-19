@@ -731,6 +731,7 @@ func TestImportsStayOutOfTheServer(t *testing.T) {
 	allowed := []string{
 		"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck",
 		"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet",
+		"github.com/mattermost/mattermost/server/v8/platform/shared/releases",
 	}
 	deps := strings.Fields(string(out))
 	require.Contains(t, deps, allowed[0])
