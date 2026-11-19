@@ -18,11 +18,11 @@ import type IconProps from '@mattermost/compass-icons/components/props';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SearchInput} from '@mattermost/compass-ui/components/search-input';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField} from '@mattermost/types/properties';
 
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
+import DisabledReasonTooltip from 'components/common/disabled_reason_tooltip';
 import * as Menu from 'components/menu';
 
 import './post_attributes_field_picker.scss';
@@ -247,20 +247,14 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
         return menu;
     }
 
-    // A disabled trigger gets no hover or focus, so the reason's tooltip sits
-    // on a focusable wrapper, as the schedule button does when it's blocked.
     return (
-        <WithTooltip title={disabledReason}>
-            <span
-                className='PostAttributesFieldPicker__blocked'
-                data-testid={`${dataTestId}-blocked`}
-
-                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled trigger is unreachable by keyboard, so the tooltip explaining why is mouse-only
-                tabIndex={0}
-            >
-                {menu}
-            </span>
-        </WithTooltip>
+        <DisabledReasonTooltip
+            reason={disabledReason}
+            className='PostAttributesFieldPicker__blocked'
+            data-testid={`${dataTestId}-blocked`}
+        >
+            {menu}
+        </DisabledReasonTooltip>
     );
 }
 

@@ -9,6 +9,8 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
+import DisabledReasonTooltip from 'components/common/disabled_reason_tooltip';
+
 type Props = {
 
     // Whether Burn-on-Read mode is currently enabled for the draft
@@ -69,21 +71,15 @@ const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes, blocked
         />
     );
 
-    // A disabled button gets no hover or focus, so the reason's tooltip sits
-    // on a focusable wrapper, as the schedule button does when it's blocked.
     if (blockedReason) {
         return (
-            <WithTooltip title={blockedReason}>
-                <span
-                    className='BurnOnReadButton__blocked'
-                    data-testid='burn-on-read-blocked'
-
-                    // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled button is unreachable by keyboard, so the tooltip explaining why is mouse-only
-                    tabIndex={0}
-                >
-                    {button}
-                </span>
-            </WithTooltip>
+            <DisabledReasonTooltip
+                reason={blockedReason}
+                className='BurnOnReadButton__blocked'
+                data-testid='burn-on-read-blocked'
+            >
+                {button}
+            </DisabledReasonTooltip>
         );
     }
 

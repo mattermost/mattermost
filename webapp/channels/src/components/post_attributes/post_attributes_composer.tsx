@@ -114,6 +114,7 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
 
     const label = getPropertyFieldLabel(field);
     const isOptionType = field.type === 'select' || field.type === 'rank' || field.type === 'multiselect';
+    const pendingLabel = <span className='PostAttributesComposerChip__pending'>{label}</span>;
 
     // A field just picked opens straight into its control.
     const [editing, setEditing] = useState(!isOptionType && autoOpen);
@@ -179,9 +180,7 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
                                     interactive={false}
                                 />
                             </>
-                        ) : (
-                            <span className='PostAttributesComposerChip__pending'>{label}</span>
-                        )}
+                        ) : pendingLabel}
                     </button>
                 </WithTooltip>
             ) : (
@@ -203,7 +202,7 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
                         // without a value: an empty chip would be a leftover with
                         // nothing to click. Text and user chips stay until their ×;
                         // an empty one rests as the field's name.
-                        pendingLabel={isOptionType ? <span className='PostAttributesComposerChip__pending'>{label}</span> : undefined}
+                        pendingLabel={isOptionType ? pendingLabel : undefined}
                         onCloseEmpty={isOptionType ? handleRemove : undefined}
 
                         // Only a filled option chip: an empty one already reads as

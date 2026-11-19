@@ -7,12 +7,12 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import ChevronDownIcon from '@mattermost/compass-icons/components/chevron-down';
-import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {openModal} from 'actions/views/modals';
 
 import CoreMenuOptions from 'components/advanced_text_editor/send_button/send_post_options/core_menu_options';
+import DisabledReasonTooltip from 'components/common/disabled_reason_tooltip';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -137,15 +137,11 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
     }
 
     return (
-        <WithTooltip title={blockedReason}>
-            <span
-                className='send_post_options_blocked'
-
-                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled chevron is unreachable by keyboard, so the tooltip explaining why is mouse-only
-                tabIndex={0}
-            >
-                {menu}
-            </span>
-        </WithTooltip>
+        <DisabledReasonTooltip
+            reason={blockedReason}
+            className='send_post_options_blocked'
+        >
+            {menu}
+        </DisabledReasonTooltip>
     );
 }
