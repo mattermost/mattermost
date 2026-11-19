@@ -320,9 +320,7 @@ const AIActionsMenu = ({
                         variant='child'
                         open={submenuOpen}
                         onExited={submenuExited}
-                        className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(submenuOrigins.transformOrigin), {
-                            'menu_menuStyled__surface--flush': !isRewriteSubmenu && Boolean(activePluginItem?.component),
-                        })}
+                        className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(submenuOrigins.transformOrigin))}
                     >
                         {isRewriteSubmenu && rewriteMenuProps && (
                             <>
