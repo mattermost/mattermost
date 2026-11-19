@@ -88,6 +88,7 @@ export type ClientConfig = {
     EnableMetrics: string;
     EnableMobileFileDownload: string;
     EnableMobileFileUpload: string;
+    MobileEnableBiometrics?: string;
     EnableMultifactorAuthentication: string;
     EnableOAuthServiceProvider: string;
     EnableOutgoingOAuthConnections: string;
@@ -130,6 +131,7 @@ export type ClientConfig = {
     FeatureFlagPermissionPolicies: string;
     FeatureFlagChannelPermissionPolicies: string;
     FeatureFlagPolicySimulation: string;
+    FeatureFlagSystemSettingPolicies: string;
     FeatureFlagContentFlagging: string;
     FeatureFlagPostDeliveryTracking: string;
     FeatureFlagClassificationMarkings: string;

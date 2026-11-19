@@ -602,5 +602,48 @@ describe('Selectors.General', () => {
             expect(Selectors.getCustomProfileAttributes(state)).toEqual([]);
         });
     });
+
+    describe('getConfig with clientConfigOverrides', () => {
+        test('returns base config reference when overrides are absent or empty', () => {
+            const baseConfig = {MobileEnableBiometrics: 'false', SiteName: 'Mattermost'};
+            const state = {
+                entities: {
+                    general: {
+                        config: baseConfig,
+                        clientConfigOverrides: {},
+                    },
+                },
+            } as unknown as GlobalState;
+
+            expect(Selectors.getConfig(state)).toBe(baseConfig);
+        });
+
+        test('overlays clientConfigOverrides onto base config with memoized reference', () => {
+            const baseConfig = {MobileEnableBiometrics: 'false', SiteName: 'Mattermost'};
+            const overrides = {MobileEnableBiometrics: 'true'};
+            const state = {
+                entities: {
+                    general: {
+                        config: baseConfig,
+                        clientConfigOverrides: overrides,
+                    },
+                },
+            } as unknown as GlobalState;
+
+            const effective = Selectors.getConfig(state);
+            expect(effective).toEqual({MobileEnableBiometrics: 'true', SiteName: 'Mattermost'});
+            expect(Selectors.getConfig(state)).toBe(effective);
+            expect(Selectors.getBaseClientConfig(state)).toBe(baseConfig);
+        });
+
+        test('isSystemSettingPoliciesEnabled reads FeatureFlagSystemSettingPolicies', () => {
+            expect(Selectors.isSystemSettingPoliciesEnabled({
+                entities: {general: {config: {FeatureFlagSystemSettingPolicies: 'true'}}},
+            } as unknown as GlobalState)).toBe(true);
+            expect(Selectors.isSystemSettingPoliciesEnabled({
+                entities: {general: {config: {FeatureFlagSystemSettingPolicies: 'false'}}},
+            } as unknown as GlobalState)).toBe(false);
+        });
+    });
 });
 

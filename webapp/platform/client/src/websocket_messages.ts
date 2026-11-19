@@ -274,6 +274,10 @@ export type ChannelAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.C
 // the currently visible channel only.
 export type PermissionPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.PermissionPolicyUpdated, Record<string, never>>;
 
+export type SystemSettingPolicyUpdated = BaseWebSocketMessage<WebSocketEvents.SystemSettingPolicyUpdated, {
+    overrides: Partial<ClientConfig>;
+}>;
+
 export type TeamAccessControlUpdated = BaseWebSocketMessage<WebSocketEvents.TeamAccessControlUpdated, {
     team: JsonEncodedValue<TeamType>;
 }>;

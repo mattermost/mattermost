@@ -10,6 +10,7 @@ jest.mock('mattermost-redux/actions/general', () => {
     return {
         ...original,
         getClientConfig: () => ({type: 'MOCK_GET_CLIENT_CONFIG'}),
+        getClientConfigOverrides: () => ({type: 'MOCK_GET_CLIENT_CONFIG_OVERRIDES'}),
         getLicenseConfig: () => ({type: 'MOCK_GET_LICENSE_CONFIG'}),
     };
 });
@@ -88,5 +89,27 @@ describe('loadConfigAndMe', () => {
             {type: 'MOCK_GET_MY_TEAM_UNREADS'},
             {type: 'MOCK_GET_SERVER_LIMITS'},
         ]);
+    });
+
+    test('loadConfigAndMe, fetches clientConfigOverrides when FeatureFlagSystemSettingPolicies is enabled', async () => {
+        const testStore = mockStore({
+            entities: {
+                general: {
+                    config: {
+                        FeatureFlagSystemSettingPolicies: 'true',
+                    },
+                    serverVersion: '1.0.0',
+                },
+                users: {
+                    currentUserId: 'userid',
+                },
+            },
+        });
+
+        document.cookie = 'MMUSERID=userid';
+        localStorage.setItem('was_logged_in', 'true');
+
+        await testStore.dispatch(loadConfigAndMe());
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_GET_CLIENT_CONFIG_OVERRIDES'});
     });
 });

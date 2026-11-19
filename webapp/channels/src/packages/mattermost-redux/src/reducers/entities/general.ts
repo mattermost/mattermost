@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {combineReducers} from 'redux';
+import shallowEqual from 'shallow-equals';
 
 import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -17,6 +18,27 @@ function config(state: Partial<ClientConfig> = {}, action: MMReduxAction) {
     case UserTypes.LOGIN: // Used by the mobile app
     case GeneralTypes.SET_CONFIG_AND_LICENSE:
         return Object.assign({}, state, action.data.config);
+    case GeneralTypes.CLIENT_CONFIG_RESET:
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
+function clientConfigOverrides(state: Partial<ClientConfig> = {}, action: MMReduxAction) {
+    switch (action.type) {
+    case GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED: {
+        const next: Partial<ClientConfig> = action.data ? {...action.data} : {};
+
+        // The server pushes overrides whenever an input to their evaluation changes,
+        // which usually leaves the result unchanged. Keep the existing object so
+        // getConfig consumers do not re-render.
+        if (shallowEqual(state, next)) {
+            return state;
+        }
+        return next;
+    }
     case GeneralTypes.CLIENT_CONFIG_RESET:
     case UserTypes.LOGOUT_SUCCESS:
         return {};
@@ -119,6 +141,7 @@ function cwsAvailability(state: CWSAvailabilityState = 'pending', action: MMRedu
 
 export default combineReducers({
     config,
+    clientConfigOverrides,
     license,
     customProfileAttributes,
     serverVersion,

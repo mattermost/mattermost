@@ -3128,6 +3128,13 @@ export default class Client4 {
         );
     };
 
+    getClientConfigOverrides = () => {
+        return this.doFetch<Partial<ClientConfig>>(
+            `${this.getBaseRoute()}/config/client/overrides`,
+            {method: 'get'},
+        );
+    };
+
     getClientLicenseOld = () => {
         return this.doFetch<ClientLicense>(
             `${this.getBaseRoute()}/license/client`,

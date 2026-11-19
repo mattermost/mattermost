@@ -18,6 +18,7 @@ describe('Actions.General', () => {
     });
 
     beforeEach(() => {
+        Actions.resetClientConfigOverridesSyncState();
         store = configureStore();
     });
 
@@ -90,5 +91,48 @@ describe('Actions.General', () => {
         expect(customProfileAttributes[123].id).toEqual('123');
         expect(customProfileAttributes[123].name).toEqual('test attribute');
         expect(customProfileAttributes[123].dataType).toEqual('text');
+    });
+
+    describe('getClientConfigOverrides', () => {
+        it('fetches overrides and coalesces concurrent in-flight requests', async () => {
+            let calls = 0;
+            nock(Client4.getBaseRoute()).
+                get('/config/client/overrides').
+                reply(200, () => {
+                    calls += 1;
+                    return {MobileEnableBiometrics: 'true'};
+                });
+
+            const [res1, res2] = await Promise.all([
+                store.dispatch(Actions.getClientConfigOverrides()),
+                store.dispatch(Actions.getClientConfigOverrides()),
+            ]);
+
+            expect(calls).toBe(1);
+            expect(res1.data).toEqual({MobileEnableBiometrics: 'true'});
+            expect(res2.data).toEqual({MobileEnableBiometrics: 'true'});
+            expect(store.getState().entities.general.clientConfigOverrides).toEqual({MobileEnableBiometrics: 'true'});
+        });
+
+        it('discards stale in-flight completion when receivedClientConfigOverrides arrives first', async () => {
+            let resolveFetch: ((val: {MobileEnableBiometrics: string}) => void) | undefined;
+            const spy = jest.spyOn(Client4, 'getClientConfigOverrides').mockImplementationOnce(
+                () => new Promise((resolve) => {
+                    resolveFetch = resolve;
+                }),
+            );
+
+            try {
+                const inFlight = store.dispatch(Actions.getClientConfigOverrides());
+                store.dispatch(Actions.receivedClientConfigOverrides({MobileEnableBiometrics: 'true'}));
+
+                resolveFetch?.({MobileEnableBiometrics: 'false'});
+                await inFlight;
+
+                expect(store.getState().entities.general.clientConfigOverrides).toEqual({MobileEnableBiometrics: 'true'});
+            } finally {
+                spy.mockRestore();
+            }
+        });
     });
 });
