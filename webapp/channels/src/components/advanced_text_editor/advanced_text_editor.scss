@@ -224,6 +224,12 @@
 
 @media screen and (max-width: 768px) {
     #post-create {
+        // The box goes full width here, so the chips line up with the text
+        // inside it rather than with an edge that is no longer inset.
+        .AdvancedTextEditor__attributes {
+            padding: 0 16px;
+        }
+
         .AdvancedTextEditor {
             padding: 0;
 

@@ -1894,9 +1894,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const textbox = screen.getByTestId('post_textbox');
             fireEvent.input(textbox, {target: {value: 'a message with attributes'}});
 
-            await act(async () => {
-                fireEvent.click(screen.getByTestId('SendMessageButton'));
-            });
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
 
             expect(mockedOnSubmit).toHaveBeenCalledWith(
                 channelId,
@@ -1938,9 +1936,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
 
-            await act(async () => {
-                fireEvent.click(screen.getByTestId('SendMessageButton'));
-            });
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
 
             expect(mockedOnSubmit).toHaveBeenCalledWith(
                 channelId,
@@ -1967,9 +1963,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
 
-            await act(async () => {
-                fireEvent.click(screen.getByTestId('SendMessageButton'));
-            });
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
 
             expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
             expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
@@ -1992,9 +1986,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const textbox = screen.getByTestId('post_textbox');
             fireEvent.input(textbox, {target: {value: '/echo hello'}});
 
-            await act(async () => {
-                fireEvent.click(screen.getByTestId('SendMessageButton'));
-            });
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
 
             expect(mockedOnSubmit).toHaveBeenCalledWith(
                 channelId,
@@ -2026,9 +2018,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const textbox = screen.getByTestId('post_textbox');
             fireEvent.input(textbox, {target: {value: '+:smile:'}});
 
-            await act(async () => {
-                fireEvent.click(screen.getByTestId('SendMessageButton'));
-            });
+            await userEvent.click(screen.getByTestId('SendMessageButton'));
 
             expect(mockedOnSubmit).toHaveBeenCalledWith(
                 channelId,
