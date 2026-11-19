@@ -164,6 +164,6 @@ mmctl health check --output-format html --output health-report.html
 | `--output-format <html\|md>` | Export the report as HTML or Markdown instead of printing the findings. |
 | `-o`, `--output <file>` | Write the export to this file. Without it, the export goes to standard output. Requires `--output-format`. |
 
-An export includes resolved and muted findings, so `--output-format` can't be combined with `--include-resolved` or `--include-muted`. It also can't be combined with `--json`. Findings intended for support engineers are left out of an export, including one built with `--packet`, so the file can be shared with others. Times in an export use the time zone of the machine running mmctl.
+An export includes resolved and muted findings, so `--output-format` can't be combined with `--include-resolved` or `--include-muted`. It also can't be combined with `--json`.
 
 `--output-format` also works with `--packet`, so a Support Packet can be exported without a server connection.

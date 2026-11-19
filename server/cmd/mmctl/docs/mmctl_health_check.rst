@@ -13,7 +13,7 @@ Report the findings of the server's latest health evaluation. By default only fi
 
 With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.
 
-With --output-format, export the report as HTML or Markdown to share it, written to stdout or to the file given with --output. An export includes resolved and muted findings, leaves out findings meant for support engineers, and shows times in this machine's time zone.
+With --output-format, export the report as HTML or Markdown to share it, written to stdout or to the file given with --output. An export includes resolved and muted findings.
 
 ::
 

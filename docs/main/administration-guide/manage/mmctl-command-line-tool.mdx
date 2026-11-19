@@ -3596,7 +3596,7 @@ Report the findings of the server's latest health evaluation. By default only fi
 
 With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included. --packet can't be combined with --include-muted, because findings evaluated from a packet are never muted.
 
-With --output-format html or --output-format md, export the report as an HTML or Markdown file to share it. The export goes to stdout, or to the file given with -o or --output. An export includes resolved and muted findings, so it can't be combined with --include-resolved or --include-muted. It leaves out findings meant for support engineers, including with --packet. --output-format can't be combined with --json. Times in an export use the time zone of the machine running mmctl.
+With --output-format html or --output-format md, export the report as an HTML or Markdown file to share it. The export goes to stdout, or to the file given with -o or --output. An export includes resolved and muted findings, so it can't be combined with --include-resolved or --include-muted. --output-format can't be combined with --json.
 
 **Format**
 

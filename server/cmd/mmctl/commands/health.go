@@ -55,7 +55,7 @@ var HealthCheckCmd = &cobra.Command{
 	Short: "Report current health findings",
 	Long: "Report the findings of the server's latest health evaluation. By default only firing findings and findings that could not be evaluated are shown.\n\n" +
 		"With --packet, evaluate a Support Packet on this machine instead. No server connection is needed, and findings meant for support engineers are included.\n\n" +
-		"With --output-format, export the report as HTML or Markdown to share it, written to stdout or to the file given with --output. An export includes resolved and muted findings, leaves out findings meant for support engineers, and shows times in this machine's time zone.",
+		"With --output-format, export the report as HTML or Markdown to share it, written to stdout or to the file given with --output. An export includes resolved and muted findings.",
 	Example: "  health check\n  health check --include-resolved --include-muted\n  health check --packet mm_support_packet.zip\n  health check --output-format html --output health-report.html\n  health check --packet mm_support_packet.zip --output-format md",
 	Args:    cobra.NoArgs,
 	RunE:    healthCheckRunE,
