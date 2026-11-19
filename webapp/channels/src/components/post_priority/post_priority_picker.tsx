@@ -421,7 +421,7 @@ function PostPriorityPicker({
             }}
             menu={{
                 id: 'post.priority.dropdown',
-                'aria-label': 'Post priority options',
+                'aria-label': messagePriority,
                 width: 'max-content',
                 onToggle: setPickerOpen,
                 isMenuOpen: pickerOpen,

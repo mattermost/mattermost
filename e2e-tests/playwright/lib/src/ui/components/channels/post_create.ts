@@ -18,11 +18,14 @@ export default class ChannelsPostCreate {
     readonly plusMenu;
     readonly attachFilesItem;
     readonly emojiMenuItem;
+    readonly emojiButton;
+    readonly formattingBar;
     readonly sendMessageButton;
 
     // Scheduled send stays on the send split, beside Send. Agent mode hides it.
     readonly scheduleMessageButton;
     readonly priorityMenuItem;
+    readonly priorityButton;
     readonly priorityLabel;
     readonly removeLabelsButton;
     readonly removeLabelsTooltip;
@@ -54,9 +57,12 @@ export default class ChannelsPostCreate {
         this.plusMenu = container.page().getByRole('menu', {name: 'Message options'});
         this.attachFilesItem = this.plusMenu.getByRole('menuitem', {name: 'Attach files', exact: true});
         this.emojiMenuItem = this.plusMenu.getByRole('menuitem', {name: 'Emoji', exact: true});
+        this.emojiButton = container.locator('#emojiPickerButton');
+        this.formattingBar = container.getByTestId('formattingBarContainer');
         this.sendMessageButton = container.getByTestId('SendMessageButton');
         this.scheduleMessageButton = container.getByLabel('Schedule message');
         this.priorityMenuItem = this.plusMenu.getByRole('menuitem', {name: 'Message priority', exact: true});
+        this.priorityButton = container.locator('#messagePriority');
         this.priorityLabel = container.getByTestId('post-priority-label');
         this.removeLabelsButton = container.getByRole('button', {name: 'Remove all labels'});
         // Tooltips render in a portal outside the post create container.
@@ -139,7 +145,8 @@ export default class ChannelsPostCreate {
     }
 
     /**
-     * Opens the + menu. Attach, emoji, priority, burn-on-read, and rewrite are items in it.
+     * Opens the + menu. Attach, burn-on-read, and rewrite are items in it.
+     * Emoji and priority are items here only while the formatting bar is hidden.
      */
     async openPlusMenu() {
         if ((await this.plusButton.getAttribute('aria-expanded')) !== 'true') {
@@ -161,10 +168,22 @@ export default class ChannelsPostCreate {
         await expect(this.plusButton).toHaveAttribute('aria-expanded', 'false');
     }
 
+    private async formattingBarOpen() {
+        return this.formattingBar.isVisible();
+    }
+
     /**
-     * Opens the message priority picker from the + menu.
+     * Opens the message priority picker. The formatting bar holds the button
+     * while it is open. The + menu holds the row while the bar is hidden.
      */
     async openPriorityMenu() {
+        if (await this.formattingBarOpen()) {
+            await expect(this.priorityButton).toBeVisible();
+            await expect(this.priorityButton).toBeEnabled();
+            await this.priorityButton.click();
+            return;
+        }
+
         await this.openPlusMenu();
         await expect(this.priorityMenuItem).toBeVisible();
         await expect(this.priorityMenuItem).toBeEnabled();
@@ -172,14 +191,21 @@ export default class ChannelsPostCreate {
     }
 
     /**
-     * The priority row is in the + menu, so these open that menu first.
+     * Priority is a formatting-bar button while that bar is open, and a + menu
+     * row while the bar is hidden.
      */
     async toShowPriorityItem() {
+        if (await this.formattingBarOpen()) {
+            await expect(this.priorityButton).toBeVisible();
+            return;
+        }
+
         await this.openPlusMenu();
         await expect(this.priorityMenuItem).toBeVisible();
     }
 
     async toOmitPriorityItem() {
+        await expect(this.priorityButton).toHaveCount(0);
         await this.openPlusMenu();
         await expect(this.priorityMenuItem).toHaveCount(0);
         await this.closePlusMenu();
@@ -277,6 +303,13 @@ export default class ChannelsPostCreate {
     }
 
     async openEmojiPicker() {
+        if (await this.formattingBarOpen()) {
+            await expect(this.emojiButton).toBeVisible();
+            await expect(this.emojiButton).toBeEnabled();
+            await this.emojiButton.click();
+            return;
+        }
+
         await this.openPlusMenu();
         await expect(this.emojiMenuItem).toBeVisible();
         await this.emojiMenuItem.click();

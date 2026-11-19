@@ -90,7 +90,7 @@ test(
         await channelsPage.goto(team.name, 'town-square');
         await channelsPage.toBeVisible();
 
-        // * Verify the priority row is in the + menu while the system setting is enabled
+        // * Verify the priority control is in the formatting bar while the system setting is enabled
         await channelsPage.centerView.postCreate.toShowPriorityItem();
 
         // # Open priority menu
@@ -145,7 +145,7 @@ test(
             await channelsPage.goto(team.name, 'town-square');
             await channelsPage.toBeVisible();
 
-            // * Verify the + menu does not offer priority
+            // * Verify neither the formatting bar nor the + menu offers priority
             await channelsPage.centerView.postCreate.toOmitPriorityItem();
         } finally {
             await adminClient.patchConfig({ServiceSettings: {PostPriority: originalPostPriority}});

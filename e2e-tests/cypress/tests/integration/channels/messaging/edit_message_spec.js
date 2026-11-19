@@ -66,9 +66,8 @@ describe('Edit Message', () => {
 
         cy.wait(TIMEOUTS.HALF_SEC);
 
-        // # In the edit composer, open emoji from the + menu
-        cy.get('div.post-edit__container').find('[data-testid="agent-composer-menu-button"]').should('be.visible').click();
-        cy.findByRole('menuitem', {name: 'Emoji'}).should('be.visible').click();
+        // # In the edit composer, open emoji from the formatting bar
+        cy.get('div.post-edit__container').find('#emojiPickerButton').should('be.visible').click();
 
         // * Assert emoji picker is visible
         cy.get('#emojiPicker').should('be.visible');
