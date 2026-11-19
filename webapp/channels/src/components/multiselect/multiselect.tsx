@@ -9,7 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {GetOptionValue, InputActionMeta, MultiValueRemoveProps, SelectInstance} from 'react-select';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import SaveButton from 'components/save_button';
 import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
@@ -62,6 +62,7 @@ export type Props<T extends Value> = {
     totalCount?: number;
     users?: unknown[];
     valueWithImage: boolean;
+    valueLabelRenderer?: (value: T) => ReactNode;
     valueRenderer?: (props: {data: T}) => any;
     values: T[];
     focusOnLoad?: boolean;
@@ -278,6 +279,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
 
     formatOptionLabel = (user: any) => {
         const profileImg = imageURLForUser(user.id, user.last_picture_update);
+        const displayName = this.props.valueLabelRenderer?.(user) ?? getDisplayName(user);
 
         return (
             <>
@@ -287,7 +289,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     url={profileImg}
                 />
                 <div className='react-select__value__name'>
-                    {getDisplayName(user)}
+                    {displayName}
                 </div>
             </>
         );
@@ -407,7 +409,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     nextButton = (
                         <Button
                             emphasis='tertiary'
-                            size='sm'
+                            size='small'
                             className='filter-control filter-control__next'
                             onClick={this.nextPage}
                         >
@@ -423,7 +425,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     previousButton = (
                         <Button
                             emphasis='tertiary'
-                            size='sm'
+                            size='small'
                             className='filter-control filter-control__prev'
                             onClick={this.prevPage}
                         >
@@ -532,6 +534,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                             {this.props.saveButtonPosition === 'top' &&
                                 <SaveButton
                                     id='saveItems'
+                                    extraClasses='multi-select__go'
                                     saving={this.props.saving}
                                     disabled={this.props.saving}
                                     onClick={this.handleOnClick}

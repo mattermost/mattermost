@@ -15,9 +15,13 @@ import {
 } from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {useId, useRef, type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {CloseIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {TourTipBackdrop} from './tour_tip_backdrop';
 
@@ -55,6 +59,11 @@ type Props = {
     tourSteps?: Record<string, number>;
     nextBtn?: JSX.Element;
     prevBtn?: JSX.Element;
+
+    // Compass icon glyphs (e.g. <ChevronRightIcon/>) for the Button icon slots. TourTip wraps
+    // them in Icon itself so Button sizes them, and they stay off the label.
+    nextTrailingGlyph?: React.ReactNode;
+    prevLeadingGlyph?: React.ReactNode;
     imageURL?: string;
     singleTip?: boolean;
     showOptOut?: boolean;
@@ -104,6 +113,8 @@ export const TourTip = ({
     pulsatingDotPlacement,
     nextBtn,
     prevBtn,
+    nextTrailingGlyph,
+    prevLeadingGlyph,
     className,
     offset: tipOffset = [-18, 4],
     placement = 'right-start',
@@ -116,6 +127,7 @@ export const TourTip = ({
     const FIRST_STEP_INDEX = 0;
     const titleId = useId();
     const arrowRef = useRef<SVGSVGElement>(null);
+    const {formatMessage} = useIntl();
     const onJump = (event: React.MouseEvent, jumpToStep: number) => {
         handleJump?.(event, jumpToStep);
     };
@@ -191,13 +203,15 @@ export const TourTip = ({
                 >
                     {title}
                 </h4>
-                <button
-                    className='btn btn-sm btn-icon'
-                    onClick={handleDismiss}
-                    data-testid={'close_tutorial_tip'}
-                >
-                    <i className='icon icon-close'/>
-                </button>
+                <WithTooltip title={formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}>
+                    <IconButton
+                        size='small'
+                        icon={<Icon glyph={<CloseIcon/>}/>}
+                        onClick={handleDismiss}
+                        aria-label={formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}
+                        data-testid={'close_tutorial_tip'}
+                    />
+                </WithTooltip>
             </div>
             <div className='tour-tip__body'>
                 {screen}
@@ -218,7 +232,8 @@ export const TourTip = ({
                             <Button
                                 id='tipPreviousButton'
                                 emphasis='tertiary'
-                                size='sm'
+                                size='small'
+                                leadingIcon={prevLeadingGlyph ? <Icon glyph={prevLeadingGlyph}/> : undefined}
                                 onClick={handlePrevious}
                             >
                                 {prevBtn}
@@ -228,7 +243,8 @@ export const TourTip = ({
                             <Button
                                 id='tipNextButton'
                                 emphasis='primary'
-                                size='sm'
+                                size='small'
+                                trailingIcon={nextTrailingGlyph ? <Icon glyph={nextTrailingGlyph}/> : undefined}
                                 onClick={handleNext}
                             >
                                 {nextBtn}
@@ -243,9 +259,9 @@ export const TourTip = ({
                             defaultMessage='Seen this before? '
                         />
                         <Button
+                            className='tour-tip__opt-out'
                             emphasis='link'
-                            variant='inverted'
-                            size='xs'
+                            size='x-small'
                             onClick={handleSkip}
                         >
                             <FormattedMessage

@@ -1,10 +1,17 @@
   "/api/v4/custom_profile_attributes/fields":
     get:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: List all the Custom Profile Attributes fields
       description: |
-        List all the Custom Profile Attributes fields.
+        List all the Custom Profile Attributes fields, including those linked
+        to a global attribute template. A field with more than 1000 options
+        omits `attrs.options` and sets `attrs.options_count` and
+        `attrs.options_omitted`.
+
+        Replaced by
+        `GET /api/v4/properties/groups/access_control/user/fields?target_type=system`.
 
         __Minimum server version__: 10.5
 
@@ -24,11 +31,17 @@
           $ref: "#/components/responses/Unauthorized"
 
     post:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Create a Custom Profile Attribute field
       description: |
-        Create a new Custom Profile Attribute field on the system.
+        Create a Custom Profile Attribute field. The field isn't linked to a
+        global attribute template.
+
+        Replaced by the Properties API: to add a user attribute the way
+        Attribute Management does, create a `template` field, then a `user`
+        field with `linked_field_id` set to the template's ID.
 
         __Minimum server version__: 10.5
 
@@ -55,6 +68,11 @@
                     expressions as `user.attributes.<name>`.
                 type:
                   type: string
+                  description: >
+                    The type of attribute. `rank` is a select with ordered
+                    options; `graph` is a multiselect whose options can sit
+                    below other options.
+                  enum: [text, select, multiselect, date, user, multiuser, rank, graph]
                 attrs:
                   type: object
                   properties:
@@ -68,7 +86,7 @@
                       description: "Sort order for displaying this attribute"
                     options:
                       type: array
-                      description: "Options for select/multiselect fields"
+                      description: "Options for select, multiselect, rank and graph fields"
                       items:
                         type: object
                         properties:
@@ -76,16 +94,40 @@
                             type: string
                           color:
                             type: string
+                          rank:
+                            type: integer
+                            description: >
+                              `rank` fields only, required: the option's
+                              position, a unique positive integer.
+                          parents:
+                            type: array
+                            items:
+                              type: string
+                            description: >
+                              `graph` fields only: the names of the options
+                              directly above this one. Options read back from
+                              `attrs.options` don't include `parents`.
                     value_type:
                       type: string
                       description: "Type of text value"
                       enum: ["email", "url", "phone"]
                     ldap:
                       type: string
-                      description: "LDAP attribute for syncing"
+                      description: >
+                        AD/LDAP attribute to sync the value from. `text` fields
+                        only; cleared on other types.
                     saml:
                       type: string
-                      description: "SAML attribute for syncing"
+                      description: >
+                        SAML attribute to sync the value from. `text` fields
+                        only; cleared on other types.
+                    managed:
+                      type: string
+                      description: >
+                        `admin` lets only system administrators set the
+                        attribute's values. Only system administrators can set `managed`.
+                      enum: ["", "admin"]
+                      default: ""
                     protected:
                       type: boolean
                       description: "If true, the field is read-only and cannot be modified."
@@ -127,17 +169,18 @@
 
   "/api/v4/custom_profile_attributes/fields/{field_id}":
     patch:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Patch a Custom Profile Attribute field
       description: |
-        Partially update a Custom Profile Attribute field by providing
-        only the fields you want to update. Omitted fields will not be
-        updated. The fields that can be updated are defined in the
-        request body, all other provided fields will be ignored.
+        Partially update a Custom Profile Attribute field. Only the fields
+        in the request body can be updated; omitted fields are unchanged.
+        Fields with `attrs.protected = true`, and fields linked to a global
+        attribute template, can't be changed.
 
-        **Note:** Fields with `attrs.protected = true` cannot be
-        modified and will return an error.
+        Replaced by
+        `PATCH /api/v4/properties/groups/access_control/user/fields/{field_id}`.
 
         __Minimum server version__: 10.5
 
@@ -169,6 +212,11 @@
                     when `name` actually changes.
                 type:
                   type: string
+                  description: >
+                    The type of attribute. `rank` is a select with ordered
+                    options; `graph` is a multiselect whose options can sit
+                    below other options.
+                  enum: [text, select, multiselect, date, user, multiuser, rank, graph]
                 attrs:
                   type: object
                   properties:
@@ -182,7 +230,7 @@
                       description: "Sort order for displaying this attribute"
                     options:
                       type: array
-                      description: "Options for select/multiselect fields"
+                      description: "Options for select, multiselect, rank and graph fields"
                       items:
                         type: object
                         properties:
@@ -192,16 +240,40 @@
                             type: string
                           color:
                             type: string
+                          rank:
+                            type: integer
+                            description: >
+                              `rank` fields only, required: the option's
+                              position, a unique positive integer.
+                          parents:
+                            type: array
+                            items:
+                              type: string
+                            description: >
+                              `graph` fields only: the names of the options
+                              directly above this one. Options read back from
+                              `attrs.options` don't include `parents`.
                     value_type:
                       type: string
                       description: "Type of text value"
                       enum: ["email", "url", "phone"]
                     ldap:
                       type: string
-                      description: "LDAP attribute for syncing"
+                      description: >
+                        AD/LDAP attribute to sync the value from. `text` fields
+                        only; cleared on other types.
                     saml:
                       type: string
-                      description: "SAML attribute for syncing"
+                      description: >
+                        SAML attribute to sync the value from. `text` fields
+                        only; cleared on other types.
+                    managed:
+                      type: string
+                      description: >
+                        `admin` lets only system administrators set the
+                        attribute's values. Only system administrators can set `managed`.
+                      enum: ["", "admin"]
+                      default: ""
                     protected:
                       type: boolean
                       description: "If true, the field is read-only and cannot be modified."
@@ -225,7 +297,16 @@
               schema:
                 $ref: "#/components/schemas/PropertyField"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: >
+            The request is invalid, or the field is linked to a global
+            attribute template (error ID
+            `api.custom_profile_attributes.linked_field.app_error`), as fields
+            created before v12.0 or in Attribute Management are. Change a
+            linked field through the Properties API.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -241,12 +322,17 @@
                 $ref: "#/components/schemas/AppError"
 
     delete:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Delete a Custom Profile Attribute field
       description: |
         Marks a Custom Profile Attribute field and all its values as
+        deleted. Fields linked to a global attribute template can't be
         deleted.
+
+        Replaced by
+        `DELETE /api/v4/properties/groups/access_control/user/fields/{field_id}`.
 
         __Minimum server version__: 10.5
 
@@ -268,7 +354,16 @@
               schema:
                 $ref: "#/components/schemas/StatusOK"
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: >
+            The request is invalid, or the field is linked to a global
+            attribute template (error ID
+            `api.custom_profile_attributes.linked_field.app_error`), as fields
+            created before v12.0 or in Attribute Management are. Change a
+            linked field through the Properties API.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
@@ -276,18 +371,19 @@
 
   "/api/v4/custom_profile_attributes/values":
     patch:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Patch Custom Profile Attribute values
       description: |
-        Partially update a set of values on the requester's Custom
-        Profile Attribute fields by providing only the information you
-        want to update. Omitted fields will not be updated. The fields
-        that can be updated are defined in the request body, all other
-        provided fields will be ignored.
+        Update the requester's own Custom Profile Attribute values. The body
+        and the response are maps from field ID to value; fields left out
+        are unchanged. Values of fields with `attrs.protected = true` can't be
+        updated.
 
-        **Note:** Values for fields with `attrs.protected = true` cannot be
-        updated and will return an error.
+        Replaced by
+        `PATCH /api/v4/properties/groups/access_control/user/values/{user_id}`
+        with your own user ID.
 
         __Minimum server version__: 10.5
 
@@ -300,49 +396,71 @@
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  value:
-                    oneOf:
-                      - type: string
-                      - type: array
-                        items:
-                          type: string
+              type: object
+              description: >
+                A map from field ID to the new value, with between 1 and 50
+                entries. A `text`, `select`, `rank`, `date` or `user` value is
+                a string (an option ID for `select` and `rank`); a
+                `multiselect`, `graph` or `multiuser` value is an array of
+                strings (option IDs or user IDs). JSON `null` clears a value.
+              minProperties: 1
+              maxProperties: 50
+              additionalProperties:
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
+                  - nullable: true
+                    enum:
+                      - null
       responses:
         "200":
           description: Custom Profile Attribute values patch successful
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    value:
-                      oneOf:
-                        - type: string
-                        - type: array
-                          items:
-                            type: string
+                type: object
+                description: >
+                  A map from field ID to the value that was saved. JSON `null`
+                  means the value was cleared.
+                additionalProperties:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                    - nullable: true
+                      enum:
+                        - null
         "400":
-          $ref: "#/components/responses/BadRequest"
+          description: >
+            The request is invalid, including a map with no entries or more
+            than 50.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
         "401":
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          description: A field ID in the request doesn't exist.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/custom_profile_attributes/group":
     get:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Get Custom Profile Attribute property group data
       description: |
-        Get the property group used for Custom Profile Attributes.
+        Get the property group used for Custom Profile Attributes: the
+        `access_control` group. The Properties API addresses the group by
+        name, so it doesn't need this ID.
 
         __Minimum server version__: 10.8
 
@@ -367,11 +485,15 @@
 
   "/api/v4/users/{user_id}/custom_profile_attributes":
     get:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: List Custom Profile Attribute values
       description: |
         List all the Custom Profile Attributes values for specified user.
+
+        Replaced by
+        `GET /api/v4/properties/groups/access_control/user/values/{user_id}`.
 
         __Minimum server version__: 10.5
 
@@ -390,15 +512,17 @@
           description: Custom Profile Attribute values fetch successful. Result may be empty.
           content:
             application/json:
-            schema:
-              type: array
-              items:
+              schema:
                 type: object
-                properties:
-                  field_id:
-                    type: string
-                  value:
-                    type: string
+                description: >
+                  A map from field ID to the user's value for that field.
+                  Fields the user has no value for are left out.
+                additionalProperties:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
         "400":
           $ref: "#/components/responses/BadRequest"
         "401":
@@ -406,19 +530,22 @@
         "403":
           $ref: "#/components/responses/Forbidden"
     patch:
+      deprecated: true
       tags:
         - custom profile attributes
       summary: Update custom profile attribute values for a user
       description: |
-        Update Custom Profile Attribute field values for a specific user.
+        Update Custom Profile Attribute values for a specific user. The body
+        and the response are maps from field ID to value. Values of fields
+        with `attrs.protected = true` can't be updated.
 
-        **Note:** Values for fields with `attrs.protected = true` cannot be
-        updated and will return an error.
+        Replaced by
+        `PATCH /api/v4/properties/groups/access_control/user/values/{user_id}`.
 
         __Minimum server version__: 11
 
         ##### Permissions
-        Must have permission to edit the user. Users can only edit their own CPA values unless they are system administrators.
+        Must be the user themselves or have the `edit_other_users` permission.
       parameters:
         - name: user_id
           in: path
@@ -433,39 +560,58 @@
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  value:
-                    oneOf:
-                      - type: string
-                      - type: array
-                        items:
-                          type: string
+              type: object
+              description: >
+                A map from field ID to the new value, with between 1 and 50
+                entries. A `text`, `select`, `rank`, `date` or `user` value is
+                a string (an option ID for `select` and `rank`); a
+                `multiselect`, `graph` or `multiuser` value is an array of
+                strings (option IDs or user IDs). JSON `null` clears a value.
+              minProperties: 1
+              maxProperties: 50
+              additionalProperties:
+                oneOf:
+                  - type: string
+                  - type: array
+                    items:
+                      type: string
+                  - nullable: true
+                    enum:
+                      - null
       responses:
         '200':
           description: Custom profile attribute values updated successfully
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                    value:
-                      oneOf:
-                        - type: string
-                        - type: array
-                          items:
-                            type: string
+                type: object
+                description: >
+                  A map from field ID to the value that was saved. JSON `null`
+                  means the value was cleared.
+                additionalProperties:
+                  oneOf:
+                    - type: string
+                    - type: array
+                      items:
+                        type: string
+                    - nullable: true
+                      enum:
+                        - null
         '400':
-          $ref: '#/components/responses/BadRequest'
+          description: >
+            The request is invalid, including a map with no entries or more
+            than 50.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppError'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
         '403':
           $ref: '#/components/responses/Forbidden'
         '404':
-          $ref: '#/components/responses/NotFound'
+          description: A field ID in the request doesn't exist.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AppError'

@@ -748,6 +748,20 @@ type API interface {
 	// Minimum server version: 5.6
 	GetPostThread(postId string) (*model.PostList, *model.AppError)
 
+	// GetThreadFollowers gets the IDs of the active users who follow the thread of a root post.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	GetThreadFollowers(threadID string) ([]string, *model.AppError)
+
+	// SetThreadFollowing makes a user follow, or stop following, the thread of a root post, as
+	// the user's follow button on the thread does. It does not check that the user can read the
+	// post's channel: the plugin is responsible for that.
+	//
+	// @tag Post
+	// Minimum server version: 12.2
+	SetThreadFollowing(userID, threadID string, following bool) *model.AppError
+
 	// GetPost gets a post.
 	//
 	// @tag Post
@@ -793,6 +807,21 @@ type API interface {
 	// @tag Post
 	// Minimum server version: 5.2
 	UpdatePost(post *model.Post) (*model.Post, *model.AppError)
+
+	// UpdatePostWithOptions updates a post using the supplied options.
+	// UpdatePost is the same edit with SafeUpdate false, no file creator, and
+	// AllowMmBlocksActionsUpdate set only when the post carries a valid
+	// mm_blocks_actions value. This method uses the options as given.
+	// FileCreatorID selects newly added files: a file attaches when its
+	// creator is that id, or when it was uploaded with UploadFile (creator
+	// "nouser"). A file that cannot be attached is omitted and the rest of
+	// the edit is saved. Nil options match the zero value. The plugin
+	// authorizes the edit. Permissions, hooks, and the returned post match
+	// UpdatePost: no session is created.
+	//
+	// @tag Post
+	// Minimum server version: 12.1
+	UpdatePostWithOptions(post *model.Post, options *model.UpdatePostOptions) (*model.Post, *model.AppError)
 
 	// GetProfileImage gets user's profile image.
 	//
@@ -1007,11 +1036,28 @@ type API interface {
 	// Minimum server version: 5.6
 	KVDeleteAll() *model.AppError
 
-	// KVList lists all keys for a plugin.
+	// KVList lists all keys for a plugin, sorted by key.
+	// To list only the keys with a given prefix, use KVListWithOptions.
 	//
 	// @tag KeyValueStore
 	// Minimum server version: 5.6
 	KVList(page, perPage int) ([]string, *model.AppError)
+
+	// KVListWithOptions lists the keys for a plugin that match the given options, sorted by key.
+	// The database filters the keys before it applies page and perPage, so the pages contain
+	// only matching keys. A page with fewer than perPage keys is the last page.
+	//
+	// Options.Prefix returns only the keys that start with the prefix. All characters in the
+	// prefix match literally, including SQL wildcards such as % and _. An empty prefix returns
+	// all keys, as KVList does. Expired keys are not returned.
+	//
+	// On a server older than 12.2, the call returns an AppError with status code 501
+	// (Not Implemented). The pluginapi ListKeys method with WithPrefix uses KVListWithOptions,
+	// and on older servers it lists all keys and filters them in the plugin.
+	//
+	// @tag KeyValueStore
+	// Minimum server version: 12.2
+	KVListWithOptions(page, perPage int, options model.PluginKVListOptions) ([]string, *model.AppError)
 
 	// PublishWebSocketEvent sends an event to WebSocket connections.
 	// event is the type and will be prepended with "custom_<pluginid>_".
@@ -1229,6 +1275,23 @@ type API interface {
 	// Minimum server version: 5.36
 	PublishPluginClusterEvent(ev model.PluginClusterEvent, opts model.PluginClusterEventSendOptions) error
 
+	// GetClusterNodeID returns the cluster ID of the node the plugin is running on, for use as
+	// PluginClusterEventSendOptions.TargetId by other nodes. It returns an empty string until
+	// the node has joined a High-Availability cluster, e.g. when clustering is disabled.
+	//
+	// @tag Cluster
+	// Minimum server version: 12.2
+	GetClusterNodeID() string
+
+	// GetClusterNodes returns the nodes connected to the High-Availability cluster, including
+	// the one the plugin is running on. Each Id can be used as
+	// PluginClusterEventSendOptions.TargetId. It returns an empty list until this node has
+	// joined a cluster. Each call may query the database, so avoid calling it on hot paths.
+	//
+	// @tag Cluster
+	// Minimum server version: 12.2
+	GetClusterNodes() ([]*model.ClusterInfo, error)
+
 	// RequestTrialLicense requests a trial license and installs it in the server
 	//
 	// Minimum server version: 5.36
@@ -1344,6 +1407,15 @@ type API interface {
 	// @tag SharedChannels
 	// Minimum server version: 9.5
 	UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error
+
+	// GetSharedChannelCursor returns the sync cursor for the specified channel and RemoteID (passed by
+	// the plugin when registering). The remote must belong to the calling plugin. This can be used to
+	// track the progress of a re-sync started by rewinding the cursor with UpdateSharedChannelCursor.
+	// Returns an error if the remote is not invited to the channel or its invite is not yet confirmed.
+	//
+	// @tag SharedChannels
+	// Minimum server version: 12.2
+	GetSharedChannelCursor(channelID, remoteID string) (model.GetPostsSinceForSyncCursor, error)
 
 	// SyncSharedChannel forces a shared channel to send any changed content to all remotes.
 	//

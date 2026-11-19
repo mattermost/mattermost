@@ -6,6 +6,7 @@ package platform
 import (
 	"context"
 	"crypto/ecdsa"
+	"crypto/tls"
 	"errors"
 	"fmt"
 	"hash/maphash"
@@ -64,6 +65,7 @@ type PlatformService struct {
 	clientConfig         atomic.Value
 	clientConfigHash     atomic.Value
 	limitedClientConfig  atomic.Value
+	auditLoggingActive   atomic.Pointer[func() bool]
 
 	isFirstUserAccountLock sync.Mutex
 	isFirstUserAccount     atomic.Bool
@@ -106,6 +108,9 @@ type PlatformService struct {
 	hubs     []*Hub
 	hashSeed maphash.Seed
 
+	// hubChannelIteration is EnableWebHubChannelIteration as read when the hubs started; changes take effect at the next restart.
+	hubChannelIteration bool
+
 	goroutineCount      int32
 	goroutineExitSignal chan struct{}
 	goroutineBuffered   chan struct{}
@@ -143,6 +148,13 @@ type PlatformService struct {
 
 	// logRootPathOverride overrides MM_LOG_PATH for log root path validation.
 	logRootPathOverride string
+
+	// activeManagedDirs accumulates the managed directories of every config applied since startup.
+	activeManagedDirsMut sync.Mutex
+	activeManagedDirs    []string
+
+	// skipGlobalLogger suppresses this service's claim on the process-wide logging globals.
+	skipGlobalLogger bool
 
 	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
 }
@@ -250,12 +262,18 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	if *cacheConfig.CacheType == model.CacheTypeLRU {
 		ps.cacheProvider = cache.NewProvider()
 	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
+		var tlsConfig *tls.Config
+		tlsConfig, err = cache.NewRedisTLSConfig(cacheConfig)
+		if err != nil {
+			return nil, fmt.Errorf("unable to configure Redis TLS: %w", err)
+		}
 		ps.cacheProvider, err = cache.NewRedisProvider(
 			&cache.RedisOptions{
 				RedisAddr:        *cacheConfig.RedisAddress,
 				RedisPassword:    *cacheConfig.RedisPassword,
 				RedisDB:          *cacheConfig.RedisDB,
 				RedisCachePrefix: *cacheConfig.RedisCachePrefix,
+				TLSConfig:        tlsConfig,
 				DisableCache:     *cacheConfig.DisableClientCache,
 			},
 		)

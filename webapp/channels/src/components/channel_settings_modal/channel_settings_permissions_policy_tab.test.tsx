@@ -17,7 +17,9 @@ import TableEditor from 'components/admin_console/access_control/editors/table_e
 import {useChannelAccessControlActions} from 'hooks/useChannelAccessControlActions';
 import {useChannelSystemPolicies} from 'hooks/useChannelSystemPolicies';
 import {useEnabledSessionAttributeFields} from 'hooks/useEnabledSessionAttributeFields';
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {act, renderWithContext, screen, waitFor, within, userEvent} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import ChannelSettingsPermissionsPolicyTab from './channel_settings_permissions_policy_tab';
@@ -32,7 +34,7 @@ jest.mock('hooks/useEnabledSessionAttributeFields', () => ({
 // exposes the current `value` so the test can assert the expression survives a
 // failed save, and the `onChange` prop is used (via mock.calls) to populate it.
 jest.mock('components/admin_console/access_control/editors/table_editor/table_editor', () => {
-    const React = require('react'); // eslint-disable-line @typescript-eslint/no-shadow, global-require
+    const React = require('react');
     return jest.fn((props: {value: string}) => React.createElement(
         'div',
         {'data-testid': 'table-editor'},
@@ -42,10 +44,11 @@ jest.mock('components/admin_console/access_control/editors/table_editor/table_ed
 
 // Render the dropdown menus inline so their items can be clicked directly.
 jest.mock('components/menu', () => {
-    const React = require('react'); // eslint-disable-line @typescript-eslint/no-shadow, global-require
+    const React = require('react');
     return {
+        createMenuIconButtonTrigger: () => 'button',
         Container: ({children, menuButton}: any) => {
-            const {class: className, dataTestId, children: btnChildren, ...rest} = menuButton || {};
+            const {class: className, dataTestId, children: btnChildren, as, ...rest} = menuButton || {}; // eslint-disable-line @typescript-eslint/no-unused-vars
             return React.createElement(
                 'div',
                 null,
@@ -174,13 +177,35 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
     };
 
     const openNewRuleEditor = async () => {
-        renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
+        const view = renderWithContext(<ChannelSettingsPermissionsPolicyTab {...baseProps}/>, initialState);
 
         const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
         await waitFor(() => expect(addRuleButton).toBeEnabled());
         await userEvent.click(addRuleButton);
 
         await screen.findByTestId('permissions-policy-editor');
+
+        return view;
+    };
+
+    const openExistingRuleEditor = async (props = baseProps) => {
+        mockActions.getChannelPolicy.mockResolvedValue({
+            data: {
+                rules: [{
+                    name: 'Existing rule',
+                    role: ACCESS_CONTROL_CHANNEL_ROLE_USER,
+                    actions: [ACCESS_CONTROL_ACTION_UPLOAD_FILE],
+                    expression: 'user.attributes.team == "eng"',
+                }],
+            },
+        });
+
+        const view = renderWithContext(<ChannelSettingsPermissionsPolicyTab {...props}/>, initialState);
+
+        await userEvent.click(await screen.findByText('Existing rule'));
+        await screen.findByTestId('permissions-policy-editor');
+
+        return view;
     };
 
     const openNewRuleEditorWithFields = async () => {
@@ -198,6 +223,28 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`));
         await userEvent.click(screen.getByTestId(`cpp-add-permission-${ACCESS_CONTROL_ACTION_DOWNLOAD_FILE}`));
     };
+
+    test('says board rather than channel for a board', async () => {
+        renderWithContext(
+            <ChannelSettingsPermissionsPolicyTab {...baseProps}/>,
+            mergeObjects(initialState, boardChannelsState(baseProps.channel.id)),
+        );
+
+        expect(await screen.findByText('Board permission rules')).toBeInTheDocument();
+        expect(screen.queryByText('Channel permission rules')).not.toBeInTheDocument();
+
+        const addRuleButton = await screen.findByTestId('permissions-policy-add-rule');
+        await waitFor(() => expect(addRuleButton).toBeEnabled());
+        await userEvent.click(addRuleButton);
+        await screen.findByTestId('permissions-policy-editor');
+
+        expect(screen.getByText('Applies only to guest accounts in this board')).toBeInTheDocument();
+        expect(screen.getByText('Allow users to attach files to messages in this board')).toBeInTheDocument();
+        expect(screen.getByText('Allow users to download attached files from this board')).toBeInTheDocument();
+        expect(screen.queryByText('Applies only to guest accounts in this channel')).not.toBeInTheDocument();
+        expect(screen.queryByText('Allow users to attach files to messages in this channel')).not.toBeInTheDocument();
+        expect(screen.queryByText('Allow users to download attached files from this channel')).not.toBeInTheDocument();
+    });
 
     test('merges the fetched enabled session attributes into the rule editor picker', async () => {
         mockActions.getAccessControlFields.mockResolvedValue({
@@ -614,5 +661,128 @@ describe('components/channel_settings_modal/ChannelSettingsPermissionsPolicyTab'
         expect(screen.getByTestId('permissions-policy-editor')).toBeInTheDocument();
         expect(screen.getByTestId('table-editor-value')).toHaveTextContent(newExpression);
         expect(screen.getByTestId(`permissions-policy-editor-action-${ACCESS_CONTROL_ACTION_UPLOAD_FILE}`)).toBeInTheDocument();
+    });
+
+    test('reports unsaved changes to the modal while a rule is open in the editor', async () => {
+        const setAreThereUnsavedChanges = jest.fn();
+
+        await openExistingRuleEditor({...baseProps, setAreThereUnsavedChanges});
+
+        // An open editor holds a draft the modal cannot save for the user, so it
+        // counts as unsaved even before the rule is edited — that is what makes
+        // the modal block section switches.
+        await waitFor(() => {
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(true);
+        });
+
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-cancel'));
+
+        await waitFor(() => {
+            expect(setAreThereUnsavedChanges).toHaveBeenLastCalledWith(false);
+        });
+    });
+
+    test('explains the blocked section switch while the rule editor is open', async () => {
+        const {rerender} = await openExistingRuleEditor();
+
+        expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        // The same floating footer the rest of the modal uses, in its error state.
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
+        expect(screen.getByTestId('SaveChangesPanel__save-btn')).toBeDisabled();
+
+        // The modal clears the flag on a timeout.
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={false}
+            />,
+        );
+
+        await waitFor(() => {
+            expect(screen.queryByText('You have unsaved changes')).not.toBeInTheDocument();
+        });
+    });
+
+    test('explains the blocked section switch while a new rule is being added', async () => {
+        const {rerender} = await openNewRuleEditor();
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
+    });
+
+    test('leaves the rule editor when the blocked-switch footer is cancelled', async () => {
+        const {rerender} = await openExistingRuleEditor();
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        await userEvent.click(await screen.findByTestId('SaveChangesPanel__cancel-btn'));
+
+        // Back on the rules list, with the rule the editor was showing intact.
+        expect(screen.queryByTestId('permissions-policy-editor')).not.toBeInTheDocument();
+        expect(screen.getByText('Existing rule')).toBeInTheDocument();
+    });
+
+    test('keeps the in-progress draft when a section switch is blocked', async () => {
+        const {rerender} = await openExistingRuleEditor();
+        await screen.findByTestId('table-editor');
+
+        const newExpression = 'user.attributes.team == "ops"';
+        await userEvent.clear(screen.getByTestId('permissions-policy-editor-name'));
+        await userEvent.type(screen.getByTestId('permissions-policy-editor-name'), 'Renamed rule');
+        act(() => {
+            latestTableEditorProps().onChange(newExpression);
+        });
+
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        expect(await screen.findByText('You have unsaved changes')).toBeInTheDocument();
+
+        // The message asks the user to save the rule, so the rule has to survive it.
+        expect(screen.getByTestId('permissions-policy-editor-name')).toHaveValue('Renamed rule');
+        expect(screen.getByTestId('table-editor-value')).toHaveTextContent(newExpression);
+    });
+
+    test('keeps a save validation error visible when a section switch is blocked', async () => {
+        const {rerender} = await openExistingRuleEditor();
+
+        await userEvent.clear(screen.getByTestId('permissions-policy-editor-name'));
+        await userEvent.click(screen.getByTestId('permissions-policy-editor-save'));
+        expect(await screen.findByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
+
+        // A blocked section switch must not overwrite the reason the rule
+        // cannot be saved in the first place.
+        rerender(
+            <ChannelSettingsPermissionsPolicyTab
+                {...baseProps}
+                showTabSwitchError={true}
+            />,
+        );
+
+        expect(screen.getByTestId('permissions-policy-editor-error')).toHaveTextContent('Each permission rule needs a unique name.');
+        expect(screen.getByText('You have unsaved changes')).toBeInTheDocument();
     });
 });

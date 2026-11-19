@@ -7,7 +7,7 @@ import type {ConnectedProps} from 'react-redux';
 import {getCurrentChannelId, makeGetChannel, makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import {getAutoSortedCategoryIds, getDraggingState, isChannelSelected} from 'selectors/views/channel_sidebar';
+import {getAutoSortedCategoryIds, getDraggingState, isChannelSelected, shouldCollapseCategoryWithUnreads} from 'selectors/views/channel_sidebar';
 
 import type {GlobalState} from 'types/store';
 
@@ -45,6 +45,7 @@ function makeMapStateToProps() {
             currentTeamName: currentTeam?.name,
             unreadMentions: unreadCount.mentions,
             isUnread: unreadCount.showUnread,
+            collapseCategoryWithUnreads: shouldCollapseCategoryWithUnreads(state),
             draggingState: getDraggingState(state),
             isChannelSelected: isChannelSelected(state, ownProps.channelId),
             multiSelectedChannelIds: state.views.channelSidebar.multiSelectedChannelIds,

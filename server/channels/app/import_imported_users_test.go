@@ -194,11 +194,12 @@ func postureZip(t *testing.T, jsonl string) *zip.Reader {
 // disabled; the pre-creation pass it gates still runs.
 func runPostureImport(t *testing.T, th *TestHelper, jsonl string, posture model.ImportedUsersPosture) (int, *model.AppError) {
 	t.Helper()
-	return th.App.BulkImportWithPathAndOpts(
+	lineNum, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context, strings.NewReader(jsonl), postureZip(t, jsonl),
 		false, false, 1, "",
 		model.BulkImportOpts{ImportedUsers: posture, SkipPreflight: true},
 	)
+	return lineNum, appErr
 }
 
 // createPostureUserInDB pre-creates the account on the destination with the same
@@ -261,7 +262,7 @@ func TestScopedImportImportedUsersActive(t *testing.T) {
 		// The posture only matters if it actually reaches the login path: a
 		// non-zero DeleteAt is rejected there regardless of auth provider, which
 		// is exactly what makes "inactive" fatal for an all-SSO customer.
-		assert.Nil(t, checkUserNotDisabled(created), "%s must pass the login active-check", u.username)
+		assert.NoError(t, checkUserNotDisabled(created), "%s must pass the login active-check", u.username)
 	}
 
 	assert.Equal(t, len(users), postCountInChannel(t, th, th.Context, teamName, chanName))
@@ -291,7 +292,7 @@ func TestScopedImportImportedUsersInactive(t *testing.T) {
 		created := fetchUser(t, th, u.username)
 		assert.NotZero(t, created.DeleteAt, "%s (%s) must arrive deactivated under --imported-users=inactive", u.username, u.authService)
 		assertImportedInactiveTag(t, created, true)
-		assert.NotNil(t, checkUserNotDisabled(created), "a deactivated account must be rejected at login")
+		assert.Error(t, checkUserNotDisabled(created), "a deactivated account must be rejected at login")
 	}
 }
 
@@ -363,7 +364,7 @@ func TestScopedImportRequiresImportedUsersChoice(t *testing.T) {
 	}
 	jsonl := postureArchive(t, teamName, chanName, users, "")
 
-	lineNum, appErr := th.App.BulkImportWithPathAndOpts(
+	lineNum, _, appErr := th.App.BulkImportWithPathAndOpts(
 		th.Context, strings.NewReader(jsonl), postureZip(t, jsonl),
 		false, false, 1, "",
 		model.BulkImportOpts{SkipPreflight: true},

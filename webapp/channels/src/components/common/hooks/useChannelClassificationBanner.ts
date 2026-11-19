@@ -172,9 +172,8 @@ export default function useChannelClassificationBanner(channelId: string): Chann
         dispatch(fetchPropertyFields(
             ACCESS_CONTROL_PROPERTY_GROUP,
             CHANNEL_OBJECT_TYPE,
-            SYSTEM_TARGET_TYPE,
-            SYSTEM_TARGET_ID,
-        ));
+            {targetType: SYSTEM_TARGET_TYPE, targetId: SYSTEM_TARGET_ID},
+        )).catch(() => {});
     }, [attributesEnabled, hasAdvancedLicense, channelFields.length, dispatch]);
 
     // Returns every access_control value on the channel, so this also feeds the

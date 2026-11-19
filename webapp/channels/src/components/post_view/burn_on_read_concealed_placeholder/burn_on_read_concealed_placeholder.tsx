@@ -97,7 +97,7 @@ function BurnOnReadConcealedPlaceholder({
                     data-testid={`burn-on-read-concealed-${postId}`}
                 >
                     {loading ? (
-                        <LoadingSpinner/>
+                        <LoadingSpinner legacy={true}/>
                     ) : (
                         <div className='BurnOnReadConcealedPlaceholder__content'>
                             <EyeOutlineIcon

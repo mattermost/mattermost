@@ -24,29 +24,25 @@ test('switches an email account to OpenID SSO', {tag: '@authentication'}, async 
     };
     await pw.createKeycloakUser(keycloakUser);
 
-    try {
-        // # Log in as the email user and open Switch to OpenID
-        await pw.hasSeenLandingPage();
-        await pw.loginPage.goto();
-        await pw.loginPage.toBeVisible();
-        await pw.loginPage.login(user);
-        await pw.channelsPage.goto(team.name);
-        await pw.channelsPage.toBeVisible();
+    // # Log in as the email user and open Switch to OpenID
+    await pw.hasSeenLandingPage();
+    await pw.loginPage.goto();
+    await pw.loginPage.toBeVisible();
+    await pw.loginPage.login(user);
+    await pw.channelsPage.goto(team.name);
+    await pw.channelsPage.toBeVisible();
 
-        const profileModal = await pw.channelsPage.openProfileModal();
-        await profileModal.openSecurityTab();
-        await profileModal.securityTab.clickSwitchToOpenId();
-        await pw.emailToOAuthPage.toBeVisible();
+    const profileModal = await pw.channelsPage.openProfileModal();
+    await profileModal.openSecurityTab();
+    await profileModal.securityTab.clickSwitchToOpenId();
+    await pw.emailToOAuthPage.toBeVisible();
 
-        // # Confirm the current password and complete Keycloak login
-        await pw.emailToOAuthPage.submit(user.password);
-        await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
+    // # Confirm the current password and complete Keycloak login
+    await pw.emailToOAuthPage.submit(user.password);
+    await pw.keycloakLoginPage.login(keycloakUser.username, keycloakUser.password);
 
-        // * Verify the account now authenticates through OpenID
-        await pw.loginPage.expectOnLoginPage();
-        const switched = await adminClient.getUser(user.id);
-        expect(switched.auth_service).toBe('openid');
-    } finally {
-        await adminClient.patchConfig({OpenIdSettings: {Enable: false}});
-    }
+    // * Verify the account now authenticates through OpenID
+    await pw.loginPage.expectOnLoginPage();
+    const switched = await adminClient.getUser(user.id);
+    expect(switched.auth_service).toBe('openid');
 });

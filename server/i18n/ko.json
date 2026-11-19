@@ -1242,15 +1242,15 @@
     "translation": "삭제하기 전에 DB에서 엑세스 토큰을 받을 수 없습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "사용자 가입이 비활성화 되어있습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "가입 링크가 만료되었습니다."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "유효하지 않은 가입 링크입니다."
   },
   {
@@ -1372,10 +1372,6 @@
   {
     "id": "api.post.update_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
-  },
-  {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "기존 글 또는 댓글을 찾을 수 없습니다."
   },
   {
     "id": "api.post.update_post.permissions_details.app_error",
@@ -3118,11 +3114,11 @@
     "translation": "Failed to set job status to error"
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "URL을 파싱할 수 없습니다."
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "채널을 불러올 수 없습니다."
   },
   {
@@ -6063,7 +6059,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "제공된 스키마에 부합하는 채널을 가져올 수 없습니다."
+    "translation": "제공된 스키마에 부합하는 팀을 가져올 수 없습니다."
   },
   {
     "id": "app.team.get_by_name.missing.app_error",
@@ -7979,11 +7975,11 @@
   },
   {
     "id": "api.shared_channel.invite_remote_to_channel_error",
-    "translation": "채널에 리모컨을 초대할 수 없습니다."
+    "translation": "채널에 원격 서버를 초대할 수 없습니다."
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "채널에 원격 초대를 취소할 수 없습니다."
+    "translation": "채널에서 원격 서버의 초대를 취소할 수 없습니다."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -9102,7 +9098,7 @@
     "translation": "영구 알림 게시물을 삭제하지 못했습니다."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "게시물에 대한 포스트 우선 순위를 받을 수 없습니다."
   },
   {
@@ -9110,7 +9106,7 @@
     "translation": "안녕하세요, @{{.Username}}한테 받은 메시지에 대한 알림입니다: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "사전 패키징된 플러그인 버전을 구문 분석할 수 없습니다."
   },
   {
@@ -9622,10 +9618,6 @@
     "translation": "LDAP 연결 테스트에 실패했습니다. Server: {{.Server}}:{{.Port}}, 연결 보안: {{.ConnectionType}}, 개인 키 파일 이름: {{.PrivateKeyFilename}}, 공개 인증서 파일 이름: {{.PublicCertFilename}}, 바인드 사용자명: {{.BindUsername}}. 오류: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "CPA 필드를 검색하지 못했습니다."
-  },
-  {
     "id": "ent.ldap.do_login.certificate.app_error",
     "translation": "LDAP TLS 인증서 파일을 로드하는 중 오류가 발생했습니다."
   },
@@ -9648,10 +9640,6 @@
   {
     "id": "ent.ldap.no.users.checkcertificate",
     "translation": "LDAP 사용자를 찾을 수 없습니다. 사용자 필터와 인증서를 확인하세요."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "빈 LDAP 속성 값"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -9744,10 +9732,6 @@
   {
     "id": "ent.saml.configure.certificate_parse_error.app_error",
     "translation": "SAML이 ID 공급자 공개 인증서를 로드하지 못했습니다. 시스템 관리자에게 문의하세요."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "CPA 필드를 검색하지 못했습니다."
   },
   {
     "id": "ent.saml.do_login.invalid_signature.app_error",
@@ -12406,7 +12390,7 @@
     "translation": "데이터베이스에서 게시물의 우선순위 데이터를 영구 삭제하지 못했습니다."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "컨텍스트를 사용하여 게시물의 우선순위를 가져올 수 없습니다"
   },
   {
@@ -14247,19 +14231,19 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "상태 점검 결과를 음소거할 수 없습니다."
+    "translation": "발견 사항을 숨길 수 없습니다."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
-    "translation": "상태 점검 결과를 찾을 수 없습니다."
+    "translation": "발견 사항을 찾을 수 없습니다."
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "상태 점검 결과의 음소거를 해제할 수 없습니다."
+    "translation": "발견 사항의 숨김을 해제할 수 없습니다."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
-    "translation": "상태 점검 결과를 찾을 수 없습니다."
+    "translation": "발견 사항을 찾을 수 없습니다."
   },
   {
     "id": "app.import.bulk_import.destination_channel_requires_channel_scope.error",
@@ -14551,7 +14535,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "잘못된 웹 서버 모드입니다: {{.Value}}. 'gzip', 'nogzip', 'disabled' 중 하나여야 합니다."
+    "translation": "잘못된 웹 서버 모드입니다: {{.Value}}. 'gzip', 'uncompressed', 'disabled' 중 하나여야 합니다."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
@@ -14568,5 +14552,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "잘못된 mention_keys입니다: 키 {{.MaxCount}}개 또는 {{.MaxLength}}바이트 제한을 초과합니다."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**찾을 수 없음**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "제거됨"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` 값은 유효한 `{{.Arg}}` 형식이 아닙니다"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "이 필드는 전역 속성 템플릿에 연결되어 있어 사용자 속성 API로 수정할 수 없습니다. 대신 전역 속성 API를 사용하세요."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "이모지를 만들 수 없습니다. 이미지가 너무 커서 처리할 수 없습니다. 크기가 더 작거나 프레임 수가 더 적은 이미지를 사용해 보세요."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "사이트 건강 상태 기능이 활성화되어 있지 않습니다."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "사이트 건강 상태 기능을 사용하려면 Enterprise 라이선스가 필요합니다."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "이 채널에서 읽은 후 삭제 메시지를 보낼 권한이 없습니다."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "파일 시작 위치로 이동할 수 없습니다."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "발견 사항을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "발견 사항을 찾을 수 없습니다."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "발견 사항 목록을 가져올 수 없습니다."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "이 속성은 더 이상 이 소스에서 동기화되지 않으므로 동기화로 변경할 수 없습니다."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "AD/LDAP 또는 SAML에서 동기화된 속성의 옵션은 동기화에서 관리하므로 추가, 이름 변경 또는 제거할 수 없습니다."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "동기화된 속성의 옵션이 유효하지 않습니다."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "유효하지 않은 속성 동기화 소스입니다."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "속성 동기화에 사용된 사용자 ID가 유효하지 않습니다."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "동기화된 속성의 옵션 중 사용 중인 옵션을 확인할 수 없습니다."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "로깅 구성에 로깅 루트 디렉터리 밖에 있는 로그 또는 감사 파일 경로가 포함되어 있습니다. 자세한 내용은 서버 로그를 확인하세요."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "수집 시간을 알 수 없습니다."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "구성 섹션을 사용할 수 없습니다."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "서버 진단 정보를 사용할 수 없습니다."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "작업 기록을 사용할 수 없습니다."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "라이선스 세부 정보를 사용할 수 없습니다."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "플러그인 목록을 사용할 수 없습니다."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "규칙이 예기치 않게 실패하여 평가할 수 없습니다."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "사용 통계를 사용할 수 없습니다."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} 주소가 http:// 프로토콜을 사용하므로 푸시 알림이 암호화되지 않은 평문으로 전송됩니다."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} 주소의 URL 스킴이 유효하지 않습니다. 모바일 사용자가 알림을 받지 못합니다."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "PushNotificationServer 값 앞에 https:// 접두사를 붙이고 앱 노드에서 접근 가능한지 확인하세요."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer 설정에서 https:// 프로토콜을 사용하지 않습니다"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "모든 푸시 시도가 'unsupported protocol scheme' 오류로 실패합니다."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "PushNotificationServer 값을 https://push.mattermost.com 또는 자체 호스팅 푸시 프록시 주소로 설정하세요."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "푸시 알림이 활성화되어 있지만 PushNotificationServer 값이 비어 있습니다"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com 주소는 Mattermost의 테스트용 푸시 프록시입니다. SLA가 없고 처리량이 제한되며 프로덕션용으로 설계되지 않았습니다. 소규모 테스트 이외의 용도에서는 모바일 푸시 전송을 신뢰할 수 없습니다."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "https://push.mattermost.com(Enterprise에 포함된 프로덕션용 Hosted Push Notification Service) 또는 자체 호스팅 푸시 프록시로 전환하세요."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer 설정이 push-test.mattermost.com 주소를 가리킵니다"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL 설정은 웹훅 URL, OAuth 콜백, 모바일 푸시 페이로드, 이메일 링크에 필요합니다. 이 값이 비어 있는 동안에는 통합이 작동하지 않습니다."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "SiteURL 설정을 서버의 공개 HTTPS URL로 지정하세요."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL 값이 비어 있습니다"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL 설정 값: {{.url}}. 세션 쿠키와 인증 토큰이 암호화되지 않은 평문으로 전송됩니다."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Mattermost를 HTTPS로 제공하고 SiteURL 설정을 https:// 주소로 업데이트하세요."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL 설정에서 https://가 아닌 http:// 프로토콜을 사용합니다"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "읽은 후 삭제 메시지는 반복 예약 메시지로 보낼 수 없습니다."
   }
 ]

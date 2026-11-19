@@ -23,7 +23,7 @@ jest.mock('./interactive_dialog_adapter', () => {
 describe('components/dialog_router/index — mapStateToProps', () => {
     const triggerId = 'trigger_for_channel_x';
 
-    const makeState = (dialogChannelId?: string): DeepPartial<GlobalState> => ({
+    const makeState = (dialogChannelId?: string, size?: string): DeepPartial<GlobalState> => ({
         entities: {
             integrations: {
                 dialogs: {
@@ -35,12 +35,13 @@ describe('components/dialog_router/index — mapStateToProps', () => {
                             callback_id: 'abc123',
                             title: 'Test Dialog',
                             elements: [],
+                            size,
                         },
                     },
                 },
             },
         },
-    });
+    } as DeepPartial<GlobalState>);
 
     beforeEach(() => {
         capturedProps = undefined;
@@ -67,5 +68,26 @@ describe('components/dialog_router/index — mapStateToProps', () => {
         );
 
         expect(capturedProps.channelId).toBeUndefined();
+    });
+
+    // size is read straight off the dialog the server sent, so this is the hop
+    // where a width tier would quietly go missing before the adapter ever sees
+    // it.
+    test('passes the dialog width tier through', () => {
+        renderWithContext(
+            <ConnectedDialogRouter triggerId={triggerId}/>,
+            makeState('channel_from_server', 'large'),
+        );
+
+        expect(capturedProps.size).toBe('large');
+    });
+
+    test('supplies no width tier when the dialog sets none', () => {
+        renderWithContext(
+            <ConnectedDialogRouter triggerId={triggerId}/>,
+            makeState('channel_from_server'),
+        );
+
+        expect(capturedProps.size).toBeUndefined();
     });
 });

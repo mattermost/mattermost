@@ -370,7 +370,7 @@ export const KEYBOARD_SHORTCUTS = {
     msgMarkdownUl: defineMessages({
         default: {
             id: 'shortcuts.msgs.markdown.unordered',
-            defaultMessage: 'Bulleted List\tShift|Alt|8',
+            defaultMessage: 'Bulleted List:\tShift|Alt|8',
         },
         mac: {
             id: 'shortcuts.msgs.markdown.unordered.mac',

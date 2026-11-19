@@ -3,9 +3,9 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import AccessProblemSVG from 'components/common/svg_images_components/access_problem_svg';
 
@@ -17,6 +17,7 @@ type Props = {
 };
 
 export default function NoPermissionsView(props: Props) {
+    const {formatMessage} = useIntl();
     return (
         <>
             <Modal.Header
@@ -49,8 +50,8 @@ export default function NoPermissionsView(props: Props) {
                     onClick={props.onDone}
                     emphasis='primary'
                     data-testid='confirm-done'
-                    aria-label='Close'
-                    title='Close'
+                    aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
+                    title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                 >
                     <FormattedMessage
                         id='invitation_modal.confirm.done'

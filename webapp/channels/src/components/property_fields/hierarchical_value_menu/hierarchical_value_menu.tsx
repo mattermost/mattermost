@@ -7,6 +7,7 @@ import type {ReactNode} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 
 import {ChevronDownIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import * as Menu from 'components/menu';
 
@@ -17,7 +18,7 @@ import {
     hierarchicalMenuStatusKind,
     isGraphFieldWithheld,
 } from './hierarchical_value_menu_parts';
-import type {ChipLabel} from './hierarchical_value_menu_parts';
+import type {ChipLabel, HierarchicalValueMenuVariant} from './hierarchical_value_menu_parts';
 import HierarchicalValueRow, {isKeydownSynthesisedClick} from './hierarchical_value_row';
 
 import type {GraphOccurrence, GraphOptionJoin} from '../graph';
@@ -85,6 +86,15 @@ export type HierarchicalValueMenuProps = {
     className?: string;
     buttonClassName?: string;
 
+    // `input` (default): Compass multiselect-style trigger for forms / Account Settings.
+    // `inline`: borderless chip chrome matching ChannelInfoAttributes__valueTrigger.
+    // `policy`: legacy bordered trigger with AttributeChip for the policy editor table.
+    variant?: HierarchicalValueMenuVariant;
+
+    // Red field state. The div trigger has role=button, which cannot carry the invalid ARIA state.
+    invalid?: boolean;
+    ariaDescribedBy?: string;
+
     trailingChips?: ReactNode;
 
     // Array, not a fragment: MenuList console.errors on Fragment children.
@@ -102,6 +112,32 @@ type VisibleRow = {
     insideCount: number;
 };
 
+function renderCaret(variant: HierarchicalValueMenuVariant) {
+    switch (variant) {
+    case 'input':
+        return (
+            <Icon
+                className='hierarchical-value-menu__caret'
+                size='12'
+                glyph={<ChevronDownIcon/>}
+            />
+        );
+    case 'policy':
+        return (
+            <ChevronDownIcon
+                size={18}
+                color='rgba(var(--center-channel-color-rgb), 0.5)'
+            />
+        );
+    case 'inline':
+        return null;
+    default: {
+        const unreachable: never = variant;
+        return unreachable;
+    }
+    }
+}
+
 export default function HierarchicalValueMenu({
     field,
     selectedIds,
@@ -118,20 +154,42 @@ export default function HierarchicalValueMenu({
     ariaLabel,
     className,
     buttonClassName,
+    variant = 'input',
+    invalid,
+    ariaDescribedBy,
     trailingChips,
     extraMenuItems,
 }: HierarchicalValueMenuProps) {
+    const hasChips = selectedIds.length > 0 || Boolean(trailingChips);
     const {formatMessage} = useIntl();
 
     const [isOpen, setIsOpen] = useState(false);
     const [query, setQuery] = useState('');
     const [expandedOccKeys, setExpandedOccKeys] = useState<Set<string> | null>(null);
 
+    // Form fields open their popover at the field's width, like the Compass Combobox.
+    const matchesTriggerWidth = variant === 'input';
+    const [triggerWidth, setTriggerWidth] = useState<number | null>(null);
+
     const {options, join, status, refetch} = useGraphOptionJoin(field, {
         prefetch: prefetchOnMount,
         open: isOpen,
         onOptionsLoaded,
     });
+
+    // Measure trigger width on mount and when opening so it tracks layout changes.
+    useEffect(() => {
+        if (!matchesTriggerWidth) {
+            return;
+        }
+        const trigger = document.getElementById(buttonId);
+        if (trigger && (triggerWidth === null || isOpen)) {
+            const width = trigger.offsetWidth;
+            if (width > 0) {
+                setTriggerWidth(width);
+            }
+        }
+    }, [matchesTriggerWidth, buttonId, triggerWidth, isOpen]);
 
     const searchInputRef = useRef<HTMLInputElement | null>(null);
     const rowRefs = useRef(new Map<string, HTMLLIElement>());
@@ -252,6 +310,10 @@ export default function HierarchicalValueMenu({
         setIsOpen(open);
         onMenuOpenChange?.(open);
     }, [onMenuOpenChange]);
+
+    const menuWidth = matchesTriggerWidth && triggerWidth ? `${triggerWidth}px` : undefined;
+
+    const getPopoverContainer = useCallback(() => document.getElementById(buttonId)?.closest<HTMLElement>('[role="dialog"]') ?? null, [buttonId]);
 
     // The modal root no longer captures clicks (allowTriggerInteraction), so
     // outside clicks must close the menu here. Clicks on the trigger or the
@@ -425,45 +487,58 @@ export default function HierarchicalValueMenu({
         menuChildren.push(...extraMenuItems);
     }
 
+    // Chips use real <button> removes; the Menu trigger is a <div> so we never
+    // nest button-in-button (invalid HTML / broken for VoiceOver).
+    const triggerChildren = (
+        <span className='hierarchical-value-menu__button-inner'>
+            {hasChips ? (
+                <SelectedValueChips
+                    selectedIds={selectedIds}
+                    labelForId={labelForId}
+                    disabled={Boolean(disabled)}
+                    onRemove={handleRemoveChip}
+                    trailingChips={trailingChips}
+                    variant={variant}
+                />
+            ) : (
+                <span className='hierarchical-value-menu__placeholder'>
+                    {resolvedPlaceholder}
+                </span>
+            )}
+            {renderCaret(variant)}
+        </span>
+    );
+
     return (
-        <div className={classNames('hierarchical-value-menu', className)}>
+        <div className={classNames('hierarchical-value-menu', `hierarchical-value-menu--${variant}`, className)}>
             <Menu.Container
                 menuButton={{
                     id: buttonId,
                     dataTestId: buttonDataTestId,
-                    class: classNames('hierarchical-value-menu__button', buttonClassName, {disabled}),
+                    as: 'div',
+                    class: classNames('hierarchical-value-menu__button', buttonClassName, {
+                        disabled,
+                        'hierarchical-value-menu__button--has-chips': hasChips,
+                        'hierarchical-value-menu__button--invalid': invalid,
+                    }),
                     disabled,
                     'aria-label': resolvedAriaLabel,
-                    children: (
-                        <span className='hierarchical-value-menu__button-inner'>
-                            {selectedIds.length === 0 && !trailingChips ? (
-                                <span className='hierarchical-value-menu__placeholder'>
-                                    {resolvedPlaceholder}
-                                </span>
-                            ) : (
-                                <SelectedValueChips
-                                    selectedIds={selectedIds}
-                                    labelForId={labelForId}
-                                    disabled={Boolean(disabled)}
-                                    onRemove={handleRemoveChip}
-                                    trailingChips={trailingChips}
-                                />
-                            )}
-                            <ChevronDownIcon
-                                size={18}
-                                color='rgba(var(--center-channel-color-rgb), 0.5)'
-                            />
-                        </span>
-                    ),
+                    'aria-describedby': ariaDescribedBy,
+                    children: triggerChildren,
                 }}
                 menu={{
                     id: menuId,
                     'aria-label': resolvedAriaLabel,
-                    className: 'hierarchical-value-menu__menu',
+                    className: classNames('hierarchical-value-menu__menu', {
+                        'hierarchical-value-menu__menu--trigger-width': menuWidth,
+                    }),
+                    width: menuWidth,
+                    maxWidth: menuWidth ?? '320px',
                     isMenuOpen: isOpen,
                     onToggle: handleToggle,
                     autoFocusItem: false,
                     allowTriggerInteraction: true,
+                    container: getPopoverContainer,
                 }}
                 menuHeader={
                     <HierarchicalMenuSearch

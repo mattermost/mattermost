@@ -34,6 +34,10 @@ import {
     POSTGRES_PASSWORD,
     POSTGRES_PORT,
     POSTGRES_USER,
+    NGINX_ALIAS,
+    NGINX_PORT,
+    NGINX_SSL_PORT,
+    SUBPATH_DEFAULT,
     WEBHOOK_ALIAS,
     WEBHOOK_PORT,
 } from './constants';
@@ -43,23 +47,26 @@ import {
     INBUCKET_IMAGE,
     KEYCLOAK_IMAGE,
     MINIO_IMAGE,
+    NGINX_IMAGE,
     OPENLDAP_IMAGE,
     OPENSEARCH_VERSION,
     POSTGRES_IMAGE,
 } from './default_images';
 import {startInbucketContainer} from './inbucket_container';
-import {logTestcontainers} from './log';
+import {logTestcontainers, warnTestcontainers} from './log';
 import {resolveMattermostBootEnv, startMattermostContainer} from './mattermost_container';
+import {withStackLock} from './lock';
 import {getNetwork, getNetworkGatewayIp, stopNetwork} from './network';
+import {removeOrphanedServerContainers} from './orphans';
 import {startPostgresContainer} from './postgres_container';
 import {ADDITIONAL_SERVICE_STARTERS} from './requirements';
 import {startWebhookContainer} from './webhook_container';
 
 import {clearClientCache} from '@/server/client';
-import {defaultBootEnv, testConfig} from '@/test_config';
+import {defaultBootEnv, reloadTestConfig, testConfig} from '@/test_config';
 import type {TestContainersServiceName} from '@/test_config';
-import {isUpgradeToPhaseProjectSelected, upgradeToStackNotRunningError} from '@/upgrade_env';
-import {duration} from '@/util';
+import {isUpgradeToPhaseProjectActive, upgradeToStackNotRunningError} from '@/upgrade_env';
+import {disableTlsVerificationForSelfSignedProxy, duration} from '@/util';
 
 const execFileAsync = promisify(execFile);
 
@@ -96,11 +103,17 @@ export async function startStack(): Promise<void> {
         return;
     }
 
+    await withStackLock('start the stack', startStackLocked);
+}
+
+async function startStackLocked(): Promise<void> {
+    // Another process may have brought the stack up while this one waited for the lock.
+    reloadTestConfig();
     if (await reuseExistingStack()) {
         return;
     }
 
-    if (isUpgradeToPhaseProjectSelected()) {
+    if (isUpgradeToPhaseProjectActive()) {
         throw upgradeToStackNotRunningError();
     }
 
@@ -191,6 +204,19 @@ export async function startStack(): Promise<void> {
     logStackStarted(started);
 }
 
+// A worker is killed without cleanup when a run is interrupted. If that happens mid-restart, the new server keeps
+// running but nothing records it. The main process survives and runs this at teardown.
+async function removeStrandedServerContainers(): Promise<void> {
+    try {
+        await withStackLock('clean up after the run', async () => {
+            reloadTestConfig();
+            await removeOrphanedServerContainers(testConfig.mattermostContainerId);
+        });
+    } catch (error) {
+        warnTestcontainers(`could not clean up stranded server containers: ${String(error)}`);
+    }
+}
+
 /**
  * True if .env.testcontainers points at a Mattermost container that's still running — i.e. some
  * OTHER process already brought up a stack this process should reuse instead of duplicating.
@@ -212,6 +238,11 @@ async function reuseExistingStack(): Promise<boolean> {
 
     if (testConfig.containerRunner) {
         await joinSelfToNetwork(testConfig.testcontainersNetworkName);
+    }
+
+    // This process never ran the boot-time logic that would otherwise enable this.
+    if (testConfig.baseURL.startsWith('https:')) {
+        disableTlsVerificationForSelfSignedProxy();
     }
 
     logTestcontainers(
@@ -240,6 +271,7 @@ function logStackReused(): void {
         opensearch: testConfig.opensearchUrl,
         minio: testConfig.minioUrl,
         azurite: testConfig.azuriteUrl,
+        nginx: testConfig.nginxUrl,
     };
     testConfig.testcontainersServices.forEach((name) => {
         lines.push(`  - ${name.padEnd(13)} = ${additionalUrls[name]}`);
@@ -273,6 +305,8 @@ export async function stopStack(options: {force?: boolean} = {}): Promise<void> 
     if (!testConfig.useTestContainers) {
         return;
     }
+
+    await removeStrandedServerContainers();
 
     if (reused) {
         reused = false;
@@ -332,10 +366,19 @@ export function bootEnvMatches(env: Record<string, string>): boolean {
  * result, new container id, and new baseURL are appended to .env.testcontainers so any other
  * process picks up the real current state instead of a stale or default one.
  *
+ * `unset` removes keys from the overrides, so the server boots with the baseline value (or none).
+ *
  * Always performs the restart without checking whether `env` is already active — callers (e.g.
  * ensureMinio()/ensureAzurite()) own that decision via bootEnvMatches().
  */
-export async function restartMattermostContainer(env: Record<string, string>): Promise<void> {
+export async function restartMattermostContainer(env: Record<string, string>, unset: string[] = []): Promise<void> {
+    await withStackLock('restart the server', () => restartMattermostContainerLocked(env, unset));
+}
+
+async function restartMattermostContainerLocked(env: Record<string, string>, unset: string[]): Promise<void> {
+    // Another process may have replaced the server while this one waited for the lock.
+    reloadTestConfig();
+
     if (!testConfig.useTestContainers) {
         throw new Error('restartMattermostContainer requires PW_USE_TESTCONTAINERS=true.');
     }
@@ -347,7 +390,11 @@ export async function restartMattermostContainer(env: Record<string, string>): P
 
     extendTimeoutForRestart();
 
-    testConfig.bootEnvOverrides = {...testConfig.bootEnvOverrides, ...env};
+    const overrides = {...testConfig.bootEnvOverrides, ...env};
+    for (const key of unset) {
+        delete overrides[key];
+    }
+    testConfig.bootEnvOverrides = overrides;
 
     await execFileAsync('docker', ['rm', '-f', testConfig.mattermostContainerId]);
 
@@ -356,15 +403,58 @@ export async function restartMattermostContainer(env: Record<string, string>): P
         testConfig.bootEnvOverrides,
     );
 
-    testConfig.baseURL = resolveUrl(mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
+    // In subpath mode the restarted container still boots with the subpath SiteURL
+    // (resolveMattermostBootEnv()) and nginx is untouched by this restart, so baseURL must keep
+    // pointing through the proxy rather than directly at the Mattermost container.
+    testConfig.baseURL = testConfig.subpathMode
+        ? `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`
+        : resolveUrl(mattermost, MATTERMOST_PORT, MATTERMOST_ALIAS);
     testConfig.mattermostContainerId = mattermost.getId();
     clearClientCache();
 
-    const redactedEnv = redactServerEnv(env);
-    appendEnvFile(`restart requested by ${describeCurrentTest()} — env ${JSON.stringify(redactedEnv)}`);
+    const change = describeRestartChange(redactServerEnv(env), unset);
+    appendEnvFile(`restart requested by ${describeCurrentTest()} — ${change}`);
 
-    logTestcontainers(`restarted server (${testConfig.serverImage}) with ${JSON.stringify(redactedEnv)}.`);
+    logTestcontainers(`restarted server (${testConfig.serverImage}): ${change}.`);
     await logServerImageAge(testConfig.serverImage);
+}
+
+// Spells out what a restart changed, since an empty env object alone reads as "nothing".
+function describeRestartChange(set: Record<string, string>, unset: string[]): string {
+    const parts: string[] = [];
+    if (Object.keys(set).length > 0) {
+        parts.push(`set ${JSON.stringify(set)}`);
+    }
+    if (unset.length > 0) {
+        parts.push(`removed ${unset.join(', ')}`);
+    }
+
+    return parts.length > 0 ? parts.join('; ') : 'no env changes';
+}
+
+/** The env the running server container was actually started with. */
+export async function getMattermostContainerEnv(): Promise<Record<string, string>> {
+    const {stdout} = await execFileAsync('docker', [
+        'inspect',
+        '--format',
+        '{{json .Config.Env}}',
+        testConfig.mattermostContainerId,
+    ]).catch((error: Error) => {
+        if (String(error.message).includes('no such object')) {
+            throw new Error(
+                `Server container ${testConfig.mattermostContainerId} no longer exists (a restart or start likely failed). Run "npm run testcontainers:down" and retry.`,
+                {cause: error},
+            );
+        }
+        throw error;
+    });
+
+    return Object.fromEntries(
+        (JSON.parse(stdout) as string[]).map((entry) => {
+            const separator = entry.indexOf('=');
+            return [entry.slice(0, separator), entry.slice(separator + 1)];
+        }),
+    );
 }
 
 // Empties the server's bind-mounted data directory on a fresh boot. The server writes as UID 2000
@@ -470,11 +560,11 @@ async function joinSelfToNetwork(networkId: string): Promise<void> {
     }
 }
 
-function resolveUrl(container: StartedTestContainer, port: number, alias: string): string {
+function resolveUrl(container: StartedTestContainer, port: number, alias: string, scheme = 'http'): string {
     if (testConfig.containerRunner) {
-        return `http://${alias}:${port}`;
+        return `${scheme}://${alias}:${port}`;
     }
-    return `http://${container.getHost()}:${container.getMappedPort(port)}`;
+    return `${scheme}://${container.getHost()}:${container.getMappedPort(port)}`;
 }
 
 function resolveHostAndPort(container: StartedTestContainer, port: number, alias: string): [string, number] {
@@ -506,6 +596,11 @@ const ADDITIONAL_CONTAINER_METADATA: Record<TestContainersServiceName, Container
     opensearch: {alias: OPENSEARCH_ALIAS, port: OPENSEARCH_PORT, image: `built, OpenSearch ${OPENSEARCH_VERSION}`},
     minio: {alias: MINIO_ALIAS, port: MINIO_PORT, image: MINIO_IMAGE},
     azurite: {alias: AZURITE_ALIAS, port: AZURITE_BLOB_PORT, image: AZURITE_IMAGE},
+    nginx: {
+        alias: NGINX_ALIAS,
+        port: testConfig.sslServer ? NGINX_SSL_PORT : NGINX_PORT,
+        image: NGINX_IMAGE,
+    },
 };
 
 function containerEntries(stack: StartedStack): Array<[string, StartedTestContainer, ContainerMetadata]> {
@@ -660,6 +755,24 @@ function applyResolvedConfig(stack: StartedStack): void {
     if (stack.additional.azurite) {
         testConfig.azuriteUrl = resolveUrl(stack.additional.azurite, AZURITE_BLOB_PORT, AZURITE_ALIAS);
     }
+    if (stack.additional.nginx) {
+        testConfig.nginxUrl = testConfig.sslServer
+            ? resolveUrl(stack.additional.nginx, NGINX_SSL_PORT, NGINX_ALIAS, 'https')
+            : resolveUrl(stack.additional.nginx, NGINX_PORT, NGINX_ALIAS);
+
+        // Container already booted with this SiteURL (resolveMattermostBootEnv()) — reflect it here.
+        if (testConfig.subpathMode) {
+            testConfig.baseURL = `${testConfig.nginxUrl}${SUBPATH_DEFAULT}`;
+            testConfig.bootEnvOverrides = {
+                ...testConfig.bootEnvOverrides,
+                MM_SERVICESETTINGS_SITEURL: testConfig.subpathSiteURL,
+            };
+            if (testConfig.sslServer) {
+                // baseGlobalSetup() makes its own HTTPS calls right after this.
+                disableTlsVerificationForSelfSignedProxy();
+            }
+        }
+    }
 }
 
 // One block per write: a human-readable `# [timestamp] label` comment line (dotenv ignores
@@ -680,6 +793,7 @@ function envFileLines(label: string): string[] {
         `PW_OPENSEARCH_URL=${testConfig.opensearchUrl}`,
         `PW_MINIO_URL=${testConfig.minioUrl}`,
         `PW_AZURITE_URL=${testConfig.azuriteUrl}`,
+        `PW_NGINX_URL=${testConfig.nginxUrl}`,
         `PW_TESTCONTAINERS_NETWORK_NAME=${testConfig.testcontainersNetworkName}`,
         `PW_TESTCONTAINERS_MATTERMOST_CONTAINER_ID=${testConfig.mattermostContainerId}`,
         // Persist the image currently running (separate from process SERVER_IMAGE / to-image).
@@ -705,7 +819,7 @@ function resetEnvFile(label: string): void {
  * server-state drift after the fact, since in the CI dispatch model no single process ever sees
  * the whole picture on its own.
  */
-function appendEnvFile(label: string): void {
+export function appendEnvFile(label: string): void {
     fs.appendFileSync(ENV_FILE_PATH, envFileLines(label).join('\n') + '\n', 'utf-8');
 }
 

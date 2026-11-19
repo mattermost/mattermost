@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {getShortenedURL} from 'utils/url';
@@ -135,7 +135,7 @@ function UrlInput({
                         className={classNames('url-input-button', {disabled: hasError})}
                         disabled={hasError}
                         emphasis='quaternary'
-                        size='xs'
+                        size='x-small'
                         type='button'
                         onClick={handleOnButtonClick}
                         onKeyDown={handlePropagateKeyDown}

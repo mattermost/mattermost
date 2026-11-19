@@ -45,8 +45,8 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
      * unlike the same editor in the Channel Info RHS, which writes immediately.
      */
     test('stages an attribute edit and writes it only when Save is clicked', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();
@@ -109,8 +109,8 @@ test.describe('Channel attribute editing in Channel Settings', {tag: ['@channel_
      * attribute edit -- reverting the row in the UI -- without ever writing it.
      */
     test('Reset discards a staged attribute edit without writing it', async ({pw}) => {
+        await pw.ensureFeatureFlag('ChannelAttributes', true);
         await pw.skipIfNoLicense();
-        await pw.skipIfFeatureFlagNotSet('ChannelAttributes', true);
 
         const {adminClient, team} = await pw.initSetup();
         const suffix = pw.random.id();

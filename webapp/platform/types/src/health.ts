@@ -1,0 +1,53 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+export type HealthFindingSeverity = 'critical' | 'warning' | 'info';
+
+export type HealthFindingState = 'firing' | 'resolved' | 'unknown';
+
+export type HealthFinding = {
+    fingerprint: string;
+    code: string;
+    subject: string;
+
+    // Hostname of a node-scoped finding, or '' for a cluster-global one.
+    scope: string;
+    severity: HealthFindingSeverity;
+    state: HealthFindingState;
+    area: string;
+    surface: 'product' | 'internal';
+
+    // Title, remediation and message arrive already rendered in the request locale.
+    title?: string;
+    remediation?: string;
+    message?: string;
+    docs_url?: string;
+
+    // An absolute in-app route such as /admin_console/environment/web_server.
+    console_path?: string;
+    message_id: string;
+    details?: Record<string, string>;
+    first_seen_at: number;
+    last_seen_at: number;
+    state_since: number;
+    muted_at?: number;
+    muted_by?: string;
+};
+
+export type HealthFindingList = {
+
+    // When the server last evaluated, across every stored finding whatever the filter; 0 if never.
+    evaluated_at: number;
+    findings: HealthFinding[];
+};
+
+// Severity, state and area filtering happen client-side over the fetched list; only the mute
+// read-policy is a server parameter. Omitting muted returns unmuted findings only.
+export type HealthFindingFilter = {
+    muted?: 'included' | 'only';
+};
+
+export type HealthState = {
+    findings: Record<string, HealthFinding>;
+    evaluatedAt: number;
+};

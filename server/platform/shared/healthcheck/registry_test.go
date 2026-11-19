@@ -70,15 +70,15 @@ func TestRegistryValidate(t *testing.T) {
 			expectedSubtext: "code cannot be empty",
 		},
 		{
-			name: "empty summary id",
+			name: "empty title id",
 			rules: []Rule{
 				func() Rule {
-					rule := validRule("EMPTY_SUMMARY")
-					rule.SummaryID = ""
+					rule := validRule("EMPTY_TITLE")
+					rule.TitleID = ""
 					return rule
 				}(),
 			},
-			expectedSubtext: "summary id cannot be empty",
+			expectedSubtext: "title id cannot be empty",
 		},
 		{
 			name: "empty remediation id",
@@ -136,15 +136,15 @@ func TestRegistryValidate(t *testing.T) {
 			expectedSubtext: "unknown volatility",
 		},
 		{
-			name: "summary convention",
+			name: "title convention",
 			rules: []Rule{
 				func() Rule {
-					rule := validRule("SUMMARY_CONVENTION")
-					rule.SummaryID = "health.rule.other_rule.summary"
+					rule := validRule("TITLE_CONVENTION")
+					rule.TitleID = "health.rule.other_rule.title"
 					return rule
 				}(),
 			},
-			expectedSubtext: "summary id must be",
+			expectedSubtext: "title id must be",
 		},
 		{
 			name: "remediation convention",

@@ -404,5 +404,28 @@
   },
   "server": {
     "target": "伺服器"
+  },
+  "health dashboard": {
+    "target": "網站健康狀態",
+    "note": "Name of the System Console page. Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "健康檢查結果",
+    "note": "Measure word 項. Consistent in existing translations."
+  },
+  "Agents plugin": {
+    "target": "Agents 擴充程式",
+    "note": "Consistent in existing translations."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English, with spaces around it in Chinese text and no translated head noun: 'Mattermost Hosted Push Notification Service 的使用條款'. Do not render it as 託管推播通知服務. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English, like Hosted Push Notification Service. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

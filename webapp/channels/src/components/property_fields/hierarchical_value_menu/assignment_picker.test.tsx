@@ -91,6 +91,7 @@ function CommittedIdLabel({field, id}: {field: GraphFieldRef; id: string}) {
 }
 
 const trigger = () => screen.getByTestId('assignment-trigger');
+const triggerButton = trigger;
 
 const openMenu = async () => {
     await userEvent.click(trigger());
@@ -117,6 +118,17 @@ describe('AssignmentGraphPicker', () => {
 
         expect(trigger()).toBeInTheDocument();
         expect(mockPageAll).not.toHaveBeenCalled();
+    });
+
+    test('passes invalid and ariaDescribedBy through to the trigger', () => {
+        const {rerenderWith} = renderPicker();
+        expect(trigger()).not.toHaveClass('hierarchical-value-menu__button--invalid');
+        expect(trigger()).not.toHaveAttribute('aria-describedby');
+
+        rerenderWith({invalid: true, ariaDescribedBy: 'field1-error'});
+
+        expect(trigger()).toHaveClass('hierarchical-value-menu__button--invalid');
+        expect(trigger()).toHaveAttribute('aria-describedby', 'field1-error');
     });
 
     test('P3: prefetches for an omitted field', async () => {
@@ -190,7 +202,7 @@ describe('AssignmentGraphPicker', () => {
     test('P10: forwards disabled to the trigger', () => {
         renderPicker({disabled: true});
 
-        expect(trigger()).toBeDisabled();
+        expect(triggerButton()).toHaveAttribute('aria-disabled', 'true');
     });
 
     test('shows payload names as chips without fetching', async () => {

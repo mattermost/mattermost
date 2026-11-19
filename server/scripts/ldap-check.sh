@@ -79,19 +79,18 @@ else
 fi
 
 run_ldap_search() {
-	local filter="$1"
-	local attributes="$2"
-	
-	cmd_to_run="$ldapsearch_cmd -LLL -x $StartTlsFlag -H \"$LdapUri\" -D \"$BindUsername\" -w \"$BindPassword\" -b \"$BaseDN\" \"$filter\" $attributes"
-	echo $cmd_to_run
+	local filter="$1"; shift
+	local args=(-LLL -x -H "$LdapUri" -D "$BindUsername" -b "$BaseDN")
+	[[ -n $StartTlsFlag ]] && args+=(-ZZ)
+	printf '%q ' "$ldapsearch_cmd" "${args[@]}" -W -- "$filter" "$@"; echo
 	echo "-------------------------"
-	eval $cmd_to_run
+	"$ldapsearch_cmd" "${args[@]}" -y <(printf '%s' "$BindPassword") -- "$filter" "$@"
 }
 
 if [[ $1 == '-u' ]]; then
-	run_ldap_search "$UserFilter" "$IdAttribute $UsernameAttribute $EmailAttribute"
+	run_ldap_search "$UserFilter" "$IdAttribute" "$UsernameAttribute" "$EmailAttribute"
 elif [[ $1 == '-g' ]]; then
-	run_ldap_search "$GroupFilter" ""
+	run_ldap_search "$GroupFilter"
 else 
 	echo "User or Group not specified"
 fi

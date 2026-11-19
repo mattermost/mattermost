@@ -127,6 +127,10 @@ func (r *Reconciler) Reconcile(evals []Evaluation) ([]Transition, error) {
 		cycleSeen[eval.Fingerprint] = struct{}{}
 
 		previous := existingByFingerprint[eval.Fingerprint]
+		// Resolved means a problem cleared, so a check that has never fired gets no finding.
+		if previous == nil && eval.Result.State == StateResolved {
+			continue
+		}
 		next := upsertableFinding(previous, eval, rule, timestampForEval(eval, nowUnixMilli))
 
 		prevState := findingState(previous)

@@ -4,6 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Radio} from '@mattermost/compass-ui/components/radio';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -78,30 +79,23 @@ const RenderEmoticonsAsEmoji: React.FC<Props> = ({user, renderEmoticonsAsEmoji, 
                     defaultMessage='Render emoticons as emojis'
                 />
             </legend>
-            {options.map(({option, inputId, messageId, defaultMessage}) => {
-                return (
-                    <div
-                        className='radio'
+            <div className='settings-radio-group'>
+                {options.map(({option, inputId, messageId, defaultMessage}) => (
+                    <Radio
                         key={option}
+                        id={inputId}
+                        name='renderEmoticonsAsEmoji'
+                        value={option}
+                        checked={value === option}
+                        onChange={handleChange}
                     >
-                        <label>
-                            <input
-                                id={inputId}
-                                type='radio'
-                                name='renderEmoticonsAsEmoji'
-                                value={option}
-                                checked={value === option}
-                                onChange={handleChange}
-                            />
-                            <FormattedMessage
-                                id={messageId}
-                                defaultMessage={defaultMessage}
-                            />
-                        </label>
-                        <br/>
-                    </div>
-                );
-            })}
+                        <FormattedMessage
+                            id={messageId}
+                            defaultMessage={defaultMessage}
+                        />
+                    </Radio>
+                ))}
+            </div>
             <div className='mt-5'>
                 <FormattedMessage
                     id='user.settings.display.renderEmoticonsAsEmojiDesc'

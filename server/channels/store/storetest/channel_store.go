@@ -8101,20 +8101,36 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, rctx request.CTX, ss store
 }
 
 func testChannelStoreMaxChannelsPerTeam(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel := &model.Channel{
-		TeamId:      model.NewId(),
-		DisplayName: "Channel",
-		Name:        model.NewId(),
-		Type:        model.ChannelTypeOpen,
+	newChannel := func(teamID string) *model.Channel {
+		return &model.Channel{
+			TeamId:      teamID,
+			DisplayName: "Channel",
+			Name:        model.NewId(),
+			Type:        model.ChannelTypeOpen,
+		}
 	}
-	_, nErr := ss.Channel().Save(rctx, channel, 0)
-	assert.Error(t, nErr)
-	var ltErr *store.ErrLimitExceeded
-	assert.True(t, errors.As(nErr, &ltErr))
 
-	channel.Id = ""
-	_, nErr = ss.Channel().Save(rctx, channel, 1)
-	assert.NoError(t, nErr)
+	t.Run("limit exceeded", func(t *testing.T) {
+		teamID := model.NewId()
+
+		_, nErr := ss.Channel().Save(rctx, newChannel(teamID), 1)
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().Save(rctx, newChannel(teamID), 1)
+		require.Error(t, nErr)
+		var ltErr *store.ErrLimitExceeded
+		assert.True(t, errors.As(nErr, &ltErr))
+	})
+
+	t.Run("no limit when max channels per team is 0", func(t *testing.T) {
+		teamID := model.NewId()
+
+		_, nErr := ss.Channel().Save(rctx, newChannel(teamID), 0)
+		require.NoError(t, nErr)
+
+		_, nErr = ss.Channel().Save(rctx, newChannel(teamID), 0)
+		require.NoError(t, nErr)
+	})
 }
 
 func testChannelStoreGetChannelsByScheme(t *testing.T, rctx request.CTX, ss store.Store) {

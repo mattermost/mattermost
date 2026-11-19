@@ -7,7 +7,7 @@ import Link from '@tiptap/extension-link';
 import {Markdown} from '@tiptap/markdown';
 import StarterKit from '@tiptap/starter-kit';
 
-import {isRedundantLinkText, serializeToMarkdown, stripRedundantLinkMarks} from './wysiwyg_markdown';
+import {isRedundantLinkText, parseMarkdownContent, serializeToMarkdown, stripRedundantLinkMarks} from './wysiwyg_markdown';
 
 const paragraph = (...content: JSONContent[]): JSONContent => ({
     type: 'doc',
@@ -139,4 +139,55 @@ describe('serializeToMarkdown', () => {
 
         expect(serializeToMarkdown(editor)).toBe('[Mattermost](https://mattermost.com)');
     });
+
+    it.each([
+        ['an unclosed code fence', '``` - [ ] example'],
+        ['a tilde fence', '~~~'],
+        ['a typed labelled link', '[Docs](https://docs.mattermost.com)'],
+        ['a typed task marker', '- [x] *beta*'],
+        ['inline markdown syntax', 'a * b _c_ `code` ~~gone~~ \\n'],
+    ])('leaves %s in typed text unescaped', (_, text) => {
+        editor.commands.setContent(paragraph({type: 'text', text}));
+
+        expect(serializeToMarkdown(editor)).toBe(text);
+    });
 });
+
+describe('markdown parsing', () => {
+    let editor: Editor;
+
+    beforeEach(() => {
+        editor = new Editor({
+            extensions: [StarterKit, Markdown.configure({markedOptions: {gfm: true}})],
+        });
+    });
+
+    afterEach(() => {
+        editor.destroy();
+    });
+
+    const roundTrip = (markdown: string) => {
+        editor.commands.setContent(parseMarkdownContent(editor, markdown)!);
+        return serializeToMarkdown(editor);
+    };
+
+    it('keeps the inline content of blocks after an ordered list', () => {
+        expect(roundTrip('1. first\n\n## Heading\n\nhello *world*\n\n- item ++under++')).toBe('1. first\n\n## Heading\n\nhello *world*\n\n- item ++under++');
+    });
+
+    it('keeps task list markers as text', () => {
+        expect(roundTrip('- [ ] todo\n- [x] *done*')).toBe('- [ ] todo\n- [x] *done*');
+    });
+
+    it('keeps task list markers in loose lists', () => {
+        expect(roundTrip('- [ ] todo\n\n- [x] done')).toContain('- [x] done');
+    });
+
+    it('produces valid content for nested task lists', () => {
+        const content = parseMarkdownContent(editor, '- Task List\n  - [ ] To-do item');
+
+        expect(() => editor.schema.nodeFromJSON(content!).check()).not.toThrow();
+        expect(roundTrip('- Task List\n  - [ ] To-do item')).toContain('- [ ] To-do item');
+    });
+});
+

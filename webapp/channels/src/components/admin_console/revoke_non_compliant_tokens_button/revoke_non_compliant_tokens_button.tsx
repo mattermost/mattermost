@@ -4,6 +4,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import {Button} from '@mattermost/compass-ui/components/button';
+
 import {Client4} from 'mattermost-redux/client';
 
 import AlertBanner from 'components/alert_banner';
@@ -96,9 +98,9 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
             className='RevokeNonCompliantTokensButton'
             style={{display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px'}}
         >
-            <button
+            <Button
                 type='button'
-                className='btn btn-tertiary'
+                emphasis='tertiary'
                 disabled={disabled || busy || nothingToRevoke}
                 onClick={openConfirm}
             >
@@ -106,7 +108,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
                     id='admin.service.revokeNonCompliantTokens.button'
                     defaultMessage='Revoke non-compliant tokens'
                 />
-            </button>
+            </Button>
             {error && (
                 <AlertBanner
                     mode='danger'
@@ -163,7 +165,7 @@ const RevokeNonCompliantTokensButton = ({disabled, registerSaveAction, unRegiste
                         values={{count: count ?? 0}}
                     />
                 )}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 confirmButtonText={(
                     <FormattedMessage
                         id='admin.service.revokeNonCompliantTokens.confirmButton'

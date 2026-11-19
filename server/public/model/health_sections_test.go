@@ -35,8 +35,8 @@ func TestSectionErrorsThreeStates(t *testing.T) {
 
 func TestSectionErrorsFailClosedWithinSection(t *testing.T) {
 	diagnostics := &SupportPacketDiagnostics{}
-	diagnostics.Server.OpenFileDescriptors = 5000
-	diagnostics.Server.MaxFileDescriptors = 0
+	diagnostics.Server.OpenFileDescriptors = new(int64(5000))
+	diagnostics.Server.MaxFileDescriptors = new(int64(0))
 
 	node := NodeDiagnostics{
 		Diagnostics: diagnostics,
@@ -48,8 +48,8 @@ func TestSectionErrorsFailClosedWithinSection(t *testing.T) {
 	_, ok := node.Errors[SectionServerFDs]
 	require.True(t, ok)
 	require.EqualError(t, node.Errors[SectionServerFDs], "max file descriptors read failed")
-	assert.EqualValues(t, 5000, node.Diagnostics.Server.OpenFileDescriptors)
-	assert.EqualValues(t, 0, node.Diagnostics.Server.MaxFileDescriptors)
+	assert.EqualValues(t, 5000, *node.Diagnostics.Server.OpenFileDescriptors)
+	assert.EqualValues(t, 0, *node.Diagnostics.Server.MaxFileDescriptors)
 }
 
 func TestNodeAndWorkspaceSectionsDoNotOverlap(t *testing.T) {
@@ -84,6 +84,8 @@ func TestNodeAccessorSectionConstantsCoveredByAllNodeSections(t *testing.T) {
 		"SectionLicense":          {},
 		"SectionServerSoftware":   {},
 		"SectionServerHost":       {},
+		"SectionServerMemory":     {},
+		"SectionServerCPU":        {},
 		"SectionServerFDs":        {},
 		"SectionConfigSource":     {},
 		"SectionDatabaseIdentity": {},
@@ -143,6 +145,10 @@ func constantNameToValue(name string) string {
 		return string(SectionServerSoftware)
 	case "SectionServerHost":
 		return string(SectionServerHost)
+	case "SectionServerMemory":
+		return string(SectionServerMemory)
+	case "SectionServerCPU":
+		return string(SectionServerCPU)
 	case "SectionServerFDs":
 		return string(SectionServerFDs)
 	case "SectionConfigSource":

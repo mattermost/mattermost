@@ -1,18 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {type JSX} from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, type MessageDescriptor} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
 import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
+import PaginationButtons from 'components/common/pagination_buttons';
 
 import type {TeamWithMembership} from './types';
 
@@ -48,7 +44,7 @@ type Paging = {
     total: number;
 };
 
-export default class AbstractList extends React.PureComponent<Props, State> {
+class AbstractList extends React.PureComponent<Props, State> {
     public static defaultProps = {
         data: [],
     };
@@ -169,28 +165,20 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                                 }}
                             />
                         </div>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className={classNames('prev', {disabled: firstPage})}
-                            onClick={firstPage ? () => null : this.previousPage}
-                            disabled={firstPage}
-                        >
-                            <PreviousIcon/>
-                        </Button>
-                        <Button
-                            type='button'
-                            emphasis='tertiary'
-                            className={classNames('next', {disabled: lastPage})}
-                            onClick={lastPage ? () => null : this.nextPage}
-                            disabled={lastPage}
-                        >
-                            <NextIcon/>
-                        </Button>
+                        <PaginationButtons
+                            onPrevious={this.previousPage}
+                            onNext={this.nextPage}
+                            disablePrevious={firstPage}
+                            disableNext={lastPage}
+                            previousButtonClassName='prev'
+                            nextButtonClassName='next'
+                        />
                     </div>
                 }
             </div>
         );
     };
 }
+
+export default AbstractList;
 

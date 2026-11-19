@@ -146,6 +146,8 @@ this is long text this is long text this is long text this is long text this is 
 
             {name: 'relative link to a plugin-handled path', link: '/plugins/example', handled: false}, {name: 'relative link to a file attachment public link', link: '/files/o6eujqkmjfd138ykpzmsmc131y/public?h=j5nPX8JlgUeNVMOB3dLXwyG_jlxlSw4nSgZmegXfpHw', handled: false},
 
+            {name: 'link to the bundled documentation', link: 'http://localhost/_documentation/', handled: false}, {name: 'link to a bundled documentation page', link: 'http://localhost/_documentation/administration-guide', handled: false}, {name: 'relative link to the bundled documentation', link: '/_documentation', handled: false},
+
             {name: 'link to a managed resource', link: 'http://localhost/trusted/jitsi', options: {managedResourcePaths: ['trusted']}, handled: false}, {name: 'relative link to a managed resource', link: '/trusted/jitsi', options: {managedResourcePaths: ['trusted']}, handled: false}, {name: 'link that is not to a managed resource', link: 'http://localhost/trusted/jitsi', options: {managedResourcePaths: ['jitsi']}, handled: true},
         ]) {
             test(testCase.name, () => {

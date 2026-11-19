@@ -1,24 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import styled, {css} from 'styled-components';
 
-import {Button as MmButton} from '@mattermost/shared/components/button';
+import {Button as MmButton} from '@mattermost/compass-ui/components/button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {RemoteCluster} from '@mattermost/types/remote_clusters';
 
 import Timestamp, {RelativeRanges} from 'components/timestamp';
 
 import {isConfirmed, isConnected} from './utils';
-
-export const SectionHeading = styled.h3`
-    &&& {
-        margin-bottom: 8px;
-    }
-`;
 
 const FormFieldLabel = styled.label`
     width: 100%;
@@ -32,33 +26,11 @@ const FormFieldLabel = styled.label`
     }
 `;
 
-export const SectionHeader = styled.div.attrs({className: 'header'})<{$borderless?: boolean}>`
-    &&& {
-        padding: 24px 32px;
-        ${({$borderless}) => !$borderless && css`
-            border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-        `}
-    }
-`;
-
-export const SectionContent = styled.div.attrs({className: 'content'})<{$compact?: boolean}>`
-    &&& {
-        padding: ${({$compact}) => ($compact ? '24px 32px' : '48px 32px')};
-        border-bottom: 1px solid var(--center-channel-color-12, rgba(63, 67, 80, 0.12));
-    }
-`;
-
 export const ModalBody = styled.div`
     padding: 0 32px;
     display: flex;
     flex-direction: column;
     gap: 20px;
-`;
-
-export const AdminSection = styled.section.attrs({className: 'AdminPanel'})`
-    && {
-        overflow: visible;
-    }
 `;
 
 export const PlaceholderHeading = styled.h4`
@@ -190,18 +162,28 @@ export const ModalNoticeWrapper = styled.div`
     margin: 15px 0 25px 0;
 `;
 
-export const Button = styled(MmButton).attrs({emphasis: 'secondary'})`
-    margin: -1px -2px;
-`;
+type CompassButtonProps = ComponentProps<typeof MmButton>;
 
-export const LinkButton = styled.button.attrs({className: 'btn btn-link'})<{$destructive?: boolean}>`
-    font-weight: normal;
-    ${({$destructive}) => $destructive && css`
-        && {
-            color: #D24B4E;
-        }
-    `};
-`;
+export const Button = ({style, ...props}: CompassButtonProps) => (
+    <MmButton
+        emphasis='secondary'
+        style={{alignSelf: 'center', marginRight: 'var(--spacing-xxxs)', ...style}}
+        {...props}
+    />
+);
+
+export const LinkButton = ({
+    $destructive,
+    style,
+    ...props
+}: CompassButtonProps & {$destructive?: boolean}) => (
+    <MmButton
+        emphasis='link'
+        destructive={Boolean($destructive)}
+        style={{fontWeight: 'normal', ...style}}
+        {...props}
+    />
+);
 
 export const ConnectionStatusLabel = ({rc}: {rc: RemoteCluster}) => {
     if (!isConfirmed(rc)) {

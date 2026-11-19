@@ -128,10 +128,6 @@
     "translation": "server_error:Gặp phải lỗi máy chủ nội bộ trong khi kéo người dùng từ cơ sở dữ liệu"
   },
   {
-    "id": "api.post.update_post.find.app_error",
-    "translation": "Chúng tôi không thể tìm thấy kênh."
-  },
-  {
     "id": "model.config.is_valid.password_length.app_error",
     "translation": "Độ dài mật khẩu tối thiểu phải là một số nguyên lớn hơn hoặc bằng {{.MinLength}} và nhỏ hơn hoặc bằng {{.MaxLength}}."
   },
@@ -318,7 +314,7 @@
     "translation": "public link salt không hợp lệ cho các thiết lập tập tin. Phải từ 32 ký tự trở lên."
   },
   {
-    "id": "api.oauth.singup_with_oauth.invalid_link.app_error",
+    "id": "api.oauth.signup_with_oauth.invalid_link.app_error",
     "translation": "Link đăng ký không hợp lệ"
   },
   {
@@ -1380,7 +1376,7 @@
     "translation": "Không thể đổi tên nhóm, tên này đã được sử dụng"
   },
   {
-    "id": "manaultesting.test_autolink.unable.app_error",
+    "id": "manualtesting.test_autolink.unable.app_error",
     "translation": "Không thể cập nhật kênh"
   },
   {
@@ -1664,7 +1660,7 @@
     "translation": "Tên vai trò không hợp lệ."
   },
   {
-    "id": "api.oauth.singup_with_oauth.disabled.app_error",
+    "id": "api.oauth.signup_with_oauth.disabled.app_error",
     "translation": "Đăng ký người dùng bị vô hiệu hóa."
   },
   {
@@ -2122,7 +2118,7 @@
     "translation": "Không thể tạo dữ liệu mã thông báo để xác minh email"
   },
   {
-    "id": "api.oauth.singup_with_oauth.expired_link.app_error",
+    "id": "api.oauth.signup_with_oauth.expired_link.app_error",
     "translation": "Liên kết đăng ký đã hết hạn"
   },
   {
@@ -4002,7 +3998,7 @@
     "translation": "Trường Create_at phải là thời gian hợp lệ."
   },
   {
-    "id": "manaultesting.manual_test.parse.app_error",
+    "id": "manualtesting.manual_test.parse.app_error",
     "translation": "Không thể phân tích URL"
   },
   {
@@ -7086,7 +7082,7 @@
     "translation": "Bạn không thể cập nhật Bài đăng hiện có."
   },
   {
-    "id": "app.prepackged-plugin.invalid_version.app_error",
+    "id": "app.prepackaged-plugin.invalid_version.app_error",
     "translation": "Không thể phân tích cú pháp phiên bản plugin đóng gói sẵn."
   },
   {
@@ -7190,7 +7186,7 @@
     "translation": "Không thể xóa thông báo liên tục của nhóm."
   },
   {
-    "id": "app.post_prority.get_for_post.app_error",
+    "id": "app.post_priority.get_for_post.app_error",
     "translation": "Không thể nhận được ưu tiên sau cho bài đăng"
   },
   {
@@ -7447,7 +7443,7 @@
   },
   {
     "id": "app.team.get_by_scheme.app_error",
-    "translation": "Không thể nhận được các kênh cho chương trình được cung cấp."
+    "translation": "Không thể lấy các nhóm cho lược đồ được cung cấp."
   },
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
@@ -9559,7 +9555,7 @@
   },
   {
     "id": "api.shared_channel.uninvite_remote_to_channel_error",
-    "translation": "Không thể hủy mời máy chủ từ xa khỏi kênh"
+    "translation": "Không thể hủy mời máy chủ từ xa khỏi kênh."
   },
   {
     "id": "api.system.logs.download_bytes_buffer.app_error",
@@ -11490,7 +11486,7 @@
     "translation": "Không thể xóa vĩnh viễn dữ liệu mức độ ưu tiên của bài đăng khỏi cơ sở dữ liệu."
   },
   {
-    "id": "app.post_prority.get_for_post_with_context.app_error",
+    "id": "app.post_priority.get_for_post_with_context.app_error",
     "translation": "Không thể lấy mức độ ưu tiên cho bài đăng với ngữ cảnh"
   },
   {
@@ -12674,20 +12670,12 @@
     "translation": "Kiểm tra kết nối LDAP không thành công. Máy chủ: {{.Server}}:{{.Port}}, ConnectionSecurity: {{.ConnectionType}}, PrivateKeyFilename: {{.PrivateKeyFilename}}, PublicCertificateFilename: {{.PublicCertFilename}}, BindUsername: {{.BindUsername}}. Lỗi: {{.Error}}"
   },
   {
-    "id": "ent.ldap.cpa_field_mapping.list_error",
-    "translation": "Không thể truy xuất các trường CPA"
-  },
-  {
     "id": "ent.ldap.do_login.invalid_id",
     "translation": "Id AD/LDAP không hợp lệ"
   },
   {
     "id": "ent.ldap.get_user_by_auth.app_error",
     "translation": "Không thể lấy thông tin người dùng."
-  },
-  {
-    "id": "ent.ldap.update_cpa.empty_attribute",
-    "translation": "Giá trị thuộc tính LDAP trống"
   },
   {
     "id": "ent.ldap_groups.invalid_ldap_id",
@@ -12824,10 +12812,6 @@
   {
     "id": "ent.push_proxy.worker.interface_nil.app_error",
     "translation": "Giao diện proxy đẩy là nil."
-  },
-  {
-    "id": "ent.saml.cpa_field_mapping.list_error",
-    "translation": "Không thể truy xuất (các) trường CPA"
   },
   {
     "id": "ent.saml.login.ldap_user_missing",
@@ -14247,7 +14231,7 @@
   },
   {
     "id": "app.health_finding.mute.app_error",
-    "translation": "Không thể tắt thông báo cho phát hiện kiểm tra tình trạng."
+    "translation": "Không thể ẩn phát hiện kiểm tra tình trạng."
   },
   {
     "id": "app.health_finding.mute.not_found.app_error",
@@ -14255,7 +14239,7 @@
   },
   {
     "id": "app.health_finding.unmute.app_error",
-    "translation": "Không thể bật lại thông báo cho phát hiện kiểm tra tình trạng."
+    "translation": "Không thể bỏ ẩn phát hiện kiểm tra tình trạng."
   },
   {
     "id": "app.health_finding.unmute.not_found.app_error",
@@ -14551,7 +14535,7 @@
   },
   {
     "id": "model.config.is_valid.webserver_mode.app_error",
-    "translation": "Chế độ máy chủ web {{.Value}} không hợp lệ. Phải là 'gzip', 'nogzip' hoặc 'disabled'."
+    "translation": "Chế độ máy chủ web {{.Value}} không hợp lệ. Phải là 'gzip', 'uncompressed' hoặc 'disabled'."
   },
   {
     "id": "model.delivery_tracking.is_valid.all_channels.app_error",
@@ -14568,5 +14552,181 @@
   {
     "id": "model.user.is_valid.mention_keys.app_error",
     "translation": "mention_keys không hợp lệ: vượt quá giới hạn {{.MaxCount}} khóa hoặc {{.MaxLength}} byte."
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_not_found",
+    "translation": "**KHÔNG TÌM THẤY**"
+  },
+  {
+    "id": "api.command_remote.cluster_removed.result_removed",
+    "translation": "đã được xóa"
+  },
+  {
+    "id": "api.command_remote.invalid_id",
+    "translation": "`{{.Value}}` không phải là `{{.Arg}}` hợp lệ"
+  },
+  {
+    "id": "api.custom_profile_attributes.linked_field.app_error",
+    "translation": "Trường này được liên kết với một mẫu Thuộc tính toàn cục và không thể sửa đổi qua API Thuộc tính người dùng. Hãy sử dụng API Thuộc tính toàn cục."
+  },
+  {
+    "id": "api.emoji.upload.large_image.too_large_to_process.app_error",
+    "translation": "Không thể tạo biểu tượng cảm xúc. Hình ảnh quá lớn để xử lý. Hãy thử dùng hình ảnh có kích thước nhỏ hơn hoặc ít khung hình hơn."
+  },
+  {
+    "id": "api.health_finding.feature_disabled.app_error",
+    "translation": "Bảng Tình trạng hệ thống chưa được bật."
+  },
+  {
+    "id": "api.health_finding.license.app_error",
+    "translation": "Bảng Tình trạng hệ thống yêu cầu giấy phép Enterprise."
+  },
+  {
+    "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
+    "translation": "Bạn không có quyền gửi tin nhắn tự hủy sau khi đọc trong kênh này."
+  },
+  {
+    "id": "api.team.set_team_icon.seek.app_error",
+    "translation": "Không thể quay về đầu tệp."
+  },
+  {
+    "id": "app.health_finding.get.app_error",
+    "translation": "Không thể lấy phát hiện kiểm tra tình trạng."
+  },
+  {
+    "id": "app.health_finding.get.not_found.app_error",
+    "translation": "Không tìm thấy phát hiện kiểm tra tình trạng."
+  },
+  {
+    "id": "app.health_finding.get_all.app_error",
+    "translation": "Không thể lấy các phát hiện kiểm tra tình trạng."
+  },
+  {
+    "id": "app.property_field.sync_source_unlinked.app_error",
+    "translation": "Thuộc tính không còn được đồng bộ từ nguồn này, nên quá trình đồng bộ không thể thay đổi thuộc tính đó."
+  },
+  {
+    "id": "app.property_field.synced_options_locked.app_error",
+    "translation": "Các tùy chọn của thuộc tính được đồng bộ từ AD/LDAP hoặc SAML do quá trình đồng bộ quản lý và không thể thêm, đổi tên hoặc xóa."
+  },
+  {
+    "id": "app.property_sync.invalid_options.app_error",
+    "translation": "Thuộc tính được đồng bộ có tùy chọn không hợp lệ."
+  },
+  {
+    "id": "app.property_sync.invalid_source.app_error",
+    "translation": "Nguồn đồng bộ thuộc tính không hợp lệ."
+  },
+  {
+    "id": "app.property_sync.invalid_user_id.app_error",
+    "translation": "ID người dùng không hợp lệ cho đồng bộ thuộc tính."
+  },
+  {
+    "id": "app.property_sync.referenced_options.app_error",
+    "translation": "Không thể xác định những tùy chọn nào của thuộc tính được đồng bộ đang được sử dụng."
+  },
+  {
+    "id": "app.save_config.log_path_outside_root.app_error",
+    "translation": "Cấu hình ghi nhật ký chứa đường dẫn tệp nhật ký hoặc tệp kiểm toán nằm ngoài thư mục gốc ghi nhật ký. Hãy kiểm tra nhật ký máy chủ để biết chi tiết."
+  },
+  {
+    "id": "health.reason.collected_at_unknown",
+    "translation": "Không rõ thời điểm thu thập."
+  },
+  {
+    "id": "health.reason.config_unavailable",
+    "translation": "Không có phần cấu hình."
+  },
+  {
+    "id": "health.reason.diagnostics_unavailable",
+    "translation": "Không có dữ liệu chẩn đoán máy chủ."
+  },
+  {
+    "id": "health.reason.jobs_unavailable",
+    "translation": "Không có lịch sử công việc."
+  },
+  {
+    "id": "health.reason.license_unavailable",
+    "translation": "Không có thông tin chi tiết về giấy phép."
+  },
+  {
+    "id": "health.reason.plugins_unavailable",
+    "translation": "Không có danh sách plugin."
+  },
+  {
+    "id": "health.reason.rule_panicked",
+    "translation": "Quy tắc gặp lỗi bất ngờ và không thể đánh giá."
+  },
+  {
+    "id": "health.reason.stats_unavailable",
+    "translation": "Không có thống kê sử dụng."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.http",
+    "translation": "PushNotificationServer {{.url}} sử dụng http://, nên thông báo đẩy được gửi dưới dạng văn bản không mã hóa."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.message.missing",
+    "translation": "PushNotificationServer {{.url}} có giao thức không hợp lệ. Người dùng di động sẽ không nhận được thông báo."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.remediation",
+    "translation": "Thêm tiền tố https:// vào PushNotificationServer và xác minh rằng máy chủ đó có thể truy cập được từ nút ứng dụng."
+  },
+  {
+    "id": "health.rule.push_bad_scheme.title",
+    "translation": "PushNotificationServer không sử dụng https://"
+  },
+  {
+    "id": "health.rule.push_empty_url.message",
+    "translation": "Mọi lần gửi thông báo đẩy sẽ thất bại với lỗi 'unsupported protocol scheme'."
+  },
+  {
+    "id": "health.rule.push_empty_url.remediation",
+    "translation": "Trỏ PushNotificationServer đến https://push.mattermost.com hoặc một proxy đẩy tự lưu trữ."
+  },
+  {
+    "id": "health.rule.push_empty_url.title",
+    "translation": "Thông báo đẩy đã được bật nhưng PushNotificationServer để trống"
+  },
+  {
+    "id": "health.rule.push_test_proxy.message",
+    "translation": "push-test.mattermost.com là proxy đẩy dùng để thử nghiệm của Mattermost. Proxy này không có SLA, thông lượng hạn chế và không dành cho môi trường sản xuất. Việc gửi thông báo đẩy đến thiết bị di động sẽ không ổn định khi vượt quá quy mô thử nghiệm nhỏ."
+  },
+  {
+    "id": "health.rule.push_test_proxy.remediation",
+    "translation": "Chuyển sang https://push.mattermost.com (dịch vụ Hosted Push Notification Service dành cho môi trường sản xuất, đi kèm với Enterprise) hoặc một proxy đẩy tự lưu trữ."
+  },
+  {
+    "id": "health.rule.push_test_proxy.title",
+    "translation": "PushNotificationServer đang trỏ đến push-test.mattermost.com"
+  },
+  {
+    "id": "health.rule.site_url_empty.message",
+    "translation": "SiteURL là bắt buộc cho URL webhook, callback OAuth, nội dung thông báo đẩy di động và liên kết trong email. Các tích hợp sẽ bị hỏng khi giá trị này để trống."
+  },
+  {
+    "id": "health.rule.site_url_empty.remediation",
+    "translation": "Đặt SiteURL thành URL HTTPS công khai của máy chủ."
+  },
+  {
+    "id": "health.rule.site_url_empty.title",
+    "translation": "ServiceSettings.SiteURL đang để trống"
+  },
+  {
+    "id": "health.rule.site_url_http.message",
+    "translation": "SiteURL là {{.url}}. Cookie phiên và token xác thực được truyền đi dưới dạng không mã hóa."
+  },
+  {
+    "id": "health.rule.site_url_http.remediation",
+    "translation": "Phục vụ Mattermost qua HTTPS và cập nhật SiteURL thành địa chỉ https://."
+  },
+  {
+    "id": "health.rule.site_url_http.title",
+    "translation": "SiteURL sử dụng http:// (không phải https://)"
+  },
+  {
+    "id": "model.scheduled_post.is_valid.repeat_burn_on_read.app_error",
+    "translation": "Không thể gửi tin nhắn tự hủy sau khi đọc dưới dạng tin nhắn đã lên lịch lặp lại."
   }
 ]

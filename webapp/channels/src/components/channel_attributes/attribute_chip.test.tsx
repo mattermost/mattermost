@@ -3,9 +3,9 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
-import AttributeChip from './attribute_chip';
+import AttributeChip, {AttributeChipRemoveButton} from './attribute_chip';
 
 describe('AttributeChip', () => {
     test('renders the value as text, so colour is never the only carrier of meaning', () => {
@@ -103,5 +103,96 @@ describe('AttributeChip', () => {
         const chip = screen.getByTestId('attributeChip');
         expect(chip).toHaveClass('AttributeChip--neutral');
         expect(chip).not.toHaveStyle({color: '#ffffff'});
+    });
+
+    test('renders a circular remove control inside the chip when provided as children', async () => {
+        const onRemove = jest.fn();
+        renderWithContext(
+            <AttributeChip
+                label='Severity'
+                value='SEV 1'
+            >
+                <AttributeChipRemoveButton
+                    onRemove={onRemove}
+                    removeLabel='Clear Severity'
+                />
+            </AttributeChip>,
+        );
+
+        const chip = screen.getByTestId('attributeChip');
+        const remove = screen.getByRole('button', {name: 'Clear Severity'});
+        expect(chip).toContainElement(remove);
+        expect(chip).toHaveClass('AttributeChip--dismissible');
+
+        await userEvent.click(remove);
+        expect(onRemove).toHaveBeenCalledTimes(1);
+    });
+
+    test('keeps medium box size whether or not the chip is dismissible', () => {
+        const {rerender} = renderWithContext(
+            <AttributeChip
+                label='Classification'
+                value='TOP SECRET'
+                color='#8B0000'
+                size='medium'
+            />,
+        );
+
+        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--medium');
+        expect(screen.getByTestId('attributeChip')).not.toHaveClass('AttributeChip--dismissible');
+
+        rerender(
+            <AttributeChip
+                label='Classification'
+                value='TOP SECRET'
+                color='#8B0000'
+                size='medium'
+            >
+                <AttributeChipRemoveButton
+                    onRemove={jest.fn()}
+                    removeLabel='Clear Classification'
+                />
+            </AttributeChip>,
+        );
+
+        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--medium');
+        expect(screen.getByTestId('attributeChip')).toHaveClass('AttributeChip--dismissible');
+    });
+
+    test('truncates long values on the value span so the remove control stays visible', () => {
+        const longValue = 'Potato What to eatWhat to eatWhat to eatWhat to eat';
+        renderWithContext(
+            <AttributeChip
+                label='What to eat'
+                value={longValue}
+                size='medium'
+            >
+                <AttributeChipRemoveButton
+                    onRemove={jest.fn()}
+                    removeLabel='Remove Potato'
+                />
+            </AttributeChip>,
+        );
+
+        const chip = screen.getByTestId('attributeChip');
+        const value = chip.querySelector('.AttributeChip__value');
+        expect(value).toHaveTextContent(longValue);
+        expect(chip).toContainElement(screen.getByRole('button', {name: 'Remove Potato'}));
+    });
+
+    test('keeps the remove control in sequential keyboard order', async () => {
+        const onRemove = jest.fn();
+        renderWithContext(
+            <AttributeChipRemoveButton
+                onRemove={onRemove}
+                removeLabel='Clear Severity'
+            />,
+        );
+
+        await userEvent.tab();
+        expect(screen.getByRole('button', {name: 'Clear Severity'})).toHaveFocus();
+
+        await userEvent.keyboard('{Enter}');
+        expect(onRemove).toHaveBeenCalledTimes(1);
     });
 });

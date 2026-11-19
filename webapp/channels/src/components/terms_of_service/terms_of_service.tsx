@@ -5,7 +5,7 @@ import React, {type JSX} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {RouteComponentProps} from 'react-router';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -17,7 +17,6 @@ import AnnouncementBar from 'components/announcement_bar';
 import LoadingScreen from 'components/loading_screen';
 import LogoutIcon from 'components/widgets/icons/fa_logout_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {getHistory} from 'utils/browser_history';
 import {Constants} from 'utils/constants';
@@ -198,11 +197,11 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                             <Button
                                 emphasis={'primary'}
                                 disabled={this.state.loadingAgree || this.state.loadingDisagree}
+                                loading={this.state.loadingAgree}
                                 id='acceptTerms'
                                 onClick={this.handleAcceptTerms}
                                 type='submit'
                             >
-                                {this.state.loadingAgree && <LoadingSpinner/>}
                                 <FormattedMessage
                                     id='terms_of_service.agreeButton'
                                     defaultMessage={'I Agree'}
@@ -211,11 +210,11 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                             <Button
                                 emphasis={'quaternary'}
                                 disabled={this.state.loadingAgree || this.state.loadingDisagree}
+                                loading={this.state.loadingDisagree}
                                 id='rejectTerms'
                                 onClick={this.handleRejectTerms}
                                 type='reset'
                             >
-                                {this.state.loadingDisagree && <LoadingSpinner/>}
                                 <FormattedMessage
                                     id='terms_of_service.disagreeButton'
                                     defaultMessage={'I Disagree'}

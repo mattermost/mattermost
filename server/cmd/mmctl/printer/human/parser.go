@@ -12,6 +12,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/mattermost/logr/v2"
+
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -33,6 +35,9 @@ func parseLogMessage(msg string) (result LogEntry, err error) {
 	// having the formatter sort fields alphabetically (logrus does by default)
 
 	dec := json.NewDecoder(strings.NewReader(msg))
+	// Numbers keep their digits, rather than becoming floats that print large integers in
+	// scientific notation
+	dec.UseNumber()
 
 	// look for an initial "{"
 	token, err := dec.Token()
@@ -69,6 +74,20 @@ func parseLogMessage(msg string) (result LogEntry, err error) {
 				return result, err2
 			}
 			result.Time = timeVal
+
+		case "timestamp":
+			// mlog writes the time as a string. Anything else stays a field, so it isn't lost
+			var v any
+			if err2 := dec.Decode(&v); err2 != nil {
+				return result, err2
+			}
+			if ts, isString := v.(string); isString {
+				if timeVal, err2 := time.Parse(logr.DefTimestampFormat, ts); err2 == nil {
+					result.Time = timeVal
+					break
+				}
+			}
+			result.Fields = append(result.Fields, mlog.Field{Key: skey, Interface: v})
 
 		case "level":
 			s, err2 := decodeAsString(dec)

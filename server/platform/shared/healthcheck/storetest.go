@@ -226,7 +226,7 @@ func TestFindingStore(t *testing.T, newStore func(t *testing.T) FindingStore) {
 		store := newStore(t)
 		fp := model.NewId()
 		finding := testFinding(fp, "check_cluster_status", 100)
-		finding.Summary = "rendered summary"
+		finding.Title = "rendered title"
 		finding.Remediation = "rendered remediation"
 		finding.Message = "rendered message"
 		require.NoError(t, store.Upsert([]*model.HealthFinding{finding}))
@@ -234,7 +234,7 @@ func TestFindingStore(t *testing.T, newStore func(t *testing.T) FindingStore) {
 		got, err := store.GetByFingerprints([]string{fp})
 		require.NoError(t, err)
 		require.Len(t, got, 1)
-		require.Empty(t, got[0].Summary)
+		require.Empty(t, got[0].Title)
 		require.Empty(t, got[0].Remediation)
 		require.Empty(t, got[0].Message)
 	})

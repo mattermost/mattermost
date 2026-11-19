@@ -25,6 +25,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
@@ -51,10 +52,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/health_check"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
-	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_file"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/migrations"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/mobile_session_metadata"
@@ -137,6 +137,8 @@ type Server struct {
 	userService      *users.UserService
 	teamService      *teams.TeamService
 	propertyService  *properties.PropertyService
+	// propertyAccessControlHook is kept so tests can observe it.
+	propertyAccessControlHook *properties.AccessControlHook
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -162,6 +164,9 @@ type Server struct {
 	// cwsTokenOverride overrides CWS_CLOUD_TOKEN for CWS login authentication.
 	cwsTokenOverride string
 
+	// cwsLoginIDOverride overrides CWS_CLOUD_LOGIN_ID for CWS login authentication.
+	cwsLoginIDOverride string
+
 	// notifyAdminCoolOffDaysOverride overrides MM_NOTIFY_ADMIN_COOL_OFF_DAYS.
 	notifyAdminCoolOffDaysOverride string
 }
@@ -169,6 +174,11 @@ type Server struct {
 // SetCWSTokenOverride sets the CWS token override for CWS login authentication.
 func (s *Server) SetCWSTokenOverride(v string) {
 	s.cwsTokenOverride = v
+}
+
+// SetCWSLoginIDOverride sets the CWS login ID override for CWS login authentication.
+func (s *Server) SetCWSLoginIDOverride(v string) {
+	s.cwsLoginIDOverride = v
 }
 
 // SetNotifyAdminCoolOffDaysOverride sets the cool-off period override for admin notifications.
@@ -186,6 +196,13 @@ func (s *Server) Store() store.Store {
 
 func (s *Server) PropertyService() *properties.PropertyService {
 	return s.propertyService
+}
+
+// SetPropertyNoCallerObserverForTests installs observer on the property
+// access control hook, so a test can check that the calls it makes reach the
+// hook with a caller ID. See AccessControlHook.SetNoCallerObserverForTests.
+func (s *Server) SetPropertyNoCallerObserverForTests(observer properties.NoCallerObserver) {
+	s.propertyAccessControlHook.SetNoCallerObserverForTests(observer)
 }
 
 func (s *Server) SetStore(st store.Store) {
@@ -280,7 +297,7 @@ func NewServer(options ...Option) (*Server, error) {
 
 	// Register builtin property groups before creating hooks that reference them
 	if err = s.propertyService.RegisterBuiltinGroups([]*model.PropertyGroup{
-		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV2, SchemaVersion: model.AccessControlPropertyGroupSchemaVersion},
+		{Name: model.AccessControlPropertyGroupName, Version: model.PropertyGroupVersionV3, SchemaVersion: model.AccessControlPropertyGroupSchemaVersion},
 		{Name: model.SessionAttributesPropertyGroupName, Version: model.PropertyGroupVersionV2},
 		{Name: model.ContentFlaggingGroupName, Version: model.PropertyGroupVersionV1},
 		{Name: model.BoardsPropertyGroupName, Version: model.PropertyGroupVersionV2},
@@ -335,8 +352,25 @@ func NewServer(options ...Option) (*Server, error) {
 		return err == nil
 	}
 
-	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, cpaGroup.ID)
+	accessControlHook := properties.NewAccessControlHook(s.propertyService, pluginChecker, func(rctx request.CTX, userID string, field *model.PropertyField, action, valueTargetID string) bool {
+		// Local-mode (unrestricted) sessions are tagged with
+		// CallerIDLocalAdmin by the HTTP layer; grant them without a
+		// user lookup, as permChecker below does for its own case. A value
+		// write to a field that is itself synced, owner-managed or
+		// protected is the exception: local mode was never let write those
+		// values, so there it is judged like any other caller. The field's
+		// own attrs decide, as they did before conversion, so a late-linked
+		// field carrying no copy of its template's sync link stays open.
+		if userID == model.CallerIDLocalAdmin {
+			if action != model.PropertyActionValueWrite ||
+				(!model.IsPropertyFieldSynced(field) && !model.HasPropertyFieldOwners(field) && !model.IsPropertyFieldProtected(field)) {
+				return true
+			}
+		}
+		return app.decidePropertyFieldPermission(rctx, userID, field, action, valueTargetID).Allowed
+	}, app.propertyCallerRoles)
 	s.propertyService.AddHook(accessControlHook)
+	s.propertyAccessControlHook = accessControlHook
 
 	// Attribute validation hook — validates visibility, sort_order on fields,
 	// field-type constraints on values (options, user IDs, value_type), and
@@ -366,6 +400,9 @@ func NewServer(options ...Option) (*Server, error) {
 			DirectChannelChecker: directChannelChecker,
 			RequiredAttributeEnforcement: func() bool {
 				return s.Config().FeatureFlags.IsChannelAttributesRequiredEnabled()
+			},
+			OpenIDAttributeSync: func() bool {
+				return s.Config().FeatureFlags.OpenIdAttributeSync
 			},
 		}, cpaGroup.ID)
 	s.propertyService.AddHook(attrValidationHook)
@@ -408,6 +445,11 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrap(err, "failed to look up session attributes property group")
 	}
 	s.propertyService.AddHook(properties.NewSessionAttributesHook(s.propertyService, saGroup.ID))
+
+	// Value shape validation for the field types core checks in every group
+	// (number, checkbox). A pre-hook, so its place in the chain does not matter
+	// beyond running before the store write.
+	s.propertyService.AddHook(properties.NewValueTypeValidationHook(s.propertyService))
 
 	// Type-change value cleanup — registered last so the field write has
 	// passed every other gate (license, access control, validation, limit)
@@ -545,7 +587,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
 		// Don't spam the logs when in CI or local testing mode
 		if !(os.Getenv("IS_CI") == "true" || os.Getenv("IS_LOCAL_TESTING") == "true") {
-			mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
+			mlog.Warn("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 		}
 	}
 
@@ -561,20 +603,24 @@ func NewServer(options ...Option) (*Server, error) {
 	mlog.Info("Loaded config", mlog.String("source", s.platform.DescribeConfig()))
 
 	license := s.License()
-	allowAdvancedLogging := license != nil && *license.Features.AdvancedLogging
+	allowAdvancedLogging := license.HasAdvancedLogging()
 
 	if s.Audit == nil {
 		s.Audit = &audit.Audit{}
 		s.Audit.Init(audit.DefMaxQueueSize)
+		if collector := s.platform.LoggerMetricsCollector(); collector != nil {
+			s.Audit.SetMetricsCollector(collector, mlog.DefaultMetricsUpdateFreqMillis)
+		}
 		if err = s.configureAudit(s.Audit, allowAdvancedLogging); err != nil {
 			mlog.Error("Error configuring audit", mlog.Err(err))
 		}
 	}
+	s.platform.SetAuditLoggingActiveFunc(s.Audit.IsActive)
 
 	if cfg := s.platform.Config(); cfg.AccessControlSettings.EnableAccessControlAuditLogging != nil &&
 		*cfg.AccessControlSettings.EnableAccessControlAuditLogging &&
-		!config.IsAuditLoggingActive(cfg.ExperimentalAuditSettings, allowAdvancedLogging) {
-		mlog.Warn("AccessControlSettings.EnableAccessControlAuditLogging is enabled but no active audit log target is configured; ABAC policy-decision audit logging will have no effect. Enable ExperimentalAuditSettings.FileEnabled or configure an advanced audit logging target bound to an audit level.")
+		!s.Audit.IsActive() {
+		s.Log().Warn(accessControlAuditTargetMissingWarning)
 	}
 
 	s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
@@ -591,7 +637,6 @@ func NewServer(options ...Option) (*Server, error) {
 	s.loggerLicenseListenerId = s.AddLicenseListener(func(oldLicense, newLicense *model.License) {
 		s.platform.RemoveUnlicensedLogTargets(newLicense)
 		s.platform.EnableLoggingMetrics()
-		s.warnIfDeliveryAuditTargetMissing(s.platform.Config())
 	})
 
 	// Keep the push notification server in sync with the license's HPNS entitlement, and let a
@@ -868,6 +913,9 @@ func (s *Server) Shutdown() {
 		s.Log().Warn("Failed to shut down config store", mlog.Err(err))
 	}
 
+	// Before the cluster stops, so a run never collects without the other nodes.
+	s.Channels().stopHealthCheckWorkers()
+
 	if s.platform.Cluster() != nil {
 		s.platform.Cluster().StopInterNodeCommunication()
 	}
@@ -1001,6 +1049,33 @@ func stripPort(hostport string) string {
 	return net.JoinHostPort(host, "443")
 }
 
+func (s *Server) newLetsEncryptManager() *autocert.Manager {
+	return &autocert.Manager{
+		Cache:      autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: s.letsEncryptHostPolicy,
+	}
+}
+
+// letsEncryptHostPolicy only allows certificates for the Site URL hostname, so clients
+// presenting arbitrary hostnames (e.g. internet scanners) cannot trigger issuance.
+func (s *Server) letsEncryptHostPolicy(ctx context.Context, host string) error {
+	siteURL, err := url.Parse(*s.platform.Config().ServiceSettings.SiteURL)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse Site URL")
+	}
+	if siteURL.Hostname() == "" {
+		return errors.New("the Site URL must include a hostname to obtain a Let's Encrypt certificate")
+	}
+	// HostWhitelist normalizes its entries but not the requested host, which the
+	// HTTP-01 handler passes through exactly as the client sent it.
+	normalizedHost, err := idna.Lookup.ToASCII(host)
+	if err != nil {
+		return errors.Wrapf(err, "invalid hostname %q", host)
+	}
+	return autocert.HostWhitelist(siteURL.Hostname())(ctx, normalizedHost)
+}
+
 func (s *Server) Start() error {
 	// Start inter-cluster services first so shared channels APIs are
 	// available when plugins activate during channels startup.
@@ -1019,6 +1094,11 @@ func (s *Server) Start() error {
 		s.platform.Cluster().StartInterNodeCommunication()
 	}
 
+	// After the cluster join, so a run can always reach the other nodes.
+	if s.runEssentialJobs {
+		s.Channels().startHealthCheckWorkers()
+	}
+
 	if err := s.ensureInstallationDate(); err != nil {
 		return errors.Wrapf(err, "unable to ensure installation date")
 	}
@@ -1032,7 +1112,7 @@ func (s *Server) Start() error {
 	}
 
 	if s.MailServiceConfig().SendEmailNotifications {
-		if err := mail.TestConnection(s.MailServiceConfig()); err != nil {
+		if err := mail.TestConnection(context.Background(), s.MailServiceConfig()); err != nil {
 			mlog.Error("Mail server connection test failed", mlog.Err(err))
 		}
 	}
@@ -1157,10 +1237,7 @@ func (s *Server) Start() error {
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
-	m := &autocert.Manager{
-		Cache:  autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
-		Prompt: autocert.AcceptTOS,
-	}
+	m := s.newLetsEncryptManager()
 
 	if *s.platform.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
@@ -1208,10 +1285,7 @@ func (s *Server) Start() error {
 	go func() {
 		var err error
 		if *s.platform.Config().ServiceSettings.ConnectionSecurity == model.ConnSecurityTLS {
-			tlsConfig := &tls.Config{
-				PreferServerCipherSuites: true,
-				CurvePreferences:         []tls.CurveID{tls.CurveP521, tls.CurveP384, tls.CurveP256},
-			}
+			tlsConfig := &tls.Config{}
 
 			switch *s.platform.Config().ServiceSettings.TLSMinVer {
 			case "1.0":
@@ -1789,12 +1863,6 @@ func (s *Server) initJobs() {
 	)
 
 	s.Jobs.RegisterJobType(
-		model.JobTypeLastAccessibleFile,
-		last_accessible_file.MakeWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
-		last_accessible_file.MakeScheduler(s.Jobs, s.License()),
-	)
-
-	s.Jobs.RegisterJobType(
 		model.JobTypeUpgradeNotifyAdmin,
 		notify_admin.MakeUpgradeNotifyWorker(s.Jobs, s.License(), New(ServerConnector(s.Channels()))),
 		notify_admin.MakeScheduler(s.Jobs, s.License(), model.JobTypeUpgradeNotifyAdmin),
@@ -1818,11 +1886,9 @@ func (s *Server) initJobs() {
 		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
 	)
 
-	s.Jobs.RegisterJobType(
-		model.JobTypeHostedPurchaseScreening,
-		hosted_purchase_screening.MakeWorker(s.Jobs, s.License(), s.Store().System()),
-		hosted_purchase_screening.MakeScheduler(s.Jobs, s.License()),
-	)
+	// No framework worker: app servers run health_check in their own worker set because
+	// job servers don't join the cluster, see Channels.startHealthCheckWorkers.
+	s.Jobs.RegisterJobType(model.JobTypeHealthCheck, nil, health_check.MakeScheduler(s.Jobs, s.License))
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupDesktopTokens,
@@ -1936,6 +2002,10 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 		return nil
 	}
 	return s.platform.Metrics()
+}
+
+func (s *Server) GetCluster() einterfaces.ClusterInterface {
+	return s.platform.Cluster()
 }
 
 // setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.

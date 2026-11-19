@@ -24,6 +24,7 @@ All pipelines follow the **smoke-then-full** pattern: smoke tests run first, ful
 ├── e2e-tests-playwright-rolling-upgrades.yml           # resolves the from-version matrix, calls the template per version
 ├── e2e-tests-cypress-template.yml         # cypress + test-system-io dispatch
 ├── e2e-tests-playwright-template.yml      # playwright + test-system-io dispatch
+├── e2e-tests-lane-result.yml              # status, triage, webhook and gate for one lane (called last by both templates)
 └── e2e-tests-playwright-rolling-upgrades-template.yml  # one from-version: upgrade-from/to, then dispatch on the upgraded server
 ```
 
@@ -138,7 +139,7 @@ Per worker, within one from-version:
 
 So the upgraded server does not stop at the harness — it goes on to run the normal suite, which is the coverage this pipeline exists for. Nothing sits between the two: no `--project=setup`, no re-patching, no restart, since an upgrade that needed the suite's setup re-run before the server was usable would not be a passing upgrade. The upgrade specs never enter the queue themselves: `upgrade-specs/` sits outside the Playwright `testDir`, so `dispatch-begin` cannot enqueue them.
 
-**Statuses match the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — posted pending by its `dispatch-begin` and resolved by its `report`. There is no aggregate context. An empty matrix is the exception: the workflow posts a single `upgrade-from-none` context and never invokes the template.
+**Statuses match the matrix.** A 4-entry matrix posts 4 contexts, `e2e-test/playwright-full/{edition}/upgrade-from-{contextLabel}`, each covering that version's harness *and* its post-upgrade suite — claimed pending by its `prepare-run` and resolved by its lane result (`e2e-tests-lane-result.yml`). There is no aggregate context. An empty matrix is the exception: the workflow posts a single `upgrade-from-none` context and never invokes the template.
 
 Each worker upgrades its own server (a server cannot be shared across runners), so the harness runs `workers` times per from-version and the pipeline costs `matrix size × workers` runners. `workers` defaults to 20, matching the full suite, and is an input; workers get 60m (vs the full suite's 30m) to cover the harness's two image pulls and swap on top of their share of the suite.
 
@@ -357,7 +358,8 @@ Each wrapper (Cypress/Playwright) follows this flow:
 generate-build-variables (branch, build_id, server_image)
   ─► smoke tests (1 worker, minimal docker services)
     ─► if smoke passes ─► full tests (20 workers cypress / 1 worker playwright, all docker services)
-      ─► report (aggregate results, update commit status)
+      ─► report (aggregate results)
+        ─► lane result (commit status, triage, webhook, pass/fail gate; e2e-tests-lane-result.yml)
 ```
 
 ### Test filtering
@@ -492,3 +494,87 @@ The commit short SHA links to the commit on GitHub. The PR number links to the p
 - `e2e-tests/playwright/` - Playwright test suite
 - `e2e-tests/.ci/` - CI configuration and environment files
 - `e2e-tests/Makefile` - Makefile with targets for running tests, generating cycles, and reporting
+
+## Status ownership across dispatch paths
+
+Cypress and Playwright serialize each lane by resolved PR, suite, edition and
+report type, independent of the workflow dispatch ref. Status publishers also
+share `e2e-status-publish-<full tested SHA>` with `cancel-in-progress: false` and
+`queue: max`, because statuses and the cross-lane summary belong to a commit.
+The toolkit `e2e-status` action claims pending before preparation and guards all
+raw results, skips and triage verdicts by run ID and publishing attempt. The
+TSIO actions collect diagnostics with their status side effects disabled.
+Cancelled runs retain diagnostic summaries/artifacts and cannot publish.
+Missing current reports remain red, and a later pending/raw result refreshes
+the aggregate instead of leaving an old all-green snapshot.
+
+The orchestration summary can pass before workers finish uploading reports.
+Before publishing success, the owned writer checks the exact run/attempt's
+complete, nonempty report group on the same TSIO environment as dispatch.
+Preparation, dispatch and all workers must also succeed. Triage runs in
+`enforce` mode by default (`E2E_TRIAGE_MODE=report-only` turns it off) and gives
+every red lane a verdict. A lane red outside its tests (failed execution, or
+missing/unreadable reports) turns green only when triage's verdict rests on
+TSIO's orchestration (`basis` `orchestration`): every dispatched spec ran and
+passed there. A verdict from the tests or the lane's jobs never clears it. A
+manual re-run of failed jobs keeps the first attempt's TSIO identity, so that
+attempt runs triage in report-only mode and passes only on the raw result. The
+final job assertion uses these same gates, a successful triage step with a
+confirmed status write, and triage's effective mode after applying the PR's
+report-only label.
+
+### Lane result and the lane list
+
+`e2e-tests-lane-result.yml` is the one place a lane publishes its result. The Cypress,
+Playwright and rolling-upgrades templates call it after `report`, with the lane's identity, `execution_success`
+(preparation, dispatch and every worker succeeded), the summary outcome and the report URL. It
+holds the publication lock, publishes the owned status, triages a red run, refreshes the
+aggregate, posts the webhook, and then asserts the gate. Triage can only clear a failure in
+`enforce` mode, and a missing or incomplete report only on an orchestration-based verdict (see above).
+
+The PR lanes that feed the `e2e-test/triage` aggregate are listed once, in
+`.github/e2e-status-lanes.json`. Every writer checks out `.github` at the workflow's own ref (`github.sha`) into
+`.e2e-trusted` and runs `.e2e-trusted/.github/actions/e2e-status-lanes`, which reads
+the list beside it. The list therefore never comes from the tested commit or the
+PR head, and a malformed list fails the job. The toolkit
+refreshes the aggregate only for a context in that list.
+
+| Context | Published by | Feeds the aggregate and triage |
+|---|---|---|
+| `e2e-test/{cypress,playwright}-full/enterprise` (PR) | template claim and lane result; skip path | yes |
+| `e2e-test/playwright-full/enterprise/subpath` (PR) | playwright template with `server_deploy: subpath` | yes, when `should_run_subpath` |
+| `e2e-test/{cypress,playwright}-full/fips` (PR) | template claim and lane result; skip path | yes, when `should_run_fips` |
+| `e2e-test/playwright-full/{edition}/upgrade-from-<label>` | rolling-upgrades template: claimed by prepare-run, resolved by the lane result | no. Labels come from the upgrade matrix, so a static list cannot cover them; override-status finds them by pattern. Each lane gets its own triage check, without the model |
+| `…/master`, `…/release`, `…/release-cut` and their `/subpath` variants (`…/master/subpath`) | on-merge and on-release callers | no. Each lane gets its own triage check and writes only its own status |
+
+A suffixed context never equals a listed lane, so it never claims or refreshes the aggregate. A
+listed lane that did not run is ignored by the summary. `override-status` and **E2E Tests/verified**
+take the same list from the lane reader (the one source, subpath included) and write failed statuses
+for every PR lane in it, plus the rolling-upgrade contexts found by pattern. A failing subpath lane
+is therefore verifiable, and the verified refresh of the aggregate can clear it. The lane reader
+runs before the writer step in both workflows.
+
+Regression checks:
+
+```sh
+python3 .github/scripts/test_e2e_status_workflows.py  # requires PyYAML
+# In mattermost-test-automation-toolkit:
+node --test scripts/e2e-*.test.js
+```
+
+For workflow lint, actionlint 1.7.11 and 1.7.12 predate GitHub's `queue: max` property.
+Until the installed linter supports it, exclude only its `unexpected key
+"queue" for "concurrency" section` diagnostic and run the structural test above;
+keep all other workflow checks enabled.
+
+Rollout requires these workflow changes on **both** dispatch source refs:
+automated dispatch uses the selected PR ref, while manual dispatch can use
+master. `e2e-tests-check.yml` also dispatches without `--ref`, so its automatic
+E2E-only trigger uses the default branch (master). The existing toolkit PR supplies the pinned owned writer; its immutable
+commit is usable by this branch before toolkit main is updated. Merging the
+Mattermost workflow changes into master is still required for manual/master
+dispatches (and other branches need the updated workflows). The manual override and verified-label workflows must also contain the SHA
+publication lock. Running workflows
+keep their original YAML and pinned actions, so drain older unguarded runs
+before relying on ownership. Branch tests and a push do not repair production
+or update already-running reporters. No TSIO service deployment is required.

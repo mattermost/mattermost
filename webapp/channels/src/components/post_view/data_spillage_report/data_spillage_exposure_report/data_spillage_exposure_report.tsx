@@ -4,11 +4,11 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Button, type ButtonEmphasis, type ButtonVariant} from '@mattermost/shared/components/button';
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import {Button, type ButtonEmphasis} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {Client4} from 'mattermost-redux/client';
-
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './data_spillage_exposure_report.scss';
 
@@ -74,15 +74,14 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
         setStatus('idle');
     }, [flaggedPostId, status]);
 
-    const {icon, label, emphasis, variant} = useMemo(() => {
+    const {icon, label, emphasis, destructive} = useMemo(() => {
         let icon;
         let label;
         let emphasis: ButtonEmphasis = 'tertiary';
-        let variant: ButtonVariant = '';
+        let destructive = false;
 
         switch (status) {
         case 'generating':
-            icon = <LoadingSpinner/>;
             label = (
                 <FormattedMessage
                     id='data_spillage_report.exposure_report.generating.button_text'
@@ -91,17 +90,15 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
             );
             break;
         case 'error':
-            icon = <i className='icon icon-alert-outline'/>;
+            icon = <Icon glyph={<AlertOutlineIcon/>}/>;
             label = (
                 <FormattedMessage
                     id='data_spillage_report.exposure_report.failed.button_text'
                     defaultMessage='Generation failed. Try again.'
                 />
             );
-
-            // Primary emphasis is suppressed by the destructive variant, leaving just btn-danger
             emphasis = 'primary';
-            variant = 'destructive';
+            destructive = true;
             break;
         case 'idle':
         default:
@@ -115,7 +112,7 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
             break;
         }
 
-        return {icon, label, emphasis, variant};
+        return {icon, label, emphasis, destructive};
     }, [status]);
 
     return (
@@ -125,14 +122,15 @@ export default function DataSpillageExposureReport({flaggedPostId}: Props) {
         >
             <Button
                 type='button'
-                size='sm'
+                size='small'
                 emphasis={emphasis}
-                variant={variant}
+                destructive={destructive}
                 onClick={handleClick}
                 disabled={status === 'generating'}
+                loading={status === 'generating'}
                 data-testid='data-spillage-action-download-exposure-report'
+                leadingIcon={icon}
             >
-                {icon}
                 {label}
             </Button>
         </div>

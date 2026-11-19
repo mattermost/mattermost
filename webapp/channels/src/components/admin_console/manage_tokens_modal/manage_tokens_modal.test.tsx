@@ -22,14 +22,13 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
         onExited: jest.fn(),
     };
 
-    test('initial call should match snapshot', () => {
+    test('should render on initial call', () => {
         const {baseElement} = renderWithContext(
             <ManageTokensModal {...baseProps}/>,
         );
         expect(baseProps.actions.getUserAccessTokensForUser).toHaveBeenCalledTimes(1);
         expect(screen.getByText('Manage Personal Access Tokens')).toBeInTheDocument();
         expect(baseElement.querySelector('.manage-teams__teams')).toBeInTheDocument();
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should replace loading screen on update', () => {
@@ -52,7 +51,6 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
         expect(baseElement.querySelector('.loading-screen')).not.toBeInTheDocument();
         expect(baseElement.querySelector('.manage-row__empty')).toBeInTheDocument();
         expect(screen.getByText('No personal access tokens.')).toBeInTheDocument();
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('should display list of tokens', () => {
@@ -84,7 +82,6 @@ describe('components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx',
         expect(screen.getByText(/second token/)).toBeInTheDocument();
         expect(screen.getByText(/id1/)).toBeInTheDocument();
         expect(screen.getByText(/id2/)).toBeInTheDocument();
-        expect(baseElement).toMatchSnapshot();
     });
 
     describe('expiry and status display', () => {

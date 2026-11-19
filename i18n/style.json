@@ -1,0 +1,199 @@
+{
+  "da": {
+    "address": "informal",
+    "use": [
+      "du",
+      "dig",
+      "din",
+      "dit",
+      "dine"
+    ],
+    "avoid": [
+      "De",
+      "Dem",
+      "Deres"
+    ],
+    "matchCase": true,
+    "skipSentenceStart": true
+  },
+  "de": {
+    "address": "informal",
+    "use": [
+      "du",
+      "dich",
+      "dir",
+      "dein"
+    ],
+    "avoid": [
+      "Sie",
+      "Ihnen",
+      "Ihr",
+      "Ihre",
+      "Ihren",
+      "Ihrem",
+      "Ihrer",
+      "Ihres"
+    ],
+    "matchCase": true,
+    "skipSentenceStart": true
+  },
+  "es": {
+    "address": "informal",
+    "use": [
+      "tú",
+      "te",
+      "tu",
+      "tus"
+    ],
+    "avoid": [
+      "usted",
+      "ustedes"
+    ]
+  },
+  "fr": {
+    "address": "formal",
+    "use": [
+      "vous",
+      "votre",
+      "vos"
+    ],
+    "avoid": [
+      "tu",
+      "toi",
+      "ton",
+      "tes",
+      "te"
+    ]
+  },
+  "it": {
+    "address": "informal",
+    "use": [
+      "tu",
+      "ti",
+      "tuo",
+      "tua"
+    ],
+    "avoid": [
+      "Lei",
+      "Suo",
+      "Sua",
+      "Suoi",
+      "Sue"
+    ],
+    "matchCase": true,
+    "skipSentenceStart": true
+  },
+  "nb-NO": {
+    "address": "informal",
+    "use": [
+      "du",
+      "deg",
+      "din",
+      "ditt",
+      "dine"
+    ],
+    "avoid": [
+      "De",
+      "Dem",
+      "Deres"
+    ],
+    "matchCase": true,
+    "skipSentenceStart": true
+  },
+  "nl": {
+    "address": "informal",
+    "use": [
+      "je",
+      "jij",
+      "jouw",
+      "jou"
+    ],
+    "avoid": [
+      "u",
+      "uw"
+    ]
+  },
+  "pl": {
+    "address": "informal",
+    "use": [
+      "ty",
+      "twój",
+      "ciebie"
+    ],
+    "avoid": [
+      "Pan",
+      "Pani",
+      "Państwo",
+      "Pana",
+      "Panu"
+    ],
+    "matchCase": true,
+    "skipSentenceStart": true
+  },
+  "ru": {
+    "address": "formal",
+    "use": [
+      "вы",
+      "вас",
+      "вам",
+      "ваш"
+    ],
+    "avoid": [
+      "ты",
+      "тебя",
+      "тебе",
+      "тобой",
+      "твой",
+      "твоя",
+      "твоё",
+      "твое",
+      "твои",
+      "твоего",
+      "твоей",
+      "твоих",
+      "твоим",
+      "твоими"
+    ]
+  },
+  "sv": {
+    "address": "informal",
+    "use": [
+      "du",
+      "dig",
+      "din",
+      "ditt",
+      "dina"
+    ],
+    "avoid": [
+      "Ni",
+      "Er",
+      "Era",
+      "Ert"
+    ],
+    "matchCase": true,
+    "skipSentenceStart": true
+  },
+  "uk": {
+    "address": "formal",
+    "use": [
+      "ви",
+      "вас",
+      "вам",
+      "ваш"
+    ],
+    "avoid": [
+      "ти",
+      "тебе",
+      "тобі",
+      "тобою",
+      "твій",
+      "твоя",
+      "твоє",
+      "твої",
+      "твого",
+      "твоєї",
+      "твоїх",
+      "твоїм"
+    ]
+  }
+}

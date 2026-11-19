@@ -12,7 +12,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
-import {getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
+import {getCategoryIdsHiddenByProductRail, getDraggingState, makeGetFilteredChannelIdsForCategory} from 'selectors/views/channel_sidebar';
 
 import type {GlobalState} from 'types/store';
 
@@ -26,8 +26,14 @@ function makeMapStateToProps() {
     const getChannelIdsForCategory = makeGetFilteredChannelIdsForCategory();
 
     return (state: GlobalState, ownProps: OwnProps) => {
+        const channelIds = getChannelIdsForCategory(state, ownProps.category);
+
+        // Hidden while the product rail's Channels or Boards section leaves it with nothing to show.
+        const hiddenByProductRail = getCategoryIdsHiddenByProductRail(state).has(ownProps.category.id);
+
         return {
-            channelIds: getChannelIdsForCategory(state, ownProps.category),
+            channelIds,
+            hiddenByProductRail,
             draggingState: getDraggingState(state),
             currentUserId: getCurrentUserId(state),
             isAdmin: isAdmin(getCurrentUser(state).roles),

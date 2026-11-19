@@ -156,8 +156,7 @@ test.describe('System Console - Autotranslation (Localization)', () => {
             // * Verify Mattermost Agents guidance is shown for the inactive plugin
             await expect(systemConsolePage.localization.mattermostAgentsInactiveNotice).toBeVisible();
             await expect(systemConsolePage.localization.mattermostAgentsConfigLink).toBeVisible();
-            await expect(systemConsolePage.localization.mattermostAgentsConfigLink).toHaveAttribute(
-                'href',
+            await expect(systemConsolePage.localization.mattermostAgentsConfigLink).toHaveHrefPath(
                 '/admin_console/plugins/plugin_mattermost-ai',
             );
 

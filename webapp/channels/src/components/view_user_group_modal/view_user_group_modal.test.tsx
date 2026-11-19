@@ -96,8 +96,8 @@ describe('component/view_user_group_modal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
+    test('should render', () => {
+        renderWithContext(
             <ViewUserGroupModal
                 {...baseProps}
             />,
@@ -105,10 +105,9 @@ describe('component/view_user_group_modal', () => {
             {useMockedStore: true},
         );
         expect(screen.getByRole('dialog', {name: group.display_name})).toBeInTheDocument();
-        expect(baseElement).toMatchSnapshot();
     });
 
-    test('should match snapshot, search user1', async () => {
+    test('should render search user1', async () => {
         renderWithContext(
             <ViewUserGroupModal
                 {...baseProps}

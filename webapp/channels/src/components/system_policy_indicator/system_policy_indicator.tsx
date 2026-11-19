@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo, type JSX} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useCallback, useMemo} from 'react';
+import {FormattedList, FormattedMessage, defineMessages, useIntl} from 'react-intl';
 
 import type {AccessControlPolicy} from '@mattermost/types/access_control';
 
@@ -20,6 +20,49 @@ export type SystemPolicyIndicatorProps = {
     onMorePoliciesClick?: () => void;
 };
 
+// Each message selects on resourceType so that translators write whole sentences. Channels and
+// teams use membership wording because the policy governs who becomes a member; files keep
+// access wording, since a user doesn't become a "member" of a file.
+const singlePolicyMessages = defineMessages({
+    summary: {
+        id: 'system_policy_indicator.summary.single',
+        defaultMessage: '{resourceType, select, team {This team has a system-level membership policy applied} file {This file has a system-level access policy applied} other {This channel has a system-level membership policy applied}}',
+    },
+    title: {
+        id: 'system_policy_indicator.title.single',
+        defaultMessage: '{resourceType, select, team {System membership policy applied to this team} file {System access policy applied to this file} other {System membership policy applied to this channel}}',
+    },
+    description: {
+        id: 'system_policy_indicator.description.single',
+        defaultMessage: '{resourceType, select, team {This team has a system-level membership policy applied. Any custom membership rules you set here will be applied in addition to this policy.} file {This file has a system-level access policy applied. Any custom access rules you set here will be applied in addition to this policy.} other {This channel has a system-level membership policy applied. Any custom membership rules you set here will be applied in addition to this policy.}}',
+    },
+    descriptionWithNames: {
+        id: 'system_policy_indicator.description_with_names.single',
+        defaultMessage: '{resourceType, select, team {This team has a system-level membership policy applied: {policies}. Any custom membership rules you set here will be applied in addition to this policy.} file {This file has a system-level access policy applied: {policies}. Any custom access rules you set here will be applied in addition to this policy.} other {This channel has a system-level membership policy applied: {policies}. Any custom membership rules you set here will be applied in addition to this policy.}}',
+    },
+});
+
+const multiplePolicyMessages = defineMessages({
+    summary: {
+        id: 'system_policy_indicator.summary.multiple',
+        defaultMessage: '{resourceType, select, team {This team has system-level membership policies applied} file {This file has system-level access policies applied} other {This channel has system-level membership policies applied}}',
+    },
+    title: {
+        id: 'system_policy_indicator.title.multiple',
+        defaultMessage: '{resourceType, select, team {Multiple system membership policies applied to this team} file {Multiple system access policies applied to this file} other {Multiple system membership policies applied to this channel}}',
+    },
+    description: {
+        id: 'system_policy_indicator.description.multiple',
+        defaultMessage: '{resourceType, select, team {This team has system-level membership policies applied. Any custom membership rules you set here will be applied in addition to these policies.} file {This file has system-level access policies applied. Any custom access rules you set here will be applied in addition to these policies.} other {This channel has system-level membership policies applied. Any custom membership rules you set here will be applied in addition to these policies.}}',
+    },
+    descriptionWithNames: {
+        id: 'system_policy_indicator.description_with_names.multiple',
+        defaultMessage: '{resourceType, select, team {This team has system-level membership policies applied: {policies}. Any custom membership rules you set here will be applied in addition to these policies.} file {This file has system-level access policies applied: {policies}. Any custom access rules you set here will be applied in addition to these policies.} other {This channel has system-level membership policies applied: {policies}. Any custom membership rules you set here will be applied in addition to these policies.}}',
+    },
+});
+
+const MAX_NAMED_POLICIES = 2;
+
 const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
     policies = [],
     resourceType = 'channel',
@@ -29,6 +72,8 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
     testId = 'system-policy-indicator',
     onMorePoliciesClick,
 }) => {
+    const {formatMessage} = useIntl();
+
     // Handle malformed data - ensure policies is always an array
     const safePolicies = useMemo(() => {
         if (!policies || !Array.isArray(policies)) {
@@ -37,7 +82,7 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
         return policies.filter((policy) => policy && typeof policy === 'object' && policy.id);
     }, [policies]);
 
-    const hasMultiplePolicies = safePolicies.length > 1;
+    const messages = safePolicies.length > 1 ? multiplePolicyMessages : singlePolicyMessages;
 
     const handleMorePoliciesClick = useCallback((event: React.MouseEvent | React.KeyboardEvent) => {
         event.preventDefault();
@@ -53,190 +98,83 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
         }
     }, [handleMorePoliciesClick]);
 
-    const getPolicyDisplayName = useCallback((policy: AccessControlPolicy): string => {
-        return policy.name || policy.id || 'Unknown Policy';
-    }, []);
+    const policyList = useMemo(() => {
+        const items = safePolicies.slice(0, MAX_NAMED_POLICIES).map((policy) => (
+            <strong key={policy.id}>
+                {policy.name || policy.id || formatMessage({
+                    id: 'system_policy_indicator.unknown_policy',
+                    defaultMessage: 'Unknown Policy',
+                })}
+            </strong>
+        ));
 
-    const renderPolicyList = useCallback(() => {
-        if (!showPolicyNames || safePolicies.length === 0) {
-            return '';
-        }
-
-        if (safePolicies.length === 1) {
-            return <strong>{getPolicyDisplayName(safePolicies[0])}</strong>;
-        }
-
-        if (safePolicies.length === 2) {
-            return (
-                <>
-                    <strong>{getPolicyDisplayName(safePolicies[0])}</strong>
-                    {' and '}
-                    <strong>{getPolicyDisplayName(safePolicies[1])}</strong>
-                </>
-            );
-        }
-
-        // More than 2 policies: show first two and "X more"
-        const remainingCount = safePolicies.length - 2;
-        return (
-            <>
-                <strong>{getPolicyDisplayName(safePolicies[0])}</strong>
-                {', '}
-                <strong>{getPolicyDisplayName(safePolicies[1])}</strong>
-                {' and '}
+        const remainingCount = safePolicies.length - MAX_NAMED_POLICIES;
+        if (remainingCount > 0) {
+            items.push(
                 <button
+                    key='more'
                     type='button'
                     className='system-policy-indicator__more-link'
                     onClick={handleMorePoliciesClick}
                     onKeyDown={handleKeyDown}
-                    aria-label={`View ${remainingCount} more policies`}
+                    aria-label={formatMessage({
+                        id: 'system_policy_indicator.more_policies_aria_label',
+                        defaultMessage: 'View {count, plural, one {# more policy} other {# more policies}}',
+                    }, {count: remainingCount})}
                     tabIndex={0}
                 >
                     <FormattedMessage
                         id='system_policy_indicator.more_policies'
                         defaultMessage='{count} more'
-                        values={{
-                            count: remainingCount,
-                        }}
+                        values={{count: remainingCount}}
                     />
-                </button>
-            </>
-        );
-    }, [showPolicyNames, safePolicies, getPolicyDisplayName, handleMorePoliciesClick, handleKeyDown]);
-
-    const policyListSuffix = useMemo(() => {
-        if (!showPolicyNames || safePolicies.length === 0) {
-            return null;
-        }
-        return (
-            <>
-                {': '}
-                {renderPolicyList()}
-            </>
-        );
-    }, [showPolicyNames, safePolicies.length, renderPolicyList]);
-
-    // Channels (and teams) use membership-oriented wording because the policy
-    // governs who is or becomes a member. Files retain "access" wording — a
-    // user doesn't become a "member" of a file.
-    const usesMembershipWording = resourceType === 'channel' || resourceType === 'team';
-
-    const renderCompactMessage = useCallback(() => {
-        if (usesMembershipWording) {
-            return (
-                <FormattedMessage
-                    id='system_policy_indicator.base_message_membership'
-                    defaultMessage='This {resourceType} has system-level membership {policyText} applied'
-                    values={{
-                        resourceType,
-                        policyText: hasMultiplePolicies ? 'policies' : 'policy',
-                    }}
-                />
+                </button>,
             );
         }
+
         return (
-            <FormattedMessage
-                id='system_policy_indicator.base_message'
-                defaultMessage='This {resourceType} has system-level access {policyText} applied'
-                values={{
-                    resourceType,
-                    policyText: hasMultiplePolicies ? 'policies' : 'policy',
-                }}
+            <FormattedList
+                key='policies'
+                type='conjunction'
+                value={items}
             />
         );
-    }, [resourceType, hasMultiplePolicies, usesMembershipWording]);
+    }, [safePolicies, handleMorePoliciesClick, handleKeyDown, formatMessage]);
 
-    const renderDetailedMessage = useCallback(() => {
-        let title: JSX.Element;
-        if (usesMembershipWording) {
-            title = hasMultiplePolicies ? (
+    const renderDetailedMessage = () => (
+        <>
+            <div
+                className='system-policy-indicator__title'
+                role='heading'
+                aria-level={3}
+            >
                 <FormattedMessage
-                    id='system_policy_indicator.multiple_membership_policies_title'
-                    defaultMessage='Multiple system membership policies applied to this {resourceType}'
+                    {...messages.title}
                     values={{resourceType}}
                 />
-            ) : (
-                <FormattedMessage
-                    id='system_policy_indicator.single_membership_policy_title'
-                    defaultMessage='System membership policy applied to this {resourceType}'
-                    values={{resourceType}}
-                />
-            );
-        } else {
-            title = hasMultiplePolicies ? (
-                <FormattedMessage
-                    id='system_policy_indicator.multiple_policies_title'
-                    defaultMessage='Multiple system access policies applied to this {resourceType}'
-                    values={{resourceType}}
-                />
-            ) : (
-                <FormattedMessage
-                    id='system_policy_indicator.single_policy_title'
-                    defaultMessage='System access policy applied to this {resourceType}'
-                    values={{resourceType}}
-                />
-            );
-        }
-
-        let description: JSX.Element;
-        if (usesMembershipWording) {
-            description = hasMultiplePolicies ? (
-                <FormattedMessage
-                    id='system_policy_indicator.description_with_membership_policies'
-                    defaultMessage='This {resourceType} has system-level membership policies applied{policySuffix}. Any custom membership rules you set here will be applied in addition to these policies.'
-                    values={{resourceType, policySuffix: policyListSuffix}}
-                />
-            ) : (
-                <FormattedMessage
-                    id='system_policy_indicator.description_with_membership_policy'
-                    defaultMessage='This {resourceType} has a system-level membership policy applied{policySuffix}. Any custom membership rules you set here will be applied in addition to this policy.'
-                    values={{resourceType, policySuffix: policyListSuffix}}
-                />
-            );
-        } else {
-            description = hasMultiplePolicies ? (
-                <FormattedMessage
-                    id='system_policy_indicator.description_with_policies'
-                    defaultMessage='This {resourceType} has system-level access policies applied{policySuffix}. Any custom access rules you set here will be applied in addition to these policies.'
-                    values={{resourceType, policySuffix: policyListSuffix}}
-                />
-            ) : (
-                <FormattedMessage
-                    id='system_policy_indicator.description_with_policy'
-                    defaultMessage='This {resourceType} has a system-level access policy applied{policySuffix}. Any custom access rules you set here will be applied in addition to this policy.'
-                    values={{resourceType, policySuffix: policyListSuffix}}
-                />
-            );
-        }
-
-        return (
-            <>
-                <div
-                    className='system-policy-indicator__title'
-                    role='heading'
-                    aria-level={3}
-                >
-                    {title}
-                </div>
-                <div
-                    className='system-policy-indicator__description'
-                    role='region'
-                    aria-label='System policy details'
-                >
-                    {description}
-                </div>
-            </>
-        );
-    }, [hasMultiplePolicies, resourceType, policyListSuffix, usesMembershipWording]);
-
-    const renderMessage = useCallback(() => {
-        if (variant === 'compact') {
-            return renderCompactMessage();
-        }
-        return renderDetailedMessage();
-    }, [variant, renderCompactMessage, renderDetailedMessage]);
-
-    const alertMessage = useMemo(() => renderMessage(), [renderMessage]);
+            </div>
+            <div
+                className='system-policy-indicator__description'
+                role='region'
+                aria-label={formatMessage({
+                    id: 'system_policy_indicator.details_aria_label',
+                    defaultMessage: 'System policy details',
+                })}
+            >
+                {showPolicyNames ? (
+                    <FormattedMessage
+                        {...messages.descriptionWithNames}
+                        values={{resourceType, policies: policyList}}
+                    />
+                ) : (
+                    <FormattedMessage
+                        {...messages.description}
+                        values={{resourceType}}
+                    />
+                )}
+            </div>
+        </>
+    );
 
     if (safePolicies.length === 0) {
         return null;
@@ -248,7 +186,12 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
             mode='info'
             className={`system-policy-indicator ${className}`}
             variant='app'
-            message={alertMessage}
+            message={variant === 'compact' ? (
+                <FormattedMessage
+                    {...messages.summary}
+                    values={{resourceType}}
+                />
+            ) : renderDetailedMessage()}
         />
     );
 };

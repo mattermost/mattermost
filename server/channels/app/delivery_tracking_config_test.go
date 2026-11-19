@@ -4,13 +4,19 @@
 package app
 
 import (
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
+	"path/filepath"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 )
 
 func TestGetDeliveryTrackingConfig(t *testing.T) {
@@ -53,11 +59,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		publicChannel := th.CreateChannel(t, th.BasicTeam)
 		privateChannel := th.CreatePrivateChannel(t, th.BasicTeam)
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{publicChannel.Id, privateChannel.Id},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		assert.True(t, *th.App.Config().DeliveryTrackingSettings.Enable)
 		assert.False(t, *th.App.Config().DeliveryTrackingSettings.EnableForAllChannels)
@@ -72,10 +78,10 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		require.NoError(t, th.App.Srv().Store().DeliveryTracking().SaveTrackedChannelIDs(th.Context, []string{channel.Id}))
 
 		// Turning the feature off must not discard the admin's channel selection.
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(false), EnableForAllChannels: new(true)},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
@@ -87,11 +93,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 		require.NoError(t, th.App.Srv().Store().DeliveryTracking().SaveTrackedChannelIDs(th.Context, []string{channel.Id}))
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(true)},
 			ChannelIds:               []string{},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
@@ -104,11 +110,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 
 		// Rows for archived channels are kept, so re-saving an unchanged list containing
 		// one must not lock the admin out of saving.
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{channel.Id},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
@@ -119,12 +125,14 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		user := th.CreateUser(t)
 		dmChannel := th.CreateDmChannel(t, user)
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{dmChannel.Id},
 		})
 
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.delivery_tracking.dm_gm_not_allowed.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -134,22 +142,26 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		user2 := th.CreateUser(t)
 		gmChannel := th.CreateGroupChannel(t, user1, user2)
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{gmChannel.Id},
 		})
 
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.delivery_tracking.dm_gm_not_allowed.app_error", appErr.Id)
 	})
 
 	t.Run("rejects nonexistent channels", func(t *testing.T) {
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{model.NewId()},
 		})
 
-		require.NotNil(t, appErr)
+		require.Error(t, err)
+		var appErr *model.AppError
+		require.ErrorAs(t, err, &appErr)
 		assert.Equal(t, "app.delivery_tracking.invalid_channel.app_error", appErr.Id)
 		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
 	})
@@ -163,11 +175,11 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 		})
 
 		valid := th.CreateChannel(t, th.BasicTeam)
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{valid.Id, model.NewId()},
 		})
-		require.NotNil(t, appErr)
+		require.Error(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
@@ -178,14 +190,111 @@ func TestSaveDeliveryTrackingConfig(t *testing.T) {
 	t.Run("duplicate ids are accepted and stored once", func(t *testing.T) {
 		channel := th.CreateChannel(t, th.BasicTeam)
 
-		appErr := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
+		err := th.App.SaveDeliveryTrackingConfig(th.Context, &model.DeliveryTrackingConfig{
 			DeliveryTrackingSettings: model.DeliveryTrackingSettings{Enable: new(true), EnableForAllChannels: new(false)},
 			ChannelIds:               []string{channel.Id, channel.Id},
 		})
-		require.Nil(t, appErr)
+		require.NoError(t, err)
 
 		stored, err := th.App.Srv().Store().DeliveryTracking().GetTrackedChannelIDs(th.Context)
 		require.NoError(t, err)
 		assert.Equal(t, []string{channel.Id}, stored)
+	})
+}
+
+func TestWarnIfDeliveryAuditTargetMissing(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	configureAudit := func(t *testing.T, level mlog.Level) {
+		require.NoError(t, th.Server.Audit.Configure(mlog.LoggerConfiguration{
+			"audit": mlog.TargetCfg{
+				Type:    "file",
+				Format:  "json",
+				Levels:  []mlog.Level{level},
+				Options: json.RawMessage(fmt.Sprintf(`{"filename": %q}`, filepath.Join(t.TempDir(), "audit.log"))),
+			},
+		}))
+	}
+	warn := func(t *testing.T, flag, enable bool) io.Reader {
+		cfg := th.App.Config().Clone()
+		cfg.FeatureFlags.PostDeliveryTracking = flag
+		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(enable)
+
+		require.NoError(t, th.TestLogger.Flush())
+		_, err := io.Copy(io.Discard, th.LogBuffer)
+		require.NoError(t, err)
+
+		th.Server.warnIfDeliveryAuditTargetMissing(cfg)
+		require.NoError(t, th.TestLogger.Flush())
+		return th.LogBuffer
+	}
+
+	t.Run("warns when no live audit target consumes audit-delivery", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditAPI)
+		testlib.AssertLog(t, warn(t, true, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+
+	t.Run("stays quiet when a live audit target consumes audit-delivery", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditDelivery)
+		testlib.AssertNoLog(t, warn(t, true, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+
+	t.Run("stays quiet when delivery tracking is disabled", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditAPI)
+		testlib.AssertNoLog(t, warn(t, true, false), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+
+	t.Run("stays quiet when the feature flag is off", func(t *testing.T) {
+		configureAudit(t, mlog.LvlAuditAPI)
+		testlib.AssertNoLog(t, warn(t, false, true), mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+	})
+}
+
+func TestDeliveryAuditTargetMissingWarningOnConfigChange(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PostDeliveryTracking = true
+		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(false)
+	})
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertNoLog(t, th.LogBuffer, mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+
+	th.App.UpdateConfig(func(cfg *model.Config) { cfg.DeliveryTrackingSettings.Enable = model.NewPointer(true) })
+
+	require.NoError(t, th.TestLogger.Flush())
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlWarn.Name, deliveryAuditTargetMissingWarning)
+}
+
+func TestDeliveryAuditWarnInputsChanged(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	newConfig := func(flag, enable bool) *model.Config {
+		cfg := &model.Config{}
+		cfg.SetDefaults()
+		cfg.FeatureFlags.PostDeliveryTracking = flag
+		cfg.DeliveryTrackingSettings.Enable = model.NewPointer(enable)
+		return cfg
+	}
+
+	t.Run("unchanged", func(t *testing.T) {
+		require.False(t, deliveryAuditWarnInputsChanged(newConfig(true, true), newConfig(true, true)))
+	})
+
+	t.Run("feature flag changed", func(t *testing.T) {
+		require.True(t, deliveryAuditWarnInputsChanged(newConfig(false, true), newConfig(true, true)))
+	})
+
+	t.Run("enable changed", func(t *testing.T) {
+		require.True(t, deliveryAuditWarnInputsChanged(newConfig(true, false), newConfig(true, true)))
+	})
+
+	// The audit logger only applies audit settings at startup, so editing them cannot change the warning.
+	t.Run("audit settings changed", func(t *testing.T) {
+		newCfg := newConfig(true, true)
+		newCfg.ExperimentalAuditSettings.FileEnabled = model.NewPointer(true)
+		newCfg.ExperimentalAuditSettings.AdvancedLoggingJSON = json.RawMessage(`{"delivery":{"type":"file","levels":[{"id":104,"name":"audit-delivery"}],"options":{"filename":"delivery.log"}}}`)
+		require.False(t, deliveryAuditWarnInputsChanged(newConfig(true, true), newCfg))
 	})
 }

@@ -12,7 +12,6 @@ import {General} from 'mattermost-redux/constants';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
 import {renderWithContext, screen, act, waitFor} from 'tests/react_testing_utils';
-import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
@@ -91,19 +90,6 @@ describe('InvitationModal', () => {
             },
             preferences: {
                 myPreferences: {},
-            },
-            hostedCustomer: {
-                products: {
-                    productsLoaded: true,
-                    products: {
-                        prod_professional: TestHelper.getProductMock({
-                            id: 'prod_professional',
-                            name: 'Professional',
-                            sku: SelfHostedProducts.PROFESSIONAL,
-                            price_per_seat: 7.5,
-                        }),
-                    },
-                },
             },
             limits: {
                 serverLimits: {},

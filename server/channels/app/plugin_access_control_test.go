@@ -1184,3 +1184,83 @@ func TestPluginAccessControlAudit(t *testing.T) {
 		mockACS.AssertExpectations(t)
 	})
 }
+
+// TestPluginAPIAccessControlCallsNameThePlugin checks that the plugin API's
+// policy read, policy save and access evaluation hand the access control
+// service a context that names the plugin as the caller. A real plugin's API
+// context names nobody, and the service's property field lookups -- the
+// normalization behind a policy read, including the save's existence probe --
+// would otherwise reach the property access control hook untagged.
+func TestPluginAPIAccessControlCallsNameThePlugin(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+	api := th.SetupPluginAPIWithPluginContext(t)
+	resourceType := api.manifest.Id + ":agent"
+
+	requireNamesPlugin := func(t *testing.T, rctx request.CTX) {
+		t.Helper()
+		require.NotNil(t, rctx)
+		callerID, tagged := CallerIDFromRequestContext(rctx)
+		require.True(t, tagged, "the access control service got a context naming no caller")
+		require.Equal(t, api.manifest.Id, callerID)
+	}
+
+	t.Run("GetAccessControlPolicy", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		p := validPluginPolicy(model.NewId())
+		p.Type = resourceType
+		savePluginPolicyRow(t, th, p)
+
+		var got request.CTX
+		mockACS.On("GetPolicy", mock.Anything, p.ID).Run(func(args mock.Arguments) {
+			got = args.Get(0).(request.CTX)
+		}).Return(p, nil).Once()
+
+		policy, appErr := api.GetAccessControlPolicy(p.ID)
+		require.Nil(t, appErr)
+		require.Equal(t, p.ID, policy.ID)
+		mockACS.AssertExpectations(t)
+		requireNamesPlugin(t, got)
+	})
+
+	t.Run("SaveAccessControlPolicy", func(t *testing.T) {
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		p := validPluginPolicy(model.NewId())
+		p.Type = resourceType
+		// The existence probe reads the policy through the service; a stored
+		// policy of another type ends the save there.
+		existing := validPluginPolicy(p.ID)
+		existing.Type = "other-plugin:agent"
+
+		var got request.CTX
+		mockACS.On("GetPolicy", mock.Anything, p.ID).Run(func(args mock.Arguments) {
+			got = args.Get(0).(request.CTX)
+		}).Return(existing, nil).Once()
+
+		_, appErr := api.SaveAccessControlPolicy(th.BasicUser.Id, p)
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.access_control.plugin.type_conflict.app_error", appErr.Id)
+		mockACS.AssertExpectations(t)
+		requireNamesPlugin(t, got)
+	})
+
+	t.Run("EvaluateAccessControl", func(t *testing.T) {
+		enablePluginAccessControl(t, th)
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		var got request.CTX
+		mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).Run(func(args mock.Arguments) {
+			got = args.Get(0).(request.CTX)
+		}).Return(model.AccessDecision{Decision: true}, nil).Once()
+
+		decision, appErr := api.EvaluateAccessControl(th.BasicUser.Id, resourceType, model.NewId(), testAgentAction)
+		require.Nil(t, appErr)
+		require.True(t, decision.Decision)
+		mockACS.AssertExpectations(t)
+		requireNamesPlugin(t, got)
+	})
+}

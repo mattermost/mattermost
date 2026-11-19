@@ -58,29 +58,20 @@ describe('isMmButtonHexColor', () => {
 });
 
 describe('mmBlocksButtonClassName', () => {
-    it('returns default tertiary classes when style is omitted', () => {
-        expect(mmBlocksButtonClassName(undefined)).toBe('btn btn-tertiary');
-    });
-
-    it('returns primary classes for primary style', () => {
-        expect(mmBlocksButtonClassName('primary')).toBe('btn btn-primary');
-    });
-
-    it('returns danger tertiary classes for danger style', () => {
-        expect(mmBlocksButtonClassName('danger')).toBe('btn btn-tertiary mm-blocks-button--danger');
-    });
-
-    it('returns default tertiary classes for default style', () => {
-        expect(mmBlocksButtonClassName('default')).toBe('btn btn-tertiary');
+    it('returns base class when style is omitted, primary, danger, or default', () => {
+        expect(mmBlocksButtonClassName(undefined)).toBe('mm-blocks-button');
+        expect(mmBlocksButtonClassName('primary')).toBe('mm-blocks-button');
+        expect(mmBlocksButtonClassName('danger')).toBe('mm-blocks-button');
+        expect(mmBlocksButtonClassName('default')).toBe('mm-blocks-button');
     });
 
     it('returns good classes for good and success styles', () => {
-        expect(mmBlocksButtonClassName('good')).toBe('btn btn-tertiary mm-blocks-button--good');
-        expect(mmBlocksButtonClassName('success')).toBe('btn btn-tertiary mm-blocks-button--success');
+        expect(mmBlocksButtonClassName('good')).toBe('mm-blocks-button mm-blocks-button--good');
+        expect(mmBlocksButtonClassName('success')).toBe('mm-blocks-button mm-blocks-button--success');
     });
 
     it('returns warning classes for warning style', () => {
-        expect(mmBlocksButtonClassName('warning')).toBe('btn btn-tertiary mm-blocks-button--warning');
+        expect(mmBlocksButtonClassName('warning')).toBe('mm-blocks-button mm-blocks-button--warning');
     });
 });
 
@@ -93,12 +84,14 @@ describe('mmBlocksButtonInlineStyle', () => {
     it('returns tinted background for hex colors', () => {
         const style = mmBlocksButtonInlineStyle('#28a745', theme);
         expect(style?.color).toBe('#28a745');
+        expect(style?.['--button-fg']).toBe('#28a745');
         expect(style?.backgroundColor).toMatch(/^rgba\(40,? ?167,? ?69,? ?0\.08\)$/);
     });
 
     it('returns tinted background for theme color keys', () => {
         const style = mmBlocksButtonInlineStyle('onlineIndicator', theme);
         expect(style?.color).toBe(theme.onlineIndicator);
+        expect(style?.['--button-fg']).toBe(theme.onlineIndicator);
         expect(style?.backgroundColor).toBeDefined();
     });
 });

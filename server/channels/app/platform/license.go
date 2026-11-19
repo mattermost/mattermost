@@ -91,9 +91,13 @@ func (ps *PlatformService) LoadLicense() {
 
 	if !model.IsValidId(licenseId) {
 		// Lets attempt to load the file from disk since it was missing from the DB
-		license, licenseBytes, err := utils.GetAndValidateLicenseFileFromDisk(*ps.Config().ServiceSettings.LicenseFileLocation)
+		location := *ps.Config().ServiceSettings.LicenseFileLocation
+		license, licenseBytes, err := utils.GetAndValidateLicenseFileFromDisk(location)
 		if err != nil {
-			ps.logger.Warn("Failed to get license from disk", mlog.Err(err))
+			// No license file at the default location is the normal state of an unlicensed server.
+			if location != "" || !errors.Is(err, os.ErrNotExist) {
+				ps.logger.Warn("Failed to get license from disk", mlog.Err(err))
+			}
 		} else {
 			if _, err := ps.SaveLicense(licenseBytes); err != nil {
 				ps.logger.Error("Failed to save license key loaded from disk.", mlog.Err(err))
@@ -236,14 +240,6 @@ func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *mo
 		}
 		return nil, model.NewAppError("addLicense", "api.license.add_license.save_active.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	// only on prem licenses set this in the first place
-	if !license.IsCloud() {
-		_, err := ps.Store.System().PermanentDeleteByName(model.SystemHostedPurchaseNeedsScreening)
-		if err != nil {
-			ps.logger.Warn(fmt.Sprintf("Failed to remove %s system store key", model.SystemHostedPurchaseNeedsScreening))
-		}
-	}
-
 	if err := ps.ReloadConfig(); err != nil {
 		ps.logger.Warn("Failed to reload config after saving license", mlog.Err(err))
 	}

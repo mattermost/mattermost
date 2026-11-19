@@ -340,7 +340,7 @@ func (ch *Channels) InstallMarketplacePlugin(request *model.InstallMarketplacePl
 
 			marketplaceVersion, err := semver.StrictNewVersion(plugin.Manifest.Version)
 			if err != nil {
-				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+				return nil, model.NewAppError("InstallMarketplacePlugin", "app.prepackaged-plugin.invalid_version.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 			}
 
 			if prepackagedVersion.LessThan(marketplaceVersion) { // Always true if no prepackaged plugin was found
@@ -553,7 +553,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	// Disable plugin before removal to make sure this
 	// plugin remains disabled on re-install.
 	if err := ch.disablePlugin(id); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := ch.removePluginLocally(id); err != nil {

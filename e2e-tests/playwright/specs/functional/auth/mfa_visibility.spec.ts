@@ -16,22 +16,17 @@ test(
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
 
-        const {user, adminClient, team} = await pw.initSetup();
+        const {user, team} = await pw.initSetup();
 
-        try {
-            // # Disable MFA and open Profile -> Security
-            await pw.disableMfa(adminClient);
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name);
-            await channelsPage.toBeVisible();
-            const profileModal = await channelsPage.openProfileModal();
-            await profileModal.openSecurityTab();
+        // # Open Profile -> Security
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name);
+        await channelsPage.toBeVisible();
+        const profileModal = await channelsPage.openProfileModal();
+        await profileModal.openSecurityTab();
 
-            // * Verify the MFA section is not shown
-            await expect(profileModal.securityTab.mfaHeading).toBeHidden();
-        } finally {
-            await pw.disableMfa(adminClient);
-        }
+        // * Verify the MFA section is not shown
+        await expect(profileModal.securityTab.mfaHeading).toBeHidden();
     },
 );
 
@@ -50,11 +45,11 @@ test(
 
         const {user, adminClient, team} = await pw.initSetup();
 
+        // # Enable MFA and open Profile -> Security
+        const {restore} = await adminClient.patchConfig({
+            ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
+        });
         try {
-            // # Enable MFA and open Profile -> Security
-            await adminClient.patchConfig({
-                ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
-            });
             const {channelsPage} = await pw.testBrowser.login(user);
             await channelsPage.goto(team.name);
             await channelsPage.toBeVisible();
@@ -64,7 +59,7 @@ test(
             // * Verify the MFA section is shown
             await expect(profileModal.securityTab.mfaHeading).toBeVisible();
         } finally {
-            await pw.disableMfa(adminClient);
+            await restore();
         }
     },
 );
@@ -82,12 +77,11 @@ test('MM-T1780 logs in without an MFA prompt when MFA is not enforced', {tag: '@
     const {adminClient} = await pw.initSetup();
     const user = await pw.createNewUserProfile(adminClient);
 
+    // # Enable MFA without enforcing it
+    const {restore} = await adminClient.patchConfig({
+        ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
+    });
     try {
-        // # Enable MFA without enforcing it
-        await adminClient.patchConfig({
-            ServiceSettings: {EnableMultifactorAuthentication: true, EnforceMultifactorAuthentication: false},
-        });
-
         // # Log in as a user who has not enrolled in MFA
         await pw.hasSeenLandingPage();
         await pw.loginPage.goto();
@@ -98,6 +92,6 @@ test('MM-T1780 logs in without an MFA prompt when MFA is not enforced', {tag: '@
         await pw.mfaSetupPage.toBeHidden();
         await pw.selectTeamPage.toBeVisible();
     } finally {
-        await pw.disableMfa(adminClient);
+        await restore();
     }
 });

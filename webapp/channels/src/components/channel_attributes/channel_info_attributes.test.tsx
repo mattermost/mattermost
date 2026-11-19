@@ -14,7 +14,9 @@ import {PROPERTY_TEXT_VALUE_MAX_LENGTH} from 'mattermost-redux/constants/propert
 import {clearPropertyFieldOptionWalks} from 'components/property_fields/graph/page_all_access_control_field_options';
 import {clearGraphOptionNameCache} from 'components/property_fields/graph/use_graph_option_names';
 
+import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {renderWithContext} from 'tests/react_testing_utils';
+import {boardChannelsState} from 'utils/channel_kind_test_utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -144,6 +146,22 @@ describe('ChannelInfoAttributes', () => {
 
         expect(screen.getByTestId('channelInfoAttributeRow-program')).toBeInTheDocument();
         expect(screen.getByTestId('attributeChip')).toHaveTextContent('VALUE_PROGRAM');
+    });
+
+    test('calls them Channel Attributes on a channel and Board Attributes on a board', () => {
+        const {unmount} = renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            makeState([field('program')], [value('program', 'opt_program')]),
+        );
+        expect(screen.getByText('Channel Attributes')).toBeInTheDocument();
+        unmount();
+
+        renderWithContext(
+            <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
+            mergeObjects(makeState([field('program')], [value('program', 'opt_program')]), boardChannelsState(CHANNEL_ID)),
+        );
+        expect(screen.getByText('Board Attributes')).toBeInTheDocument();
+        expect(screen.queryByText('Channel Attributes')).not.toBeInTheDocument();
     });
 
     test('renders a required attribute with no value as Not set', () => {
@@ -349,7 +367,7 @@ describe('ChannelInfoAttributes', () => {
             ));
         });
 
-        test('clears a single-select value with the keyboard from the options menu', async () => {
+        test('clears a single-select value from the chip remove control with the keyboard', async () => {
             const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
 
             renderWithContext(
@@ -360,8 +378,8 @@ describe('ChannelInfoAttributes', () => {
             await userEvent.tab();
             expect(screen.getByRole('button', {name: 'Edit Program'})).toHaveFocus();
 
-            await userEvent.keyboard('{Enter}');
-            expect(await screen.findByRole('menuitem', {name: 'Clear Program'})).toHaveFocus();
+            await userEvent.tab();
+            expect(screen.getByRole('button', {name: 'Remove VALUE_PROGRAM'})).toHaveFocus();
             await userEvent.keyboard('{Enter}');
 
             await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
@@ -398,17 +416,23 @@ describe('ChannelInfoAttributes', () => {
             ));
         });
 
-        test('renders no remove control beside a single-select value', () => {
+        test('renders a remove control inside a single-select chip and no Clear menu item', async () => {
             renderWithContext(
                 <ChannelInfoAttributes channelId={CHANNEL_ID}/>,
                 makeState([field('program')], [value('program', 'opt_program')]),
             );
 
+            expect(screen.getByTestId('channelInfoAttributeEdit-program')).toHaveAccessibleName('Edit Program');
             expect(screen.getByTestId('channelInfoAttributeEdit-program')).toHaveTextContent('VALUE_PROGRAM');
-            expect(screen.queryByRole('button', {name: 'Clear Program'})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Remove VALUE_PROGRAM'})).toBeInTheDocument();
+
+            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
+            expect(await screen.findByRole('menu', {name: 'Program'})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Clear Program'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('channelAttributeClear-program')).not.toBeInTheDocument();
         });
 
-        test('clears a value from the options menu without requiring the chip remove control', async () => {
+        test('clears a single-select value from the chip remove control', async () => {
             const patchSpy = jest.spyOn(Client4, 'patchPropertyValues').mockResolvedValue([]);
 
             renderWithContext(
@@ -416,9 +440,9 @@ describe('ChannelInfoAttributes', () => {
                 makeState([field('program')], [value('program', 'opt_program')]),
             );
 
-            await userEvent.click(screen.getByTestId('channelInfoAttributeEdit-program'));
-            await userEvent.click(await screen.findByTestId('channelAttributeClear-program'));
+            await userEvent.click(screen.getByRole('button', {name: 'Remove VALUE_PROGRAM'}));
 
+            expect(screen.queryByRole('menu', {name: 'Program'})).not.toBeInTheDocument();
             await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
                 'access_control',
                 'channel',

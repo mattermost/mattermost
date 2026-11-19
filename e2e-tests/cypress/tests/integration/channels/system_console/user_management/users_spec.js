@@ -70,7 +70,7 @@ describe('System Console > User Management > Users', () => {
 
         // # Type new password and submit.
         cy.get('input[type=password]').type('new' + testUser.password);
-        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.GenericModal__button.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Log out.
         cy.apiLogout();
@@ -96,7 +96,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('input[type=password]').eq(1).type('new' + otherAdmin.password);
 
         // # Click the 'Cancel' button.
-        cy.get('.modal-footer > .btn-tertiary').should('contain', 'Cancel').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('.modal-footer').findByRole('button', {name: 'Cancel'}).click().wait(TIMEOUTS.HALF_SEC);
 
         // # Log out.
         cy.apiLogout();
@@ -113,7 +113,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('input[type=password]').eq(1).type('new' + otherAdmin.password);
 
         // # Click the 'Reset' button.
-        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.GenericModal__button.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify the appropriate error is returned (current password error shows in modal header area).
         cy.get('.genericModalError .error').should('be.visible').
@@ -128,7 +128,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('input[type=password]').eq(1).type('new');
 
         // # Click the 'Reset' button.
-        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.GenericModal__button.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify the appropriate error is returned (new password error shows under the input).
         cy.get('.Input___error').should('be.visible').and('contain', 'characters long');
@@ -138,7 +138,7 @@ describe('System Console > User Management > Users', () => {
         searchUserAndOpenResetPassword(otherAdmin.username, otherAdmin.email);
 
         // # Click the 'Reset' button.
-        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.GenericModal__button.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify the appropriate error is returned (current password missing).
         cy.get('.genericModalError .error').should('be.visible').
@@ -148,7 +148,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('input[type=password]').eq(0).type(otherAdmin.password);
 
         // # Click the 'Reset' button.
-        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.GenericModal__button.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // * Verify the appropriate error is returned (new password error shows under the input).
         cy.get('.Input___error').should('be.visible').and('contain', 'characters long');
@@ -162,7 +162,7 @@ describe('System Console > User Management > Users', () => {
         cy.get('input[type=password]').eq(1).type('new' + otherAdmin.password);
 
         // # Click the 'Reset' button.
-        cy.get('button.btn-primary.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('button.GenericModal__button.confirm').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Log out.
         cy.apiLogout();

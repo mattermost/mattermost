@@ -24,7 +24,6 @@ import {copyToClipboard, getFileType} from 'utils/utils';
 
 const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
-const MAX_IMAGE_HEIGHT = 350;
 
 export type Props = WrappedComponentProps & {
 
@@ -401,7 +400,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
                 {image}
                 {utilityButtons}
             </>,
-            shouldShowImg ? 'block' : 'none',
+            !shouldShowImg,
         );
     };
 
@@ -415,26 +414,36 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         let fallback;
 
         if (this.dimensionsAvailable(dimensions) && (!this.state.loaded || renderPlaceholderOnly)) {
-            const ratio = (dimensions?.height ?? 0) > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / (dimensions?.height ?? 1) : 1;
-            const height = (dimensions?.height ?? 0) * ratio;
-            const width = (dimensions?.width ?? 0) * ratio;
-
             // Placeholder-only mode reserves layout without rendering image-derived content;
             // rejected files should also avoid preview content.
             const shouldShowMiniPreview = !renderPlaceholderOnly && !this.props.isFileRejected;
             const miniPreview = shouldShowMiniPreview ? getFileMiniPreviewUrl(fileInfo) : null;
 
-            const fallbackSrc = miniPreview ?? emptyImageForDimensions(width, height);
+            const width = dimensions?.width ?? 0;
+            const height = dimensions?.height ?? 0;
 
+            // The placeholder has the image's natural size so that each surface's max-width and max-height scale
+            // it exactly like the real image. Size containment applies that size before the src is decoded. The
+            // mini preview has a fixed size, so it's drawn as a background to keep it from affecting sizing.
+            // An explicit width or height is set on the real image as attributes, so the placeholder gets the
+            // same ones to keep the same box. The caller's style is applied too since it can cap the image's size.
             fallback = this.renderImageContainer(
                 <div className={'image-loading__container'}>
                     {this.renderImageLoaderIfNeeded()}
                     <img
                         role='presentation'
-                        className={classNames('image-loading__placeholder', this.props.className)}
-                        src={fallbackSrc}
-                        height={height}
-                        width={width}
+                        className={classNames('image-loading__placeholder', this.props.className, {
+                            'small-image--inside-container': this.props.handleSmallImageContainer && this.state.isSmallImage,
+                        })}
+                        width={this.props.width}
+                        height={this.props.height}
+                        src={emptyImageForDimensions(width, height)}
+                        style={{
+                            containIntrinsicSize: `${width}px ${height}px`,
+                            aspectRatio: `auto ${width} / ${height}`,
+                            backgroundImage: miniPreview ? `url("${miniPreview}")` : undefined,
+                            ...this.props.style,
+                        }}
                     />
                 </div>,
             );
@@ -448,7 +457,10 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         );
     };
 
-    renderImageContainer = (children: React.ReactNode, display?: string) => {
+    // The container only ever sets `display` inline to hide itself. The visible display mode is
+    // left to CSS so that each surface can keep images inline (Markdown, channel header) or make
+    // them block-level (attachments, blocks) instead of being forced to block-level here.
+    renderImageContainer = (children: React.ReactNode, hidden = false) => {
         let containerClass;
         let containerStyle;
         if (this.props.handleSmallImageContainer && this.state.isSmallImage) {
@@ -467,7 +479,7 @@ export class SizeAwareImage extends React.PureComponent<Props, State> {
         return (
             <div
                 className='file-preview__button'
-                style={{display}}
+                style={hidden ? {display: 'none'} : undefined}
             >
                 <figure
                     className={containerClass}

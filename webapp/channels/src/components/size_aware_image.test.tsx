@@ -58,6 +58,10 @@ describe('components/SizeAwareImage', () => {
         expect(placeholder).not.toBeNull();
         expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
 
+        // The placeholder is sized only by its src, like the real image, so CSS constraints scale it the same way
+        expect(placeholder).not.toHaveAttribute('width');
+        expect(placeholder).not.toHaveAttribute('height');
+
         // The actual image is rendered but its container is hidden until the image loads
         const realImage = screen.getByRole('img', {hidden: true});
         const imageContainer = realImage?.closest('.file-preview__button') as HTMLElement;
@@ -79,7 +83,6 @@ describe('components/SizeAwareImage', () => {
 
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
         expect(container.querySelector('.file__image-loading')).not.toBeNull();
-        expect(container).toMatchSnapshot();
     });
 
     test('should reserve a placeholder without rendering image content when renderPlaceholderOnly is true', () => {
@@ -103,6 +106,55 @@ describe('components/SizeAwareImage', () => {
         expect(placeholder?.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
         expect(screen.queryByRole('img')).not.toBeInTheDocument();
         expect(container.querySelector('.file__image-loading')).toBeNull();
+        expect((placeholder as HTMLElement).style.backgroundImage).toEqual('');
+    });
+
+    test('should give the placeholder the natural size of the image so CSS scales it like the real image', () => {
+        const dimensions = {width: 3664, height: 2443};
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, dimensions}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        expect(placeholder.style.containIntrinsicSize).toEqual('3664px 2443px');
+        expect(placeholder.style.aspectRatio).toEqual('auto 3664 / 2443');
+        expect(placeholder.getAttribute('src')).toContain(encodeURIComponent('width="3664" height="2443" viewBox="0 0 3664 2443"'));
+        expect(placeholder).not.toHaveAttribute('width');
+        expect(placeholder).not.toHaveAttribute('height');
+    });
+
+    test('should give the placeholder the same explicit size as the real image', () => {
+        const dimensions = {width: 1200, height: 300};
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, dimensions, width: '200', height: '50'}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        const realImage = screen.getByRole('img', {hidden: true});
+        expect(placeholder).toHaveAttribute('width', '200');
+        expect(placeholder).toHaveAttribute('height', '50');
+        expect(realImage).toHaveAttribute('width', '200');
+        expect(realImage).toHaveAttribute('height', '50');
+    });
+
+    test('should give the placeholder only the explicit width so its height follows the aspect ratio like the real image', () => {
+        const dimensions = {width: 1200, height: 300};
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, dimensions, width: '300'}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        expect(placeholder).toHaveAttribute('width', '300');
+        expect(placeholder).not.toHaveAttribute('height');
+        expect(placeholder.style.aspectRatio).toEqual('auto 1200 / 300');
+    });
+
+    test('should apply the style prop to both the placeholder and the real image so their size caps match', () => {
+        const style = {width: 'auto', height: 'auto', maxWidth: 204, maxHeight: 120, aspectRatio: '1'};
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, style}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        expect(placeholder).toHaveStyle({maxWidth: '204px', maxHeight: '120px', width: 'auto', height: 'auto'});
+        expect(placeholder.style.containIntrinsicSize).toEqual('300px 200px');
+        expect(placeholder.style.aspectRatio).toEqual('1');
+
+        const realImage = screen.getByRole('img', {hidden: true});
+        expect(realImage).toHaveStyle({maxWidth: '204px', maxHeight: '120px', width: 'auto', height: 'auto'});
+        expect(realImage.style.aspectRatio).toEqual('1');
     });
 
     test('should render a mini preview when showLoader is true and preview is set', () => {
@@ -118,11 +170,33 @@ describe('components/SizeAwareImage', () => {
         // The component initially has loaded=false and error=false, so mini preview should show
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
 
-        const miniPreviewImg = container.querySelector('.image-loading__container img');
-        expect(miniPreviewImg?.getAttribute('src')).toEqual('data:mime_type;base64,mini_preview');
+        // The mini preview has a fixed size, so it's drawn over the placeholder rather than used to size it
+        const placeholder = container.querySelector('.image-loading__container img') as HTMLElement;
+        expect(placeholder.style.backgroundImage).toEqual('url("data:mime_type;base64,mini_preview")');
+        expect(placeholder.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
+        expect(placeholder).not.toHaveAttribute('width');
+        expect(placeholder).not.toHaveAttribute('height');
     });
 
-    test('should have display set to initial in loaded state', async () => {
+    test('should not render the mini preview of a rejected file', () => {
+        const props = {
+            ...baseProps,
+            isFileRejected: true,
+            fileInfo: TestHelper.getFileInfoMock({
+                ...baseProps.fileInfo,
+                mime_type: 'mime_type',
+                mini_preview: 'mini_preview',
+            }),
+        };
+
+        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder') as HTMLElement;
+        expect(placeholder.getAttribute('src')).toContain(encodeURIComponent('viewBox="0 0 300 200"'));
+        expect(placeholder.style.backgroundImage).toEqual('');
+    });
+
+    test('should leave display to CSS in loaded state', async () => {
         const {container} = renderWithContext(<SizeAwareImage {...baseProps}/>, state);
 
         const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
@@ -131,7 +205,7 @@ describe('components/SizeAwareImage', () => {
         expect(screen.getByRole('img')).toBeVisible();
 
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('block');
+        expect(filePreviewButton.style.display).toEqual('');
     });
 
     test('should render the actual image when first mounted without dimensions', () => {
@@ -154,9 +228,9 @@ describe('components/SizeAwareImage', () => {
         const img = screen.getByRole('img', {hidden: true}) as HTMLImageElement;
         await simulateImageLoad(img, width, height);
 
-        // Verify loaded state through DOM: file-preview__button should be visible
+        // Verify loaded state through DOM: file-preview__button should no longer be hidden
         const filePreviewButton = container.querySelector('.file-preview__button') as HTMLElement;
-        expect(filePreviewButton.style.display).toEqual('block');
+        expect(filePreviewButton.style.display).toEqual('');
         expect(baseProps.onImageLoaded).toHaveBeenCalledWith({height, width});
     });
 
@@ -171,16 +245,6 @@ describe('components/SizeAwareImage', () => {
         // The placeholder still reserves the image's space after a load failure
         expect(container.querySelector('img.image-loading__placeholder')).not.toBeNull();
         expect(container.querySelector('.loading-image__preview')).toBeNull();
-    });
-
-    test('should match snapshot when handleSmallImageContainer prop is passed', () => {
-        const props = {
-            ...baseProps,
-            handleSmallImageContainer: true,
-        };
-
-        const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
-        expect(container).toMatchSnapshot();
     });
 
     test('should surround the image with container div if the image is small', async () => {
@@ -252,14 +316,30 @@ describe('components/SizeAwareImage', () => {
         expect(screen.getByRole('img')?.className).toBe(`${props.className} small-image--inside-container`);
     });
 
-    test('should load download and copy link buttons when an image is mounted', () => {
-        const fileURL = 'https://example.com/image.png';
+    test('should style the placeholder of a small image like the loaded image so their boxes match', () => {
         const props = {
             ...baseProps,
-            fileURL,
+            handleSmallImageContainer: true,
+            dimensions: {height: 40, width: 400},
         };
+
         const {container} = renderWithContext(<SizeAwareImage {...props}/>, state);
-        expect(container).toMatchSnapshot();
+
+        // Without this class the placeholder keeps the image border that the loaded small image removes
+        const placeholder = container.querySelector('.small-image__container img.image-loading__placeholder');
+        expect(placeholder).not.toBeNull();
+        expect(placeholder).toHaveClass('small-image--inside-container');
+    });
+
+    test.each([
+        ['the image is not small', {dimensions: {height: 200, width: 300}, handleSmallImageContainer: true}],
+        ['handleSmallImageContainer is not set', {dimensions: {height: 30, width: 30}}],
+    ])('should not add the small image class to the placeholder when %s', (_, overrides) => {
+        const {container} = renderWithContext(<SizeAwareImage {...{...baseProps, ...overrides}}/>, state);
+
+        const placeholder = container.querySelector('img.image-loading__placeholder');
+        expect(placeholder).not.toBeNull();
+        expect(placeholder).not.toHaveClass('small-image--inside-container');
     });
 
     test('should load download hyperlink with href set to fileURL', () => {

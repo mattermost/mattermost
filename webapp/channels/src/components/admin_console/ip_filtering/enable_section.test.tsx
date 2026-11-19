@@ -30,8 +30,7 @@ describe('EnableSectionContent', () => {
 
         expect(screen.getByText('Enable IP Filtering')).toBeInTheDocument();
         expect(screen.getByText('Limit access to your workspace by IP address.')).toBeInTheDocument();
-        expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-        expect(screen.getByRole('button', {pressed: true})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {checked: true})).toBeInTheDocument();
     });
 
     test('clicking the toggle calls setFilterToggle', async () => {
@@ -41,10 +40,23 @@ describe('EnableSectionContent', () => {
             />,
         );
 
-        await userEvent.click(screen.getByTestId('filterToggle-button'));
+        await userEvent.click(screen.getByRole('switch'));
 
         expect(setFilterToggle).toHaveBeenCalledTimes(1);
         expect(setFilterToggle).toHaveBeenCalledWith(false);
+    });
+
+    test('clicking the toggle when off calls setFilterToggle with true', async () => {
+        renderWithContext(
+            <EnableSectionContent
+                {...baseProps}
+                filterToggle={false}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('switch'));
+
+        expect(setFilterToggle).toHaveBeenCalledWith(true);
     });
 
     test('renders the component, with toggle not pressed if filterToggle is false', () => {
@@ -57,8 +69,7 @@ describe('EnableSectionContent', () => {
 
         expect(screen.getByText('Enable IP Filtering')).toBeInTheDocument();
         expect(screen.getByText('Limit access to your workspace by IP address.')).toBeInTheDocument();
-        expect(screen.getByTestId('filterToggle-button')).toBeInTheDocument();
-        expect(screen.getByRole('button', {pressed: false})).toBeInTheDocument();
+        expect(screen.getByRole('switch', {checked: false})).toBeInTheDocument();
     });
 });
 

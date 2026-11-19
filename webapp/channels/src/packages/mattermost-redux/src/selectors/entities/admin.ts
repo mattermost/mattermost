@@ -1,11 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {LogObject} from '@mattermost/types/admin';
+import {LogNodeKey} from '@mattermost/types/admin';
+import type {LogObject, LogObjectWithNode} from '@mattermost/types/admin';
 import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import type {PluginStatusRedux} from '@mattermost/types/plugins';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 
 export function getLogs(state: GlobalState) {
@@ -16,16 +18,54 @@ export function getPlainLogs(state: GlobalState) {
     return state.entities.admin.plainLogs;
 }
 
-export const getAllLogs = createSelector(
-    'getAllLogs',
+// A poll keeps the stored entries it doesn't change, so their tagged copies are reused too
+const entriesWithNode = new WeakMap<LogObject, LogObjectWithNode>();
+
+// Leaves out the entries that mark a scan stopped at its limit, which getScanLimitedLogNodes reports
+export const getAllLogsWithNode = createSelector(
+    'getAllLogsWithNode',
     getLogs,
-    (logs) => {
-        return Object.values(logs).reduce<LogObject[]>((acc, log) => {
-            // @ts-expect-error: object that is returned from the server contains an array of logs but ts gets confused that its one log object
-            acc.push(...log);
-            return acc;
-        }, []);
-    },
+    (logs) => Object.entries(logs).flatMap(([node, entries]) => entries.filter((entry) => !entry.scan_limited).map((entry) => {
+        let tagged = entriesWithNode.get(entry);
+        if (tagged === undefined) {
+            tagged = {...entry, [LogNodeKey]: node};
+            entriesWithNode.set(entry, tagged);
+        }
+        return tagged;
+    })),
+);
+
+// Includes nodes that returned no entries, which the flattened entries can't show
+export const getLogNodes = createSelector(
+    'getLogNodes',
+    getLogs,
+    (logs) => Object.keys(logs),
+);
+
+// Nodes that returned a full page, so older matching entries were left out
+export const getTruncatedLogNodes = createSelector(
+    'getTruncatedLogNodes',
+    getLogs,
+    (logsByNode) => Object.keys(logsByNode).filter((node) => (
+        logsByNode[node].filter((entry) => !entry.scan_limited).length >= General.LOGS_PAGE_SIZE_DEFAULT
+    )),
+);
+
+export type ScanLimitedLogNode = {
+    node: string;
+
+    // The timestamp of the oldest line the node's scan read, if it read any
+    scannedBackTo?: string;
+};
+
+// Nodes whose log scan stopped at its time or size limit, so older matching entries may be missing
+export const getScanLimitedLogNodes = createSelector(
+    'getScanLimitedLogNodes',
+    getLogs,
+    (logsByNode) => Object.keys(logsByNode).sort().flatMap((node): ScanLimitedLogNode[] => {
+        const marker = logsByNode[node].find((entry) => entry.scan_limited);
+        return marker ? [{node, scannedBackTo: marker.scanned_back_to || undefined}] : [];
+    }),
 );
 
 export function getAudits(state: GlobalState) {

@@ -20,11 +20,13 @@ function readIfSet(name) {
   return path && existsSync(path) ? readFileSync(path, 'utf8') : null;
 }
 
-export function buildReviewUserPrompt({diff, prTitle, prBody}) {
+export function buildReviewUserPrompt({diff, prTitle, prBody, reviewNote, extra}) {
   const parts = [DATA_NOTICE, ''];
 
   if (prTitle) parts.push(block('pull-request-title', prTitle, {maxChars: 500}), '');
   if (prBody) parts.push(block('pull-request-description', prBody, {maxChars: 6000}), '');
+  if (extra) parts.push(extra, '');
+  if (reviewNote) parts.push(reviewNote, '');
 
   parts.push(
     block('diff', diff),
@@ -56,6 +58,8 @@ export async function reviewPersona({
   diff,
   prTitle,
   prBody,
+  reviewNote,
+  extra,
   model = MODEL,
   completeFn = complete,
 }) {
@@ -64,7 +68,7 @@ export async function reviewPersona({
     const {text, usage} = await completeFn({
       model,
       system: reviewSystemBlocks(personaId),
-      userPrompt: buildReviewUserPrompt({diff, prTitle, prBody}),
+      userPrompt: buildReviewUserPrompt({diff, prTitle, prBody, reviewNote, extra}),
       maxTokens: 2048,
       temperature: 0.2,
     });

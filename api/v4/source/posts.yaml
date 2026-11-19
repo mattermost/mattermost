@@ -72,6 +72,24 @@
                         requested_ack:
                           type: boolean
                           description: Set to true to request for acknowledgements
+                    property_values:
+                      type: array
+                      description: >
+                        Values for the post's attributes, defined as post attribute
+                        fields in the `post_attributes` property group. Each entry is validated
+                        against the applicable fields for the post's channel; an
+                        error does not name which attribute failed validation.
+                      items:
+                        type: object
+                        required:
+                          - field_id
+                          - value
+                        properties:
+                          field_id:
+                            type: string
+                            description: The ID of the attribute field this value is for
+                          value:
+                            description: The value to set for the attribute, whose shape depends on the field's type
         description: Post object to create
         required: true
       responses:
@@ -216,6 +234,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -328,6 +349,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/users/{user_id}/posts/{post_id}/set_unread":
     post:
       tags:
@@ -432,6 +455,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/posts/{post_id}/thread":
     get:
       tags:
@@ -471,7 +496,7 @@
             default: 0
         - name: fromUpdateAt
           in: query
-          description: The update_at timestamp to return the next page of posts from. You cannot set this flag with direction=down.
+          description: The update_at timestamp to return the next page of posts from. You cannot set this with fromCreateAt, and with updatesOnly you cannot use direction=up.
           schema:
             type: integer
             default: 0
@@ -501,7 +526,10 @@
             default: false
         - name: updatesOnly
           in: query
-          description: This flag is used to make the API work with the updateAt value. If you set this flag, you must set a value for fromUpdateAt.
+          description: >
+            This flag is used to make the API work with the updateAt value. If you set this flag, you must set a value for fromUpdateAt.
+            With direction=down, replies deleted since fromUpdateAt are included, with `delete_at` set, an empty message and an empty metadata object.
+            A deleted root post still returns 404. Minimum server version for deleted replies is 12.1.
           schema:
             type: boolean
             default: false
@@ -512,6 +540,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -786,6 +817,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -876,6 +910,9 @@
             metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
             unrecognized name, returns 404. There is no support for requesting more than one group
             per request.
+
+            When this parameter is set, the response carries no `ETag` header and `If-None-Match`
+            is ignored, so the full response is always returned.
           required: false
           schema:
             type: string
@@ -994,6 +1031,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/posts/{post_id}/unpin":
     post:
       tags:
@@ -1027,6 +1066,8 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
   "/api/v4/posts/{post_id}/actions/{action_id}":
     post:
       tags:

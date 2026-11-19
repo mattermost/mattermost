@@ -15,12 +15,16 @@ export default [
         },
     },
     {
-        files: ['**/*.test.js', '**/*.test.jsx', '**/*.test.ts', '**/*.test.tsx'],
+        files: ['**/*.{test,spec}.{js,jsx,ts,tsx}'],
         plugins: {
             'no-only-tests': noOnlyTestsPlugin,
         },
         rules: {
             'no-only-tests/no-only-tests': ['error', {focus: ['only', 'skip']}],
+            'no-restricted-properties': ['error', ...['toMatchSnapshot', 'toMatchInlineSnapshot', 'toThrowErrorMatchingSnapshot', 'toThrowErrorMatchingInlineSnapshot'].map((property) => ({
+                property,
+                message: "Don't use snapshot tests. Assert explicitly on what should be rendered instead.",
+            }))],
         },
     },
 ];

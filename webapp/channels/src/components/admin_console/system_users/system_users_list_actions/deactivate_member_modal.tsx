@@ -153,7 +153,7 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
         <ConfirmModalRedux
             title={title}
             message={message}
-            confirmButtonVariant='destructive'
+            destructive={true}
             confirmButtonText={deactivateMemberButton}
             onConfirm={deactivateMember}
             onExited={onExited}

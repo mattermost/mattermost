@@ -152,7 +152,7 @@ export const entadv: IMEContent = {
             {alt: 'OpenAI', src: '/img/ime/logos/openai.png'},
             {alt: 'Meta', src: '/img/ime/logos/meta.png'},
             {alt: 'Elastic', src: '/img/ime/logos/elastic.png'},
-            {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.png'},
+            {alt: 'Ask Sage', src: '/img/ime/logos/ask-sage.webp'},
             {alt: 'Mattermost', src: '/img/ime/logos/mattermost.png'},
           ],
           logos: [
@@ -197,7 +197,7 @@ export const entadv: IMEContent = {
             'Scales to 200K+ concurrent users',
             'NATO & US PL3, IL4/5, 6/7 proven',
           ],
-          to: '/administration-guide/scale/high-availability-cluster-based-deployment',
+          to: '/deployment-guide/server/high-availability-cluster-based-deployment',
         },
       ],
     },

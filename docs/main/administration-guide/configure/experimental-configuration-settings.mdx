@@ -365,7 +365,7 @@ Set the file location of the compliance exports. By default, they are written to
 
 This setting isn't available in the System Console and can only be set in `config.json`.
 
-Used to control the buffer of outstanding Push Notification messages to be sent. If the number of messages exceeds that number, then the request making the Push Notification will be blocked until there's room.
+Used to control the buffer of outstanding Push Notification messages to be sent. If the number of messages exceeds that number, then the request making the Push Notification will be blocked until there's room. Must be greater than 0.
 
 <table>
 <colgroup>
@@ -402,58 +402,6 @@ This setting isn't available in the System Console and can only be set in `confi
 The ability to restrict the system admin from viewing and modifying a subset of server configuration settings is currently in [Beta](/administration-guide/manage/feature-labels#beta).
 
 </Note>
-
-### Enable client-side certification
-
-<PlanAvailability slug="ent-plus" />
-
-<Important>
-
-**Certificate-based authentication has been deprecated from Mattermost v11.0.** This setting must be set to `false` to start the server from v11. Setting this to `true` will prevent the server from starting.
-
-</Important>
-
-**True**: Enables client-side certification for your Mattermost server. See [the documentation](/administration-guide/onboard/certificate-based-authentication) to learn more.
-
-**False**: **(Default)** Client-side certification is disabled.
-
-<table style={{width: '96%'}}>
-<colgroup>
-<col style={{width: '95%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ClientSideCertEnable": false</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-### Client-side certification login method
-
-<PlanAvailability slug="ent-plus" />
-
-<Important>
-
-**Certificate-based authentication has been deprecated from Mattermost v11.0.** This setting is no longer functional from Mattermost v11.0 and should be left at the default value.
-
-</Important>
-
-This configuration setting is used in combination with the `ClientSideCertEnable` configuration setting and has the following possible values:
-
-**Primary**: After the client side certificate is verified, user's email is retrieved from the certificate and is used to log in without a password.
-
-**Secondary**: **(Default)** After the client side certificate is verified, user's email is retrieved from the certificate and matched against the one supplied by the user. If they match, the user logs in with regular email/password credentials.
-
-<table>
-<colgroup>
-<col style={{width: '100%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"ClientSideCertCheck": "secondary"</code> with options <code>"primary"</code> and <code>"secondary"</code>.</td>
-</tr>
-</tbody>
-</table>
 
 ### Export output directory
 
@@ -493,7 +441,7 @@ The number of days to retain the exported files before deleting them.
 
 This setting isn't available in the System Console and can only be set in `config.json`.
 
-Maximum image resolution size for message attachments in pixels.
+Maximum image resolution size for message attachments in pixels. Must be greater than 0.
 
 <table style={{width: '88%'}}>
 <colgroup>
@@ -949,42 +897,6 @@ Disabling this experimental configuration setting in larger deployments may impr
 
 </Note>
 
-### Enable file search
-
-This setting isn't available in the System Console and can only be set in `config.json`.
-
-<Important>
-
-This experimental configuration setting enables users to search documents attached to messages by filename. To enable users to search documents by their content, you must also enable the `ExtractContent` configuration setting. See our [Enable Document Search by Content](/administration-guide/configure/environment-configuration-settings#enable-document-search-by-content) documentation for details. Document content search is available in Mattermost Server from v5.35, with mobile support coming soon.
-
-</Important>
-
-**True**: Supported document types are searchable by their filename.
-
-**False**: File-based searches are disabled.
-
-<table style={{width: '92%'}}>
-<colgroup>
-<col style={{width: '91%'}} />
-</colgroup>
-<tbody>
-<tr>
-<td>This feature's <code>config.json</code> setting is <code>"EnableFileSearch": true</code> with options <code>true</code> and <code>false</code>.</td>
-</tr>
-</tbody>
-</table>
-
-<Note>
-
-Disabling this experimental configuration setting in larger deployments may improve server performance in the following areas:
-
-- Less Data to Index: Indexing files in addition to messages adds to the amount of data that needs to be processed and stored in the search index.
-- Fewer Complex Queries: Searching through files can require more complex queries, which can be more resource-intensive and time-consuming as compared to searching through messages alone.
-- Lower IO Operations: Searching files can generate more input/output operations, impacting the overall disk performance, especially if the system handles a large volume of file uploads and searches.
-- However, the ability to search for files in Mattermost is a critical feature for many users, and disabling this feature will result in users seeing an error if they attempt to use the Mattermost Search box. It’s important to balance performance improvements with the needs of your organization and users.
-
-</Note>
-
 ### Enable user status updates
 
 This setting isn't available in the System Console and can only be set in `config.json`.
@@ -1006,7 +918,7 @@ Turn status updates off to improve performance. When status updates are off, use
 
 This setting isn't available in the System Console and can only be set in `config.json`. Changes to this setting require a server restart before taking effect.
 
-(Optional) This setting defines the port on which the secured WebSocket is listening using the `wss` protocol. Defaults to `443`. When the client attempts to make a WebSocket connection it first checks to see if the page is loaded with HTTPS. If so, it will use the secure WebSocket connection. If not, it will use the unsecure WebSocket connection. IT IS HIGHLY RECOMMENDED PRODUCTION DEPLOYMENTS ONLY OPERATE UNDER HTTPS AND WSS.
+(Optional) This setting defines the port on which the secured WebSocket is listening using the `wss` protocol. Must be a port number between 0 and 65535. Defaults to `443`. When the client attempts to make a WebSocket connection it first checks to see if the page is loaded with HTTPS. If so, it will use the secure WebSocket connection. If not, it will use the unsecure WebSocket connection. IT IS HIGHLY RECOMMENDED PRODUCTION DEPLOYMENTS ONLY OPERATE UNDER HTTPS AND WSS.
 
 <table style={{width: '81%'}}>
 <colgroup>
@@ -1029,7 +941,7 @@ This is a client only override that doesn't affect the listening port of the ser
 
 This setting isn't available in the System Console and can only be set in `config.json`. Changes to this setting require a server restart before taking effect.
 
-(Optional) This setting defines the port on which the unsecured WebSocket is listening using the `ws` protocol. Defaults to `80`. When the client attempts to make a WebSocket connection it first checks to see if the page is loaded with HTTPS. If so, it will use the secure WebSocket connection. If not, it will use the unsecure WebSocket connection. IT IS HIGHLY RECOMMENDED PRODUCTION DEPLOYMENTS ONLY OPERATE UNDER HTTPS AND WSS.
+(Optional) This setting defines the port on which the unsecured WebSocket is listening using the `ws` protocol. Must be a port number between 0 and 65535. Defaults to `80`. When the client attempts to make a WebSocket connection it first checks to see if the page is loaded with HTTPS. If so, it will use the secure WebSocket connection. If not, it will use the unsecure WebSocket connection. IT IS HIGHLY RECOMMENDED PRODUCTION DEPLOYMENTS ONLY OPERATE UNDER HTTPS AND WSS.
 
 <table style={{width: '74%'}}>
 <colgroup>

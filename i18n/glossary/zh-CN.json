@@ -401,5 +401,28 @@
   },
   "server": {
     "target": "服务器"
+  },
+  "health dashboard": {
+    "target": "站点健康",
+    "note": "Name of the System Console page. Consistent in existing translations."
+  },
+  "health finding": {
+    "target": "健康检查结果",
+    "note": "Shorten to 检查结果 inside the page itself; measure word 个. Consistent in existing translations."
+  },
+  "Agents plugin": {
+    "target": "Agents 插件",
+    "note": "Consistent in existing translations."
+  },
+  "Hosted Push Notification Service": {
+    "target": "Hosted Push Notification Service",
+    "note": "Service name; keep in English, with spaces around it in Chinese text and no translated head noun: 'Mattermost Hosted Push Notification Service 的服务条款'. Do not render it as 托管推送通知服务. The acronym HPNS stays as is."
+  },
+  "Test Push Notification Service": {
+    "target": "Test Push Notification Service",
+    "note": "Service name; keep in English, like Hosted Push Notification Service. The acronym TPNS stays as is."
+  },
+  "PushNotificationServer": {
+    "target": "PushNotificationServer"
   }
 }

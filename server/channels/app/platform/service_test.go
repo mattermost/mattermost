@@ -55,6 +55,7 @@ func TestSetLicenseOnStart(t *testing.T) {
 	_, err = New(
 		ServiceConfig{},
 		ConfigStore(configStore),
+		DisableGlobalLogger(),
 	)
 	require.NoError(t, err)
 }
@@ -78,6 +79,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		ps, err := New(
 			ServiceConfig{},
 			ConfigStore(configStore),
+			DisableGlobalLogger(),
 		)
 		require.NoError(t, err)
 		require.Same(t, ps.sqlStore.GetMaster(), ps.sqlStore.GetReplica())
@@ -91,6 +93,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		ps, err := New(
 			ServiceConfig{},
 			ConfigStore(configStore),
+			DisableGlobalLogger(),
 			func(ps *PlatformService) error {
 				ps.licenseValue.Store(model.NewTestLicense())
 				return nil
@@ -108,6 +111,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		ps, err := New(
 			ServiceConfig{},
 			ConfigStore(configStore),
+			DisableGlobalLogger(),
 		)
 		require.NoError(t, err)
 		require.Same(t, ps.sqlStore.GetMaster(), ps.sqlStore.GetSearchReplicaX())
@@ -121,6 +125,7 @@ func TestReadReplicaDisabledBasedOnLicense(t *testing.T) {
 		ps, err := New(
 			ServiceConfig{},
 			ConfigStore(configStore),
+			DisableGlobalLogger(),
 			func(ps *PlatformService) error {
 				ps.licenseValue.Store(model.NewTestLicense())
 				return nil

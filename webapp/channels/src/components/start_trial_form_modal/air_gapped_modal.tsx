@@ -5,7 +5,7 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
 
-import {Button} from '@mattermost/shared/components/button';
+import {Button} from '@mattermost/compass-ui/components/button';
 
 import AirgappedTrialActivationConfirmSvg from 'components/common/svg_images_components/airgapped_trial_activation_confirm_svg';
 import ExternalLink from 'components/external_link';

@@ -6,6 +6,7 @@
 logs
 .DS_Store
 node_modules
+__pycache__/
 /data
 /dist
 /webapp/dist
@@ -193,8 +194,6 @@ docs/site/build/
 docs/site/.docusaurus/
 docs/site/node_modules/
 docs/api/reference/
-docs/pdf/build/
-docs/pdf/node_modules/
 docs/site/openapi/
 
 # Agents docs, staged from the mattermost-plugin-agents submodule at build

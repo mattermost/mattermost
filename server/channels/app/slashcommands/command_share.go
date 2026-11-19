@@ -142,7 +142,10 @@ func (sp *ShareProvider) DoCommand(a *app.App, rctx request.CTX, args *model.Com
 		return response(args.T("api.command_remote.service_disabled"))
 	}
 
-	margs := parseNamedArgs(args.Command)
+	margs, err := parseNamedArgs(args.T, args.Command)
+	if err != nil {
+		return response(err.Error())
+	}
 	action, ok := margs[ActionKey]
 	if !ok {
 		return response(args.T("api.command_share.missing_action", map[string]any{"Actions": AvailableShareActions}))

@@ -1,21 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, getAdminClient, test} from '@mattermost/playwright-lib';
+import {expect, test} from '@mattermost/playwright-lib';
 
 const FAKE_SETTING = '********************************';
-
-// Each test enables SSO on the shared server via the System Console; the OpenID Connect
-// section's save disables the other providers as a side effect, but nothing resets them
-// after the last test in this file, so later specs in the run could inherit a stray login
-// button. Reset once after all tests, pass or fail.
-test.afterAll(async () => {
-    const {adminClient} = await getAdminClient();
-    await adminClient.patchConfig({
-        GitLabSettings: {Enable: false},
-        Office365Settings: {Enable: false},
-    });
-});
 
 /**
  * @objective Verify saving GitLab OpenID Connect settings in the System Console

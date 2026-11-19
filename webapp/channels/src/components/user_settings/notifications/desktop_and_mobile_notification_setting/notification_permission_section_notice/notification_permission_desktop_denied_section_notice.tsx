@@ -4,7 +4,7 @@
 import React, {useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import SectionNotice from 'components/section_notice';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
 
 import {NotificationPermissionDenied} from 'utils/notifications';
 
@@ -49,22 +49,18 @@ export default function NotificationPermissionDesktopDeniedSectionNotice(props: 
             <SectionNotice
                 type='danger'
                 title={title}
-                text={text}
-                primaryButton={{
-                    text: intl.formatMessage({
-                        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.checkPermissionButton',
-                        defaultMessage: 'Check permission',
-                    }),
-                    onClick: handleCheckPermissionButtonClick,
-                    disabled: checkedPermissionDenied,
-                }}
-                tertiaryButton={{
-                    text: intl.formatMessage({
-                        id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.instructionButton',
-                        defaultMessage: 'How to enable notifications',
-                    }),
-                    onClick: handleInstructionButtonClick,
-                }}
+                description={text}
+                primaryButtonLabel={intl.formatMessage({
+                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDeniedDesktop.checkPermissionButton',
+                    defaultMessage: 'Check permission',
+                })}
+                onPrimaryAction={handleCheckPermissionButtonClick}
+                primaryActionDisabled={checkedPermissionDenied}
+                secondaryButtonLabel={intl.formatMessage({
+                    id: 'user.settings.notifications.desktopAndMobile.notificationSection.permissionDenied.instructionButton',
+                    defaultMessage: 'How to enable notifications',
+                })}
+                onSecondaryAction={handleInstructionButtonClick}
             />
         </div>
     );

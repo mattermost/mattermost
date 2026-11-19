@@ -3,11 +3,6 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-const restoreSignInSettings = {
-    EmailSettings: {EnableSignInWithEmail: true, EnableSignInWithUsername: true},
-    LdapSettings: {Enable: false},
-};
-
 /**
  * @objective Verify the login placeholder is Email when only email sign-in is enabled.
  */
@@ -17,13 +12,13 @@ test(
     async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
 
-        try {
-            // # Allow only email sign-in
-            await adminClient.patchConfig({
-                EmailSettings: {EnableSignInWithEmail: true, EnableSignInWithUsername: false},
-                LdapSettings: {Enable: false},
-            });
+        // # Allow only email sign-in
+        const {restore} = await adminClient.patchConfig({
+            EmailSettings: {EnableSignInWithEmail: true, EnableSignInWithUsername: false},
+            LdapSettings: {Enable: false},
+        });
 
+        try {
             await pw.hasSeenLandingPage();
             await pw.loginPage.goto();
             await pw.loginPage.toBeVisible();
@@ -31,7 +26,8 @@ test(
             // * Verify the placeholder is Email
             await expect(pw.loginPage.emailOnlyPlaceholder).toBeVisible();
         } finally {
-            await adminClient.patchConfig(restoreSignInSettings);
+            // Admin logs in by username.
+            await restore();
         }
     },
 );
@@ -45,22 +41,18 @@ test(
     async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
 
-        try {
-            // # Allow only username sign-in
-            await adminClient.patchConfig({
-                EmailSettings: {EnableSignInWithEmail: false, EnableSignInWithUsername: true},
-                LdapSettings: {Enable: false},
-            });
+        // # Allow only username sign-in
+        await adminClient.patchConfig({
+            EmailSettings: {EnableSignInWithEmail: false, EnableSignInWithUsername: true},
+            LdapSettings: {Enable: false},
+        });
 
-            await pw.hasSeenLandingPage();
-            await pw.loginPage.goto();
-            await pw.loginPage.toBeVisible();
+        await pw.hasSeenLandingPage();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
 
-            // * Verify the placeholder is Username
-            await expect(pw.loginPage.usernameOnlyPlaceholder).toBeVisible();
-        } finally {
-            await adminClient.patchConfig(restoreSignInSettings);
-        }
+        // * Verify the placeholder is Username
+        await expect(pw.loginPage.usernameOnlyPlaceholder).toBeVisible();
     },
 );
 
@@ -73,21 +65,17 @@ test(
     async ({pw}) => {
         const {adminClient} = await pw.getAdminClient();
 
-        try {
-            // # Allow both email and username sign-in
-            await adminClient.patchConfig({
-                EmailSettings: {EnableSignInWithEmail: true, EnableSignInWithUsername: true},
-                LdapSettings: {Enable: false},
-            });
+        // # Allow both email and username sign-in
+        await adminClient.patchConfig({
+            EmailSettings: {EnableSignInWithEmail: true, EnableSignInWithUsername: true},
+            LdapSettings: {Enable: false},
+        });
 
-            await pw.hasSeenLandingPage();
-            await pw.loginPage.goto();
-            await pw.loginPage.toBeVisible();
+        await pw.hasSeenLandingPage();
+        await pw.loginPage.goto();
+        await pw.loginPage.toBeVisible();
 
-            // * Verify the placeholder is Email or Username
-            await expect(pw.loginPage.loginPlaceholder).toBeVisible();
-        } finally {
-            await adminClient.patchConfig(restoreSignInSettings);
-        }
+        // * Verify the placeholder is Email or Username
+        await expect(pw.loginPage.loginPlaceholder).toBeVisible();
     },
 );

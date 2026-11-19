@@ -24,6 +24,8 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import {isSessionAttributeField} from '@mattermost/types/properties_user';
 
+import {isPropertyFieldSynced} from 'mattermost-redux/utils/property_utils';
+
 import {PLATFORM_ICONS, platformLabels} from 'components/admin_console/session_attributes/platform_icons';
 import {getSessionAttrs} from 'components/admin_console/session_attributes/utils';
 import * as Menu from 'components/menu';
@@ -83,6 +85,11 @@ interface AttributeSelectorProps {
     currentAttribute: string;
     currentAttributeObjectType?: string;
     availableAttributes: UserPropertyField[];
+
+    /** Subset of availableAttributes the menu lists. The current value's label
+     *  and icon still resolve from availableAttributes, so a row on an attribute
+     *  outside this subset keeps its label. Defaults to availableAttributes. */
+    selectableAttributes?: UserPropertyField[];
     disabled: boolean;
     onChange: (attributeId: string) => void;
     menuId: string;
@@ -98,7 +105,7 @@ const matchesSelection = (attr: UserPropertyField, name: string, objectType?: st
     return attr.name === name && (attr.object_type || 'user') === (objectType || 'user');
 };
 
-const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, availableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened, enableUserManagedAttributes}: AttributeSelectorProps) => {
+const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, availableAttributes, selectableAttributes, disabled, onChange, menuId, buttonId, autoOpen = false, onMenuOpened, enableUserManagedAttributes}: AttributeSelectorProps) => {
     const {formatMessage} = useIntl();
     const [filter, setFilter] = useState('');
     const prevAutoOpen = useRef(false);
@@ -109,13 +116,13 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
 
     const options = useMemo(() => {
         const q = filter.toLowerCase();
-        return availableAttributes.filter((attr) => {
+        return (selectableAttributes ?? availableAttributes).filter((attr) => {
             return (
                 attr.name.toLowerCase().includes(q) ||
                 getUserPropertyFieldLabel(attr).toLowerCase().includes(q)
             );
         });
-    }, [availableAttributes, filter]);
+    }, [selectableAttributes, availableAttributes, filter]);
 
     // Native (built-in) attributes and custom profile attributes are shown in
     // separate sections; session attributes get their own section below both.
@@ -172,7 +179,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         const isSessionAttribute = isSessionAttributeField(option);
         const isNative = option.attrs?.native;
         const isSelected = matchesSelection(option, currentAttribute, currentAttributeObjectType);
-        const isSynced = option.attrs?.ldap || option.attrs?.saml;
+        const isSynced = isPropertyFieldSynced(option);
         const allowed = isSessionAttribute || isNative || hasControlledAttributeValues(option) || enableUserManagedAttributes;
 
         const platforms = isSessionAttribute ? getSessionAttrs(option).platforms : [];
@@ -258,7 +265,7 @@ const AttributeSelectorMenu = ({currentAttribute, currentAttributeObjectType, av
         } else if (!allowed) {
             tooltipContent = formatMessage({
                 id: 'admin.access_control.table_editor.not_safe_to_use',
-                defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Please link attribute to AD/LDAP for use in access policies.',
+                defaultMessage: 'Values for this attribute are managed by users and should not be used for access control. Link the attribute to AD/LDAP, SAML or OpenID Connect to use it in access policies.',
             });
         } else if (isSynced) {
             tooltipContent = formatMessage({

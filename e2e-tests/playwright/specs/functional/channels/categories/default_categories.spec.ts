@@ -3,11 +3,6 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-async function skipIfNoEnterpriseLicense(adminClient: any) {
-    const license = await adminClient.getClientLicenseOld();
-    test.skip(license.IsLicensed !== 'true', 'Skipping test - server does not have an enterprise license');
-}
-
 async function enableChannelCategorySorting(adminClient: any) {
     await adminClient.patchConfig({
         TeamSettings: {
@@ -34,7 +29,7 @@ test.describe('Channel Category Sorting', () => {
         async ({pw}) => {
             // # Initialize setup and disable channel category sorting
             const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
-            await skipIfNoEnterpriseLicense(adminClient);
+            await pw.skipIfNoLicense();
             await disableChannelCategorySorting(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
 
@@ -65,7 +60,7 @@ test.describe('Channel Category Sorting', () => {
         async ({pw}) => {
             // # Initialize setup and enable channel category sorting
             const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
-            await skipIfNoEnterpriseLicense(adminClient);
+            await pw.skipIfNoLicense();
             await enableChannelCategorySorting(adminClient);
             await adminClient.addToTeam(team.id, adminUser.id);
 
@@ -109,7 +104,7 @@ test.describe('Channel Category Sorting', () => {
     test('default category can be assigned via channel settings', {tag: '@channel_category_sorting'}, async ({pw}) => {
         // # Initialize setup with admin user and enterprise license
         const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
-        await skipIfNoEnterpriseLicense(adminClient);
+        await pw.skipIfNoLicense();
         await enableChannelCategorySorting(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
 
@@ -162,7 +157,7 @@ test.describe('Channel Category Sorting', () => {
     test('default category can be removed via channel settings', {tag: '@channel_category_sorting'}, async ({pw}) => {
         // # Initialize setup and create a channel with a default category set
         const {adminUser, adminClient, team} = await pw.initSetup({withDefaultProfileImage: false});
-        await skipIfNoEnterpriseLicense(adminClient);
+        await pw.skipIfNoLicense();
         await enableChannelCategorySorting(adminClient);
         await adminClient.addToTeam(team.id, adminUser.id);
 
@@ -224,8 +219,8 @@ test.describe('Channel Category Sorting', () => {
         {tag: '@channel_category_sorting'},
         async ({pw}) => {
             // # Initialize setup
-            const {adminUser, adminClient} = await pw.initSetup({withDefaultProfileImage: false});
-            await skipIfNoEnterpriseLicense(adminClient);
+            const {adminUser} = await pw.initSetup({withDefaultProfileImage: false});
+            await pw.skipIfNoLicense();
 
             // # Log in and navigate to the System Console
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);

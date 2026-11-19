@@ -6,6 +6,8 @@ import {useIntl, FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
 import {DotsHorizontalIcon, PencilOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {Switch} from '@mattermost/compass-ui/components/switch';
 import type {ScheduledRecap} from '@mattermost/types/recaps';
 
 import {pauseScheduledRecap, resumeScheduledRecap, deleteScheduledRecap} from 'mattermost-redux/actions/recaps';
@@ -13,11 +15,12 @@ import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import * as Menu from 'components/menu';
-import Toggle from 'components/toggle';
 
 import {useScheduleDisplay} from './schedule_display';
 
 import './scheduled_recap_item.scss';
+
+const ScheduledRecapMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small', padding: 'compact'});
 
 type Props = {
     scheduledRecap: ScheduledRecap;
@@ -68,6 +71,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
 
     const menuId = `scheduled-recap-menu-${scheduledRecap.id}`;
     const buttonId = `${menuId}-button`;
+    const menuLabel = formatMessage({id: 'recaps.menu.ariaLabel', defaultMessage: 'Options for {title}'}, {title: scheduledRecap.title});
 
     return (
         <div
@@ -97,14 +101,15 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                     </div>
 
                     <div className='scheduled-recap-toggle'>
-                        <Toggle
+                        <Switch
                             id={`toggle-${scheduledRecap.id}`}
-                            toggled={scheduledRecap.enabled}
-                            onToggle={handleToggle}
+                            size='small'
+                            checked={scheduledRecap.enabled}
+                            onChange={handleToggle}
                             disabled={isToggling}
-                            size='btn-sm'
-                            toggleClassName='btn-toggle-primary'
-                            ariaLabel={scheduledRecap.enabled ?
+                            data-testid={`toggle-${scheduledRecap.id}-button`}
+                            tabIndex={0}
+                            aria-label={scheduledRecap.enabled ?
                                 formatMessage({id: 'recaps.scheduled.toggle.active', defaultMessage: 'Active - click to pause'}) :
                                 formatMessage({id: 'recaps.scheduled.toggle.paused', defaultMessage: 'Paused - click to resume'})
                             }
@@ -114,13 +119,16 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                     <Menu.Container
                         menuButton={{
                             id: buttonId,
-                            class: 'scheduled-recap-menu-button',
-                            'aria-label': formatMessage({id: 'recaps.menu.ariaLabel', defaultMessage: 'Options for {title}'}, {title: scheduledRecap.title}),
-                            children: <DotsHorizontalIcon size={16}/>,
+                            as: ScheduledRecapMenuTrigger,
+                            'aria-label': menuLabel,
+                            children: <Icon glyph={<DotsHorizontalIcon/>}/>,
+                        }}
+                        menuButtonTooltip={{
+                            text: menuLabel,
                         }}
                         menu={{
                             id: menuId,
-                            'aria-label': formatMessage({id: 'recaps.menu.ariaLabel', defaultMessage: 'Options for {title}'}, {title: scheduledRecap.title}),
+                            'aria-label': menuLabel,
                         }}
                         anchorOrigin={{
                             vertical: 'bottom',
@@ -160,7 +168,7 @@ const ScheduledRecapItem = ({scheduledRecap, onEdit}: Props) => {
                     />
                 }
                 confirmButtonText={formatMessage({id: 'recaps.scheduled.delete.button', defaultMessage: 'Delete'})}
-                confirmButtonVariant='destructive'
+                destructive={true}
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
                 onExited={() => setShowDeleteConfirm(false)}
