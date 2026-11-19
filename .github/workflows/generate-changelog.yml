@@ -1,4 +1,7 @@
 name: Generate Changelog
+# Merge-only runs are named apart so changelog_automation.py can skip them when it looks for
+# the generator's sections.json.
+run-name: ${{ (github.event_name == 'release' || github.event.schedule == '37 * * * *' || inputs.mode == 'merge') && 'Changelog Release Day' || 'Generate Changelog' }}
 
 # Runs on its own every weekday from the release's RC-1 (the vX.Y.0-rc1 tag) until the
 # changelog is merged on release day, and on demand. The scheduled run works out the release itself

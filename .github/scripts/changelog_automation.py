@@ -55,6 +55,8 @@ _ORIGINAL_RE = re.compile(r"<!-- changelog-suggestion-original (\S+) -->")
 _BULLET = re.compile(r"^( *[-*] +)(\S.*)$")
 # The team's existing label: its automation merges the PR once reviews and checks pass.
 AUTOMERGE_LABEL = "AutoMerge"
+# The run-name generate-changelog.yml gives runs of only its merge job, which upload no report.
+MERGE_RUN_NAME = "Changelog Release Day"
 MIN_REWRITE_WORDS = 6
 MAX_REWRITE_CHARS = 400
 RELEASE_DAY_TBD = re.compile(r"Release day:\s*\**\s*TBD\b", re.IGNORECASE)
@@ -74,7 +76,7 @@ class Api:
     def __init__(self, token: str, base: str = "https://api.github.com"):
         self.base = base.rstrip("/")
         self.headers = {"Authorization": f"Bearer {token}", "Accept": "application/vnd.github+json",
-                        "X-GitHub-Api-Version": "2022-11-28"}
+                        "Content-Type": "application/json", "X-GitHub-Api-Version": "2022-11-28"}
 
     def request(self, method: str, path: str, params: dict | None = None, body=None):
         url = self.base + path + ("?" + urllib.parse.urlencode(params) if params else "")
@@ -505,11 +507,12 @@ def fetch_reports(version: str, env: dict, run=subprocess.run, repo: str = REPO,
         return run(["gh", *args], capture_output=True, text=True, env=gh_env)
 
     listing = gh("run", "list", "--repo", repo, "--workflow", "generate-changelog.yml", "--status", "success",
-                 "--limit", str(limit), "--json", "databaseId")
+                 "--limit", "1000", "--json", "databaseId,displayTitle")
     if listing.returncode != 0:
         return
+    runs = [found for found in json.loads(listing.stdout or "[]") if found.get("displayTitle") != MERGE_RUN_NAME]
     with tempfile.TemporaryDirectory() as directory:
-        for found in json.loads(listing.stdout or "[]"):
+        for found in runs[:limit]:
             target = os.path.join(directory, str(found["databaseId"]))
             if gh("run", "download", str(found["databaseId"]), "--repo", repo, "-n", "changelog-output",
                   "-D", target).returncode != 0:
