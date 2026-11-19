@@ -1,3 +1,9 @@
+// PopoverMenu already pads the top. The header has its own padding, so drop
+// the extra surface padding above it.
+.menu_menuStyled__surface:has(.rewrite-menu-header) {
+    padding-top: 0;
+}
+
 .rewrite-menu-header {
     // This menu is its own popover, so it can be wider than a side submenu.
     min-width: 400px;
