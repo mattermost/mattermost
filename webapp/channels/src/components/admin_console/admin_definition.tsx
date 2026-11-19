@@ -3972,6 +3972,13 @@ const AdminDefinition: AdminDefinitionType = {
                                 },
                                 {
                                     type: 'bool',
+                                    key: 'ServiceSettings.BlockExternalImages',
+                                    label: defineMessage({id: 'admin.customization.blockExternalImagesTitle', defaultMessage: 'Block external images:'}),
+                                    help_text: defineMessage({id: 'admin.customization.blockExternalImagesDesc', defaultMessage: 'When enabled, images not hosted on the SiteURL are blocked from loading and shown as clickable links instead. Email notifications and mobile apps are not yet covered by this setting.'}),
+                                    isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
+                                },
+                                {
+                                    type: 'bool',
                                     key: 'ServiceSettings.EnablePermalinkPreviews',
                                     label: defineMessage({id: 'admin.customization.enablePermalinkPreviewsTitle', defaultMessage: 'Enable message link previews:'}),
                                     help_text: defineMessage({id: 'admin.customization.enablePermalinkPreviewsDesc', defaultMessage: 'When enabled, links to Mattermost messages will generate a preview for any users that have access to the original message. Please review our <link>documentation</link> for details.'}), // eslint-disable-line formatjs/enforce-placeholders -- placeholders provided

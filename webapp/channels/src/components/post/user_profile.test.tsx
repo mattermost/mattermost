@@ -211,3 +211,106 @@ describe('PostUserProfile bot attributes in the username popover', () => {
         expect(Client4.getUserCustomProfileAttributesValues).toHaveBeenCalledWith(bot.id);
     });
 });
+
+describe('PostUserProfile override_icon_url gating', () => {
+    const user = TestHelper.getUserMock({id: 'user1', username: 'webhookuser'});
+    const baseProps = {
+        isBot: false,
+        isSystemMessage: false,
+        isMobileView: false,
+        location: Locations.CENTER,
+    };
+
+    test('blocks external override_icon_url in popover when BlockExternalImages is true', async () => {
+        renderWithContext(
+            <PostUserProfile
+                {...baseProps}
+                post={TestHelper.getPostMock({
+                    user_id: user.id,
+                    props: {
+                        from_webhook: 'true',
+                        override_icon_url: 'https://evil.example/icon.png',
+                    },
+                })}
+            />,
+            {
+                entities: {
+                    users: {profiles: {[user.id]: user}},
+                    general: {
+                        config: {
+                            EnablePostIconOverride: 'true',
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'webhookuser'}));
+        const imgs = screen.getAllByRole('img');
+        expect(imgs.some((img) => img.getAttribute('src') === 'https://evil.example/icon.png')).toBe(false);
+    });
+
+    test('ignores override_icon_url when EnablePostIconOverride is false', async () => {
+        renderWithContext(
+            <PostUserProfile
+                {...baseProps}
+                post={TestHelper.getPostMock({
+                    user_id: user.id,
+                    props: {
+                        from_webhook: 'true',
+                        override_icon_url: 'https://mm.example.com/api/v4/files/abc',
+                    },
+                })}
+            />,
+            {
+                entities: {
+                    users: {profiles: {[user.id]: user}},
+                    general: {
+                        config: {
+                            EnablePostIconOverride: 'false',
+                            BlockExternalImages: 'false',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'webhookuser'}));
+        const imgs = screen.getAllByRole('img');
+        expect(imgs.some((img) => img.getAttribute('src') === 'https://mm.example.com/api/v4/files/abc')).toBe(false);
+    });
+
+    test('renders internal override_icon_url when EnablePostIconOverride is true and BlockExternalImages is true', async () => {
+        renderWithContext(
+            <PostUserProfile
+                {...baseProps}
+                post={TestHelper.getPostMock({
+                    user_id: user.id,
+                    props: {
+                        from_webhook: 'true',
+                        override_icon_url: 'https://mm.example.com/api/v4/files/abc',
+                    },
+                })}
+            />,
+            {
+                entities: {
+                    users: {profiles: {[user.id]: user}},
+                    general: {
+                        config: {
+                            EnablePostIconOverride: 'true',
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: 'webhookuser'}));
+        const imgs = screen.getAllByRole('img');
+        expect(imgs.some((img) => img.getAttribute('src') === 'https://mm.example.com/api/v4/files/abc')).toBe(true);
+    });
+});

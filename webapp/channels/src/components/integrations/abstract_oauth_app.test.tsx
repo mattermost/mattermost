@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import AbstractOAuthApp from 'components/integrations/abstract_oauth_app';
+import ConnectedAbstractOAuthApp, {AbstractOAuthApp} from 'components/integrations/abstract_oauth_app';
 
 import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
@@ -250,5 +250,65 @@ describe('components/integrations/AbstractOAuthApp', () => {
         await userEvent.clear(homepageInput);
         await userEvent.click(submitButton);
         expect(screen.getByText('Homepage for the OAuth 2.0 application is required.')).toBeInTheDocument();
+    });
+
+    test('blocks external initial icon and does not assign Image.src in updateIconUrl when BlockExternalImages is true', async () => {
+        const ref = React.createRef<AbstractOAuthApp>();
+        const externalApp = {
+            ...initialApp,
+            icon_url: 'https://evil.example/icon.png',
+        };
+        renderWithContext(
+            <ConnectedAbstractOAuthApp
+                ref={ref}
+                {...baseProps}
+                action={action}
+                initialApp={externalApp}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.queryByAltText('integration icon')).not.toBeInTheDocument();
+
+        const iconInput = screen.getByLabelText('Icon URL');
+        await userEvent.clear(iconInput);
+        await userEvent.click(iconInput);
+        await userEvent.paste('https://evil.example/new.png');
+        expect((ref.current as any).image.src).toBe('');
+    });
+
+    test('renders internal icon when BlockExternalImages is true', () => {
+        const internalApp = {
+            ...initialApp,
+            icon_url: 'https://mm.example.com/static/icon.png',
+        };
+        renderWithContext(
+            <ConnectedAbstractOAuthApp
+                {...baseProps}
+                action={action}
+                initialApp={internalApp}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(screen.getByAltText('integration icon')).toHaveAttribute('src', 'https://mm.example.com/static/icon.png');
     });
 });

@@ -12,6 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import AllowedImage from 'components/external_image/allowed_image';
 import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -276,25 +277,25 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
 
         let appBindings = [] as JSX.Element[];
         if (this.props.appsEnabled && this.state.appBindings) {
-            appBindings = this.state.appBindings.map((item) => {
-                let icon: JSX.Element | undefined;
-                if (item.icon) {
-                    icon = (
-                        <img
-                            key={item.app_id + 'app_icon'}
-                            src={item.icon}
-                        />);
-                }
-
-                return (
-                    <Menu.ItemAction
-                        text={item.label}
-                        key={item.app_id + item.location}
-                        onClick={() => this.onClickAppBinding(item)}
-                        icon={icon}
-                    />
-                );
-            });
+            appBindings = this.state.appBindings.map((item) => (
+                <AllowedImage
+                    key={item.app_id + item.location}
+                    src={item.icon}
+                >
+                    {(allowedIcon) => (
+                        <Menu.ItemAction
+                            text={item.label}
+                            onClick={() => this.onClickAppBinding(item)}
+                            icon={allowedIcon ? (
+                                <img
+                                    key={item.app_id + 'app_icon'}
+                                    src={allowedIcon}
+                                />
+                            ) : undefined}
+                        />
+                    )}
+                </AllowedImage>
+            ));
         }
 
         const {formatMessage} = this.props.intl;

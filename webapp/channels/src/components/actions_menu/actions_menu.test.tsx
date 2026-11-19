@@ -7,7 +7,7 @@ import type {PostType} from '@mattermost/types/posts';
 
 import {isMobile} from 'components/widgets/menu/is_mobile_view_hack';
 
-import {fireEvent, renderWithContext} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDropdownMenuAction, PostDropdownMenuItemComponent} from 'types/store/plugins';
@@ -202,5 +202,63 @@ describe('components/actions_menu/ActionsMenu', () => {
             />,
         );
         expect(container.querySelector('#divider_post_post_id_1_marketplace')).toBeNull();
+    });
+
+    test('omits external app binding icon when BlockExternalImages is true', () => {
+        const {container} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                appsEnabled={true}
+                isMenuOpen={true}
+                appBindings={[{
+                    app_id: 'app1',
+                    location: 'post_menu',
+                    label: 'App Action',
+                    icon: 'https://evil.example/icon.png',
+                }]}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('img[src="https://evil.example/icon.png"]')).toBeNull();
+        expect(screen.getByText('App Action')).toBeInTheDocument();
+        expect(container.querySelector('.MenuItem--with-icon')).toBeNull();
+    });
+
+    test('renders external app binding icon when BlockExternalImages is false', () => {
+        const {container} = renderWithContext(
+            <ActionsMenu
+                {...baseProps}
+                appsEnabled={true}
+                isMenuOpen={true}
+                appBindings={[{
+                    app_id: 'app1',
+                    location: 'post_menu',
+                    label: 'App Action',
+                    icon: 'https://evil.example/icon.png',
+                }]}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'false',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('img[src="https://evil.example/icon.png"]')).not.toBeNull();
     });
 });

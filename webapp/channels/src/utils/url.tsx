@@ -5,6 +5,8 @@ import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
 
+import type {ClientConfig} from '@mattermost/types/config';
+
 import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {latinise} from 'utils/latinise';
@@ -241,6 +243,153 @@ export function mightTriggerExternalRequest(url: string, siteURL?: string): bool
 
 export function isInternalURL(url: string, siteURL?: string): boolean {
     return url.startsWith(siteURL || '') || url.startsWith('/') || url.startsWith('#');
+}
+
+const DUMMY_IMAGE_BASE_URL = 'https://mattermost.invalid';
+const IMAGE_PROXY_PATH = '/api/v4/image';
+const AUTHORITY_LESS_SCHEME_RE = /^[a-z][a-z0-9+.-]*:(?!\/\/)/i;
+
+function hasDisallowedImageURLChars(value: string): boolean {
+    for (let i = 0; i < value.length; i++) {
+        const code = value.charCodeAt(i);
+        if (code <= 0x1f || code === 0x7f || code === 0x5c) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function cleanPathname(pathname: string): string | null {
+    let decoded: string;
+    try {
+        decoded = decodeURIComponent(pathname);
+    } catch {
+        return null;
+    }
+    if (hasDisallowedImageURLChars(decoded)) {
+        return null;
+    }
+    const stack: string[] = [];
+    for (const segment of decoded.split('/')) {
+        if (!segment || segment === '.') {
+            continue;
+        }
+        if (segment === '..') {
+            stack.pop();
+        } else {
+            stack.push(segment);
+        }
+    }
+    return '/' + stack.join('/');
+}
+
+function isImageProxyRelPath(relPath: string): boolean {
+    return relPath === IMAGE_PROXY_PATH || relPath.startsWith(`${IMAGE_PROXY_PATH}/`);
+}
+
+function resolveInternalImagePath(rawURL: string, siteURL: string): string | null {
+    if (!rawURL || rawURL !== rawURL.trim() || hasDisallowedImageURLChars(rawURL)) {
+        return null;
+    }
+    if (rawURL.startsWith('//') || AUTHORITY_LESS_SCHEME_RE.test(rawURL)) {
+        return null;
+    }
+
+    const trimmedSiteURL = siteURL.trim();
+    if (!trimmedSiteURL) {
+        try {
+            if (new URL(rawURL).href) {
+                return null;
+            }
+        } catch {
+            // Not an absolute URL; resolve against a dummy origin to inspect the effective path.
+        }
+
+        try {
+            const parsed = new URL(rawURL, DUMMY_IMAGE_BASE_URL);
+            if (parsed.origin !== DUMMY_IMAGE_BASE_URL || parsed.username || parsed.password) {
+                return null;
+            }
+            return cleanPathname(parsed.pathname);
+        } catch {
+            return null;
+        }
+    }
+
+    let parsedSite: URL;
+    try {
+        parsedSite = new URL(trimmedSiteURL);
+    } catch {
+        return null;
+    }
+    if ((parsedSite.protocol !== 'http:' && parsedSite.protocol !== 'https:') || parsedSite.username || parsedSite.password) {
+        return null;
+    }
+
+    let parsed: URL;
+    try {
+        parsed = new URL(rawURL, parsedSite);
+    } catch {
+        return null;
+    }
+
+    if ((parsed.protocol !== 'http:' && parsed.protocol !== 'https:') || parsed.origin !== parsedSite.origin || parsed.username || parsed.password) {
+        return null;
+    }
+
+    const rawSitePath = cleanPathname(parsedSite.pathname);
+    const normalizedPath = cleanPathname(parsed.pathname);
+    if (rawSitePath === null || normalizedPath === null) {
+        return null;
+    }
+    const sitePath = rawSitePath === '/' ? '' : rawSitePath;
+    if (sitePath !== '' && normalizedPath !== sitePath && !normalizedPath.startsWith(`${sitePath}/`)) {
+        return null;
+    }
+
+    return normalizedPath.slice(sitePath.length);
+}
+
+export function isImageProxyURL(rawURL: string, siteURL: string): boolean {
+    const relPath = resolveInternalImagePath(rawURL, siteURL);
+    return relPath !== null && isImageProxyRelPath(relPath);
+}
+
+export function unwrapImageProxyURL(rawURL: string, siteURL: string): string {
+    if (!isImageProxyURL(rawURL, siteURL)) {
+        return rawURL;
+    }
+
+    try {
+        const parsed = new URL(rawURL, DUMMY_IMAGE_BASE_URL);
+        const target = parsed.searchParams.get('url');
+        if (target && isUrlSafe(target)) {
+            return target;
+        }
+    } catch {
+        // Fall back to the original URL if parsing fails.
+    }
+
+    return rawURL;
+}
+
+export function isExternalImageURL(rawURL: string, siteURL: string): boolean {
+    if (!rawURL || rawURL !== rawURL.trim()) {
+        return true;
+    }
+    if (rawURL.toLowerCase().startsWith('data:image/')) {
+        return false;
+    }
+
+    const relPath = resolveInternalImagePath(rawURL, siteURL);
+    if (relPath === null) {
+        return true;
+    }
+    return isImageProxyRelPath(relPath);
+}
+
+export function isExternalImageBlocked(rawURL: string | undefined, config?: Partial<ClientConfig>): boolean {
+    return Boolean(rawURL) && config?.BlockExternalImages === 'true' && isExternalImageURL(rawURL!, config.SiteURL || '');
 }
 
 export function shouldOpenInNewTab(url: string, siteURL?: string, managedResourcePaths?: string[]): boolean {

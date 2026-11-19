@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -357,7 +358,8 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 			w.Header().Set("Content-Length", "10")
 
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("1111111111"))
+			_, writeErr := w.Write([]byte("1111111111"))
+			require.NoError(t, writeErr)
 		})
 
 		mock := httptest.NewServer(handler)
@@ -370,7 +372,8 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "image/png", contentType)
 
-		respBody, _ := io.ReadAll(body)
+		respBody, err := io.ReadAll(body)
+		require.NoError(t, err)
 		assert.Equal(t, []byte("1111111111"), respBody)
 	})
 
@@ -399,7 +402,8 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 			w.Header().Set("Content-Length", "10")
 
 			w.WriteHeader(http.StatusOK)
-			w.Write([]byte("1111111111"))
+			_, writeErr := w.Write([]byte("1111111111"))
+			require.NoError(t, writeErr)
 		})
 
 		mock := httptest.NewServer(handler)
@@ -484,7 +488,8 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "image/png")
 			w.WriteHeader(http.StatusOK)
-			w.Write(bytes.Repeat([]byte("1"), int(maxImageSize)+1))
+			_, writeErr := w.Write(bytes.Repeat([]byte("1"), int(maxImageSize)+1))
+			require.NoError(t, writeErr)
 		})
 
 		mock := httptest.NewServer(handler)
@@ -508,7 +513,8 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "image/png")
 			w.WriteHeader(http.StatusOK)
-			w.Write(bytes.Repeat([]byte("1"), int(maxImageSize)))
+			_, writeErr := w.Write(bytes.Repeat([]byte("1"), int(maxImageSize)))
+			require.NoError(t, writeErr)
 		})
 
 		mock := httptest.NewServer(handler)
@@ -521,7 +527,50 @@ func TestLocalBackend_GetImageDirect(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, "image/png", contentType)
 
-		respBody, _ := io.ReadAll(body)
+		respBody, err := io.ReadAll(body)
+		require.NoError(t, err)
 		assert.Equal(t, bytes.Repeat([]byte("1"), int(maxImageSize)), respBody)
+	})
+
+	t.Run("block external images blocks direct external URL and internal-to-external redirect", func(t *testing.T) {
+		var extHits atomic.Int32
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			extHits.Add(1)
+			w.Header().Set("Content-Type", "image/png")
+			w.WriteHeader(http.StatusOK)
+			_, writeErr := w.Write([]byte("1111111111"))
+			require.NoError(t, writeErr)
+		}))
+		defer extServer.Close()
+
+		siteServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, extServer.URL+"/redirected.png", http.StatusFound)
+		}))
+		defer siteServer.Close()
+
+		configService := &testutils.StaticConfigService{
+			Cfg: &model.Config{
+				ServiceSettings: model.ServiceSettings{
+					SiteURL:                             new(siteServer.URL),
+					BlockExternalImages:                 new(true),
+					AllowedUntrustedInternalConnections: new("127.0.0.1"),
+				},
+				ImageProxySettings: model.ImageProxySettings{
+					Enable:         new(true),
+					ImageProxyType: model.NewPointer(model.ImageProxyTypeLocal),
+				},
+			},
+		}
+		proxy := MakeImageProxy(configService, httpservice.MakeHTTPService(configService), nil)
+
+		recorder := httptest.NewRecorder()
+		request, err := http.NewRequest(http.MethodGet, "", nil)
+		require.NoError(t, err)
+		proxy.GetImage(recorder, request, extServer.URL+"/direct.png")
+		assert.Equal(t, http.StatusForbidden, recorder.Code)
+
+		_, _, err = proxy.GetImageDirect(siteServer.URL + "/redir.png")
+		assert.Equal(t, ErrLocalRequestFailed, err)
+		assert.Zero(t, extHits.Load())
 	})
 }

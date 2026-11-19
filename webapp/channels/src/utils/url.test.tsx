@@ -5,6 +5,10 @@ import {
     getRelativeChannelURL,
     getSiteURL,
     getSiteURLFromWindowObject,
+    isExternalImageBlocked,
+    isExternalImageURL,
+    isImageProxyURL,
+    unwrapImageProxyURL,
     isPermalinkURL,
     validateChannelUrl,
 } from 'utils/url';
@@ -131,6 +135,102 @@ describe('Utils.URL', () => {
             ['https://example.com/teamname-1/pl/affe2344234', false],
         ])('is permalink for %s should return %s', (url, expected) => {
             expect(isPermalinkURL(url)).toBe(expected);
+        });
+    });
+
+    describe('isExternalImageURL', () => {
+        test.each([
+            ['same-origin file preview', 'https://chat.example.com/api/v4/files/x/preview', 'https://chat.example.com', false],
+            ['relative static emoji path', '/static/emoji/1f600.png', 'https://chat.example.com', false],
+            ['relative custom emoji path', '/api/v4/emoji/abc/image', 'https://chat.example.com', false],
+            ['data image png URI', 'data:image/png;base64,iVBORw0KGgo=', 'https://chat.example.com', false],
+            ['uppercase data image URI', 'DATA:IMAGE/PNG;base64,iVBORw0KGgo=', 'https://chat.example.com', false],
+            ['data image svg URI', 'data:image/svg+xml,<svg/>', 'https://chat.example.com', false],
+            ['host prefix lookalike', 'https://chat.example.com.evil.net/a.png', 'https://chat.example.com', true],
+            ['scheme mismatch', 'http://chat.example.com/a.png', 'https://chat.example.com', true],
+            ['non-default port mismatch', 'https://chat.example.com:8443/a.png', 'https://chat.example.com', true],
+            ['default HTTPS port normalized', 'https://chat.example.com:443/a.png', 'https://chat.example.com', false],
+            ['default HTTP port normalized', 'http://chat.example.com:80/a.png', 'http://chat.example.com', false],
+            ['case-insensitive host', 'https://CHAT.example.com/a.png', 'https://chat.example.com', false],
+            ['subpath internal file', 'https://host/mm/api/v4/files/x', 'https://host/mm', false],
+            ['subpath relative internal file', '/mm/api/v4/files/x', 'https://host/mm', false],
+            ['subpath outside path', 'https://host/other/a.png', 'https://host/mm', true],
+            ['subpath prefix lookalike', 'https://host/mm2/a.png', 'https://host/mm', true],
+            ['subpath dot-dot traversal', 'https://host/mm/../other/a.png', 'https://host/mm', true],
+            ['subpath absolute image proxy URL', 'https://host/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://host/mm', true],
+            ['subpath relative image proxy URL', '/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://host/mm', true],
+            ['double-slash image proxy URL', 'https://chat.example.com//api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', true],
+            ['subpath double-slash image proxy URL', 'https://host/mm//api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://host/mm', true],
+            ['absolute image proxy URL', 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', true],
+            ['relative image proxy URL', '/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', true],
+            ['non-proxy path starting with images', 'https://chat.example.com/api/v4/images/logo.png', 'https://chat.example.com', false],
+            ['empty siteURL rejects absolute URL', 'https://anything/a.png', '', true],
+            ['empty siteURL allows relative URL', '/static/x.png', '', false],
+            ['empty siteURL rejects relative image proxy URL', '/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', '', true],
+            ['empty siteURL rejects protocol-relative URL', '//ext.example/a.png', '', true],
+            ['protocol-relative external URL', '//ext.example/a.png', 'https://chat.example.com', true],
+            ['protocol-relative same-host URL', '//chat.example.com/a.png', 'https://chat.example.com', true],
+            ['backslash relative URL', '/\\evil.net/a.png', 'https://chat.example.com', true],
+            ['backslash scheme URL', 'https:\\\\evil.net\\a.png', 'https://chat.example.com', true],
+            ['tab-injected protocol-relative URL', '/\t/evil.net/a.png', 'https://chat.example.com', true],
+            ['empty URL', '', 'https://chat.example.com', true],
+            ['surrounding whitespace on external URL', ' https://ext/a.png ', 'https://chat.example.com', true],
+            ['surrounding whitespace on relative URL', ' /static/x.png ', 'https://chat.example.com', true],
+            ['javascript scheme', ['javascript', 'alert(1)'].join(':'), 'https://chat.example.com', true],
+            ['blob scheme', 'blob:https://chat.example.com/x', 'https://chat.example.com', true],
+            ['ftp scheme', 'ftp://chat.example.com/a.png', 'https://chat.example.com', true],
+            ['non-image data URI', 'data:text/html,<script>alert(1)</script>', 'https://chat.example.com', true],
+            ['URL with userinfo on same host', 'https://evil.example@chat.example.com/a.png', 'https://chat.example.com', true],
+            ['same-host tab-injected URL', '/\t/chat.example.com/a.png', 'https://chat.example.com', true],
+            ['same-host CR-injected URL', '/\r/chat.example.com/a.png', 'https://chat.example.com', true],
+            ['same-host backslash in path', 'https://chat.example.com/a\\b.png', 'https://chat.example.com', true],
+            ['percent-encoded image proxy path', 'https://chat.example.com/api/v4/%69mage?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', true],
+            ['percent-encoded trailing slash image proxy path', 'https://chat.example.com/api/v4/image%2F?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', true],
+            ['percent-encoded subpath traversal outside siteURL', 'https://host/mm/%2e%2e%2fother/a.png', 'https://host/mm', true],
+            ['authority-less same-scheme URL', 'https:evil.com/a.png', 'https://chat.example.com', true],
+        ])('%s', (_name, rawURL, siteURL, expected) => {
+            expect(isExternalImageURL(rawURL, siteURL)).toBe(expected);
+        });
+    });
+
+    describe('isImageProxyURL', () => {
+        test.each([
+            ['absolute image proxy URL', 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', true],
+            ['relative image proxy URL', '/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', true],
+            ['percent-encoded image proxy URL', 'https://chat.example.com/api/v4/%69mage?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', true],
+            ['subpath absolute image proxy URL', 'https://host/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://host/mm', true],
+            ['subpath relative image proxy URL', '/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://host/mm', true],
+            ['empty siteURL relative image proxy URL', '/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', '', true],
+            ['external host with proxy path', 'https://evil.net/api/v4/image?url=https%3A%2F%2Fext%2Fa.png', 'https://chat.example.com', false],
+            ['regular internal file URL', 'https://chat.example.com/api/v4/files/x/preview', 'https://chat.example.com', false],
+            ['non-proxy path starting with images', 'https://chat.example.com/api/v4/images/logo.png', 'https://chat.example.com', false],
+            ['data image URI', 'data:image/png;base64,iVBORw0KGgo=', 'https://chat.example.com', false],
+            ['empty URL', '', 'https://chat.example.com', false],
+        ])('%s', (_name, rawURL, siteURL, expected) => {
+            expect(isImageProxyURL(rawURL, siteURL)).toBe(expected);
+        });
+    });
+
+    describe('unwrapImageProxyURL', () => {
+        test.each([
+            ['unwraps absolute image proxy URL', 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fext.example.com%2Fa.png', 'https://chat.example.com', 'https://ext.example.com/a.png'],
+            ['unwraps relative image proxy URL', '/api/v4/image?url=https%3A%2F%2Fext.example.com%2Fa.png', 'https://chat.example.com', 'https://ext.example.com/a.png'],
+            ['unwraps subpath image proxy URL', 'https://host/mm/api/v4/image?url=https%3A%2F%2Fext.example.com%2Fa.png', 'https://host/mm', 'https://ext.example.com/a.png'],
+            ['keeps non-proxy URL unchanged', 'https://ext.example.com/a.png', 'https://chat.example.com', 'https://ext.example.com/a.png'],
+            ['keeps proxy URL without url param unchanged', '/api/v4/image', 'https://chat.example.com', '/api/v4/image'],
+            ['keeps proxy URL with unsafe target unchanged', '/api/v4/image?url=javascript%3Aalert(1)', 'https://chat.example.com', '/api/v4/image?url=javascript%3Aalert(1)'],
+            ['unwraps percent-encoded image proxy URL', 'https://chat.example.com/api/v4/%69mage?url=https%3A%2F%2Fext.example.com%2Fa.png', 'https://chat.example.com', 'https://ext.example.com/a.png'],
+        ])('%s', (_name, rawURL, siteURL, expected) => {
+            expect(unwrapImageProxyURL(rawURL, siteURL)).toBe(expected);
+        });
+    });
+
+    describe('isExternalImageBlocked', () => {
+        test('blocks external URL only when BlockExternalImages is true', () => {
+            expect(isExternalImageBlocked('https://ext.example/a.png', {BlockExternalImages: 'true', SiteURL: 'https://chat.example.com'})).toBe(true);
+            expect(isExternalImageBlocked('https://chat.example.com/a.png', {BlockExternalImages: 'true', SiteURL: 'https://chat.example.com'})).toBe(false);
+            expect(isExternalImageBlocked('https://ext.example/a.png', {BlockExternalImages: 'false', SiteURL: 'https://chat.example.com'})).toBe(false);
+            expect(isExternalImageBlocked(undefined, {BlockExternalImages: 'true', SiteURL: 'https://chat.example.com'})).toBe(false);
         });
     });
 });

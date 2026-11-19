@@ -8,7 +8,7 @@ import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 
 import {Client4} from 'mattermost-redux/client';
 
-import {renderWithContext} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import CommandProvider, {commandsGroup, CommandSuggestion} from './command_provider';
 
@@ -202,4 +202,93 @@ test('handleWebapp keeps matchedPretext as original (UI case-preserving)', async
     expect(arg.matchedPretext).toBe(pretext);
 
     Client4.getCommandAutocompleteSuggestionsList = original;
+});
+
+describe('CommandSuggestion BlockExternalImages', () => {
+    const baseItem = {
+        Complete: '/test',
+        Suggestion: '/test',
+        Hint: '',
+        Description: 'Test command',
+        IconData: 'https://evil.example/icon.png',
+    };
+
+    test('falls back to slash symbol when BlockExternalImages is true and IconData is external', () => {
+        const {container} = renderWithContext(
+            <CommandSuggestion
+                id='test-cmd'
+                item={baseItem}
+                term='/test'
+                matchedPretext='/te'
+                isSelection={false}
+                onClick={jest.fn()}
+                onMouseMove={jest.fn()}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('img')).toBeNull();
+        expect(screen.getByText('/')).toBeInTheDocument();
+    });
+
+    test('renders internal IconData when BlockExternalImages is true', () => {
+        const {container} = renderWithContext(
+            <CommandSuggestion
+                id='test-cmd'
+                item={{...baseItem, IconData: 'https://mm.example.com/static/icon.png'}}
+                term='/test'
+                matchedPretext='/te'
+                isSelection={false}
+                onClick={jest.fn()}
+                onMouseMove={jest.fn()}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('img')).toHaveAttribute('src', 'https://mm.example.com/static/icon.png');
+    });
+
+    test('renders external IconData when BlockExternalImages is false', () => {
+        const {container} = renderWithContext(
+            <CommandSuggestion
+                id='test-cmd'
+                item={baseItem}
+                term='/test'
+                matchedPretext='/te'
+                isSelection={false}
+                onClick={jest.fn()}
+                onMouseMove={jest.fn()}
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'false',
+                            SiteURL: 'https://mm.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('img')).toHaveAttribute('src', 'https://evil.example/icon.png');
+    });
 });

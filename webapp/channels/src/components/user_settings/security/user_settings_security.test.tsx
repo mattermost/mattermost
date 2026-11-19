@@ -8,6 +8,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {PasswordConfig} from 'mattermost-redux/selectors/entities/general';
 
+import icon50 from 'images/icon50x50.png';
 import {renderWithContext, screen, userEvent, waitFor, fireEvent} from 'tests/react_testing_utils';
 
 import SecurityTab from './user_settings_security';
@@ -216,6 +217,84 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         await waitFor(() => {
             expect(screen.getByText('error')).toBeInTheDocument();
+        });
+    });
+
+    test('falls back to default icon for external OAuth app icon_url when blockExternalImages is true', async () => {
+        const apps = [{id: 'app1', name: 'TestApp', homepage: 'http://test.com', description: '', icon_url: 'https://evil.example/icon.png'}] as OAuthApp[];
+        const getAuthorizedOAuthApps = jest.fn().mockResolvedValue({data: apps});
+        const props = {
+            ...requiredProps,
+            actions: {...requiredProps.actions, getAuthorizedOAuthApps},
+            enableOAuthServiceProvider: true,
+            activeSection: 'apps',
+        };
+
+        renderWithContext(<SecurityTab {...props}/>, {
+            entities: {
+                general: {
+                    config: {
+                        BlockExternalImages: 'true',
+                        SiteURL: 'https://mm.example.com',
+                    },
+                },
+            },
+        });
+
+        await waitFor(() => {
+            expect(screen.getByAltText('TestApp')).toHaveAttribute('src', icon50);
+        });
+    });
+
+    test('renders internal OAuth app icon_url when blockExternalImages is true', async () => {
+        const apps = [{id: 'app1', name: 'TestApp', homepage: 'http://test.com', description: '', icon_url: 'https://mm.example.com/static/icon.png'}] as OAuthApp[];
+        const getAuthorizedOAuthApps = jest.fn().mockResolvedValue({data: apps});
+        const props = {
+            ...requiredProps,
+            actions: {...requiredProps.actions, getAuthorizedOAuthApps},
+            enableOAuthServiceProvider: true,
+            activeSection: 'apps',
+        };
+
+        renderWithContext(<SecurityTab {...props}/>, {
+            entities: {
+                general: {
+                    config: {
+                        BlockExternalImages: 'true',
+                        SiteURL: 'https://mm.example.com',
+                    },
+                },
+            },
+        });
+
+        await waitFor(() => {
+            expect(screen.getByAltText('TestApp')).toHaveAttribute('src', 'https://mm.example.com/static/icon.png');
+        });
+    });
+
+    test('renders external OAuth app icon_url when blockExternalImages is false', async () => {
+        const apps = [{id: 'app1', name: 'TestApp', homepage: 'http://test.com', description: '', icon_url: 'https://evil.example/icon.png'}] as OAuthApp[];
+        const getAuthorizedOAuthApps = jest.fn().mockResolvedValue({data: apps});
+        const props = {
+            ...requiredProps,
+            actions: {...requiredProps.actions, getAuthorizedOAuthApps},
+            enableOAuthServiceProvider: true,
+            activeSection: 'apps',
+        };
+
+        renderWithContext(<SecurityTab {...props}/>, {
+            entities: {
+                general: {
+                    config: {
+                        BlockExternalImages: 'false',
+                        SiteURL: 'https://mm.example.com',
+                    },
+                },
+            },
+        });
+
+        await waitFor(() => {
+            expect(screen.getByAltText('TestApp')).toHaveAttribute('src', 'https://evil.example/icon.png');
         });
     });
 });

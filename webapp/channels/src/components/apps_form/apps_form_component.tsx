@@ -16,6 +16,7 @@ import {
     checkDialogElementForError, checkIfErrorsMatchElements,
 } from 'mattermost-redux/utils/integration_utils';
 
+import AllowedImage from 'components/external_image/allowed_image';
 import Markdown from 'components/markdown';
 import SpinnerButton from 'components/spinner_button';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
@@ -889,20 +890,21 @@ export class AppsForm extends React.PureComponent<Props, State> {
             icon,
         } = this.props.form;
 
-        let iconComponent;
-        if (icon) {
-            iconComponent = (
-                <img
-                    id={this.elementId('appsModalIconUrl')}
-                    alt={'modal title icon'}
-                    className='more-modal__image'
-                    style={{marginRight: '12px'}}
-                    width='36'
-                    height='36'
-                    src={icon}
-                />
-            );
-        }
+        const iconComponent = icon ? (
+            <AllowedImage src={icon}>
+                {(allowedIcon) => (allowedIcon ? (
+                    <img
+                        id={this.elementId('appsModalIconUrl')}
+                        alt={'modal title icon'}
+                        className='more-modal__image'
+                        style={{marginRight: '12px'}}
+                        width='36'
+                        height='36'
+                        src={allowedIcon}
+                    />
+                ) : null)}
+            </AllowedImage>
+        ) : undefined;
 
         return (
             <>

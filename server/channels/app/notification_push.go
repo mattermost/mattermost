@@ -156,6 +156,11 @@ func (a *App) sendPushNotificationToAllSessions(rctx request.CTX, msg *model.Pus
 		return nil
 	}
 
+	cfg := a.Config()
+	if model.SafeDereference(cfg.ServiceSettings.BlockExternalImages) && msg.OverrideIconURL != "" && model.IsExternalImageURL(msg.OverrideIconURL, model.SafeDereference(cfg.ServiceSettings.SiteURL)) {
+		msg.OverrideIconURL = ""
+	}
+
 	sessions, appErr := a.getMobileAppSessions(userID)
 	if appErr != nil {
 		a.CountNotificationReason(model.NotificationStatusError, model.NotificationTypePush, model.NotificationReasonFetchError, model.NotificationNoPlatform)
@@ -955,7 +960,9 @@ func (a *App) buildFullPushNotificationMessage(rctx request.CTX, contentsConfig 
 	}
 
 	if oi, ok := post.GetProp(model.PostPropsOverrideIconURL).(string); ok && *cfg.ServiceSettings.EnablePostIconOverride {
-		msg.OverrideIconURL = oi
+		if !model.SafeDereference(cfg.ServiceSettings.BlockExternalImages) || !model.IsExternalImageURL(oi, model.SafeDereference(cfg.ServiceSettings.SiteURL)) {
+			msg.OverrideIconURL = oi
+		}
 	}
 
 	if fw, ok := post.GetProp(model.PostPropsFromWebhook).(string); ok {

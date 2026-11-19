@@ -7,6 +7,7 @@ import type {MmImageBlock} from '@mattermost/types/mm_blocks';
 
 import {openModal} from 'actions/views/modals';
 
+import ExternalImage from 'components/external_image';
 import SizeAwareImage from 'components/size_aware_image';
 
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
@@ -170,5 +171,116 @@ describe('ImageBlock', () => {
             maxHeight: 120,
             ...expectedStyle,
         });
+    });
+
+    it('renders an ExternalLink with unwrapped URL and block.title when external images are blocked', () => {
+        const RealExternalImage = jest.requireActual('components/external_image').default;
+        jest.mocked(ExternalImage).mockImplementationOnce((props: any) => <RealExternalImage {...props}/>);
+        renderWithContext(
+            <ImageBlock
+                block={{
+                    type: 'image',
+                    url: 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Fphoto.png',
+                    alt_text: 'Photo alt',
+                    title: 'Photo title',
+                }}
+                postId='post-1'
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const link = screen.getByRole('link', {name: 'Photo alt'});
+        expect(link).toHaveAttribute('href', 'https://external.example.com/photo.png');
+        expect(link).toHaveAttribute('title', 'Photo title');
+    });
+
+    it('falls back to unwrapped URL as link text when alt_text is empty and external images are blocked', () => {
+        const RealExternalImage = jest.requireActual('components/external_image').default;
+        jest.mocked(ExternalImage).mockImplementationOnce((props: any) => <RealExternalImage {...props}/>);
+        renderWithContext(
+            <ImageBlock
+                block={{
+                    type: 'image',
+                    url: 'https://external.example.com/photo.png',
+                }}
+                postId='post-1'
+            />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        const link = screen.getByRole('link', {name: 'https://external.example.com/photo.png'});
+        expect(link).toHaveAttribute('href', 'https://external.example.com/photo.png');
+        expect(link).toHaveAttribute('title', 'https://external.example.com/photo.png');
+    });
+
+    it('renders SizeAwareImage with empty src for proxied SVG when BlockExternalImages is false and EnableSVGs is false', () => {
+        const RealExternalImage = jest.requireActual('components/external_image').default;
+        jest.mocked(ExternalImage).mockImplementationOnce((props: any) => <RealExternalImage {...props}/>);
+        const origError = console.error;
+        console.error = (...args: Parameters<typeof console.error>) => {
+            if (typeof args[0] === 'string' && args[0].startsWith('An empty string ("") was passed to the ')) {
+                return;
+            }
+            origError(...args);
+        };
+
+        try {
+            renderWithContext(
+                <MmBlocksImagesMetadataContext.Provider
+                    value={{
+                        'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Flogo.svg': {
+                            format: 'svg',
+                            frameCount: 0,
+                            height: 0,
+                            width: 0,
+                        },
+                    }}
+                >
+                    <ImageBlock
+                        block={{
+                            type: 'image',
+                            url: 'https://chat.example.com/api/v4/image?url=https%3A%2F%2Fexternal.example.com%2Flogo.svg',
+                            alt_text: 'SVG logo',
+                        }}
+                        postId='post-1'
+                    />
+                </MmBlocksImagesMetadataContext.Provider>,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                BlockExternalImages: 'false',
+                                EnableSVGs: 'false',
+                                SiteURL: 'https://chat.example.com',
+                            },
+                        },
+                    },
+                },
+            );
+        } finally {
+            console.error = origError;
+        }
+
+        expect(screen.queryByRole('link')).not.toBeInTheDocument();
+        expect(screen.getByTestId('size-aware-image')).not.toHaveAttribute('src');
+        expect(jest.mocked(SizeAwareImage).mock.lastCall?.[0].src).toBe('');
     });
 });

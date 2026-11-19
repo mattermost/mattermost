@@ -5,6 +5,7 @@ import type {ChangeEvent, FormEvent, JSX} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
+import {connect} from 'react-redux';
 import {Link} from 'react-router-dom';
 
 import {Button} from '@mattermost/compass-ui/components/button';
@@ -13,11 +14,16 @@ import type {OAuthApp} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import FormError from 'components/form_error';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
+
+import {isExternalImageURL} from 'utils/url';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
 
@@ -61,6 +67,8 @@ type Props = {
     */
     action: (app: OAuthApp) => Promise<void>;
 
+    blockExternalImages?: boolean;
+    siteURL?: string;
 };
 
 type State = {
@@ -76,7 +84,7 @@ type State = {
     clientError: JSX.Element | null | string;
 };
 
-export default class AbstractOAuthApp extends React.PureComponent<Props, State> {
+export class AbstractOAuthApp extends React.PureComponent<Props, State> {
     private image: HTMLImageElement;
     private icon_url: React.RefObject<HTMLInputElement | null>;
 
@@ -240,11 +248,15 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
     };
 
     updateIconUrl = (e: ChangeEvent<HTMLInputElement>) => {
+        const iconUrl = e.target.value;
         this.setState({
             has_icon: false,
-            icon_url: e.target.value,
+            icon_url: iconUrl,
         });
-        this.image.src = e.target.value;
+        if (this.props.blockExternalImages && isExternalImageURL(iconUrl, this.props.siteURL ?? '')) {
+            return;
+        }
+        this.image.src = iconUrl;
     };
 
     updateCallbackUrls = (e: ChangeEvent<HTMLTextAreaElement>) => {
@@ -259,7 +271,7 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         const renderExtra = this.props.renderExtra;
 
         let icon;
-        if (this.state.has_icon) {
+        if (this.state.has_icon && !(this.props.blockExternalImages && isExternalImageURL(this.state.icon_url, this.props.siteURL ?? ''))) {
             icon = (
                 <div className='integration__icon'>
                     <img
@@ -558,3 +570,13 @@ export default class AbstractOAuthApp extends React.PureComponent<Props, State> 
         );
     }
 }
+
+function mapStateToProps(state: GlobalState, ownProps: Props) {
+    const config = getConfig(state);
+    return {
+        blockExternalImages: ownProps.blockExternalImages ?? (config.BlockExternalImages === 'true'),
+        siteURL: ownProps.siteURL ?? (config.SiteURL || ''),
+    };
+}
+
+export default connect(mapStateToProps, null, null, {forwardRef: true})(AbstractOAuthApp);

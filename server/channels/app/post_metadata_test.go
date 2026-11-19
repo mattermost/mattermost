@@ -2451,10 +2451,10 @@ func TestGetLinkMetadata(t *testing.T) {
 		timestamp := int64(1547510400000)
 		title := "from cache"
 
-		cacheLinkMetadata(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil, nil)
+		cacheLinkMetadata(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: title}, nil, nil, false)
 
 		t.Run("should use cache if cached entry exists", func(t *testing.T) {
-			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.True(t, ok, "data should already exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2469,7 +2469,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		})
 
 		t.Run("should use cache if cached entry exists near time", func(t *testing.T) {
-			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.True(t, ok, "data should already exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2486,7 +2486,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		t.Run("should not use cache if URL is different", func(t *testing.T) {
 			differentURL := server.URL + "/other"
 
-			_, _, _, ok := getLinkMetadataFromCache(differentURL, timestamp)
+			_, _, _, _, ok := getLinkMetadataFromCache(differentURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
@@ -2502,7 +2502,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		t.Run("should not use cache if timestamp is different", func(t *testing.T) {
 			differentTimestamp := timestamp + 60*60*1000
 
-			_, _, _, ok := getLinkMetadataFromCache(requestURL, differentTimestamp)
+			_, _, _, _, ok := getLinkMetadataFromCache(requestURL, differentTimestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
@@ -2529,7 +2529,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			err := platform.PurgeLinkCache()
 			require.NoError(t, err)
 
-			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2547,7 +2547,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			err := platform.PurgeLinkCache()
 			require.NoError(t, err)
 
-			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2567,7 +2567,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			differentURL := requestURL + "/other"
 
-			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(differentURL, timestamp)
@@ -2586,7 +2586,7 @@ func TestGetLinkMetadata(t *testing.T) {
 
 			differentTimestamp := timestamp + 60*60*1000
 
-			_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+			_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 			require.False(t, ok, "data should not exist in in-memory cache")
 
 			_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, differentTimestamp)
@@ -2606,7 +2606,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/opengraph?title=Remote&name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2661,7 +2661,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/opengraph?title=Remote&name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2673,7 +2673,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.NoError(t, err)
 
-		fromCache, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		fromCache, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Exactly(t, og, fromCache)
 
@@ -2688,7 +2688,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/image?height=300&width=400&name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2700,7 +2700,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.NotNil(t, img)
 		assert.NoError(t, err)
 
-		_, fromCache, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		_, fromCache, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Exactly(t, img, fromCache)
 
@@ -2715,7 +2715,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/error"
 		timestamp := int64(1547510400000)
 
-		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2727,7 +2727,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.NoError(t, err)
 
-		ogFromCache, imgFromCache, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		ogFromCache, imgFromCache, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Nil(t, ogFromCache)
 		assert.Nil(t, imgFromCache)
@@ -2744,7 +2744,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := "http://notarealdomainthatactuallyexists.ca/?name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2756,7 +2756,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Nil(t, img)
 		assert.IsType(t, &url.Error{}, err)
 
-		ogFromCache, imgFromCache, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		ogFromCache, imgFromCache, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Nil(t, ogFromCache)
 		assert.Nil(t, imgFromCache)
@@ -2777,7 +2777,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/timeout?name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2790,7 +2790,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		assert.Error(t, err)
 		assert.True(t, os.IsTimeout(err))
 
-		ogFromCache, imgFromCache, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		ogFromCache, imgFromCache, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		assert.True(t, ok)
 		assert.Nil(t, ogFromCache)
 		assert.Nil(t, imgFromCache)
@@ -2807,7 +2807,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/image?height=300&width=400&name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		_, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok := getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should not exist in in-memory cache")
 
 		_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2816,12 +2816,12 @@ func TestGetLinkMetadata(t *testing.T) {
 		_, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, false, "")
 		require.NoError(t, err)
 
-		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.True(t, ok, "data should now exist in in-memory cache")
 
 		err = platform.PurgeLinkCache()
 		require.NoError(t, err)
-		_, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
+		_, _, _, _, ok = getLinkMetadataFromCache(requestURL, timestamp)
 		require.False(t, ok, "data should no longer exist in in-memory cache")
 
 		_, fromDatabase, ok := th.App.getLinkMetadataFromDatabase(requestURL, timestamp)
@@ -2847,7 +2847,7 @@ func TestGetLinkMetadata(t *testing.T) {
 		requestURL := server.URL + "/error?name=" + t.Name()
 		timestamp := int64(1547510400000)
 
-		cacheLinkMetadata(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil, nil)
+		cacheLinkMetadata(th.Context, requestURL, timestamp, &opengraph.OpenGraph{Title: "cached"}, nil, nil, false)
 
 		og, img, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
 		assert.NotNil(t, og)
@@ -2966,16 +2966,18 @@ func TestGetLinkMetadata(t *testing.T) {
 		}
 
 		assertCached := func(t *testing.T, url string, expectedOG *opengraph.OpenGraph, expectedImage *model.PostImage, expectedPermalink *model.Permalink) {
-			og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+			og, image, permalink, blockedExternal, found := getLinkMetadataFromCache(url, testTimestamp)
 			assert.True(t, found)
+			assert.False(t, blockedExternal)
 			assert.Equal(t, expectedOG, og)
 			assert.Equal(t, expectedImage, image)
 			assert.Equal(t, expectedPermalink, permalink)
 		}
 
 		assertNotCached := func(t *testing.T, url string) {
-			og, image, permalink, found := getLinkMetadataFromCache(url, testTimestamp)
+			og, image, permalink, blockedExternal, found := getLinkMetadataFromCache(url, testTimestamp)
 			assert.False(t, found)
+			assert.False(t, blockedExternal)
 			assert.Nil(t, og)
 			assert.Nil(t, image)
 			assert.Nil(t, permalink)
@@ -3003,7 +3005,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			}
 
 			ctx := request.TestContext(t)
-			cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink)
+			cacheLinkMetadata(ctx, testURL, testTimestamp, expectedOG, expectedImage, expectedPermalink, false)
 
 			assertCached(t, testURL, expectedOG, expectedImage, expectedPermalink)
 		})
@@ -3019,7 +3021,7 @@ func TestGetLinkMetadata(t *testing.T) {
 				URL:   cachedURL,
 			}
 			ctx := request.TestContext(t)
-			cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil)
+			cacheLinkMetadata(ctx, cachedURL, testTimestamp, expectedOG, nil, nil, false)
 
 			assertNotCached(t, requestedURL)
 		})
@@ -3039,7 +3041,7 @@ func TestGetLinkMetadata(t *testing.T) {
 				URL:   url1,
 			}
 			ctx := request.TestContext(t)
-			cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil)
+			cacheLinkMetadata(ctx, url1, testTimestamp, og1, nil, nil, false)
 
 			assertCached(t, url1, og1, nil, nil)
 			assertNotCached(t, url2)
@@ -3051,7 +3053,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			nilURL := "https://example.com/nil-test"
 
 			ctx := request.TestContext(t)
-			cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil)
+			cacheLinkMetadata(ctx, nilURL, testTimestamp, nil, nil, nil, false)
 
 			assertCached(t, nilURL, nil, nil, nil)
 		})
@@ -3146,7 +3148,7 @@ func TestGetLinkMetadataWithPreviewedPostUsesCache(t *testing.T) {
 
 				if tc.purgeMemoryCache {
 					require.NoError(t, platform.PurgeLinkCache())
-					_, _, _, ok := getLinkMetadataFromCache(requestURL, model.FloorToNearestHour(timestamp))
+					_, _, _, _, ok := getLinkMetadataFromCache(requestURL, model.FloorToNearestHour(timestamp))
 					require.False(t, ok, "data should not exist in in-memory cache")
 					_, _, ok = th.App.getLinkMetadataFromDatabase(requestURL, model.FloorToNearestHour(timestamp))
 					require.True(t, ok, "data should exist in database")
@@ -3210,7 +3212,7 @@ func TestGetLinkMetadataWithPreviewedPostUsesCache(t *testing.T) {
 
 		timestamp := model.FloorToNearestHour(int64(1547510400000))
 		stale := &model.Permalink{PreviewPost: &model.PreviewPost{PostID: "stale"}}
-		cacheLinkMetadata(th.Context, requestURL, timestamp, nil, nil, stale)
+		cacheLinkMetadata(th.Context, requestURL, timestamp, nil, nil, stale, false)
 
 		for _, isNewPost := range []bool{false, true} {
 			_, _, permalink, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, isNewPost, referencedPost.Id)
@@ -3219,7 +3221,7 @@ func TestGetLinkMetadataWithPreviewedPostUsesCache(t *testing.T) {
 			require.NotNil(t, permalink.PreviewPost)
 			assert.Equal(t, referencedPost.Id, permalink.PreviewPost.PostID, "isNewPost=%v", isNewPost)
 
-			cacheLinkMetadata(th.Context, requestURL, timestamp, nil, nil, stale)
+			cacheLinkMetadata(th.Context, requestURL, timestamp, nil, nil, stale, false)
 		}
 	})
 }
@@ -4609,5 +4611,1160 @@ func TestFillInPostPropsWithCurrentTeamId(t *testing.T) {
 				require.Equal(t, th.BasicTeam.Name, channelData["team_name"])
 			}
 		}
+	})
+}
+
+func TestBlockExternalImages(t *testing.T) {
+	t.Run("external markdown image causes zero requests, no metadata, and no proxy rewrite", func(t *testing.T) {
+		var hits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			hits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "local"
+		})
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
+
+		imageURL := extServer.URL + "/ext.png"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   fmt.Sprintf("![alt](%s)", imageURL),
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Zero(t, hits.Load(), "external image server should receive zero requests")
+		assert.Empty(t, clientPost.Metadata.Images, "external image should have no Metadata.Images entry")
+		assert.Equal(t, fmt.Sprintf("![alt](%s)", imageURL), clientPost.Message, "external image URL should not be rewritten to proxy")
+	})
+
+	t.Run("webhook post with external attachment images causes zero requests", func(t *testing.T) {
+		var hits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			hits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Props: model.StringInterface{
+				model.PostPropsFromWebhook: "true",
+				model.PostPropsAttachments: []any{
+					map[string]any{
+						"text":        fmt.Sprintf("![inline](%s/inline.png)", extServer.URL),
+						"image_url":   extServer.URL + "/image.png",
+						"thumb_url":   extServer.URL + "/thumb.png",
+						"author_icon": extServer.URL + "/author.png",
+						"footer_icon": extServer.URL + "/footer.png",
+					},
+				},
+			},
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Zero(t, hits.Load(), "external image server should receive zero requests")
+		assert.Empty(t, clientPost.Metadata.Images)
+	})
+
+	t.Run("first link with image extension causes zero requests and gets PostEmbedLink", func(t *testing.T) {
+		var hits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			hits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		imageURL := extServer.URL + "/a.png"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   imageURL,
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Zero(t, hits.Load())
+		require.Len(t, clientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, clientPost.Metadata.Embeds[0].Type)
+		assert.Equal(t, imageURL, clientPost.Metadata.Embeds[0].URL)
+		assert.Empty(t, clientPost.Metadata.Images)
+	})
+
+	t.Run("first link without image extension returning image/png yields PostEmbedLink and no Metadata.Images", func(t *testing.T) {
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		linkURL := extServer.URL + "/download?id=1"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   linkURL,
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		require.Len(t, clientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, clientPost.Metadata.Embeds[0].Type)
+		assert.Equal(t, linkURL, clientPost.Metadata.Embeds[0].URL)
+		assert.Empty(t, clientPost.Metadata.Images)
+	})
+
+	t.Run("OpenGraph page with external og:image keeps title and description and drops images", func(t *testing.T) {
+		var imgHits atomic.Int64
+		imgServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			imgHits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer imgServer.Close()
+
+		pageServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			_, err := fmt.Fprintf(w, `<html><head>
+				<meta property="og:title" content="Example Title">
+				<meta property="og:description" content="Example Description">
+				<meta property="og:image" content="%s/og.png">
+			</head><body></body></html>`, imgServer.URL)
+			require.NoError(t, err)
+		}))
+		defer pageServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   pageServer.URL + "/article",
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Zero(t, imgHits.Load())
+		require.Len(t, clientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedOpengraph, clientPost.Metadata.Embeds[0].Type)
+		og, ok := clientPost.Metadata.Embeds[0].Data.(*opengraph.OpenGraph)
+		require.True(t, ok)
+		assert.Equal(t, "Example Title", og.Title)
+		assert.Equal(t, "Example Description", og.Description)
+		assert.Empty(t, og.Images)
+		assert.Empty(t, clientPost.Metadata.Images)
+	})
+
+	t.Run("internal same-origin image keeps Metadata.Images entry with setting on", func(t *testing.T) {
+		siteServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer siteServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteServer.URL
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		imageURL := siteServer.URL + "/internal.png"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   fmt.Sprintf("![internal](%s)", imageURL),
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		require.Contains(t, clientPost.Metadata.Images, imageURL)
+		assert.NotNil(t, clientPost.Metadata.Images[imageURL])
+	})
+
+	t.Run("link metadata stored with setting off is stripped once setting is on", func(t *testing.T) {
+		var hits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			hits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = false
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		imageURL := extServer.URL + "/stored.png"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   fmt.Sprintf("![stored](%s)", imageURL),
+		}
+
+		firstPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		require.Contains(t, firstPost.Metadata.Images, imageURL)
+		require.Equal(t, int64(1), hits.Load())
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.BlockExternalImages = true
+		})
+
+		secondPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		assert.Empty(t, secondPost.Metadata.Images)
+		assert.Equal(t, int64(1), hits.Load())
+	})
+
+	t.Run("post prepared with setting on then off gets full image metadata the second time", func(t *testing.T) {
+		var hits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			hits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		imageURL := extServer.URL + "/toggle.png"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   fmt.Sprintf("![toggle](%s)", imageURL),
+		}
+
+		firstPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		assert.Zero(t, hits.Load())
+		assert.Empty(t, firstPost.Metadata.Images)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.BlockExternalImages = false
+		})
+
+		secondPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		assert.Equal(t, int64(1), hits.Load())
+		require.Contains(t, secondPost.Metadata.Images, imageURL)
+		assert.NotNil(t, secondPost.Metadata.Images[imageURL])
+	})
+
+	t.Run("OpenGraph page prepared with setting on then off carries og:image after cache purge", func(t *testing.T) {
+		imgServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer imgServer.Close()
+
+		ogImgURL := imgServer.URL + "/og.png"
+		pageServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			_, err := fmt.Fprintf(w, `<html><head>
+				<meta property="og:title" content="Stored OG">
+				<meta property="og:image" content="%s">
+			</head><body></body></html>`, ogImgURL)
+			require.NoError(t, err)
+		}))
+		defer pageServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   pageServer.URL + "/stored-og",
+		}
+
+		firstPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		require.Len(t, firstPost.Metadata.Embeds, 1)
+		firstOG, ok := firstPost.Metadata.Embeds[0].Data.(*opengraph.OpenGraph)
+		require.True(t, ok)
+		assert.Empty(t, firstOG.Images)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.BlockExternalImages = false
+		})
+
+		secondPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		require.Len(t, secondPost.Metadata.Embeds, 1)
+		secondOG, ok := secondPost.Metadata.Embeds[0].Data.(*opengraph.OpenGraph)
+		require.True(t, ok)
+		require.Len(t, secondOG.Images, 1)
+		assert.Equal(t, ogImgURL, secondOG.Images[0].URL)
+	})
+
+	t.Run("CreatePost with setting on returns no external OpenGraph image or image metadata", func(t *testing.T) {
+		var imgHits atomic.Int64
+		imgServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			imgHits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer imgServer.Close()
+
+		var pageHits atomic.Int64
+		pageServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			pageHits.Add(1)
+			w.Header().Set("Content-Type", "text/html")
+			_, err := fmt.Fprintf(w, `<html><head>
+				<meta property="og:title" content="CreatePost OG">
+				<meta property="og:image" content="%s/og.png">
+			</head><body></body></html>`, imgServer.URL)
+			require.NoError(t, err)
+		}))
+		defer pageServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		createdPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   pageServer.URL + "/created",
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		assert.Equal(t, int64(1), pageHits.Load())
+		assert.Zero(t, imgHits.Load())
+		require.NotNil(t, createdPost.Metadata)
+		assert.Empty(t, createdPost.Metadata.Images)
+		require.Len(t, createdPost.Metadata.Embeds, 1)
+		require.Equal(t, model.PostEmbedOpengraph, createdPost.Metadata.Embeds[0].Type)
+		og, ok := createdPost.Metadata.Embeds[0].Data.(*opengraph.OpenGraph)
+		require.True(t, ok)
+		assert.Empty(t, og.Images)
+	})
+
+	t.Run("bare image proxy URL causes zero hits with EnableLinkPreviews and setting on", func(t *testing.T) {
+		var hits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			hits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		siteURL := "http://mattermost.example.com"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "local"
+		})
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
+
+		proxyURL := siteURL + "/api/v4/image?url=" + url.QueryEscape(extServer.URL+"/a.png")
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   proxyURL,
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Zero(t, hits.Load())
+		require.Len(t, clientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, clientPost.Metadata.Embeds[0].Type)
+		assert.Empty(t, clientPost.Metadata.Images)
+	})
+
+	t.Run("serving post with external og:image leaves cached OpenGraph Images intact", func(t *testing.T) {
+		imgServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer imgServer.Close()
+
+		pageServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			_, err := fmt.Fprintf(w, `<html><head>
+				<meta property="og:title" content="Concurrent OG">
+				<meta property="og:image" content="%s/og.png">
+			</head><body></body></html>`, imgServer.URL)
+			require.NoError(t, err)
+		}))
+		defer pageServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		pageURL := pageServer.URL + "/concurrent"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   pageURL,
+		}
+
+		// Prime the cache
+		_ = th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		var wg sync.WaitGroup
+		for range 8 {
+			wg.Go(func() {
+				served := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+				if assert.Len(t, served.Metadata.Embeds, 1) {
+					og, ok := served.Metadata.Embeds[0].Data.(*opengraph.OpenGraph)
+					if assert.True(t, ok) {
+						assert.Empty(t, og.Images)
+					}
+				}
+			})
+		}
+		wg.Wait()
+
+		cachedOG, _, _, _, ok := getLinkMetadataFromCache(pageURL, model.FloorToNearestHour(post.CreateAt))
+		require.True(t, ok)
+		require.NotNil(t, cachedOG)
+		assert.Len(t, cachedOG.Images, 1, "cached OpenGraph Images should not be mutated")
+	})
+
+	t.Run("internal image URL redirecting to external server causes zero hits", func(t *testing.T) {
+		var extHits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			extHits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		siteServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, extServer.URL+"/ext.png", http.StatusFound)
+		}))
+		defer siteServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteServer.URL
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   fmt.Sprintf("![redir](%s/redirect.png)", siteServer.URL),
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Zero(t, extHits.Load())
+		assert.Empty(t, clientPost.Metadata.Images)
+	})
+
+	t.Run("redirect to image proxy URL is blocked and causes zero hits to proxy or external image", func(t *testing.T) {
+		var extHits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			extHits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		var proxyHits atomic.Int64
+		siteServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.HasPrefix(r.URL.Path, "/api/v4/image") {
+				proxyHits.Add(1)
+			}
+			w.WriteHeader(http.StatusForbidden)
+		}))
+		defer siteServer.Close()
+
+		var redirectHits atomic.Int64
+		redirectTarget := siteServer.URL + "/api/v4/image?url=" + url.QueryEscape(extServer.URL+"/ext.png")
+		redirectServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			redirectHits.Add(1)
+			http.Redirect(w, r, redirectTarget, http.StatusFound)
+		}))
+		defer redirectServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteServer.URL
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "local"
+		})
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   redirectServer.URL + "/page",
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Equal(t, int64(1), redirectHits.Load())
+		assert.Zero(t, proxyHits.Load())
+		assert.Zero(t, extHits.Load())
+		assert.Empty(t, clientPost.Metadata.Images)
+	})
+
+	t.Run("external web page redirecting to another external web page still builds OpenGraph preview without external images", func(t *testing.T) {
+		var imgHits atomic.Int64
+		imgServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			imgHits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer imgServer.Close()
+
+		destServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			_, err := fmt.Fprintf(w, `<html><head>
+				<meta property="og:title" content="Redirected Page">
+				<meta property="og:description" content="Redirected Description">
+				<meta property="og:image" content="%s/og.png">
+			</head><body></body></html>`, imgServer.URL)
+			require.NoError(t, err)
+		}))
+		defer destServer.Close()
+
+		srcServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, destServer.URL+"/final", http.StatusFound)
+		}))
+		defer srcServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   srcServer.URL + "/start",
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Zero(t, imgHits.Load())
+		require.Len(t, clientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedOpengraph, clientPost.Metadata.Embeds[0].Type)
+		og, ok := clientPost.Metadata.Embeds[0].Data.(*opengraph.OpenGraph)
+		require.True(t, ok)
+		assert.Equal(t, "Redirected Page", og.Title)
+		assert.Equal(t, "Redirected Description", og.Description)
+		assert.Empty(t, og.Images)
+	})
+
+	t.Run("OpenGraph og:image with image proxy enabled is stripped while on and proxied once off", func(t *testing.T) {
+		var imgHits atomic.Int64
+		imgServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			imgHits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer imgServer.Close()
+
+		pageServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Type", "text/html")
+			_, err := fmt.Fprintf(w, `<html><head>
+				<meta property="og:title" content="Proxied OG">
+				<meta property="og:image" content="%s/og.png">
+			</head><body></body></html>`, imgServer.URL)
+			require.NoError(t, err)
+		}))
+		defer pageServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "local"
+		})
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
+
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   pageServer.URL + "/proxied-og",
+		}
+
+		firstPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		assert.Zero(t, imgHits.Load())
+		require.Len(t, firstPost.Metadata.Embeds, 1)
+		firstOG, ok := firstPost.Metadata.Embeds[0].Data.(*opengraph.OpenGraph)
+		require.True(t, ok)
+		assert.Empty(t, firstOG.Images)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.BlockExternalImages = false
+		})
+
+		secondPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		require.Len(t, secondPost.Metadata.Embeds, 1)
+		secondOG, ok := secondPost.Metadata.Embeds[0].Data.(*opengraph.OpenGraph)
+		require.True(t, ok)
+		require.Len(t, secondOG.Images, 1)
+		assert.Contains(t, secondOG.Images[0].SecureURL, "/api/v4/image?url=")
+	})
+
+	t.Run("permalink preview strips external image metadata and toggling purges cache", func(t *testing.T) {
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		siteURL := "http://mattermost.example.com"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.EnablePermalinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = false
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		extImgURL := extServer.URL + "/perm.png"
+		referencedPost, _, appErr := th.App.CreatePost(th.Context, &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   fmt.Sprintf("![perm](%s)", extImgURL),
+		}, th.BasicChannel, model.CreatePostFlags{})
+		require.Nil(t, appErr)
+
+		permalinkURL := fmt.Sprintf("%s/%s/pl/%s", siteURL, th.BasicTeam.Name, referencedPost.Id)
+		permalinkPost := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   permalinkURL,
+		}
+
+		// Setting OFF: permalink preview includes external image metadata
+		offPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, permalinkPost, &model.PreparePostForClientOpts{})
+		require.Len(t, offPost.Metadata.Embeds, 1)
+		require.Equal(t, model.PostEmbedPermalink, offPost.Metadata.Embeds[0].Type)
+		offPreview, ok := offPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		require.Contains(t, offPreview.Post.Metadata.Images, extImgURL)
+
+		// Toggle OFF -> ON: cached permalink preview must be purged and external image metadata stripped
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.BlockExternalImages = true
+		})
+
+		onPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, permalinkPost, &model.PreparePostForClientOpts{})
+		require.Len(t, onPost.Metadata.Embeds, 1)
+		require.Equal(t, model.PostEmbedPermalink, onPost.Metadata.Embeds[0].Type)
+		onPreview, ok := onPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		assert.Empty(t, onPreview.Post.Metadata.Images)
+
+		// Toggle ON -> OFF: cached permalink preview must be purged and external image metadata restored
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.BlockExternalImages = false
+		})
+
+		restoredPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, permalinkPost, &model.PreparePostForClientOpts{})
+		require.Len(t, restoredPost.Metadata.Embeds, 1)
+		require.Equal(t, model.PostEmbedPermalink, restoredPost.Metadata.Embeds[0].Type)
+		restoredPreview, ok := restoredPost.Metadata.Embeds[0].Data.(*model.PreviewPost)
+		require.True(t, ok)
+		require.Contains(t, restoredPreview.Post.Metadata.Images, extImgURL)
+	})
+
+	t.Run("trailing-slash image URL, external redirect to image, Accept header, and ON->OFF DB recovery", func(t *testing.T) {
+		var imgHits atomic.Int64
+		var sawImageAccept atomic.Bool
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if strings.Contains(r.Header.Get("Accept"), "image/") {
+				sawImageAccept.Store(true)
+			}
+			imgHits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		redirServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, extServer.URL+"/target.png", http.StatusFound)
+		}))
+		defer redirServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		// Trailing slash image URL causes zero requests
+		trailingPost := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   extServer.URL + "/trailing.png/",
+		}
+		trailingClientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, trailingPost, &model.PreparePostForClientOpts{})
+		assert.Zero(t, imgHits.Load())
+		require.Len(t, trailingClientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, trailingClientPost.Metadata.Embeds[0].Type)
+
+		// External redirect to .png is blocked before reaching extServer
+		redirURL := redirServer.URL + "/go"
+		redirPost := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   redirURL,
+		}
+		redirClientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, redirPost, &model.PreparePostForClientOpts{})
+		assert.Zero(t, imgHits.Load())
+		require.Len(t, redirClientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, redirClientPost.Metadata.Embeds[0].Type)
+
+		// Extensionless external URL returning image/png omits Accept: image/*, skips DB save, and recovers when toggled OFF
+		pixelURL := extServer.URL + "/pixel"
+		pixelPost := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   pixelURL,
+		}
+		pixelClientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, pixelPost, &model.PreparePostForClientOpts{})
+		assert.False(t, sawImageAccept.Load())
+		require.Len(t, pixelClientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, pixelClientPost.Metadata.Embeds[0].Type)
+		assert.Empty(t, pixelClientPost.Metadata.Images)
+
+		// Verify DB was not poisoned with LinkMetadataTypeNone for either blocked URL
+		_, _, okRedir := th.App.getLinkMetadataFromDatabase(redirURL, model.FloorToNearestHour(redirPost.CreateAt))
+		assert.False(t, okRedir)
+		_, _, okPixel := th.App.getLinkMetadataFromDatabase(pixelURL, model.FloorToNearestHour(pixelPost.CreateAt))
+		assert.False(t, okPixel)
+
+		// Toggling OFF recovers the redirected image metadata even after cache purge
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.BlockExternalImages = false
+		})
+		restoredRedirPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, redirPost, &model.PreparePostForClientOpts{})
+		require.Len(t, restoredRedirPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedImage, restoredRedirPost.Metadata.Embeds[0].Type)
+		assert.Contains(t, restoredRedirPost.Metadata.Images, redirURL)
+	})
+
+	t.Run("getLinkMetadataForURL blocks external proxy target directly", func(t *testing.T) {
+		var extHits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			extHits.Add(1)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		siteURL := "http://mattermost.example.com"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "local"
+		})
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
+
+		_, _, err := th.App.getLinkMetadataForURL(th.Context, siteURL+"/api/v4/image?url="+url.QueryEscape(extServer.URL+"/ext.png"))
+		require.Error(t, err)
+		assert.ErrorIs(t, err, errBlockedExternalImage)
+		assert.Zero(t, extHits.Load())
+	})
+
+	t.Run("stripExternalOpenGraphImages preserves internal SecureURL when URL is http", func(t *testing.T) {
+		siteURL := "https://chat.example.com"
+		og := &opengraph.OpenGraph{
+			Title: "Mixed OG",
+			Images: []*ogimage.Image{
+				{URL: "http://chat.example.com/img.png", SecureURL: "https://chat.example.com/img.png"},
+				{URL: "https://evil.example/track.png", SecureURL: "https://evil.example/track.png"},
+				{URL: "https://chat.example.com/internal.png", SecureURL: "https://evil.example/cdn.png"},
+			},
+		}
+
+		stripped := stripExternalOpenGraphImages(og, siteURL)
+		require.Len(t, stripped.Images, 2)
+		assert.Equal(t, "", stripped.Images[0].URL)
+		assert.Equal(t, "https://chat.example.com/img.png", stripped.Images[0].SecureURL)
+		assert.Equal(t, "https://chat.example.com/internal.png", stripped.Images[1].URL)
+		assert.Equal(t, "", stripped.Images[1].SecureURL)
+		// Original must remain untouched
+		require.Len(t, og.Images, 3)
+		assert.Equal(t, "http://chat.example.com/img.png", og.Images[0].URL)
+	})
+
+	t.Run("getEmbedForPost downgrades already-cached extensionless external image to PostEmbedLink when enabled", func(t *testing.T) {
+		var hits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			hits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = false
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		pixelURL := extServer.URL + "/pixel"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   pixelURL,
+		}
+
+		// Prime DB and LinkCache with image metadata while setting is OFF.
+		offPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+		require.Equal(t, int64(1), hits.Load())
+		require.Len(t, offPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedImage, offPost.Metadata.Embeds[0].Type)
+
+		// Enable BlockExternalImages (purges LinkCache, leaves DB row with image != nil).
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.BlockExternalImages = true
+		})
+
+		// First call reads image != nil from DB; second call reads image != nil from LinkCache.
+		for range 2 {
+			embed, err := th.App.getEmbedForPost(th.Context, post, pixelURL, false)
+			require.NoError(t, err)
+			require.NotNil(t, embed)
+			assert.Equal(t, model.PostEmbedLink, embed.Type)
+			assert.Equal(t, pixelURL, embed.URL)
+		}
+		assert.Equal(t, int64(1), hits.Load())
+	})
+
+	t.Run("internal URL redirecting 302 to extensionless external image is blocked by CheckRedirect", func(t *testing.T) {
+		var extHits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			extHits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		siteServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, extServer.URL+"/pixel", http.StatusFound)
+		}))
+		defer siteServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteServer.URL
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		redirURL := siteServer.URL + "/internal-redirect"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   redirURL,
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Zero(t, extHits.Load())
+		require.Len(t, clientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, clientPost.Metadata.Embeds[0].Type)
+		assert.Empty(t, clientPost.Metadata.Images)
+		_, _, okDB := th.App.getLinkMetadataFromDatabase(redirURL, model.FloorToNearestHour(post.CreateAt))
+		assert.False(t, okDB)
+	})
+
+	t.Run("BlockedExternal cache entry does not poison reads after toggle off without PurgeLinkCache", func(t *testing.T) {
+		var hits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			hits.Add(1)
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "image/png")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = false
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		imageURL := extServer.URL + "/race.png"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   fmt.Sprintf("![race](%s)", imageURL),
+		}
+
+		// Simulate an in-flight blocked fetch writing to LinkCache after PurgeLinkCache during ON -> OFF.
+		ts := model.FloorToNearestHour(post.CreateAt)
+		cacheLinkMetadata(th.Context, imageURL, ts, nil, nil, nil, true)
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		assert.Equal(t, int64(1), hits.Load())
+		require.Contains(t, clientPost.Metadata.Images, imageURL)
+		assert.NotNil(t, clientPost.Metadata.Images[imageURL])
+
+		_, cachedImg, _, blockedExternal, ok := getLinkMetadataFromCache(imageURL, ts)
+		require.True(t, ok)
+		assert.False(t, blockedExternal)
+		assert.NotNil(t, cachedImg)
+	})
+
+	t.Run("getLinkMetadataForURL blocks subpath and normalized-host proxy URLs directly", func(t *testing.T) {
+		var extHits atomic.Int64
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			extHits.Add(1)
+			w.WriteHeader(http.StatusOK)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		siteURL := "http://mattermost.example.com/mm"
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ImageProxySettings.Enable = true
+			*cfg.ImageProxySettings.ImageProxyType = "local"
+		})
+		th.App.ch.imageProxy = imageproxy.MakeImageProxy(th.Server.platform, th.Server.HTTPService(), th.Server.Log())
+
+		escapedTarget := url.QueryEscape(extServer.URL + "/ext.png")
+		for _, proxyURL := range []string{
+			siteURL + "/api/v4/image?url=" + escapedTarget,
+			"http://MATTERMOST.EXAMPLE.COM:80/mm/api/v4/image?url=" + escapedTarget,
+		} {
+			_, _, err := th.App.getLinkMetadataForURL(th.Context, proxyURL)
+			require.Error(t, err)
+			assert.ErrorIs(t, err, errBlockedExternalImage)
+		}
+		assert.Zero(t, extHits.Load())
+	})
+
+	t.Run("mixed-case Content-Type Image/PNG on extensionless external URL does not persist LinkMetadataTypeNone", func(t *testing.T) {
+		extServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			file, err := testutils.ReadTestFile("test.png")
+			require.NoError(t, err)
+			w.Header().Set("Content-Type", "Image/PNG")
+			_, err = w.Write(file)
+			require.NoError(t, err)
+		}))
+		defer extServer.Close()
+
+		th := Setup(t).InitBasic(t)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = "http://mattermost.example.com"
+			*cfg.ServiceSettings.EnableLinkPreviews = true
+			*cfg.ServiceSettings.BlockExternalImages = true
+			*cfg.ServiceSettings.AllowedUntrustedInternalConnections = "localhost,127.0.0.1"
+		})
+
+		linkURL := extServer.URL + "/mixed-case"
+		post := &model.Post{
+			Id:        model.NewId(),
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			CreateAt:  model.GetMillis(),
+			Message:   linkURL,
+		}
+
+		clientPost := th.App.PreparePostForClientWithEmbedsAndImages(th.Context, post, &model.PreparePostForClientOpts{})
+
+		require.Len(t, clientPost.Metadata.Embeds, 1)
+		assert.Equal(t, model.PostEmbedLink, clientPost.Metadata.Embeds[0].Type)
+		assert.Empty(t, clientPost.Metadata.Images)
+		_, _, okDB := th.App.getLinkMetadataFromDatabase(linkURL, model.FloorToNearestHour(post.CreateAt))
+		assert.False(t, okDB)
 	})
 }

@@ -1941,6 +1941,156 @@ func TestPushNotificationAttachment(t *testing.T) {
 	})
 }
 
+func TestPushNotificationOverrideIconURL(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	user := &model.User{}
+	ch := &model.Channel{}
+
+	t.Run("drops external override_icon_url when BlockExternalImages is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("https://mattermost.example.com")
+			cfg.ServiceSettings.EnablePostIconOverride = new(true)
+			cfg.ServiceSettings.BlockExternalImages = new(true)
+		})
+
+		post := &model.Post{
+			Message: "hello",
+			Props: map[string]any{
+				model.PostPropsOverrideIconURL: "https://external.example.com/icon.png",
+			},
+		}
+
+		pn := th.App.buildFullPushNotificationMessage(th.Context, model.FullNotification, post, user, ch, ch.Name, "test", false, false, "")
+		assert.Empty(t, pn.OverrideIconURL)
+	})
+
+	t.Run("keeps relative emoji override_icon_url when BlockExternalImages is enabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("https://mattermost.example.com")
+			cfg.ServiceSettings.EnablePostIconOverride = new(true)
+			cfg.ServiceSettings.BlockExternalImages = new(true)
+		})
+
+		emojiIconURL := "/api/v4/emoji/12345/image"
+		post := &model.Post{
+			Message: "hello",
+			Props: map[string]any{
+				model.PostPropsOverrideIconURL: emojiIconURL,
+			},
+		}
+
+		pn := th.App.buildFullPushNotificationMessage(th.Context, model.FullNotification, post, user, ch, ch.Name, "test", false, false, "")
+		assert.Equal(t, emojiIconURL, pn.OverrideIconURL)
+	})
+
+	t.Run("keeps external override_icon_url when BlockExternalImages is disabled", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.SiteURL = new("https://mattermost.example.com")
+			cfg.ServiceSettings.EnablePostIconOverride = new(true)
+			cfg.ServiceSettings.BlockExternalImages = new(false)
+		})
+
+		externalIconURL := "https://external.example.com/icon.png"
+		post := &model.Post{
+			Message: "hello",
+			Props: map[string]any{
+				model.PostPropsOverrideIconURL: externalIconURL,
+			},
+		}
+
+		pn := th.App.buildFullPushNotificationMessage(th.Context, model.FullNotification, post, user, ch, ch.Name, "test", false, false, "")
+		assert.Equal(t, externalIconURL, pn.OverrideIconURL)
+	})
+}
+
+func TestSendPushNotificationsHookOverrideIconURL(t *testing.T) {
+	mainHelper.Parallel(t)
+	if testing.Short() {
+		t.Skip("skipping TestSendPushNotificationsHookOverrideIconURL test in short mode")
+	}
+
+	const siteURL = "https://mattermost.example.com"
+	const externalIconURL = "https://external.example.com/icon.png"
+	const localRelativeIconURL = "/api/v4/emoji/12345/image"
+	const localSameOriginIconURL = siteURL + "/api/v4/emoji/12345/image"
+
+	tests := []struct {
+		name                string
+		blockExternalImages bool
+		hookOverrideIconURL string
+		expectedIconURL     string
+	}{
+		{
+			name:                "clears external OverrideIconURL from plugin hook when BlockExternalImages is enabled",
+			blockExternalImages: true,
+			hookOverrideIconURL: externalIconURL,
+			expectedIconURL:     "",
+		},
+		{
+			name:                "preserves relative OverrideIconURL from plugin hook when BlockExternalImages is enabled",
+			blockExternalImages: true,
+			hookOverrideIconURL: localRelativeIconURL,
+			expectedIconURL:     localRelativeIconURL,
+		},
+		{
+			name:                "preserves same-origin OverrideIconURL from plugin hook when BlockExternalImages is enabled",
+			blockExternalImages: true,
+			hookOverrideIconURL: localSameOriginIconURL,
+			expectedIconURL:     localSameOriginIconURL,
+		},
+		{
+			name:                "preserves external OverrideIconURL from plugin hook when BlockExternalImages is disabled",
+			blockExternalImages: false,
+			hookOverrideIconURL: externalIconURL,
+			expectedIconURL:     externalIconURL,
+		},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			mainHelper.Parallel(t)
+
+			th := Setup(t).InitBasic(t)
+
+			testCode := fmt.Sprintf("notification.OverrideIconURL = %q\n\treturn notification, \"\"", tc.hookOverrideIconURL)
+			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			handler := &testPushNotificationHandler{t: t, behavior: "simple"}
+			pushServer := httptest.NewServer(http.HandlerFunc(handler.handleReq))
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+				cfg.ServiceSettings.SiteURL = new(siteURL)
+				cfg.ServiceSettings.BlockExternalImages = new(tc.blockExternalImages)
+			})
+
+			_, err := th.App.CreateSession(th.Context, &model.Session{
+				UserId:    th.BasicUser.Id,
+				DeviceId:  model.PushNotifyAppleReactNative + ":standardtoken",
+				ExpiresAt: model.GetMillis() + 100000,
+			})
+			require.Nil(t, err)
+
+			msg := &model.PushNotification{
+				Type: model.PushTypeMessage,
+			}
+			appErr := th.App.sendPushNotificationToAllSessions(th.Context, msg, th.BasicUser.Id, "")
+			require.Nil(t, appErr)
+
+			require.Eventually(t, func() bool {
+				return len(handler.notifications()) == 1
+			}, 2*time.Second, 10*time.Millisecond, "expected exactly one push notification")
+
+			assert.Equal(t, tc.expectedIconURL, handler.notifications()[0].OverrideIconURL)
+		})
+	}
+}
+
 // Run it with | grep -v '{"level"' to prevent spamming the console.
 func BenchmarkPushNotificationThroughput(b *testing.B) {
 	th := SetupWithStoreMock(b)

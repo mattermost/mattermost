@@ -12,6 +12,7 @@ import (
 	"maps"
 	"net/http"
 	"net/url"
+	"path"
 	"regexp"
 	"slices"
 	"strconv"
@@ -19,6 +20,7 @@ import (
 	"time"
 
 	"github.com/dyatlov/go-opengraph/opengraph"
+	ogimage "github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"github.com/pkg/errors"
 	"golang.org/x/net/idna"
 
@@ -34,10 +36,11 @@ import (
 )
 
 type linkMetadataCache struct {
-	OpenGraph *opengraph.OpenGraph
-	PostImage *model.PostImage
-	Permalink *model.Permalink
-	URL       string
+	OpenGraph       *opengraph.OpenGraph
+	PostImage       *model.PostImage
+	Permalink       *model.Permalink
+	URL             string
+	BlockedExternal bool
 }
 
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
@@ -117,13 +120,65 @@ func (r *channelMentionResolver) channelsForTeam(rctx request.CTX, teamName stri
 	return known
 }
 
+var errBlockedExternalImage = errors.New("external image blocked by server configuration")
+
+func (a *App) blockExternalImages() bool {
+	if a.Config() == nil {
+		return false
+	}
+	return model.SafeDereference(a.Config().ServiceSettings.BlockExternalImages)
+}
+
+func hasImageFileExtension(rawURL string) bool {
+	parsed, err := url.Parse(rawURL)
+	if err != nil {
+		return false
+	}
+	trimmedPath := strings.TrimRight(parsed.Path, "/")
+	switch strings.ToLower(path.Ext(trimmedPath)) {
+	case ".png", ".jpg", ".jpeg", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".svg", ".svgz", ".ico", ".avif", ".heic", ".heif":
+		return true
+	default:
+		return false
+	}
+}
+
+func stripExternalOpenGraphImages(og *opengraph.OpenGraph, siteURL string) *opengraph.OpenGraph {
+	if og == nil || len(og.Images) == 0 {
+		return og
+	}
+
+	filteredOGImages := make([]*ogimage.Image, 0, len(og.Images))
+	for _, img := range og.Images {
+		if img == nil {
+			continue
+		}
+		imgCopy := *img
+		if imgCopy.SecureURL != "" && model.IsExternalImageURL(imgCopy.SecureURL, siteURL) {
+			imgCopy.SecureURL = ""
+		}
+		if imgCopy.URL != "" && model.IsExternalImageURL(imgCopy.URL, siteURL) {
+			imgCopy.URL = ""
+		}
+		if imgCopy.URL == "" && imgCopy.SecureURL == "" {
+			continue
+		}
+		filteredOGImages = append(filteredOGImages, &imgCopy)
+	}
+
+	ogCopy := *og
+	ogCopy.Images = filteredOGImages
+	return &ogCopy
+}
+
 func (s *Server) initPostMetadata() {
-	// Dump any cached links if the proxy settings have changed so image URLs can be updated
+	// Dump any cached links if the proxy or external image settings have changed so image URLs can be updated
 	s.platform.AddConfigListener(func(before, after *model.Config) {
 		if (before.ImageProxySettings.Enable != after.ImageProxySettings.Enable) ||
-			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) {
+			(before.ImageProxySettings.ImageProxyType != after.ImageProxySettings.ImageProxyType) ||
+			(model.SafeDereference(before.ServiceSettings.BlockExternalImages) != model.SafeDereference(after.ServiceSettings.BlockExternalImages)) {
 			if err := platform.PurgeLinkCache(); err != nil {
-				mlog.Warn("Failed to remove cached links when the proxy settings changed", mlog.Err(err))
+				mlog.Warn("Failed to remove cached links when the proxy or external image settings changed", mlog.Err(err))
 			}
 		}
 	})
@@ -296,7 +351,9 @@ func (a *App) preparePostForClient(rctx request.CTX, originalPost *model.Post, o
 	post := originalPost.Clone()
 
 	// Proxy image links before constructing metadata so that requests go through the proxy
-	post = a.PostWithProxyAddedToImageURLs(post)
+	if !a.blockExternalImages() {
+		post = a.PostWithProxyAddedToImageURLs(post)
+	}
 
 	a.OverrideIconURLIfEmoji(rctx, post)
 	if post.Metadata == nil {
@@ -773,8 +830,23 @@ func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink stri
 		return nil, nil
 	}
 
+	siteURL := a.GetSiteURL()
+	if a.blockExternalImages() && model.IsExternalImageURL(firstLink, siteURL) &&
+		(hasImageFileExtension(firstLink) || model.IsImageProxyURL(firstLink, siteURL)) {
+		return &model.PostEmbed{
+			Type: model.PostEmbedLink,
+			URL:  firstLink,
+		}, nil
+	}
+
 	og, image, permalink, err := a.getLinkMetadata(rctx, firstLink, post.CreateAt, isNewPost, post.GetPreviewedPostProp())
 	if err != nil {
+		if errors.Is(err, errBlockedExternalImage) {
+			return &model.PostEmbed{
+				Type: model.PostEmbedLink,
+				URL:  firstLink,
+			}, nil
+		}
 		return nil, err
 	}
 
@@ -783,6 +855,9 @@ func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink stri
 	}
 
 	if og != nil {
+		if a.blockExternalImages() {
+			og = stripExternalOpenGraphImages(og, siteURL)
+		}
 		return &model.PostEmbed{
 			Type: model.PostEmbedOpengraph,
 			URL:  firstLink,
@@ -791,6 +866,13 @@ func (a *App) getEmbedForPost(rctx request.CTX, post *model.Post, firstLink stri
 	}
 
 	if image != nil {
+		if a.blockExternalImages() && model.IsExternalImageURL(firstLink, siteURL) {
+			return &model.PostEmbed{
+				Type: model.PostEmbedLink,
+				URL:  firstLink,
+			}, nil
+		}
+
 		// See MM-67372
 		if image.Format == "svg" || model.IsSVGImageURL(firstLink) {
 			rctx.Logger().Debug("Skipping SVG image embed",
@@ -864,6 +946,17 @@ func (a *App) getImagesForPost(rctx request.CTX, post *model.Post, isNewPost boo
 	// Removing duplicates isn't strictly required since postImages is a map, but it feels safer to do it beforehand
 	if len(imageURLs) > 1 {
 		imageURLs = model.RemoveDuplicateStrings(imageURLs)
+	}
+
+	if a.blockExternalImages() {
+		siteURL := a.GetSiteURL()
+		filtered := imageURLs[:0]
+		for _, imageURL := range imageURLs {
+			if !model.IsExternalImageURL(imageURL, siteURL) {
+				filtered = append(filtered, imageURL)
+			}
+		}
+		imageURLs = filtered
 	}
 
 	for _, imageURL := range imageURLs {
@@ -1069,9 +1162,17 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 	timestamp = model.FloorToNearestHour(timestamp)
 
 	// Check cache
-	og, image, permalink, ok := getLinkMetadataFromCache(requestURL, timestamp)
+	og, image, permalink, blockedExternal, ok := getLinkMetadataFromCache(requestURL, timestamp)
 	if !*a.Config().ServiceSettings.EnablePermalinkPreviews {
 		permalink = nil
+	}
+
+	if ok && blockedExternal {
+		if a.blockExternalImages() {
+			return nil, nil, nil, errBlockedExternalImage
+		}
+		og, image, permalink = nil, nil, nil
+		ok = false
 	}
 
 	if ok && !skipCache {
@@ -1086,7 +1187,7 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 		if ok && !skipCache {
 			og = model.TruncateOpenGraph(og)
 			image = filterSVGImage(image, requestURL)
-			cacheLinkMetadata(rctx, requestURL, timestamp, og, image, nil)
+			cacheLinkMetadata(rctx, requestURL, timestamp, og, image, nil, false)
 			return og, image, nil, nil
 		}
 	}
@@ -1102,13 +1203,15 @@ func (a *App) getLinkMetadata(rctx request.CTX, requestURL string, timestamp int
 	} else {
 		og, image, err = a.getLinkMetadataForURL(rctx, requestURL)
 
-		// We intentionally don't return early on an error because we want to save that there is no metadata for this link
-
-		a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
+		// We intentionally don't return early on an error because we want to save that there is no metadata for this link,
+		// except when blocked by BlockExternalImages so toggling the setting off later restores normal fetching.
+		if !errors.Is(err, errBlockedExternalImage) {
+			a.saveLinkMetadataToDatabase(requestURL, timestamp, og, image)
+		}
 	}
 
 	// Write back to cache and database, even if there was an error and the results are nil
-	cacheLinkMetadata(rctx, requestURL, timestamp, og, image, permalink)
+	cacheLinkMetadata(rctx, requestURL, timestamp, og, image, permalink, errors.Is(err, errBlockedExternalImage))
 
 	return og, image, permalink, err
 }
@@ -1197,12 +1300,27 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 	var body io.ReadCloser
 	var contentType string
 
-	if (request.URL.Scheme+"://"+request.URL.Host) == a.GetSiteURL() && request.URL.Path == "/api/v4/image" {
+	siteURL := a.GetSiteURL()
+	if model.IsImageProxyURL(requestURL, siteURL) {
 		// /api/v4/image requires authentication, so bypass the API by hitting the proxy directly
-		body, contentType, err = a.ImageProxy().GetImageDirect(a.ImageProxy().GetUnproxiedImageURL(request.URL.String()))
+		unproxiedURL := request.URL.Query().Get("url")
+		if unproxiedURL == "" && a.ImageProxy() != nil {
+			unproxiedURL = a.ImageProxy().GetUnproxiedImageURL(request.URL.String())
+		}
+		if a.blockExternalImages() && (unproxiedURL == "" || model.IsExternalImageURL(unproxiedURL, siteURL)) {
+			return nil, nil, fmt.Errorf("%w: external image proxy target %q is blocked", errBlockedExternalImage, request.URL.Redacted())
+		}
+		if a.ImageProxy() == nil {
+			return nil, nil, errors.New("getLinkMetadataForURL: image proxy is not configured")
+		}
+		body, contentType, err = a.ImageProxy().GetImageDirect(unproxiedURL)
 	} else {
-		request.Header.Add("Accept", "image/*")
-		request.Header.Add("Accept", "text/html;q=0.8")
+		if a.blockExternalImages() && model.IsExternalImageURL(requestURL, a.GetSiteURL()) {
+			request.Header.Add("Accept", "text/html")
+		} else {
+			request.Header.Add("Accept", "image/*")
+			request.Header.Add("Accept", "text/html;q=0.8")
+		}
 		request.Header.Add("Accept-Language", *a.Config().LocalizationSettings.DefaultServerLocale)
 
 		client := a.makeLinkMetadataClient(rctx)
@@ -1219,8 +1337,10 @@ func (a *App) getLinkMetadataForURL(rctx request.CTX, requestURL string) (*openg
 
 	if body != nil {
 		defer func() {
-			if _, err = io.Copy(io.Discard, body); err != nil {
-				rctx.Logger().Warn("error discarding OG image response body", mlog.Err(err))
+			if !errors.Is(err, errBlockedExternalImage) {
+				if _, copyErr := io.Copy(io.Discard, body); copyErr != nil {
+					rctx.Logger().Warn("error discarding OG image response body", mlog.Err(copyErr))
+				}
 			}
 			body.Close()
 		}()
@@ -1250,6 +1370,20 @@ func (a *App) makeLinkMetadataClient(rctx request.CTX) *http.Client {
 			return fmt.Errorf("redirect target %q is disabled for link previews", req.URL.Redacted())
 		}
 
+		if a.blockExternalImages() {
+			siteURL := a.GetSiteURL()
+			targetURL := req.URL.String()
+			if model.IsImageProxyURL(targetURL, siteURL) {
+				return fmt.Errorf("%w: redirect target %q is blocked by external image policy", errBlockedExternalImage, req.URL.Redacted())
+			}
+			if len(via) > 0 && !model.IsExternalImageURL(via[0].URL.String(), siteURL) && model.IsExternalImageURL(targetURL, siteURL) {
+				return fmt.Errorf("%w: redirect from internal URL to external target %q is blocked by external image policy", errBlockedExternalImage, req.URL.Redacted())
+			}
+			if model.IsExternalImageURL(targetURL, siteURL) && hasImageFileExtension(targetURL) {
+				return fmt.Errorf("%w: redirect to external image %q is blocked by external image policy", errBlockedExternalImage, req.URL.Redacted())
+			}
+		}
+
 		return nil
 	}
 
@@ -1271,19 +1405,19 @@ func resolveMetadataURL(requestURL string, siteURL string) string {
 	return resolved.String()
 }
 
-func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, bool) {
+func getLinkMetadataFromCache(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, bool, bool) {
 	var cached linkMetadataCache
 	err := platform.LinkCache().Get(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), &cached)
 	if err != nil {
-		return nil, nil, nil, false
+		return nil, nil, nil, false, false
 	}
 
 	// Verify that the cached entry matches the requested URL
 	if cached.URL != requestURL {
-		return nil, nil, nil, false
+		return nil, nil, nil, false, false
 	}
 
-	return cached.OpenGraph, cached.PostImage, cached.Permalink, true
+	return cached.OpenGraph, cached.PostImage, cached.Permalink, cached.BlockedExternal, true
 }
 
 func (a *App) getLinkMetadataFromDatabase(requestURL string, timestamp int64) (*opengraph.OpenGraph, *model.PostImage, bool) {
@@ -1326,12 +1460,13 @@ func (a *App) saveLinkMetadataToDatabase(requestURL string, timestamp int64, og 
 	}
 }
 
-func cacheLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage, permalink *model.Permalink) {
+func cacheLinkMetadata(rctx request.CTX, requestURL string, timestamp int64, og *opengraph.OpenGraph, image *model.PostImage, permalink *model.Permalink, blockedExternal bool) {
 	metadata := linkMetadataCache{
-		OpenGraph: og,
-		PostImage: image,
-		Permalink: permalink,
-		URL:       requestURL,
+		OpenGraph:       og,
+		PostImage:       image,
+		Permalink:       permalink,
+		URL:             requestURL,
+		BlockedExternal: blockedExternal,
 	}
 
 	if err := platform.LinkCache().SetWithExpiry(strconv.FormatInt(model.GenerateLinkMetadataHash(requestURL, timestamp), 16), metadata, platform.LinkCacheDuration); err != nil {
@@ -1357,15 +1492,20 @@ func (a *App) parseLinkMetadata(rctx request.CTX, requestURL string, body io.Rea
 		body = bufRd
 	}
 
-	if strings.HasPrefix(contentType, "image/svg+xml") {
+	lowerContentType := strings.ToLower(contentType)
+	if strings.HasPrefix(lowerContentType, "image") && a.blockExternalImages() && model.IsExternalImageURL(requestURL, a.GetSiteURL()) {
+		return nil, nil, errBlockedExternalImage
+	}
+
+	if strings.HasPrefix(lowerContentType, "image/svg+xml") {
 		// See MM-67372
 		rctx.Logger().Debug("Filtering SVG image from link metadata",
 			mlog.String("url", requestURL))
 		return nil, nil, nil
-	} else if strings.HasPrefix(contentType, "image") {
+	} else if strings.HasPrefix(lowerContentType, "image") {
 		image, err := parseImages(rctx, requestURL, io.LimitReader(body, MaxMetadataImageSize))
 		return nil, image, err
-	} else if strings.HasPrefix(contentType, "text/html") {
+	} else if strings.HasPrefix(lowerContentType, "text/html") {
 		og := a.parseOpenGraphMetadata(requestURL, body, contentType)
 
 		// The OpenGraph library and Go HTML library don't error for malformed input, so check that at least

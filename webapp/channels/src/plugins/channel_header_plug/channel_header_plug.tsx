@@ -17,6 +17,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
+import AllowedImage from 'components/external_image/allowed_image';
 import PluginChannelHeaderIcon from 'components/widgets/icons/plugin_channel_header_icon';
 
 import {createCallContext} from 'utils/apps';
@@ -282,11 +283,20 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                 buttonId={`${binding.app_id}_${binding.location}`}
                 tooltip={binding.label}
             >
-                <img
-                    src={binding.icon}
-                    width='24'
-                    height='24'
-                />
+                <AllowedImage src={binding.icon}>
+                    {(allowedIcon) => (allowedIcon ? (
+                        <img
+                            src={allowedIcon}
+                            width='24'
+                            height='24'
+                        />
+                    ) : (
+                        <PluginChannelHeaderIcon
+                            className='icon icon--standard'
+                            aria-hidden='true'
+                        />
+                    ))}
+                </AllowedImage>
             </HeaderIconWrapper>
         );
     };
@@ -321,7 +331,11 @@ class ChannelHeaderPlug extends React.PureComponent<ChannelHeaderPlugProps, Chan
                             className='d-flex align-items-center'
                             onClick={() => this.fireActionAndClose(() => this.onBindingClick(binding))}
                         >
-                            <span className='d-flex align-items-center overflow--ellipsis icon'>{(<img src={binding.icon}/>)}</span>
+                            <span className='d-flex align-items-center overflow--ellipsis icon'>
+                                <AllowedImage src={binding.icon}>
+                                    {(allowedIcon) => (allowedIcon ? <img src={allowedIcon}/> : null)}
+                                </AllowedImage>
+                            </span>
                             <span>{binding.label}</span>
                         </a>
                     </li>

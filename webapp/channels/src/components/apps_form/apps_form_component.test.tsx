@@ -2823,4 +2823,78 @@ describe('AppsFormComponent', () => {
             expect(screen.getByTestId('i1_qtyinput')).toBeInTheDocument();
         });
     });
+
+    describe('BlockExternalImages header icon', () => {
+        test('hides external form icon when BlockExternalImages is true', () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={{
+                        title: 'My Form',
+                        icon: 'https://evil.example/icon.png',
+                    }}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                BlockExternalImages: 'true',
+                                SiteURL: 'https://mm.example.com',
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(screen.queryByAltText('modal title icon')).not.toBeInTheDocument();
+        });
+
+        test('renders internal form icon when BlockExternalImages is true', () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={{
+                        title: 'My Form',
+                        icon: 'https://mm.example.com/static/icon.png',
+                    }}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                BlockExternalImages: 'true',
+                                SiteURL: 'https://mm.example.com',
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(screen.getByAltText('modal title icon')).toHaveAttribute('src', 'https://mm.example.com/static/icon.png');
+        });
+
+        test('renders external form icon when BlockExternalImages is false', () => {
+            renderWithContext(
+                <AppsForm
+                    {...baseProps}
+                    form={{
+                        title: 'My Form',
+                        icon: 'https://evil.example/icon.png',
+                    }}
+                />,
+                {
+                    entities: {
+                        general: {
+                            config: {
+                                BlockExternalImages: 'false',
+                                SiteURL: 'https://mm.example.com',
+                            },
+                        },
+                    },
+                },
+            );
+
+            expect(screen.getByAltText('modal title icon')).toHaveAttribute('src', 'https://evil.example/icon.png');
+        });
+    });
 });

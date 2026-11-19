@@ -110,6 +110,7 @@ const onPremServerConfig = (): Partial<TestAdminConfig> => {
             SiteURL: testConfig.internalBaseURL,
             // Server defaults, listed so specs that disable them don't leak that to later specs.
             CollapsedThreads: CollapsedThreads.ALWAYS_ON,
+            BlockExternalImages: false,
             EnableTutorial: true,
             EnableOnboardingFlow: false,
             EnableSecurityFixAlert: false,

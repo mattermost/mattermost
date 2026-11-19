@@ -6,24 +6,35 @@ import React, {memo} from 'react';
 import type {PostImage} from '@mattermost/types/posts';
 
 import {getImageSrc} from 'utils/post_utils';
+import {isExternalImageURL} from 'utils/url';
 
 import {isSVGImage} from './is_svg_image';
 
+type BlockReason = 'external' | 'svg';
+
 type Props = {
-    children: (src: string) => React.ReactNode;
+    blockExternalImages?: boolean;
+    children: (src: string, blockReason?: BlockReason) => React.ReactNode;
     enableSVGs: boolean;
     hasImageProxy: boolean;
     imageMetadata?: PostImage;
+    siteURL?: string;
     src: string;
 };
 
 const ExternalImage = (props: Props) => {
-    const shouldRenderImage = props.enableSVGs || !isSVGImage(props.imageMetadata, props.src);
-    let src = getImageSrc(props.src, props.hasImageProxy);
-    if (!shouldRenderImage) {
-        src = '';
+    const isBlockedExternal = Boolean(props.blockExternalImages) && isExternalImageURL(props.src, props.siteURL ?? '');
+    const isBlockedSVG = !isBlockedExternal && !props.enableSVGs && isSVGImage(props.imageMetadata, props.src);
+
+    let blockReason: BlockReason | undefined;
+    if (isBlockedExternal) {
+        blockReason = 'external';
+    } else if (isBlockedSVG) {
+        blockReason = 'svg';
     }
-    return (<>{props.children(src)}</>);
+
+    const src = blockReason ? '' : getImageSrc(props.src, props.hasImageProxy);
+    return (<>{blockReason ? props.children(src, blockReason) : props.children(src)}</>);
 };
 
 export default memo(ExternalImage);

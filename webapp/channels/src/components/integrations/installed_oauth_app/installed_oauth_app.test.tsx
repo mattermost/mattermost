@@ -143,4 +143,50 @@ describe('components/integrations/InstalledOAuthApp', () => {
         expect(newOnDelete).toHaveBeenCalled();
         expect(newOnDelete).toHaveBeenCalledWith(oauthApp);
     });
+
+    test('omits external icon when BlockExternalImages is true', () => {
+        const props = {
+            ...baseProps,
+            team,
+            oauthApp: {
+                ...oauthApp,
+                icon_url: 'https://evil.example/icon.png',
+            },
+        };
+
+        renderWithContext(<InstalledOAuthApp {...props}/>, {
+            entities: {
+                general: {
+                    config: {
+                        BlockExternalImages: 'true',
+                        SiteURL: 'https://mm.example.com',
+                    },
+                },
+            },
+        });
+        expect(screen.queryByAltText('get app screenshot')).not.toBeInTheDocument();
+    });
+
+    test('renders external icon when BlockExternalImages is false', () => {
+        const props = {
+            ...baseProps,
+            team,
+            oauthApp: {
+                ...oauthApp,
+                icon_url: 'https://evil.example/icon.png',
+            },
+        };
+
+        renderWithContext(<InstalledOAuthApp {...props}/>, {
+            entities: {
+                general: {
+                    config: {
+                        BlockExternalImages: 'false',
+                        SiteURL: 'https://mm.example.com',
+                    },
+                },
+            },
+        });
+        expect(screen.getByAltText('get app screenshot')).toHaveAttribute('src', 'https://evil.example/icon.png');
+    });
 });

@@ -38,6 +38,14 @@ func getImage(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if *c.App.Config().ImageProxySettings.Enable {
+		if model.SafeDereference(c.App.Config().ServiceSettings.BlockExternalImages) {
+			if model.IsExternalImageURL(actualURL, model.SafeDereference(c.App.Config().ServiceSettings.SiteURL)) {
+				c.Err = model.NewAppError("getImage", "api.image.get.blocked.app_error", nil, "", http.StatusForbidden)
+				return
+			}
+			http.Redirect(w, r, siteURL.ResolveReference(parsedURL).String(), http.StatusFound)
+			return
+		}
 		// in case image proxy is enabled and we are fetching a remote image (NOT static or served by plugins), pass request to proxy
 		if parsedURL.Host != siteURL.Host {
 			c.App.ImageProxy().GetImage(w, r, parsedURL.String())

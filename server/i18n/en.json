@@ -3339,6 +3339,11 @@
     "description": "API error from the image proxy when the requested image URL is malformed and cannot be parsed."
   },
   {
+    "id": "api.image.get.blocked.app_error",
+    "translation": "External images are blocked by server configuration.",
+    "description": "API error returned with HTTP 403 from the image proxy endpoint when ServiceSettings.BlockExternalImages is enabled and the requested image URL is external."
+  },
+  {
     "id": "api.incoming_webhook.disabled.app_error",
     "translation": "Incoming webhooks have been disabled by the system admin.",
     "description": "API error shown when someone tries to use or manage incoming webhooks while the admin has turned the feature off; incoming webhooks let external services post messages into channels."

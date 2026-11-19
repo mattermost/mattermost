@@ -52,21 +52,17 @@ function YouTubeThumbnail({play, videoTitle, onError, thumbnailUrl}: YouTubeThum
                 }
             }}
         >
-            <ExternalImage src={thumbnailUrl}>
-                {(src) => (
-                    <img
-                        className='video-thumbnail'
-                        src={src}
-                        alt={formatMessage({
-                            id: 'youtube_video.thumbnail.alt_text',
-                            defaultMessage: 'Thumbnail for {videoTitle} on YouTube',
-                        }, {
-                            videoTitle,
-                        })}
-                        onError={onError}
-                    />
-                )}
-            </ExternalImage>
+            <img
+                className='video-thumbnail'
+                src={thumbnailUrl}
+                alt={formatMessage({
+                    id: 'youtube_video.thumbnail.alt_text',
+                    defaultMessage: 'Thumbnail for {videoTitle} on YouTube',
+                }, {
+                    videoTitle,
+                })}
+                onError={onError}
+            />
             <div
                 className='play-button'
                 role='presentation'
@@ -159,30 +155,38 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
 
         if (this.state.playing) {
             content = (
-                <div className='video-playing'>
-                    <iframe
-                        src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1&enablejsapi=1${time}`}
-                        title={videoTitle}
-                        width='100%'
-                        height='100%'
-                        frameBorder='0'
-                        allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
-                        allowFullScreen={true}
+                <div className='video-div embed-responsive-item'>
+                    <div className='video-playing'>
+                        <iframe
+                            src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&fs=1&enablejsapi=1${time}`}
+                            title={videoTitle}
+                            width='100%'
+                            height='100%'
+                            frameBorder='0'
+                            allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture'
+                            allowFullScreen={true}
 
-                        // YouTube refuses to play embeds without a referrer (Error 153), and the page itself is no-referrer.
-                        referrerPolicy='strict-origin-when-cross-origin'
-                        sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
-                    />
+                            // YouTube refuses to play embeds without a referrer (Error 153), and the page itself is no-referrer.
+                            referrerPolicy='strict-origin-when-cross-origin'
+                            sandbox='allow-scripts allow-same-origin allow-popups allow-presentation'
+                        />
+                    </div>
                 </div>
             );
         } else {
             content = (
-                <YouTubeThumbnail
-                    play={this.play}
-                    videoTitle={videoTitle}
-                    onError={this.handleImageError}
-                    thumbnailUrl={thumbnailUrl}
-                />
+                <ExternalImage src={thumbnailUrl}>
+                    {(src) => (src ? (
+                        <div className='video-div embed-responsive-item'>
+                            <YouTubeThumbnail
+                                play={this.play}
+                                videoTitle={videoTitle}
+                                onError={this.handleImageError}
+                                thumbnailUrl={src}
+                            />
+                        </div>
+                    ) : null)}
+                </ExternalImage>
             );
         }
 
@@ -190,9 +194,7 @@ export default class YoutubeVideo extends React.PureComponent<Props, State> {
             <div className='post__embed-container'>
                 <div>
                     {header}
-                    <div className='video-div embed-responsive-item'>
-                        {content}
-                    </div>
+                    {content}
                 </div>
             </div>
         );

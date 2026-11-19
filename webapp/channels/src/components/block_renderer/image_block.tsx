@@ -13,6 +13,7 @@ import {secureGetFromRecord} from 'mattermost-redux/utils/post_utils';
 import {openModal} from 'actions/views/modals';
 
 import ExternalImage from 'components/external_image';
+import BlockedImageLink from 'components/external_image/blocked_image_link';
 import FilePreviewModal from 'components/file_preview_modal';
 import SizeAwareImage from 'components/size_aware_image';
 
@@ -113,7 +114,14 @@ export const ImageBlock = ({block, postId}: ImageBlockProps) => {
                     src={url}
                     imageMetadata={imageMetadata}
                 >
-                    {(safeSrc) => (
+                    {(safeSrc, blockReason) => (!safeSrc && blockReason === 'external' ? (
+                        <BlockedImageLink
+                            src={url}
+                            alt={block.alt_text}
+                            title={block.title}
+                            location='image_block'
+                        />
+                    ) : (
                         <SizeAwareImage
                             src={safeSrc}
                             dimensions={imageMetadata}
@@ -125,7 +133,7 @@ export const ImageBlock = ({block, postId}: ImageBlockProps) => {
                             showLoader={true}
                             hideUtilities={true}
                         />
-                    )}
+                    ))}
                 </ExternalImage>
             </div>
         </div>

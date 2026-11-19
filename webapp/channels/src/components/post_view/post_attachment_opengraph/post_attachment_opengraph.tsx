@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {memo, useRef} from 'react';
+import React, {memo, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import {CloseIcon, MenuDownIcon, MenuRightIcon} from '@mattermost/compass-icons/components';
@@ -119,7 +119,7 @@ export function getScaledImageDimensions(imageMetadata: ImageMetadata, large: bo
 
 const PostAttachmentOpenGraph = ({openGraphData, post, actions, link, isInPermalink, previewEnabled, ...rest}: Props) => {
     const {formatMessage} = useIntl();
-    const {current: bestImageData} = useRef<ImageMetadata>(getBestImage(openGraphData, post.metadata.images));
+    const bestImageData = useMemo(() => getBestImage(openGraphData, post.metadata.images), [openGraphData, post.metadata.images]);
     const isPreviewRemoved = post?.props?.[PostTypes.REMOVE_LINK_PREVIEW] === 'true';
 
     // block of early return statements
@@ -273,36 +273,42 @@ export const PostAttachmentOpenGraphImage = memo(({imageMetadata, isInPermalink,
 
     const imageDimensions = getScaledImageDimensions(imageMetadata, large);
 
-    const image = (
+    return (
         <ExternalImage
             src={src}
             imageMetadata={imageMetadata}
         >
-            {(source) => (
-                <>
-                    <SizeAwareImage
-                        src={source}
-                        dimensions={imageDimensions}
-                        showLoader={true}
-                        alt={title}
-                        hideUtilities={true}
-                    />
-                    {large && imageCollapseButton}
-                </>
-            )}
-        </ExternalImage>
-    );
+            {(source) => {
+                if (!source) {
+                    return null;
+                }
 
-    return (
-        <div className={classNames('PostAttachmentOpenGraph__image', {large, collapsed: !isEmbedVisible})}>
-            {large ? (
-                <AutoHeightSwitcher
-                    showSlot={isEmbedVisible ? 1 : 2}
-                    slot1={image}
-                    slot2={imageCollapseButton}
-                />
-            ) : image}
-        </div>
+                const image = (
+                    <>
+                        <SizeAwareImage
+                            src={source}
+                            dimensions={imageDimensions}
+                            showLoader={true}
+                            alt={title}
+                            hideUtilities={true}
+                        />
+                        {large && imageCollapseButton}
+                    </>
+                );
+
+                return (
+                    <div className={classNames('PostAttachmentOpenGraph__image', {large, collapsed: !isEmbedVisible})}>
+                        {large ? (
+                            <AutoHeightSwitcher
+                                showSlot={isEmbedVisible ? 1 : 2}
+                                slot1={image}
+                                slot2={imageCollapseButton}
+                            />
+                        ) : image}
+                    </div>
+                );
+            }}
+        </ExternalImage>
     );
 });
 

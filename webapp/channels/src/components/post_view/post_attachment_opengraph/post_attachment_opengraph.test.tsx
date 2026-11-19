@@ -5,9 +5,10 @@ import React from 'react';
 
 import type {OpenGraphMetadata, Post} from '@mattermost/types/posts';
 
+import {GeneralTypes, PostTypes} from 'mattermost-redux/action_types';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {render, renderWithContext} from 'tests/react_testing_utils';
+import {act, render, renderWithContext} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 
 import {
@@ -158,6 +159,113 @@ describe('PostAttachmentOpenGraph', () => {
         );
 
         expect(container).toBeEmptyDOMElement();
+    });
+
+    test('should omit image container and collapse button when external images are blocked', () => {
+        const {container, getByText} = renderWithContext(
+            <PostAttachmentOpenGraph {...baseProps}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        config: {
+                            ...initialState.entities.general.config,
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(getByText('Mattermost | Open Source Collaboration for Developers')).toBeInTheDocument();
+        expect(getByText(/Mattermost is a secure, open source platform/)).toBeInTheDocument();
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).not.toBeInTheDocument();
+        expect(container.querySelector('.preview-toggle')).not.toBeInTheDocument();
+    });
+
+    test('should render image when BlockExternalImages toggles from true to false', () => {
+        const {container, store} = renderWithContext(
+            <PostAttachmentOpenGraph {...baseProps}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    general: {
+                        ...initialState.entities.general,
+                        config: {
+                            ...initialState.entities.general.config,
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).not.toBeInTheDocument();
+
+        act(() => {
+            store.dispatch({
+                type: GeneralTypes.CLIENT_CONFIG_RECEIVED,
+                data: {
+                    ...initialState.entities.general.config,
+                    BlockExternalImages: 'false',
+                    SiteURL: 'https://chat.example.com',
+                },
+            });
+        });
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
+        expect(container.querySelector('.preview-toggle')).toBeInTheDocument();
+    });
+
+    test('should update bestImageData when openGraphData updates', () => {
+        const {container, store} = renderWithContext(
+            <PostAttachmentOpenGraph {...baseProps}/>,
+            {
+                ...initialState,
+                entities: {
+                    ...initialState.entities,
+                    posts: {
+                        ...initialState.entities.posts,
+                        openGraph: {
+                            post_id_1: {
+                                [openGraphData.url]: {
+                                    ...openGraphData,
+                                    images: [],
+                                },
+                            },
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).not.toBeInTheDocument();
+
+        act(() => {
+            store.dispatch({
+                type: PostTypes.RECEIVED_POST,
+                data: {
+                    ...post,
+                    metadata: {
+                        ...post.metadata,
+                        embeds: [
+                            {
+                                type: 'opengraph',
+                                url: openGraphData.url,
+                                data: openGraphData,
+                            },
+                        ],
+                    },
+                },
+            });
+        });
+
+        expect(container.querySelector('.PostAttachmentOpenGraph__image')).toBeInTheDocument();
     });
 });
 

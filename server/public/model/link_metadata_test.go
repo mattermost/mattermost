@@ -487,3 +487,389 @@ func TestFilterSVGImages(t *testing.T) {
 		assert.Len(t, result, 2)
 	})
 }
+
+func TestIsExternalImageURL(t *testing.T) {
+	testCases := []struct {
+		name     string
+		rawURL   string
+		siteURL  string
+		expected bool
+	}{
+		{
+			name:     "same-origin file preview",
+			rawURL:   "https://chat.example.com/api/v4/files/x/preview",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "relative static emoji path",
+			rawURL:   "/static/emoji/1f600.png",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "relative custom emoji path",
+			rawURL:   "/api/v4/emoji/abc/image",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "data image png URI",
+			rawURL:   "data:image/png;base64,iVBORw0KGgo=",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "uppercase data image URI",
+			rawURL:   "DATA:IMAGE/PNG;base64,iVBORw0KGgo=",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "data image svg URI",
+			rawURL:   "data:image/svg+xml,<svg/>",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "host prefix lookalike",
+			rawURL:   "https://chat.example.com.evil.net/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "scheme mismatch",
+			rawURL:   "http://chat.example.com/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "non-default port mismatch",
+			rawURL:   "https://chat.example.com:8443/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "default HTTPS port normalized",
+			rawURL:   "https://chat.example.com:443/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "default HTTP port normalized",
+			rawURL:   "http://chat.example.com:80/a.png",
+			siteURL:  "http://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "case-insensitive host",
+			rawURL:   "https://CHAT.example.com/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "subpath internal file",
+			rawURL:   "https://host/mm/api/v4/files/x",
+			siteURL:  "https://host/mm",
+			expected: false,
+		},
+		{
+			name:     "subpath relative internal file",
+			rawURL:   "/mm/api/v4/files/x",
+			siteURL:  "https://host/mm",
+			expected: false,
+		},
+		{
+			name:     "subpath relative path without leading slash",
+			rawURL:   "images/logo.png",
+			siteURL:  "https://host/mm",
+			expected: false,
+		},
+		{
+			name:     "subpath outside path",
+			rawURL:   "https://host/other/a.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "subpath prefix lookalike",
+			rawURL:   "https://host/mm2/a.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "subpath dot-dot traversal",
+			rawURL:   "https://host/mm/../other/a.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "subpath absolute image proxy URL",
+			rawURL:   "https://host/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "subpath relative image proxy URL",
+			rawURL:   "/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "absolute image proxy URL",
+			rawURL:   "https://chat.example.com/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "relative image proxy URL",
+			rawURL:   "/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "double-slash absolute image proxy URL",
+			rawURL:   "https://chat.example.com//api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "subpath double-slash absolute image proxy URL",
+			rawURL:   "https://host/mm//api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "non-proxy path starting with images",
+			rawURL:   "https://chat.example.com/api/v4/images/logo.png",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "empty siteURL rejects absolute URL",
+			rawURL:   "https://anything/a.png",
+			siteURL:  "",
+			expected: true,
+		},
+		{
+			name:     "empty siteURL allows relative URL",
+			rawURL:   "/static/x.png",
+			siteURL:  "",
+			expected: false,
+		},
+		{
+			name:     "empty siteURL rejects relative image proxy URL",
+			rawURL:   "/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "",
+			expected: true,
+		},
+		{
+			name:     "empty siteURL rejects protocol-relative URL",
+			rawURL:   "//ext.example/a.png",
+			siteURL:  "",
+			expected: true,
+		},
+		{
+			name:     "protocol-relative external URL",
+			rawURL:   "//ext.example/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "protocol-relative same-host URL",
+			rawURL:   "//chat.example.com/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "backslash relative URL",
+			rawURL:   `/\evil.net/a.png`,
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "backslash scheme URL",
+			rawURL:   `https:\\evil.net\a.png`,
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "tab-injected protocol-relative URL",
+			rawURL:   "/\t/evil.net/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "empty URL",
+			rawURL:   "",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "surrounding whitespace on external URL",
+			rawURL:   " https://ext/a.png ",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "surrounding whitespace on relative URL",
+			rawURL:   " /static/x.png ",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "javascript scheme",
+			rawURL:   "javascript:alert(1)",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "blob scheme",
+			rawURL:   "blob:https://chat.example.com/x",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "ftp scheme",
+			rawURL:   "ftp://chat.example.com/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "non-image data URI",
+			rawURL:   "data:text/html,<script>alert(1)</script>",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "URL with userinfo on same host",
+			rawURL:   "https://evil.example@chat.example.com/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "same-host tab-injected URL",
+			rawURL:   "/\t/chat.example.com/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "same-host CR-injected URL",
+			rawURL:   "/\r/chat.example.com/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "same-host backslash in path",
+			rawURL:   "https://chat.example.com/a\\b.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "percent-encoded image proxy path",
+			rawURL:   "https://chat.example.com/api/v4/%69mage?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "percent-encoded subpath traversal outside siteURL",
+			rawURL:   "https://host/mm/%2e%2e/other/a.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "authority-less same-scheme URL",
+			rawURL:   "https:evil.com/a.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsExternalImageURL(tc.rawURL, tc.siteURL))
+		})
+	}
+}
+
+func TestIsImageProxyURL(t *testing.T) {
+	testCases := []struct {
+		name     string
+		rawURL   string
+		siteURL  string
+		expected bool
+	}{
+		{
+			name:     "absolute image proxy URL",
+			rawURL:   "https://chat.example.com/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "relative image proxy URL",
+			rawURL:   "/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+		{
+			name:     "subpath absolute image proxy URL",
+			rawURL:   "https://host/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "subpath relative image proxy URL",
+			rawURL:   "/mm/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://host/mm",
+			expected: true,
+		},
+		{
+			name:     "empty siteURL relative image proxy URL",
+			rawURL:   "/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "",
+			expected: true,
+		},
+		{
+			name:     "external host with proxy path",
+			rawURL:   "https://evil.net/api/v4/image?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "regular internal file URL",
+			rawURL:   "https://chat.example.com/api/v4/files/x/preview",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "non-proxy path starting with images",
+			rawURL:   "https://chat.example.com/api/v4/images/logo.png",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "data image URI",
+			rawURL:   "data:image/png;base64,iVBORw0KGgo=",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "empty URL",
+			rawURL:   "",
+			siteURL:  "https://chat.example.com",
+			expected: false,
+		},
+		{
+			name:     "percent-encoded image proxy URL",
+			rawURL:   "https://chat.example.com/api/v4/%69mage?url=https%3A%2F%2Fext%2Fa.png",
+			siteURL:  "https://chat.example.com",
+			expected: true,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			assert.Equal(t, tc.expected, IsImageProxyURL(tc.rawURL, tc.siteURL))
+		})
+	}
+}

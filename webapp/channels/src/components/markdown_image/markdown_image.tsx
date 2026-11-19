@@ -7,6 +7,7 @@ import type {KeyboardEvent, MouseEvent} from 'react';
 import type {Post, PostImage} from '@mattermost/types/posts';
 
 import ExternalImage from 'components/external_image';
+import BlockedImageLink from 'components/external_image/blocked_image_link';
 import ExternalLink from 'components/external_link';
 import FilePreviewModal from 'components/file_preview_modal';
 import MarkdownImageExpand from 'components/markdown_image_expand';
@@ -175,8 +176,21 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                 src={src}
                 imageMetadata={imageMetadata}
             >
-                {(safeSrc) => {
+                {(safeSrc, blockReason) => {
                     if (!safeSrc) {
+                        if (blockReason === 'external') {
+                            return (
+                                <BlockedImageLink
+                                    src={src}
+                                    location='markdown_image'
+                                    alt={alt}
+                                    title={this.props.title}
+                                    inline={true}
+                                    disableLink={imageIsLink}
+                                />
+                            );
+                        }
+
                         return (
                             <ExternalLink
                                 className='theme markdown__link'

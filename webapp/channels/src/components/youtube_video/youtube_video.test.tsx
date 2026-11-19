@@ -132,4 +132,25 @@ describe('YoutubeVideo', () => {
             'https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg',
         );
     });
+
+    it('should omit thumbnail, play button, and video-div wrapper when external images are blocked', () => {
+        const {container} = renderWithContext(
+            <YoutubeVideo {...baseProps}/>,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            BlockExternalImages: 'true',
+                            SiteURL: 'https://chat.example.com',
+                        },
+                    },
+                },
+            },
+        );
+
+        expect(container.querySelector('.video-div')).not.toBeInTheDocument();
+        expect(container.querySelector('.video-thumbnail')).not.toBeInTheDocument();
+        expect(container.querySelector('.play-button')).not.toBeInTheDocument();
+        expect(container.querySelector('.video-title a')).toHaveAttribute('href', baseProps.link);
+    });
 });
