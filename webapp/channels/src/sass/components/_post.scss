@@ -977,7 +977,7 @@
 
     &.same--root {
         &.same--user {
-            padding: 0 0.5em 0 1.5em;
+            padding: 2px 0.5em 2px 1.5em;
 
             &:hover,
             &.post--hovered,
@@ -1343,9 +1343,8 @@
             padding-right: 20px !important;
         }
 
-        // Keep in sync with the bottom padding above so paragraphs aren't spaced wider than consecutive posts.
         p + p {
-            margin: 0.2em 0 0;
+            margin: 0.5em 0 0;
         }
 
         ul,
