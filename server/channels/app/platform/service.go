@@ -154,6 +154,10 @@ type PlatformService struct {
 	skipGlobalLogger bool
 
 	postDeliveryRecorder func(marker *model.PostDeliveryMarker, userID string)
+
+	// prePublishHook runs on every event Publish sends, before the cluster copy is
+	// serialized. Set by the app layer, which platform can't call into directly.
+	prePublishHook func(message *model.WebSocketEvent)
 }
 
 // SetInstallTypeOverride sets the install type override for support packet diagnostics.
@@ -680,6 +684,13 @@ func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {
 
 func (ps *PlatformService) SetPostDeliveryRecorder(fn func(marker *model.PostDeliveryMarker, userID string)) {
 	ps.postDeliveryRecorder = fn
+}
+
+// SetPrePublishHook sets the function Publish runs on each event before delivering
+// it. It runs only on the originating node: the event it leaves behind is what the
+// cluster receives, so other nodes don't run it again.
+func (ps *PlatformService) SetPrePublishHook(fn func(message *model.WebSocketEvent)) {
+	ps.prePublishHook = fn
 }
 
 // GetPluginStatuses meant to be used by cluster implementation
