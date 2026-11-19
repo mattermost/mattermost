@@ -270,6 +270,29 @@ describe('components/MarkdownImage', () => {
         expect(img).toHaveAttribute('title', 'test title');
     });
 
+    test.each([
+        {width: '200', height: '50', expectedHeight: '50'},
+        {width: '300', height: 'auto', expectedHeight: null},
+    ])('should reserve the explicit size $width x $height with the placeholder while the image loads', ({width, height, expectedHeight}) => {
+        const props = {
+            ...baseProps,
+            imageMetadata: {format: 'jpg', frameCount: 0, width: 1200, height: 300},
+            src: 'https://example.com/image.jpg',
+            width,
+            height,
+        };
+        const {container} = renderWithContext(
+            <MarkdownImage {...props}/>,
+        );
+
+        const placeholder = container.querySelector('img.image-loading__placeholder');
+        const img = screen.getByRole('img', {hidden: true});
+        for (const element of [placeholder, img]) {
+            expect(element).toHaveAttribute('width', width);
+            expect(element?.getAttribute('height')).toEqual(expectedHeight);
+        }
+    });
+
     test(`should render image with MarkdownImageExpand if it is taller than ${Constants.EXPANDABLE_INLINE_IMAGE_MIN_HEIGHT}px`, () => {
         const props = {
             ...baseProps,

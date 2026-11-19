@@ -143,6 +143,10 @@ type WebConn struct {
 	// active indicates whether there is an open websocket connection attached
 	// to this webConn or not.
 	Active atomic.Bool
+
+	sendClosed           atomic.Bool
+	authChallengeHandled atomic.Bool
+
 	// reuseCount indicates how many times this connection has been reused.
 	// This is used to differentiate between a fresh connection and
 	// a reused connection.
@@ -1269,7 +1273,7 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent, channelKey [16]byt
 			return false
 		}
 
-		if *wc.Platform.Config().ServiceSettings.EnableWebHubChannelIteration {
+		if wc.Platform.hubChannelIteration {
 			// We don't need to do any further checks because this is already scoped
 			// to channel members from web_hub.
 			return true

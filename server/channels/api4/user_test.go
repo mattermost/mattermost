@@ -21,7 +21,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dgryski/dgoogauth"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -4147,6 +4147,18 @@ func TestGetUsersNotInChannelAbacMatchOnly(t *testing.T) {
 		mock.Anything,
 	).Return([]*model.User{user1}, int64(1), nil).Maybe()
 
+	// Reading the target channel is now gated on channel_read_access, and these
+	// channels carry a policy, so the gate asks whether that policy declares the
+	// action before the dispatcher is reached. A membership-only policy does not.
+	// That gate has its own coverage; answer it permissively here so a denial
+	// cannot be mistaken for the unfiltered branch.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+		Return(false, nil).Maybe()
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).
+		Return(false, nil).Maybe()
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil).Maybe()
+
 	listUsers := func(t *testing.T, channelID string, abacMatchOnly bool) []string {
 		t.Helper()
 		query := url.Values{}
@@ -4431,7 +4443,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		err = th.Server.Store().User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
 		require.NoError(t, err)
 
-		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+		code := mfa.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 
 		user, _, err := th.Client.LoginWithMFA(context.Background(), th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))
 		require.NoError(t, err)
@@ -12407,7 +12419,7 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 		err = th.Server.Store().User().UpdateMfaSecret(userWithMFAOK.Id, secret.Secret)
 		require.NoError(t, err)
 
-		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+		code := mfa.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 
 		client := th.CreateClient()
 		user, _, err := client.LoginWithMFA(context.Background(), th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))

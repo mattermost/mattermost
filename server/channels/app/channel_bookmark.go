@@ -66,6 +66,10 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 		}
 
 		if isAnotherFile {
+			if err := a.deleteReplacedBookmarkFile(rctx, updateBookmark.FileInfo.Id, updateBookmark.FileId); err != nil {
+				return nil, model.AsAppError(err)
+			}
+
 			fileInfo, fileErr := a.Srv().Store().FileInfo().Get(updateBookmark.FileId)
 			if fileErr != nil {
 				return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.get_existing.app_err", nil, "", http.StatusNotFound).Wrap(fileErr)
@@ -90,6 +94,10 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 		if err != nil {
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+
+		if err := a.deleteReplacedBookmarkFile(rctx, existingBookmark.FileId, bookmark.FileId); err != nil {
+			return nil, model.AsAppError(err)
+		}
 		response.Updated = bookmark
 		response.Deleted = existingBookmark.ToBookmarkWithFileInfo(nil)
 	}
@@ -104,6 +112,19 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 	a.Publish(message)
 
 	return response, nil
+}
+
+// Bookmark files are never attached to a post, so an empty PostId scopes the delete to them.
+func (a *App) deleteReplacedBookmarkFile(rctx request.CTX, previousFileId, currentFileId string) error {
+	if previousFileId == "" || previousFileId == currentFileId {
+		return nil
+	}
+
+	if err := a.Srv().Store().FileInfo().DeleteForPostByIds(rctx, "", []string{previousFileId}); err != nil {
+		return model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return nil
 }
 
 func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
@@ -131,16 +152,13 @@ func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.Cha
 func (a *App) UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIndex int64, connectionId string) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
 	bookmarks, err := a.Srv().Store().ChannelBookmark().UpdateSortOrder(bookmarkId, channelId, newIndex)
 	if err != nil {
-		var iiErr *store.ErrInvalidInput
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &iiErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.invalid_input.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.missing_bookmark.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
+			return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.missing_bookmark.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		return nil, model.NewAppError("UpdateSortOrder", "app.channel.bookmark.update_sort.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventChannelBookmarkSorted, "", channelId, "", nil, connectionId)

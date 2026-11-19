@@ -744,6 +744,84 @@ func TestValidateCSRFForPluginRequest(t *testing.T) {
 	})
 }
 
+// A plugin's state is already running while its OnActivate runs, but it can't
+// take inter-plugin requests yet. Status and inter-plugin requests must say so,
+// so callers wait instead of treating it as a missing plugin.
+func TestPluginStartingDuringOnActivate(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	buffer := &mlog.Buffer{}
+	require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+	token := model.NewId()
+
+	tearDown, pluginIDs, activationErrors := SetAppEnvironmentWithPlugins(t, []string{`
+		package main
+
+		import (
+			"net/http"
+			"strconv"
+
+			"github.com/mattermost/mattermost/server/public/plugin"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) OnActivate() error {
+			manifests, appErr := p.API.GetPlugins()
+			if appErr != nil || len(manifests) != 1 {
+				return appErr
+			}
+			id := manifests[0].Id
+
+			status, appErr := p.API.GetPluginStatus(id)
+			if appErr != nil {
+				return appErr
+			}
+			p.API.KVSet("state", []byte(strconv.Itoa(status.State)))
+
+			req, _ := http.NewRequest(http.MethodGet, "/"+id+"/ping?access_token=` + token + `", nil)
+			resp := p.API.PluginHTTP(req)
+			if resp != nil {
+				resp.Body.Close()
+				p.API.KVSet("request_status", []byte(strconv.Itoa(resp.StatusCode)))
+			}
+			return nil
+		}
+
+		func (p *MyPlugin) ServeHTTP(_ *plugin.Context, w http.ResponseWriter, _ *http.Request) {
+			w.Write([]byte("pong"))
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.Len(t, pluginIDs, 1)
+	require.NoError(t, activationErrors[0])
+	pluginID := pluginIDs[0]
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := buffer.String()
+	require.Contains(t, logs, "still starting", "the starting-plugin request was never logged")
+	assert.NotContains(t, logs, token, "the query string can carry an access_token")
+
+	getKey := func(key string) string {
+		value, appErr := th.App.GetPluginKey(pluginID, key)
+		require.Nil(t, appErr)
+		return string(value)
+	}
+	assert.Equal(t, fmt.Sprint(model.PluginStateStarting), getKey("state"))
+	assert.Equal(t, fmt.Sprint(http.StatusServiceUnavailable), getKey("request_status"))
+
+	status, appErr := th.App.GetPluginStatus(pluginID)
+	require.Nil(t, appErr)
+	assert.Equal(t, model.PluginStateRunning, status.State, "the plugin is running once OnActivate returns")
+}
+
 // MM-70121: a plugin id that does not resolve must not drag the request's query
 // string, which can carry an access_token, into the log.
 func TestServePluginRequestUnknownPluginDoesNotLogQueryString(t *testing.T) {

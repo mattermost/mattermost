@@ -3864,7 +3864,7 @@
     "description": "Row label in the Connection Security help table (SMTP/LDAP admin settings); STARTTLS is a protocol name and should not be translated."
   },
   "admin.connectionSecurityStartDescription": {
-    "defaultMessage": "Takes an existing insecure connection and attempts to upgrade it to a secure connection using TLS.",
+    "defaultMessage": "Upgrades an existing insecure connection to TLS. The connection fails if the server doesn't support STARTTLS.",
     "description": "Description of the 'STARTTLS' option in the Connection Security dropdown used by System Console settings such as SMTP and LDAP."
   },
   "admin.connectionSecurityTitle": {
@@ -5647,9 +5647,9 @@
     "defaultMessage": "Filter by",
     "description": "Heading of the admin console filter popover, above the filter option groups."
   },
-  "admin.general.localization.availableLocalesDescription": {
-    "defaultMessage": "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.\n \nWould like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
-    "description": "Help text for the Available Languages setting in System Console > Localization; <strong> highlights UI paths and setting names, and <link> wraps the Mattermost Translation Server link text."
+  "admin.general.localization.availableLocalesHelpText": {
+    "defaultMessage": "Set which languages are available for users in <strong>Settings > Display > Language</strong> (leave this field blank to have all supported languages available). If you're manually adding new languages, the <strong>Default Client Language</strong> must be added before saving this setting.",
+    "description": "Help text for the Available Languages setting in System Console > Localization; <strong> highlights UI paths and setting names."
   },
   "admin.general.localization.availableLocalesNoResults": {
     "defaultMessage": "No results found",
@@ -7409,15 +7409,11 @@
   },
   "admin.health_dashboard.detail.first_seen": {
     "defaultMessage": "First detected",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time such as \"3 days ago\"."
+    "description": "Label in an expanded firing finding on the System Console Site health page, shown only when the finding was first seen in an earlier state; followed by the date it was first seen, such as \"November 4, 2026\"."
   },
   "admin.health_dashboard.detail.go_to_setting": {
     "defaultMessage": "Go to setting",
     "description": "Primary button in an expanded finding on the System Console Site health page that opens the System Console setting that resolves the finding."
-  },
-  "admin.health_dashboard.detail.last_seen": {
-    "defaultMessage": "Last checked",
-    "description": "Label in an expanded finding on the System Console Site health page; followed by a relative time of the most recent evaluation."
   },
   "admin.health_dashboard.detail.node": {
     "defaultMessage": "Node",
@@ -7439,9 +7435,9 @@
     "defaultMessage": "Resolve here",
     "description": "Heading above the setting and documentation links in an expanded finding on the System Console Site health page."
   },
-  "admin.health_dashboard.detail.state": {
-    "defaultMessage": "State",
-    "description": "Label in the details list of an expanded finding on the System Console Site health page; the value says how long the finding has been firing, unevaluated or when it resolved."
+  "admin.health_dashboard.detail.severity": {
+    "defaultMessage": "Severity",
+    "description": "Label in the details list of an expanded unknown or resolved finding on the System Console Site health page; the value is the severity the check has when firing (Critical, Warning or Info)."
   },
   "admin.health_dashboard.duration.days": {
     "defaultMessage": "{days}d",
@@ -7504,8 +7500,8 @@
     "description": "Title of the empty Warning tab on the System Console Site health page, shown when no warning finding is firing."
   },
   "admin.health_dashboard.empty.body": {
-    "defaultMessage": "The first health check runs within an hour of enabling the feature.",
-    "description": "Body of the System Console Site health page empty state shown before the first health check has run."
+    "defaultMessage": "The first health check runs within an hour of enabling the feature. To run it now, select Re-run checks.",
+    "description": "Body of the System Console Site health page empty state shown before the first health check has run; Re-run checks is the label of the button above it."
   },
   "admin.health_dashboard.empty.title": {
     "defaultMessage": "Not evaluated yet",
@@ -7519,17 +7515,17 @@
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
   },
-  "admin.health_dashboard.finding.resolved_badge": {
-    "defaultMessage": "Resolved ({severity} when firing)",
-    "description": "Badge on a recently resolved finding row on the System Console Site health page; {severity} is the severity label (Critical, Warning or Info) the finding had while firing."
+  "admin.health_dashboard.finding.resolved": {
+    "defaultMessage": "Resolved",
+    "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
   },
   "admin.health_dashboard.finding.title_on_node": {
     "defaultMessage": "{title} on {node}",
     "description": "Finding title on the System Console Site health page for a finding that applies to one cluster node; {title} is the already translated finding title and {node} is a hostname."
   },
-  "admin.health_dashboard.finding.unknown_badge": {
-    "defaultMessage": "Unknown ({severity} if firing)",
-    "description": "Badge on a finding row of the System Console Site health page for a check that could not be evaluated; {severity} is a severity label (Critical, Warning or Info) the finding would have if it fired."
+  "admin.health_dashboard.finding.unknown": {
+    "defaultMessage": "Unknown",
+    "description": "Badge on a finding row of the System Console Site health page, when findings are grouped by category, for a check that could not be evaluated."
   },
   "admin.health_dashboard.finding.unknown_fallback": {
     "defaultMessage": "This check could not run, so its result is unknown.",
@@ -7586,6 +7582,30 @@
   "admin.health_dashboard.muted.toggle": {
     "defaultMessage": "Muted",
     "description": "Toolbar button next to the tabs on the System Console Site health page that shows the muted findings; followed by their count."
+  },
+  "admin.health_dashboard.run.button": {
+    "defaultMessage": "Re-run checks",
+    "description": "Secondary button in the summary header of the System Console Site health page that runs the health check now instead of waiting for the hourly run."
+  },
+  "admin.health_dashboard.run.failed": {
+    "defaultMessage": "The health check failed: {error}",
+    "description": "Error banner on the System Console Site health page when a health check run failed; {error} is the server's technical reason, in English."
+  },
+  "admin.health_dashboard.run.failed_no_reason": {
+    "defaultMessage": "The health check did not finish.",
+    "description": "Error banner on the System Console Site health page when a health check run failed without a reason from the server, was canceled, or stopped responding."
+  },
+  "admin.health_dashboard.run.reload_error": {
+    "defaultMessage": "The health check results could not be loaded. Reload the page to see them.",
+    "description": "Error banner on the System Console Site health page when the outcome of a health check run could not be fetched: either the run's status or its new findings."
+  },
+  "admin.health_dashboard.run.running": {
+    "defaultMessage": "Running checks…",
+    "description": "Label of the disabled Re-run checks button on the System Console Site health page while a health check run is in progress."
+  },
+  "admin.health_dashboard.run.start_error": {
+    "defaultMessage": "The health check could not be started. Try again.",
+    "description": "Error banner on the System Console Site health page when selecting Re-run checks could not start a health check run."
   },
   "admin.health_dashboard.severity.critical": {
     "defaultMessage": "Critical",
@@ -9559,9 +9579,9 @@
     "defaultMessage": "Enable Webhook Debugging:",
     "description": "Setting label (toggle) on the Logging admin page; sends webhook request debug output to server logs. Ends with a colon."
   },
-  "admin.log.enableWebhookDebuggingDescription": {
-    "defaultMessage": "When true, sends webhook debug messages to the server logs. To also output the request body of incoming webhooks, set {boldedLogLevel} to \"DEBUG\".",
-    "description": "Help text for the Enable Webhook Debugging setting; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
+  "admin.log.enableWebhookDebuggingPayloadDescription": {
+    "defaultMessage": "When true, failed incoming webhook requests are logged with their payload at the \"DEBUG\" {boldedLogLevel}. Payloads can contain message text, so only enable this while troubleshooting.",
+    "description": "Help text for the Enable Webhook Debugging setting, warning that it logs webhook payloads; {boldedLogLevel} is the bolded name of the log level setting, and \"DEBUG\" is a literal log level value."
   },
   "admin.log.fileDescription": {
     "defaultMessage": "Typically set to true in production. When true, logged events are written to the mattermost.log file in the directory specified in the File Log Directory field. The logs are rotated at 100 MB and archived to a file in the same directory, and given a name with a datestamp and serial number. For example, mattermost.2017-03-31.001. Changing this setting requires a server restart before taking effect.",
@@ -10239,6 +10259,10 @@
     "defaultMessage": "<link>Multi-factor authentication</link> is available for accounts with AD/LDAP or email login. If other login methods are used, MFA should be configured with the authentication provider.",
     "description": "Info banner at the top of the Authentication > MFA admin page; <link> wraps the words Multi-factor authentication and points to documentation."
   },
+  "admin.mfa.fipsBannerDesc": {
+    "defaultMessage": "TOTP code generation for multi-factor authentication uses HMAC-SHA1 and is not strictly FIPS compliant. <link>Learn more</link>",
+    "description": "Warning banner on the Authentication > MFA admin page, shown only when the server runs in FIPS mode; notes that TOTP code generation is not strictly FIPS compliant. <link> wraps the words Learn more and points to the FIPS documentation."
+  },
   "admin.mobile_security_feature_discovery.copy": {
     "defaultMessage": "Enable advanced security features like biometric authentication, screen capture prevention, and jailbreak/root detection for your mobile users.",
     "description": "Body copy on the feature discovery (upsell) page for mobile security features (biometrics, screen capture prevention, jailbreak detection)."
@@ -10699,12 +10723,52 @@
     "defaultMessage": "Add policy",
     "description": "Button on the System Console > Permission Policies page that starts creating a new attribute-based permission policy."
   },
+  "admin.permission_policies.channel_management_access_confirm.body_effect": {
+    "defaultMessage": "Anyone who does not meet the conditions will no longer be able to change the settings, bookmarks, members or access rules of channels covered by this policy. System admins are not affected.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_management_access_confirm.body_scope_channel": {
+    "defaultMessage": "This policy controls Manage Channel for this channel only.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_management_access_confirm.body_scope_workspace": {
+    "defaultMessage": "This policy controls Manage Channel across every channel in the workspace, except direct messages and group messages.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_effect": {
+    "defaultMessage": "Any session that does not meet the conditions will lose access to channels covered by this policy.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_scope_channel": {
+    "defaultMessage": "This policy controls Channel Read Access for this channel only.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_scope_workspace": {
+    "defaultMessage": "This policy controls Channel Read Access across every channel in the workspace, except direct messages and group messages.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.body_simulate": {
+    "defaultMessage": "Run Simulate rules first if you have not confirmed who this affects.",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.cancel": {
+    "defaultMessage": "Cancel",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.confirm": {
+    "defaultMessage": "Save policy",
+    "description": ""
+  },
+  "admin.permission_policies.channel_read_access_confirm.title": {
+    "defaultMessage": "Save this policy?",
+    "description": ""
+  },
   "admin.permission_policies.delete": {
     "defaultMessage": "Delete",
     "description": "Destructive menu item in a policy's actions menu that deletes the permission policy."
   },
   "admin.permission_policies.description": {
-    "defaultMessage": "Create policies to control channel action permissions based on user attributes.",
+    "defaultMessage": "Create policies to control what users can do, based on their attributes.",
     "description": "Description under the page title on the System Console > Permission Policies page."
   },
   "admin.permission_policies.edit": {
@@ -10946,6 +11010,30 @@
   "admin.permission_policies.page_title": {
     "defaultMessage": "Permission Policies",
     "description": "Page title of the System Console > Permission Policies page (attribute-based access control policies for permissions)."
+  },
+  "admin.permission_policies.permission.channel_management_access.description": {
+    "defaultMessage": "Allow users to change the channel's settings, bookmarks, members and access rules",
+    "description": ""
+  },
+  "admin.permission_policies.permission.channel_management_access.label": {
+    "defaultMessage": "Manage Channel",
+    "description": ""
+  },
+  "admin.permission_policies.permission.channel_read_access.description": {
+    "defaultMessage": "Allow users to read the channel and its content",
+    "description": ""
+  },
+  "admin.permission_policies.permission.channel_read_access.label": {
+    "defaultMessage": "Channel Read Access",
+    "description": ""
+  },
+  "admin.permission_policies.permission.channel_write_access.description": {
+    "defaultMessage": "Allow users to post in the channel and change its content",
+    "description": ""
+  },
+  "admin.permission_policies.permission.channel_write_access.label": {
+    "defaultMessage": "Channel Write Access",
+    "description": ""
   },
   "admin.permission_policies.permission.create_bor.description": {
     "defaultMessage": "Allow users to send burn-on-read messages",
@@ -14936,11 +15024,11 @@
     "description": "Admin console label for a true/false setting enabling automatic certificates from Let's Encrypt (a certificate authority brand name); ends with a colon before the radio buttons."
   },
   "admin.service.useLetsEncryptDescription": {
-    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.",
+    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.",
     "description": "Help text for the Use Let's Encrypt setting on the System Console Web Server page; Let's Encrypt is a certificate authority (keep name)."
   },
   "admin.service.useLetsEncryptDescription.disabled": {
-    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. The certificate will be retrieved when a client attempts to connect from a new domain. This will work with multiple domains.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true.",
+    "defaultMessage": "Enable the automatic retrieval of certificates from Let's Encrypt. A certificate will only be retrieved for the hostname of the Site URL.\n \nThis setting cannot be enabled unless the [Forward port 80 to 443](#ServiceSettings.Forward80To443) setting is set to true.",
     "description": "Help text variant for the Use Let's Encrypt setting shown when it cannot be enabled; contains a markdown link [Forward port 80 to 443](#...) — keep the link target unchanged."
   },
   "admin.service.userAccessTokensDescription": {
@@ -19451,6 +19539,22 @@
     "defaultMessage": "URLs must start with a lowercase letter or number.",
     "description": "Validation error when the channel or team URL slug starts with an invalid character."
   },
+  "channel_access_denied.body": {
+    "defaultMessage": "You no longer have access to {channel}. Your membership has not changed, and the channel will reappear if you regain access.",
+    "description": ""
+  },
+  "channel_access_denied.channelName": {
+    "defaultMessage": "this channel",
+    "description": ""
+  },
+  "channel_access_denied.okay": {
+    "defaultMessage": "Okay",
+    "description": ""
+  },
+  "channel_access_denied.title": {
+    "defaultMessage": "No longer available",
+    "description": ""
+  },
   "channel_attributes.banner.empty_notice": {
     "defaultMessage": "There's nothing to display until the attributes in the banner text have values.",
     "description": "Channel Settings > Configuration > channel banner preview. Body of the warning shown under the preview when the banner text contains attribute tokens but none of those attributes has a value yet, so the banner would render empty."
@@ -21115,6 +21219,42 @@
     "defaultMessage": "Board Settings",
     "description": "Title of the Channel Settings modal. This is the wording used when the channel is a board."
   },
+  "channel_settings.permissions_policy.action.channel_management_access": {
+    "defaultMessage": "Manage channel",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_management_access.description": {
+    "defaultMessage": "Allow users to change this channel's settings, bookmarks, members and access rules",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_management_access.description.board": {
+    "defaultMessage": "Allow users to change this board's settings, bookmarks, members and access rules",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_read_access": {
+    "defaultMessage": "Channel read access",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_read_access.description": {
+    "defaultMessage": "Allow users to read the channel and its content",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_read_access.description.board": {
+    "defaultMessage": "Allow users to read the board and its content",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_write_access": {
+    "defaultMessage": "Channel write access",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_write_access.description": {
+    "defaultMessage": "Allow users to post in this channel and change its content",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.action.channel_write_access.description.board": {
+    "defaultMessage": "Allow users to post in this board and change its content",
+    "description": ""
+  },
   "channel_settings.permissions_policy.action.create_bor": {
     "defaultMessage": "Create burn-on-read message",
     "description": "Permission action in the channel Permissions Policy rule editor; allows sending burn-on-read messages."
@@ -21199,6 +21339,10 @@
     "defaultMessage": "Select at least one permission action for each rule.",
     "description": "Validation error on the Permissions Policy tab when a rule has no permission actions selected."
   },
+  "channel_settings.permissions_policy.error.back_to_editing": {
+    "defaultMessage": "Back to editing",
+    "description": ""
+  },
   "channel_settings.permissions_policy.error.expression_required": {
     "defaultMessage": "Each rule needs an attribute expression.",
     "description": "Validation error on the Permissions Policy tab when a rule is missing its user attribute condition expression."
@@ -21214,6 +21358,22 @@
   "channel_settings.permissions_policy.error.name_unique.board": {
     "defaultMessage": "Rule name \"{name}\" is used more than once. Names must be unique within this board.",
     "description": "Validation error on the Permissions Policy tab for duplicate rule names; {name} is the duplicated rule name. This is the wording used when the channel is a board."
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_check_failed": {
+    "defaultMessage": "Could not confirm that you would keep access to this channel. Please try again.",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_management_message": {
+    "defaultMessage": "You cannot save these rules because they would remove your own ability to manage this channel. Update the Manage channel rules so that you still satisfy them, then try again.",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_message": {
+    "defaultMessage": "You cannot save these rules because they would remove your own access to this channel. Update the Channel read access rules so that you still satisfy them, then try again.",
+    "description": ""
+  },
+  "channel_settings.permissions_policy.error.self_exclusion_title": {
+    "defaultMessage": "Cannot save permission rules",
+    "description": ""
   },
   "channel_settings.permissions_policy.field.actions": {
     "defaultMessage": "Permissions",
@@ -21414,6 +21574,14 @@
   "channel_settings.purpose.label.board": {
     "defaultMessage": "Board Purpose",
     "description": "Field label for the channel purpose text area on the Info tab of Channel Settings. This is the wording used when the channel is a board."
+  },
+  "channel_settings.read_only.message": {
+    "defaultMessage": "An access policy prevents you from making changes in this channel.",
+    "description": ""
+  },
+  "channel_settings.read_only.title": {
+    "defaultMessage": "Editing is restricted",
+    "description": ""
   },
   "channel_settings.remove_sharing_confirm.cancel": {
     "defaultMessage": "Cancel",
@@ -22606,6 +22774,10 @@
   "create_post.write": {
     "defaultMessage": "Write to {channelDisplayName}",
     "description": "Placeholder in the message box for a channel; {channelDisplayName} is the channel's display name."
+  },
+  "create_post.write_access_denied": {
+    "defaultMessage": "You do not have permission to post in this channel.",
+    "description": ""
   },
   "create_team.display_name.create": {
     "defaultMessage": "Create",
@@ -34278,10 +34450,6 @@
   "user.settings.languages.promote1": {
     "defaultMessage": "Select which language Mattermost displays in the user interface.",
     "description": "Help text under the language dropdown explaining what the setting does."
-  },
-  "user.settings.languages.promote2": {
-    "defaultMessage": "Would you like to help with translations? Join the <link>Mattermost Translation Server</link> to contribute.",
-    "description": "Note under the language setting inviting users to contribute translations; <link> wraps a link to the Mattermost translation server."
   },
   "user.settings.mfa.add": {
     "defaultMessage": "Add MFA to Account",

@@ -18,6 +18,7 @@ var (
 	reasonVersionUnknown = healthcheck.TranslationId("health.rule.version.unknown.version")
 	reasonLineUnknown    = healthcheck.TranslationId("health.rule.version.unknown.line")
 	reasonLatestUnknown  = healthcheck.TranslationId("health.rule.version.unknown.latest")
+	reasonLatestDisabled = healthcheck.TranslationId("health.rule.version.unknown.latest_disabled")
 )
 
 // line is a release line, the major.minor of a version.

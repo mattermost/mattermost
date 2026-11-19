@@ -48,15 +48,12 @@ func (tl TokenLocation) String() string {
 	}
 }
 
-func (a *App) IsPasswordValid(rctx request.CTX, password string) *model.AppError {
+func (a *App) IsPasswordValid(rctx request.CTX, password string) error {
 	if err := users.IsPasswordValidWithSettings(password, &a.Config().PasswordSettings); err != nil {
-		var invErr *users.ErrInvalidPassword
-		switch {
-		case errors.As(err, &invErr):
+		if invErr, ok := errors.AsType[*users.ErrInvalidPassword](err); ok {
 			return model.NewAppError("User.IsValid", invErr.Id(), map[string]any{"Min": *a.Config().PasswordSettings.MinimumLength}, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return model.NewAppError("User.IsValid", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return model.NewAppError("User.IsValid", "app.valid_password_generic.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return nil
@@ -138,8 +135,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 		// credential mismatch; backend errors (hasher failures, migration
 		// failures, malformed stored hash) must not consume a slot or a
 		// transient infra issue could lock out a user with valid creds.
-		var appErr *model.AppError
-		if errors.As(err, &appErr) && appErr.Id != "api.user.check_user_password.invalid.app_error" {
+		if appErr, ok := errors.AsType[*model.AppError](err); ok && appErr.Id != "api.user.check_user_password.invalid.app_error" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
 				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
@@ -158,7 +154,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 			}
 		}
 
-		return err
+		return model.AsAppError(err)
 	}
 
 	if passErr := a.Srv().Store().User().UpdateFailedPasswordAttempts(user.Id, 0); passErr != nil {
@@ -166,7 +162,7 @@ func (a *App) CheckPasswordAndAllCriteria(rctx request.CTX, userID string, passw
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -184,8 +180,7 @@ func (a *App) DoubleCheckPassword(rctx request.CTX, user *model.User, password s
 	}
 
 	if err := a.checkUserPassword(user, password); err != nil {
-		var appErr *model.AppError
-		if errors.As(err, &appErr) && appErr.Id != "api.user.check_user_password.invalid.app_error" {
+		if appErr, ok := errors.AsType[*model.AppError](err); ok && appErr.Id != "api.user.check_user_password.invalid.app_error" {
 			if passErr := a.Srv().Store().User().DecrementFailedPasswordAttempts(user.Id); passErr != nil {
 				rctx.Logger().Warn("failed to refund login attempt slot", mlog.String("user_id", user.Id), mlog.Err(passErr))
 			}
@@ -278,7 +273,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 		return nil, err
 	}
 
-	if err = a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
+	if err := a.CheckUserMfa(rctx, ldapUser, mfaToken); err != nil {
 		// For existing LDAP users we pre-claimed a slot, so it already
 		// counts as a failed attempt. The only special case is when no
 		// mfaToken was provided, which is treated as a pre-flight
@@ -299,7 +294,7 @@ func (a *App) checkLdapUserPasswordAndAllCriteria(rctx request.CTX, user *model.
 				rctx.Logger().Warn("failed to refund LDAP MFA probe slot", mlog.String("user_id", ldapUser.Id), mlog.Err(passErr))
 			}
 		}
-		return nil, err
+		return nil, model.AsAppError(err)
 	}
 
 	if err := checkUserNotDisabled(ldapUser); err != nil {
@@ -328,7 +323,7 @@ func (a *App) CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.U
 	}
 
 	if err := a.CheckUserPostflightAuthenticationCriteria(rctx, user); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	return nil
@@ -350,7 +345,7 @@ func (a *App) CheckUserPreflightAuthenticationCriteria(rctx request.CTX, user *m
 	return nil
 }
 
-func (a *App) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) *model.AppError {
+func (a *App) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *model.User) error {
 	if !user.EmailVerified && *a.Config().EmailSettings.RequireEmailVerification {
 		return model.NewAppError("Login", "api.user.login.not_verified.app_error", nil, "user_id="+user.Id, http.StatusUnauthorized)
 	}
@@ -358,7 +353,7 @@ func (a *App) CheckUserPostflightAuthenticationCriteria(rctx request.CTX, user *
 	return nil
 }
 
-func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError {
+func (a *App) CheckUserMfa(rctx request.CTX, user *model.User, token string) error {
 	if !user.MfaActive || !*a.Config().ServiceSettings.EnableMultifactorAuthentication {
 		return nil
 	}

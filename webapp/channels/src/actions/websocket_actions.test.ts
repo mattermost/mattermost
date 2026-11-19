@@ -10,16 +10,23 @@ import type {AnyAction} from 'redux';
 import type {WebSocketMessage, WebSocketMessages} from '@mattermost/client';
 import {WebSocketEvents} from '@mattermost/client';
 import type {DesktopAPI} from '@mattermost/desktop-api';
+import {
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_ACTION_UPLOAD_FILE,
+} from '@mattermost/types/access_control';
 import type {ChannelType} from '@mattermost/types/channels';
+import type {Job, JobStatus} from '@mattermost/types/jobs';
 import type {Post} from '@mattermost/types/posts';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
-import {fetchAllMyTeamsChannels, getChannelMember} from 'mattermost-redux/actions/channels';
+import {getChannelMember} from 'mattermost-redux/actions/channels';
 import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
-import {getJobsByType} from 'mattermost-redux/actions/jobs';
 import {
     getPostThreads,
     getPostsAround,
@@ -32,6 +39,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
+import {reconcileChannelReadAccess, reconcileChannelReadAccessWithJitter} from 'actions/channel_read_access';
 import {handleNewPost} from 'actions/post_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {closeRightHandSide} from 'actions/views/rhs';
@@ -53,6 +61,7 @@ import type {GlobalState} from 'types/store';
 import {
     handleChannelUpdatedEvent,
     handleChannelAccessControlUpdatedEvent,
+    handleChannelMemberUpdatedEvent,
     handlePermissionPolicyUpdatedEvent,
     handleTeamAccessControlUpdatedEvent,
     handleEvent,
@@ -117,7 +126,13 @@ jest.mock('mattermost-redux/actions/channels', () => ({
     getChannelStats: jest.fn(() => ({type: 'GET_CHANNEL_STATS'})),
     getChannelMember: jest.fn(() => ({type: 'GET_CHANNEL_MEMBER'})),
     fetchAllMyChannelMembers: jest.fn(() => ({type: 'FETCH_ALL_MY_CHANNEL_MEMBERS'})),
-    fetchAllMyTeamsChannels: jest.fn(),
+}));
+
+// The reconciliation itself is covered by channel_read_access.test.ts; here only the
+// delegation matters, so each entry point stands in as a single recognisable action.
+jest.mock('actions/channel_read_access', () => ({
+    reconcileChannelReadAccess: jest.fn(() => ({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'})),
+    reconcileChannelReadAccessWithJitter: jest.fn(() => ({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'})),
 }));
 
 jest.mock('actions/post_actions', () => ({
@@ -157,10 +172,6 @@ jest.mock('mattermost-redux/actions/shared_channels', () => ({
         channelId,
         forceRefresh,
     })),
-}));
-
-jest.mock('mattermost-redux/actions/jobs', () => ({
-    getJobsByType: jest.fn((jobType) => ({type: 'MOCK_GET_JOBS_BY_TYPE', jobType})),
 }));
 
 let mockState = {
@@ -951,9 +962,10 @@ describe('reconnect', () => {
         expect(fetchMyCategories).toHaveBeenCalledWith('currentTeamId');
     });
 
-    test('should call fetchAllMyTeamsChannels when socket reconnects', () => {
+    test('should reconcile channel read access without delay when socket reconnects', () => {
         reconnect();
-        expect(fetchAllMyTeamsChannels).toHaveBeenCalled();
+        expect(reconcileChannelReadAccess).toHaveBeenCalled();
+        expect(reconcileChannelReadAccessWithJitter).not.toHaveBeenCalled();
     });
 
     test('should reload custom profile attribute fields on reconnect', () => {
@@ -1160,6 +1172,9 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
                 type: PostTypes.RESET_POSTS_IN_CHANNEL,
                 channelId: 'channel-ac-1',
             },
+            {
+                type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER',
+            },
         ]);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledTimes(1);
         expect(invalidateAccessControlAttributesCache).toHaveBeenCalledWith('channel', 'channel-ac-1');
@@ -1191,13 +1206,28 @@ describe('handleChannelAccessControlUpdatedEvent', () => {
         expect(types).toEqual([ChannelTypes.RECEIVED_CHANNEL]);
     });
 
-    test('returns early when msg.data.channel is missing', () => {
-        const testStore = configureStore({});
+    test('does nothing without the channel when permission policies are disabled', () => {
+        const testStore = configureStore({entities: {general: {config: {FeatureFlagPermissionPolicies: 'false'}}}});
         const msg = wsMessage<WebSocketMessages.ChannelAccessControlUpdated>({data: {}});
 
         testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
 
         expect(testStore.getActions()).toEqual([]);
+        expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
+    });
+
+    test('only reconciles when the server left the channel out for a denied member', () => {
+        const testStore = configureStore(withPermissionPolicies({channels: {currentChannelId: 'channel-ac-1'}}));
+        const msg = wsMessage<WebSocketMessages.ChannelAccessControlUpdated>({
+            broadcast: {channel_id: 'channel-ac-1'},
+            data: {channel: ''},
+        });
+
+        testStore.dispatch(handleChannelAccessControlUpdatedEvent(msg));
+
+        // No channel record to store, and nothing to refetch from a channel the member
+        // can no longer read; the reconcile drops it.
+        expect(testStore.getActions()).toEqual([{type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'}]);
         expect(invalidateAccessControlAttributesCache).not.toHaveBeenCalled();
     });
 });
@@ -1759,10 +1789,14 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         };
     }
 
+    function policyUpdated(actions?: string[]) {
+        return wsMessage<WebSocketMessages.PermissionPolicyUpdated>({data: actions ? {actions} : {}});
+    }
+
     test('clears render decisions and resets every loaded channel in a single action', () => {
         const testStore = configureStore(stateWith('visible-channel', ['visible-channel', 'other-channel']));
 
-        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([ACCESS_CONTROL_ACTION_DOWNLOAD_FILE])));
 
         const actions = testStore.getActions();
         expect(actions.map((a) => a.type)).toContain(RenderPermissionTypes.CLEAR_RENDER_DECISIONS);
@@ -1772,10 +1806,50 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         expect(actions).toContainEqual({type: 'MOCK_LOAD_UNREADS', channelId: 'visible-channel'});
     });
 
+    test('reconciles the channel list when channel_read_access changed', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([ACCESS_CONTROL_ACTION_UPLOAD_FILE, ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS])));
+
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'});
+    });
+
+    // An older server sends no list, and then any action may have changed.
+    test('reconciles the channel list when the event names no actions', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated()));
+
+        expect(testStore.getActions()).toContainEqual({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS_WITH_JITTER'});
+    });
+
+    // Only channel_read_access hides or reveals a channel, and neither changes a loaded post.
+    test.each([
+        [ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS],
+        [ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS],
+    ])('only clears render decisions when %s changed', (action) => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([action])));
+
+        const types = testStore.getActions().map((a) => a.type);
+        expect(types).toEqual([RenderPermissionTypes.CLEAR_RENDER_DECISIONS]);
+        expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+    });
+
+    // An auto-add toggle changes no rule.
+    test('does nothing when the change touched no action', () => {
+        const testStore = configureStore(stateWith('visible-channel', ['visible-channel']));
+
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([])));
+
+        expect(testStore.getActions()).toEqual([]);
+    });
+
     test('does nothing when permission policies are disabled', () => {
         const testStore = configureStore(stateWith('visible-channel', ['visible-channel'], false));
 
-        testStore.dispatch(handlePermissionPolicyUpdatedEvent());
+        testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS])));
 
         expect(testStore.getActions()).toEqual([]);
     });
@@ -2300,8 +2374,57 @@ describe('handleFileUploadRejected', () => {
 });
 
 describe('handleJobUpdated', () => {
-    beforeEach(() => {
-        jest.mocked(getJobsByType).mockClear();
+    const runningJob: Job = {
+        id: 'job1',
+        type: 'ldap_sync',
+        status: 'in_progress',
+        priority: 0,
+        progress: 0,
+        create_at: 1000,
+        start_at: 2000,
+        last_activity_at: 2000,
+        data: {},
+    };
+
+    const makeStore = () => realConfigureStore({
+        entities: {
+            jobs: {
+                jobs: {[runningJob.id]: runningJob},
+                jobsByTypeList: {ldap_sync: [runningJob]},
+            },
+        },
+    });
+
+    beforeAll(() => {
+        Client4.setUrl('http://localhost:8065');
+    });
+
+    afterEach(() => {
+        nock.cleanAll();
+    });
+
+    test.each<[JobStatus, Job['data']]>([
+        ['success', {}],
+        ['warning', {}],
+        ['canceled', {}],
+        ['error', {error: 'Unable to connect to AD/LDAP server.'}],
+    ])('applies a finished "%s" job from the event alone, without re-fetching it', async (status, data) => {
+        const staleJobsRequest = nock(Client4.getBaseRoute()).
+            get(/\/jobs(\/|$)/).
+            query(true).
+            reply(200, [runningJob]);
+
+        const finishedJob = {...runningJob, status, last_activity_at: 5000, data};
+        const msg = wsMessage<WebSocketMessages.JobUpdated>({data: {job: JSON.stringify(finishedJob)}});
+
+        const testStore = makeStore();
+        testStore.dispatch(handleJobUpdated(msg));
+        await new Promise((resolve) => setTimeout(resolve, 0));
+
+        const {jobs, jobsByTypeList} = testStore.getState().entities.jobs;
+        expect(jobs.job1).toEqual(finishedJob);
+        expect(jobsByTypeList.ldap_sync).toEqual([finishedJob]);
+        expect(staleJobsRequest.isDone()).toBe(false);
     });
 
     test('dispatches RECEIVED_JOB with the parsed job on valid JSON', () => {
@@ -2325,35 +2448,119 @@ describe('handleJobUpdated', () => {
 
         expect(testStore.getActions()).toHaveLength(0);
     });
+});
 
-    test.each([
-        ['success', 'ldap_sync'],
-        ['error', 'message_export'],
-        ['warning', 'data_retention'],
-        ['canceled', 'elasticsearch_post_indexing'],
-    ])('re-fetches job list on terminal status "%s"', (status, type) => {
-        const job = {id: 'job1', type, status};
-        const msg = wsMessage<WebSocketMessages.JobUpdated>({data: {job: JSON.stringify(job)}});
+// A read rule can target a system role or a channel role, so a change to the current
+// user's role can hide or reveal channels, and the channel list is reconciled at once.
+describe('channel read access on role changes', () => {
+    const channelPermissionActions = (enabled: boolean) => ({
+        entities: {general: {config: {FeatureFlagChannelPermissionActions: String(enabled)}}},
+    });
 
-        const testStore = configureStore(mockState);
-        testStore.dispatch(handleJobUpdated(msg));
+    describe('system role', () => {
+        let originalState: typeof mockState;
+        beforeEach(() => {
+            originalState = mockState;
+        });
+        afterEach(() => {
+            mockState = originalState;
+        });
 
-        expect(testStore.getActions()).toContainEqual({
-            type: 'MOCK_GET_JOBS_BY_TYPE',
-            jobType: type,
+        const roleUpdated = (userId: string) => ({
+            event: WebSocketEvents.UserRoleUpdated,
+            data: {user_id: userId, roles: 'system_user'},
+        } as unknown as WebSocketMessage);
+
+        test('reconciles when the role of the current user changes', () => {
+            mockState = mergeObjects(mockState, channelPermissionActions(true));
+
+            handleEvent(roleUpdated('currentUserId'));
+
+            expect(reconcileChannelReadAccess).toHaveBeenCalled();
+            expect(store.dispatch).toHaveBeenCalledWith({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'});
+        });
+
+        test('does not reconcile when the role of another user changes', () => {
+            mockState = mergeObjects(mockState, channelPermissionActions(true));
+
+            handleEvent(roleUpdated('user'));
+
+            expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+        });
+
+        test('does not reconcile while channel permission actions are off', () => {
+            mockState = mergeObjects(mockState, channelPermissionActions(false));
+
+            handleEvent(roleUpdated('currentUserId'));
+
+            expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
         });
     });
 
-    test('does not re-fetch on non-terminal status', () => {
-        const job = {id: 'job1', type: 'ldap_sync', status: 'in_progress'};
-        const msg = wsMessage<WebSocketMessages.JobUpdated>({data: {job: JSON.stringify(job)}});
+    describe('channel role', () => {
+        const channelId = 'role-channel';
+        const member = {
+            channel_id: channelId,
+            user_id: 'currentUserId',
+            roles: 'channel_user',
+            scheme_user: true,
+            scheme_admin: false,
+            notify_props: {},
+        };
+        const stateWithMember = (enabled: boolean) => mergeObjects(mockState, mergeObjects(channelPermissionActions(enabled), {
+            entities: {channels: {myMembers: {[channelId]: member}}},
+        }));
+        const memberUpdated = (changes: Record<string, unknown>) => wsMessage<WebSocketMessages.ChannelMemberUpdated>({
+            data: {channelMember: JSON.stringify({...member, ...changes})},
+        });
 
-        const testStore = configureStore(mockState);
-        testStore.dispatch(handleJobUpdated(msg));
+        test.each([
+            ['promoted through the scheme', {scheme_admin: true}],
+            ['given an explicit role', {roles: 'channel_user custom_role'}],
+        ])('reconciles when the current user is %s', (_, changes) => {
+            const testStore = configureStore(stateWithMember(true));
 
-        expect(testStore.getActions()).not.toContainEqual(
-            expect.objectContaining({type: 'MOCK_GET_JOBS_BY_TYPE'}),
-        );
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated(changes)));
+
+            expect(testStore.getActions()).toContainEqual({type: 'MOCK_RECONCILE_CHANNEL_READ_ACCESS'});
+        });
+
+        test('invalidates the cached decisions for the channel when the role changes', () => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({scheme_admin: true})));
+
+            expect(testStore.getActions()).toContainEqual({
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+                data: {channelId, generation: expect.any(Number)},
+            });
+        });
+
+        test('keeps the cached decisions when only notification preferences change', () => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({notify_props: {desktop: 'none'}})));
+
+            expect(testStore.getActions()).not.toContainEqual(expect.objectContaining({
+                type: RenderPermissionTypes.INVALIDATE_RENDER_DECISIONS_FOR_CHANNEL,
+            }));
+        });
+
+        test('does not reconcile when only notification preferences change', () => {
+            const testStore = configureStore(stateWithMember(true));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({notify_props: {desktop: 'none'}})));
+
+            expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+        });
+
+        test('does not reconcile while channel permission actions are off', () => {
+            const testStore = configureStore(stateWithMember(false));
+
+            testStore.dispatch(handleChannelMemberUpdatedEvent(memberUpdated({scheme_admin: true})));
+
+            expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
+        });
     });
 });
 

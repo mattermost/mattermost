@@ -76,6 +76,10 @@ func (ms *mockSuite) GetSessionAttributeDeadlines(rctx request.CTX, sessionID st
 	return nil, nil
 }
 
+func (ms *mockSuite) HasChannelReadAccessByID(rctx request.CTX, userID string, channelID string) bool {
+	return true
+}
+
 func (ms *mockSuite) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }

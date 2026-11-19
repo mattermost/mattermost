@@ -32,3 +32,5 @@ The GIF picker relies on a third-party service which has a dependency on externa
 ## Telemetry
 
 To avoid log errors, we recommend disabling [telemetry-related features](/administration-guide/manage/telemetry), including the security update check, and error and diagnostics reporting features.
+
+Disabling the security update check in **System Console > Environment > SMTP > [Enable Security Alerts](/administration-guide/configure/environment-configuration-settings#enable-security-alerts)** also stops the server from requesting the latest Mattermost release from GitHub, which health checks use to report whether the server is out of date.
