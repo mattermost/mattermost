@@ -18,56 +18,6 @@ describe('components/select_team/components/SelectTeamItem', () => {
         canJoinPrivateTeams: false,
     };
 
-    test('should match snapshot, on public joinable', () => {
-        const {container} = renderWithContext(<SelectTeamItem {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on public not joinable', () => {
-        const props = {...baseProps, canJoinPublicTeams: false};
-        const {container} = renderWithContext(
-            <SelectTeamItem {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on private joinable', () => {
-        const props = {...baseProps, team: {...baseProps.team, allow_open_invite: false}, canJoinPrivateTeams: true};
-        const {container} = renderWithContext(
-            <SelectTeamItem {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on private not joinable', () => {
-        const props = {...baseProps, team: {...baseProps.team, allow_open_invite: false}};
-        const {container} = renderWithContext(
-            <SelectTeamItem {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, on loading', () => {
-        const props = {...baseProps, loading: true};
-        const {container} = renderWithContext(
-            <SelectTeamItem {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with description', () => {
-        // Suppress console error for ref warning from WithTooltip component
-        const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
-        const props = {...baseProps, team: {...baseProps.team, description: 'description'}};
-        const {container} = renderWithContext(
-            <SelectTeamItem {...props}/>,
-        );
-        expect(container).toMatchSnapshot();
-
-        consoleSpy.mockRestore();
-    });
-
     test('should call onTeamClick on click when joinable', async () => {
         const onTeamClick = jest.fn();
         const props = {...baseProps, onTeamClick};

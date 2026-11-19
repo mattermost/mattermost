@@ -70,6 +70,10 @@ function TextSetting(props: Props) {
         // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
         const testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
 
+        // An incomplete number like "-" parses to NaN. Rendering NaN makes React overwrite the input
+        // and discard what was typed, while an empty value leaves the browser's in-progress text alone.
+        const value = Number.isNaN(props.value) ? '' : props.value;
+
         input = (
             <input
                 id={props.id}
@@ -78,7 +82,7 @@ function TextSetting(props: Props) {
                 autoFocus={props.autoFocus}
                 type={inputType}
                 placeholder={props.placeholder}
-                value={props.value}
+                value={value}
                 maxLength={maxLength}
                 onChange={handleChange}
                 disabled={props.disabled}

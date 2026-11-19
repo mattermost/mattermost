@@ -171,7 +171,7 @@ describe('Change to Functional Group', () => {
 
 
 <Note title="NOTE">
-Use `camelCase` when assigning to `data-testid` or element ID. Also, watch out for potential breaking changes in the snapshot from [unit testing](/developers/contribute/more-info/webapp/unit-testing).  Run `make test` to see if all unit tests are passing, and run `npm run updatesnapshot` or `npm run test -- -u` if necessary to update snapshot tests.
+Use `camelCase` when assigning to `data-testid` or element ID. Run `make test` to see if all [unit tests](/developers/contribute/more-info/webapp/unit-testing) are passing.
 </Note>
 
 

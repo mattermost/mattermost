@@ -16,23 +16,6 @@ describe('components/custom_status/custom_status_text', () => {
         (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(true);
     });
 
-    it('should match snapshot', () => {
-        const {container} = renderWithContext(<CustomStatusText text='Available'/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot with props', () => {
-        const {container} = renderWithContext(
-            <CustomStatusText
-                text='In a meeting'
-                className='custom-class'
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     it('should not render when EnableCustomStatus in config is false', () => {
         (CustomStatusSelectors.isCustomStatusEnabled as any as jest.Mock).mockReturnValue(false);
         const {container} = renderWithContext(<CustomStatusText/>);

@@ -5,6 +5,13 @@
 // and loads before the body renders. This must be before any dynamic imports.
 import './components/initial_loading_screen/initial_loading_screen.css';
 
+import {installIsolatedFrameFirewall} from 'utils/isolated_frame_firewall';
+
+// Must run before any other module registers a `message` listener on the window: Chromium
+// invokes a window's listeners in registration order, so the firewall only shields the
+// listeners registered after it. Keep this above everything else in this file.
+installIsolatedFrameFirewall();
+
 // Allow overriding the path used by webpack to dynamically resolve assets. This is driven by
 // an environment variable in development, or by a window variable defined in root.html in
 // production. The window variable is updated by the server after configuring SiteURL and

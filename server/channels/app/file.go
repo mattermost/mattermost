@@ -30,6 +30,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
@@ -958,6 +959,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 		decoded, imgType, release, err = t.imgDecoder.DecodeMemBounded(file)
 		if err != nil {
 			t.Logger.Error("Unable to decode image", mlog.Err(err))
+			t.fileinfo.MiniPreview = &[]byte{}
 			return
 		}
 		defer release()
@@ -1014,6 +1016,7 @@ func (t *UploadFileTask) postprocessImage(file io.Reader) {
 			if miniPreview, err := imaging.GenerateMiniPreviewImage(decoded,
 				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
 				t.Logger.Info("Unable to generate mini preview image", mlog.Err(err))
+				t.fileinfo.MiniPreview = &[]byte{}
 			} else {
 				t.fileinfo.MiniPreview = &miniPreview
 			}
@@ -1256,15 +1259,17 @@ func (a *App) generateMiniPreview(rctx request.CTX, fi *model.FileInfo) {
 			rctx.Logger().Debug("generateMiniPreview: prepareImage failed", mlog.Err(err),
 				mlog.String("fileinfo_id", fi.Id), mlog.String("channel_id", fi.ChannelId),
 				mlog.String("creator_id", fi.CreatorId))
-			return
-		}
-		defer release()
-		var miniPreview []byte
-		if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
-			miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
-			rctx.Logger().Info("Unable to generate mini preview image", mlog.Err(err))
+			fi.MiniPreview = &[]byte{}
 		} else {
-			fi.MiniPreview = &miniPreview
+			defer release()
+			var miniPreview []byte
+			if miniPreview, err = imaging.GenerateMiniPreviewImage(img,
+				miniPreviewImageWidth, miniPreviewImageHeight, jpegEncQuality); err != nil {
+				rctx.Logger().Info("Unable to generate mini preview image", mlog.Err(err))
+				fi.MiniPreview = &[]byte{}
+			} else {
+				fi.MiniPreview = &miniPreview
+			}
 		}
 		if _, err = a.Srv().Store().FileInfo().Upsert(rctx, fi); err != nil {
 			rctx.Logger().Debug("Creating mini preview failed", mlog.Err(err))
@@ -1455,20 +1460,60 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 		return model.NewFileInfoList(), true, nil
 	}
 
+	fileInfoSearchResults, rawLen, allFilesHaveMembership, err := a.searchFilesInTeamForUserPage(rctx, finalParamsList, userId, teamId, page, perPage)
+	if err != nil {
+		return nil, false, model.AsAppError(err)
+	}
+
+	if !a.ChannelAccessEnforcementActive() {
+		return fileInfoSearchResults, allFilesHaveMembership, nil
+	}
+
+	// Additive top-up, for the same reason as the post-search equivalent: the database
+	// search path ignores perPage, so trimming the page back to it would lose rows.
+	for range putils.FetchUntilMaxRounds {
+		if len(fileInfoSearchResults.Order) >= perPage || rawLen < perPage {
+			return fileInfoSearchResults, allFilesHaveMembership, nil
+		}
+
+		page++
+		next, nextRawLen, nextAllHaveMembership, nextErr := a.searchFilesInTeamForUserPage(rctx, finalParamsList, userId, teamId, page, perPage)
+		if nextErr != nil {
+			return nil, false, model.AsAppError(nextErr)
+		}
+
+		fileInfoSearchResults.Extend(next)
+		allFilesHaveMembership = allFilesHaveMembership && nextAllHaveMembership
+		rawLen = nextRawLen
+	}
+
+	rctx.Logger().Warn("Gave up filling a page of file search results; the policy denies most of what this query returns",
+		mlog.String("user_id", userId),
+		mlog.Int("rounds", putils.FetchUntilMaxRounds),
+	)
+
+	return fileInfoSearchResults, allFilesHaveMembership, nil
+}
+
+// searchFilesInTeamForUserPage runs one store page through the filters. rawLen is the
+// number of files the store returned before any filtering.
+func (a *App) searchFilesInTeamForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userId, teamId string, page, perPage int) (results *model.FileInfoList, rawLen int, allFilesHaveMembership bool, err error) {
 	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(rctx, finalParamsList, userId, teamId, page, perPage)
 	if nErr != nil {
-		if appErr, ok := errors.AsType[*model.AppError](nErr); ok {
-			return nil, false, appErr
+		if nAppErr, ok := errors.AsType[*model.AppError](nErr); ok {
+			return nil, 0, false, nAppErr
 		}
-		return nil, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		return nil, 0, false, model.NewAppError("SearchFilesInTeamForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
+
+	rawLen = len(fileInfoSearchResults.Order)
 
 	allFilesHaveMembership, appErr := a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId)
 	if appErr != nil {
-		return nil, false, appErr
+		return nil, 0, false, appErr
 	}
 
-	return fileInfoSearchResults, allFilesHaveMembership, nil
+	return fileInfoSearchResults, rawLen, allFilesHaveMembership, nil
 }
 
 func (a *App) FilterFilesByChannelPermissions(rctx request.CTX, fileList *model.FileInfoList, userID string) (bool, *model.AppError) {

@@ -18,8 +18,8 @@ func (a *App) SetAIBridgeTestHelperConfig(config *model.AIBridgeTestHelperConfig
 	a.ch.SetAgentsBridge(bridge)
 
 	if config.FeatureFlags != nil {
-		if appErr := a.setAIBridgeTestHelperFeatureFlags(config.FeatureFlags); appErr != nil {
-			return appErr
+		if err := a.setAIBridgeTestHelperFeatureFlags(config.FeatureFlags); err != nil {
+			return model.AsAppError(err)
 		}
 	}
 
@@ -49,7 +49,7 @@ func (a *App) ResetAIBridgeTestHelper() {
 	a.ch.SetAgentsBridge(newLiveAgentsBridge(a.ch))
 }
 
-func (a *App) setAIBridgeTestHelperFeatureFlags(featureFlags *model.AIBridgeTestHelperFeatureFlags) *model.AppError {
+func (a *App) setAIBridgeTestHelperFeatureFlags(featureFlags *model.AIBridgeTestHelperFeatureFlags) error {
 	configStore := a.Srv().Platform().GetConfigStore()
 	configStore.SetReadOnlyFF(false)
 	defer configStore.SetReadOnlyFF(true)

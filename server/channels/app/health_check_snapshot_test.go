@@ -13,6 +13,7 @@ import (
 	"os"
 	"slices"
 	"strconv"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -222,6 +223,36 @@ func TestBuildHealthSnapshotLatestVersionDropsTagPrefix(t *testing.T) {
 }
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
+func TestBuildHealthSnapshotSkipsLatestVersionWithSecurityAlertsOff(t *testing.T) {
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false)
+	})
+
+	err := th.App.clearLatestVersionCache()
+	require.NoError(t, err)
+
+	var requests atomic.Int32
+	release := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests.Add(1)
+	}))
+	t.Cleanup(release.Close)
+
+	snapshot, err := th.App.buildHealthSnapshotWithLatestVersionURL(th.Context, release.URL)
+	require.NoError(t, err)
+	assert.Zero(t, requests.Load())
+	assert.Empty(t, snapshot.Version.Latest)
+
+	ok, sectionErr := snapshot.SectionErr(model.SectionVersion)
+	require.True(t, ok)
+	assert.NoError(t, sectionErr)
+
+	// The version rules read the setting from the snapshot to report why Latest is empty.
+	enabled, ok := snapshot.ConfigBool(func(cfg *model.Config) *bool { return cfg.ServiceSettings.EnableSecurityFixAlert })
+	require.True(t, ok)
+	assert.False(t, enabled)
+}
+
+// Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -303,11 +334,17 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		t.Helper()
 
 		evaluations := engine.Evaluate(snapshot)
-		// Each collection samples the open file descriptor count separately.
+		// Independently sampled values can differ between the live and packet collections.
 		for i := range evaluations {
-			if evaluations[i].Code == "NODE_FD_EXHAUSTION" {
+			switch evaluations[i].Code {
+			case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL":
 				require.NotNil(t, evaluations[i].Result.Value)
 				evaluations[i].Result.Value = nil
+				evaluations[i].Result.Details = nil
+			case "NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED":
+				// These set a value only when they have the numbers to compare, so none is required.
+				evaluations[i].Result.Value = nil
+				evaluations[i].Result.Details = nil
 			}
 		}
 		return evaluations

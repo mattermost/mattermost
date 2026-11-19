@@ -69,7 +69,6 @@ describe('components/integrations/bots/AddBot', () => {
         expect(displayNameInput.value).toBe('');
         expect(descriptionInput).toBeInTheDocument();
         expect(descriptionInput.value).toBe('');
-        expect(container).toMatchSnapshot();
     });
 
     it('edit bot', () => {

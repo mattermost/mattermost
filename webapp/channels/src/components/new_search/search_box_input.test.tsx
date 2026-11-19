@@ -22,13 +22,13 @@ describe('components/new_search/SearchBoxInput', () => {
 
     test('should show the right placeholder for messages', () => {
         renderWithContext(<SearchBoxInput {...baseProps}/>);
-        expect(screen.getByPlaceholderText('Search messages')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toBeInTheDocument();
     });
 
     test('should show the right placeholder for files', () => {
         const props = {...baseProps, searchType: 'files'};
         renderWithContext(<SearchBoxInput {...props}/>);
-        expect(screen.getByPlaceholderText('Search files')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Search files by keyword')).toBeInTheDocument();
     });
 
     test('should show the right placeholder for plugins', () => {
@@ -40,14 +40,14 @@ describe('components/new_search/SearchBoxInput', () => {
     test('should show the right value when the searchTerms are set', () => {
         const props = {...baseProps, searchTerms: 'test-value'};
         renderWithContext(<SearchBoxInput {...props}/>);
-        expect(screen.getByPlaceholderText('Search messages')).toBeInTheDocument();
-        expect(screen.getByPlaceholderText('Search messages')).toHaveValue('test-value');
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toBeInTheDocument();
+        expect(screen.getByPlaceholderText('Search messages by keyword')).toHaveValue('test-value');
     });
 
     test('should call on key down when there is a key down event on the input field', async () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxInput {...props}/>);
-        const input = screen.getByPlaceholderText('Search messages');
+        const input = screen.getByPlaceholderText('Search messages by keyword');
         input.focus();
         await userEvent.keyboard('{Enter}');
         expect(props.onKeyDown).toHaveBeenCalledTimes(1);
@@ -56,7 +56,7 @@ describe('components/new_search/SearchBoxInput', () => {
     test('should call on key down when there is a key down event on the input field with Escape', async () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxInput {...props}/>);
-        const input = screen.getByPlaceholderText('Search messages');
+        const input = screen.getByPlaceholderText('Search messages by keyword');
         input.focus();
         await userEvent.keyboard('{Escape}');
         expect(props.onKeyDown).toHaveBeenCalledTimes(1);
@@ -65,7 +65,7 @@ describe('components/new_search/SearchBoxInput', () => {
     test('should update the search term on change', async () => {
         const props = {...baseProps};
         renderWithContext(<SearchBoxInput {...props}/>);
-        const input = screen.getByPlaceholderText('Search messages');
+        const input = screen.getByPlaceholderText('Search messages by keyword');
         await userEvent.clear(input);
         await userEvent.type(input, 'new-value');
         expect(props.setSearchTerms).toHaveBeenCalledWith('new-value');
