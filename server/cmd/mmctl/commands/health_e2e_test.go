@@ -93,7 +93,7 @@ func (s *MmctlE2ETestSuite) TestHealthCheckPacketMatchesLiveFindings() {
 // comparableHealthFindings drops what depends on when and how often a finding was evaluated, and
 // the values each collection samples for itself, and sorts by fingerprint.
 func comparableHealthFindings(findings []*model.HealthFinding) []model.HealthFinding {
-	comparable := make([]model.HealthFinding, 0, len(findings))
+	result := make([]model.HealthFinding, 0, len(findings))
 	for _, finding := range findings {
 		f := *finding
 		f.FirstSeenAt, f.LastSeenAt, f.StateSince = 0, 0, 0
@@ -105,8 +105,8 @@ func comparableHealthFindings(findings []*model.HealthFinding) []model.HealthFin
 			"NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED":
 			f.Details, f.Message = nil, ""
 		}
-		comparable = append(comparable, f)
+		result = append(result, f)
 	}
-	slices.SortFunc(comparable, func(a, b model.HealthFinding) int { return cmp.Compare(a.Fingerprint, b.Fingerprint) })
-	return comparable
+	slices.SortFunc(result, func(a, b model.HealthFinding) int { return cmp.Compare(a.Fingerprint, b.Fingerprint) })
+	return result
 }
