@@ -11,7 +11,7 @@ import {isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
 import {toValueList} from 'components/properties_card_view/propertyValueRenderer/multi_value_utils';
 import {canRenderPropertyValue} from 'components/properties_card_view/propertyValueRenderer/renderable';
 
-import {resolveOptionChips} from 'utils/property_options';
+import {resolveFieldOptionChips} from 'utils/property_options';
 
 /**
  * A field paired with whatever the post stores for it.
@@ -101,7 +101,7 @@ export function chipCount(field: PropertyField, value?: PropertyValue<unknown>):
     }
 
     if (supportsOptions(field)) {
-        return resolveOptionChips(field, value.value).length;
+        return resolveFieldOptionChips(field, value.value).length;
     }
 
     /*

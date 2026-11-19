@@ -98,11 +98,15 @@ describe('chipCount', () => {
         expect(chipCount(makeField(), makeValue('WITHDRAWN'))).toBe(0);
     });
 
-    // A field that defines no options has had nothing deleted — its choices simply
-    // live somewhere the field cannot see, as content flagging's `reporting_reason`
-    // keeps them in server config. The stored string is the content, so it counts.
-    it('counts a set value on a field that defines no options', () => {
-        expect(chipCount(makeField({attrs: {options: []}}), makeValue('Classification mismatch'))).toBe(1);
+    // A post attribute keeps its options on the field, so a field with none left
+    // had every option deleted: the stored id names nothing and spends no slot.
+    // After a reload the server leaves the empty list out altogether, so both
+    // shapes have to count nothing.
+    it.each([
+        ['an empty options list', {options: []}],
+        ['no options list', {}],
+    ])('counts nothing on a field with %s', (_, attrs) => {
+        expect(chipCount({...makeField(), attrs}, makeValue('opt_secret'))).toBe(0);
     });
 
     it('counts only the resolvable entries of a multiselect', () => {

@@ -3,7 +3,7 @@
 
 import type {PropertyField, PropertyFieldOption, SelectPropertyField} from '@mattermost/types/properties';
 
-import {hasOptions, resolveOption, resolveOptionChips} from './property_options';
+import {hasOptions, resolveFieldOptionChips, resolveOption, resolveOptionChips} from './property_options';
 
 const fieldWith = (options: PropertyFieldOption[]): PropertyField => ({
     id: 'field-1',
@@ -214,5 +214,29 @@ describe('resolveOptionChips', () => {
     ])('returns nothing for %s, with or without options', (_label, raw) => {
         expect(resolveOptionChips(field, raw)).toEqual([]);
         expect(resolveOptionChips(fieldWith([]), raw)).toEqual([]);
+    });
+});
+
+describe('resolveFieldOptionChips', () => {
+    const OPTIONS = [
+        {id: 'opt-1', name: 'Secret', color: 'red'},
+        {id: 'opt-2', name: 'Unclassified'},
+    ];
+
+    it('resolves options like resolveOptionChips, capped by arity', () => {
+        expect(resolveFieldOptionChips(fieldWith(OPTIONS), ['opt-2', 'opt-1'])).toEqual([{key: 'opt-2', label: 'Unclassified', color: undefined}]);
+        expect(resolveFieldOptionChips({...fieldWith(OPTIONS), type: 'multiselect'} as PropertyField, ['opt-1', 'deleted', 'opt-2']).map((chip) => chip.label)).
+            toEqual(['Secret', 'Unclassified']);
+    });
+
+    // The field's every option was deleted. The server sends an empty list in the
+    // update that deletes them, and no list at all on later reads, so both mean
+    // the stored ids name nothing: no raw ids on screen.
+    it.each([
+        ['an empty options list', fieldWith([])],
+        ['no options list', {id: 'f', name: 'Classification', type: 'select'} as PropertyField],
+    ])('draws nothing for a field with %s', (_, field) => {
+        expect(resolveFieldOptionChips(field, 'opt-1')).toEqual([]);
+        expect(resolveFieldOptionChips({...field, type: 'multiselect'} as PropertyField, ['opt-1', 'opt-2'])).toEqual([]);
     });
 });

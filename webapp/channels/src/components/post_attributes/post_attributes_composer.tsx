@@ -12,7 +12,7 @@ import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
 
-import {resolveOptionChips} from 'utils/property_options';
+import {resolveFieldOptionChips} from 'utils/property_options';
 
 import PostAttributeChip from './post_attribute_chip';
 import PostAttributeValueControl from './post_attribute_value_control';
@@ -131,7 +131,7 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
     // Only an option field needs this: its control is a button whose content
     // is the rendered chip, while a text input or user picker reads out its own
     // value.
-    const optionLabels = isOptionType && value ? resolveOptionChips(field, value.value).map((chip) => chip.label) : [];
+    const optionLabels = isOptionType && value ? resolveFieldOptionChips(field, value.value).map((chip) => chip.label) : [];
     let ariaLabel: string | undefined;
     if (optionLabels.length > 0) {
         ariaLabel = formatMessage(

@@ -118,6 +118,19 @@ describe('PostAttributeChip', () => {
         expect(screen.getAllByTestId('select-property').map((chip) => chip.textContent)).toEqual(['SECRET', 'OPEN']);
     });
 
+    // A post attribute keeps its options on the field, so one with none left had
+    // every option deleted. The server sends an empty list when they go and no list
+    // at all on later reads; either way the stored id must not show as raw text.
+    test.each([
+        ['an empty options list', {options: []}],
+        ['no options list', {}],
+    ])('renders nothing for a field with %s', (_, attrs) => {
+        const {container} = renderChip(makeField({attrs}), 'opt_secret');
+
+        expect(container).toBeEmptyDOMElement();
+        expect(screen.queryByText('opt_secret')).not.toBeInTheDocument();
+    });
+
     test('renders a user with the avatar and the profile name', () => {
         renderChip(makeField({type: 'user'}), alice.id);
 

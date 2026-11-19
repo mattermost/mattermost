@@ -16,7 +16,7 @@ import TimestampPropertyRenderer from 'components/properties_card_view/propertyV
 import UserProfileComponent from 'components/user_profile';
 
 import Constants from 'utils/constants';
-import {resolveOptionChips} from 'utils/property_options';
+import {resolveFieldOptionChips} from 'utils/property_options';
 import {imageURLForTeam, imageURLForUser} from 'utils/utils';
 
 import {usePropertyValueMetadata} from './use_property_value_metadata';
@@ -58,7 +58,7 @@ export default function PostAttributeChip({field, value, maxItems, interactive =
         // options: slicing the raw value first would spend a slot on an entry
         // that draws nothing. Every option is neutral; colour is not drawn on
         // this surface.
-        const chips = resolveOptionChips(field, value.value);
+        const chips = resolveFieldOptionChips(field, value.value);
         const shown = maxItems === undefined ? chips : chips.slice(0, Math.max(0, maxItems));
 
         return (
