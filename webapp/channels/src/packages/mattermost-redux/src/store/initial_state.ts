@@ -14,6 +14,7 @@ const state: GlobalState = {
         },
         general: {
             config: {},
+            clientConfigOverrides: {},
             license: {},
             serverVersion: '',
             firstAdminVisitMarketplaceStatus: false,

@@ -23,7 +23,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import {ChannelTypes, CloudTypes, JobTypes, PostTypes, RenderPermissionTypes, TeamTypes} from 'mattermost-redux/action_types';
 import {fetchMyCategories} from 'mattermost-redux/actions/channel_categories';
 import {getChannelMember} from 'mattermost-redux/actions/channels';
-import {getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
+import {getClientConfigOverrides, getCustomProfileAttributeFields, receivedClientConfigOverrides} from 'mattermost-redux/actions/general';
 import {getGroup} from 'mattermost-redux/actions/groups';
 import {
     getPostThreads,
@@ -46,6 +46,7 @@ import store from 'stores/redux_store';
 
 import {invalidateAccessControlAttributesCache} from 'components/common/hooks/useAccessControlAttributes';
 
+import WebSocketClient from 'client/web_websocket_client';
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
@@ -60,6 +61,7 @@ import {
     handleChannelAccessControlUpdatedEvent,
     handleChannelMemberUpdatedEvent,
     handlePermissionPolicyUpdatedEvent,
+    handleSystemSettingPolicyUpdatedEvent,
     handleTeamAccessControlUpdatedEvent,
     handleEvent,
     handleFileUploadRejected,
@@ -83,6 +85,8 @@ import {
     handleCustomAttributesUpdated,
     handleCustomAttributesDeleted,
     handleJobUpdated,
+    initialize,
+    close,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
@@ -106,6 +110,8 @@ jest.mock('mattermost-redux/actions/status_profile_polling', () => ({
 jest.mock('mattermost-redux/actions/general', () => ({
     ...jest.requireActual('mattermost-redux/actions/general'),
     getCustomProfileAttributeFields: jest.fn(() => ({type: 'CUSTOM_PROFILE_ATTRIBUTE_FIELDS_RECEIVED'})),
+    getClientConfigOverrides: jest.fn(() => ({type: 'MOCK_GET_CLIENT_CONFIG_OVERRIDES'})),
+    receivedClientConfigOverrides: jest.fn(jest.requireActual('mattermost-redux/actions/general').receivedClientConfigOverrides),
 }));
 
 jest.mock('mattermost-redux/actions/groups', () => ({
@@ -1013,6 +1019,23 @@ describe('reconnect', () => {
         // Restore mock state
         mockState = clonedMockState;
     });
+
+    test.each([
+        {FeatureFlagSystemSettingPolicies: 'true', refetches: true},
+        {FeatureFlagSystemSettingPolicies: 'false', refetches: false},
+    ])('re-fetches client config overrides on reconnect only when system setting policies are enabled ($FeatureFlagSystemSettingPolicies)', ({FeatureFlagSystemSettingPolicies, refetches}) => {
+        const clonedMockState = cloneDeep(mockState);
+        mockState = mergeObjects(mockState, {entities: {general: {config: {FeatureFlagSystemSettingPolicies}}}});
+
+        reconnect();
+        if (refetches) {
+            expect(getClientConfigOverrides).toHaveBeenCalledTimes(1);
+        } else {
+            expect(getClientConfigOverrides).not.toHaveBeenCalled();
+        }
+
+        mockState = clonedMockState;
+    });
 });
 
 describe('handleChannelUpdatedEvent', () => {
@@ -1849,6 +1872,176 @@ describe('handlePermissionPolicyUpdatedEvent', () => {
         testStore.dispatch(handlePermissionPolicyUpdatedEvent(policyUpdated([ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS])));
 
         expect(testStore.getActions()).toEqual([]);
+    });
+});
+
+describe('handleSystemSettingPolicyUpdatedEvent', () => {
+    test('replaces clientConfigOverrides from websocket payload when enabled', () => {
+        const testStore = configureStore({
+            entities: {
+                general: {
+                    config: {FeatureFlagSystemSettingPolicies: 'true'},
+                },
+            },
+        });
+
+        testStore.dispatch(handleSystemSettingPolicyUpdatedEvent({
+            event: WebSocketEvents.SystemSettingPolicyUpdated,
+            data: {overrides: {MobileEnableBiometrics: 'true'}},
+            broadcast: {omit_users: {}, user_id: '', channel_id: '', team_id: ''},
+            seq: 1,
+        }));
+
+        expect(testStore.getActions()).toEqual([
+            {
+                type: 'CLIENT_CONFIG_OVERRIDES_RECEIVED',
+                data: {MobileEnableBiometrics: 'true'},
+            },
+        ]);
+    });
+
+    test('does nothing when system setting policies flag is disabled', () => {
+        const testStore = configureStore({
+            entities: {
+                general: {
+                    config: {FeatureFlagSystemSettingPolicies: 'false'},
+                },
+            },
+        });
+
+        testStore.dispatch(handleSystemSettingPolicyUpdatedEvent({
+            event: WebSocketEvents.SystemSettingPolicyUpdated,
+            data: {overrides: {MobileEnableBiometrics: 'true'}},
+            broadcast: {omit_users: {}, user_id: '', channel_id: '', team_id: ''},
+            seq: 1,
+        }));
+
+        expect(testStore.getActions()).toEqual([]);
+    });
+});
+
+describe('client config overrides re-sync', () => {
+    let originalMockState: GlobalState;
+
+    beforeEach(() => {
+        originalMockState = cloneDeep(mockState);
+    });
+
+    afterEach(() => {
+        mockState = originalMockState;
+    });
+
+    function setConfig(config: Record<string, string>) {
+        mockState = mergeObjects(mockState, {entities: {general: {config}}});
+    }
+
+    describe('browser online event', () => {
+        let initializeSpy: jest.SpyInstance;
+        let closeSpy: jest.SpyInstance;
+
+        beforeEach(() => {
+            initializeSpy = jest.spyOn(WebSocketClient, 'initialize').mockImplementation(() => {});
+            closeSpy = jest.spyOn(WebSocketClient, 'close').mockImplementation(() => {});
+        });
+
+        afterEach(() => {
+            close();
+            initializeSpy.mockRestore();
+            closeSpy.mockRestore();
+        });
+
+        test('re-fetches overrides when system setting policies are enabled', () => {
+            setConfig({FeatureFlagSystemSettingPolicies: 'true'});
+            initialize();
+
+            window.dispatchEvent(new Event('online'));
+
+            expect(getClientConfigOverrides).toHaveBeenCalledTimes(1);
+        });
+
+        test('does not re-fetch overrides when system setting policies are disabled', () => {
+            setConfig({FeatureFlagSystemSettingPolicies: 'false'});
+            initialize();
+
+            window.dispatchEvent(new Event('online'));
+
+            expect(getClientConfigOverrides).not.toHaveBeenCalled();
+        });
+
+        test('stops listening after close', () => {
+            setConfig({FeatureFlagSystemSettingPolicies: 'true'});
+            initialize();
+            close();
+
+            window.dispatchEvent(new Event('online'));
+
+            expect(getClientConfigOverrides).not.toHaveBeenCalled();
+        });
+    });
+
+    test.each([
+        {FeatureFlagSystemSettingPolicies: 'true', refetches: true},
+        {FeatureFlagSystemSettingPolicies: 'false', refetches: false},
+    ])('license change re-fetches overrides only when system setting policies are enabled ($FeatureFlagSystemSettingPolicies)', ({FeatureFlagSystemSettingPolicies, refetches}) => {
+        setConfig({FeatureFlagSystemSettingPolicies});
+
+        handleEvent(wsMessage<WebSocketMessages.LicenseChanged>({
+            event: WebSocketEvents.LicenseChanged,
+            data: {license: {IsLicensed: 'true'}},
+        }));
+
+        if (refetches) {
+            expect(getClientConfigOverrides).toHaveBeenCalledTimes(1);
+        } else {
+            expect(getClientConfigOverrides).not.toHaveBeenCalled();
+        }
+    });
+
+    describe('config_changed', () => {
+        const active = {FeatureFlagSystemSettingPolicies: 'true', EnableAttributeBasedAccessControl: 'true'};
+
+        function changeConfig(config: Record<string, string>) {
+            handleEvent(wsMessage<WebSocketMessages.ConfigChanged>({
+                event: WebSocketEvents.ConfigChanged,
+                data: {config},
+            }));
+        }
+
+        test.each([
+            {name: 'the feature flag', next: {...active, FeatureFlagSystemSettingPolicies: 'false'}},
+            {name: 'ABAC', next: {...active, EnableAttributeBasedAccessControl: 'false'}},
+        ])('clears overrides when $name turns off', ({next}) => {
+            setConfig(active);
+
+            changeConfig(next);
+
+            expect(receivedClientConfigOverrides).toHaveBeenCalledWith({});
+            expect(getClientConfigOverrides).not.toHaveBeenCalled();
+        });
+
+        test.each([
+            {name: 'the feature flag', previous: {...active, FeatureFlagSystemSettingPolicies: 'false'}},
+            {name: 'ABAC', previous: {...active, EnableAttributeBasedAccessControl: 'false'}},
+        ])('re-fetches overrides once when $name turns back on', ({previous}) => {
+            setConfig(previous);
+
+            changeConfig(active);
+
+            expect(getClientConfigOverrides).toHaveBeenCalledTimes(1);
+            expect(receivedClientConfigOverrides).not.toHaveBeenCalled();
+        });
+
+        test.each([
+            {name: 'stays active', previous: active, next: active},
+            {name: 'stays inactive', previous: {...active, EnableAttributeBasedAccessControl: 'false'}, next: {...active, FeatureFlagSystemSettingPolicies: 'false', EnableAttributeBasedAccessControl: 'false'}},
+        ])('leaves overrides alone when the feature $name', ({previous, next}) => {
+            setConfig(previous);
+
+            changeConfig(next);
+
+            expect(getClientConfigOverrides).not.toHaveBeenCalled();
+            expect(receivedClientConfigOverrides).not.toHaveBeenCalled();
+        });
     });
 });
 

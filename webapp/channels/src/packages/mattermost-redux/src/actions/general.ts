@@ -9,11 +9,97 @@ import type {SystemSetting} from '@mattermost/types/general';
 
 import {AppsTypes, GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, ActionFuncAsync, ActionResult} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {loadRolesIfNeeded} from './roles';
+
+const CLIENT_CONFIG_OVERRIDES_INITIAL_RETRY_MS = 1000;
+const CLIENT_CONFIG_OVERRIDES_MAX_RETRIES = 3;
+
+let overridesGenerationCounter = 0;
+let inFlightOverridesRequest: {generation: number; promise: Promise<ActionResult<Partial<ClientConfig>>>} | null = null;
+let overridesRetryTimer: ReturnType<typeof setTimeout> | null = null;
+
+function clearOverridesRetryTimer() {
+    if (overridesRetryTimer !== null) {
+        clearTimeout(overridesRetryTimer);
+        overridesRetryTimer = null;
+    }
+}
+
+export function resetClientConfigOverridesSyncState() {
+    overridesGenerationCounter++;
+    inFlightOverridesRequest = null;
+    clearOverridesRetryTimer();
+}
+
+export function receivedClientConfigOverrides(overrides: Partial<ClientConfig>): ActionFunc<Partial<ClientConfig>> {
+    return (dispatch) => {
+        overridesGenerationCounter++;
+        inFlightOverridesRequest = null;
+        clearOverridesRetryTimer();
+
+        dispatch({
+            type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,
+            data: overrides,
+        });
+
+        return {data: overrides};
+    };
+}
+
+export function getClientConfigOverrides(attempt = 0): ActionFuncAsync<Partial<ClientConfig>> {
+    return async (dispatch, getState) => {
+        if (attempt === 0 && inFlightOverridesRequest && inFlightOverridesRequest.generation === overridesGenerationCounter) {
+            return inFlightOverridesRequest.promise;
+        }
+
+        clearOverridesRetryTimer();
+        const generation = ++overridesGenerationCounter;
+
+        const requestPromise = (async (): Promise<ActionResult<Partial<ClientConfig>>> => {
+            let data: Partial<ClientConfig>;
+            try {
+                data = await Client4.getClientConfigOverrides();
+            } catch (error) {
+                forceLogoutIfNecessary(error, dispatch, getState);
+                if (
+                    generation === overridesGenerationCounter &&
+                    attempt < CLIENT_CONFIG_OVERRIDES_MAX_RETRIES &&
+                    Boolean(getCurrentUserId(getState()))
+                ) {
+                    const delayMs = CLIENT_CONFIG_OVERRIDES_INITIAL_RETRY_MS * (2 ** attempt);
+                    overridesRetryTimer = setTimeout(() => {
+                        overridesRetryTimer = null;
+                        if (getCurrentUserId(getState())) {
+                            dispatch(getClientConfigOverrides(attempt + 1));
+                        }
+                    }, delayMs);
+                }
+                return {error};
+            } finally {
+                if (inFlightOverridesRequest?.generation === generation) {
+                    inFlightOverridesRequest = null;
+                }
+            }
+
+            if (generation === overridesGenerationCounter) {
+                dispatch({
+                    type: GeneralTypes.CLIENT_CONFIG_OVERRIDES_RECEIVED,
+                    data,
+                });
+            }
+
+            return {data};
+        })();
+
+        inFlightOverridesRequest = {generation, promise: requestPromise};
+        return requestPromise;
+    };
+}
 
 export function getClientConfig(): ActionFuncAsync<ClientConfig> {
     return async (dispatch, getState) => {

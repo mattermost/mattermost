@@ -8,13 +8,14 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
-import {getClientConfig, getLicenseConfig, getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
+import {getClientConfig, getClientConfigOverrides, getLicenseConfig, getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {getMyPreferences} from 'mattermost-redux/actions/preferences';
 import {getMyTeamMembers, getMyTeams, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
 import {getMe, getProfiles} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
+import {isSystemSettingPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled, getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {checkIsFirstAdmin, getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
@@ -66,6 +67,7 @@ export function loadConfigAndMe(): ThunkActionFunc<Promise<{isLoaded: boolean; i
                 dispatch(getMyPreferences()),
                 dispatch(getMyTeams()),
                 dispatch(getMyTeamMembers()),
+                ...(isSystemSettingPoliciesEnabled(getState()) ? [dispatch(getClientConfigOverrides())] : []),
             ]);
 
             dispatch(getMyTeamUnreads(isCollapsedThreadsEnabled(getState())));

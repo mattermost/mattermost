@@ -68,7 +68,7 @@ import {
     fetchChannelsAndMembers,
 } from 'mattermost-redux/actions/channels';
 import {clearErrors, logError} from 'mattermost-redux/actions/errors';
-import {setServerVersion, getClientConfig, getCustomProfileAttributeFields} from 'mattermost-redux/actions/general';
+import {setServerVersion, getClientConfig, getClientConfigOverrides, getCustomProfileAttributeFields, receivedClientConfigOverrides} from 'mattermost-redux/actions/general';
 import {getGroup as fetchGroup} from 'mattermost-redux/actions/groups';
 import {getServerLimits} from 'mattermost-redux/actions/limits';
 import {
@@ -127,7 +127,7 @@ import {
     hasAutotranslationBecomeEnabled,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import {getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense, isChannelPermissionActionsEnabled, isPermissionPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getBaseClientConfig, getConfig, getCustomProfileAttributes, getFeatureFlagValue, getLicense, isChannelPermissionActionsEnabled, isPermissionPoliciesEnabled, isSystemSettingPoliciesEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getGroup} from 'mattermost-redux/selectors/entities/groups';
 import {getPost, getMostRecentPostIdInChannel, getTeamIdFromPost} from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
@@ -256,11 +256,15 @@ export function initialize() {
     WebSocketClient.addMissedMessageListener(restart);
     WebSocketClient.addCloseListener(handleClose);
 
+    window.addEventListener('online', handleBrowserOnline);
+
     WebSocketClient.initialize(connUrl, undefined, true);
 }
 
 export function close() {
     WebSocketClient.close();
+
+    window.removeEventListener('online', handleBrowserOnline);
 
     WebSocketClient.removeMessageListener(handleEvent);
     WebSocketClient.removeFirstConnectListener(handleFirstConnect);
@@ -277,6 +281,13 @@ export function registerPluginReconnectHandler(pluginId: string, handler: () => 
 
 export function unregisterPluginReconnectHandler(pluginId: string) {
     Reflect.deleteProperty(pluginReconnectHandlers, pluginId);
+}
+
+function handleBrowserOnline() {
+    const state = getState();
+    if (isSystemSettingPoliciesEnabled(state) && getCurrentUserId(state)) {
+        dispatch(getClientConfigOverrides());
+    }
 }
 
 function restart() {
@@ -392,6 +403,10 @@ export function reconnect() {
     // Manifest may have changed; tell the Desktop App to re-fetch it.
     DesktopApp.invalidateSessionAttributeManifest();
 
+    if (isSystemSettingPoliciesEnabled(state) && getCurrentUserId(state)) {
+        dispatch(getClientConfigOverrides());
+    }
+
     dispatch(resetWsErrorCount());
     dispatch(clearErrors());
 }
@@ -438,6 +453,11 @@ function handleFirstConnect() {
 
     // Tell the Desktop App to re-deliver its session attributes on the next request.
     DesktopApp.resendSessionAttributes();
+
+    const state = getState();
+    if (isSystemSettingPoliciesEnabled(state) && getCurrentUserId(state)) {
+        dispatch(getClientConfigOverrides());
+    }
 }
 
 function handleClose(failCount: number) {
@@ -583,6 +603,10 @@ export function handleEvent(msg: WebSocketMessage) {
 
     case WebSocketEvents.PermissionPolicyUpdated:
         dispatch(handlePermissionPolicyUpdatedEvent(msg));
+        break;
+
+    case WebSocketEvents.SystemSettingPolicyUpdated:
+        dispatch(handleSystemSettingPolicyUpdatedEvent(msg));
         break;
 
     case WebSocketEvents.TeamAccessControlUpdated:
@@ -988,6 +1012,16 @@ export function handlePermissionPolicyUpdatedEvent(msg: WebSocketMessages.Permis
         if (changed(ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS)) {
             doDispatch(reconcileChannelReadAccessWithJitter());
         }
+    };
+}
+
+export function handleSystemSettingPolicyUpdatedEvent(msg: WebSocketMessages.SystemSettingPolicyUpdated): ThunkActionFunc<void> {
+    return (doDispatch, doGetState) => {
+        if (!isSystemSettingPoliciesEnabled(doGetState())) {
+            return;
+        }
+
+        doDispatch(receivedClientConfigOverrides(msg.data?.overrides || {}));
     };
 }
 
@@ -1682,6 +1716,9 @@ export function handlePropertyFieldCreatedOrUpdated(
         // Session attribute field changed; forward the updated field to the Desktop App.
         if (msg.data.object_type === SESSION_ATTRIBUTES_OBJECT_TYPE) {
             DesktopApp.updateSessionAttribute(field);
+            if (isSystemSettingPoliciesEnabled(doGetState()) && getCurrentUserId(doGetState())) {
+                doDispatch(getClientConfigOverrides());
+            }
         }
     };
 }
@@ -2130,7 +2167,7 @@ function handleUserRoleUpdated(msg: WebSocketMessages.UserRoleUpdated) {
 
 function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
     const state = getState();
-    const currentConfig = getConfig(state);
+    const currentConfig = getBaseClientConfig(state);
     const newConfig = msg.data.config;
 
     // Check if EnableAutoTranslation changed from enabled to disabled
@@ -2148,6 +2185,18 @@ function handleConfigChanged(msg: WebSocketMessages.ConfigChanged) {
     }
 
     store.dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data: newConfig});
+
+    const wasSystemSettingActive = currentConfig?.FeatureFlagSystemSettingPolicies === 'true' &&
+        currentConfig?.EnableAttributeBasedAccessControl === 'true';
+    const isSystemSettingActive = newConfig?.FeatureFlagSystemSettingPolicies === 'true' &&
+        newConfig?.EnableAttributeBasedAccessControl === 'true';
+    if (wasSystemSettingActive !== isSystemSettingActive) {
+        if (!isSystemSettingActive) {
+            dispatch(receivedClientConfigOverrides({}));
+        } else if (getCurrentUserId(getState())) {
+            dispatch(getClientConfigOverrides());
+        }
+    }
 }
 
 function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
@@ -2156,6 +2205,11 @@ function handleLicenseChanged(msg: WebSocketMessages.LicenseChanged) {
     // A license change can flip ABAC availability, so clear cached render
     // decisions; they will be recomputed on demand.
     store.dispatch(clearRenderDecisions());
+
+    const nextState = getState();
+    if (isSystemSettingPoliciesEnabled(nextState) && getCurrentUserId(nextState)) {
+        dispatch(getClientConfigOverrides());
+    }
 
     // Refresh server limits when license changes since limits may have changed
     dispatch(getServerLimits());
