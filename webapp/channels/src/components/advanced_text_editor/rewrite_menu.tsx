@@ -1,7 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import MuiMenuList from '@mui/material/MenuList';
+import MuiPopover from '@mui/material/Popover';
+import classNames from 'classnames';
+import React, {useMemo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -18,12 +21,17 @@ import {
 } from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 import type {Agent} from '@mattermost/types/agents';
 
 import {getDefaultAgent} from 'mattermost-redux/selectors/entities/agents';
+import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import AgentDropdown from 'components/common/agents/agent_dropdown';
+import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
+import {compassSurfaceOriginClass, useCompassMenuPresence} from 'components/menu/compass_menu_motion';
+import {MenuContext} from 'components/menu/menu_context';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {RewriteAction} from './rewrite_action';
@@ -90,6 +98,8 @@ export interface RewriteMenuProps {
     onUndoMessage: () => void;
     onRegenerateMessage: () => void;
     customPromptRef: React.RefObject<HTMLInputElement | null>;
+
+    openMenu: (anchor: HTMLElement | null) => void;
 }
 
 export default function RewriteMenu({
@@ -448,5 +458,114 @@ export function RewriteSubMenuFooter({
                 />
             </Button>
         </div>
+    );
+}
+
+// The rewrite row closes its parent menu and this opens in that menu's place.
+export function RewriteMenuPopover({
+    anchor,
+    onClose,
+    isProcessing,
+    isMenuOpen,
+    draftMessage,
+    prompt,
+    setPrompt,
+    selectedAgentId,
+    setSelectedAgentId,
+    agents,
+    originalMessage,
+    lastAction,
+    onMenuAction,
+    onCustomPromptKeyDown,
+    onCancelProcessing,
+    onUndoMessage,
+    onRegenerateMessage,
+    customPromptRef,
+}: RewriteMenuProps & {
+    anchor: HTMLElement | null;
+    onClose: () => void;
+}) {
+    const {formatMessage} = useIntl();
+    const theme = useSelector(getTheme);
+    const {present, onExited} = useCompassMenuPresence(isMenuOpen);
+    const origin = useMemo(() => ({vertical: 'bottom' as const, horizontal: 'left' as const}), []);
+    const compassMenu = useMemo(() => ({
+        isOpen: isMenuOpen,
+        compass: true,
+        addOnClosedListener: () => {},
+        handleClosed: () => {},
+    }), [isMenuOpen]);
+
+    if (!present || !anchor) {
+        return null;
+    }
+
+    return (
+        <CompassDesignProvider theme={theme}>
+            <MuiPopover
+                open={true}
+                anchorEl={anchor}
+                anchorOrigin={{vertical: 'top', horizontal: 'left'}}
+                transformOrigin={origin}
+                className='menu_menuStyled menu_menuStyled--compass menu_menuStyled--above'
+                transitionDuration={0}
+                onClose={onClose}
+                slotProps={{
+                    paper: {
+                        style: {
+                            overflow: 'visible',
+                            background: 'transparent',
+                            boxShadow: 'none',
+                            maxHeight: 'none',
+                        },
+                    },
+                }}
+            >
+                <MenuContext.Provider value={compassMenu}>
+                    <PopoverMenu
+                        variant='parent'
+                        open={isMenuOpen}
+                        onExited={onExited}
+                        className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(origin))}
+                    >
+                        <RewriteSubMenuHeader
+                            isProcessing={isProcessing}
+                            draftMessage={draftMessage}
+                            originalMessage={originalMessage}
+                            prompt={prompt}
+                            setPrompt={setPrompt}
+                            selectedAgentId={selectedAgentId}
+                            setSelectedAgentId={setSelectedAgentId}
+                            agents={agents}
+                            onCustomPromptKeyDown={onCustomPromptKeyDown}
+                            onCancelProcessing={onCancelProcessing}
+                            customPromptRef={customPromptRef}
+                        />
+                        <MuiMenuList
+                            className='menu_menuStyled__list--compass'
+                            component='div'
+                            sx={{py: 0}}
+                            aria-label={formatMessage({
+                                id: 'texteditor.rewrite.menu',
+                                defaultMessage: 'Rewrite Options',
+                            })}
+                        >
+                            <RewriteSubmenu
+                                isProcessing={isProcessing}
+                                draftMessage={draftMessage}
+                                onMenuAction={onMenuAction}
+                            />
+                        </MuiMenuList>
+                        <RewriteSubMenuFooter
+                            isProcessing={isProcessing}
+                            originalMessage={originalMessage}
+                            lastAction={lastAction}
+                            onUndoMessage={onUndoMessage}
+                            onRegenerateMessage={onRegenerateMessage}
+                        />
+                    </PopoverMenu>
+                </MenuContext.Provider>
+            </MuiPopover>
+        </CompassDesignProvider>
     );
 }

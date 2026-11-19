@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type React from 'react';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -17,6 +16,7 @@ import type TextboxClass from 'components/textbox/textbox';
 import type {PostDraft} from 'types/store/draft';
 
 import {RewriteAction} from './rewrite_action';
+import {RewriteMenuPopover} from './rewrite_menu';
 
 const useRewrite = (
     draft: PostDraft,
@@ -35,6 +35,7 @@ const useRewrite = (
 
     const [isProcessing, setIsProcessing] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
 
     const [originalMessage, setOriginalMessage] = useState('');
     const [lastAction, setLastAction] = useState<RewriteAction>(RewriteAction.CUSTOM);
@@ -137,6 +138,16 @@ const useRewrite = (
         return () => handleRewrite(action);
     }, [handleRewrite]);
 
+    const openMenu = useCallback((anchor: HTMLElement | null) => {
+        setMenuAnchor(anchor);
+        setIsMenuOpen(true);
+    }, []);
+
+    const closeMenu = useCallback(() => {
+        setIsMenuOpen(false);
+        focusTextbox(true);
+    }, [focusTextbox]);
+
     useEffect(() => {
         dispatch(getAgentsAction());
     }, [dispatch]);
@@ -198,6 +209,7 @@ const useRewrite = (
         onUndoMessage: undoMessage,
         onRegenerateMessage: regenerateMessage,
         customPromptRef,
+        openMenu,
     }), [
         isProcessing,
         isMenuOpen,
@@ -216,10 +228,20 @@ const useRewrite = (
         undoMessage,
         regenerateMessage,
         customPromptRef,
+        openMenu,
     ]);
+
+    const rewritePopover = (
+        <RewriteMenuPopover
+            {...rewriteMenuProps}
+            anchor={menuAnchor}
+            onClose={closeMenu}
+        />
+    );
 
     return {
         rewriteMenuProps,
+        rewritePopover,
         isProcessing,
     };
 };

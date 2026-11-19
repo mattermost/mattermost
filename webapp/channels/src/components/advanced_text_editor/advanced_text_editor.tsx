@@ -488,6 +488,7 @@ const AdvancedTextEditor = ({
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost, wysiwygRef);
     const {
         rewriteMenuProps,
+        rewritePopover,
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
@@ -1057,6 +1058,7 @@ const AdvancedTextEditor = ({
                 } : null}
             />
             {priorityMenuPopover}
+            {rewritePopover}
         </div>
     );
     const sendActions = showPlus && (

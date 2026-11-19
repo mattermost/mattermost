@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
 import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
+
+import {closeModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
 import {compassSubmenuClass, compassSurfaceOriginClass, useCompassMenuPresence, useSubmenuSide} from 'components/menu/compass_menu_motion';
@@ -25,9 +26,8 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {AIActionMenuItemComponent} from 'types/store/plugins';
 
-import {submenuPointerDestination, useComposerSubmenuHover, useDelayedSubmenuClose} from './composer_submenu_hover';
+import {COMPOSER_PLUS_MENU_ID, submenuPointerDestination, useComposerSubmenuHover, useDelayedSubmenuClose} from './composer_submenu_hover';
 import type {RewriteMenuProps} from './rewrite_menu';
-import {RewriteSubmenu, RewriteSubMenuHeader, RewriteSubMenuFooter} from './rewrite_menu';
 
 const AIActionsMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
@@ -57,6 +57,7 @@ const AIActionsMenu = ({
     parentOpen = false,
 }: AIActionsMenuProps): JSX.Element | null => {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const parentMenu = useContext(MenuContext);
     const submenuMenuContext = useMemo(() => ({
         ...parentMenu,
@@ -93,10 +94,7 @@ const AIActionsMenu = ({
             cancelClose();
             closeSubmenu();
         }
-        if (rewriteMenuProps) {
-            rewriteMenuProps.setIsMenuOpen(open);
-        }
-    }, [cancelClose, closeSubmenu, rewriteMenuProps]);
+    }, [cancelClose, closeSubmenu]);
 
     useEffect(() => {
         if (!embedded) {
@@ -106,12 +104,7 @@ const AIActionsMenu = ({
             cancelClose();
             closeSubmenu();
         }
-        if (rewriteMenuProps) {
-            rewriteMenuProps.setIsMenuOpen(Boolean(
-                parentOpen && activeSubmenu === '__rewrite__' && activeRow === '__rewrite__',
-            ));
-        }
-    }, [activeRow, activeSubmenu, cancelClose, closeSubmenu, embedded, parentOpen, rewriteMenuProps]);
+    }, [activeRow, activeSubmenu, cancelClose, closeSubmenu, embedded, parentOpen]);
 
     const closeUnlessInside = useCallback((next: EventTarget | null, anchor: HTMLElement | null) => {
         const destination = submenuPointerDestination(next, panelRef.current, anchor);
@@ -168,6 +161,24 @@ const AIActionsMenu = ({
         };
     }, [cancelClose, claimRow]);
 
+    const openRewrite = useCallback(() => {
+        if (!rewriteMenuProps) {
+            return;
+        }
+        const anchor = document.querySelector<HTMLElement>('#agentComposerMenuButton[aria-expanded="true"]') ??
+            document.querySelector<HTMLElement>('#ai-actions-button[aria-expanded="true"]') ??
+            document.getElementById('agentComposerMenuButton') ??
+            document.getElementById('ai-actions-button');
+        const open = () => rewriteMenuProps.openMenu(anchor);
+        if (parentMenu.close) {
+            parentMenu.addOnClosedListener(open);
+            parentMenu.close();
+            return;
+        }
+        dispatch(closeModal(embedded ? COMPOSER_PLUS_MENU_ID : 'ai-actions-menu'));
+        open();
+    }, [dispatch, embedded, parentMenu, rewriteMenuProps]);
+
     const handleActionClick = useCallback((action: NonNullable<AIActionMenuItemComponent['action']>) => {
         return () => {
             action({draft, getSelectedText, updateText, channelId, isRHS});
@@ -199,8 +210,7 @@ const AIActionsMenu = ({
     }
 
     const panelSubmenu = activeSubmenu ?? displayedSubmenuRef.current;
-    const isRewriteSubmenu = panelSubmenu === '__rewrite__';
-    const activePluginItem = panelSubmenu && !isRewriteSubmenu ? sortedItems.find((item) => item.id === panelSubmenu && item.component) : null;
+    const activePluginItem = panelSubmenu ? sortedItems.find((item) => item.id === panelSubmenu && item.component) : null;
 
     const submenuClassName = classNames(
         'menu_menuStyled',
@@ -208,9 +218,6 @@ const AIActionsMenu = ({
         'ai-actions-submenu',
         'menu_menuStyled--compass',
         compassSubmenuClass(submenuSide.side),
-        {
-            'ai-actions-submenu-rewrite': isRewriteSubmenu,
-        },
     );
 
     const rows = (
@@ -255,8 +262,6 @@ const AIActionsMenu = ({
                 <Menu.Item
                     id='ai-action-rewrite'
                     role='menuitem'
-                    aria-haspopup='menu'
-                    aria-expanded={activeSubmenu === '__rewrite__'}
                     leadingElement={<PencilOutlineIcon size={18}/>}
                     labels={(
                         <FormattedMessage
@@ -264,16 +269,15 @@ const AIActionsMenu = ({
                             defaultMessage='Rewrite'
                         />
                     )}
-                    trailingElements={<ChevronRightIcon size={18}/>}
-                    onMouseEnter={handleItemHover('__rewrite__')}
-                    onMouseLeave={handleItemLeave}
-                    onKeyDown={handleItemKeyDown('__rewrite__')}
+                    disableCloseOnSelect={true}
+                    onMouseEnter={handlePlainHover('rewrite')}
+                    onClick={openRewrite}
                 />
             )}
         </>
     );
 
-    const submenu = submenuPresent && placementAnchor && (isRewriteSubmenu || activePluginItem) && (
+    const submenu = submenuPresent && placementAnchor && activePluginItem && (
         <MuiPopover
             open={true}
             anchorEl={placementAnchor}
@@ -309,42 +313,7 @@ const AIActionsMenu = ({
                         onExited={submenuExited}
                         className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(submenuSide.transformOrigin))}
                     >
-                        {isRewriteSubmenu && rewriteMenuProps && (
-                            <>
-                                <RewriteSubMenuHeader
-                                    isProcessing={rewriteMenuProps.isProcessing}
-                                    draftMessage={rewriteMenuProps.draftMessage}
-                                    originalMessage={rewriteMenuProps.originalMessage}
-                                    prompt={rewriteMenuProps.prompt}
-                                    setPrompt={rewriteMenuProps.setPrompt}
-                                    selectedAgentId={rewriteMenuProps.selectedAgentId}
-                                    setSelectedAgentId={rewriteMenuProps.setSelectedAgentId}
-                                    agents={rewriteMenuProps.agents}
-                                    onCustomPromptKeyDown={rewriteMenuProps.onCustomPromptKeyDown}
-                                    onCancelProcessing={rewriteMenuProps.onCancelProcessing}
-                                    customPromptRef={rewriteMenuProps.customPromptRef}
-                                />
-                                <MuiMenuList
-                                    className='menu_menuStyled__list--compass'
-                                    component='div'
-                                    sx={{py: 0}}
-                                >
-                                    <RewriteSubmenu
-                                        isProcessing={rewriteMenuProps.isProcessing}
-                                        draftMessage={rewriteMenuProps.draftMessage}
-                                        onMenuAction={rewriteMenuProps.onMenuAction}
-                                    />
-                                </MuiMenuList>
-                                <RewriteSubMenuFooter
-                                    isProcessing={rewriteMenuProps.isProcessing}
-                                    originalMessage={rewriteMenuProps.originalMessage}
-                                    lastAction={rewriteMenuProps.lastAction}
-                                    onUndoMessage={rewriteMenuProps.onUndoMessage}
-                                    onRegenerateMessage={rewriteMenuProps.onRegenerateMessage}
-                                />
-                            </>
-                        )}
-                        {activePluginItem?.component && (() => {
+                        {activePluginItem.component && (() => {
                             const PluginComponent = activePluginItem.component;
                             return (
                                 <PluggableErrorBoundary pluginId={activePluginItem.pluginId}>

@@ -9,7 +9,7 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 
 import {RewriteAction} from './rewrite_action';
 import type {RewriteMenuProps} from './rewrite_menu';
-import RewriteMenu from './rewrite_menu';
+import RewriteMenu, {RewriteMenuPopover} from './rewrite_menu';
 
 jest.mock('components/menu', () => ({
     ...jest.requireActual('components/menu'),
@@ -114,6 +114,7 @@ describe('RewriteMenu', () => {
         onUndoMessage: jest.fn(),
         onRegenerateMessage: jest.fn(),
         customPromptRef: React.createRef<HTMLInputElement>(),
+        openMenu: jest.fn(),
     };
 
     test('should not render agent dropdown when no agents', () => {
@@ -350,5 +351,23 @@ describe('RewriteMenu', () => {
         const select = screen.getByTestId('agent-select');
         await userEvent.selectOptions(select, 'agent2');
         expect(setSelectedAgentId).toHaveBeenCalledWith('agent2');
+    });
+
+    test('shows rewrite in its own menu when opened on an anchor', () => {
+        const anchor = document.createElement('button');
+        document.body.appendChild(anchor);
+
+        renderWithContext(
+            <RewriteMenuPopover
+                {...baseProps}
+                isMenuOpen={true}
+                anchor={anchor}
+                onClose={jest.fn()}
+            />,
+        );
+        expect(screen.getByText('Shorten')).toBeInTheDocument();
+        expect(screen.getByText('Fix spelling and grammar')).toBeInTheDocument();
+
+        anchor.remove();
     });
 });

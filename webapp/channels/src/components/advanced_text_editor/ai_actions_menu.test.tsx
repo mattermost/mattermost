@@ -101,6 +101,7 @@ function getRewriteMenuProps(): RewriteMenuProps {
         onUndoMessage: jest.fn(),
         onRegenerateMessage: jest.fn(),
         customPromptRef: React.createRef<HTMLInputElement>(),
+        openMenu: jest.fn(),
     };
 }
 
@@ -592,8 +593,8 @@ describe('AIActionsMenu', () => {
         parentMenu.remove();
     });
 
-    test('marks rewrite open only while the rewrite row is showing', () => {
-        const setIsMenuOpen = jest.fn();
+    test('opens rewrite from a click instead of a hover submenu', () => {
+        const openMenu = jest.fn();
 
         renderWithContext(
             <ComposerSubmenuHoverProvider>
@@ -604,7 +605,7 @@ describe('AIActionsMenu', () => {
                     aiRewriteEnabled={true}
                     rewriteMenuProps={{
                         ...getRewriteMenuProps(),
-                        setIsMenuOpen,
+                        openMenu,
                     }}
                 />
             </ComposerSubmenuHoverProvider>,
@@ -632,10 +633,14 @@ describe('AIActionsMenu', () => {
         );
 
         fireEvent.mouseEnter(screen.getByText('Hover Me').closest('li')!);
-        expect(setIsMenuOpen).not.toHaveBeenCalledWith(true);
+        expect(openMenu).not.toHaveBeenCalled();
 
         fireEvent.mouseEnter(screen.getByText('Rewrite').closest('li')!);
-        expect(setIsMenuOpen).toHaveBeenCalledWith(true);
+        expect(openMenu).not.toHaveBeenCalled();
+        expect(screen.queryByTestId('rewrite-submenu')).not.toBeInTheDocument();
+
+        fireEvent.click(screen.getByText('Rewrite').closest('li')!);
+        expect(openMenu).toHaveBeenCalled();
     });
 
     testPluginComponentErrorHandling((pluginComponent) => {
