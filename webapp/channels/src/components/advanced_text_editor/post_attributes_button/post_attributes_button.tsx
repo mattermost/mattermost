@@ -30,7 +30,7 @@ type Props = {
  */
 const PostAttributesButton = ({fields, onSelect, disabledReason}: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
-    const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes', description: 'Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb.'});
+    const label = formatMessage({id: 'post_attributes.composer.add', defaultMessage: 'Add attributes', description: 'Tooltip and accessible label of the button in the message composer formatting bar that opens a menu of attributes to add to the message being written. Plural noun after a verb.'});
 
     // The centre channel and the thread sidebar each have an action row.
     const instanceId = useId();

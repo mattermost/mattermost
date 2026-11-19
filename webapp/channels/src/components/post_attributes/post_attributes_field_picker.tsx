@@ -151,7 +151,7 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
         <FormattedMessage
             id='post_attributes.modal.add'
             defaultMessage='Add attribute'
-            description='Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb.'
+            description='Button text (after a + icon), at the bottom of the post attributes modal and after the attribute chips in the message composer. It opens a menu listing the attributes that can be added to the post. Verb.'
         />
     );
 
@@ -226,7 +226,7 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
                 'aria-label': formatMessage({
                     id: 'post_attributes.modal.picker.label',
                     defaultMessage: 'Add an attribute',
-                    description: 'Accessible label (screen readers only) of the menu, opened by the add attribute button in the post attributes modal, that lists attributes which can be added to the post.',
+                    description: 'Accessible label (screen readers only) of the menu, opened by the add attribute buttons in the post attributes modal and in the message composer, that lists attributes which can be added to the post.',
                 }),
             }}
         >
@@ -240,6 +240,20 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
                     onClick={() => onSelect(field.id)}
                 />
             ))}
+            {searchable && term && shown.length === 0 && (
+                <Menu.Item
+                    id={`${id}NoResults`}
+                    data-testid={`${dataTestId}-no-results`}
+                    disabled={true}
+                    labels={
+                        <FormattedMessage
+                            id='post_attributes.picker.no_results'
+                            defaultMessage='No matching attributes'
+                            description='Shown in the add attribute menu, under its search box, when the search text matches no attribute.'
+                        />
+                    }
+                />
+            )}
         </Menu.Container>
     );
 

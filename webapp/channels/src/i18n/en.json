@@ -28609,7 +28609,7 @@
   },
   "post_attributes.composer.add": {
     "defaultMessage": "Add attributes",
-    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb."
+    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens a menu of attributes to add to the message being written. Plural noun after a verb."
   },
   "post_attributes.composer.cannot_add_burn_on_read": {
     "defaultMessage": "Burn-on-read messages can’t have attributes",
@@ -28649,7 +28649,7 @@
   },
   "post_attributes.modal.add": {
     "defaultMessage": "Add attribute",
-    "description": "Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb."
+    "description": "Button text (after a + icon), at the bottom of the post attributes modal and after the attribute chips in the message composer. It opens a menu listing the attributes that can be added to the post. Verb."
   },
   "post_attributes.modal.clear": {
     "defaultMessage": "Clear {attribute}",
@@ -28673,7 +28673,7 @@
   },
   "post_attributes.modal.picker.label": {
     "defaultMessage": "Add an attribute",
-    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute button in the post attributes modal, that lists attributes which can be added to the post."
+    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute buttons in the post attributes modal and in the message composer, that lists attributes which can be added to the post."
   },
   "post_attributes.modal.subtitle": {
     "defaultMessage": "{author} · {channel}",
@@ -28682,6 +28682,10 @@
   "post_attributes.modal.title": {
     "defaultMessage": "Post attributes",
     "description": "Title of the modal where users view and edit the attributes (structured metadata fields) attached to a post."
+  },
+  "post_attributes.picker.no_results": {
+    "defaultMessage": "No matching attributes",
+    "description": "Shown in the add attribute menu, under its search box, when the search text matches no attribute."
   },
   "post_attributes.picker.search": {
     "defaultMessage": "Search attributes",

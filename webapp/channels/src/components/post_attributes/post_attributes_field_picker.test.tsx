@@ -261,6 +261,37 @@ describe('PostAttributesFieldPicker', () => {
             expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual(['post-attribute-add-echo']);
         });
 
+        test('a search that matches nothing says so, and the line cannot be picked', async () => {
+            const onSelect = jest.fn();
+            renderPicker(fiveFields(), onSelect);
+            await openPicker();
+
+            const search = screen.getByRole('searchbox', {name: 'Search attributes'});
+            await waitFor(() => expect(search).toHaveFocus());
+            await userEvent.type(search, 'zzz');
+
+            const noResults = screen.getByTestId('post-attributes-add-no-results');
+            expect(noResults).toHaveTextContent('No matching attributes');
+            expect(noResults).toHaveAttribute('aria-disabled', 'true');
+            expect(screen.getAllByRole('menuitem')).toEqual([noResults]);
+
+            await userEvent.clear(search);
+            expect(screen.queryByTestId('post-attributes-add-no-results')).not.toBeInTheDocument();
+            expect(onSelect).not.toHaveBeenCalled();
+        });
+
+        test('a search of only spaces lists every field and no empty message', async () => {
+            renderPicker(fiveFields());
+            await openPicker();
+
+            const search = screen.getByRole('searchbox', {name: 'Search attributes'});
+            await waitFor(() => expect(search).toHaveFocus());
+            await userEvent.type(search, '   ');
+
+            expect(screen.getAllByRole('menuitem')).toHaveLength(5);
+            expect(screen.queryByTestId('post-attributes-add-no-results')).not.toBeInTheDocument();
+        });
+
         test('ArrowDown moves from the search box into the list', async () => {
             renderPicker(fiveFields());
             await openPicker();
