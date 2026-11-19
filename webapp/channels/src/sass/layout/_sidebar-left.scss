@@ -1409,6 +1409,16 @@ $sidebarOpacityAnimationDuration: 0.15s;
             font-size: 18px;
         }
 
+        // An emoji in the icon's place: the same 18px box, the emoji a little smaller to sit in it.
+        &__emoji {
+            width: 18px;
+            height: 18px;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            line-height: 1;
+        }
+
         &__label {
             overflow: hidden;
             min-width: 0;

@@ -611,6 +611,12 @@ export type ChannelSidebarSubItem = {
     iconName?: IconGlyphTypes;
 
     /**
+     * An emoji shown in place of the glyph, such as a page's own icon: the emoji itself (`🚨`) or
+     * a custom emoji's name between colons (`:party-parrot:`).
+     */
+    emoji?: string;
+
+    /**
      * Id of another item from the same registration to nest this item under. A missing, unknown,
      * non-string, self or cyclic parent places the item at the root level.
      */
