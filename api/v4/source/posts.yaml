@@ -76,7 +76,7 @@
                       type: array
                       description: >
                         Values for the post's attributes, defined as post attribute
-                        fields in the `post_attributes` property group. Each entry is validated
+                        fields in the `access_control` property group. Each entry is validated
                         against the applicable fields for the post's channel; an
                         error does not name which attribute failed validation.
                       items:
@@ -231,9 +231,11 @@
           in: query
           description: >
             The name of a single property group whose values should be hydrated onto each post's
-            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
-            unrecognized name, returns 404. There is no support for requesting more than one group
-            per request.
+            metadata. Post attributes live in the `access_control` group. Only **PSAv2** groups are
+            accepted; passing a legacy v1 group, or an unrecognized name, returns 404. There is no
+            support for requesting more than one group per request.
+
+            Passing `access_control` on a server without an Enterprise license returns 501.
 
             When this parameter is set, the response carries no `ETag` header and `If-None-Match`
             is ignored, so the full response is always returned.
@@ -260,6 +262,13 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          description: >
+            `propertyGroup=access_control` was passed and the server has no Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
     delete:
       tags:
         - posts
@@ -537,9 +546,11 @@
           in: query
           description: >
             The name of a single property group whose values should be hydrated onto each post's
-            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
-            unrecognized name, returns 404. There is no support for requesting more than one group
-            per request.
+            metadata. Post attributes live in the `access_control` group. Only **PSAv2** groups are
+            accepted; passing a legacy v1 group, or an unrecognized name, returns 404. There is no
+            support for requesting more than one group per request.
+
+            Passing `access_control` on a server without an Enterprise license returns 501.
 
             When this parameter is set, the response carries no `ETag` header and `If-None-Match`
             is ignored, so the full response is always returned.
@@ -561,6 +572,13 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          description: >
+            `propertyGroup=access_control` was passed and the server has no Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/users/{user_id}/posts/flagged":
     get:
       tags:
@@ -814,9 +832,11 @@
           in: query
           description: >
             The name of a single property group whose values should be hydrated onto each post's
-            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
-            unrecognized name, returns 404. There is no support for requesting more than one group
-            per request.
+            metadata. Post attributes live in the `access_control` group. Only **PSAv2** groups are
+            accepted; passing a legacy v1 group, or an unrecognized name, returns 404. There is no
+            support for requesting more than one group per request.
+
+            Passing `access_control` on a server without an Enterprise license returns 501.
 
             When this parameter is set, the response carries no `ETag` header and `If-None-Match`
             is ignored, so the full response is always returned.
@@ -838,6 +858,13 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          description: >
+            `propertyGroup=access_control` was passed and the server has no Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/users/{user_id}/channels/{channel_id}/posts/unread":
     get:
       tags:
@@ -907,9 +934,11 @@
           in: query
           description: >
             The name of a single property group whose values should be hydrated onto each post's
-            metadata. Only **PSAv2** groups are accepted; passing a legacy v1 group, or an
-            unrecognized name, returns 404. There is no support for requesting more than one group
-            per request.
+            metadata. Post attributes live in the `access_control` group. Only **PSAv2** groups are
+            accepted; passing a legacy v1 group, or an unrecognized name, returns 404. There is no
+            support for requesting more than one group per request.
+
+            Passing `access_control` on a server without an Enterprise license returns 501.
 
             When this parameter is set, the response carries no `ETag` header and `If-None-Match`
             is ignored, so the full response is always returned.
@@ -931,6 +960,13 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
+        "501":
+          description: >
+            `propertyGroup=access_control` was passed and the server has no Enterprise license.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/teams/{team_id}/posts/search":
     post:
       tags:
