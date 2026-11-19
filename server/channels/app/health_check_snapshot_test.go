@@ -398,7 +398,7 @@ func testHealthSnapshotLiveOfflineParity(t *testing.T, th *TestHelper, packetNod
 		p, readErr := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
 		require.NoError(t, readErr)
 		assert.Empty(t, p.Warnings)
-		assert.Empty(t, packet.FillLatestVersion(th.Context.Context(), p.Snapshot, latestVersionServer(t).URL))
+		assert.NoError(t, packet.FillLatestVersion(th.Context.Context(), p.Snapshot, latestVersionServer(t).URL))
 		return p
 	}
 	offline := readPacket(t, files)

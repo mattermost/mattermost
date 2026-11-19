@@ -179,10 +179,10 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 
 	notes := []string{healthPacketDisclaimer}
 	fetchCtx, cancel := context.WithTimeout(cmd.Context(), healthLatestVersionTimeout)
-	note := packet.FillLatestVersion(fetchCtx, p.Snapshot, healthLatestVersionURL)
+	err = packet.FillLatestVersion(fetchCtx, p.Snapshot, healthLatestVersionURL)
 	cancel()
-	if note != "" {
-		notes = append(notes, note)
+	if err != nil {
+		notes = append(notes, fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err))
 	}
 	notes = append(notes, p.Warnings...)
 

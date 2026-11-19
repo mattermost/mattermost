@@ -12,6 +12,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
@@ -36,16 +37,27 @@ func TestFillLatestVersion(t *testing.T) {
 		url, _ := serve(t, release("v12.4.0"))
 		snapshot := &healthcheck.Snapshot{}
 
-		assert.Empty(t, FillLatestVersion(context.Background(), snapshot, url))
+		require.NoError(t, FillLatestVersion(context.Background(), snapshot, url))
 		assert.Equal(t, "12.4.0", snapshot.Version.Latest)
 	})
 
-	t.Run("a failed fetch leaves it empty and says why", func(t *testing.T) {
+	t.Run("a failed fetch returns its error and leaves it empty", func(t *testing.T) {
 		url, _ := serve(t, func(w http.ResponseWriter, _ *http.Request) { w.WriteHeader(http.StatusBadGateway) })
 		snapshot := &healthcheck.Snapshot{}
 
-		assert.Equal(t, "Could not fetch the latest release (unexpected status code 502): version-behind findings are unknown.", FillLatestVersion(context.Background(), snapshot, url))
+		assert.EqualError(t, FillLatestVersion(context.Background(), snapshot, url), "unexpected status code 502")
 		assert.Empty(t, snapshot.Version.Latest)
+	})
+
+	t.Run("a canceled context stops the fetch", func(t *testing.T) {
+		url, requests := serve(t, release("v12.4.0"))
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		snapshot := &healthcheck.Snapshot{}
+
+		assert.ErrorIs(t, FillLatestVersion(ctx, snapshot, url), context.Canceled)
+		assert.Empty(t, snapshot.Version.Latest)
+		assert.Zero(t, requests.Load())
 	})
 
 	t.Run("a latest release the snapshot already records is not fetched", func(t *testing.T) {
@@ -53,7 +65,7 @@ func TestFillLatestVersion(t *testing.T) {
 		snapshot := &healthcheck.Snapshot{}
 		snapshot.Version.Latest = "12.1.0"
 
-		assert.Empty(t, FillLatestVersion(context.Background(), snapshot, url))
+		assert.NoError(t, FillLatestVersion(context.Background(), snapshot, url))
 		assert.Equal(t, "12.1.0", snapshot.Version.Latest)
 		assert.Zero(t, requests.Load())
 	})

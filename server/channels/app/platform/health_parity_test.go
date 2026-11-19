@@ -405,7 +405,8 @@ func parityRoundTrip(t *testing.T, live *healthcheck.Snapshot, latestRelease htt
 
 	release := httptest.NewServer(latestRelease)
 	t.Cleanup(release.Close)
-	packet.FillLatestVersion(context.Background(), p.Snapshot, release.URL)
+	// A failed fetch is a case of its own; it leaves the version rules unknown, as in mmctl.
+	_ = packet.FillLatestVersion(context.Background(), p.Snapshot, release.URL)
 
 	return p.Snapshot
 }

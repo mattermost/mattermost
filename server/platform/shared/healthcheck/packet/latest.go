@@ -5,7 +5,6 @@ package packet
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
@@ -13,18 +12,18 @@ import (
 )
 
 // FillLatestVersion fetches the release at latestURL when the snapshot doesn't record the latest
-// one, which packets never do. A failed fetch is not an error: the version-behind rules report
-// unknown and the returned note says why.
-func FillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot, latestURL string) string {
+// one, which packets never do. On error the snapshot is unchanged and the version-behind rules
+// report unknown, so callers can evaluate anyway.
+func FillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot, latestURL string) error {
 	if snapshot.Version.Latest != "" {
-		return ""
+		return nil
 	}
 
 	release, err := releases.FetchLatest(ctx, latestURL)
 	if err != nil {
-		return fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err)
+		return err
 	}
 
 	snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
-	return ""
+	return nil
 }
