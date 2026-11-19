@@ -100,7 +100,9 @@ function ResizableDivider({
 
     const startWidth = useRef(0);
     const snapWidth = useRef(0);
-    const pointerMoved = useRef(false);
+
+    // Whether a pointer move during this drag changed the rendered width, as opposed to the layout changing it
+    const pointerResized = useRef(false);
     const lastWidth = useRef<number | null>(null);
 
     const previousClientX = useRef(0);
@@ -124,6 +126,12 @@ function ResizableDivider({
         }
 
         defaultOnResizeChange(width, cssVarProp, cssVarValue);
+
+        // A width limit can hold the rendered width where it was, so check what actually rendered
+        const renderedWidth = containerRef.current?.getBoundingClientRect().width;
+        if (renderedWidth && renderedWidth !== startWidth.current) {
+            pointerResized.current = true;
+        }
     };
 
     const reset = () => {
@@ -144,7 +152,7 @@ function ResizableDivider({
 
         previousClientX.current = e.clientX;
         snapWidth.current = typeof defaultWidth === 'function' ? defaultWidth() : defaultWidth;
-        pointerMoved.current = false;
+        pointerResized.current = false;
 
         const currentWidth = containerRef.current.getBoundingClientRect().width;
         startWidth.current = currentWidth;
@@ -208,10 +216,6 @@ function ResizableDivider({
                 break;
             }
 
-            if (widthDiff !== 0) {
-                pointerMoved.current = true;
-            }
-
             const newWidth = previousWidth + widthDiff;
 
             if (resizeLine.classList.contains('snapped')) {
@@ -255,10 +259,10 @@ function ResizableDivider({
         const onMouseUp = () => {
             const finalWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
 
-            // Only save a width the pointer actually changed. Pressing the handle without dragging, or dragging
-            // against a width limit, must not overwrite the saved preference with a width the layout is
-            // currently capping. Always let the parent clean up.
-            if (finalWidth && pointerMoved.current && finalWidth !== startWidth.current) {
+            // Only save a width the pointer actually changed. Pressing the handle without dragging, dragging
+            // against a width limit, or the layout changing during the drag must not overwrite the saved
+            // preference with a width the layout is currently capping. Always let the parent clean up.
+            if (finalWidth && pointerResized.current) {
                 setWidth(finalWidth);
             }
             onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);
@@ -275,6 +279,9 @@ function ResizableDivider({
         return () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
+
+            // Covers a drag torn down before mouseup, such as the divider unmounting or being disabled
+            document.body.classList.remove('layout-changing');
         };
     }, [isActive, disabled]);
 

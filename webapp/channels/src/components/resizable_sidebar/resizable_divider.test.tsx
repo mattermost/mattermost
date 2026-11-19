@@ -116,6 +116,14 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
         fireEvent.mouseUp(window);
         expect(getSavedWidth(store.getState())).toBe(600);
 
+        // Dragging against the width limit, then the limit shrinking before release, keeps the saved width
+        cap = 400;
+        fireEvent.mouseDown(divider, {button: 0, clientX: 400});
+        fireEvent.mouseMove(window, {clientX: 450});
+        cap = 350;
+        fireEvent.mouseUp(window);
+        expect(getSavedWidth(store.getState())).toBe(600);
+
         // Dragging to a new width saves it
         cap = 1000;
         fireEvent.mouseDown(divider, {button: 0, clientX: 400});
@@ -124,5 +132,15 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
         expect(getSavedWidth(store.getState())).toBe(450);
 
         getBoundingClientRect.mockRestore();
+    });
+
+    test('should clear the layout-changing class if the divider unmounts mid-drag', () => {
+        const {container, unmount} = renderWithContext(<TestWrapper/>);
+
+        fireEvent.mouseDown(container.querySelector(`#${dividerId}`)!, {button: 0});
+        expect(document.body.classList.contains('layout-changing')).toBe(true);
+
+        unmount();
+        expect(document.body.classList.contains('layout-changing')).toBe(false);
     });
 });
