@@ -703,6 +703,35 @@ func TestUpdateBotActive(t *testing.T) {
 		require.Equal(t, reenabledBot.DeleteAt, reenabledBotAgain.DeleteAt)
 	})
 
+	t.Run("disable/enable bot converted from user", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = true
+		})
+
+		user := th.CreateUser(t)
+		bot, err := th.App.ConvertUserToBot(th.Context, user)
+		require.Nil(t, err)
+		require.Equal(t, bot.UserId, bot.OwnerId)
+
+		disabledBot, err := th.App.UpdateBotActive(th.Context, bot.UserId, false)
+		require.Nil(t, err)
+		require.NotZero(t, disabledBot.DeleteAt)
+
+		botUser, err := th.App.GetUser(th.Context, bot.UserId)
+		require.Nil(t, err)
+		require.NotZero(t, botUser.DeleteAt)
+
+		reenabledBot, err := th.App.UpdateBotActive(th.Context, bot.UserId, true)
+		require.Nil(t, err)
+		require.Zero(t, reenabledBot.DeleteAt)
+
+		botUser, err = th.App.GetUser(th.Context, bot.UserId)
+		require.Nil(t, err)
+		require.Zero(t, botUser.DeleteAt)
+	})
+
 	for username := range model.ProtectedBotUsernames {
 		t.Run("cannot disable protected bot "+username, func(t *testing.T) {
 			th := Setup(t).InitBasic(t)
