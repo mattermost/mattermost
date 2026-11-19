@@ -3048,6 +3048,7 @@ func (s *SqlPostStore) GetDirectPostParentsForExportAfter(limit int, afterId str
 			sq.Eq{"p.DeleteAt": 0},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 			channelHasNoRemoteMembersCond,
+			sq.Eq{"COALESCE(u2.RemoteId, '')": ""},
 		}).
 		GroupBy("p.Id, u2.Username").
 		OrderBy("p.Id").

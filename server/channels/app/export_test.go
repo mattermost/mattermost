@@ -1845,6 +1845,20 @@ func TestExportSkipsRemoteUsers(t *testing.T) {
 		Message:   "dm with remote user",
 	})
 	require.NoError(t, err)
+	localGM := th1.CreateGroupChannel(t, th1.BasicUser2, th1.CreateUser(t))
+	_, err = th1.App.Srv().Store().Channel().SaveMember(th1.Context, &model.ChannelMember{
+		ChannelId:   localGM.Id,
+		UserId:      remoteUser.Id,
+		NotifyProps: model.GetDefaultChannelNotifyProps(),
+	})
+	require.NoError(t, err)
+	_, err = th1.App.Srv().Store().Post().Save(th1.Context, &model.Post{
+		ChannelId: localGM.Id,
+		UserId:    remoteUser.Id,
+		Message:   "gm post from former remote member",
+	})
+	require.NoError(t, err)
+	require.NoError(t, th1.App.Srv().Store().Channel().RemoveMember(th1.Context, localGM.Id, remoteUser.Id))
 	localDMPost := th1.CreatePost(t, th1.CreateDmChannel(t, th1.BasicUser2))
 
 	var b bytes.Buffer
@@ -1855,6 +1869,7 @@ func TestExportSkipsRemoteUsers(t *testing.T) {
 	assert.NotContains(t, exported, remoteUser.Username)
 	assert.NotContains(t, exported, remoteRoot.Message)
 	assert.NotContains(t, exported, "dm with remote user")
+	assert.NotContains(t, exported, "gm post from former remote member")
 
 	th2 := Setup(t)
 	i, appErr := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
