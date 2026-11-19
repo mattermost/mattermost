@@ -3,7 +3,6 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
-import type {PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
@@ -15,7 +14,7 @@ import {Icon} from '@mattermost/compass-ui/components/icon';
 import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 
 import * as Menu from 'components/menu';
-import {compassSideClass, compassSurfaceOriginClass, useCompassMenuPresence} from 'components/menu/compass_menu_motion';
+import {compassSubmenuClass, compassSurfaceOriginClass, useCompassMenuPresence, useSubmenuSide} from 'components/menu/compass_menu_motion';
 import {MenuContext} from 'components/menu/menu_context';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
@@ -186,26 +185,14 @@ const AIActionsMenu = ({
         displayedSubmenuRef.current = activeSubmenu;
     }
 
-    const submenuOrigins = useMemo((): {anchorOrigin: PopoverOrigin; transformOrigin: PopoverOrigin} => {
-        const MIN_SUBMENU_WIDTH = 400;
-        if (placementAnchor) {
-            const rightSpace = window.innerWidth - (placementAnchor.getBoundingClientRect()?.right ?? 0);
-            if (rightSpace < MIN_SUBMENU_WIDTH) {
-                return {
-                    anchorOrigin: {vertical: 'bottom', horizontal: 'left'},
-                    transformOrigin: {vertical: 'bottom', horizontal: 'right'},
-                };
-            }
-        }
-        return {
-            anchorOrigin: {vertical: 'bottom', horizontal: 'right'},
-            transformOrigin: {vertical: 'bottom', horizontal: 'left'},
-        };
-    }, [placementAnchor]);
-
     const menuIsOpen = embedded ? parentOpen : isMenuOpen;
     const submenuOpen = Boolean(activeSubmenu) && menuIsOpen;
     const {present: submenuPresent, onExited: submenuExited} = useCompassMenuPresence(submenuOpen);
+    const submenuSide = useSubmenuSide(submenuOpen, placementAnchor);
+    const setPanelNode = useCallback((node: HTMLDivElement | null) => {
+        panelRef.current = node;
+        submenuSide.setPaper(node);
+    }, [submenuSide.setPaper]);
 
     if (!hasItems) {
         return null;
@@ -220,7 +207,7 @@ const AIActionsMenu = ({
         'AsSubMenu',
         'ai-actions-submenu',
         'menu_menuStyled--compass',
-        compassSideClass(submenuOrigins.anchorOrigin, submenuOrigins.transformOrigin),
+        compassSubmenuClass(submenuSide.side),
         {
             'ai-actions-submenu-rewrite': isRewriteSubmenu,
         },
@@ -290,8 +277,8 @@ const AIActionsMenu = ({
         <MuiPopover
             open={true}
             anchorEl={placementAnchor}
-            anchorOrigin={submenuOrigins.anchorOrigin}
-            transformOrigin={submenuOrigins.transformOrigin}
+            anchorOrigin={submenuSide.anchorOrigin}
+            transformOrigin={submenuSide.transformOrigin}
             className={submenuClassName}
             disableAutoFocus={true}
             disableEnforceFocus={true}
@@ -300,7 +287,7 @@ const AIActionsMenu = ({
             transitionDuration={0}
             slotProps={{
                 paper: {
-                    ref: panelRef,
+                    ref: setPanelNode,
                     style: {
                         overflow: 'visible',
                         background: 'transparent',
@@ -320,7 +307,7 @@ const AIActionsMenu = ({
                         variant='child'
                         open={submenuOpen}
                         onExited={submenuExited}
-                        className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(submenuOrigins.transformOrigin))}
+                        className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(submenuSide.transformOrigin))}
                     >
                         {isRewriteSubmenu && rewriteMenuProps && (
                             <>

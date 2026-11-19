@@ -1479,7 +1479,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
         });
 
-        it('closes an open submenu when the pointer moves to another row', async () => {
+        it('opens message priority in place of the plus menu', async () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 mergeObjects(chromeState, {
@@ -1496,12 +1496,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await openMenu();
             fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Message priority', hidden: true}));
-            expect(screen.getByRole('menuitemradio', {name: 'Standard'})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitemradio', {name: 'Standard'})).not.toBeInTheDocument();
 
-            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Show formatting', hidden: true}));
-            expect(screen.getByRole('menuitem', {name: 'Message priority', hidden: true})).toHaveAttribute('aria-expanded', 'false');
+            fireEvent.click(screen.getByRole('menuitem', {name: 'Message priority', hidden: true}));
             await waitFor(() => {
-                expect(screen.queryByRole('menuitemradio', {name: 'Standard'})).not.toBeInTheDocument();
+                expect(screen.queryByRole('menu', {name: 'Message options'})).not.toBeInTheDocument();
+                expect(screen.getByRole('menuitemradio', {name: 'Standard'})).toBeInTheDocument();
             });
         });
 

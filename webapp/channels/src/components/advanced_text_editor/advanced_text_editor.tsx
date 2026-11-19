@@ -544,6 +544,7 @@ const AdvancedTextEditor = ({
     const {
         labels: priorityLabels,
         additionalControl: priorityAdditionalControl,
+        menuPopover: priorityMenuPopover,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(
@@ -1055,6 +1056,7 @@ const AdvancedTextEditor = ({
                     aiRewriteEnabled,
                 } : null}
             />
+            {priorityMenuPopover}
         </div>
     );
     const sendActions = showPlus && (

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -154,21 +154,67 @@ const usePriority = (
         ) : undefined
     ), [hasPrioritySet, rootId, showIndividualCloseButton, shouldShowPreview, isValidPersistentNotifications, specialMentions, handleRemovePriority, draft]);
 
-    const additionalControl = useMemo(() =>
-        !rootId && isPostPriorityEnabled && (
+    const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+    const [menuOpen, setMenuOpen] = useState(false);
+    const openFromMenu = useCallback((anchor: HTMLElement | null) => {
+        setMenuAnchor(anchor);
+        setMenuOpen(true);
+    }, []);
+    const closeFromMenu = useCallback(() => {
+        setMenuOpen(false);
+        handlePostPriorityHide();
+    }, [handlePostPriorityHide]);
+
+    const showInMenu = presentation === 'item' && !rootId && isPostPriorityEnabled;
+    const additionalControl = useMemo(() => {
+        if (rootId || !isPostPriorityEnabled) {
+            return null;
+        }
+        if (presentation === 'button') {
+            return (
+                <PostPriorityPicker
+                    key='post-priority-picker-key'
+                    presentation='button'
+                    settings={draft.metadata?.priority}
+                    onApply={handlePostPriorityApply}
+                    onClose={handlePostPriorityHide}
+                    disabled={shouldShowPreview}
+                />
+            );
+        }
+        return (
             <PostPriorityPicker
-                key='post-priority-picker-key'
-                presentation={presentation}
+                key='post-priority-menu-item'
+                presentation='item'
                 settings={draft.metadata?.priority}
                 onApply={handlePostPriorityApply}
                 onClose={handlePostPriorityHide}
                 disabled={shouldShowPreview}
+                onOpenMenu={openFromMenu}
             />
-        ), [presentation, rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
+        );
+    }, [presentation, rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview, openFromMenu]);
+
+    const menuPopover = showInMenu ? (
+        <PostPriorityPicker
+            key='post-priority-menu-popover'
+            presentation='popover'
+            settings={draft.metadata?.priority}
+            onApply={(settings) => {
+                setMenuOpen(false);
+                handlePostPriorityApply(settings);
+            }}
+            onClose={closeFromMenu}
+            disabled={shouldShowPreview}
+            popoverOpen={menuOpen}
+            popoverAnchor={menuAnchor}
+        />
+    ) : null;
 
     return {
         labels,
         additionalControl,
+        menuPopover,
         isValidPersistentNotifications,
         onSubmitCheck,
         handleRemovePriority,

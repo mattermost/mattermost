@@ -4,11 +4,11 @@
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
 import classNames from 'classnames';
-import React, {useCallback, useContext, useState, memo, useMemo, useEffect, useRef} from 'react';
+import React, {useCallback, useContext, useState, memo, useMemo, useEffect} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useSelector} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {AlertCircleOutlineIcon, ChevronRightIcon} from '@mattermost/compass-icons/components';
+import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 import type {PostPriorityMetadata} from '@mattermost/types/posts';
@@ -17,10 +17,12 @@ import {PostPriority} from '@mattermost/types/posts';
 import {getPersistentNotificationIntervalMinutes, isPersistentNotificationsEnabled, isPostAcknowledgementsEnabled} from 'mattermost-redux/selectors/entities/posts';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {submenuPointerDestination, useComposerSubmenuHover, useDelayedSubmenuClose} from 'components/advanced_text_editor/composer_submenu_hover';
+import {closeModal} from 'actions/views/modals';
+
+import {COMPOSER_PLUS_MENU_ID} from 'components/advanced_text_editor/composer_submenu_hover';
 import CompassDesignProvider from 'components/compass_design_provider';
 import * as Menu from 'components/menu';
-import {compassSideClass, compassSurfaceOriginClass, useCompassMenuPresence} from 'components/menu/compass_menu_motion';
+import {compassSurfaceOriginClass, useCompassMenuPresence} from 'components/menu/compass_menu_motion';
 import {MenuContext} from 'components/menu/menu_context';
 
 import Constants from 'utils/constants';
@@ -32,8 +34,6 @@ import './post_priority_picker.scss';
 
 const PostPriorityMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
 
-const PRIORITY_ROW_ID = 'message-priority';
-
 type Props = {
     settings?: PostPriorityMetadata;
     onClose: () => void;
@@ -41,7 +41,11 @@ type Props = {
     disabled: boolean;
 
     // `button` is the formatting-bar control. `item` is a row in the composer + menu.
-    presentation?: 'button' | 'item';
+    // `popover` is the menu that replaces the + menu after that row is chosen.
+    presentation?: 'button' | 'item' | 'popover';
+    onOpenMenu?: (anchor: HTMLElement | null) => void;
+    popoverOpen?: boolean;
+    popoverAnchor?: HTMLElement | null;
 };
 
 function PostPriorityPicker({
@@ -50,18 +54,19 @@ function PostPriorityPicker({
     settings,
     disabled,
     presentation = 'button',
+    onOpenMenu,
+    popoverOpen = false,
+    popoverAnchor = null,
 }: Props) {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
     const menu = useContext(MenuContext);
     const compassMenu = useMemo(() => ({
         ...menu,
         compass: true,
     }), [menu]);
-    const {activeRow, claimRow} = useComposerSubmenuHover();
-    const panelRef = useRef<HTMLDivElement>(null);
 
     const [pickerOpen, setPickerOpen] = useState(false);
-    const [itemAnchor, setItemAnchor] = useState<HTMLElement | null>(null);
     const [priority, setPriority] = useState<PostPriority | ''>(settings?.priority || '');
     const [requestedAck, setRequestedAck] = useState<boolean>(settings?.requested_ack || false);
     const [persistentNotifications, setPersistentNotifications] = useState<boolean>(settings?.persistent_notifications || false);
@@ -75,12 +80,8 @@ function PostPriorityPicker({
 
     const handleClose = useCallback(() => {
         setPickerOpen(false);
-        setItemAnchor(null);
         onClose();
-        if (presentation === 'item') {
-            menu.close?.();
-        }
-    }, [menu, onClose, presentation]);
+    }, [onClose]);
 
     const makeOnSelectPriority = useCallback((type?: PostPriority) => (e: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
         e.stopPropagation();
@@ -252,18 +253,12 @@ function PostPriorityPicker({
             </Footer>
         </div>, [handleApply, handleClose, handleFooterButtonAction, postAcknowledgementsEnabled]);
 
-    useEffect(() => {
-        if (presentation === 'button' && pickerOpen) {
-            setPriority(settings?.priority || '');
-            setPersistentNotifications(settings?.persistent_notifications || false);
-            setRequestedAck(settings?.requested_ack || false);
-        }
-    }, [pickerOpen, presentation, settings]);
+    const menuIsOpen = presentation === 'popover' ? popoverOpen : pickerOpen;
+    const {present: menuPresent, onExited: menuExited} = useCompassMenuPresence(menuIsOpen);
+    const menuOrigin = useMemo(() => ({vertical: 'bottom' as const, horizontal: 'left' as const}), []);
 
-    // Snapshot the saved priority when the + menu row opens its panel, and
-    // leave that snapshot alone while the panel stays open.
     useEffect(() => {
-        if (presentation === 'item' && itemAnchor) {
+        if ((presentation === 'button' && pickerOpen) || (presentation === 'popover' && popoverOpen)) {
             setPriority(settings?.priority || '');
             setPersistentNotifications(settings?.persistent_notifications || false);
             setRequestedAck(settings?.requested_ack || false);
@@ -271,59 +266,7 @@ function PostPriorityPicker({
 
         // settings is read when the panel opens.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [itemAnchor, presentation]);
-
-    const itemAnchorRef = useRef<HTMLElement | null>(null);
-    if (itemAnchor) {
-        itemAnchorRef.current = itemAnchor;
-    }
-    const itemPlacementAnchor = itemAnchor ?? itemAnchorRef.current;
-    const itemOpen = presentation === 'item' && Boolean(itemAnchor);
-    const {present: itemPresent, onExited: itemExited} = useCompassMenuPresence(itemOpen);
-    const itemOrigins = useMemo(() => ({
-        anchorOrigin: {vertical: 'bottom' as const, horizontal: 'right' as const},
-        transformOrigin: {vertical: 'bottom' as const, horizontal: 'left' as const},
-    }), []);
-
-    const closeItemPanel = useCallback(() => {
-        setItemAnchor(null);
-    }, []);
-    const {cancel: cancelClose, schedule: scheduleClose} = useDelayedSubmenuClose(closeItemPanel);
-
-    const openItem = useCallback((event: React.MouseEvent<HTMLLIElement> | React.KeyboardEvent<HTMLLIElement>) => {
-        cancelClose();
-        claimRow(PRIORITY_ROW_ID);
-        setItemAnchor(event.currentTarget);
-    }, [cancelClose, claimRow]);
-
-    const closeItemUnlessInside = useCallback((next: EventTarget | null, anchor: HTMLElement | null) => {
-        const destination = submenuPointerDestination(next, panelRef.current, anchor);
-        if (destination === 'stay') {
-            cancelClose();
-            return;
-        }
-        if (destination === 'close') {
-            cancelClose();
-            closeItemPanel();
-            return;
-        }
-        scheduleClose();
-    }, [cancelClose, closeItemPanel, scheduleClose]);
-
-    // Close when the pointer claims another + row, and when the desktop menu
-    // closes. The mobile modal does not provide MenuContext, so a missing
-    // close function means this row is not in that desktop menu.
-    useEffect(() => {
-        if (presentation !== 'item' || !itemAnchor) {
-            return;
-        }
-        const parentClosed = Boolean(menu.close) && !menu.isOpen;
-        const anotherRow = activeRow !== null && activeRow !== PRIORITY_ROW_ID;
-        if (parentClosed || anotherRow) {
-            cancelClose();
-            closeItemPanel();
-        }
-    }, [activeRow, cancelClose, closeItemPanel, itemAnchor, menu.close, menu.isOpen, presentation]);
+    }, [pickerOpen, popoverOpen, presentation]);
 
     const pickerBody = (
         <div className='PostPriorityPicker'>
@@ -354,73 +297,69 @@ function PostPriorityPicker({
     );
 
     if (presentation === 'item') {
+        const openReplacement = () => {
+            const anchor = document.querySelector<HTMLElement>('#agentComposerMenuButton[aria-expanded="true"]') ??
+                document.getElementById('agentComposerMenuButton');
+            if (menu.close) {
+                menu.addOnClosedListener(() => onOpenMenu?.(anchor));
+                menu.close();
+                return;
+            }
+            dispatch(closeModal(COMPOSER_PLUS_MENU_ID));
+            onOpenMenu?.(anchor);
+        };
+
+        return (
+            <Menu.Item
+                id='messagePriority'
+                aria-haspopup='menu'
+                disabled={disabled}
+                disableCloseOnSelect={true}
+                leadingElement={<AlertCircleOutlineIcon size={18}/>}
+                labels={(
+                    <FormattedMessage
+                        id='shortcuts.msgs.formatting_bar.post_priority'
+                        defaultMessage='Message priority'
+                    />
+                )}
+                onClick={openReplacement}
+            />
+        );
+    }
+
+    if (presentation === 'popover') {
         return (
             <CompassDesignProvider theme={theme}>
-                <Menu.Item
-                    id='messagePriority'
-                    aria-haspopup='menu'
-                    aria-expanded={Boolean(itemAnchor)}
-                    disabled={disabled}
-                    disableCloseOnSelect={true}
-                    leadingElement={<AlertCircleOutlineIcon size={18}/>}
-                    labels={(
-                        <FormattedMessage
-                            id='shortcuts.msgs.formatting_bar.post_priority'
-                            defaultMessage='Message priority'
-                        />
-                    )}
-                    trailingElements={<ChevronRightIcon size={18}/>}
-                    onMouseEnter={openItem}
-                    onMouseLeave={(event) => closeItemUnlessInside(event.relatedTarget, event.currentTarget)}
-                    onClick={openItem}
-                    onKeyDown={(event) => {
-                        if (Keyboard.isKeyPressed(event, Constants.KeyCodes.ENTER) ||
-                            Keyboard.isKeyPressed(event, Constants.KeyCodes.SPACE) ||
-                            Keyboard.isKeyPressed(event, Constants.KeyCodes.RIGHT)) {
-                            event.preventDefault();
-                            openItem(event);
-                        }
-                    }}
-                />
-                {itemPresent && itemPlacementAnchor && (
+                {menuPresent && popoverAnchor && (
                     <MuiPopover
                         open={true}
-                        anchorEl={itemPlacementAnchor}
-                        anchorOrigin={itemOrigins.anchorOrigin}
-                        transformOrigin={itemOrigins.transformOrigin}
-                        className={classNames('menu_menuStyled AsSubMenu menu_menuStyled--compass', compassSideClass(itemOrigins.anchorOrigin, itemOrigins.transformOrigin))}
-                        disableAutoFocus={true}
-                        disableEnforceFocus={true}
-                        disableRestoreFocus={true}
-                        hideBackdrop={true}
+                        anchorEl={popoverAnchor}
+                        anchorOrigin={{vertical: 'top', horizontal: 'left'}}
+                        transformOrigin={menuOrigin}
+                        className='menu_menuStyled menu_menuStyled--compass menu_menuStyled--above'
                         transitionDuration={0}
-                        onClose={closeItemPanel}
+                        onClose={handleClose}
                         slotProps={{
                             paper: {
-                                ref: panelRef,
                                 style: {
                                     overflow: 'visible',
                                     background: 'transparent',
                                     boxShadow: 'none',
                                     maxHeight: 'none',
                                 },
-                                onMouseEnter: cancelClose,
-                                onMouseLeave: (event) => closeItemUnlessInside(event.relatedTarget, itemAnchor),
                             },
                         }}
                     >
-                        <div style={{pointerEvents: 'auto'}}>
-                            <MenuContext.Provider value={compassMenu}>
-                                <PopoverMenu
-                                    variant='child'
-                                    open={itemOpen}
-                                    onExited={itemExited}
-                                    className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(itemOrigins.transformOrigin))}
-                                >
-                                    {pickerBody}
-                                </PopoverMenu>
-                            </MenuContext.Provider>
-                        </div>
+                        <MenuContext.Provider value={compassMenu}>
+                            <PopoverMenu
+                                variant='parent'
+                                open={popoverOpen}
+                                onExited={menuExited}
+                                className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(menuOrigin))}
+                            >
+                                {pickerBody}
+                            </PopoverMenu>
+                        </MenuContext.Provider>
                     </MuiPopover>
                 )}
             </CompassDesignProvider>

@@ -25,17 +25,29 @@ a.MuiMenuItem-root {
         margin-block-start: -4px;
     }
 
-    // Submenus open beside a row. The block margin would slide them off that
-    // row, so the 4px gap is on the side facing the row.
-    &.menu_menuStyled--side-right .MuiPaper-root {
-        margin-block-start: 0;
-        margin-inline-start: 4px;
+    // Child menus sit just past the parent edge (--spacing-xxs) and overlap
+    // the row by the parent padding (--spacing-xs), growing down from the
+    // row's top. The up classes do the same from the row's bottom.
+    &.menu_menuStyled--side-right.menu_menuStyled--overlap-down .MuiPaper-root {
+        margin-block-start: calc(-1 * var(--spacing-xs));
+        margin-inline-start: var(--spacing-xxs);
     }
 
-    &.menu_menuStyled--side-left .MuiPaper-root {
-        margin-block-start: 0;
-        margin-inline-start: -4px;
+    &.menu_menuStyled--side-right.menu_menuStyled--overlap-up .MuiPaper-root {
+        margin-block-start: var(--spacing-xs);
+        margin-inline-start: var(--spacing-xxs);
     }
+
+    &.menu_menuStyled--side-left.menu_menuStyled--overlap-down .MuiPaper-root {
+        margin-block-start: calc(-1 * var(--spacing-xs));
+        margin-inline-start: calc(-1 * var(--spacing-xxs));
+    }
+
+    &.menu_menuStyled--side-left.menu_menuStyled--overlap-up .MuiPaper-root {
+        margin-block-start: var(--spacing-xs);
+        margin-inline-start: calc(-1 * var(--spacing-xxs));
+    }
+
     &.AsSubMenu {
         pointer-events: none;
         & .MuiPaper-root {

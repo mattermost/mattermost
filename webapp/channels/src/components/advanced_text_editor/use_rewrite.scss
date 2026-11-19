@@ -1,16 +1,4 @@
-.ai-actions-submenu {
-    & .MuiPaper-root {
-        min-width: 260px;
-        margin-block-start: 0;
-    }
-
-    &.ai-actions-submenu-rewrite .MuiPaper-root {
-        min-width: 400px;
-    }
-}
-
 .rewrite-menu-header {
-    min-width: 400px;
     padding: 8px 12px 8px 12px;
 
     .Input_wrapper {
