@@ -32,14 +32,15 @@ When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md` exactly:
 - Never argue with the bot to create a learning; leave design disagreements for
   a human.
 - If CodeRabbit says "Reviews paused", comment `@coderabbitai resume`. If findings
-  are fixed but it still requests changes, comment `@coderabbitai resolve`.
+  are fixed but it still requests changes, reply `@coderabbitai resolve` on each
+  fixed finding's thread, not as a top-level PR comment.
   Use `@coderabbitai review` only for new commits it has not reviewed.
 
 | Situation | Command |
 | --- | --- |
 | A notice says "Reviews paused" | `@coderabbitai resume` |
 | New commits, not paused, no review after 20 minutes | `@coderabbitai review` |
-| Findings fixed, but CodeRabbit still requests changes | `@coderabbitai resolve` |
+| Findings fixed, but CodeRabbit still requests changes | `@coderabbitai resolve` as a reply on each fixed finding's thread, not a top-level PR comment |
 
 ## Cursor Cloud Agents
 
