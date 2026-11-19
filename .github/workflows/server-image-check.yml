@@ -28,6 +28,11 @@ on:
         required: false
         default: PR
         description: "PR, MASTER, RELEASE or RELEASE_CUT; suffixes the status context as the E2E lanes do"
+      should_run:
+        type: string
+        required: false
+        default: "true"
+        description: "'false' when no lane of this edition will start a server: passes at once, without probing or publishing a status"
 
 permissions: {}
 
@@ -40,6 +45,7 @@ jobs:
       statuses: write
     steps:
       - name: ci/check-server-image
+        if: inputs.should_run != 'false'
         env:
           COMMIT_SHA: ${{ inputs.commit_sha }}
           SERVER_EDITION: ${{ inputs.server_edition }}

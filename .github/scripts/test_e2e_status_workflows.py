@@ -464,7 +464,31 @@ class ServerImageCheck(unittest.TestCase):
         self.assertNotIn('uses', check)
         self.assertEqual((check['env']['POLL_MINUTES'], check['env']['INTERVAL_SECONDS']), ('5', '30'))
         inputs = yaml.safe_load(self.GATE.read_text())[True]['workflow_call']['inputs']
-        self.assertEqual(sorted(inputs), ['commit_sha', 'report_type', 'server_edition', 'server_image_repo', 'server_image_tag'])
+        self.assertEqual(sorted(inputs), ['commit_sha', 'report_type', 'server_edition', 'server_image_repo',
+                                          'server_image_tag', 'should_run'])
+        self.assertEqual(inputs['should_run']['default'], 'true')
+
+    def test_skip_only_pr_passes_without_probing(self):
+        """should_run 'false' skips the only step, so the job passes without a request or a status; only the PR
+        caller sets it, and only when no enterprise lane will boot a server."""
+        self.assertEqual(self.gate_job()['steps'][0]['if'], "inputs.should_run != 'false'")
+        outputs = 'needs.check-changes.outputs'
+        gate = workflow('ci')['jobs']['server-image-enterprise']
+        self.assertEqual(gate['needs'], ['resolve-pr', 'check-changes'])
+        self.assertEqual(gate['with']['should_run'],
+                         f"${{{{ ({outputs}.should_run != 'false' || {outputs}.should_run_rolling_upgrades == 'true' || "
+                         f"{outputs}.should_run_subpath == 'true') && 'true' || 'false' }}}}")
+        playwright = workflow('playwright')['jobs']
+        self.assertEqual(playwright['playwright-full']['if'], "inputs.should_run != 'false'")
+        self.assertEqual(playwright['playwright-rolling-upgrades']['if'], "inputs.run_rolling_upgrades == 'true'")
+        self.assertEqual(workflow('cypress')['jobs']['cypress-full']['if'], "inputs.should_run != 'false'")
+        lanes = workflow('ci')['jobs']
+        self.assertIn(f"{outputs}.should_run_subpath == 'true'", lanes['e2e-playwright-subpath']['if'])
+        self.assertEqual(lanes['e2e-playwright']['with']['run_rolling_upgrades'], f'${{{{ {outputs}.should_run_rolling_upgrades }}}}')
+        for caller in ('ci', 'on-merge', 'on-release'):
+            self.assertNotIn('should_run', workflow(caller)['jobs']['server-image-fips']['with'])
+        for caller in ('on-merge', 'on-release'):
+            self.assertNotIn('should_run', workflow(caller)['jobs']['server-image-enterprise']['with'])
 
     def test_every_lane_needs_its_editions_gate(self):
         """Each caller checks every edition it tests, with the lane's own image inputs, and each lane needs that check."""
@@ -482,7 +506,7 @@ class ServerImageCheck(unittest.TestCase):
                         expected['commit_sha'] = '${{ needs.resolve-pr.outputs.COMMIT_SHA }}'
                     if repo != 'mattermostdevelopment':
                         expected['server_image_repo'] = repo
-                    self.assertEqual(gate['with'], expected)
+                    self.assertEqual({k: v for k, v in gate['with'].items() if k != 'should_run'}, expected)
                 lanes = {name: job for name, job in jobs.items() if job.get('uses') in self.LANE_USES}
                 self.assertEqual(len(lanes), 5)
                 for name, lane in lanes.items():
