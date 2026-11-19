@@ -3349,6 +3349,11 @@
     "description": "Generic lowercase API error for a low-level input/output failure; developer/log audience."
   },
   {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Jobs of this type can't be canceled.",
+    "description": "Admin API error when a request tries to cancel a background job whose type does not support cancellation, such as a health check run."
+  },
+  {
     "id": "api.job.retrieve.nopermissions",
     "translation": "The job type of the job you are trying to retrieve does not have permissions defined.",
     "description": "Admin API error when a background job's type has no permission metadata defined, so access cannot be checked; developer-leaning register."
@@ -3839,6 +3844,21 @@
     "description": "Ephemeral system message to the poster when an @-mentioned user is not a team member; {{.Username}} is that user's username, rendered after a literal @."
   },
   {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "You do not have permission to set one or more of the requested post attribute values.",
+    "description": "API error when a post is created with a value for a post attribute the author is not allowed to set; the attribute is deliberately not named. 'Post attributes' are custom fields admins define for posts."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Burn-on-read posts can't have post attributes.",
+    "description": "API error when a burn-on-read post is created with post attribute values. 'Burn-on-read' is the self-destructing message feature name; 'post attributes' are custom fields admins define for posts."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Post attributes are not enabled on this server.",
+    "description": "API error when a post is created with post attribute values while the post attributes feature is turned off on the server. 'Post attributes' are custom fields admins define for posts."
+  },
+  {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
     "translation": "You do not have permission to send burn-on-read messages in this channel.",
     "description": "API error when a user does not have permission to send a burn-on-read message in a channel due to an attribute-based-access-control (ABAC) permission policy."
@@ -3867,6 +3887,11 @@
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter.",
     "description": "API error when a reply's root post belongs to a different channel than the one being posted to; 'ChannelId'/'RootId' are API parameter names."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "One or more post attribute values could not be applied.",
+    "description": "API error when a post is created with post attribute values that are unknown, repeated, not available in the post's channel, or that set fields the server assigns itself; the attribute is deliberately not named."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -8889,6 +8914,16 @@
     "id": "app.group.username_conflict",
     "translation": "user with username \"{{.Username}}\" already exists.",
     "description": "API error returned when a group operation conflicts with an existing account; {{.Username}} is the already-taken username."
+  },
+  {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Unable to start a health check run.",
+    "description": "Server error when a system admin asked to run the health check now and the server could neither create a run nor find the one already running."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "A health check run is already starting. Try again in a moment.",
+    "description": "Error when a system admin asked to run the health check now and the run already in the way finished at that moment, so the server could neither start a run nor return the active one."
   },
   {
     "id": "app.health_finding.get.app_error",
@@ -14763,8 +14798,8 @@
   },
   {
     "id": "health.rule.db_postgres_unsupported.message",
-    "translation": "PostgreSQL {{.version}} is below the minimum supported version. Mattermost requires PostgreSQL {{.minimum}} or later.",
-    "description": "Health dashboard finding detail when the database runs an unsupported PostgreSQL version; {{.version}} is the reported server version and {{.minimum}} is the minimum major version. 'PostgreSQL' is a product name and should not be translated."
+    "translation": "PostgreSQL {{.version}} is below the minimum supported version, {{.minimum}}. Mattermost still starts on it, but unsupported versions may lead to unexpected behavior. Upgrade to PostgreSQL {{.minimum}} or later.",
+    "description": "Health dashboard finding detail when the database runs an unsupported PostgreSQL version. Mattermost keeps running on it, so the text explains the risk rather than saying the version is required; {{.version}} is the reported server version and {{.minimum}} is the minimum major version. 'PostgreSQL' is a product name and should not be translated."
   },
   {
     "id": "health.rule.db_postgres_unsupported.remediation",
