@@ -27,10 +27,17 @@ const title = (
     />
 );
 
-const screen = (
+const closedBarScreen = (
     <FormattedMessage
         id='textbox.plus_tour.description'
         defaultMessage='Attach files, add an emoji, set a priority, and open formatting from this button. Skills and AI rewrite show up here when they are available.'
+    />
+);
+
+const openBarScreen = (
+    <FormattedMessage
+        id='textbox.plus_tour.description_formatting_open'
+        defaultMessage='Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.'
     />
 );
 
@@ -41,7 +48,11 @@ const nextBtn = (
     />
 );
 
-const ComposerPlusTourTip = () => {
+type Props = {
+    formattingBarOpen: boolean;
+};
+
+const ComposerPlusTourTip = ({formattingBarOpen}: Props) => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const [showTourTip, setShowTourTip] = useState(false);
@@ -73,7 +84,7 @@ const ComposerPlusTourTip = () => {
         <TourTip
             show={showTourTip}
             title={title}
-            screen={screen}
+            screen={formattingBarOpen ? openBarScreen : closedBarScreen}
             overlayPunchOut={overlayPunchOut}
             placement='top-start'
             pulsatingDotPlacement='top-end'

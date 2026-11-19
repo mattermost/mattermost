@@ -1345,6 +1345,32 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(tourPoint!);
 
             expect(screen.getByText('Message options moved here')).toBeInTheDocument();
+            expect(screen.getByText('Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
+        });
+
+        it('tells the plus tour that emoji and priority are in the menu when the formatting bar is hidden', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(initialState, {
+                    entities: {
+                        preferences: {
+                            myPreferences: {
+                                [`${Preferences.ADVANCED_TEXT_EDITOR}--post`]: {
+                                    category: Preferences.ADVANCED_TEXT_EDITOR,
+                                    name: 'post',
+                                    user_id: currentUserId,
+                                    value: 'true',
+                                },
+                            },
+                        },
+                    },
+                }),
+            );
+
+            await userEvent.click(document.getElementById('tipButton')!);
+
             expect(screen.getByText('Attach files, add an emoji, set a priority, and open formatting from this button. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
         });
 

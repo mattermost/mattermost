@@ -15,18 +15,31 @@ jest.mock('mattermost-redux/actions/preferences', () => ({
 
 describe('ComposerPlusTourTip', () => {
     it('centers the pulsating dot on the top-right corner of the plus button', () => {
-        renderWithContext(<ComposerPlusTourTip/>);
+        renderWithContext(<ComposerPlusTourTip formattingBarOpen={false}/>);
 
         const dot = document.getElementById('tipButton');
         expect(dot).toHaveAttribute('data-pulsating-dot-placement', 'top-end');
         expect(dot).toHaveStyle({transform: 'translate(6px, -6px)'});
     });
 
+    it('says emoji and priority are in the formatting bar when that bar is open', async () => {
+        renderWithContext(
+            <>
+                <button id='agentComposerMenuButton'>{'Message options'}</button>
+                <ComposerPlusTourTip formattingBarOpen={true}/>
+            </>,
+        );
+
+        await userEvent.click(document.getElementById('tipButton')!);
+
+        expect(screen.getByText('Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
+    });
+
     it('saves that the tip was seen when it is dismissed', async () => {
         renderWithContext(
             <>
                 <button id='agentComposerMenuButton'>{'Message options'}</button>
-                <ComposerPlusTourTip/>
+                <ComposerPlusTourTip formattingBarOpen={false}/>
             </>,
             {
                 entities: {

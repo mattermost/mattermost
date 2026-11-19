@@ -1035,7 +1035,9 @@ const AdvancedTextEditor = ({
             className='AdvancedTextEditor__plus'
             data-testid='composer-plus'
         >
-            {showComposerPlusTour && <ComposerPlusTourTip/>}
+            {showComposerPlusTour && (
+                <ComposerPlusTourTip formattingBarOpen={showFormattingBar}/>
+            )}
             {!hideBurnOnRead && !isInEditMode && canSetBurnOnRead && !showFormattingBar && !showComposerPlusTour && (
                 <BurnOnReadTourTip
                     anchorId='agentComposerMenuButton'
