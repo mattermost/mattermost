@@ -11,31 +11,27 @@ import (
 )
 
 var behindOne = healthcheck.Rule{
-	Code:     "VERSION_BEHIND_ONE",
-	Area:     model.AreaVersion,
-	Severity: healthcheck.SeverityInfo,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.version_behind_one.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.version_behind_one.remediation"),
-		DocsURL:       releasesDocsURL,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityFeed,
-	Eval:       evalBehind(model.ReleaseLifecycles(), time.Now, healthcheck.TranslationId("health.rule.version_behind_one.message"), isOneBehind),
+	Code:          "VERSION_BEHIND_ONE",
+	Area:          model.AreaVersion,
+	Severity:      healthcheck.SeverityInfo,
+	TitleID:       healthcheck.TranslationId("health.rule.version_behind_one.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.version_behind_one.remediation"),
+	DocsURL:       releasesDocsURL,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityFeed,
+	Eval:          evalBehind(model.ReleaseLifecycles(), time.Now, healthcheck.TranslationId("health.rule.version_behind_one.message"), isOneBehind),
 }
 
 var behind = healthcheck.Rule{
-	Code:     "VERSION_BEHIND",
-	Area:     model.AreaVersion,
-	Severity: healthcheck.SeverityWarning,
-	RuleText: model.RuleText{
-		TitleID:       healthcheck.TranslationId("health.rule.version_behind.title"),
-		RemediationID: healthcheck.TranslationId("health.rule.version_behind.remediation"),
-		DocsURL:       releasesDocsURL,
-	},
-	Surface:    healthcheck.SurfaceProduct,
-	Volatility: healthcheck.VolatilityFeed,
-	Eval:       evalBehind(model.ReleaseLifecycles(), time.Now, healthcheck.TranslationId("health.rule.version_behind.message"), isSeveralBehind),
+	Code:          "VERSION_BEHIND",
+	Area:          model.AreaVersion,
+	Severity:      healthcheck.SeverityWarning,
+	TitleID:       healthcheck.TranslationId("health.rule.version_behind.title"),
+	RemediationID: healthcheck.TranslationId("health.rule.version_behind.remediation"),
+	DocsURL:       releasesDocsURL,
+	Surface:       healthcheck.SurfaceProduct,
+	Volatility:    healthcheck.VolatilityFeed,
+	Eval:          evalBehind(model.ReleaseLifecycles(), time.Now, healthcheck.TranslationId("health.rule.version_behind.message"), isSeveralBehind),
 }
 
 // latestUnknownReason tells a server that does not fetch the latest release, because
