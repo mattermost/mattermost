@@ -4,10 +4,10 @@
 import {batchActions} from 'redux-batched-actions';
 
 import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
-import type {PostList, PostSearchResults} from '@mattermost/types/posts';
+import type {PaginatedPostList, PostList, PostSearchResults} from '@mattermost/types/posts';
 import type {SearchParameter} from '@mattermost/types/search';
 
-import {SearchTypes} from 'mattermost-redux/action_types';
+import {PostTypes, SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
@@ -241,16 +241,19 @@ export function getMoreFilesForSearch(teamId: string): ActionFuncAsync {
     };
 }
 
-export function getFlaggedPosts(): ActionFuncAsync<PostList> {
+export const FLAGGED_POSTS_PER_PAGE = 60;
+
+export function getFlaggedPosts(before = ''): ActionFuncAsync<PaginatedPostList> {
     return async (dispatch, getState) => {
         const state = getState();
         const userId = getCurrentUserId(state);
 
-        dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST});
+        const isGettingMore = Boolean(before);
+        dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST, isGettingMore});
 
         let posts;
         try {
-            posts = await Client4.getFlaggedPosts(userId);
+            posts = await Client4.getFlaggedPostsBefore(userId, before, FLAGGED_POSTS_PER_PAGE);
 
             await Promise.all([getMentionsAndStatusesForPosts(posts.posts, dispatch, getState), dispatch(getMissingChannelsFromPosts(posts.posts))]);
         } catch (error) {
@@ -264,6 +267,7 @@ export function getFlaggedPosts(): ActionFuncAsync<PostList> {
             {
                 type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
                 data: posts,
+                isGettingMore,
             },
             receivedPosts(posts),
             {
@@ -272,6 +276,34 @@ export function getFlaggedPosts(): ActionFuncAsync<PostList> {
         ], 'SEARCH_FLAGGED_POSTS_BATCH'));
 
         return {data: posts};
+    };
+}
+
+export function getMissingFlaggedPosts(postIds: string[]): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const loadedPosts = getState().entities.posts.posts;
+        const missingPostIds = postIds.filter((id) => !loadedPosts[id]);
+        if (missingPostIds.length === 0) {
+            return {data: true};
+        }
+
+        let posts;
+        try {
+            posts = await Client4.getPostsByIds(missingPostIds);
+
+            await Promise.all([
+                getMentionsAndStatusesForPosts(posts, dispatch, getState),
+                dispatch(getMissingChannelsFromPosts(Object.fromEntries(posts.map((post) => [post.id, post])))),
+            ]);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: PostTypes.RECEIVED_POSTS, data: {posts}});
+
+        return {data: true};
     };
 }
 

@@ -11,6 +11,12 @@ export type SearchState = {
     results: string[];
     fileResults: string[];
     flagged: string[];
+    flaggedPaging: {
+
+        /** The last post ID of the most recent page, from which the next page continues. */
+        before: string;
+        isEnd: boolean;
+    };
     pinned: Record<string, string[]>;
     isSearchingTerm: boolean;
     isSearchGettingMore: boolean;

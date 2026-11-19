@@ -30,10 +30,12 @@ import {
     getPostsAround,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
+import {getMissingFlaggedPosts} from 'mattermost-redux/actions/search';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import {getUser} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
+import {Preferences} from 'mattermost-redux/constants';
 import {getCustomProfileAttributes} from 'mattermost-redux/selectors/entities/general';
 import {getStatusForUserId, getUser as stateUser} from 'mattermost-redux/selectors/entities/users';
 
@@ -50,7 +52,7 @@ import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
 import {defaultIntl} from 'tests/helpers/intl-test-helper';
 import configureStore from 'tests/test_store';
 import {getHistory} from 'utils/browser_history';
-import Constants, {ActionTypes, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import Constants, {ActionTypes, ModalIdentifiers, RHSStates, UserStatuses} from 'utils/constants';
 import {setIntl} from 'utils/i18n';
 
 import type {GlobalState} from 'types/store';
@@ -169,6 +171,10 @@ jest.mock('mattermost-redux/actions/shared_channels', () => ({
         channelId,
         forceRefresh,
     })),
+}));
+
+jest.mock('mattermost-redux/actions/search', () => ({
+    getMissingFlaggedPosts: jest.fn((postIds) => ({type: 'MOCK_GET_MISSING_FLAGGED_POSTS', postIds})),
 }));
 
 let mockState = {
@@ -2558,5 +2564,48 @@ describe('channel read access on role changes', () => {
 
             expect(reconcileChannelReadAccess).not.toHaveBeenCalled();
         });
+    });
+});
+
+describe('handleEvent preferences changed', () => {
+    const originalState = mockState;
+
+    afterEach(() => {
+        mockState = originalState;
+    });
+
+    function preferencesChanged(category: string) {
+        return {
+            event: WebSocketEvents.PreferencesChanged,
+            data: {preferences: JSON.stringify([{user_id: 'currentUserId', category, name: 'post1', value: 'true'}])},
+        } as unknown as WebSocketMessage;
+    }
+
+    function openRhs(rhsState: string) {
+        mockState = {...originalState, views: {...originalState.views, rhs: {...originalState.views.rhs, rhsState}}} as GlobalState;
+    }
+
+    test('should load a newly saved post while saved messages are open', () => {
+        openRhs(RHSStates.FLAG);
+
+        handleEvent(preferencesChanged(Preferences.CATEGORY_FLAGGED_POST));
+
+        expect(getMissingFlaggedPosts).toHaveBeenCalledWith(['post1']);
+    });
+
+    test('should not load a newly saved post while saved messages are closed', () => {
+        openRhs(RHSStates.SEARCH);
+
+        handleEvent(preferencesChanged(Preferences.CATEGORY_FLAGGED_POST));
+
+        expect(getMissingFlaggedPosts).not.toHaveBeenCalled();
+    });
+
+    test('should ignore other preferences', () => {
+        openRhs(RHSStates.FLAG);
+
+        handleEvent(preferencesChanged(Preferences.CATEGORY_DISPLAY_SETTINGS));
+
+        expect(getMissingFlaggedPosts).not.toHaveBeenCalled();
     });
 });
