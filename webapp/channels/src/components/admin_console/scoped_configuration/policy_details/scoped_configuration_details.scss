@@ -1,0 +1,39 @@
+@use '../../permission_policies/policy_details/permission_policy_details';
+
+.ScopedConfigurationSettings {
+    .ScopedConfigurationSettings__table-header {
+        display: grid;
+        align-items: center;
+        gap: var(--spacing-l);
+        grid-template-columns: minmax(0, 1fr) 200px 24px;
+    }
+
+    .ScopedConfigurationSettings__row {
+        display: grid;
+        align-items: center;
+        justify-content: stretch;
+        gap: var(--spacing-l);
+        grid-template-columns: minmax(0, 1fr) 200px 24px;
+    }
+
+    .ScopedConfigurationSettings__value-cell {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    .ScopedConfigurationSettings__bool-radios {
+        display: flex;
+        align-items: center;
+        gap: var(--spacing-l);
+
+        > label {
+            width: auto;
+            margin-bottom: 0;
+        }
+    }
+
+    .ScopedConfigurationSettings__value-input {
+        width: 100%;
+    }
+}

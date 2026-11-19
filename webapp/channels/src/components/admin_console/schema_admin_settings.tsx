@@ -49,6 +49,7 @@ import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapte
 
 import PluginMetadataPanel from './plugin_metadata_panel/plugin_metadata_panel';
 import ProductionWarning from './production_warning';
+import SettingPolicyControl from './scoped_configuration/setting_policy_control';
 import {canViewPluginLogs, pluginLogsPath} from './server_logs/url_filters';
 import Setting from './setting';
 import type {AdminDefinitionConfigSchemaSection, AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
@@ -678,6 +679,13 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
         );
     };
 
+    renderPolicyControl = (setting: AdminDefinitionSetting) => {
+        if (!setting.policy_setting_key) {
+            return undefined;
+        }
+        return <SettingPolicyControl settingKey={setting.policy_setting_key}/>;
+    };
+
     buildTextSetting = (setting: AdminDefinitionSetting) => {
         if (!this.props.schema || !setting.key || (setting.type !== 'text' && setting.type !== 'longtext' && setting.type !== 'number')) {
             return (<></>);
@@ -720,6 +728,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 multiple={setting.multiple}
                 type={inputType}
                 label={label}
+                subControl={this.renderPolicyControl(setting)}
                 helpText={helpText}
                 placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl, setting.placeholder_values)}
                 value={value}
@@ -766,6 +775,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 key={this.props.schema.id + '_bool_' + setting.key}
                 id={setting.key}
                 label={label}
+                subControl={this.renderPolicyControl(setting)}
                 helpText={helpText}
                 value={this.state[setting.key] ?? (setting.default || false)}
                 disabled={this.isDisabled(setting)}
@@ -829,6 +839,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 id={setting.key}
                 values={values}
                 label={label}
+                subControl={this.renderPolicyControl(setting)}
                 helpText={helpText}
                 value={selectedValue}
                 disabled={this.isDisabled(setting)}
@@ -952,6 +963,7 @@ export class SchemaAdminSettings extends React.PureComponent<SchemaAdminSettings
                 id={setting.key}
                 values={values}
                 label={label}
+                subControl={this.renderPolicyControl(setting)}
                 helpText={helpText}
                 value={this.state[setting.key] ?? defaultOption}
                 disabled={this.isDisabled(setting)}

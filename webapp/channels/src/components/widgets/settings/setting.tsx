@@ -9,6 +9,7 @@ type Props = {
     labelClassName?: string;
     inputClassName?: string;
     children: React.ReactNode;
+    subControl?: React.ReactNode;
     helpText?: React.ReactNode;
     footer?: React.ReactNode;
 };
@@ -19,6 +20,7 @@ const Setting: React.FC<Props> = ({
     labelClassName,
     inputClassName,
     children,
+    subControl,
     footer,
     helpText,
 }: Props) => {
@@ -38,6 +40,7 @@ const Setting: React.FC<Props> = ({
             )}
             <div className={inputClassName}>
                 {children}
+                {subControl}
                 <div
                     data-testid={inputId + 'help-text'}
                     className='help-text'

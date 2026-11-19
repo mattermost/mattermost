@@ -63,6 +63,9 @@ type AdminDefinitionSettingBase = {
 
     // Danger callout when isEnabled is true. Wired for bool/text settings in schema_admin_settings and ldap_boolean_setting.
     production_warning?: AdminDefinitionSettingProductionWarning;
+
+    // ClientConfig key when this setting can be overridden per session via a system_setting policy.
+    policy_setting_key?: string;
 };
 
 export type AdminDefinitionSettingBanner = AdminDefinitionSettingBase & {
