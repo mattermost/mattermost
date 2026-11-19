@@ -3822,6 +3822,8 @@ func (c *Client4) GetEditHistoryForPost(ctx context.Context, postId string) ([]*
 }
 
 // GetFlaggedPostsForUser returns flagged posts of a user based on user id string.
+//
+// Deprecated: Use GetFlaggedPostsForUserBefore instead. Paging by page will be removed in v13.0.
 func (c *Client4) GetFlaggedPostsForUser(ctx context.Context, userId string, page int, perPage int) (*PostList, *Response, error) {
 	values := url.Values{}
 	values.Set("page", strconv.Itoa(page))
@@ -3835,6 +3837,8 @@ func (c *Client4) GetFlaggedPostsForUser(ctx context.Context, userId string, pag
 }
 
 // GetFlaggedPostsForUserInTeam returns flagged posts in team of a user based on user id string.
+//
+// Deprecated: Use GetFlaggedPostsForUserBefore instead. Paging by page will be removed in v13.0.
 func (c *Client4) GetFlaggedPostsForUserInTeam(ctx context.Context, userId string, teamId string, page int, perPage int) (*PostList, *Response, error) {
 	if !IsValidId(teamId) {
 		return nil, nil, errors.New("teamId is invalid")
@@ -3853,6 +3857,8 @@ func (c *Client4) GetFlaggedPostsForUserInTeam(ctx context.Context, userId strin
 }
 
 // GetFlaggedPostsForUserInChannel returns flagged posts in channel of a user based on user id string.
+//
+// Deprecated: Use GetFlaggedPostsForUserBefore instead. Paging by page will be removed in v13.0.
 func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId string, channelId string, page int, perPage int) (*PostList, *Response, error) {
 	if !IsValidId(channelId) {
 		return nil, nil, errors.New("channelId is invalid")
@@ -3861,6 +3867,29 @@ func (c *Client4) GetFlaggedPostsForUserInChannel(ctx context.Context, userId st
 	values := url.Values{}
 	values.Set("channel_id", channelId)
 	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.userRoute(userId).Join("posts", "flagged"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*PostList](r)
+}
+
+// GetFlaggedPostsForUserBefore returns the flagged posts of a user that follow beforePostId, newest first,
+// optionally limited to a channel or team. Leave beforePostId empty for the first page, then pass the
+// last post id of each page while HasNext is true.
+func (c *Client4) GetFlaggedPostsForUserBefore(ctx context.Context, userId, channelId, teamId, beforePostId string, perPage int) (*PostList, *Response, error) {
+	values := url.Values{}
+	if channelId != "" {
+		values.Set("channel_id", channelId)
+	}
+	if teamId != "" {
+		values.Set("team_id", teamId)
+	}
+	if beforePostId != "" {
+		values.Set("before", beforePostId)
+	}
 	values.Set("per_page", strconv.Itoa(perPage))
 	r, err := c.doAPIGetWithQuery(ctx, c.userRoute(userId).Join("posts", "flagged"), values, "")
 	if err != nil {

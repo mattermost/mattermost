@@ -9308,53 +9308,11 @@ func (s *RetryLayerPostStore) GetEtag(channelID string, allowFromCache bool, col
 
 }
 
-func (s *RetryLayerPostStore) GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error) {
+func (s *RetryLayerPostStore) GetFlaggedPosts(options model.GetFlaggedPostsOptions) (*model.PostList, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetFlaggedPosts(userID, offset, limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPostStore) GetFlaggedPostsForChannel(userID string, channelID string, offset int, limit int) (*model.PostList, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.GetFlaggedPostsForChannel(userID, channelID, offset, limit)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
-func (s *RetryLayerPostStore) GetFlaggedPostsForTeam(userID string, teamID string, offset int, limit int) (*model.PostList, error) {
-
-	tries := 0
-	for {
-		result, err := s.PostStore.GetFlaggedPostsForTeam(userID, teamID, offset, limit)
+		result, err := s.PostStore.GetFlaggedPosts(options)
 		if err == nil {
 			return result, nil
 		}

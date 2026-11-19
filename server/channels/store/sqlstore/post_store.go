@@ -548,102 +548,81 @@ func (s *SqlPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Pos
 	return posts[0], nil
 }
 
-func (s *SqlPostStore) GetFlaggedPosts(userId string, offset int, limit int) (*model.PostList, error) {
-	return s.getFlaggedPosts(userId, "", "", offset, limit)
-}
+func (s *SqlPostStore) GetFlaggedPosts(options model.GetFlaggedPostsOptions) (*model.PostList, error) {
+	replyCountSubQuery := s.getSubQueryBuilder().
+		Select("COUNT(*)").
+		From("Posts").
+		Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)")).
+		Where(sq.Eq{"Posts.DeleteAt": 0})
 
-func (s *SqlPostStore) GetFlaggedPostsForTeam(userId, teamId string, offset int, limit int) (*model.PostList, error) {
-	return s.getFlaggedPosts(userId, "", teamId, offset, limit)
-}
+	savedPostIDs := s.getSubQueryBuilder().
+		Select("Name").
+		From("Preferences").
+		Where(sq.Eq{"UserId": options.UserId, "Category": model.PreferenceCategoryFlaggedPost})
 
-func (s *SqlPostStore) GetFlaggedPostsForChannel(userId, channelId string, offset int, limit int) (*model.PostList, error) {
-	return s.getFlaggedPosts(userId, channelId, "", offset, limit)
-}
+	memberChannelIDs := s.getSubQueryBuilder().
+		Select("ChannelId").
+		From("ChannelMembers").
+		Where(sq.Eq{"UserId": options.UserId})
 
-// TODO: convert to squirrel HW
-func (s *SqlPostStore) getFlaggedPosts(userId, channelId, teamId string, offset int, limit int) (*model.PostList, error) {
-	pl := model.NewPostList()
+	query := s.getQueryBuilder().
+		Select(postSliceColumnsWithName("p")...).
+		Column(sq.Alias(replyCountSubQuery, "ReplyCount")).
+		From("Posts p").
+		InnerJoin("Channels c ON c.Id = p.ChannelId").
+		Where(sq.Expr("p.Id IN (?)", savedPostIDs)).
+		Where(sq.Expr("p.ChannelId IN (?)", memberChannelIDs)).
+		Where(sq.Eq{"p.DeleteAt": 0}).
+		Where(sq.Or{
+			sq.Eq{"c.DisableJoinLeaveMessages": false},
+			sq.Eq{"c.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
+			sq.NotEq{"p.Type": model.MembershipSystemPostTypes()},
+		}).
+		OrderBy("p.CreateAt DESC", "p.Id DESC").
+		Limit(uint64(options.PerPage + 1)).
+		Offset(uint64(options.Page * options.PerPage))
 
-	postColumnsA := strings.Join(postSliceColumnsWithName("A"), ", ")
-	postColumnsPosts := strings.Join(postSliceColumnsWithName("Posts"), ", ")
-
-	posts := []*model.Post{}
-	query := `
-            SELECT
-                ` + postColumnsA + `, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN A.RootId = '' THEN A.Id ELSE A.RootId END) AND Posts.DeleteAt = 0) as ReplyCount
-            FROM
-                (SELECT
-                    ` + postColumnsPosts + `
-                FROM
-                    Posts
-                WHERE
-                    Id
-                IN
-                    (
-						SELECT
-							Name
-						FROM
-							Preferences
-						WHERE
-							UserId = ?
-							AND Category = ?
-					)
-					CHANNEL_FILTER
-					AND Posts.DeleteAt = 0
-                ) as A
-            INNER JOIN Channels as B
-                ON B.Id = A.ChannelId
-			WHERE
-				ChannelId IN (
-					SELECT
-						ChannelId
-					FROM
-						ChannelMembers
-					WHERE UserId = ?
-				)
-				TEAM_FILTER
-            ORDER BY A.CreateAt DESC, A.Id DESC
-            LIMIT ? OFFSET ?`
-
-	queryParams := []any{userId, model.PreferenceCategoryFlaggedPost}
-
-	var channelClause, teamClause string
-	channelClause, queryParams = s.buildFlaggedPostChannelFilterClause(channelId, queryParams)
-	query = strings.Replace(query, "CHANNEL_FILTER", channelClause, 1)
-
-	queryParams = append(queryParams, userId)
-
-	teamClause, queryParams = s.buildFlaggedPostTeamFilterClause(teamId, queryParams)
-	query = strings.Replace(query, "TEAM_FILTER", teamClause, 1)
-
-	queryParams = append(queryParams, limit, offset)
-
-	if err := s.GetReplica().Select(&posts, query, queryParams...); err != nil {
-		return nil, errors.Wrap(err, "failed to find Posts")
+	if options.ChannelId != "" {
+		query = query.Where(sq.Eq{"p.ChannelId": options.ChannelId})
 	}
 
+	if options.TeamId != "" {
+		query = query.Where(sq.Eq{"c.TeamId": []string{options.TeamId, ""}})
+	}
+
+	if options.BeforePostId != "" {
+		var beforeCreateAt int64
+		if err := s.GetReplica().Get(&beforeCreateAt, "SELECT CreateAt FROM Posts WHERE Id = ?", options.BeforePostId); err != nil {
+			if err == sql.ErrNoRows {
+				return nil, store.NewErrNotFound("Post", options.BeforePostId)
+			}
+			return nil, errors.Wrapf(err, "failed to find flagged post cursor with postId=%s", options.BeforePostId)
+		}
+		query = query.Where(sq.Expr("(p.CreateAt, p.Id) < (?, ?)", beforeCreateAt, options.BeforePostId))
+	}
+
+	if options.ExcludeExpiredBurnOnReadPosts {
+		query = query.Where(burnOnReadVisibleCondition("p", options.UserId))
+	}
+
+	posts := []*model.Post{}
+	if err := s.GetReplica().SelectBuilder(&posts, query); err != nil {
+		return nil, errors.Wrapf(err, "failed to find flagged Posts with userId=%s", options.UserId)
+	}
+
+	hasNext := len(posts) > options.PerPage
+	if hasNext {
+		posts = posts[:options.PerPage]
+	}
+
+	pl := model.NewPostList()
 	for _, post := range posts {
 		pl.AddPost(post)
 		pl.AddOrder(post.Id)
 	}
+	pl.HasNext = &hasNext
 
 	return pl, nil
-}
-
-func (s *SqlPostStore) buildFlaggedPostTeamFilterClause(teamId string, queryParams []any) (string, []any) {
-	if teamId == "" {
-		return "", queryParams
-	}
-
-	return "AND (B.TeamId = ? OR B.TeamId = '')", append(queryParams, teamId)
-}
-
-func (s *SqlPostStore) buildFlaggedPostChannelFilterClause(channelId string, queryParams []any) (string, []any) {
-	if channelId == "" {
-		return "", queryParams
-	}
-
-	return "AND ChannelId = ?", append(queryParams, channelId)
 }
 
 func threadUpdatesIncludeDeletions(opts model.GetPostsOptions) bool {
@@ -951,7 +930,7 @@ func (s *SqlPostStore) Get(rctx request.CTX, id string, opts model.GetPostsOptio
 func (s *SqlPostStore) GetSingle(rctx request.CTX, id string, inclDeleted bool) (*model.Post, error) {
 	query := s.postsQuery.Where(sq.Eq{"Posts.Id": id})
 
-	replyCountSubQuery := s.getQueryBuilder().
+	replyCountSubQuery := s.getSubQueryBuilder().
 		Select("COUNT(*)").
 		From("Posts p").
 		Where(sq.Expr("p.RootId = (CASE WHEN Posts.RootId = '' THEN Posts.Id ELSE Posts.RootId END) AND p.DeleteAt = 0"))
@@ -1836,7 +1815,7 @@ func (s *SqlPostStore) getPostsAround(rctx request.CTX, before bool, options mod
 		)
 	}
 	query := s.getQueryBuilder().Select(columns...)
-	replyCountSubQuery := s.getQueryBuilder().Select("COUNT(*)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)"))
+	replyCountSubQuery := s.getSubQueryBuilder().Select("COUNT(*)").From("Posts").Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END)"))
 
 	query = query.
 		Where(sq.Expr(`CreateAt `+direction+` (SELECT CreateAt FROM Posts WHERE Id = ?)`, options.PostId)).
