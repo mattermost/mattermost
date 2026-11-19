@@ -480,36 +480,38 @@ func decodePropertyInt64(rctx request.CTX, byName map[string]json.RawMessage, fi
 	return n
 }
 
-// NotifyReviewersOfFlaggedPostReportGeneration posts a notification reply on each
-// reviewer's content review thread to record that a report was generated.
-// Best-effort: errors are logged, never returned.
-func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID string) {
-	a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s generated a report for the quarantined message.")
+// NotifyReviewersOfFlaggedPostReportGeneration posts a reply on each reviewer's
+// content review thread recording that a report was generated, along with the
+// report's file name and SHA-256 checksum. Each reviewer thread lives in that
+// reviewer's own DM with the content review bot, so the generating reviewer
+// cannot alter the checksum seen by other reviewers, letting them verify any
+// copy of the report shared with them.
+func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) *model.AppError {
+	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s generated a report for the quarantined message.", fileName, sha256Hex)
 }
 
 // NotifyReviewersOfPostExposureReportGeneration is the exposure report counterpart of
 // NotifyReviewersOfFlaggedPostReportGeneration.
-func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID string) {
-	a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s downloaded an exposure report for the quarantined message.")
+func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) *model.AppError {
+	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "@%s downloaded an exposure report for the quarantined message.", fileName, sha256Hex)
 }
 
-func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, messageFormat string) {
-	groupID, err := a.ContentFlaggingGroupId()
-	if err != nil {
-		rctx.Logger().Warn("Failed to get content flagging group id for report generation notification", mlog.Err(err))
-		return
+func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, headlineFormat, fileName, sha256Hex string) *model.AppError {
+	groupID, appErr := a.ContentFlaggingGroupId()
+	if appErr != nil {
+		return appErr
 	}
 
 	generator, appErr := a.GetUser(rctx, generatedByUserID)
 	if appErr != nil {
-		rctx.Logger().Warn("Failed to fetch generating user for report generation notification", mlog.Err(appErr))
-		return
+		return appErr
 	}
 
-	message := fmt.Sprintf(messageFormat, generator.Username)
-	if _, appErr := a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, "", ""); appErr != nil {
-		rctx.Logger().Warn("Failed to post report generation notification to reviewers", mlog.String("flagged_post_id", flaggedPostID), mlog.Err(appErr))
-	}
+	message := fmt.Sprintf(headlineFormat, generator.Username) +
+		fmt.Sprintf("\nFile: `%s`\nSHA-256: `%s`\nCompare this checksum with any copy of this file shared with you to confirm it has not been modified.", fileName, sha256Hex)
+
+	_, appErr = a.postReviewerMessage(rctx, message, groupID, flaggedPostID, nil, "", "")
+	return appErr
 }
 
 func (a *App) NotifyRequestingReviewerOfSkippedAttachments(rctx request.CTX, flaggedPostID, requestingUserID string) {

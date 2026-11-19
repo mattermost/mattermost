@@ -2836,6 +2836,11 @@
     "description": "API error (500) returned to a content reviewer when the post exposure report CSV could not be serialized for download. Short error detail, not a title."
   },
   {
+    "id": "api.data_spillage.report.hash.app_error",
+    "translation": "Failed to compute the checksum of the flagged post report file.",
+    "description": "API error when the SHA-256 checksum of the generated flagged post report cannot be computed before download; admin/reviewer audience."
+  },
+  {
     "id": "api.data_spillage.report.open.app_error",
     "translation": "Failed to open the generated flagged post report file.",
     "description": "API error when the generated report file of flagged posts cannot be opened for download; admin/reviewer audience."

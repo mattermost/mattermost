@@ -7,12 +7,17 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/csv"
+	"encoding/hex"
+	"encoding/json"
 	"io"
+	"mime"
 	"net/http"
 	"os"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/goccy/go-yaml"
 	"github.com/mattermost/mattermost/server/public/model"
@@ -110,6 +115,21 @@ func TestGenerateFlaggedPostReport(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotEmpty(t, report)
+	})
+
+	t.Run("Should post the report's file name and SHA-256 checksum to reviewers", func(t *testing.T) {
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+		flagPostViaAPI(t, client, post.Id)
+		waitForReviewThread(t, th, post.Id)
+
+		report, resp, err := client.GenerateFlaggedPostReport(context.Background(), post.Id, &model.FlagContentActionRequest{Comment: "investigation note"})
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		requireReviewerChecksumMessage(t, th, th.BasicUser.Id, resp, report)
 	})
 
 	t.Run("Should include file attachments in the generated report", func(t *testing.T) {
@@ -397,6 +417,21 @@ func TestGeneratePostExposureReport(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, http.StatusOK, resp.StatusCode)
 		require.NotEmpty(t, report)
+	})
+
+	t.Run("Should post the report's file name and SHA-256 checksum to reviewers", func(t *testing.T) {
+		appErr := setBasicCommonReviewerConfig(th)
+		require.Nil(t, appErr)
+
+		post := th.CreatePost(t)
+		flagPostViaAPI(t, client, post.Id)
+		waitForReviewThread(t, th, post.Id)
+
+		report, resp, err := client.GeneratePostExposureReport(context.Background(), post.Id)
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		requireReviewerChecksumMessage(t, th, th.BasicUser.Id, resp, report)
 	})
 
 	t.Run("Should return a parseable CSV listing the channel members", func(t *testing.T) {
@@ -712,4 +747,57 @@ func TestGenerateFlaggedPostReportEvaluatesSessionAttributes(t *testing.T) {
 		require.NotContains(t, entries, "post/attachments/"+fileInfo.Id+"_"+fileInfo.Name)
 		require.Contains(t, entries, "ATTACHMENTS_OMITTED.txt")
 	})
+}
+
+// requireReviewerChecksumMessage asserts that the content review bot posted the downloaded
+// file's name and the SHA-256 of the exact bytes the client received in the reviewer's DM.
+func requireReviewerChecksumMessage(t *testing.T, th *TestHelper, reviewerID string, resp *model.Response, file []byte) {
+	t.Helper()
+
+	_, params, err := mime.ParseMediaType(resp.Header.Get("Content-Disposition"))
+	require.NoError(t, err)
+	fileName := params["filename"]
+	require.NotEmpty(t, fileName)
+
+	sum := sha256.Sum256(file)
+	checksum := hex.EncodeToString(sum[:])
+
+	bot, appErr := th.App.GetUserByUsername(model.ContentFlaggingBotUsername)
+	require.Nil(t, appErr)
+	dm, appErr := th.App.GetOrCreateDirectChannel(th.Context, reviewerID, bot.Id)
+	require.Nil(t, appErr)
+	posts, appErr := th.App.GetPosts(th.Context, dm.Id, 0, 200)
+	require.Nil(t, appErr)
+
+	for _, p := range posts.Posts {
+		if strings.Contains(p.Message, "File: `"+fileName+"`\nSHA-256: `"+checksum+"`") {
+			return
+		}
+	}
+	require.Fail(t, "reviewer DM has no message with the report file name and checksum", "file=%s sha256=%s", fileName, checksum)
+}
+
+// waitForReviewThread blocks until a reviewer thread is linked to the flagged post.
+// Review threads are created asynchronously after flagging, and report checksums
+// are only posted to threads that exist when the report is generated.
+func waitForReviewThread(t *testing.T, th *TestHelper, flaggedPostID string) {
+	t.Helper()
+
+	groupID, appErr := th.App.ContentFlaggingGroupId()
+	require.Nil(t, appErr)
+	fields, appErr := th.App.GetContentFlaggingMappedFields(th.Context, groupID)
+	require.Nil(t, appErr)
+	flaggedPostIDField, ok := fields["flagged_post_id"]
+	require.True(t, ok)
+
+	require.Eventually(t, func() bool {
+		values, appErr := th.App.SearchPropertyValues(th.Context, groupID, model.PropertyValueSearchOpts{
+			TargetType: model.PropertyValueTargetTypePost,
+			FieldID:    flaggedPostIDField.ID,
+			Value:      json.RawMessage(`"` + flaggedPostID + `"`),
+			PerPage:    1,
+		})
+		require.Nil(t, appErr)
+		return len(values) > 0
+	}, 5*time.Second, 50*time.Millisecond)
 }

@@ -5,6 +5,8 @@ package api4
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -106,14 +108,32 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	// Notify all team reviewers that a report has been generated. Best-effort:
-	// must run before http.ServeContent (which writes the response and may block).
-	c.App.NotifyReviewersOfFlaggedPostReportGeneration(c.AppContext, postId, userId)
+	hash := sha256.New()
+	if _, err := io.Copy(hash, f); err != nil {
+		c.Err = model.NewAppError("generateFlaggedPostReport", "api.data_spillage.report.hash.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	if _, err := f.Seek(0, io.SeekStart); err != nil {
+		c.Err = model.NewAppError("generateFlaggedPostReport", "api.data_spillage.report.hash.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	checksum := hex.EncodeToString(hash.Sum(nil))
+
+	filename := fmt.Sprintf("flagged-post-%s-%d.zip", postId, model.GetMillis())
+	model.AddEventParameterToAuditRec(auditRec, "filename", filename)
+	model.AddEventParameterToAuditRec(auditRec, "sha256", checksum)
+
+	// Reviewers must have the checksum on record before the report is served, otherwise
+	// a copy of it could not be verified. Must run before http.ServeContent (which writes
+	// the response and may block).
+	if appErr := c.App.NotifyReviewersOfFlaggedPostReportGeneration(c.AppContext, postId, userId, filename, checksum); appErr != nil {
+		c.Err = appErr
+		return
+	}
 	if omittedAttachments > 0 {
 		c.App.NotifyRequestingReviewerOfSkippedAttachments(c.AppContext, postId, userId)
 	}
 
-	filename := fmt.Sprintf("flagged-post-%s-%d.zip", postId, model.GetMillis())
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	http.ServeContent(w, r, filename, stat.ModTime(), f)
@@ -177,9 +197,18 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	c.App.NotifyReviewersOfPostExposureReportGeneration(c.AppContext, postId, userId)
+	sum := sha256.Sum256(buf.Bytes())
+	checksum := hex.EncodeToString(sum[:])
 
 	filename := fmt.Sprintf("post-exposure-%s-%d.csv", postId, model.GetMillis())
+	model.AddEventParameterToAuditRec(auditRec, "filename", filename)
+	model.AddEventParameterToAuditRec(auditRec, "sha256", checksum)
+
+	if appErr := c.App.NotifyReviewersOfPostExposureReportGeneration(c.AppContext, postId, userId, filename, checksum); appErr != nil {
+		c.Err = appErr
+		return
+	}
+
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	if _, err := w.Write(buf.Bytes()); err != nil {
