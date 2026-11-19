@@ -495,16 +495,34 @@ def benchmark_written(entry: str, gap: dict) -> bool:
     """Whether a person has written the Performance bullet the flagged gap asks for.
 
     The generator's in-range sentence never counts. When the report gives a Delta (one outside
-    [-5%, +5%]), the bullet must state that number, so a bullet written for an earlier, since
-    corrected report doesn't clear a new one."""
+    [-5%, +5%]), the bullet must state that number in the same direction, so a bullet written for
+    an earlier, since corrected report (another number, or the same one with the other sign)
+    doesn't clear a new one. The direction is the sign written before the number ("-9.10%"), or
+    else "increase" or "decrease" with no word for the other direction."""
     if not BENCHMARK_BULLET.search(entry):
         return False
-    delta = str(gap.get("delta") or "").lstrip("+-")
-    if not delta:
+    delta = str(gap.get("delta") or "")
+    number = delta.lstrip("+-")
+    if not number:
         return True
-    number = re.compile(rf"(?<![\d.]){re.escape(delta)}(?!\d)\s*%")
-    return any(number.search(line) and not line.lstrip(" -*").startswith("Benchmarking test results showed no significant")
-               for line in _BENCHMARK_LINE.findall(entry))
+    negative = delta.startswith("-")
+    written = re.compile(rf"(?<![\d.])([+-−]?){re.escape(number)}(?!\d)\s*%")
+    for line in _BENCHMARK_LINE.findall(entry):
+        if line.lstrip(" -*").startswith("Benchmarking test results showed no significant"):
+            continue
+        signs = {match.group(1) for match in written.finditer(line)}
+        if not signs:
+            continue
+        signed = signs - {""}
+        if signed:  # "-9.10%" or "+9.10%": the sign says the direction
+            if signed <= ({"-", "−"} if negative else {"+"}):
+                return True
+            continue
+        words = line.lower()
+        wanted, other = ("decrease", "increase") if negative else ("increase", "decrease")
+        if wanted in words and other not in words:
+            return True
+    return False
 
 
 def blocking_report_problems(report: dict | None, entry: str = "") -> list[str]:

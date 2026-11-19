@@ -801,6 +801,23 @@ class ReleaseDayTest(unittest.TestCase):
         for bullet, labelled in ((stale_generated, False), (stale_person, False), (current, True)):
             self.assertEqual(self.run_day(Repo(entry_with(bullet)), report=flagged)["labelled"], labelled, bullet)
 
+    def test_a_bullet_with_the_other_direction_doesnt_clear_a_corrected_sign(self):
+        decrease = {**REPORT, "readiness": {**REPORT["readiness"], "gaps": [
+            {"section": "Benchmarking", "status": "needs_review", "delta": "-9.10"}]}}
+
+        def entry_with(bullet):
+            return BLOG_CHANGELOG.replace("#### User Interface\n", f"#### Performance\n - {bullet}\n\n#### User Interface\n", 1)
+        for bullet, labelled in (
+                ("Benchmarking test results showed a 9.10% increase in the number of supported users.", False),
+                ("Benchmarking test results showed a +9.10% change in the number of supported users.", False),
+                ("Benchmarking test results showed a 9.10% decrease in the number of supported users.", True),
+                ("Benchmarking test results showed a -9.10% change in the number of supported users.", True)):
+            self.assertEqual(self.run_day(Repo(entry_with(bullet)), report=decrease)["labelled"], labelled, bullet)
+        increase = {**decrease, "readiness": {**decrease["readiness"], "gaps": [
+            {"section": "Benchmarking", "status": "needs_review", "delta": "9.10"}]}}
+        self.assertFalse(self.run_day(Repo(entry_with(
+            "Benchmarking test results showed a -9.10% change in the number of supported users.")), report=increase)["labelled"])
+
     def test_the_pr_is_read_again_before_the_label(self):
         for change, problem in (({"draft": True}, "the PR is still a draft"),
                                 ({"base": {"ref": "release-12.2"}}, "the PR targets release-12.2 instead of master"),
