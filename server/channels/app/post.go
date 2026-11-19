@@ -2741,9 +2741,9 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		return model.MakePostSearchResults(model.NewPostList(), nil), true, nil
 	}
 
-	postSearchResults, rawLen, allPostHaveMembership, appErr := a.searchPostsForUserPage(rctx, finalParamsList, userID, teamID, page, perPage)
-	if appErr != nil {
-		return nil, false, appErr
+	postSearchResults, rawLen, allPostHaveMembership, err := a.searchPostsForUserPage(rctx, finalParamsList, userID, teamID, page, perPage)
+	if err != nil {
+		return nil, false, model.AsAppError(err)
 	}
 
 	if !a.ChannelAccessEnforcementActive() {
@@ -2762,7 +2762,7 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 		page++
 		next, nextRawLen, nextAllHaveMembership, nextErr := a.searchPostsForUserPage(rctx, finalParamsList, userID, teamID, page, perPage)
 		if nextErr != nil {
-			return nil, false, nextErr
+			return nil, false, model.AsAppError(nextErr)
 		}
 
 		// Extend calls UniqueOrder, so an overlapping page dedupes and the original
@@ -2789,35 +2789,35 @@ func (a *App) SearchPostsForUser(rctx request.CTX, terms string, userID string, 
 // searchPostsForUserPage runs one store page through the filters. rawLen is the number
 // of posts the store returned before any filtering, which is the only reliable signal
 // for whether it still has more to give.
-func (a *App) searchPostsForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userID, teamID string, page, perPage int) (results *model.PostSearchResults, rawLen int, allPostHaveMembership bool, appErr *model.AppError) {
-	postSearchResults, err := a.Srv().Store().Post().SearchPostsForUser(rctx, finalParamsList, userID, teamID, page, perPage)
-	if err != nil {
+func (a *App) searchPostsForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userID, teamID string, page, perPage int) (results *model.PostSearchResults, rawLen int, allPostHaveMembership bool, err error) {
+	postSearchResults, searchErr := a.Srv().Store().Post().SearchPostsForUser(rctx, finalParamsList, userID, teamID, page, perPage)
+	if searchErr != nil {
 		var nErr *model.AppError
 		switch {
-		case errors.As(err, &nErr):
+		case errors.As(searchErr, &nErr):
 			return nil, 0, false, nErr
 		default:
-			return nil, 0, false, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, 0, false, model.NewAppError("SearchPostsForUser", "app.post.search.app_error", nil, "", http.StatusInternalServerError).Wrap(searchErr)
 		}
 	}
 
 	rawLen = len(postSearchResults.Order)
 
-	if appErr = a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); appErr != nil {
-		return nil, 0, false, appErr
+	if filterErr := a.filterInaccessiblePosts(postSearchResults.PostList, filterPostOptions{assumeSortedCreatedAt: true}); filterErr != nil {
+		return nil, 0, false, filterErr
 	}
 
-	allPostHaveMembership, appErr = a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID)
+	allPostHaveMembership, appErr := a.FilterPostsByChannelPermissions(rctx, postSearchResults.PostList, userID)
 	if appErr != nil {
 		return nil, 0, false, appErr
 	}
 
-	if err := a.filterBurnOnReadPosts(postSearchResults.PostList); err != nil {
-		return nil, 0, false, model.AsAppError(err)
+	if borErr := a.filterBurnOnReadPosts(postSearchResults.PostList); borErr != nil {
+		return nil, 0, false, borErr
 	}
 
-	if appErr = a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); appErr != nil {
-		return nil, 0, false, appErr
+	if suppressErr := a.filterSuppressedMembershipPosts(rctx, postSearchResults.PostList); suppressErr != nil {
+		return nil, 0, false, suppressErr
 	}
 
 	pruneSearchMatches(postSearchResults)

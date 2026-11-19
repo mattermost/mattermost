@@ -3087,9 +3087,9 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 
 	if !options.ThreadsOnly {
 		// The page below drops threads in denied channels, so the totals must too.
-		denied, appErr := a.channelReadAccessDeniedChannelIDs(rctx, userID)
-		if appErr != nil {
-			return nil, appErr
+		denied, err := a.channelReadAccessDeniedChannelIDs(rctx, userID)
+		if err != nil {
+			return nil, model.AsAppError(err)
 		}
 		options.ExcludeChannelIds = denied
 

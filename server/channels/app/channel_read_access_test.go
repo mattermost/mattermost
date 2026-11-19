@@ -2004,8 +2004,8 @@ func TestPostRevealedCarriesTheReadAccessHook(t *testing.T) {
 
 	events := []model.WebsocketEventType{model.WebsocketEventPostRevealed}
 	requireReadAccessHook(t, h, events, func(t *testing.T, h *channelReadAccessHarness) {
-		require.Nil(t, h.th.App.publishPostRevealedEventToAuthor(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
-		require.Nil(t, h.th.App.publishPostRevealedEventToUser(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
+		require.NoError(t, h.th.App.publishPostRevealedEventToAuthor(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
+		require.NoError(t, h.th.App.publishPostRevealedEventToUser(h.rctx, h.th.BasicPost, h.th.BasicUser2.Id, ""))
 	})
 }
 

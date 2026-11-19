@@ -1145,9 +1145,9 @@ func (a *App) GetTeamUnread(rctx request.CTX, teamID, userID string) (*model.Tea
 		return nil, model.NewAppError("GetTeamUnread", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	denied, appErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
-	if appErr != nil {
-		return nil, appErr
+	denied, deniedErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if deniedErr != nil {
+		return nil, model.AsAppError(deniedErr)
 	}
 
 	teamUnread := &model.TeamUnread{
@@ -1944,9 +1944,9 @@ func (a *App) GetTeamsUnreadForUser(rctx request.CTX, excludeTeamId string, user
 		return nil, model.NewAppError("GetTeamsUnreadForUser", "app.team.get_unread.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	denied, appErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
-	if appErr != nil {
-		return nil, appErr
+	denied, deniedErr := a.channelReadAccessDeniedChannelSet(rctx, userID)
+	if deniedErr != nil {
+		return nil, model.AsAppError(deniedErr)
 	}
 
 	members := []*model.TeamUnread{}

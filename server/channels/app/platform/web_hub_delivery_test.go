@@ -200,7 +200,7 @@ func TestHubBroadcastRejectedByHook(t *testing.T) {
 			th.Service.SetPostDeliveryRecorder(spy.record)
 			t.Cleanup(func() { th.Service.SetPostDeliveryRecorder(nil) })
 
-			connIndex := newHubConnectionIndex(1*time.Second, th.Service.Store, th.Service.logger, false)
+			connIndex := newHubConnectionIndex(1*time.Second, false)
 			denied := newDeliveryTestConn(t, th, connIndex, th.BasicUser2.Id, 1)
 			allowed := newDeliveryTestConn(t, th, connIndex, th.SystemAdminUser.Id, 1)
 
