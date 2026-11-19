@@ -54,13 +54,21 @@ async function skipUnlessLicensed(pw: PlaywrightExtended, tier: number) {
     );
 }
 
+// Matches the server's health_check.StaleInProgressAfter: a run with no activity for this long belongs to a
+// node that died mid-run, and the next run closes it as failed.
+const STALE_RUN_AFTER = 15 * 60 * 1000;
+
 /** Waits for any run already queued or running, so the next run starts from the current config. */
 async function waitForIdleHealthCheck(adminClient: Client4) {
     await expect
         .poll(
             async () => {
                 const jobs = await adminClient.getJobsByType('health_check', 0, 10);
-                return jobs.filter((job) => ['pending', 'in_progress'].includes(job.status)).length;
+                return jobs.filter(
+                    (job) =>
+                        job.status === 'pending' ||
+                        (job.status === 'in_progress' && Date.now() - job.last_activity_at < STALE_RUN_AFTER),
+                ).length;
             },
             {timeout: 60000},
         )
@@ -74,8 +82,9 @@ async function runHealthCheck(adminClient: Client4) {
     await expect
         .poll(
             async () => {
+                let latest;
                 try {
-                    return (await adminClient.getJob(job.id)).status;
+                    latest = await adminClient.getJob(job.id);
                 } catch (error) {
                     // Jobs are read from a replica, which may not have the new job yet.
                     if ((error as {status_code?: number}).status_code === 404) {
@@ -83,10 +92,20 @@ async function runHealthCheck(adminClient: Client4) {
                     }
                     throw error;
                 }
+                if (latest.status === 'error' || latest.status === 'canceled') {
+                    throw new Error(
+                        `Health check run ${job.id} ended as ${latest.status}: ${latest.data?.error ?? ''}`,
+                    );
+                }
+                return latest.status;
             },
             {timeout: 60000},
         )
         .toMatch(/^(success|warning)$/);
+}
+
+function escapeRegExp(text: string) {
+    return text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
 // The logs query's date layout: ISO 8601 in UTC with a space for the T and the Z.
@@ -402,7 +421,7 @@ test('keeps a muted finding muted across reloads and runs', {tag: '@system_conso
     // * Verify the run kept the finding muted
     expect((await getStoredFinding(adminClient, SESSION_EXTEND_OFF.code))?.muted_at).toBeGreaterThan(0);
     await expect(siteHealth.finding(SESSION_EXTEND_OFF.title).mutedBy).toHaveText(
-        new RegExp(`^Muted by @${adminUser.username} `),
+        new RegExp(`^Muted by @${escapeRegExp(adminUser.username)} `),
     );
     await siteHealth.openTab.click();
     await expect(siteHealth.openTab).toHaveAttribute('aria-selected', 'true');
@@ -479,7 +498,7 @@ test('shows a mute to every system admin', {tag: '@system_console'}, async ({pw}
 
     // * Verify the finding is muted, credited to the first admin
     await expect(siteHealth.finding(SESSION_EXTEND_OFF.title).mutedBy).toHaveText(
-        new RegExp(`^Muted by @${adminUser.username} `),
+        new RegExp(`^Muted by @${escapeRegExp(adminUser.username)} `),
     );
 });
 
