@@ -3,6 +3,7 @@
 
 import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
+import type {PopoverActions} from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useMemo} from 'react';
 import type {MessageDescriptor} from 'react-intl';
@@ -40,6 +41,24 @@ import RewritePromptInput from './rewrite_prompt_input';
 import './use_rewrite.scss';
 
 const RewriteMenuTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
+
+function RewriteProcessingStatus({draftMessage}: {draftMessage: string}) {
+    if (!draftMessage.trim()) {
+        return (
+            <FormattedMessage
+                id='texteditor.rewrite.drafting'
+                defaultMessage='Drafting'
+            />
+        );
+    }
+
+    return (
+        <FormattedMessage
+            id='texteditor.rewrite.rewriting'
+            defaultMessage='Rewriting'
+        />
+    );
+}
 
 export interface MenuItemConfig {
     action: RewriteAction;
@@ -170,10 +189,7 @@ export default function RewriteMenu({
                     {isProcessing &&
                         <div className='rewrite-menu-header-processing'>
                             <LoadingSpinner/>
-                            <FormattedMessage
-                                id='texteditor.rewrite.rewriting'
-                                defaultMessage='Rewriting'
-                            />
+                            <RewriteProcessingStatus draftMessage={draftMessage}/>
                             <Button
                                 emphasis='tertiary'
                                 size='x-small'
@@ -380,10 +396,7 @@ export function RewriteSubMenuHeader({
             {isProcessing &&
                 <div className='rewrite-menu-header-processing'>
                     <LoadingSpinner/>
-                    <FormattedMessage
-                        id='texteditor.rewrite.rewriting'
-                        defaultMessage='Rewriting'
-                    />
+                    <RewriteProcessingStatus draftMessage={draftMessage}/>
                     <Button
                         emphasis='tertiary'
                         size='x-small'
@@ -481,9 +494,11 @@ export function RewriteMenuPopover({
     onUndoMessage,
     onRegenerateMessage,
     customPromptRef,
+    popoverActionsRef,
 }: RewriteMenuProps & {
     anchor: HTMLElement | null;
     onClose: () => void;
+    popoverActionsRef?: React.Ref<PopoverActions>;
 }) {
     const {formatMessage} = useIntl();
     const theme = useSelector(getTheme);
@@ -503,6 +518,7 @@ export function RewriteMenuPopover({
     return (
         <CompassDesignProvider theme={theme}>
             <MuiPopover
+                action={popoverActionsRef}
                 open={true}
                 anchorEl={anchor}
                 anchorOrigin={{vertical: 'top', horizontal: 'left'}}

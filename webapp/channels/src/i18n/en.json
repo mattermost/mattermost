@@ -32799,6 +32799,10 @@
     "defaultMessage": "Discard",
     "description": "Button in the AI rewrite UI that discards the AI-generated text and restores the user's original message; verb, compact."
   },
+  "texteditor.rewrite.drafting": {
+    "defaultMessage": "Drafting",
+    "description": "Status label in the AI rewrite menu while the AI is drafting a new message from an empty composer; shown next to a loading indicator. Use for a brand-new draft, not for rewriting text that is already in the composer."
+  },
   "texteditor.rewrite.elaborate": {
     "defaultMessage": "Elaborate",
     "description": "Option in the AI rewrite menu asking the AI to expand the drafted message with more detail; verb, compact menu item."

@@ -494,11 +494,17 @@ const AdvancedTextEditor = ({
         isProcessing: rewriteIsProcessing,
     } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
-    const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
+    const composerLocked = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
+    const isDisabled = composerLocked || rewriteIsProcessing;
 
     // One + on the left of this composer, agent chat and channels. It opens
     // attach, emoji, attributes, and formatting. The file button stays hidden
     // because attach lives in that menu.
+    //
+    // Keep it mounted while a rewrite runs. isDisabled hides send, but this
+    // button anchors the rewrite popover. Unmounting it removes the working
+    // state and, once the draft lands, leaves that menu at the viewport origin.
+    const showPlusButton = !composerLocked;
     const showPlus = !isDisabled;
 
     usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
@@ -1024,7 +1030,7 @@ const AdvancedTextEditor = ({
         </div>
     );
     const showComposerPlusTour = showPlus && location === Locations.CENTER && !isInEditMode && !showSendTutorialTip && !hasSeenComposerPlusTour;
-    const plusButton = showPlus && (
+    const plusButton = showPlusButton && (
         <div
             className='AdvancedTextEditor__plus'
             data-testid='composer-plus'
@@ -1103,8 +1109,8 @@ const AdvancedTextEditor = ({
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     'AdvancedTextEditor--agent': agentMode,
-                    'AdvancedTextEditor--plus': showPlus,
-                    'AdvancedTextEditor--plus-overlay': showPlus && oneLine,
+                    'AdvancedTextEditor--plus': showPlusButton,
+                    'AdvancedTextEditor--plus-overlay': showPlusButton && oneLine,
                     scroll: renderScrollbar,
                     'formatting-bar': showFormattingBar,
                 })}

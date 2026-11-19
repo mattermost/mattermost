@@ -12,7 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import type TextboxClass from 'components/textbox/textbox';
 
-import {act, renderHookWithContext, waitFor} from 'tests/react_testing_utils';
+import {act, renderHookWithContext, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -642,6 +642,119 @@ describe('useRewrite', () => {
 
             props = result.current.rewriteMenuProps;
             expect(props.originalMessage).toBe('');
+        });
+    });
+
+    describe('rewrite popover anchor', () => {
+        function setRect(element: HTMLElement, top: number, left: number) {
+            element.getBoundingClientRect = () => ({
+                top,
+                left,
+                right: left + 32,
+                bottom: top + 32,
+                width: 32,
+                height: 32,
+                x: left,
+                y: top,
+                toJSON: () => '',
+            });
+        }
+
+        function popoverPaper(): HTMLElement {
+            const paper = document.querySelector<HTMLElement>('.MuiPopover-paper');
+            if (!paper) {
+                throw new Error('rewrite popover paper was not rendered');
+            }
+            return paper;
+        }
+
+        it('shows Drafting while a new message is in flight and follows the live plus button', async () => {
+            const root = document.createElement('div');
+            root.className = 'AdvancedTextEditor';
+            const button = document.createElement('button');
+            button.id = 'agentComposerMenuButton';
+            setRect(button, 200, 40);
+            root.appendChild(button);
+            document.body.appendChild(root);
+
+            let resolveRewrite: (value: string) => void = () => {};
+            (Client4.getAIRewrittenMessage as jest.Mock).mockReturnValue(new Promise((resolve) => {
+                resolveRewrite = resolve;
+            }));
+
+            let currentDraft: PostDraft = {...mockDraft, message: ''};
+            const {result, rerender} = renderHookWithContext(
+                () => useRewrite(
+                    currentDraft,
+                    mockHandleDraftChange,
+                    mockTextboxRef,
+                    mockFocusTextbox,
+                    mockSetServerError,
+                ),
+                getBaseState(),
+            );
+
+            act(() => {
+                result.current.rewriteMenuProps.openMenu(button);
+            });
+
+            let props = result.current.rewriteMenuProps;
+            act(() => {
+                props.setPrompt('Write a hello');
+            });
+            rerender();
+
+            props = result.current.rewriteMenuProps;
+            act(() => {
+                props.onCustomPromptKeyDown({
+                    key: 'Enter',
+                    nativeEvent: {isComposing: false},
+                    stopPropagation: jest.fn(),
+                } as unknown as React.KeyboardEvent<HTMLInputElement>);
+            });
+
+            await waitFor(() => {
+                expect(result.current.isProcessing).toBe(true);
+            });
+
+            // Render once processing has started so the agent dropdown, which
+            // needs a profile-picture URL, is not mounted.
+            const view = renderWithContext(result.current.rewritePopover);
+
+            expect(screen.getByText('Drafting')).toBeInTheDocument();
+            expect(screen.queryByText('Rewriting')).not.toBeInTheDocument();
+            await waitFor(() => {
+                expect(popoverPaper().style.top).toBe('200px');
+            });
+
+            // The same button moved with the composer. Re-measure in place.
+            setRect(button, 360, 40);
+            currentDraft = {...currentDraft, message: 'Hello there'};
+            rerender();
+            await waitFor(() => {
+                expect(popoverPaper().style.top).toBe('360px');
+            });
+
+            // The + was replaced. A detached anchor would measure as the origin.
+            const liveButton = document.createElement('button');
+            liveButton.id = 'agentComposerMenuButton';
+            setRect(liveButton, 480, 72);
+            setRect(button, 0, 0);
+            button.replaceWith(liveButton);
+            currentDraft = {...currentDraft, message: 'Hello there, from the new draft'};
+            rerender();
+            view.rerender(result.current.rewritePopover);
+
+            await waitFor(() => {
+                expect(popoverPaper().style.top).toBe('480px');
+                expect(popoverPaper().style.left).toBe('72px');
+            });
+            expect(liveButton.isConnected).toBe(true);
+
+            await act(async () => {
+                resolveRewrite('Hello there, from the new draft');
+            });
+            view.unmount();
         });
     });
 });

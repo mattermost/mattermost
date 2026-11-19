@@ -172,6 +172,20 @@ describe('RewriteMenu', () => {
             />,
         );
         expect(screen.getByText('Stop generating')).toBeInTheDocument();
+        expect(screen.getByText('Rewriting')).toBeInTheDocument();
+    });
+
+    test('shows Drafting while a new message is being generated', () => {
+        renderWithContext(
+            <RewriteMenu
+                {...baseProps}
+                isProcessing={true}
+                draftMessage=''
+            />,
+        );
+        expect(screen.getByText('Drafting')).toBeInTheDocument();
+        expect(screen.queryByText('Rewriting')).not.toBeInTheDocument();
+        expect(screen.getByText('Stop generating')).toBeInTheDocument();
     });
 
     test('should call onCancelProcessing when stop generating button is clicked', async () => {
@@ -367,6 +381,27 @@ describe('RewriteMenu', () => {
         );
         expect(screen.getByText('Shorten')).toBeInTheDocument();
         expect(screen.getByText('Fix spelling and grammar')).toBeInTheDocument();
+
+        anchor.remove();
+    });
+
+    test('shows Drafting in the popover while a new message is generated', () => {
+        const anchor = document.createElement('button');
+        document.body.appendChild(anchor);
+
+        renderWithContext(
+            <RewriteMenuPopover
+                {...baseProps}
+                isMenuOpen={true}
+                isProcessing={true}
+                draftMessage=''
+                anchor={anchor}
+                onClose={jest.fn()}
+            />,
+        );
+        expect(screen.getByText('Drafting')).toBeInTheDocument();
+        expect(screen.queryByText('Rewriting')).not.toBeInTheDocument();
+        expect(screen.getByText('Stop generating')).toBeInTheDocument();
 
         anchor.remove();
     });

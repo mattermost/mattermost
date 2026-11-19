@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import type {PopoverActions} from '@mui/material/Popover';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -36,6 +37,10 @@ const useRewrite = (
     const [isProcessing, setIsProcessing] = useState(false);
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [menuAnchor, setMenuAnchor] = useState<HTMLElement | null>(null);
+    const menuAnchorRef = useRef<HTMLElement | null>(null);
+    const composerRootRef = useRef<HTMLElement | null>(null);
+    const popoverActionsRef = useRef<PopoverActions | null>(null);
+    menuAnchorRef.current = menuAnchor;
 
     const [originalMessage, setOriginalMessage] = useState('');
     const [lastAction, setLastAction] = useState<RewriteAction>(RewriteAction.CUSTOM);
@@ -139,9 +144,59 @@ const useRewrite = (
     }, [handleRewrite]);
 
     const openMenu = useCallback((anchor: HTMLElement | null) => {
+        composerRootRef.current = anchor?.closest('.AdvancedTextEditor') ?? null;
         setMenuAnchor(anchor);
         setIsMenuOpen(true);
     }, []);
+
+    // The drafted text grows the composer, and the + can be a new DOM node
+    // afterward. A detached anchor measures as 0,0. Rebind to the live button,
+    // or to the composer if it is gone, and remeasure when the node is unchanged.
+    const syncPopoverAnchor = useCallback(() => {
+        const root = composerRootRef.current;
+        const button = root?.querySelector<HTMLElement>('#agentComposerMenuButton');
+        const current = menuAnchorRef.current;
+
+        let next: HTMLElement | null = null;
+        if (button?.isConnected) {
+            next = button;
+        } else if (current?.isConnected) {
+            next = current;
+        } else if (root?.isConnected) {
+            next = root;
+        }
+
+        if (!next) {
+            return;
+        }
+        if (current !== next) {
+            setMenuAnchor(next);
+            return;
+        }
+        popoverActionsRef.current?.updatePosition();
+    }, []);
+
+    useLayoutEffect(() => {
+        if (!isMenuOpen) {
+            return;
+        }
+        syncPopoverAnchor();
+    }, [draft.message, isMenuOpen, isProcessing, syncPopoverAnchor]);
+
+    useEffect(() => {
+        if (!isMenuOpen) {
+            return undefined;
+        }
+        const root = composerRootRef.current;
+        if (!root || typeof ResizeObserver === 'undefined') {
+            return undefined;
+        }
+        const observer = new ResizeObserver(() => {
+            syncPopoverAnchor();
+        });
+        observer.observe(root);
+        return () => observer.disconnect();
+    }, [isMenuOpen, syncPopoverAnchor]);
 
     const closeMenu = useCallback(() => {
         setIsMenuOpen(false);
@@ -236,6 +291,7 @@ const useRewrite = (
             {...rewriteMenuProps}
             anchor={menuAnchor}
             onClose={closeMenu}
+            popoverActionsRef={popoverActionsRef}
         />
     );
 
