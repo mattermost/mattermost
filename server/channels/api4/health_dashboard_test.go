@@ -467,8 +467,9 @@ func TestExportHealthFindings(t *testing.T) {
 			assert.Equal(t, `attachment; filename="`+filename+`"`, resp.Header.Get("Content-Disposition"))
 
 			report := string(data)
-			assert.Contains(t, report, "Acme Corp.")
-			assert.Contains(t, report, "https://chat.example.com")
+			assert.NotContains(t, report, "Acme Corp")
+			assert.Contains(t, report, "https://chat.example.com/admin_console/environment/web_server")
+			assert.Contains(t, report, "My awesome Company")
 			assert.Contains(t, report, model.CurrentVersion)
 			assert.Contains(t, report, model.LicenseShortSkuEnterprise)
 			assert.Contains(t, report, "SiteURL uses http:// (not https://)")
@@ -482,8 +483,8 @@ func TestExportHealthFindings(t *testing.T) {
 
 		report := string(data)
 		assert.Contains(t, report, " +14\n", "times are in the admin's timezone")
-		assert.Contains(t, report, "\n## Muted\n\n- **ServiceSettings.SiteURL is empty** (Warning)")
-		assert.Contains(t, report, "\n## Resolved\n\n- PushNotificationServer does not use https://\n")
+		assert.Contains(t, report, "\n## Muted\n\n- **ServiceSettings.SiteURL is empty** `SITE_URL_EMPTY` (Warning)")
+		assert.Contains(t, report, "\n## Resolved\n\n- PushNotificationServer does not use https:// `PUSH_BAD_SCHEME`\n")
 	})
 
 	t.Run("invalid format", func(t *testing.T) {
