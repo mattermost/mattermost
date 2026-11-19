@@ -133,8 +133,15 @@ describe('components/resizable_sidebar/ResizableDivider', () => {
         fireEvent.mouseUp(window);
         expect(getSavedWidth(store.getState())).toBe(600);
 
-        // Dragging to a new width saves it
+        // Dragging away and back to the starting width keeps the saved width
         cap = 1000;
+        fireEvent.mouseDown(divider, {button: 0, clientX: 400});
+        fireEvent.mouseMove(window, {clientX: 350});
+        fireEvent.mouseMove(window, {clientX: 400});
+        fireEvent.mouseUp(window);
+        expect(getSavedWidth(store.getState())).toBe(600);
+
+        // Dragging to a new width saves it
         fireEvent.mouseDown(divider, {button: 0, clientX: 400});
         fireEvent.mouseMove(window, {clientX: 450});
         fireEvent.mouseUp(window);

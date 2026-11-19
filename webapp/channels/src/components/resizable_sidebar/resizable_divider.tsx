@@ -263,9 +263,10 @@ function ResizableDivider({
             const finalWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
 
             // Only save a width the pointer actually changed. Pressing the handle without dragging, dragging
-            // against a width limit, or the layout changing during the drag must not overwrite the saved
-            // preference with a width the layout is currently capping. Always let the parent clean up.
-            if (finalWidth && pointerResized.current) {
+            // against a width limit, the layout changing during the drag, or a drag that ends where it started
+            // must not overwrite the saved preference with a width the layout is currently capping. Always let
+            // the parent clean up.
+            if (finalWidth && pointerResized.current && finalWidth !== startWidth.current) {
                 setWidth(finalWidth);
             }
             onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);
