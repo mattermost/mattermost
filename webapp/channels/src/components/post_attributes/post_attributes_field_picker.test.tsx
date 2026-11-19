@@ -292,6 +292,26 @@ describe('PostAttributesFieldPicker', () => {
             expect(screen.queryByTestId('post-attributes-add-no-results')).not.toBeInTheDocument();
         });
 
+        test('dropping below five fields while a search is active removes the search and its filter', async () => {
+            const {rerender} = renderPicker(fiveFields());
+            await openPicker();
+
+            const search = screen.getByRole('searchbox', {name: 'Search attributes'});
+            await waitFor(() => expect(search).toHaveFocus());
+            await userEvent.type(search, 'echo');
+            expect(screen.getAllByRole('menuitem')).toHaveLength(1);
+
+            rerender(
+                <PostAttributesFieldPicker
+                    fields={fiveFields().slice(0, 4)}
+                    onSelect={jest.fn()}
+                />,
+            );
+
+            expect(screen.queryByRole('searchbox', {name: 'Search attributes'})).not.toBeInTheDocument();
+            expect(screen.getAllByRole('menuitem')).toHaveLength(4);
+        });
+
         test('ArrowDown moves from the search box into the list', async () => {
             renderPicker(fiveFields());
             await openPicker();

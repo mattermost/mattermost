@@ -111,7 +111,11 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
 
     const searchable = fields.length >= SEARCH_THRESHOLD;
     const [search, setSearch] = useState('');
-    const term = search.trim().toLowerCase();
+
+    // Ignored without a search box, such as when fields drop below the threshold
+    // while the menu is open: a filter the user can no longer see or clear would
+    // hide fields for no visible reason.
+    const term = searchable ? search.trim().toLowerCase() : '';
     const shown = useMemo(() => (term ? fields.filter((field) => matches(field, term)) : fields), [fields, term]);
 
     // A fresh search each time the menu opens.
