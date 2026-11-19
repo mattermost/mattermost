@@ -12,7 +12,7 @@ import {
     buildRulesWithMembership,
     getAutoAddFromRules,
     autoAddModeForToggle,
-    hasEffectiveRules,
+    isEmptyPolicy,
 } from '@mattermost/types/access_control';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
@@ -460,7 +460,7 @@ function ChannelSettingsAccessRulesTab({
             // not make the policy empty. Delete it only once nothing effective
             // is left and it imports no system policies. Imports come from the
             // loaded policy, not the resolved system-policy objects.
-            const willDeletePolicy = !hasEffectiveRules(rules) && existingImports.length === 0;
+            const willDeletePolicy = isEmptyPolicy(rules, existingImports);
 
             if (willDeletePolicy) {
                 const deleteResult = await actions.deleteChannelPolicy(channel.id);

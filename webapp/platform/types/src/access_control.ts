@@ -256,6 +256,17 @@ export function hasEffectiveRules(rules?: AccessControlPolicyRule[]): boolean {
 }
 
 /**
+ * Reports whether a policy with these rules and imports would define nothing,
+ * so callers should delete it instead of saving it. The server rejects a policy
+ * that neither imports nor defines rules. Every settings tab that can clear a
+ * policy must use this one check: drift between per-tab copies has dropped
+ * permission rules and system-policy imports before.
+ */
+export function isEmptyPolicy(rules?: AccessControlPolicyRule[], imports?: string[]): boolean {
+    return !hasEffectiveRules(rules) && !imports?.length;
+}
+
+/**
  * Reads the auto-add mode off a policy's membership rule, or undefined when the
  * policy does not auto-add members. Auto-add is per-resource and never inherited
  * from an imported parent policy, so this only ever looks at the policy's own

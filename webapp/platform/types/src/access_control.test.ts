@@ -20,6 +20,7 @@ import {
     getAutoAddModeFromRules,
     autoAddModeForToggle,
     hasEffectiveRules,
+    isEmptyPolicy,
 } from './access_control';
 import type {AccessControlPolicyRule} from './access_control';
 
@@ -342,5 +343,24 @@ describe('channel_read_access as a permission action', () => {
         }];
         expect(getPermissionRules(rules)).toHaveLength(1);
         expect(hasOverlappingPermissionRules(rules)).toBe(false);
+    });
+});
+
+describe('isEmptyPolicy', () => {
+    test('is true with no effective rules and no imports', () => {
+        expect(isEmptyPolicy([{actions: ['membership'], expression: '', metadata: {auto_add: 'always'}}], [])).toBe(true);
+        expect(isEmptyPolicy([], undefined)).toBe(true);
+        expect(isEmptyPolicy(undefined, undefined)).toBe(true);
+    });
+
+    test('is false while a permission rule remains after the membership rule is cleared', () => {
+        expect(isEmptyPolicy([
+            {actions: ['membership'], expression: ''},
+            {actions: ['file_upload'], expression: 'upload_expr'},
+        ], [])).toBe(false);
+    });
+
+    test('is false while the policy still imports a system policy', () => {
+        expect(isEmptyPolicy([], ['parent_policy_id'])).toBe(false);
     });
 });
