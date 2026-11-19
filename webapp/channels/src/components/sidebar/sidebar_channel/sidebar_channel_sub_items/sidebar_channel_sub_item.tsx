@@ -115,6 +115,7 @@ export default function SidebarChannelSubItem({
         >
             <div
                 className={classNames('SidebarChannelSubItem__row', {
+                    hasToggle: item.hasChildren,
                     menuOpen: isMenuOpen,
                     hasMenu: hasActions,
                     dragging: isDragging,
@@ -131,7 +132,6 @@ export default function SidebarChannelSubItem({
                 onDrop={handleDrop}
                 onDragEnd={dragHandlers.onDragEnd}
             >
-                {toggle}
                 <Link
                     className='SidebarChannelSubItem__link'
                     to={getChannelSidebarSubItemLink(currentTeamName, channel.name, item.subpath)}
@@ -155,6 +155,7 @@ export default function SidebarChannelSubItem({
                         onMenuToggle={setIsMenuOpen}
                     />
                 )}
+                {toggle}
             </div>
             {children}
         </li>
