@@ -224,11 +224,20 @@ function PostAttributesComposerChip({field, value, autoOpen, onChange, onRemove}
                     // Named after the attribute, so a row of chips does not
                     // hand a screen reader several buttons called "Remove".
                     aria-label={removeLabel}
+
+                    // Pressing the × would otherwise blur a text chip's input,
+                    // which shrinks the chip back to rest and moves the × out
+                    // from under the pointer before the click lands.
+                    onMouseDown={preventDefault}
                     onClick={handleRemove}
                 />
             </WithTooltip>
         </div>
     );
+}
+
+function preventDefault(event: React.MouseEvent) {
+    event.preventDefault();
 }
 
 // Inside the option menu's trigger button, so the user name is plain text.

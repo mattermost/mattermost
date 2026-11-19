@@ -539,6 +539,24 @@ describe('PostAttributesComposer', () => {
         expect(screen.getByTestId('post-attribute-rest-classification')).toHaveAccessibleName('Note: hello there');
     });
 
+    test('pressing the × on a text chip being edited keeps focus in its input, so one click removes the chip', async () => {
+        renderComposer([makeField({type: 'text', attrs: {display_name: 'Note'}})], [{field_id: 'field_1', value: 'hello'}]);
+
+        await userEvent.click(screen.getByTestId('post-attribute-rest-classification'));
+        const input = screen.getByTestId('post-attribute-input-classification');
+        await waitFor(() => expect(input).toHaveFocus());
+
+        // jsdom has no layout, so the × can't move away from the pointer here;
+        // what the browser needs is that the press doesn't blur the input.
+        const remove = screen.getByRole('button', {name: 'Remove Note'});
+        await userEvent.pointer({keys: '[MouseLeft>]', target: remove});
+        expect(input).toHaveFocus();
+
+        await userEvent.click(remove);
+        expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+        expect(stagedValues()).toEqual([]);
+    });
+
     test('a user chip at rest shows the name with no profile popover, and turns into the user picker on click', async () => {
         renderComposer([makeField({type: 'user', attrs: {display_name: 'Owner'}})], [{field_id: 'field_1', value: CURRENT_USER_ID}]);
 
