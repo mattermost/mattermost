@@ -14,6 +14,14 @@ jest.mock('mattermost-redux/actions/preferences', () => ({
 }));
 
 describe('ComposerPlusTourTip', () => {
+    it('centers the pulsating dot on the top-right corner of the plus button', () => {
+        renderWithContext(<ComposerPlusTourTip/>);
+
+        const dot = document.getElementById('tipButton');
+        expect(dot).toHaveAttribute('data-pulsating-dot-placement', 'top-end');
+        expect(dot).toHaveStyle({transform: 'translate(6px, -6px)'});
+    });
+
     it('saves that the tip was seen when it is dismissed', async () => {
         renderWithContext(
             <>

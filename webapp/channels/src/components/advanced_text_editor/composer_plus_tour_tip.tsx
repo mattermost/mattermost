@@ -77,6 +77,10 @@ const ComposerPlusTourTip = () => {
             overlayPunchOut={overlayPunchOut}
             placement='top-start'
             pulsatingDotPlacement='top-end'
+
+            // The 14px hit target sits on the + corner. The visible dot is 12px
+            // and flush to that box's top-right, so half of 12 centers it there.
+            pulsatingDotTranslate={{x: 6, y: -6}}
             step={0}
             singleTip={true}
             showOptOut={false}
