@@ -68,6 +68,8 @@ describe('Interactive Dialog - Preview element', () => {
     });
 
     it('renders a PDF as a scrollable viewer of every page, sized to its first page', () => {
+        // The viewer is capped at the window height, so the window must fit a whole page.
+        cy.viewport(1300, 1000);
         openPreviewDialog();
 
         previewGroup('Inline PDF').within(() => {
