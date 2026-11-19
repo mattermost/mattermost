@@ -1337,12 +1337,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 initialState,
             );
 
-            const plus = screen.getByTestId('composer-plus');
-            const tourPoint = document.getElementById('tipButton');
-            expect(tourPoint).toBeInTheDocument();
-            expect(plus).toContainElement(tourPoint);
-
-            await userEvent.click(tourPoint!);
+            const tourPoint = screen.getByTestId('composer-plus-tour');
+            expect(tourPoint).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
+            expect(tourPoint).toHaveAttribute('data-pointer-position', 'bottom-left');
 
             expect(screen.getByText('Message options moved here')).toBeInTheDocument();
             expect(screen.getByText('Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
@@ -1369,8 +1366,6 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 }),
             );
 
-            await userEvent.click(document.getElementById('tipButton')!);
-
             expect(screen.getByText('Attach files, add an emoji, set a priority, and open formatting from this button. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
         });
 
@@ -1384,7 +1379,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 initialState,
             );
 
-            expect(document.getElementById('tipButton')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('composer-plus-tour')).not.toBeInTheDocument();
         });
 
         it('does not show the plus tour tip after it has been seen', () => {
@@ -1408,7 +1403,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 }),
             );
 
-            expect(document.getElementById('tipButton')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('composer-plus-tour')).not.toBeInTheDocument();
         });
     });
 
@@ -1990,7 +1985,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
             expect(screen.getByTestId('burn-on-read-label')).toBeInTheDocument();
-            expect(document.querySelector('.tour-tip__pulsating-dot-ctr')).toBeInTheDocument();
+            expect(screen.getByTestId('burn-on-read-tour')).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
             await openMenu();
             expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
@@ -2008,7 +2003,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
             expect(screen.queryByTestId('burn-on-read-label')).not.toBeInTheDocument();
-            expect(document.querySelector('.tour-tip__pulsating-dot-ctr')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('burn-on-read-tour')).not.toBeInTheDocument();
             await openMenu();
             expect(screen.queryByRole('menuitem', {name: 'Message priority'})).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', {name: 'Burn-on-read'})).not.toBeInTheDocument();
@@ -2028,7 +2023,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.queryByRole('menuitem', {name: 'Burn-on-read'})).not.toBeInTheDocument();
-            expect(document.querySelector('.tour-tip__pulsating-dot-ctr')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('burn-on-read-tour')).not.toBeInTheDocument();
         });
 
         it('anchors the burn-on-read tour tip to the control that opens it', () => {
@@ -2051,10 +2046,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 <AdvancedTextEditor {...baseProps}/>,
                 seenPlus,
             );
-            const bar = screen.getByTestId('formattingBarContainer');
-            const burnControl = bar.querySelector('.BurnOnReadControl');
-            expect(burnControl?.querySelector('.tour-tip__pulsating-dot-ctr')).toBeInTheDocument();
-            expect(screen.getByTestId('composer-plus').querySelector('.tour-tip__pulsating-dot-ctr')).not.toBeInTheDocument();
+            expect(screen.getByTestId('burn-on-read-tour')).toHaveAttribute('data-anchor-id', 'burnOnReadButton');
+            expect(screen.queryByTestId('composer-plus-tour')).not.toBeInTheDocument();
             openBar.unmount();
 
             renderWithContext(
@@ -2066,7 +2059,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
             expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
-            expect(screen.getByTestId('composer-plus').querySelector('.tour-tip__pulsating-dot-ctr')).toBeInTheDocument();
+            expect(screen.getByTestId('burn-on-read-tour')).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
         });
 
         it('keeps the composer plus tour on the center plus while burn-on-read is in the bar', async () => {
@@ -2075,13 +2068,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 chromeState,
             );
 
-            const plus = screen.getByTestId('composer-plus');
-            const tourPoint = plus.querySelector('#tipButton');
-            expect(tourPoint).toBeInTheDocument();
-            expect(screen.getByTestId('formattingBarContainer').querySelector('.BurnOnReadControl .tour-tip__pulsating-dot-ctr')).toBeInTheDocument();
-
-            await userEvent.click(tourPoint!);
-
+            expect(screen.getByTestId('composer-plus-tour')).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
+            expect(screen.getByTestId('burn-on-read-tour')).toHaveAttribute('data-anchor-id', 'burnOnReadButton');
             expect(screen.getByText('Message options moved here')).toBeInTheDocument();
         });
 

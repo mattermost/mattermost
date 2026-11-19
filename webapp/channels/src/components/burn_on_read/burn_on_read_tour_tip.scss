@@ -20,29 +20,4 @@
         letter-spacing: 0.5px;
         text-transform: uppercase;
     }
-
-    &__demo {
-        display: flex;
-        border-radius: 4px;
-        margin-top: 16px !important;
-        background-color: rgba(var(--center-channel-color-rgb), 0.04);
-    }
-
-    &__demo-placeholder {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 24px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        gap: 8px;
-    }
-
-    &__demo-icon {
-        font-size: 24px;
-    }
-
-    &__demo-text {
-        font-size: 13px;
-        font-style: italic;
-    }
 }

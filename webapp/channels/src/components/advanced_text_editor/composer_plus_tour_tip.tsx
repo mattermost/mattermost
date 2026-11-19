@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {useCallback} from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-
-import {TourTip, useMeasurePunchouts} from '@mattermost/components';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
+
+import AnchoredTourPoint from 'components/tour_point/anchored_tour_point';
 
 import type {GlobalState} from 'types/store';
 
@@ -54,9 +54,8 @@ type Props = {
 
 const ComposerPlusTourTip = ({formattingBarOpen}: Props) => {
     const dispatch = useDispatch();
+    const intl = useIntl();
     const currentUserId = useSelector(getCurrentUserId);
-    const [showTourTip, setShowTourTip] = useState(false);
-    const overlayPunchOut = useMeasurePunchouts(['agentComposerMenuButton'], []);
 
     const markSeen = useCallback(() => {
         dispatch(savePreferences(currentUserId, [{
@@ -67,43 +66,18 @@ const ComposerPlusTourTip = ({formattingBarOpen}: Props) => {
         }]));
     }, [currentUserId, dispatch]);
 
-    const handleOpen = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        setShowTourTip(true);
-    }, []);
-
-    const handleDismiss = useCallback((e: React.MouseEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
-        markSeen();
-        setShowTourTip(false);
-    }, [markSeen]);
-
     return (
-        <TourTip
-            show={showTourTip}
+        <AnchoredTourPoint
+            anchorId='agentComposerMenuButton'
+            aim='corner'
+            testId='composer-plus-tour'
             title={title}
-            screen={formattingBarOpen ? openBarScreen : closedBarScreen}
-            overlayPunchOut={overlayPunchOut}
-            placement='top-start'
-            pulsatingDotPlacement='top-end'
-
-            // The 14px hit target sits on the + corner. The visible dot is 12px
-            // and flush to that box's top-right, so half of 12 centers it there.
-            pulsatingDotTranslate={{x: 6, y: -6}}
-            step={0}
-            singleTip={true}
-            showOptOut={false}
-            interactivePunchOut={true}
-            hideBackdrop={true}
-            tippyBlueStyle={true}
-            handleOpen={handleOpen}
-            handleDismiss={handleDismiss}
-            handleNext={handleDismiss}
-            nextBtn={nextBtn}
-            width={320}
-        />
+            closeLabel={intl.formatMessage({id: 'tutorial_tip.close', defaultMessage: 'Close'})}
+            onClose={markSeen}
+            primaryAction={{label: nextBtn, onClick: markSeen}}
+        >
+            {formattingBarOpen ? openBarScreen : closedBarScreen}
+        </AnchoredTourPoint>
     );
 };
 
