@@ -732,9 +732,12 @@ func makeFilterConfigByPermission(accessType filterType) func(c *Context, struct
 			if tagValue == model.ConfigAccessTagManageSystemWrite {
 				continue
 			}
-			if tagValue == model.ConfigAccessTagAnySysConsoleRead && accessType == FilterTypeRead &&
-				c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
-				return true
+			if tagValue == model.ConfigAccessTagAnySysConsoleRead {
+				if accessType == FilterTypeRead &&
+					c.App.SessionHasPermissionToAny(*c.AppContext.Session(), model.SysconsoleReadPermissions) {
+					return true
+				}
+				continue
 			}
 
 			permissionID := fmt.Sprintf("sysconsole_%s_%s", accessType, tagValue)

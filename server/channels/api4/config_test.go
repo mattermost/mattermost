@@ -18,7 +18,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
 
@@ -500,6 +502,83 @@ func TestUpdateConfigWithoutManageSystemPermission(t *testing.T) {
 		require.NoError(t, err)
 		assert.Equal(t, mockVal, *th.App.Config().ServiceSettings.AllowCorsFrom)
 		assert.Equal(t, "http://localhost:8065", *th.App.Config().ServiceSettings.SiteURL)
+	})
+}
+
+func TestConfigFilterDoesNotLogUnrecognizedAccessTag(t *testing.T) {
+	th := Setup(t)
+
+	const unrecognizedTagMsg = "Unrecognized config permissions tag value."
+
+	captureLogs := func(t *testing.T) *mlog.Buffer {
+		t.Helper()
+		buffer := &mlog.Buffer{}
+		require.NoError(t, mlog.AddWriterTarget(th.TestLogger, buffer, true, mlog.StdAll...))
+		return buffer
+	}
+
+	t.Run("system admin patch", func(t *testing.T) {
+		buffer := captureLogs(t)
+
+		siteName := model.NewId()
+		_, _, err := th.SystemAdminClient.PatchConfig(context.Background(), &model.Config{
+			TeamSettings: model.TeamSettings{SiteName: &siteName},
+		})
+		require.NoError(t, err)
+		require.Equal(t, siteName, *th.App.Config().TeamSettings.SiteName)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertNoLog(t, buffer, mlog.LvlWarn.Name, unrecognizedTagMsg)
+	})
+
+	t.Run("system admin update", func(t *testing.T) {
+		cfg, _, err := th.SystemAdminClient.GetConfig(context.Background())
+		require.NoError(t, err)
+		buffer := captureLogs(t)
+
+		siteName := model.NewId()
+		cfg.TeamSettings.SiteName = &siteName
+		_, _, err = th.SystemAdminClient.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
+		require.Equal(t, siteName, *th.App.Config().TeamSettings.SiteName)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertNoLog(t, buffer, mlog.LvlWarn.Name, unrecognizedTagMsg)
+	})
+
+	t.Run("update by user with a system console write permission but without manage_system", func(t *testing.T) {
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+		require.NoError(t, err)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadIntegrationsCors.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+		defer th.RemovePermissionFromRole(t, model.PermissionSysconsoleWriteIntegrationsCors.Id, model.SystemUserRoleId)
+
+		cfg, _, err := th.Client.GetConfig(context.Background())
+		require.NoError(t, err)
+		buffer := captureLogs(t)
+
+		allowCorsFrom := model.NewId()
+		cfg.ServiceSettings.AllowCorsFrom = &allowCorsFrom
+		_, _, err = th.Client.UpdateConfig(context.Background(), cfg)
+		require.NoError(t, err)
+		require.Equal(t, allowCorsFrom, *th.App.Config().ServiceSettings.AllowCorsFrom)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertNoLog(t, buffer, mlog.LvlWarn.Name, unrecognizedTagMsg)
+	})
+
+	t.Run("environment config read by user without system console read permissions", func(t *testing.T) {
+		_, _, err := th.Client.Login(context.Background(), th.BasicUser.Username, th.BasicUser.Password)
+		require.NoError(t, err)
+		buffer := captureLogs(t)
+
+		envConfig, _, err := th.Client.GetEnvironmentConfig(context.Background())
+		require.NoError(t, err)
+		require.Empty(t, envConfig)
+
+		require.NoError(t, th.TestLogger.Flush())
+		testlib.AssertNoLog(t, buffer, mlog.LvlWarn.Name, unrecognizedTagMsg)
 	})
 }
 
