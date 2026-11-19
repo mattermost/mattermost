@@ -553,10 +553,11 @@ func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) stri
 	return path
 }
 
-func healthPacketTestCommand(path string, includeResolved, includeMuted bool) *cobra.Command {
-	cmd := healthTestCommand(includeResolved, includeMuted)
-	cmd.Flags().String("packet", path, "")
-	cmd.SetContext(context.Background())
+func (s *MmctlUnitTestSuite) healthPacketTestCommand(path string, includeResolved, includeMuted bool) *cobra.Command {
+	cmd := newTestCmd(s.T(), HealthCheckCmd)
+	s.Require().NoError(cmd.Flags().Set("packet", path))
+	s.Require().NoError(cmd.Flags().Set("include-resolved", strconv.FormatBool(includeResolved)))
+	s.Require().NoError(cmd.Flags().Set("include-muted", strconv.FormatBool(includeMuted)))
 	return cmd
 }
 
@@ -641,7 +642,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 		err := healthCheckRunE(healthTestCommand(false, false), []string{})
 		s.Require().ErrorContains(err, "failed to create client")
 
-		err = healthCheckRunE(healthPacketTestCommand(packetPath, false, false), []string{})
+		err = healthCheckRunE(s.healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 		s.Contains(s.printedHealthFindings(), "PushNotificationServer does not use https://")
 	})
@@ -650,7 +651,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 
 		s.Equal(healthPacketDisclaimer+`
@@ -682,7 +683,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 4096), false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetWithFilestoreDisk(102400, 4096), false, false), []string{})
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
@@ -695,7 +696,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 9216), false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetWithFilestoreDisk(102400, 9216), false, false), []string{})
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
@@ -708,7 +709,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 		s.NotContains(s.printedHealthFindings(), "Evaluation appears to have stopped")
 	})
@@ -717,7 +718,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, true, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetPath, true, false), []string{})
 		s.Require().NoError(err)
 		output := s.printedHealthFindings()
 		s.Contains(output, "PushNotificationServer does not use https://")
@@ -727,7 +728,7 @@ Could not evaluate
 	s.Run("--include-muted is rejected", func() {
 		printer.Clean()
 
-		err := healthCheckRunE(healthPacketTestCommand(packetPath, false, true), []string{})
+		err := healthCheckRunE(s.healthPacketTestCommand(packetPath, false, true), []string{})
 		s.Require().ErrorContains(err, "--include-muted cannot be used with --packet")
 		s.Empty(printer.GetLines())
 	})
@@ -736,7 +737,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -825,7 +826,7 @@ Could not evaluate
 		requests := s.serveLatestRelease(healthTestRelease("v" + latest))
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
-		cmd := healthPacketTestCommand(supportedPacket, false, false)
+		cmd := s.healthPacketTestCommand(supportedPacket, false, false)
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel()
 		cmd.SetContext(ctx)
@@ -961,7 +962,7 @@ Could not evaluate
 		delete(files, model.PacketMetadataFileName)
 		files[model.SupportPacketDiagnosticsFileName] = "version: 99\n"
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(s.writeHealthTestPacket(files), true, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(s.writeHealthTestPacket(files), true, false), []string{})
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
@@ -974,7 +975,7 @@ Could not evaluate
 	s.Run("an unreadable packet is an error", func() {
 		printer.Clean()
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(filepath.Join(s.T().TempDir(), "missing.zip"), false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(filepath.Join(s.T().TempDir(), "missing.zip"), false, false), []string{})
 		s.Require().ErrorContains(err, "failed to read Support Packet")
 		s.Empty(printer.GetLines())
 	})

@@ -41,7 +41,7 @@ var HealthCmd = &cobra.Command{
 	Short: "Inspect workspace health findings",
 }
 
-const healthPacketDisclaimer = "Evaluated offline from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state. Version support is judged as of today."
+const healthPacketDisclaimer = "Evaluated locally from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state. Version support is judged as of today."
 
 // Packets don't record the latest release, so --packet fetches it. Variables so tests can
 // point them at a local server.
