@@ -492,7 +492,7 @@ const AdvancedTextEditor = ({
         rewriteMenuProps,
         rewritePopover,
         isProcessing: rewriteIsProcessing,
-    } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError);
+    } = useRewrite(draft, handleDraftChange, textboxRef, focusTextbox, setServerError, wysiwygRef);
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const composerLocked = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote));
     const isDisabled = composerLocked || rewriteIsProcessing;
@@ -1150,7 +1150,12 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
-                        {messageEditor}
+                        <div className='AdvancedTextEditor__message'>
+                            {messageEditor}
+                            {rewriteIsProcessing && (
+                                <div className='rewrite-overlay'/>
+                            )}
+                        </div>
                         {attachmentPreview}
                         {agentMode ? (
                             <div className='AdvancedTextEditor__agent-controls'>

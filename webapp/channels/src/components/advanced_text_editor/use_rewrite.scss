@@ -84,6 +84,11 @@
     position: relative;
 }
 
+// The sweep covers only the message, for the textarea and the rich text editor.
+.AdvancedTextEditor__message {
+    position: relative;
+}
+
 @keyframes rewrite-gradient {
     0% {
         background-position: 200% 0;

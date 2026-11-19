@@ -19,6 +19,10 @@ import type {PostDraft} from 'types/store/draft';
 import {RewriteAction} from './rewrite_action';
 import {RewriteMenuPopover} from './rewrite_menu';
 
+type RewriteSurface = {
+    getInputBox: () => HTMLElement | null;
+};
+
 const useRewrite = (
     draft: PostDraft,
     handleDraftChange: ((draft: PostDraft, options: {instant?: boolean; show?: boolean}) => void),
@@ -27,6 +31,7 @@ const useRewrite = (
     setServerError: React.Dispatch<React.SetStateAction<(ServerError & {
         submittedMessage?: string;
     }) | null>>,
+    wysiwygRef?: {readonly current: RewriteSurface | null},
 ) => {
     const dispatch = useDispatch();
     const agents = useSelector(getAgents);
@@ -213,31 +218,38 @@ const useRewrite = (
         }
     }, [isMenuOpen, draft.message]);
 
-    // This adds an overlay to the textbox to
-    // indicate that the AI is rewriting the message.
-    // It might belong in the text editor - but since
-    // it's only used here, it's simpler to keep it here.
+    // Cover the composer text with the gradient while a rewrite is in flight.
+    // The editor also renders this class. Skip when that node is already there
+    // so the sweep is not stacked. The rich text editor does not mount the
+    // legacy textbox, so fall back to its surface.
     useEffect(() => {
-        if (!isProcessing || !textboxRef.current) {
+        if (!isProcessing) {
             return undefined;
         }
 
-        const inputBox = textboxRef.current.getInputBox();
-        const wrapper = inputBox?.parentElement;
-        if (!wrapper) {
+        const input = textboxRef.current?.getInputBox() ?? wysiwygRef?.current?.getInputBox() ?? null;
+        if (!input) {
+            return undefined;
+        }
+
+        const composer = input.closest('.AdvancedTextEditor');
+        if (composer?.querySelector('.rewrite-overlay')) {
+            return undefined;
+        }
+
+        const host = input.closest('.textarea-wrapper, .WysiwygEditor') ?? input.parentElement;
+        if (!host) {
             return undefined;
         }
 
         const overlay = document.createElement('div');
         overlay.className = 'rewrite-overlay';
-        wrapper.appendChild(overlay);
+        host.appendChild(overlay);
 
         return () => {
-            if (wrapper.contains(overlay)) {
-                wrapper.removeChild(overlay);
-            }
+            overlay.remove();
         };
-    }, [isProcessing, textboxRef]);
+    }, [isProcessing, textboxRef, wysiwygRef]);
 
     useEffect(() => {
         if (isProcessing || draft.message.trim()) {

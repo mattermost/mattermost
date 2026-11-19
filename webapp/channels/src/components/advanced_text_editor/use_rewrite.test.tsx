@@ -610,6 +610,119 @@ describe('useRewrite', () => {
             expect(overlay).not.toBeInTheDocument();
         });
 
+        it('should add the overlay while drafting a new message', async () => {
+            const {result} = renderHookWithProps(mockDraft, {message: ''});
+            const slowPromise = new Promise<string>((resolve) => {
+                setTimeout(() => resolve('Drafted message'), 100);
+            });
+            (Client4.getAIRewrittenMessage as jest.Mock).mockReturnValue(slowPromise);
+
+            act(() => {
+                result.current.rewriteMenuProps.setPrompt('Write a hello');
+            });
+            const props = result.current.rewriteMenuProps;
+            props.onCustomPromptKeyDown({
+                key: 'Enter',
+                nativeEvent: {isComposing: false},
+                stopPropagation: jest.fn(),
+            } as unknown as React.KeyboardEvent<HTMLInputElement>);
+
+            await waitFor(() => {
+                expect(result.current.isProcessing).toBe(true);
+                expect(document.querySelector('.rewrite-overlay')).not.toBeNull();
+            });
+
+            await slowPromise;
+        });
+
+        it('should add the overlay on the rich text editor when the textarea is not mounted', async () => {
+            const surface = document.createElement('div');
+            surface.className = 'WysiwygEditor';
+            const prose = document.createElement('div');
+            prose.className = 'ProseMirror';
+            surface.appendChild(prose);
+            document.body.appendChild(surface);
+
+            try {
+                Object.defineProperty(mockTextboxRef, 'current', {
+                    value: null,
+                    writable: true,
+                    configurable: true,
+                });
+            } catch {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (mockTextboxRef as any).current = null;
+            }
+
+            const wysiwygRef = {current: {getInputBox: () => prose}};
+            const {result} = renderHookWithContext(
+                () => useRewrite(
+                    {...mockDraft, message: ''},
+                    mockHandleDraftChange,
+                    mockTextboxRef,
+                    mockFocusTextbox,
+                    mockSetServerError,
+                    wysiwygRef,
+                ),
+                getBaseState(),
+            );
+
+            const slowPromise = new Promise<string>((resolve) => {
+                setTimeout(() => resolve('Drafted message'), 100);
+            });
+            (Client4.getAIRewrittenMessage as jest.Mock).mockReturnValue(slowPromise);
+
+            act(() => {
+                result.current.rewriteMenuProps.onMenuAction(RewriteAction.SHORTEN)();
+            });
+
+            await waitFor(() => {
+                expect(result.current.isProcessing).toBe(true);
+                expect(surface.querySelector(':scope > .rewrite-overlay')).not.toBeNull();
+            });
+
+            await slowPromise;
+        });
+
+        it('should not stack a second overlay when the composer already rendered one', async () => {
+            const composer = document.createElement('div');
+            composer.className = 'AdvancedTextEditor';
+            const wrapper = document.createElement('div');
+            wrapper.className = 'textarea-wrapper';
+            const input = document.createElement('textarea');
+            const existing = document.createElement('div');
+            existing.className = 'rewrite-overlay';
+            wrapper.appendChild(input);
+            composer.appendChild(wrapper);
+            composer.appendChild(existing);
+            document.body.appendChild(composer);
+
+            try {
+                Object.defineProperty(mockTextboxRef, 'current', {
+                    value: {getInputBox: () => input},
+                    writable: true,
+                    configurable: true,
+                });
+            } catch {
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (mockTextboxRef as any).current = {getInputBox: () => input};
+            }
+
+            const {result} = renderHookWithProps();
+            const slowPromise = new Promise<string>(() => {});
+            (Client4.getAIRewrittenMessage as jest.Mock).mockReturnValue(slowPromise);
+
+            act(() => {
+                result.current.rewriteMenuProps.onMenuAction(RewriteAction.SHORTEN)();
+            });
+
+            await waitFor(() => {
+                expect(result.current.isProcessing).toBe(true);
+            });
+
+            expect(composer.querySelectorAll('.rewrite-overlay')).toHaveLength(1);
+        });
+
         it('should reset state when draft message becomes empty', async () => {
             let currentDraft = mockDraft;
             const {result, rerender} = renderHookWithContext(
