@@ -319,6 +319,17 @@ describe('ProductRail', () => {
             expect(store.getState().views.productRail.lastPathByTeam['plugin:conflux'][team.id]).toBe('/team-one/channels/handbook/pages/abc');
         });
 
+        test('should keep the saved section on reload while the plugin doesn\'t yet know the open channel is its own', () => {
+            localStorage.setItem(`product_rail_section_${user.id}`, 'plugin:conflux');
+            const state = getDocsState(handbook.id);
+            const {store} = renderAt('/team-one/channels/handbook/pages/abc', {
+                ...state,
+                plugins: {components: {...state.plugins!.components, ProductRailChannelSection: [{...docsSection, matcher: () => false}]} as unknown as GlobalState['plugins']['components']},
+            });
+
+            expect(store.getState().views.productRail.section).toBe('plugin:conflux');
+        });
+
         test('should return the section to the page last viewed under it', () => {
             renderAt('/team-one/channels/town-square', getDocsState(townSquare.id, 'channels', {'plugin:conflux': {[team.id]: '/team-one/channels/handbook/pages/xyz'}}));
 

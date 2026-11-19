@@ -268,6 +268,11 @@ export default function ProductRail() {
     // section. Turning Show boards on or off only changes what Channels lists: it doesn't move the
     // user, even when the open channel is a board.
     const lastBoardsShownInChannels = useRef(boardsShownInChannels);
+
+    // After a reload into a plugin's section, the plugin may not yet know the open channel is one of
+    // its own (it often loads that after it registers), so the channel looks like a Channels one.
+    // The section saved from the last session holds while the channel the page loaded on stays open.
+    const loadedChannelId = useRef<string | null>(null);
     useEffect(() => {
         const boardsShownChanged = lastBoardsShownInChannels.current !== boardsShownInChannels;
         lastBoardsShownInChannels.current = boardsShownInChannels;
@@ -278,7 +283,11 @@ export default function ProductRail() {
         // Wait for the saved section, and for plugins to register their sections and say which
         // channels are in them, so the first channel isn't filed under the wrong item.
         if (enabled && viewedTab && currentTeamId && lastPathsLoaded && pluginsLoaded) {
-            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels' || isPluginRailSection(viewedTab)) && !boardViewedInChannels;
+            if (loadedChannelId.current === null && channelMatch) {
+                loadedChannelId.current = currentChannelId;
+            }
+            const holdsSection = isPluginRailSection(section) && viewedTab === 'channels' && currentChannelId === loadedChannelId.current;
+            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels' || isPluginRailSection(viewedTab)) && !boardViewedInChannels && !holdsSection;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
     }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels, lastPathsLoaded, pluginsLoaded]);
