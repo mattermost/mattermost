@@ -54,6 +54,9 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 
 	// Get the MM user we are trying to login
 	if user, err = a.GetUserForLogin(rctx, id, loginId); err != nil {
+		if !cwsLogin {
+			checkDecoyPassword(rctx.Logger(), password)
+		}
 		return nil, err
 	}
 
