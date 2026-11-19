@@ -3,7 +3,7 @@
 
 import moment from 'moment';
 import type {Moment} from 'moment-timezone';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -81,14 +81,45 @@ export default function ScheduledPostCustomTimeModal({
 
     const userTimezoneLabel = useMemo(() => generateCurrentTimezoneLabel(userTimezone), [userTimezone]);
 
+    const isMounted = useRef(true);
+    const isPending = useRef(false);
+    const [isConfirming, setIsConfirming] = useState(false);
+    useEffect(() => {
+        isMounted.current = true;
+        return () => {
+            isMounted.current = false;
+        };
+    }, []);
+
+    const handleDateTimeChange = useCallback((dateTime: Moment) => {
+        setSelectedDateTime(dateTime);
+        setErrorMessage(undefined);
+    }, []);
+
     const handleOnConfirm = useCallback(async (dateTime: Moment) => {
+        if (isPending.current) {
+            return;
+        }
+
         const selectedTime = dateTime.valueOf();
         const schedulingInfo: SchedulingInfo = {
             scheduled_at: selectedTime,
             repeat_type: repeatWeekly ? 'weekly' : '',
             repeat_timezone: repeatWeekly ? userTimezone : '',
         };
-        const response = await onConfirm(schedulingInfo);
+        isPending.current = true;
+        setIsConfirming(true);
+        let response: {error?: string};
+        try {
+            response = await onConfirm(schedulingInfo);
+        } finally {
+            // Always release the pending guard, even if onConfirm rejects. Skip the state
+            // update if the modal was dismissed while the request was in flight.
+            isPending.current = false;
+            if (isMounted.current) {
+                setIsConfirming(false);
+            }
+        }
 
         dispatch(
             savePreferences(
@@ -101,6 +132,10 @@ export default function ScheduledPostCustomTimeModal({
                 }],
             ),
         );
+
+        if (!isMounted.current) {
+            return;
+        }
 
         if (response.error) {
             setErrorMessage(response.error);
@@ -177,12 +212,14 @@ export default function ScheduledPostCustomTimeModal({
             ariaLabel={label}
             onExited={onExited}
             onConfirm={handleOnConfirm}
-            onChange={setSelectedDateTime}
+            onChange={handleDateTimeChange}
             bodySuffix={bodySuffix}
             relativeDate={true}
             onCancel={onExited}
             errorText={errorMessage}
             timePickerInterval={timePickerInterval}
+            isConfirmDisabled={isConfirming}
+            isConfirmLoading={isConfirming}
         />
     );
 }
