@@ -377,5 +377,24 @@ describe('rhs view actions', () => {
             expect(store.getActions()).toEqual(expect.arrayContaining(testStore.getActions()));
             expect(store.getActions()).toEqual(expect.arrayContaining([{args: ['test msg'], type: 'MOCK_ADD_MESSAGE_INTO_HISTORY'}]));
         });
+
+        test('it reacts to the latest post without creating a post or running afterOptimisticSubmit', async () => {
+            const afterOptimisticSubmit = jest.fn();
+            const afterSubmit = jest.fn();
+
+            await store.dispatch(onSubmit(channelId, rootId, makeDraft({
+                message: '+:smile:',
+                fileInfos: [],
+                uploadsInProgress: [],
+            }), {afterOptimisticSubmit, afterSubmit}));
+
+            expect(store.getActions()).toEqual(expect.arrayContaining([{type: 'MOCK_SUBMIT_REACTION', args: [latestPostId, '+', 'smile']}]));
+            expect(PostActions.createPost).not.toHaveBeenCalled();
+
+            // The composer clears its staged attribute values from this
+            // callback, and a reaction must not clear them.
+            expect(afterOptimisticSubmit).not.toHaveBeenCalled();
+            expect(afterSubmit).not.toHaveBeenCalled();
+        });
     });
 });

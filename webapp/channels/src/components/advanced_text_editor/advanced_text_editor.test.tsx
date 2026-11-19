@@ -1968,6 +1968,101 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
         });
 
+        it('keeps the staged values when a reaction is submitted', async () => {
+            // A `+:emoji:` message makes `onSubmit` add a reaction to the latest
+            // post and return, without creating a post, so it resolves without
+            // running `afterOptimisticSubmit` (the action's own test covers that).
+            mockedOnSubmit.mockImplementationOnce((() => () => Promise.resolve({data: {id: 'reaction_1'}})) as unknown as typeof onSubmit);
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            const textbox = screen.getByTestId('post_textbox');
+            fireEvent.input(textbox, {target: {value: '+:smile:'}});
+
+            await act(async () => {
+                fireEvent.click(screen.getByTestId('SendMessageButton'));
+            });
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.objectContaining({message: '+:smile:'}),
+                expect.anything(),
+                undefined,
+            );
+            expect(textbox).toHaveValue('');
+            expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+            expect(screen.getByTestId('post-attribute-trigger-priority')).toHaveTextContent('UNCLASSIFIED');
+        });
+
+        it('does not count a staged value as draft content', async () => {
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            // The message is typed and then cleared, so the draft changed and
+            // is flushed when leaving the channel. With only a staged value
+            // left it is empty, so it is removed, not saved.
+            const textbox = screen.getByTestId('post_textbox');
+            fireEvent.input(textbox, {target: {value: 'x'}});
+            fireEvent.input(textbox, {target: {value: ''}});
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expect(mockedUpdateDraft).not.toHaveBeenCalled();
+            expect(mockedRemoveDraft).toHaveBeenCalled();
+        });
+
+        it('never writes the staged values into the saved draft', async () => {
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expect(mockedUpdateDraft).toHaveBeenCalled();
+            const savedDraft = mockedUpdateDraft.mock.calls[0][1];
+            expect(savedDraft).toMatchObject({message: 'a message with attributes'});
+
+            // Nothing that came from the attributes may be in the draft: neither
+            // a property values key nor the staged field ids and option ids.
+            const serialized = JSON.stringify(savedDraft);
+            expect(serialized).not.toMatch(/propert/i);
+            expect(serialized).not.toContain('f_always');
+            expect(serialized).not.toContain('f_picked');
+            expect(serialized).not.toContain('opt_secret');
+            expect(serialized).not.toContain('opt_unclassified');
+        });
+
         it('clears the staged values when the channel changes', async () => {
             const {rerender} = renderWithContext(
                 <AdvancedTextEditor
