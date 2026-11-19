@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 // Package packet builds a healthcheck.Snapshot from a Support Packet zip. It depends only on
-// public/model, the healthcheck package and releases, so mmctl can evaluate a packet with no server.
+// public/model and the healthcheck package, so mmctl can evaluate a packet with no server.
 package packet
 
 import (

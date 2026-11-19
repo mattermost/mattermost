@@ -178,11 +178,8 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	}
 
 	notes := []string{healthPacketDisclaimer}
-	fetchCtx, cancel := context.WithTimeout(cmd.Context(), healthLatestVersionTimeout)
-	err = packet.FillLatestVersion(fetchCtx, p.Snapshot, healthLatestVersionURL)
-	cancel()
-	if err != nil {
-		notes = append(notes, fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err))
+	if note := fillLatestVersion(cmd.Context(), p.Snapshot); note != "" {
+		notes = append(notes, note)
 	}
 	notes = append(notes, p.Warnings...)
 
@@ -219,6 +216,26 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 
 	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, notes...)
 	return nil
+}
+
+// fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one.
+// A failed fetch is not an error: the version-behind rules report unknown and the returned note
+// says why.
+func fillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot) string {
+	if snapshot.Version.Latest != "" {
+		return ""
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, healthLatestVersionTimeout)
+	defer cancel()
+
+	latest, err := releases.LatestVersion(ctx, healthLatestVersionURL)
+	if err != nil {
+		return fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err)
+	}
+
+	snapshot.Version.Latest = latest
+	return ""
 }
 
 // printHealthFindings prints already-rendered findings, leaving out resolved ones unless

@@ -28,6 +28,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
@@ -398,7 +399,10 @@ func testHealthSnapshotLiveOfflineParity(t *testing.T, th *TestHelper, packetNod
 		p, readErr := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
 		require.NoError(t, readErr)
 		assert.Empty(t, p.Warnings)
-		assert.NoError(t, packet.FillLatestVersion(th.Context.Context(), p.Snapshot, latestVersionServer(t).URL))
+		// What mmctl fills in, since packets don't record the latest release.
+		latest, fetchErr := releases.LatestVersion(th.Context.Context(), latestVersionServer(t).URL)
+		require.NoError(t, fetchErr)
+		p.Snapshot.Version.Latest = latest
 		return p
 	}
 	offline := readPacket(t, files)
@@ -426,15 +430,8 @@ func testHealthSnapshotLiveOfflineParity(t *testing.T, th *TestHelper, packetNod
 		t.Helper()
 
 		evaluations := engine.Evaluate(snapshot)
-		// Independently sampled values can differ between the live and packet collections.
 		for i := range evaluations {
-			switch evaluations[i].Code {
-			case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL", "DB_POOL_SATURATED":
-				require.NotNil(t, evaluations[i].Result.Value)
-				evaluations[i].Result.Value = nil
-				evaluations[i].Result.Details = nil
-			case "NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED":
-				// These set a value only when they have the numbers to compare, so none is required.
+			if slices.Contains(healthcheck.SampledCodes, evaluations[i].Code) {
 				evaluations[i].Result.Value = nil
 				evaluations[i].Result.Details = nil
 			}

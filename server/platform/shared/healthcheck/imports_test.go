@@ -15,12 +15,11 @@ import (
 // The engine, the rules and the packet reader run inside mmctl, so they must not pull in the
 // server. The one exception is the config package: AUDIT_LOG_OFF falls back to
 // config.IsAuditLoggingActive for packets from servers that do not record their audit logging
-// state. Remove it with that fallback. The releases package is the other: the packet reader
-// fetches the latest release with it, and it imports nothing from the server.
+// state. Remove it with that fallback.
 func TestImportsStayOutOfTheServer(t *testing.T) {
 	const server = "github.com/mattermost/mattermost/server/v8"
 	const tree = server + "/platform/shared/healthcheck"
-	allowed := map[string]bool{server + "/config": true, server + "/platform/shared/releases": true}
+	allowed := map[string]bool{server + "/config": true}
 
 	out, err := exec.Command("go", "list", "-f", "{{.ImportPath}}{{range .Imports}} {{.}}{{end}}", "./...").Output()
 	require.NoError(t, err)

@@ -19,10 +19,9 @@
 //
 // This package, the rules and the packet reader import nothing else from the server, so a rule
 // cannot reach the store or the app layer, and mmctl can link them to evaluate packets offline.
-// The exceptions are the config package, because AUDIT_LOG_OFF falls back to
+// The one exception is the config package: AUDIT_LOG_OFF falls back to
 // config.IsAuditLoggingActive for packets from servers that do not record their audit logging
-// state, and the releases package, which the packet reader uses to fetch the latest release.
-// TestImportsStayOutOfTheServer enforces this.
+// state. TestImportsStayOutOfTheServer enforces this.
 //
 // A live server and a Support Packet produce the same [Snapshot], so a rule cannot tell them
 // apart and an offline check answers like the live one.
