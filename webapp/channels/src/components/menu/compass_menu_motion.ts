@@ -32,54 +32,82 @@ export type SubmenuSide = {
     y: 'down' | 'up';
 };
 
+// Distance from `element`'s border edge to `parent`'s padding edge. The parent
+// is the anchor's offset parent (the menu list), which is also its containing
+// block, so this is the top used to line the child up with the row.
+function topWithin(element: HTMLElement, parent: HTMLElement): number | null {
+    let top = 0;
+    let current: HTMLElement | null = element;
+    while (current && current !== parent) {
+        top += current.offsetTop;
+        const next = current.offsetParent as HTMLElement | null;
+        if (!next) {
+            return null;
+        }
+        current = next;
+    }
+    return current === parent ? top : null;
+}
+
 // Compass child menus open to the right of the row and grow downward. Each
-// axis flips when that side would leave the viewport. The child overlaps the
-// row by the parent menu's padding, with a small gap past the parent's edge.
-export function useSubmenuSide(open: boolean, anchor: HTMLElement | null) {
+// axis flips once, when that side leaves the viewport, and stays there. The
+// child is measured from the in-flow anchor beside the row (getBoundingClientRect).
+export function useSubmenuSide(open: boolean, submenuId: string | null, row: HTMLElement | null) {
+    const anchorRef = useRef<HTMLDivElement | null>(null);
     const [side, setSide] = useState<SubmenuSide>({x: 'right', y: 'down'});
-    const [paper, setPaper] = useState<HTMLDivElement | null>(null);
 
     // Start each opening on the right, growing down. Keep a flipped side through
     // the close animation so the menu does not jump while it fades out.
-    const wasOpen = useRef(false);
-    if (open && !wasOpen.current && (side.x !== 'right' || side.y !== 'down')) {
-        setSide({x: 'right', y: 'down'});
+    const openedFor = useRef<string | null>(null);
+    if (!open) {
+        openedFor.current = null;
+    } else if (submenuId && openedFor.current !== submenuId) {
+        openedFor.current = submenuId;
+        if (side.x !== 'right' || side.y !== 'down') {
+            setSide({x: 'right', y: 'down'});
+        }
     }
-    wasOpen.current = open;
 
     useLayoutEffect(() => {
-        if (!open || !paper || !anchor) {
+        if (!open) {
             return;
         }
-        const rect = paper.getBoundingClientRect();
-        const margin = 8;
+        const anchor = anchorRef.current;
+        if (!anchor) {
+            return;
+        }
+
+        // The anchor is the row's sibling, so the menu list is the containing
+        // block. Shift it by the row's position; the stylesheet then overlaps
+        // that by --spacing-xs and leaves a --spacing-xxs gap past the menu.
+        const parent = anchor.offsetParent as HTMLElement | null;
+        if (parent && row) {
+            const rowTop = topWithin(row, parent);
+            if (rowTop != null) {
+                const rowBottom = parent.clientHeight - (rowTop + row.offsetHeight);
+                anchor.style.setProperty('--menu-submenu-row-top', `${rowTop}px`);
+                anchor.style.setProperty('--menu-submenu-row-bottom', `${rowBottom}px`);
+            }
+        }
+
+        const rect = anchor.getBoundingClientRect();
         setSide((prev) => {
             const next: SubmenuSide = {
-                x: prev.x === 'right' && rect.right > window.innerWidth - margin ? 'left' : prev.x,
-                y: prev.y === 'down' && rect.bottom > window.innerHeight - margin ? 'up' : prev.y,
+                x: prev.x === 'right' && rect.right > window.innerWidth ? 'left' : prev.x,
+                y: prev.y === 'down' && rect.bottom > window.innerHeight ? 'up' : prev.y,
             };
             if (next.x === prev.x && next.y === prev.y) {
                 return prev;
             }
             return next;
         });
-    }, [anchor, open, paper, side]);
+    }, [open, row, side, submenuId]);
 
-    const anchorOrigin: PopoverOrigin = {
-        vertical: side.y === 'down' ? 'top' : 'bottom',
-        horizontal: side.x === 'right' ? 'right' : 'left',
-    };
+    // The corner nearest the row, so the child scales out from that edge.
     const transformOrigin: PopoverOrigin = {
         vertical: side.y === 'down' ? 'top' : 'bottom',
         horizontal: side.x === 'right' ? 'left' : 'right',
     };
 
-    return {side, anchorOrigin, transformOrigin, setPaper};
-}
-
-export function compassSubmenuClass(side: SubmenuSide): string {
-    return [
-        side.x === 'right' ? 'menu_menuStyled--side-right' : 'menu_menuStyled--side-left',
-        side.y === 'down' ? 'menu_menuStyled--overlap-down' : 'menu_menuStyled--overlap-up',
-    ].join(' ');
+    return {side, transformOrigin, anchorRef};
 }

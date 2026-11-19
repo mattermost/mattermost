@@ -42,7 +42,7 @@ jest.mock('components/menu', () => {
                 </div>
             );
         },
-        Item: ({labels, onClick, leadingElement, trailingElements, onMouseEnter, onMouseLeave, onKeyDown, ...rest}: any) => (
+        Item: ({labels, onClick, leadingElement, trailingElements, onMouseEnter, onMouseLeave, onKeyDown, children, ...rest}: any) => (
             <li
                 role='menuitem'
                 onClick={onClick}
@@ -55,6 +55,7 @@ jest.mock('components/menu', () => {
                 {leadingElement}
                 {labels}
                 {trailingElements}
+                {children}
             </li>
         ),
         Separator: () => <li role='separator'/>,
@@ -511,6 +512,104 @@ describe('AIActionsMenu', () => {
         });
 
         expect(screen.getByTestId('plugin-submenu')).toBeInTheDocument();
+    });
+
+    test('places a skill submenu inside the parent menu and flips it when it leaves the viewport', async () => {
+        const originalRect = HTMLElement.prototype.getBoundingClientRect;
+        let anchorRect = {
+            x: 0,
+            y: 0,
+            top: 0,
+            left: 0,
+            right: 10,
+            bottom: 10,
+            width: 10,
+            height: 10,
+            toJSON() {
+                return {};
+            },
+        };
+        HTMLElement.prototype.getBoundingClientRect = function rect() {
+            if (this.classList?.contains('menu_submenuAnchor')) {
+                return anchorRect as DOMRect;
+            }
+            return originalRect.call(this);
+        };
+
+        try {
+            renderWithContext(
+                <AIActionsMenu
+                    {...getBaseProps()}
+                    aiRewriteEnabled={false}
+                />,
+                {
+                    entities: {
+                        general: {config: {}},
+                        preferences: {myPreferences: {}},
+                        users: {currentUserId: 'user1'},
+                    },
+                    plugins: {
+                        components: {
+                            AIActionMenuItem: [
+                                {
+                                    id: 'plugin1',
+                                    pluginId: 'test-plugin',
+                                    component: () => <div data-testid='plugin-submenu'>{'Plugin Content'}</div>,
+                                    icon: <span>{'icon'}</span>,
+                                    text: 'Hover Me',
+                                    sortOrder: 1,
+                                },
+                                {
+                                    id: 'plugin2',
+                                    pluginId: 'test-plugin',
+                                    action: () => {},
+                                    icon: <span>{'icon'}</span>,
+                                    text: 'Do Something',
+                                    sortOrder: 2,
+                                },
+                            ],
+                        },
+                    },
+                } as any,
+            );
+
+            const row = screen.getByText('Hover Me').closest('li')!;
+            fireEvent.mouseEnter(row);
+
+            const anchor = document.querySelector('.menu_submenuAnchor');
+            expect(anchor).not.toBeNull();
+            expect(screen.getByRole('menu')).toContainElement(anchor);
+            expect(anchor).toHaveAttribute('data-x', 'right');
+            expect(anchor).toHaveAttribute('data-y', 'down');
+            expect(anchor?.querySelector('.menu_menuStyled__surface--origin-top-left')).not.toBeNull();
+
+            fireEvent.mouseEnter(screen.getByText('Do Something').closest('li')!);
+            await waitFor(() => {
+                expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+            });
+
+            anchorRect = {
+                ...anchorRect,
+                right: window.innerWidth + 40,
+                bottom: window.innerHeight + 40,
+            };
+            fireEvent.mouseEnter(row);
+
+            const flipped = document.querySelector('.menu_submenuAnchor');
+            expect(flipped).toHaveAttribute('data-x', 'left');
+            expect(flipped).toHaveAttribute('data-y', 'up');
+            expect(flipped?.querySelector('.menu_menuStyled__surface--origin-bottom-right')).not.toBeNull();
+
+            fireEvent.mouseEnter(screen.getByText('Do Something').closest('li')!);
+            expect(document.querySelector('.menu_submenuAnchor')).toHaveAttribute('data-x', 'left');
+            expect(document.querySelector('.menu_submenuAnchor')).toHaveAttribute('data-y', 'up');
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+            });
+        } finally {
+            HTMLElement.prototype.getBoundingClientRect = originalRect;
+        }
     });
 
     test('closes an embedded submenu when another row in the plus menu is hovered', async () => {

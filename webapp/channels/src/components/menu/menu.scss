@@ -25,29 +25,6 @@ a.MuiMenuItem-root {
         margin-block-start: -4px;
     }
 
-    // Child menus sit just past the parent edge (--spacing-xxs) and overlap
-    // the row by the parent padding (--spacing-xs), growing down from the
-    // row's top. The up classes do the same from the row's bottom.
-    &.menu_menuStyled--side-right.menu_menuStyled--overlap-down .MuiPaper-root {
-        margin-block-start: calc(-1 * var(--spacing-xs));
-        margin-inline-start: var(--spacing-xxs);
-    }
-
-    &.menu_menuStyled--side-right.menu_menuStyled--overlap-up .MuiPaper-root {
-        margin-block-start: var(--spacing-xs);
-        margin-inline-start: var(--spacing-xxs);
-    }
-
-    &.menu_menuStyled--side-left.menu_menuStyled--overlap-down .MuiPaper-root {
-        margin-block-start: calc(-1 * var(--spacing-xs));
-        margin-inline-start: calc(-1 * var(--spacing-xxs));
-    }
-
-    &.menu_menuStyled--side-left.menu_menuStyled--overlap-up .MuiPaper-root {
-        margin-block-start: var(--spacing-xs);
-        margin-inline-start: calc(-1 * var(--spacing-xxs));
-    }
-
     &.AsSubMenu {
         pointer-events: none;
         & .MuiPaper-root {
@@ -92,6 +69,44 @@ a.MuiMenuItem-root {
 .menu_menuStyled__surface {
     overflow: auto;
     max-height: 80vh;
+
+    // The paper is overflow: visible, but this surface is the box between a
+    // row and that paper. A side submenu hangs past it, so let it paint out
+    // while the anchor is mounted (including the close animation).
+    &:has(.menu_submenuAnchor) {
+        overflow: visible;
+    }
+}
+
+// Beside the parent row, inside the parent menu. The anchor is the row's next
+// sibling (a wrapper around the row would hide it from menu arrow keys), and
+// the menu list is its containing block. --menu-submenu-row-top is the row's
+// top within that list; --menu-submenu-row-bottom is the space below the row.
+// The overlap is --spacing-xs past the row, and the gap past the menu edge is
+// --spacing-xxs. Down grows from the row's top; up, once flipped, from its bottom.
+.menu_submenuAnchor {
+    position: absolute;
+    z-index: 1;
+
+    &[data-x='right'] {
+        left: 100%;
+        padding-left: var(--spacing-xxs);
+    }
+
+    &[data-x='left'] {
+        right: 100%;
+        padding-right: var(--spacing-xxs);
+    }
+
+    &[data-y='up'] {
+        top: auto;
+        bottom: calc(var(--menu-submenu-row-bottom, 0px) - var(--spacing-xs));
+    }
+
+    &[data-y='down'] {
+        top: calc(var(--menu-submenu-row-top, 0px) - var(--spacing-xs));
+        bottom: auto;
+    }
 }
 
 .menu_menuStyled__list--compass.MuiList-root {

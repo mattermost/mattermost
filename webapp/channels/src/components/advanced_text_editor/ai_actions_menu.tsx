@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import MuiPopover from '@mui/material/Popover';
 import classNames from 'classnames';
 import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
@@ -15,7 +14,7 @@ import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 import {closeModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
-import {compassSubmenuClass, compassSurfaceOriginClass, useCompassMenuPresence, useSubmenuSide} from 'components/menu/compass_menu_motion';
+import {compassSurfaceOriginClass, useCompassMenuPresence, useSubmenuSide} from 'components/menu/compass_menu_motion';
 import {MenuContext} from 'components/menu/menu_context';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
@@ -137,6 +136,19 @@ const AIActionsMenu = ({
         closeUnlessInside(event.relatedTarget, submenuAnchorEl);
     }, [closeUnlessInside, submenuAnchorEl]);
 
+    // The panel is inside the parent menu. Arrow keys belong to the panel, not
+    // the parent list's item traversal.
+    const stopSubmenuArrows = useCallback((event: KeyboardEvent<HTMLDivElement>) => {
+        if (
+            isKeyPressed(event, Constants.KeyCodes.UP) ||
+            isKeyPressed(event, Constants.KeyCodes.DOWN) ||
+            isKeyPressed(event, Constants.KeyCodes.LEFT) ||
+            isKeyPressed(event, Constants.KeyCodes.RIGHT)
+        ) {
+            event.stopPropagation();
+        }
+    }, []);
+
     const handlePlainHover = useCallback((rowId: string) => {
         return () => {
             cancelClose();
@@ -186,11 +198,6 @@ const AIActionsMenu = ({
         };
     }, [draft, getSelectedText, updateText, channelId, isRHS, handleToggle]);
 
-    const submenuAnchorRef = useRef<HTMLElement | null>(null);
-    if (submenuAnchorEl) {
-        submenuAnchorRef.current = submenuAnchorEl;
-    }
-    const placementAnchor = submenuAnchorEl ?? submenuAnchorRef.current;
     const displayedSubmenuRef = useRef<string | null>(null);
     if (activeSubmenu) {
         displayedSubmenuRef.current = activeSubmenu;
@@ -199,31 +206,24 @@ const AIActionsMenu = ({
     const menuIsOpen = embedded ? parentOpen : isMenuOpen;
     const submenuOpen = Boolean(activeSubmenu) && menuIsOpen;
     const {present: submenuPresent, onExited: submenuExited} = useCompassMenuPresence(submenuOpen);
-    const submenuSide = useSubmenuSide(submenuOpen, placementAnchor);
-    const setPanelNode = useCallback((node: HTMLDivElement | null) => {
+    const submenuSide = useSubmenuSide(submenuOpen, activeSubmenu, submenuAnchorEl);
+    const setAnchorNode = useCallback((node: HTMLDivElement | null) => {
         panelRef.current = node;
-        submenuSide.setPaper(node);
-    }, [submenuSide.setPaper]);
+        submenuSide.anchorRef.current = node;
+    }, [submenuSide.anchorRef]);
 
     if (!hasItems) {
         return null;
     }
 
     const panelSubmenu = activeSubmenu ?? displayedSubmenuRef.current;
-    const activePluginItem = panelSubmenu ? sortedItems.find((item) => item.id === panelSubmenu && item.component) : null;
-
-    const submenuClassName = classNames(
-        'menu_menuStyled',
-        'AsSubMenu',
-        'ai-actions-submenu',
-        'menu_menuStyled--compass',
-        compassSubmenuClass(submenuSide.side),
-    );
 
     const rows = (
         <>
             {sortedItems.map((item) => {
                 if (item.component) {
+                    const PluginComponent = item.component;
+                    const showSubmenu = submenuPresent && panelSubmenu === item.id;
                     return (
                         <Menu.Item
                             key={item.id}
@@ -237,7 +237,39 @@ const AIActionsMenu = ({
                             onMouseEnter={handleItemHover(item.id)}
                             onMouseLeave={handleItemLeave}
                             onKeyDown={handleItemKeyDown(item.id)}
-                        />
+                        >
+                            {showSubmenu && (
+                                <div
+                                    className='menu_submenuAnchor'
+                                    data-x={submenuSide.side.x}
+                                    data-y={submenuSide.side.y}
+                                    role='presentation'
+                                    ref={setAnchorNode}
+                                    onMouseEnter={cancelClose}
+                                    onMouseLeave={handlePanelLeave}
+                                    onKeyDown={stopSubmenuArrows}
+                                >
+                                    <MenuContext.Provider value={submenuMenuContext}>
+                                        <PopoverMenu
+                                            variant='child'
+                                            open={submenuOpen}
+                                            onExited={submenuExited}
+                                            className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(submenuSide.transformOrigin))}
+                                        >
+                                            <PluggableErrorBoundary pluginId={item.pluginId}>
+                                                <PluginComponent
+                                                    draft={draft}
+                                                    getSelectedText={getSelectedText}
+                                                    updateText={updateText}
+                                                    channelId={channelId}
+                                                    isRHS={isRHS}
+                                                />
+                                            </PluggableErrorBoundary>
+                                        </PopoverMenu>
+                                    </MenuContext.Provider>
+                                </div>
+                            )}
+                        </Menu.Item>
                     );
                 }
                 if (item.action) {
@@ -277,69 +309,8 @@ const AIActionsMenu = ({
         </>
     );
 
-    const submenu = submenuPresent && placementAnchor && activePluginItem && (
-        <MuiPopover
-            open={true}
-            anchorEl={placementAnchor}
-            anchorOrigin={submenuSide.anchorOrigin}
-            transformOrigin={submenuSide.transformOrigin}
-            className={submenuClassName}
-            disableAutoFocus={true}
-            disableEnforceFocus={true}
-            disableRestoreFocus={true}
-            hideBackdrop={true}
-            transitionDuration={0}
-            slotProps={{
-                paper: {
-                    ref: setPanelNode,
-                    style: {
-                        overflow: 'visible',
-                        background: 'transparent',
-                        boxShadow: 'none',
-                        maxHeight: 'none',
-                    },
-                    onMouseEnter: cancelClose,
-                    onMouseLeave: handlePanelLeave,
-                },
-            }}
-        >
-            {/* pointer-events wrapper: AsSubMenu disables pointer-events on the popover root,
-                so we re-enable on the content div to make everything inside clickable */}
-            <div style={{pointerEvents: 'auto'}}>
-                <MenuContext.Provider value={submenuMenuContext}>
-                    <PopoverMenu
-                        variant='child'
-                        open={submenuOpen}
-                        onExited={submenuExited}
-                        className={classNames('menu_menuStyled__surface', compassSurfaceOriginClass(submenuSide.transformOrigin))}
-                    >
-                        {activePluginItem.component && (() => {
-                            const PluginComponent = activePluginItem.component;
-                            return (
-                                <PluggableErrorBoundary pluginId={activePluginItem.pluginId}>
-                                    <PluginComponent
-                                        draft={draft}
-                                        getSelectedText={getSelectedText}
-                                        updateText={updateText}
-                                        channelId={channelId}
-                                        isRHS={isRHS}
-                                    />
-                                </PluggableErrorBoundary>
-                            );
-                        })()}
-                    </PopoverMenu>
-                </MenuContext.Provider>
-            </div>
-        </MuiPopover>
-    );
-
     if (embedded) {
-        return (
-            <>
-                {rows}
-                {submenu}
-            </>
-        );
+        return rows;
     }
 
     return (
@@ -383,7 +354,6 @@ const AIActionsMenu = ({
             >
                 {rows}
             </Menu.Container>
-            {submenu}
         </>
     );
 };
