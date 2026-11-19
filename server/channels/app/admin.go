@@ -20,6 +20,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 var latestVersionCache = cache.NewLRU(&cache.CacheOptions{
@@ -267,7 +268,7 @@ func (a *App) GetLatestVersion(rctx request.CTX, latestVersionUrl string) (*mode
 
 	ctx, cancel := context.WithTimeout(rctx.Context(), 10*time.Second)
 	defer cancel()
-	releaseInfoResponse, err := model.FetchLatestVersion(ctx, latestVersionUrl)
+	releaseInfoResponse, err := releases.FetchLatest(ctx, latestVersionUrl)
 	if err != nil {
 		// A cancelled request says nothing about whether the feed is reachable.
 		if rctx.Context().Err() == nil {

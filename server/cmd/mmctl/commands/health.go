@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 // The server evaluates hourly, so results older than two intervals mean evaluation stopped.
@@ -46,7 +47,7 @@ const healthPacketDisclaimer = "Evaluated locally from a Support Packet. The pac
 // Packets don't record the latest release, so --packet fetches it. Variables so tests can
 // point them at a local server.
 var (
-	healthLatestVersionURL     = model.LatestVersionURL
+	healthLatestVersionURL     = releases.LatestURL
 	healthLatestVersionTimeout = 5 * time.Second
 )
 
@@ -228,7 +229,7 @@ func fillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot) stri
 	ctx, cancel := context.WithTimeout(ctx, healthLatestVersionTimeout)
 	defer cancel()
 
-	release, err := model.FetchLatestVersion(ctx, healthLatestVersionURL)
+	release, err := releases.FetchLatest(ctx, healthLatestVersionURL)
 	if err != nil {
 		return fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err)
 	}
