@@ -14717,11 +14717,6 @@
     "description": "Severity label and section heading in the shareable health report (Site health export and mmctl health check output)."
   },
   {
-    "id": "health.report.summary.also_included",
-    "translation": "Also included: {{.Counts}}.",
-    "description": "Line in the summary of the shareable health report (Site health export and mmctl health check output); {{.Counts}} is a comma-separated list of the health.report.summary.muted and health.report.summary.resolved counts, for findings listed in their own sections that the counts above leave out."
-  },
-  {
     "id": "health.report.summary.critical",
     "translation": {
       "one": "{{.Count}} critical",
@@ -14738,14 +14733,6 @@
     "description": "Part of the comma-separated finding counts in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of informational findings."
   },
   {
-    "id": "health.report.summary.muted",
-    "translation": {
-      "one": "{{.Count}} muted",
-      "other": "{{.Count}} muted"
-    },
-    "description": "Part of the Also included line in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of muted findings."
-  },
-  {
     "id": "health.report.summary.none",
     "translation": "No open findings.",
     "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the critical, warning, info and could-not-evaluate sections are all empty. Muted and resolved findings can still be listed below it."
@@ -14754,14 +14741,6 @@
     "id": "health.report.summary.not_evaluated",
     "translation": "The first health check runs within an hour of enabling the feature.",
     "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the health checks have never completed and there are no findings."
-  },
-  {
-    "id": "health.report.summary.resolved",
-    "translation": {
-      "one": "{{.Count}} resolved",
-      "other": "{{.Count}} resolved"
-    },
-    "description": "Part of the Also included line in the summary of the shareable health report (Site health export and mmctl health check output); {{.Count}} is the number of resolved findings."
   },
   {
     "id": "health.report.summary.unknown",

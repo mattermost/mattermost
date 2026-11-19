@@ -319,9 +319,5 @@ func formatHealthReport(r *report.Report) string {
 		blocks = append(blocks, strings.Join(lines, "\n"))
 	}
 
-	summary := r.Summary
-	if r.AlsoIncluded != "" {
-		summary += "\n" + r.AlsoIncluded
-	}
-	return strings.Join(append(blocks, summary), "\n\n")
+	return strings.Join(append(blocks, r.Summary), "\n\n")
 }

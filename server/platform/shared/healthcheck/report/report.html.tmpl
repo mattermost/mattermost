@@ -118,8 +118,6 @@ ul.findings .title { font-size: 14px; }
 <div class="summary card">
 <h2>{{.Labels.Summary}}</h2>
 <p>{{.Summary}}</p>
-{{with .AlsoIncluded}}<p>{{.}}</p>
-{{end -}}
 {{with .Sections}}<div class="counts">
 {{range .}}<a class="{{.Kind}}" href="#{{.Kind}}"><svg class="icon"><use href="#icon-{{.Kind}}"/></svg>{{.Title}} <span class="count">{{len .Findings}}</span></a>
 {{end -}}

@@ -47,9 +47,6 @@ func (r *Report) WriteMarkdown(w io.Writer) error {
 	}
 
 	fmt.Fprintf(&b, "\n## %s\n\n%s\n", escapeMarkdown(r.Labels.Summary), escapeMarkdown(r.Summary))
-	if r.AlsoIncluded != "" {
-		fmt.Fprintf(&b, "\n%s\n", escapeMarkdown(r.AlsoIncluded))
-	}
 
 	for _, section := range r.Sections {
 		fmt.Fprintf(&b, "\n## %s\n", escapeMarkdown(section.Title))

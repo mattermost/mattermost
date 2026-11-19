@@ -11,8 +11,6 @@
 
 2 critical, 2 warnings, 1 info, 1 could not be evaluated
 
-Also included: 2 muted, 1 resolved.
-
 ## Critical
 
 ### \[Notifications\] PushNotificationServer does not use https:// `PUSH_BAD_SCHEME`

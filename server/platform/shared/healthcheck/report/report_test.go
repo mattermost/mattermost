@@ -189,7 +189,6 @@ func TestBuild(t *testing.T) {
 			SectionResolved: {"Site URL is empty"},
 		}, titles)
 		assert.Equal(t, "2 critical, 2 warnings, 1 info, 1 could not be evaluated", r.Summary)
-		assert.Equal(t, "Also included: 2 muted, 1 resolved.", r.AlsoIncluded)
 	})
 
 	t.Run("does not reorder the caller's findings", func(t *testing.T) {
@@ -236,10 +235,9 @@ func TestBuild(t *testing.T) {
 		assert.Equal(t, "2026-11-18 09:30 UTC", Build(list, opts).EvaluatedAt.Value)
 	})
 
-	t.Run("lists only the muted or resolved counts that are not zero", func(t *testing.T) {
+	t.Run("muted and resolved findings are not counted as open", func(t *testing.T) {
 		r := Build(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: everySectionFindings()[:1]}, testOptions())
 		assert.Equal(t, "No open findings.", r.Summary)
-		assert.Equal(t, "Also included: 1 resolved.", r.AlsoIncluded)
 	})
 
 	t.Run("a point-in-time evaluation is never stale", func(t *testing.T) {

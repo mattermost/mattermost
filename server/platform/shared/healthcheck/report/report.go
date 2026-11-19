@@ -64,8 +64,6 @@ type Report struct {
 	// Summary counts the open findings, those in the severity and unknown sections, or says
 	// when the first evaluation runs.
 	Summary string
-	// AlsoIncluded counts the muted and resolved findings; it is empty when there are none.
-	AlsoIncluded string
 
 	// Sections holds only the non-empty sections, in display order.
 	Sections []Section
@@ -188,41 +186,26 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 		}
 	}
 
-	r.Summary = cmp.Or(joinCounts(bySection, T, []countID{
+	var counts []string
+	for _, c := range []struct {
+		kind SectionKind
+		id   string
+	}{
 		{SectionCritical, healthcheck.TranslationId("health.report.summary.critical")},
 		{SectionWarning, healthcheck.TranslationId("health.report.summary.warning")},
 		{SectionInfo, healthcheck.TranslationId("health.report.summary.info")},
 		{SectionUnknown, healthcheck.TranslationId("health.report.summary.unknown")},
-	}), T("health.report.summary.none"))
-	if list.EvaluatedAt == 0 && len(list.Findings) == 0 && !opts.PointInTime {
-		r.Summary = T("health.report.summary.not_evaluated")
-	}
-
-	// Listing only the non-zero counts keeps a category the caller filtered out from reading as empty.
-	if counts := joinCounts(bySection, T, []countID{
-		{SectionMuted, healthcheck.TranslationId("health.report.summary.muted")},
-		{SectionResolved, healthcheck.TranslationId("health.report.summary.resolved")},
-	}); counts != "" {
-		r.AlsoIncluded = T("health.report.summary.also_included", map[string]any{"Counts": counts})
-	}
-
-	return r
-}
-
-type countID struct {
-	kind SectionKind
-	id   string
-}
-
-// joinCounts joins the translated counts of the non-empty sections.
-func joinCounts(bySection map[SectionKind][]Finding, T i18n.TranslateFunc, ids []countID) string {
-	var counts []string
-	for _, c := range ids {
+	} {
 		if n := len(bySection[c.kind]); n > 0 {
 			counts = append(counts, T(c.id, n, map[string]any{"Count": n}))
 		}
 	}
-	return strings.Join(counts, ", ")
+	r.Summary = cmp.Or(strings.Join(counts, ", "), T("health.report.summary.none"))
+	if list.EvaluatedAt == 0 && len(list.Findings) == 0 && !opts.PointInTime {
+		r.Summary = T("health.report.summary.not_evaluated")
+	}
+
+	return r
 }
 
 func sectionOf(finding *model.HealthFinding) SectionKind {

@@ -413,8 +413,7 @@ Warning
 Muted
   Node info on node-1 (Info)
 
-1 critical, 3 warnings
-Also included: 1 muted.`, s.printedHealthFindings())
+1 critical, 3 warnings`, s.printedHealthFindings())
 	})
 
 	s.Run("a muted finding shows its remediation, or that its check could not run", func() {
@@ -436,8 +435,7 @@ Muted
   Unknown (Warning, Could not evaluate)
       Was a problem.
 
-No open findings.
-Also included: 2 muted.`, s.printedHealthFindings())
+No open findings.`, s.printedHealthFindings())
 	})
 
 	s.Run("a muted resolved finding is listed as resolved", func() {
@@ -454,8 +452,7 @@ Also included: 2 muted.`, s.printedHealthFindings())
 Resolved
   Muted and resolved
 
-No open findings.
-Also included: 1 resolved.`, s.printedHealthFindings())
+No open findings.`, s.printedHealthFindings())
 	})
 
 	s.Run("stored findings with nothing firing or unknown", func() {
