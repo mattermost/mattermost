@@ -17,6 +17,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strconv"
 	"strings"
 	"testing"
@@ -1700,6 +1701,59 @@ func TestStartNetworkProbes(t *testing.T) {
 		failed := false
 		startNetworkProbes(context.Background(), nil, func(model.NodeSection, error) { failed = true })()
 		assert.False(t, failed)
+	})
+}
+
+func TestNetworkProbesSMTP(t *testing.T) {
+	th := Setup(t)
+
+	// smtpProbe sets the SMTP config, then returns what networkProbes recorded for SMTP and whether it would probe it.
+	smtpProbe := func(t *testing.T, server, port string, emailFeaturesOn bool) (status, errMsg string, probed bool) {
+		// CI may point these at a mail server, which would override UpdateConfig.
+		t.Setenv("MM_EMAILSETTINGS_SMTPSERVER", server)
+		t.Setenv("MM_EMAILSETTINGS_SMTPPORT", port)
+		th.Service.UpdateConfig(func(cfg *model.Config) {
+			cfg.EmailSettings.SMTPServer = new(server)
+			cfg.EmailSettings.SMTPPort = new(port)
+			cfg.EmailSettings.SendEmailNotifications = new(emailFeaturesOn)
+			cfg.EmailSettings.RequireEmailVerification = new(emailFeaturesOn)
+			cfg.ServiceSettings.EnableEmailInvitations = new(emailFeaturesOn)
+			cfg.EmailSettings.EnableSignInWithEmail = new(emailFeaturesOn)
+			cfg.EmailSettings.EnableSignInWithUsername = new(emailFeaturesOn)
+		})
+
+		var d model.SupportPacketDiagnostics
+		probes := th.Service.networkProbes(th.Context, &d)
+		probed = slices.ContainsFunc(probes, func(p networkProbe) bool { return p.section == model.SectionSMTPProbe })
+		return d.Notifications.Email.Status, d.Notifications.Email.Error, probed
+	}
+
+	t.Run("skips the default server and records why", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, true)
+
+		assert.False(t, probed)
+		assert.Equal(t, model.StatusDisabled, status)
+		assert.Equal(t, "not configured (SMTP server is still the default localhost:10025)", errMsg)
+	})
+
+	t.Run("skips without a reason when no email feature is on", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, model.EmailSMTPDefaultPort, false)
+
+		assert.False(t, probed)
+		assert.Equal(t, model.StatusDisabled, status)
+		assert.Empty(t, errMsg)
+	})
+
+	t.Run("probes a local relay on another port", func(t *testing.T) {
+		status, errMsg, probed := smtpProbe(t, model.EmailSMTPDefaultServer, "25", true)
+
+		assert.True(t, probed)
+		assert.Empty(t, status)
+		assert.Empty(t, errMsg)
+	})
+
+	t.Run("names an empty server", func(t *testing.T) {
+		assert.Equal(t, "not configured (SMTP server is empty)", smtpNotConfiguredReason(&model.EmailSettings{SMTPServer: new("")}))
 	})
 }
 
