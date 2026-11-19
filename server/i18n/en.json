@@ -14617,6 +14617,11 @@
     "description": "Header label in the shareable health report (Site health export and mmctl health check output) for a one-off evaluation such as a Support Packet; followed by the date and time the evaluated data was collected, which can be long before the report was made."
   },
   {
+    "id": "health.report.header.collected_unknown",
+    "translation": "Unknown",
+    "description": "Shown after 'Data collected' in the shareable health report (Site health export and mmctl health check output) when a one-off evaluation, such as of a Support Packet, does not record when its data was collected."
+  },
+  {
     "id": "health.report.header.company",
     "translation": "Licensed to",
     "description": "Header label in the shareable health report (Site health export and mmctl health check output); followed by the name of the company the Mattermost license is issued to."

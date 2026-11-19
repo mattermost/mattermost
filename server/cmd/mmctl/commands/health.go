@@ -179,10 +179,14 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	}
 	notes = append(notes, p.Warnings...)
 
-	// Findings are stamped with when the packet was generated, not when mmctl ran.
+	// Findings are stamped with when the packet was generated, not when mmctl ran. The report
+	// shows an unknown collection time rather than claiming the data is from now.
 	evaluatedAt := p.Snapshot.CollectedAt
+	var collectedAt int64
 	if evaluatedAt.IsZero() {
 		evaluatedAt = time.Now()
+	} else {
+		collectedAt = evaluatedAt.UnixMilli()
 	}
 	now := func() time.Time { return evaluatedAt }
 
@@ -210,7 +214,7 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	return printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, report.Options{
+	return printHealthFindings(&model.HealthFindingList{EvaluatedAt: collectedAt, Findings: findings}, includeResolved, report.Options{
 		GeneratedAt: time.Now(),
 		PointInTime: true,
 		Notes:       notes,

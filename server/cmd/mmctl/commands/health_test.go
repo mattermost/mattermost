@@ -1016,6 +1016,7 @@ Could not evaluate
 		s.True(strings.HasPrefix(output, healthPacketDisclaimer+"\n\n"))
 		s.Contains(output, "newer server")
 		s.Contains(output, "no metadata.yaml")
+		s.Contains(output, "\nData collected: Unknown\n", "without metadata the collection time is unknown, not now")
 		s.NotContains(output, "—")
 	})
 

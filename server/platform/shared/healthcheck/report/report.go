@@ -32,7 +32,8 @@ type Options struct {
 	Location    *time.Location
 	GeneratedAt time.Time
 	// PointInTime marks findings from a one-off evaluation, such as of a Support Packet, whose age
-	// says nothing about whether evaluation stopped.
+	// says nothing about whether evaluation stopped. The list's EvaluatedAt is then when the data
+	// was collected, or 0 if that is unknown.
 	PointInTime bool
 
 	// SiteURL also turns each finding's System Console path into a link; without it there is none.
@@ -150,7 +151,7 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 	r.EvaluatedAt = Field{T("health.report.header.evaluated_at"), T("health.report.header.not_evaluated")}
 	if opts.PointInTime {
 		// The checks run when the report is built; the time that matters is when the data was collected.
-		r.EvaluatedAt.Label = T("health.report.header.collected_at")
+		r.EvaluatedAt = Field{T("health.report.header.collected_at"), T("health.report.header.collected_unknown")}
 	}
 	if list.EvaluatedAt != 0 {
 		evaluatedAt := time.UnixMilli(list.EvaluatedAt)
@@ -193,7 +194,7 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 		{SectionInfo, healthcheck.TranslationId("health.report.summary.info")},
 		{SectionUnknown, healthcheck.TranslationId("health.report.summary.unknown")},
 	}), T("health.report.summary.none"))
-	if list.EvaluatedAt == 0 && len(list.Findings) == 0 {
+	if list.EvaluatedAt == 0 && len(list.Findings) == 0 && !opts.PointInTime {
 		r.Summary = T("health.report.summary.not_evaluated")
 	}
 

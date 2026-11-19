@@ -249,6 +249,14 @@ func TestBuild(t *testing.T) {
 		assert.Empty(t, Build(list, opts).Stale)
 	})
 
+	t.Run("a point-in-time evaluation without a collection time shows it as unknown", func(t *testing.T) {
+		opts := testOptions()
+		opts.PointInTime = true
+		r := Build(&model.HealthFindingList{}, opts)
+		assert.Equal(t, Field{"Data collected", "Unknown"}, r.EvaluatedAt)
+		assert.Equal(t, "No open findings.", r.Summary)
+	})
+
 	t.Run("links a finding's setting into the System Console under the site URL", func(t *testing.T) {
 		for siteURL, want := range map[string]string{
 			"https://chat.example.com":       "https://chat.example.com/admin_console/environment/file_storage",
@@ -341,7 +349,10 @@ func TestEscapeMarkdown(t *testing.T) {
 		"notify @channel, @all and @here.":               "notify `@channel`, `@all` and `@here`.",
 		"mail admin@example.com":                         "mail admin@example.com",
 		"see https://chat.example.com/my_team#x_y.":      "see https://chat.example.com/my_team#x_y.",
-		"https://example.com/@support":                   "https://example.com/@support",
+		"https://example.com/@support":                   "`https://example.com/@support`",
+		"see https://host.example.com/@all.":             "see `https://host.example.com/@all.`",
+		"_@here_ and __@all":                             "`_@here_` and `__@all`",
+		"mail first_last@example.com":                    `mail first\_last@example.com`,
 		"https://x.example.com/a_b <b>":                  `https://x.example.com/a_b \<b\>`,
 		"https://x.example.com/[x](javascript:alert(1))": `https://x.example.com/\[x\](javascript:alert(1))`,
 	} {

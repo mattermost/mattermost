@@ -30,7 +30,7 @@ func (r *Report) WriteHTML(w io.Writer) error {
 	return htmlTemplate.Execute(w, r)
 }
 
-// WriteMarkdown writes the report as Markdown for pasting into Mattermost or Jira. Finding
+// WriteMarkdown writes the report as Markdown for pasting into Mattermost. Finding
 // details are left out to keep it short.
 func (r *Report) WriteMarkdown(w io.Writer) error {
 	var b strings.Builder
@@ -106,13 +106,15 @@ var (
 	)
 
 	// markdownVerbatim matches bare URLs, which a backslash escape would break, and @mentions,
-	// which a backslash escape would not stop from notifying when pasted into Mattermost. Neither
-	// can contain a character that starts a link, HTML or a code span.
-	markdownVerbatim = regexp.MustCompile(`https?://[A-Za-z0-9\-._~:/?#!$&'+,;=%@]+|\B@[A-Za-z0-9_](?:[A-Za-z0-9_.\-]*[A-Za-z0-9_])?`)
+	// which a backslash escape would not stop from notifying when pasted into Mattermost. A mention
+	// includes any underscores right before it, which Mattermost strips before looking for one.
+	// Neither can contain a character that starts a link, HTML or a code span.
+	markdownVerbatim = regexp.MustCompile(`https?://[A-Za-z0-9\-._~:/?#!$&'+,;=%@]+|(?:\B|\b_+)@[A-Za-z0-9_](?:[A-Za-z0-9_.\-]*[A-Za-z0-9_])?`)
 )
 
 // escapeMarkdown makes s render as the literal text it is, on one line, wherever it is placed,
-// leaving bare URLs linkable and @mentions inert in a code span.
+// leaving bare URLs linkable and @mentions inert in a code span. Mattermost finds mentions inside
+// a linked URL too, so a URL with an @ goes in a code span as well.
 func escapeMarkdown(s string) string {
 	s = strings.TrimSpace(newlineReplacer.Replace(s))
 
@@ -120,7 +122,7 @@ func escapeMarkdown(s string) string {
 	last := 0
 	for _, match := range markdownVerbatim.FindAllStringIndex(s, -1) {
 		b.WriteString(markdownEscaper.Replace(s[last:match[0]]))
-		if token := s[match[0]:match[1]]; token[0] == '@' {
+		if token := s[match[0]:match[1]]; strings.Contains(token, "@") {
 			b.WriteString("`" + token + "`")
 		} else {
 			b.WriteString(token)
