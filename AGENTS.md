@@ -14,7 +14,10 @@ When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md` exactly:
 
 ## Responding to review bots (CodeRabbit, Bugbot)
 
-- Fix every Critical and Major finding, or reply with the reason it is wrong.
+- Before fixing any finding, verify it against the code: read the callee, check
+  whether the behavior is already handled, and confirm the PR introduced it.
+- Fix a Critical or Major finding once you have confirmed it is real. If it is
+  wrong, out of scope, or predates the PR, reply with the reason instead.
 - Fix a Minor finding only if it is a defect someone would hit: wrong behavior,
   a security or privacy gap, data loss, a crash or hang, a realistic race, a
   flaky or falsely passing test, a docs command that fails, a wrong fact, or a
