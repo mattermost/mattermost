@@ -33,6 +33,31 @@ describe('components/QuickSwitchModal', () => {
         },
     };
 
+    it('takes its title and hint from the plugin rail section the sidebar shows', () => {
+        const railSection = {
+            id: 'docs',
+            pluginId: 'com.example.docs',
+            matcher: () => true,
+            label: 'Docs',
+            icon: 'file-text-outline',
+            sidebarMessages: {
+                channelSwitcherLabel: {id: 'docs.find', defaultMessage: 'Find Spaces'},
+                channelSwitcherHint: {id: 'docs.hint', defaultMessage: 'Type to find a space. Use <b>UP/DOWN</b> to browse.'},
+            },
+        };
+        renderWithContext(
+            <QuickSwitchModal
+                {...baseProps}
+                railSection={railSection}
+            />,
+        );
+
+        expect(screen.getAllByRole('heading', {name: 'Find Spaces'}).length).toBeGreaterThan(0);
+        expect(screen.getByText(/Type to find a space/)).toBeInTheDocument();
+        expect(screen.getByText('UP/DOWN').tagName).toBe('B');
+        expect(screen.queryByText('Find Channels')).not.toBeInTheDocument();
+    });
+
     describe('handleSubmit', () => {
         it('should do nothing if nothing selected', () => {
             const props = {...baseProps};

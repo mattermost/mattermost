@@ -719,6 +719,44 @@ describe('components/SwitchChannelProvider', () => {
         }));
     });
 
+    it('lists only the channels its filter keeps, and never Threads or people, when narrowed to a section', async () => {
+        const state = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    myMembers: {
+                        ...defaultState.entities.channels.myMembers,
+                        space_one: {channel_id: 'space_one', user_id: 'current_user_id', msg_count: 1, last_viewed_at: 5},
+                        plain_one: {channel_id: 'plain_one', user_id: 'current_user_id', msg_count: 1, last_viewed_at: 6},
+                    },
+                    channels: {
+                        ...defaultState.entities.channels.channels,
+                        space_one: TestHelper.getChannelMock({id: 'space_one', name: 'space-one', display_name: 'Space one', team_id: 'currentTeamId', type: 'O', delete_at: 0}),
+                        plain_one: TestHelper.getChannelMock({id: 'plain_one', name: 'plain-one', display_name: 'Plain one', team_id: 'currentTeamId', type: 'O', delete_at: 0}),
+                    },
+                    channelsInTeam: {
+                        currentTeamId: new Set(['space_one', 'plain_one']),
+                    },
+                },
+            },
+        };
+
+        const switchProvider = new SwitchChannelProvider((_, channel) => channel.id === 'space_one');
+        switchProvider.store = mockStore(state);
+        const resultsCallback = jest.fn();
+
+        switchProvider.handlePretextChanged('', resultsCallback);
+
+        await waitFor(() => expect(resultsCallback).toHaveBeenCalled());
+        for (const [results] of resultsCallback.mock.calls) {
+            const terms = results.groups.flatMap((group: {terms: string[]}) => group.terms);
+            expect(terms.every((term: string) => term === 'space_one')).toBe(true);
+        }
+        expect(resultsCallback.mock.calls.some(([results]) => results.groups.some((group: {terms: string[]}) => group.terms.includes('space_one')))).toBe(true);
+    });
+
     it('should start with DM (user name with dot) before GM"s if both DM & GM have last_viewed_at irrespective of value of last_viewed_at', async () => {
         const modifiedState = {
             ...defaultState,

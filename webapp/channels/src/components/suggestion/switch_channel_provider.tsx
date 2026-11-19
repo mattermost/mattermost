@@ -73,7 +73,7 @@ import Provider from './provider';
 import type {ResultsCallback} from './provider';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
-import type {ProviderResults} from './suggestion_results';
+import {isItemLoaded, type ProviderResults} from './suggestion_results';
 
 const searchProfilesMatchingWithTerm = makeSearchProfilesMatchingWithTerm();
 
@@ -685,8 +685,58 @@ function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
     };
 }
 
+/** Narrows the switcher to some channels, such as those in a plugin's product rail section. */
+export type SwitchChannelFilter = (state: GlobalState, channel: Channel) => boolean;
+
 export default class SwitchChannelProvider extends Provider {
     store = globalStore;
+    private channelFilter?: SwitchChannelFilter;
+
+    constructor(channelFilter?: SwitchChannelFilter) {
+        super();
+        this.channelFilter = channelFilter;
+    }
+
+    // Threads and people without a channel yet are never in a narrowed list.
+    private keepsChannel(channel?: ChannelItem): boolean {
+        if (!this.channelFilter) {
+            return true;
+        }
+        if (!isRealChannel(channel)) {
+            return false;
+        }
+        try {
+            return this.channelFilter(this.store.getState(), channel) === true;
+        } catch {
+            // Treat a failing filter as not matching.
+            return false;
+        }
+    }
+
+    // Drops the results the filter rules out (Threads, people and other channels), keeping loading
+    // placeholders and each kept item's term beside it.
+    private filterResults(results: ProviderResults<WrappedChannel>): ProviderResults<WrappedChannel> {
+        if (!this.channelFilter) {
+            return results;
+        }
+        const keep = <T, >(items: T[], terms: string[]) => {
+            const kept: {items: T[]; terms: string[]} = {items: [], terms: []};
+            items.forEach((item, i) => {
+                if (!isItemLoaded(item) || this.keepsChannel((item as unknown as WrappedChannel).channel)) {
+                    kept.items.push(item);
+                    kept.terms.push(terms[i]);
+                }
+            });
+            return kept;
+        };
+        if ('groups' in results) {
+            const groups = results.groups.
+                map((group) => ({...group, ...keep(group.items, group.terms)})).
+                filter((group) => group.items.length > 0);
+            return {...results, groups};
+        }
+        return {...results, ...keep(results.items, results.terms)};
+    }
 
     /**
      * whenever this gets adjusted/refactored to not call the callback twice we need to adjust the behavior in
@@ -694,7 +744,8 @@ export default class SwitchChannelProvider extends Provider {
      *
      * @see {@link components/forward_post_modal/forward_post_channel_select.tsx}
      */
-    handlePretextChanged(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
+    handlePretextChanged(channelPrefix: string, callback: ResultsCallback<WrappedChannel>) {
+        const resultsCallback: ResultsCallback<WrappedChannel> = this.channelFilter ? (results) => callback(this.filterResults(results)) : callback;
         if (channelPrefix) {
             this.startNewRequest(channelPrefix);
             if (this.shouldCancelDispatch(channelPrefix)) {
@@ -993,12 +1044,15 @@ export default class SwitchChannelProvider extends Provider {
         const state = this.store.getState();
         let recentChannels = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state));
         recentChannels = this.removeChannelsFromArchivedTeams(recentChannels);
+
+        // Filtered before the lists are cut to length, so a narrowed switcher still fills them.
+        recentChannels = recentChannels.filter((channel) => this.keepsChannel(channel));
         const wrappedRecentChannels = this.wrapChannels(recentChannels, Constants.MENTION_RECENT_CHANNELS);
         const unreadChannels = getSortedAllTeamsUnreadChannels(state);
         const myMembers = getMyChannelMemberships(state);
         const unreadChannelsExclMuted = unreadChannels.filter((channel) => {
             const member = myMembers[channel.id];
-            return !isChannelMuted(member);
+            return !isChannelMuted(member) && this.keepsChannel(channel);
         }).slice(0, 5);
         let sortedUnreadChannels = this.wrapChannels(unreadChannelsExclMuted, Constants.MENTION_UNREAD);
         if (wrappedRecentChannels.length === 0) {
@@ -1008,7 +1062,7 @@ export default class SwitchChannelProvider extends Provider {
         const sortedUnreadChannelIDs = sortedUnreadChannels.map((wrappedChannel) => wrappedChannel.channel.id);
         const sortedRecentChannels = wrappedRecentChannels.filter((wrappedChannel) => !sortedUnreadChannelIDs.includes(wrappedChannel.channel.id)).
             sort(sortChannelsByRecencyAndTypeAndDisplayName).slice(0, 20);
-        const threadsItem = this.getThreadsItem('unread', Constants.MENTION_UNREAD);
+        const threadsItem = this.channelFilter ? undefined : this.getThreadsItem('unread', Constants.MENTION_UNREAD);
         if (threadsItem) {
             sortedUnreadChannels = [threadsItem, ...sortedUnreadChannels].slice(0, 5);
         }

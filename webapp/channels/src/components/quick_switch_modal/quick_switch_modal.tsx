@@ -25,6 +25,7 @@ import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
+import type {ProductRailChannelSectionRegistration} from 'types/store/plugins';
 import type {RhsState} from 'types/store/rhs';
 
 const CHANNEL_MODE = 'channel';
@@ -35,6 +36,9 @@ export type Props = WrappedComponentProps & {
     isMobileView: boolean;
     rhsState?: RhsState;
     rhsOpen?: boolean;
+
+    /** The plugin product rail section the sidebar shows, if any: the switcher then finds only its channels. */
+    railSection?: ProductRailChannelSectionRegistration;
 
     actions: {
         joinChannelById: (channelId: string) => Promise<ActionResult>;
@@ -61,7 +65,8 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
-        this.channelProviders = [new SwitchChannelProvider()];
+        // The provider is made once, so a section change while open keeps the first section's filter.
+        this.channelProviders = [new SwitchChannelProvider(props.railSection?.matcher)];
         this.switchBox = null;
 
         this.state = {
@@ -173,18 +178,26 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
 
     public render = (): JSX.Element => {
         const providers: SwitchChannelProvider[] = this.channelProviders;
+        const sectionMessages = this.props.railSection?.sidebarMessages;
+        const title = sectionMessages?.channelSwitcherLabel ?? {id: 'quick_switch_modal.switchChannels', defaultMessage: 'Find Channels'};
 
         const header = (
             <h2 id='quickSwitchHeader'>
-                <FormattedMessage
-                    id='quick_switch_modal.switchChannels'
-                    defaultMessage='Find Channels'
-                />
+                <FormattedMessage {...title}/>
             </h2>
         );
 
         let help: React.ReactNode;
-        if (this.props.isMobileView) {
+        if (sectionMessages?.channelSwitcherHint) {
+            help = (
+                <FormattedMessage
+                    {...sectionMessages.channelSwitcherHint}
+                    values={{
+                        b: (chunks) => <b>{chunks}</b>,
+                    }}
+                />
+            );
+        } else if (this.props.isMobileView) {
             help = (
                 <FormattedMessage
                     id='quick_switch_modal.help_mobile'
@@ -227,7 +240,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                 enforceFocus={false}
                 onExited={this.hideOnCancel}
                 onHide={this.hideOnCancel}
-                ariaLabel={this.props.intl.formatMessage({id: 'quick_switch_modal.switchChannels', defaultMessage: 'Find Channels'})}
+                ariaLabel={this.props.intl.formatMessage(title)}
                 modalHeaderText={modalHeaderText}
                 modalSubheaderText={modalSubheaderText}
                 compassDesign={true}

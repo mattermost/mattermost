@@ -14,6 +14,7 @@ import {openModal} from 'actions/views/modals';
 import {closeRightHandSide} from 'actions/views/rhs';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
+import {getPluginRailSectionRegistration, getProductRailFilter} from 'selectors/views/product_rail';
 
 import RequestJoinChannelModal from 'components/request_join_channel_modal/request_join_channel_modal';
 
@@ -28,6 +29,9 @@ function mapStateToProps(state: GlobalState) {
         isMobileView: getIsMobileView(state),
         rhsState: getRhsState(state),
         rhsOpen: getIsRhsOpen(state),
+
+        // While the sidebar shows a plugin's section, the switcher finds only that section's channels.
+        railSection: getPluginRailSectionRegistration(state, getProductRailFilter(state)),
     };
 }
 
