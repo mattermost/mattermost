@@ -1080,6 +1080,10 @@ func TestLdapSettingsUsesAdminFilter(t *testing.T) {
 			assert.Equal(t, tc.expected, s.UsesAdminFilter())
 		})
 	}
+
+	t.Run("unset fields from unsaved diagnostic settings", func(t *testing.T) {
+		assert.False(t, (&LdapSettings{}).UsesAdminFilter())
+	})
 }
 
 func TestServiceSettingsHardenedModeMigration(t *testing.T) {

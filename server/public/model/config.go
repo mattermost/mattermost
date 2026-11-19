@@ -2946,6 +2946,8 @@ type LdapSettings struct {
 }
 
 // UsesAdminFilter reports whether AdminFilter determines system admins, which requires AD/LDAP login or sync to be enabled.
+// Unlike the other dependency helpers it tolerates unset fields, because AD/LDAP diagnostics call it on unsaved settings
+// decoded from the request.
 func (s *LdapSettings) UsesAdminFilter() bool {
 	return (SafeDereference(s.Enable) || SafeDereference(s.EnableSync)) &&
 		SafeDereference(s.EnableAdminFilter) &&
@@ -3252,18 +3254,17 @@ type SamlSettings struct {
 
 // SyncsWithLdap reports whether SAML users are synchronized with AD/LDAP, which requires SAML to be enabled.
 func (s *SamlSettings) SyncsWithLdap() bool {
-	return SafeDereference(s.Enable) && SafeDereference(s.EnableSyncWithLdap)
+	return *s.Enable && *s.EnableSyncWithLdap
 }
 
 // SyncsWithLdapIncludeAuth reports whether AD/LDAP sync also overrides SAML auth data, which requires AD/LDAP sync.
 func (s *SamlSettings) SyncsWithLdapIncludeAuth() bool {
-	return s.SyncsWithLdap() && SafeDereference(s.EnableSyncWithLdapIncludeAuth)
+	return s.SyncsWithLdap() && *s.EnableSyncWithLdapIncludeAuth
 }
 
 // SignsRequests reports whether SAML requests are signed, which requires encryption and the service provider key pair.
 func (s *SamlSettings) SignsRequests() bool {
-	return SafeDereference(s.SignRequest) && SafeDereference(s.Encrypt) &&
-		SafeDereference(s.PrivateKeyFile) != "" && SafeDereference(s.PublicCertificateFile) != ""
+	return *s.SignRequest && *s.Encrypt && *s.PrivateKeyFile != "" && *s.PublicCertificateFile != ""
 }
 
 func (s *SamlSettings) SetDefaults() {
@@ -4364,22 +4365,22 @@ type AccessControlSettings struct {
 
 // AuditLoggingEnabled reports whether access control decisions are audit logged, which requires attribute-based access control.
 func (s *AccessControlSettings) AuditLoggingEnabled() bool {
-	return SafeDereference(s.EnableAttributeBasedAccessControl) && SafeDereference(s.EnableAccessControlAuditLogging)
+	return *s.EnableAttributeBasedAccessControl && *s.EnableAccessControlAuditLogging
 }
 
 // ChannelPolicyIndicatorsEnabled reports whether channel policy indicators are shown, which requires attribute-based access control.
 func (s *AccessControlSettings) ChannelPolicyIndicatorsEnabled() bool {
-	return SafeDereference(s.EnableAttributeBasedAccessControl) && SafeDereference(s.EnableChannelPolicyIndicators)
+	return *s.EnableAttributeBasedAccessControl && *s.EnableChannelPolicyIndicators
 }
 
 // TrustsProxyDeviceIdentityHeader reports whether the proxy device identity header is trusted, which requires attribute-based access control.
 func (s *AccessControlSettings) TrustsProxyDeviceIdentityHeader() bool {
-	return SafeDereference(s.EnableAttributeBasedAccessControl) && SafeDereference(s.TrustProxyDeviceIdentityHeader)
+	return *s.EnableAttributeBasedAccessControl && *s.TrustProxyDeviceIdentityHeader
 }
 
 // EnforcesDeviceIDConsistency reports whether sessions are revoked on device ID changes, which requires attribute-based access control.
 func (s *AccessControlSettings) EnforcesDeviceIDConsistency() bool {
-	return SafeDereference(s.EnableAttributeBasedAccessControl) && SafeDereference(s.EnforceDeviceIDConsistency)
+	return *s.EnableAttributeBasedAccessControl && *s.EnforceDeviceIDConsistency
 }
 
 func (s *AccessControlSettings) SetDefaults() {
@@ -4588,7 +4589,7 @@ func (o *Config) GuestMultifactorAuthenticationEnforced() bool {
 
 // SamlIgnoresGuestsLdapSync reports whether SAML guests are excluded from AD/LDAP sync, which requires both AD/LDAP sync and guest accounts.
 func (o *Config) SamlIgnoresGuestsLdapSync() bool {
-	return o.SamlSettings.SyncsWithLdap() && SafeDereference(o.GuestAccountsSettings.Enable) && SafeDereference(o.SamlSettings.IgnoreGuestsLdapSync)
+	return o.SamlSettings.SyncsWithLdap() && *o.GuestAccountsSettings.Enable && *o.SamlSettings.IgnoreGuestsLdapSync
 }
 
 func ConfigFromJSON(data io.Reader) *Config {
