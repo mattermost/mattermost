@@ -1069,8 +1069,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
-            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
             });
@@ -1082,8 +1081,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox.selectionEnd).toEqual(3);
 
             // Do it again
-            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
-            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: 'relaxed emoji'})).toBeInTheDocument();
             });
@@ -1108,8 +1106,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('This is some text');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
-            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
             });
@@ -1138,8 +1135,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('aaabbb');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
-            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
             });
@@ -1168,8 +1164,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('aaa bbb');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
-            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
             await waitFor(() => {
                 expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
             });
@@ -1447,7 +1442,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
         };
 
-        it('puts attach, emoji, attributes, priority, burn-on-read, skills, and formatting in the left plus', async () => {
+        it('puts emoji and priority in the formatting bar, and the rest in the left plus', async () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
                 chromeState,
@@ -1455,7 +1450,8 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Schedule message'})).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Message priority'})).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'select an emoji'})).toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
@@ -1468,12 +1464,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(screen.getByText('Drop a file to upload it.')).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'attachment'})).not.toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'select an emoji'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'formatting'})).not.toBeInTheDocument();
             expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--agent');
 
+            const bar = screen.getByTestId('formattingBarContainer');
+            expect(bar).toContainElement(screen.getByRole('button', {name: 'Message priority'}));
+            expect(bar).toContainElement(screen.getByRole('button', {name: 'select an emoji'}));
+
             await openMenu();
-            expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Emoji'})).not.toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
@@ -1482,14 +1482,23 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         it('closes an open submenu when the pointer moves to another row', async () => {
             renderWithContext(
                 <AdvancedTextEditor {...baseProps}/>,
-                chromeState,
+                mergeObjects(chromeState, {
+                    entities: {preferences: {myPreferences: {
+                        [`${Preferences.ADVANCED_TEXT_EDITOR}--post`]: {
+                            category: Preferences.ADVANCED_TEXT_EDITOR,
+                            name: 'post',
+                            user_id: currentUserId,
+                            value: 'true',
+                        },
+                    }}},
+                }),
             );
 
             await openMenu();
             fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Message priority', hidden: true}));
             expect(screen.getByRole('menuitemradio', {name: 'Standard'})).toBeInTheDocument();
 
-            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Hide formatting', hidden: true}));
+            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Show formatting', hidden: true}));
             expect(screen.getByRole('menuitem', {name: 'Message priority', hidden: true})).toHaveAttribute('aria-expanded', 'false');
             await waitFor(() => {
                 expect(screen.queryByRole('menuitemradio', {name: 'Standard'})).not.toBeInTheDocument();
@@ -1675,13 +1684,16 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             await openMenu();
             expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Emoji'})).not.toBeInTheDocument();
             await userEvent.keyboard('{Escape}');
             const textbox = screen.getByTestId('post_textbox');
             const bar = screen.getByTestId('formattingBarContainer');
             const controls = document.querySelector('.AdvancedTextEditor__agent-controls');
             expect(controls).toContainElement(bar);
             expect(textbox.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(bar).toContainElement(screen.getByRole('button', {name: 'Message priority'}));
+            expect(bar).toContainElement(screen.getByRole('button', {name: 'select an emoji'}));
             expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
             expect(savePreferences).not.toHaveBeenCalled();

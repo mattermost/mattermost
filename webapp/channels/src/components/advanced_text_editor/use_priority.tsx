@@ -31,6 +31,7 @@ const usePriority = (
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
     showIndividualCloseButton = true,
+    presentation: 'button' | 'item' = 'item',
 ) => {
     const dispatch = useDispatch();
     const rootId = draft.rootId;
@@ -157,13 +158,13 @@ const usePriority = (
         !rootId && isPostPriorityEnabled && (
             <PostPriorityPicker
                 key='post-priority-picker-key'
-                presentation='item'
+                presentation={presentation}
                 settings={draft.metadata?.priority}
                 onApply={handlePostPriorityApply}
                 onClose={handlePostPriorityHide}
                 disabled={shouldShowPreview}
             />
-        ), [rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
+        ), [presentation, rootId, isPostPriorityEnabled, draft.metadata?.priority, handlePostPriorityApply, handlePostPriorityHide, shouldShowPreview]);
 
     return {
         labels,

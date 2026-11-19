@@ -1,5 +1,11 @@
 @use 'utils/mixins';
 
+// Header is 14px and the footer is 16px. PopoverMenu adds another 8px above
+// the header and below the footer, so cancel that when this picker is inside.
+.menu_menuStyled__surface:has(.post-priority-picker-header) {
+    padding-block: 0;
+}
+
 .PostPriorityPicker {
     width: 324px;
 

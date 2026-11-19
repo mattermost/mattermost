@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {Fragment, useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -514,6 +514,7 @@ const AdvancedTextEditor = ({
     }, []);
 
     const {
+        emojiPicker,
         emojiPickerPortal,
         enableEmojiPicker,
         toggleEmojiPicker,
@@ -529,7 +530,14 @@ const AdvancedTextEditor = ({
         additionalControl: priorityAdditionalControl,
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
-    } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+    } = usePriority(
+        draft,
+        handleDraftChange,
+        focusTextbox,
+        showPreview,
+        false,
+        showFormattingBar && !isInEditMode ? 'button' : 'item',
+    );
     const {
         labels: burnOnReadLabels,
         canSetBurnOnRead,
@@ -884,9 +892,21 @@ const AdvancedTextEditor = ({
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
     const agentLinkEditor = agentLinkPopoverOpen ? wysiwygRef.current?.getEditor() ?? null : null;
 
+    // Emoji and priority sit in the formatting bar while it is open, and fall
+    // back to the + menu while it is hidden.
+    const controlsInToolbar = showFormattingBar;
     const additionalControls = useMemo(() => {
-        return (pluginItems || []).filter(Boolean);
-    }, [pluginItems]);
+        const controls = (pluginItems || []).filter(Boolean);
+        if (!controlsInToolbar) {
+            return controls;
+        }
+
+        return [
+            ...controls,
+            emojiPicker ? <Fragment key='composer-emoji'>{emojiPicker}</Fragment> : null,
+            isInEditMode ? null : priorityAdditionalControl,
+        ].filter(Boolean);
+    }, [controlsInToolbar, emojiPicker, isInEditMode, pluginItems, priorityAdditionalControl]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -993,15 +1013,15 @@ const AdvancedTextEditor = ({
                 canAttach={canUploadFiles}
                 attachDisabled={uploadDisabledByPolicy}
                 onAttach={openFileDialog}
-                enableEmojiPicker={enableEmojiPicker}
+                enableEmojiPicker={enableEmojiPicker && !showFormattingBar}
                 emojiDisabled={showPreview}
                 onEmoji={toggleEmojiPicker}
                 showAttributes={postAttributesEnabled && !isInEditMode}
                 formattingOpen={showFormattingBar}
                 formattingDisabled={showPreview}
                 onToggleFormatting={toggleAdvanceTextEditor}
-                emojiAnchorRef={setEmojiReference}
-                priorityItem={isInEditMode ? null : priorityAdditionalControl}
+                emojiAnchorRef={showFormattingBar ? undefined : setEmojiReference}
+                priorityItem={showFormattingBar || isInEditMode ? null : priorityAdditionalControl}
                 burnOnRead={!isInEditMode && canSetBurnOnRead ? {
                     on: hasBurnOnReadSet,
                     disabled: showPreview,
@@ -1102,7 +1122,7 @@ const AdvancedTextEditor = ({
                                 {fileInput}
                                 {plusButton}
                                 {formattingBar}
-                                {showPlus && emojiPickerPortal}
+                                {showPlus && !showFormattingBar && emojiPickerPortal}
                                 {sendActions}
                             </div>
                         ) : (
@@ -1122,7 +1142,7 @@ const AdvancedTextEditor = ({
                                 ) : formattingBar}
                                 {fileInput}
                                 {plusButton}
-                                {showPlus && emojiPickerPortal}
+                                {showPlus && !showFormattingBar && emojiPickerPortal}
                                 {sendActions}
                             </>
                         )}

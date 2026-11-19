@@ -50,6 +50,12 @@ a.MuiMenuItem-root {
 .menu_menuStyled__surface {
     overflow: auto;
     max-height: 80vh;
+
+    // Plugin submenu content brings its own vertical padding. The surface's
+    // 8px would sit on top of that.
+    &.menu_menuStyled__surface--flush {
+        padding-block: 0;
+    }
 }
 
 .menu_menuStyled__list--compass.MuiList-root {

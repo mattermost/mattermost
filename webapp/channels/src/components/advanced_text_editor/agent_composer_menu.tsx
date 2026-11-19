@@ -142,9 +142,9 @@ const AttachFilesItem = ({disabled, onAttach, ...otherProps}: AttachFilesItemPro
 };
 
 /**
- * The one + on the host composer. It sits on the left. Attach, emoji,
- * attributes, priority, burn-on-read, skills, rewrite, and formatting are
- * items in this menu.
+ * The one + on the host composer. It sits on the left. Attach, attributes,
+ * burn-on-read, skills, rewrite, and formatting are items in this menu.
+ * Emoji and message priority are here only while the formatting bar is hidden.
  */
 const AgentComposerMenu = (props: Props) => {
     return (

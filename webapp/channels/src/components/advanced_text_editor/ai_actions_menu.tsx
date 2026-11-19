@@ -304,7 +304,9 @@ const AIActionsMenu = ({
                 <MenuContext.Provider value={submenuMenuContext}>
                     <PopoverMenu
                         variant='child'
-                        className='menu_menuStyled__surface'
+                        className={classNames('menu_menuStyled__surface', {
+                            'menu_menuStyled__surface--flush': !isRewriteSubmenu && Boolean(activePluginItem?.component),
+                        })}
                     >
                         {isRewriteSubmenu && rewriteMenuProps && (
                             <>

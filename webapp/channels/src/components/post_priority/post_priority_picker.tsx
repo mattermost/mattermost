@@ -314,7 +314,7 @@ function PostPriorityPicker({
     const pickerBody = (
         <div className='PostPriorityPicker'>
             <div>
-                <Header className='modal-title'>
+                <Header className='modal-title post-priority-picker-header'>
                     <FormattedMessage
                         id='post_priority.picker.header'
                         defaultMessage='Message priority'
@@ -432,7 +432,7 @@ function PostPriorityPicker({
             }}
             menuHeader={
                 <div>
-                    <Header className='modal-title'>
+                    <Header className='modal-title post-priority-picker-header'>
                         {formatMessage({
                             id: 'post_priority.picker.header',
                             defaultMessage: 'Message priority',
