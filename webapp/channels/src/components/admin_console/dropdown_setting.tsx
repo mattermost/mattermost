@@ -16,6 +16,7 @@ type Props = {
     onChange: (id: string, value: string | EmailSettings['PushNotificationServerType'] | EmailSettings['PushNotificationServerLocation']) => void;
     disabled?: boolean;
     setByEnv: boolean;
+    subControl?: ReactNode;
     helpText?: ReactNode;
 };
 
@@ -27,6 +28,7 @@ const DropdownSetting = ({
     onChange,
     disabled = false,
     setByEnv,
+    subControl,
     helpText,
 }: Props) => {
     const handleChange = useCallback((e: ChangeEvent<HTMLSelectElement>) => {
@@ -47,6 +49,7 @@ const DropdownSetting = ({
         <Setting
             label={label}
             inputId={id}
+            subControl={subControl}
             helpText={helpText}
             setByEnv={setByEnv}
         >

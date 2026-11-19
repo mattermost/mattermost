@@ -14447,6 +14447,126 @@
     "defaultMessage": "Saving Config...",
     "description": "In-progress label on the Save button across System Console pages while the configuration is being written."
   },
+  "admin.scoped_configuration.add_policy": {
+    "defaultMessage": "Add policy",
+    "description": ""
+  },
+  "admin.scoped_configuration.configuration_column": {
+    "defaultMessage": "Configuration",
+    "description": ""
+  },
+  "admin.scoped_configuration.delete": {
+    "defaultMessage": "Delete",
+    "description": ""
+  },
+  "admin.scoped_configuration.description": {
+    "defaultMessage": "Create policies to override client configuration settings for matching users and sessions.",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit": {
+    "defaultMessage": "Edit",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.configuration.add": {
+    "defaultMessage": "Add configuration",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.configuration.column_header": {
+    "defaultMessage": "Configuration",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.configuration.empty": {
+    "defaultMessage": "Add a configuration setting to this policy",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.configuration.menu_aria": {
+    "defaultMessage": "Add configuration menu",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.configuration.remove_aria": {
+    "defaultMessage": "Remove configuration setting",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.configuration.subtitle": {
+    "defaultMessage": "These configuration values override the default System Console settings when policy conditions are met",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.configuration.title": {
+    "defaultMessage": "What configuration is affected",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.configuration.value_column_header": {
+    "defaultMessage": "Value",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.error.configuration_required": {
+    "defaultMessage": "Please select at least one configuration setting",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.error.invalid_value": {
+    "defaultMessage": "Please enter a valid value for {setting}",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.info_banner.description": {
+    "defaultMessage": "Users and sessions that do not match this policy keep the default value configured in the System Console.",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.info_banner.title": {
+    "defaultMessage": "The configuration defined in this policy overrides the default System Console setting when its conditions are met",
+    "description": ""
+  },
+  "admin.scoped_configuration.edit.title": {
+    "defaultMessage": "Scoped Configuration Policy",
+    "description": ""
+  },
+  "admin.scoped_configuration.menu.aria_label": {
+    "defaultMessage": "Policy actions menu",
+    "description": ""
+  },
+  "admin.scoped_configuration.name": {
+    "defaultMessage": "Name",
+    "description": ""
+  },
+  "admin.scoped_configuration.no_policies_found": {
+    "defaultMessage": "No scoped configuration policies found",
+    "description": ""
+  },
+  "admin.scoped_configuration.page_title": {
+    "defaultMessage": "Scoped Configuration",
+    "description": ""
+  },
+  "admin.scoped_configuration.role": {
+    "defaultMessage": "Role",
+    "description": ""
+  },
+  "admin.scoped_configuration.search_errored": {
+    "defaultMessage": "Something went wrong. Try again",
+    "description": ""
+  },
+  "admin.scoped_configuration.setting_control.configure": {
+    "defaultMessage": "Configure with a policy",
+    "description": ""
+  },
+  "admin.scoped_configuration.setting_control.policy_name": {
+    "defaultMessage": "Policy: {name}",
+    "description": ""
+  },
+  "admin.scoped_configuration.setting_control.view_existing": {
+    "defaultMessage": "View existing policy",
+    "description": ""
+  },
+  "admin.scoped_configuration.setting.mobile_enable_biometrics.description": {
+    "defaultMessage": "Enforce biometric authentication before accessing the mobile app",
+    "description": ""
+  },
+  "admin.scoped_configuration.setting.mobile_enable_biometrics.label": {
+    "defaultMessage": "Enable Biometric Authentication",
+    "description": ""
+  },
+  "admin.scoped_configuration.title": {
+    "defaultMessage": "Scoped Configuration",
+    "description": ""
+  },
   "admin.secure_connection_detail.page_title": {
     "defaultMessage": "Connection Configuration",
     "description": "Page title of the detail/edit page for one secure connection in System Console > Connected Workspaces."
@@ -15686,6 +15806,10 @@
   "admin.sidebar.saml": {
     "defaultMessage": "SAML 2.0",
     "description": "Navigation item in the System Console sidebar under Authentication; 'SAML 2.0' is a protocol name, should not be translated; compact space."
+  },
+  "admin.sidebar.scopedConfiguration": {
+    "defaultMessage": "Scoped Configuration",
+    "description": ""
   },
   "admin.sidebar.secureConnections": {
     "defaultMessage": "Connected Workspaces",

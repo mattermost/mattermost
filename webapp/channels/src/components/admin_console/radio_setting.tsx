@@ -17,6 +17,7 @@ interface Props {
     value: string;
     setByEnv: boolean;
     disabled?: boolean;
+    subControl?: React.ReactNode;
     helpText?: React.ReactNode;
     onChange(id: string, value: any): void;
 }
@@ -28,6 +29,7 @@ const RadioSetting = ({
     value,
     setByEnv,
     disabled = false,
+    subControl,
     helpText,
     onChange,
 }: Props) => {
@@ -63,6 +65,7 @@ const RadioSetting = ({
         <Setting
             label={label}
             inputId={id}
+            subControl={subControl}
             helpText={helpText}
             setByEnv={setByEnv}
         >

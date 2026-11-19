@@ -174,6 +174,7 @@ export interface CELEditorProps {
      *  permission-rule editor render "Simulate rules" instead of the
      *  default "Test access rule" copy. */
     testButtonLabel?: React.ReactNode;
+    hideTestButton?: boolean;
     hasMaskedRows?: boolean;
     actions?: CELEditorActions;
 }
@@ -195,6 +196,7 @@ function CELEditor({
     testButtonDisabled = false,
     testButtonTooltip,
     testButtonLabel,
+    hideTestButton = false,
     hasMaskedRows = false,
     actions,
 }: CELEditorProps): JSX.Element {
@@ -526,17 +528,19 @@ function CELEditor({
                         />
                     </div>
                 </div>
-                <div className='access-control-test-controls'>
-                    <TestButton
-                        onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
-                        label={testButtonLabel}
-                        disabled={testButtonDisabled || disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
-                        disabledTooltip={testButtonTooltip ?? (hasMaskedRows ? intl.formatMessage({
-                            id: 'admin.access_control.cel_editor.masked_values_tooltip',
-                            defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
-                        }) : undefined)}
-                    />
-                </div>
+                {!hideTestButton && (
+                    <div className='access-control-test-controls'>
+                        <TestButton
+                            onClick={onTestClick ?? (() => setEditorState((prev) => ({...prev, showTestResults: true})))}
+                            label={testButtonLabel}
+                            disabled={testButtonDisabled || disabled || hasMaskedRows || !editorState.expression || !editorState.isValid || editorState.isValidating}
+                            disabledTooltip={testButtonTooltip ?? (hasMaskedRows ? intl.formatMessage({
+                                id: 'admin.access_control.cel_editor.masked_values_tooltip',
+                                defaultMessage: 'Test is unavailable because this policy contains restricted attribute values.',
+                            }) : undefined)}
+                        />
+                    </div>
+                )}
             </div>
             {/* Built-in expression-only modal. Suppressed when the
               * parent provided an `onTestClick` override (used by the
@@ -544,7 +548,7 @@ function CELEditor({
               * SimulateAccessModal). With no channelId, a resource.attributes.*
               * rule gets a channel-picker step inside the modal before the
               * members list. */}
-            {!onTestClick && editorState.showTestResults && (
+            {!hideTestButton && !onTestClick && editorState.showTestResults && (
                 <TestResults
                     expression={editorState.expression}
                     channelId={channelId}

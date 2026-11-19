@@ -185,6 +185,9 @@ export interface TableEditorProps {
      *  default "Test access rule" copy. */
     testButtonLabel?: React.ReactNode;
 
+    /** Hides the test/simulate button and its modal altogether. */
+    hideTestButton?: boolean;
+
     // Callback to notify parent when masked state changes (for CEL editor integration)
     onMaskedStateChange?: (hasMasked: boolean) => void;
 
@@ -387,6 +390,7 @@ function TableEditor({
     testButtonDisabled = false,
     testButtonTooltip,
     testButtonLabel,
+    hideTestButton = false,
     onMaskedStateChange,
     hiddenPickerAttributeNames,
     helpText,
@@ -886,17 +890,19 @@ function TableEditor({
                         defaultMessage: 'Each row is a single condition that must be met for a user to comply with the policy. All rules are combined with logical AND operator (`&&`).',
                     })}
                 />
-                <div className='access-control-test-controls'>
-                    <TestButton
-                        onClick={onTestClick ?? (() => setShowTestResults(true))}
-                        disabled={testButtonDisabled || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
-                        disabledTooltip={testButtonTooltip ?? (userWouldBeExcluded ? formatMessage({
-                            id: 'admin.access_control.table_editor.user_excluded_tooltip',
-                            defaultMessage: 'You cannot test access rules that would exclude you from the channel',
-                        }) : undefined)}
-                        label={testButtonLabel}
-                    />
-                </div>
+                {!hideTestButton && (
+                    <div className='access-control-test-controls'>
+                        <TestButton
+                            onClick={onTestClick ?? (() => setShowTestResults(true))}
+                            disabled={testButtonDisabled || disabled || (!onTestClick && !value) || userWouldBeExcluded || hasMaskedRows}
+                            disabledTooltip={testButtonTooltip ?? (userWouldBeExcluded ? formatMessage({
+                                id: 'admin.access_control.table_editor.user_excluded_tooltip',
+                                defaultMessage: 'You cannot test access rules that would exclude you from the channel',
+                            }) : undefined)}
+                            label={testButtonLabel}
+                        />
+                    </div>
+                )}
             </div>
 
             {/* Built-in expression-only modal. Suppressed when the parent
@@ -904,7 +910,7 @@ function TableEditor({
               * editor, which renders its own dual-lane simulation modal). With
               * no channelId, a resource.attributes.* rule gets a channel-picker
               * step inside the modal before the members list. */}
-            {!onTestClick && showTestResults && (
+            {!hideTestButton && !onTestClick && showTestResults && (
                 <TestResults
                     expression={value}
                     channelId={channelId}

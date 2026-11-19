@@ -15,6 +15,7 @@ export type Props = {
     labelClassName?: string;
     placeholder?: string;
     value: string | number | string[];
+    subControl?: ReactNode;
     helpText?: ReactNode;
     footer?: ReactNode;
     inputClassName?: string;
@@ -95,6 +96,7 @@ function TextSetting(props: Props) {
             label={props.label}
             labelClassName={labelClassName}
             inputClassName={inputClassName}
+            subControl={props.subControl}
             helpText={props.helpText}
             inputId={props.id}
             footer={props.footer}

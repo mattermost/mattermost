@@ -5254,6 +5254,22 @@ export default class Client4 {
         );
     };
 
+    searchSystemSettingPolicies = (term: string, after: string, limit: number, actions?: string[]) => {
+        return this.doFetch<AccessControlPoliciesResult>(
+            `${this.getBaseRoute()}/access_control_policies/search`,
+            {
+                method: 'post',
+                body: JSON.stringify({
+                    term,
+                    type: 'system_setting',
+                    cursor: {id: after},
+                    limit,
+                    ...(actions && actions.length > 0 && {actions}),
+                }),
+            },
+        );
+    };
+
     searchAccessControlDecisionActions = (resourceType: string, resourceId: string, actions?: string[]) => {
         const body: ActionSearchRequest = {resource: {type: resourceType, id: resourceId}};
         if (actions && actions.length > 0) {
