@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {defineMessage} from 'react-intl';
-import {connect} from 'react-redux';
+import {connect, useDispatch, useSelector} from 'react-redux';
 
 import type {PluginRedux, PluginSetting, PluginSettingSection} from '@mattermost/types/plugins';
 
+import {getPlugins} from 'mattermost-redux/actions/admin';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
@@ -254,6 +255,31 @@ const ConnectedCustomPluginSettings = connect(makeMapStateToProps)(CustomPluginS
 // Wrap the legacy class-based settings component so it can subscribe to plugin status changes
 // and refetch on demand while the page is mounted.
 export default function CustomPluginSettingsWithStatusesSync(props: React.ComponentProps<typeof ConnectedCustomPluginSettings>) {
-    usePluginStatusesSync();
-    return <ConnectedCustomPluginSettings {...props}/>;
+    const dispatch = useDispatch();
+    const pluginId = props.match.params.plugin_id;
+    const pluginStatuses = usePluginStatusesSync();
+    const statusVersion = pluginStatuses?.[pluginId]?.version;
+    const manifestVersion = useSelector((state: GlobalState) => state.entities.admin.plugins?.[pluginId]?.version);
+
+    // The settings schema comes from the plugin manifests, which are only fetched when the System
+    // Console loads. When the plugin is replaced by a different version (for example switching Calls
+    // between v1 and v2), the statuses refresh but the manifests do not, so the page would show the
+    // old version's settings until a reload. Refetch once per observed version to avoid looping if
+    // the two never agree.
+    const refetchedFor = useRef<string | undefined>(undefined);
+    useEffect(() => {
+        if (statusVersion && manifestVersion && statusVersion !== manifestVersion && refetchedFor.current !== statusVersion) {
+            refetchedFor.current = statusVersion;
+            dispatch(getPlugins());
+        }
+    }, [dispatch, statusVersion, manifestVersion]);
+
+    // The form state is only rebuilt from the config when the plugin id or the config object changes,
+    // so remount it when the plugin version changes to rebuild it from the new schema.
+    return (
+        <ConnectedCustomPluginSettings
+            key={`${pluginId}-${manifestVersion}`}
+            {...props}
+        />
+    );
 }
