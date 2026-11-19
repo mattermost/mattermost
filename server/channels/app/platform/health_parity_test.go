@@ -64,9 +64,18 @@ type parityCase struct {
 }
 
 // unknownLive is the shape of a failed section: live can't evaluate what offline reads from the
-// data the failed collector wrote anyway.
-func unknownLive(d parityDifference) bool {
-	return d.live != nil && (d.live.State == healthcheck.StateUnknown || (d.offline != nil && d.live.State == d.offline.State))
+// data the failed collector wrote anyway. sameState lists the codes whose results may also differ
+// in what they carry while both sides agree on the state.
+func unknownLive(sameState ...string) func(d parityDifference) bool {
+	return func(d parityDifference) bool {
+		if d.live == nil {
+			return false
+		}
+		if d.live.State == healthcheck.StateUnknown {
+			return true
+		}
+		return d.offline != nil && d.live.State == d.offline.State && slices.Contains(sameState, d.code)
+	}
 }
 
 // missingOffline is the shape of a node that failed during packet generation: offline has nothing
@@ -149,6 +158,9 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 			},
 		},
 	}
+	sameStateGaps := map[model.NodeSection][]string{
+		model.SectionLicense: {"DB_NO_SEARCH_REPLICA"},
+	}
 	for _, section := range model.AllNodeSections() {
 		cases = append(cases, parityCase{
 			name: fmt.Sprintf("section %s failed", section),
@@ -158,7 +170,7 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 				}
 			},
 			knownGap: "MM-71665",
-			gapShape: unknownLive,
+			gapShape: unknownLive(sameStateGaps[section]...),
 		})
 	}
 	// Each workspace collector fails the way it can: stats and jobs keep what they collected, and
@@ -172,7 +184,7 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 				live.Sections[model.SectionStats] = collectionFailed
 			},
 			knownGap: "MM-71665",
-			gapShape: unknownLive,
+			gapShape: unknownLive(),
 		},
 		parityCase{
 			name: "section jobs failed",
@@ -181,7 +193,7 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 				live.Sections[model.SectionJobs] = collectionFailed
 			},
 			knownGap: "MM-71665",
-			gapShape: unknownLive,
+			gapShape: unknownLive(),
 		},
 		parityCase{
 			name: "section plugins failed",
@@ -190,7 +202,7 @@ func TestHealthLiveOfflineParityRoundTrip(t *testing.T) {
 				live.Sections[model.SectionPlugins] = collectionFailed
 			},
 			knownGap: "MM-71665",
-			gapShape: unknownLive,
+			gapShape: unknownLive(),
 		},
 	)
 
