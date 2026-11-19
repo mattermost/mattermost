@@ -327,26 +327,43 @@ export function showFlaggedPosts(): ActionFuncAsync {
             state: RHSStates.FLAG,
         });
 
-        const results = await dispatch(getFlaggedPosts());
-        let data;
-        if ('data' in results) {
-            data = results.data;
+        await dispatch(getFlaggedPosts());
+
+        dispatch({
+            type: SearchTypes.RECEIVED_SEARCH_TERM,
+            data: {
+                teamId,
+                terms: null,
+                isOrSearch: false,
+            },
+        });
+
+        return {data: true};
+    };
+}
+
+export function getMoreFlaggedPosts(): ActionFuncAsync {
+    return async (dispatch, getState) => {
+        const {flagged, flaggedPaging, isSearchGettingMore} = getState().entities.search;
+        if (flaggedPaging.isEnd || isSearchGettingMore) {
+            return {data: true};
         }
 
-        dispatch(batchActions([
-            {
-                type: SearchTypes.RECEIVED_SEARCH_POSTS,
-                data,
-            },
-            {
-                type: SearchTypes.RECEIVED_SEARCH_TERM,
-                data: {
-                    teamId,
-                    terms: null,
-                    isOrSearch: false,
-                },
-            },
-        ]));
+        const result = await dispatch(getFlaggedPosts(flaggedPaging.before));
+
+        // The cursor post was permanently deleted, so no page can follow it.
+        if (result.error?.status_code === 404) {
+            return dispatch(getFlaggedPosts());
+        }
+        if (!result.data) {
+            return {data: false};
+        }
+
+        // A page of posts that were saved elsewhere and already shown doesn't grow the list, so continue past it.
+        const {order} = result.data;
+        if (order.length > 0 && order.every((id) => flagged.includes(id))) {
+            return dispatch(getMoreFlaggedPosts());
+        }
 
         return {data: true};
     };

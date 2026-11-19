@@ -12,6 +12,7 @@ import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
 import useSearchResultsActions from 'components/common/hooks/use_search_results_actions';
+import SavedMessages from 'components/saved_messages/saved_messages';
 import SearchBar from 'components/search_bar/search_bar';
 import SearchHint from 'components/search_hint/search_hint';
 import SearchResults from 'components/search_results';
@@ -478,10 +479,15 @@ const Search = ({
                     </div>
                 </div>
             )}
-            {searchVisible ? (
+            {searchVisible && isFlaggedPosts && (
+                <SavedMessages
+                    isOpened={isSideBarRightOpen}
+                    isSideBarExpanded={isRhsExpanded}
+                />
+            )}
+            {searchVisible && !isFlaggedPosts && (
                 <SearchResults
                     isMentionSearch={isMentionSearch}
-                    isFlaggedPosts={isFlaggedPosts}
                     isPinnedPosts={isPinnedPosts}
                     isChannelFiles={isChannelFiles}
                     channelDisplayName={channelDisplayName}
@@ -497,7 +503,8 @@ const Search = ({
                     searchType={searchType || 'messages'}
                     crossTeamSearchEnabled={crossTeamSearchEnabled}
                 />
-            ) : children}
+            )}
+            {!searchVisible && children}
         </div>
     );
 };

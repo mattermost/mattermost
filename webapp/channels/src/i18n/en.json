@@ -28435,6 +28435,10 @@
     "defaultMessage": "1-50",
     "description": "Company size option '1-50' employees in the Start Trial form dropdown; keep the numeric range."
   },
+  "paged_list.retry": {
+    "defaultMessage": "Try again",
+    "description": "Button below the error at the end of a scrolling list, such as Saved messages, that retries loading the next page of items."
+  },
   "password_form.change": {
     "defaultMessage": "Change my password",
     "description": "Submit button label on the password reset form that saves the new password."
@@ -30430,6 +30434,10 @@
   "saveChangesPanel.saving": {
     "defaultMessage": "Saving...",
     "description": "Status text in the unsaved-changes panel while the save is in progress; ellipsis indicates progress."
+  },
+  "saved_messages.load_more_failed": {
+    "defaultMessage": "Couldn't load more messages.",
+    "description": "Error shown at the bottom of the Saved messages panel when the next page of saved messages fails to load. Followed by a Try again button."
   },
   "schedule_post.custom_time_modal.cancel_button_text": {
     "defaultMessage": "Cancel",

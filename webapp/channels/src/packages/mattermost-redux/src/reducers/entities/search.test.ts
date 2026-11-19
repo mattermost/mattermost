@@ -3,9 +3,11 @@
 
 import {
     PostTypes,
+    PreferenceTypes,
     SearchTypes,
     UserTypes,
 } from 'mattermost-redux/action_types';
+import {Preferences} from 'mattermost-redux/constants';
 import reducer from 'mattermost-redux/reducers/entities/search';
 
 type SearchState = ReturnType<typeof reducer>;
@@ -335,6 +337,84 @@ describe('reducers.entities.search', () => {
 
             const actualState = reducer({matches: inputState} as SearchState, action);
             expect(actualState.matches).toEqual(expectedState);
+        });
+    });
+
+    describe('flagged', () => {
+        it('replaces the list with the first page', () => {
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
+                data: {order: ['efgh'], posts: {}, has_next: true},
+                isGettingMore: false,
+            };
+
+            const actualState = reducer({flagged: ['abcd']} as SearchState, action);
+            expect(actualState.flagged).toEqual(['efgh']);
+            expect(actualState.flaggedPaging).toEqual({before: 'efgh', isEnd: false});
+        });
+
+        it('appends later pages without duplicates', () => {
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
+                data: {order: ['efgh', 'ijkl'], posts: {}, has_next: false},
+                isGettingMore: true,
+            };
+
+            const actualState = reducer({
+                flagged: ['abcd', 'efgh'],
+                flaggedPaging: {before: 'efgh', isEnd: false},
+            } as SearchState, action);
+            expect(actualState.flagged).toEqual(['abcd', 'efgh', 'ijkl']);
+            expect(actualState.flaggedPaging).toEqual({before: 'ijkl', isEnd: true});
+        });
+
+        it('keeps the cursor after an empty page', () => {
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
+                data: {order: [], posts: {}, has_next: false},
+                isGettingMore: true,
+            };
+
+            const actualState = reducer({flaggedPaging: {before: 'efgh', isEnd: false}} as SearchState, action);
+            expect(actualState.flaggedPaging).toEqual({before: 'efgh', isEnd: true});
+        });
+
+        it('treats a missing has_next as the end of the list', () => {
+            const action = {
+                type: SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS,
+                data: {order: ['abcd'], posts: {}},
+                isGettingMore: false,
+            };
+
+            const actualState = reducer({} as SearchState, action);
+            expect(actualState.flaggedPaging).toEqual({before: 'abcd', isEnd: true});
+        });
+
+        it.each([
+            ['unsaved', {type: PreferenceTypes.DELETED_PREFERENCES, data: [{category: Preferences.CATEGORY_FLAGGED_POST, name: 'efgh'}]}],
+            ['deleted', {type: PostTypes.POST_DELETED, data: {id: 'efgh'}}],
+            ['removed', {type: PostTypes.POST_REMOVED, data: {id: 'efgh'}}],
+        ])('keeps the cursor when its post is %s', (_, action) => {
+            const flaggedPaging = {before: 'efgh', isEnd: false};
+            const actualState = reducer({flagged: ['abcd', 'efgh'], flaggedPaging} as SearchState, action);
+            expect(actualState.flaggedPaging).toBe(flaggedPaging);
+        });
+    });
+
+    describe('isSearchGettingMore', () => {
+        it('is set while loading more flagged posts', () => {
+            const actualState = reducer({} as SearchState, {type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST, isGettingMore: true});
+            expect(actualState.isSearchGettingMore).toBe(true);
+        });
+
+        it('is not set while loading the first page of flagged posts', () => {
+            const actualState = reducer({} as SearchState, {type: SearchTypes.SEARCH_FLAGGED_POSTS_REQUEST, isGettingMore: false});
+            expect(actualState.isSearchGettingMore).toBe(false);
+        });
+
+        it('is cleared when loading flagged posts fails', () => {
+            const actualState = reducer({isSearchGettingMore: true} as SearchState, {type: SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE});
+            expect(actualState.isSearchGettingMore).toBe(false);
         });
     });
 

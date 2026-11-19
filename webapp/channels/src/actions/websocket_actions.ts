@@ -92,6 +92,7 @@ import {getRecap} from 'mattermost-redux/actions/recaps';
 import {invalidateRenderDecisionsForChannel, clearRenderDecisions} from 'mattermost-redux/actions/render_permissions';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {fetchTeamScheduledPosts} from 'mattermost-redux/actions/scheduled_posts';
+import {getMissingFlaggedPosts} from 'mattermost-redux/actions/search';
 import {fetchChannelRemotes} from 'mattermost-redux/actions/shared_channels';
 import {batchFetchStatusesProfilesGroupsFromPosts} from 'mattermost-redux/actions/status_profile_polling';
 import * as TeamActions from 'mattermost-redux/actions/teams';
@@ -113,7 +114,7 @@ import {
 } from 'mattermost-redux/actions/users';
 import {removeNotVisibleUsers} from 'mattermost-redux/actions/websocket';
 import {Client4} from 'mattermost-redux/client';
-import {General, Permissions} from 'mattermost-redux/constants';
+import {General, Permissions, Preferences} from 'mattermost-redux/constants';
 import {ACCESS_CONTROL_PROPERTY_GROUP} from 'mattermost-redux/constants/properties';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {
@@ -167,7 +168,7 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {resetWsErrorCount} from 'actions/views/system';
 import {updateThreadLastOpened} from 'actions/views/threads';
 import {getCurrentLocale} from 'selectors/i18n';
-import {getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
+import {getRhsState, getSelectedChannelId, getSelectedPost} from 'selectors/rhs';
 import {isThreadOpen, isThreadManuallyUnread} from 'selectors/views/threads';
 import store from 'stores/redux_store';
 
@@ -187,7 +188,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, RHSStates, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
 import DesktopApp from 'utils/desktop_api';
 import {getIntl} from 'utils/i18n';
 import {MAX_OPEN_DIALOGS, getOpenDialogCount} from 'utils/interactive_dialog';
@@ -1988,6 +1989,7 @@ function handleChannelUnarchivedEvent(msg: WebSocketMessages.ChannelRestored) {
 function handlePreferenceChangedEvent(msg: WebSocketMessages.PreferenceChanged) {
     const preference = JSON.parse(msg.data.preference) as PreferenceType;
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
+    loadNewlySavedPosts([preference]);
 
     if (addedNewDmUser(preference)) {
         loadProfilesForDM();
@@ -2001,6 +2003,7 @@ function handlePreferenceChangedEvent(msg: WebSocketMessages.PreferenceChanged) 
 function handlePreferencesChangedEvent(msg: WebSocketMessages.PreferencesChanged) {
     const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
+    loadNewlySavedPosts(preferences);
 
     if (preferences.findIndex(addedNewDmUser) !== -1) {
         loadProfilesForDM();
@@ -2014,6 +2017,20 @@ function handlePreferencesChangedEvent(msg: WebSocketMessages.PreferencesChanged
 function handlePreferencesDeletedEvent(msg: WebSocketMessages.PreferencesChanged) {
     const preferences = JSON.parse(msg.data.preferences) as PreferenceType[];
     dispatch({type: PreferenceTypes.DELETED_PREFERENCES, data: preferences});
+}
+
+// A post saved elsewhere may be one this client hasn't loaded, and the open Saved messages panel can only show loaded posts.
+function loadNewlySavedPosts(preferences: PreferenceType[]) {
+    if (getRhsState(getState()) !== RHSStates.FLAG) {
+        return;
+    }
+
+    const postIds = preferences.
+        filter((preference) => preference.category === Preferences.CATEGORY_FLAGGED_POST).
+        map((preference) => preference.name);
+    if (postIds.length > 0) {
+        dispatch(getMissingFlaggedPosts(postIds));
+    }
 }
 
 function addedNewDmUser(preference: PreferenceType) {
