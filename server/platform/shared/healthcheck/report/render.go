@@ -107,9 +107,10 @@ var (
 
 	// markdownVerbatim matches bare URLs, which a backslash escape would break, and @mentions,
 	// which a backslash escape would not stop from notifying when pasted into Mattermost. A mention
-	// includes any underscores right before it, which Mattermost strips before looking for one.
+	// includes any underscores right before it, which Mattermost strips before looking for one,
+	// and any mention run into it, such as @here in @all@here.
 	// Neither can contain a character that starts a link, HTML or a code span.
-	markdownVerbatim = regexp.MustCompile(`https?://[A-Za-z0-9\-._~:/?#!$&'+,;=%@]+|(?:\B|\b_+)@[A-Za-z0-9_](?:[A-Za-z0-9_.\-]*[A-Za-z0-9_])?`)
+	markdownVerbatim = regexp.MustCompile(`https?://[A-Za-z0-9\-._~:/?#!$&'+,;=%@]+|(?:\B|\b_+)@[A-Za-z0-9_](?:[A-Za-z0-9_.\-@]*[A-Za-z0-9_])?`)
 )
 
 // escapeMarkdown makes s render as the literal text it is, on one line, wherever it is placed,

@@ -352,6 +352,7 @@ func TestEscapeMarkdown(t *testing.T) {
 		"https://example.com/@support":                   "`https://example.com/@support`",
 		"see https://host.example.com/@all.":             "see `https://host.example.com/@all.`",
 		"_@here_ and __@all":                             "`_@here_` and `__@all`",
+		"@all@here and @user@example.com":                "`@all@here` and `@user@example.com`",
 		"mail first_last@example.com":                    `mail first\_last@example.com`,
 		"https://x.example.com/a_b <b>":                  `https://x.example.com/a_b \<b\>`,
 		"https://x.example.com/[x](javascript:alert(1))": `https://x.example.com/\[x\](javascript:alert(1))`,
