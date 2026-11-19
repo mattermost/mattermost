@@ -13,6 +13,7 @@ import {
     createField,
     deleteFields,
     fieldName,
+    foreignSystemFields,
     modalClear,
     modalInput,
     modalRow,
@@ -128,7 +129,9 @@ test('opens from the post menu and from the hover card', {tag: '@post_attributes
  * @objective Verify the `…` menu offers no Attributes item on a post where the user has
  * nothing to view or add, and offers it once something appears, without a reload.
  *
- * @precondition The PostAttributes feature flag is enabled.
+ * @precondition The PostAttributes feature flag is enabled, and no system-scoped post
+ * attribute field exists that this suite didn't create: one the user could write would
+ * give the menu something to add. It skips when the server has one.
  */
 test('offers no Attributes item when there is nothing to view or add', {tag: '@post_attributes'}, async ({pw}) => {
     await pw.ensureFeatureFlag('PostAttributes', true);
@@ -141,6 +144,12 @@ test('offers no Attributes item when there is nothing to view or add', {tag: '@p
 
     try {
         await purgeFields(adminClient);
+
+        const foreign = await foreignSystemFields(adminClient);
+        test.skip(
+            foreign.length > 0,
+            `${foreign.length} post attribute fields this suite did not create exist on the server`,
+        );
 
         const restricted = await createField(adminClient, fieldName('restricted', suffix), {
             options: ['NOFORN'],

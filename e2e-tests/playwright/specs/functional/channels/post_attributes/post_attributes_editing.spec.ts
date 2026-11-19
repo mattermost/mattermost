@@ -11,6 +11,7 @@ import {
     createField,
     deleteFields,
     fieldName,
+    foreignSystemFields,
     modalClear,
     modalRow,
     modalTrigger,
@@ -748,10 +749,11 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
  *
  * @precondition The PostAttributes feature flag is enabled.
  *
- * @precondition No other spec is creating system-scoped post attribute fields at the
- * same time. This is the one test here asserting the *absence* of candidates, and a
- * system-scoped field applies to every channel, so another spec's field would bring
- * the picker back. CI pins `PW_WORKERS: 1`, which holds it.
+ * @precondition No system-scoped post attribute field exists that this suite didn't
+ * create, and no other spec is creating one at the same time. This test asserts the
+ * *absence* of candidates, and a system-scoped field applies to every channel, so any
+ * other field would bring the picker back. It skips when the server has one; CI pins
+ * `PW_WORKERS: 1` and starts clean.
  */
 test('omits the field picker when every field already has a row', {tag: '@post_attributes'}, async ({pw}) => {
     await pw.ensureFeatureFlag('PostAttributes', true);
@@ -765,6 +767,12 @@ test('omits the field picker when every field already has a row', {tag: '@post_a
 
     try {
         await purgeFields(adminClient);
+
+        const foreign = await foreignSystemFields(adminClient);
+        test.skip(
+            foreign.length > 0,
+            `${foreign.length} post attribute fields this suite did not create exist on the server`,
+        );
 
         const classification = await createField(adminClient, fieldName('classification', suffix), {
             options: ['SECRET', 'UNCLASSIFIED'],
