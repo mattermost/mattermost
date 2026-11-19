@@ -558,7 +558,14 @@ func TestProcessSessionAttributesRequestSkipsUnchangedWrites(t *testing.T) {
 	})
 
 	t.Run("an IP older than half its TTL is rewritten, fresher user agent fields are not", func(t *testing.T) {
-		seededAt, _, timestamps := process(t, 10_000, "192.0.2.10:1234")
+		// Derived from the defaults rather than hardcoded: an age past half the IP's
+		// TTL but short of half the user agent fields' TTL.
+		ipHalfTTL := int64(model.SessionAttributeDefaultTTLNetworkIdentity) * 500
+		userAgentHalfTTL := int64(model.SessionAttributeDefaultTTLIdentity) * 500
+		require.Less(t, ipHalfTTL, userAgentHalfTTL, "the IP must go stale before the user agent fields for this case to mean anything")
+		age := (ipHalfTTL + userAgentHalfTTL) / 2
+
+		seededAt, _, timestamps := process(t, age, "192.0.2.10:1234")
 		requireOnlyIPRewritten(t, seededAt, timestamps)
 	})
 }
