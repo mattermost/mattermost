@@ -28,6 +28,8 @@ const (
 	broadcastAbacBookmarks      = "abac_bookmarks"
 	broadcastOnlyChannelAdmins  = "only_channel_admins"
 	broadcastChannelReadAccess  = "channel_read_access"
+	broadcastSystemSetting      = "system_setting_policy"
+	broadcastSystemSettingByID  = "system_setting_overrides_by_session"
 
 	broadcastChannelReadAccessRedact = "channel_read_access_redact"
 )
@@ -45,6 +47,8 @@ func (s *Server) makeBroadcastHooks() map[string]platform.BroadcastHook {
 		broadcastAbacBookmarks:      &abacBookmarksBroadcastHook{},
 		broadcastOnlyChannelAdmins:  &onlyChannelAdminsBroadcastHook{},
 		broadcastChannelReadAccess:  &channelReadAccessBroadcastHook{},
+		broadcastSystemSetting:      &systemSettingPolicyBroadcastHook{srv: s},
+		broadcastSystemSettingByID:  &systemSettingOverridesBySessionBroadcastHook{},
 
 		broadcastChannelReadAccessRedact: &channelReadAccessRedactBroadcastHook{},
 	}
@@ -854,4 +858,112 @@ func getTypedArg[T any](args map[string]any, key string) (T, error) {
 
 	err = json.Unmarshal(buf, &value)
 	return value, err
+}
+
+type systemSettingPolicyBroadcastHook struct {
+	srv *Server
+}
+
+// A non-nil change has each node evaluate against policies that include it,
+// since the event can reach a node before the cluster invalidation for it.
+func useSystemSettingPolicyHook(message *model.WebSocketEvent, targetRoles []string, change *systemSettingPolicyChangeRef) {
+	args := map[string]any{}
+	if targetRoles != nil {
+		args["target_roles"] = model.StringArray(targetRoles)
+	}
+	if change != nil {
+		args["policy_change"] = *change
+	}
+	message.GetBroadcast().AddHook(broadcastSystemSetting, args)
+}
+
+func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	session := webConn.GetSession()
+	if session == nil || session.UserId == "" {
+		msg.Reject()
+		return nil
+	}
+
+	if _, scoped := args["target_roles"]; scoped {
+		targetRoles, err := getTypedArg[model.StringArray](args, "target_roles")
+		if err != nil {
+			msg.Reject()
+			return errors.Wrap(err, "Invalid target_roles value passed to systemSettingPolicyBroadcastHook")
+		}
+		candidateRoles := systemSettingRoleChain(ResolveSystemRole(session.Roles), true)
+		if !slices.ContainsFunc(candidateRoles, func(role string) bool { return slices.Contains(targetRoles, role) }) {
+			msg.Reject()
+			return nil
+		}
+	}
+
+	rctx := request.EmptyContext(webConn.Platform.Log()).WithSession(session)
+	if _, ok := args["policy_change"]; ok {
+		change, err := getTypedArg[systemSettingPolicyChangeRef](args, "policy_change")
+		if err != nil {
+			msg.Reject()
+			return errors.Wrap(err, "Invalid policy_change value passed to systemSettingPolicyBroadcastHook")
+		}
+		if _, err := h.srv.Channels().systemSettingPoliciesCache.GetIncluding(rctx, h.srv.Store().AccessControlPolicy(), change); err != nil {
+			mlog.Warn("systemSettingPolicyBroadcastHook: failed to load system setting policies; rejecting event",
+				mlog.String("user_id", webConn.UserId),
+				mlog.Err(err),
+			)
+			msg.Reject()
+			return nil
+		}
+	}
+
+	overrides, appErr := webConn.Suite.EvaluateClientConfigOverrides(rctx)
+	if appErr != nil {
+		mlog.Warn("systemSettingPolicyBroadcastHook: failed to evaluate overrides; rejecting event",
+			mlog.String("user_id", webConn.UserId),
+			mlog.Err(appErr),
+		)
+		msg.Reject()
+		return nil
+	}
+	if overrides == nil {
+		overrides = map[string]string{}
+	}
+
+	msg.Add("overrides", overrides)
+	return nil
+}
+
+// systemSettingOverridesBySessionBroadcastHook delivers overrides already
+// evaluated on the publishing node. Connections whose session has no entry keep
+// their last known overrides.
+type systemSettingOverridesBySessionBroadcastHook struct{}
+
+func useSystemSettingOverridesBySessionHook(message *model.WebSocketEvent, overridesBySession map[string]map[string]string) {
+	message.GetBroadcast().AddHook(broadcastSystemSettingByID, map[string]any{
+		"overrides_by_session": overridesBySession,
+	})
+}
+
+func (h *systemSettingOverridesBySessionBroadcastHook) Process(msg *platform.HookedWebSocketEvent, webConn *platform.WebConn, args map[string]any) error {
+	overridesBySession, err := getTypedArg[map[string]map[string]string](args, "overrides_by_session")
+	if err != nil {
+		msg.Reject()
+		return errors.Wrap(err, "Invalid overrides_by_session value passed to systemSettingOverridesBySessionBroadcastHook")
+	}
+
+	session := webConn.GetSession()
+	if session == nil || session.Id == "" {
+		msg.Reject()
+		return nil
+	}
+
+	overrides, ok := overridesBySession[session.Id]
+	if !ok {
+		msg.Reject()
+		return nil
+	}
+	if overrides == nil {
+		overrides = map[string]string{}
+	}
+
+	msg.Add("overrides", overrides)
+	return nil
 }

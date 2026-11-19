@@ -588,7 +588,7 @@ func (a *App) UpdatePropertyFields(rctx request.CTX, groupID string, fields []*m
 	// Renaming or re-ranking an option rewrites what the matview materializes, and a type change
 	// drops dependent values, none of it touching the rows the per-user epoch is computed from.
 	if anyUserObjectType(updated) || anyUserObjectType(propagated) {
-		a.invalidateAllUserAttributeCaches()
+		a.invalidateAllUserAttributeCaches(propertyFieldIDs(updated, propagated))
 	}
 
 	// Broadcast websocket events for the requested fields and for the linked
@@ -623,6 +623,18 @@ func anyUserObjectType(fields []*model.PropertyField) bool {
 		}
 	}
 	return false
+}
+
+func propertyFieldIDs(fieldLists ...[]*model.PropertyField) []string {
+	ids := []string{}
+	for _, fields := range fieldLists {
+		for _, f := range fields {
+			if f != nil {
+				ids = append(ids, f.ID)
+			}
+		}
+	}
+	return ids
 }
 
 // isAccessControlGroup reports whether groupID is the access_control group.
@@ -673,7 +685,7 @@ func (a *App) DeletePropertyField(rctx request.CTX, groupID, id string, bypassPr
 	// The matview filters out soft-deleted fields, so this attribute disappears from every subject
 	// while PropertyValues stays untouched and the per-user epoch cannot see it.
 	if existing.ObjectType == model.PropertyFieldObjectTypeUser {
-		a.invalidateAllUserAttributeCaches()
+		a.invalidateAllUserAttributeCaches([]string{existing.ID})
 	}
 
 	// Without this a deleted rank field's stale options would linger in the

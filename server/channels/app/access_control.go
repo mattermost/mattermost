@@ -187,6 +187,12 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		previous, _ = a.Srv().Store().AccessControlPolicy().Get(rctx, policy.ID)
 	}
 
+	var systemSettingChange *systemSettingPolicyChange
+	if policy.Type == model.AccessControlPolicyTypeSystemSetting && a.systemSettingPoliciesEvaluated() {
+		stored, storedKnown := a.systemSettingPolicyBeforeSave(rctx, acs, policy.ID)
+		systemSettingChange = newSystemSettingPolicyChange(stored, storedKnown, policy)
+	}
+
 	policy, appErr = acs.SavePolicy(rctx, policy)
 	if appErr != nil {
 		return nil, appErr
@@ -204,6 +210,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(previous, policy))
 	case model.AccessControlPolicyTypeSystemSetting:
 		a.invalidateSystemSettingPolicyCache()
+		a.publishSystemSettingPolicyChange(systemSettingChange, systemSettingPolicyChangeRef{PolicyID: policy.ID, Revision: policy.Revision})
 	}
 
 	return policy, nil
@@ -737,6 +744,11 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		affectedTeamIDs = a.teamPolicyIDsWithImport(rctx, id)
 	}
 
+	var systemSettingChange *systemSettingPolicyChange
+	if policy != nil && policy.Type == model.AccessControlPolicyTypeSystemSetting && a.systemSettingPoliciesEvaluated() {
+		systemSettingChange = newSystemSettingPolicyChange(policy, true, nil)
+	}
+
 	if appErr := acs.DeletePolicy(rctx, id); appErr != nil {
 		return appErr
 	}
@@ -759,6 +771,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(policy))
 	case policy.Type == model.AccessControlPolicyTypeSystemSetting:
 		a.invalidateSystemSettingPolicyCache()
+		a.publishSystemSettingPolicyChange(systemSettingChange, systemSettingPolicyChangeRef{PolicyID: id})
 	}
 
 	return nil

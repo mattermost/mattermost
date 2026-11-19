@@ -626,6 +626,15 @@ func TestFilterStaleSessionAttributes(t *testing.T) {
 	})
 }
 
+func TestChangedSessionAttributes(t *testing.T) {
+	prev := map[string]any{"ip_address": "192.0.2.10", "vpn_active": true}
+
+	assert.Empty(t, changedSessionAttributes(prev, map[string]any{"ip_address": "192.0.2.10", "vpn_active": true}))
+	assert.Equal(t, []string{"ip_address"}, changedSessionAttributes(prev, map[string]any{"ip_address": "192.0.2.11"}))
+	assert.Equal(t, []string{"os_platform"}, changedSessionAttributes(prev, map[string]any{"os_platform": "ios"}))
+	assert.ElementsMatch(t, []string{"ip_address", "vpn_active"}, changedSessionAttributes(nil, map[string]any{"ip_address": "192.0.2.10", "vpn_active": true}))
+}
+
 func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 	enableSessionAttributesCollection(t, th)

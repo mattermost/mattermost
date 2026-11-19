@@ -8,6 +8,7 @@ import (
 	"slices"
 	"sync"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -42,6 +43,53 @@ func TestExpressionReferencesResourceRoot(t *testing.T) {
 	}
 }
 
+func TestCachedSystemSettingPolicyReferences(t *testing.T) {
+	groupID := model.NewId()
+	deptID := model.NewId()
+	levelID := model.NewId()
+	otherID := model.NewId()
+
+	policyFor := func(exprs ...string) *cachedSystemSettingPolicy {
+		p := &cachedSystemSettingPolicy{FieldIDs: map[string]struct{}{}, SessionAttributes: map[string]struct{}{}}
+		for _, expr := range exprs {
+			p.addExpressionReferences(expr)
+		}
+		return p
+	}
+
+	t.Run("fields named by ID across rules", func(t *testing.T) {
+		p := policyFor(
+			"user.id_"+groupID+".id_"+deptID+` == "finance"`,
+			"_rank_gte(user.id_"+groupID+".id_"+levelID+`, "secret")`,
+		)
+		assert.True(t, p.referencesField([]string{otherID, deptID}))
+		assert.True(t, p.referencesField([]string{levelID}))
+		assert.False(t, p.referencesField([]string{otherID}))
+		assert.False(t, p.referencesField(nil))
+		assert.False(t, p.referencesSessionAttribute([]string{model.SessionAttributesPropertyFieldIPAddress}))
+	})
+
+	t.Run("fields named by name count as every field", func(t *testing.T) {
+		p := policyFor(`user.attributes.dept == "finance"`)
+		assert.True(t, p.referencesField([]string{otherID}))
+		assert.False(t, p.referencesField(nil))
+	})
+
+	t.Run("session attribute selectors", func(t *testing.T) {
+		p := policyFor(`user.session.vpn_active == "true" || user . session . ip_address == "192.0.2.10"`)
+		assert.True(t, p.referencesSessionAttribute([]string{"os_platform", "ip_address"}))
+		assert.True(t, p.referencesSessionAttribute([]string{"vpn_active"}))
+		assert.False(t, p.referencesSessionAttribute([]string{"os_platform"}))
+		assert.False(t, p.referencesField([]string{otherID}))
+	})
+
+	t.Run("session root without a selector counts as every session attribute", func(t *testing.T) {
+		p := policyFor(`user.session.vpn_active == "true" && "ip_address" in user.session`)
+		assert.True(t, p.referencesSessionAttribute([]string{"os_platform"}))
+		assert.False(t, p.referencesSessionAttribute(nil))
+	})
+}
+
 func policiesOfType(policies []*model.AccessControlPolicy, policyType string) []*model.AccessControlPolicy {
 	var result []*model.AccessControlPolicy
 	for _, p := range policies {
@@ -57,6 +105,8 @@ type staticPolicyStore struct {
 
 	mu       sync.Mutex
 	policies []*model.AccessControlPolicy
+	loads    int
+	delay    time.Duration
 }
 
 func (s *staticPolicyStore) set(policies ...*model.AccessControlPolicy) {
@@ -65,10 +115,19 @@ func (s *staticPolicyStore) set(policies ...*model.AccessControlPolicy) {
 	s.policies = policies
 }
 
-func (s *staticPolicyStore) GetByType(_ request.CTX, policyType string, _ model.AccessControlPolicyCursor, _ int) ([]*model.AccessControlPolicy, error) {
+func (s *staticPolicyStore) loadCount() int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return policiesOfType(s.policies, policyType), nil
+	return s.loads
+}
+
+func (s *staticPolicyStore) GetByType(_ request.CTX, policyType string, _ model.AccessControlPolicyCursor, _ int) ([]*model.AccessControlPolicy, error) {
+	s.mu.Lock()
+	s.loads++
+	policies, delay := policiesOfType(s.policies, policyType), s.delay
+	s.mu.Unlock()
+	time.Sleep(delay)
+	return policies, nil
 }
 
 // system_setting policies read without pinning the master come from replica,
@@ -150,6 +209,86 @@ func TestSystemSettingPolicyCache(t *testing.T) {
 		policies, err := cache.Get(rctx, primary)
 		require.NoError(t, err)
 		assert.Equal(t, []string{id + "=false"}, values(policies))
+	})
+
+	atRevision := func(p *model.AccessControlPolicy, revision int) *model.AccessControlPolicy {
+		p.Revision = revision
+		return p
+	}
+
+	t.Run("a cache loaded before a save reloads once for every caller", func(t *testing.T) {
+		id := model.NewId()
+		primary := &staticPolicyStore{policies: []*model.AccessControlPolicy{atRevision(policy(id, "true"), 1)}}
+		cache := newSystemSettingPolicyCache()
+		_, err := cache.Get(rctx, primary)
+		require.NoError(t, err)
+
+		primary.set(atRevision(policy(id, "false"), 2))
+		primary.delay = 50 * time.Millisecond
+		var wg sync.WaitGroup
+		results := make([][]string, 8)
+		for i := range results {
+			wg.Go(func() {
+				policies, getErr := cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: id, Revision: 2})
+				assert.NoError(t, getErr)
+				results[i] = values(policies)
+			})
+		}
+		wg.Wait()
+
+		for _, result := range results {
+			assert.Equal(t, []string{id + "=false"}, result)
+		}
+		assert.Equal(t, 2, primary.loadCount(), "the stale cache is reloaded once")
+	})
+
+	t.Run("a cache that includes the change does not reload", func(t *testing.T) {
+		id := model.NewId()
+		primary := &staticPolicyStore{policies: []*model.AccessControlPolicy{atRevision(policy(id, "true"), 2)}}
+		cache := newSystemSettingPolicyCache()
+		_, err := cache.Get(rctx, primary)
+		require.NoError(t, err)
+
+		for _, revision := range []int{1, 2} {
+			policies, getErr := cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: id, Revision: revision})
+			require.NoError(t, getErr)
+			assert.Equal(t, []string{id + "=true"}, values(policies))
+		}
+		_, err = cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: model.NewId()})
+		require.NoError(t, err)
+		assert.Equal(t, 1, primary.loadCount())
+	})
+
+	t.Run("a cache still holding a deleted policy reloads once", func(t *testing.T) {
+		id := model.NewId()
+		primary := &staticPolicyStore{policies: []*model.AccessControlPolicy{atRevision(policy(id, "true"), 1)}}
+		cache := newSystemSettingPolicyCache()
+		_, err := cache.Get(rctx, primary)
+		require.NoError(t, err)
+
+		primary.set()
+		for range 3 {
+			policies, getErr := cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: id})
+			require.NoError(t, getErr)
+			assert.Empty(t, policies)
+		}
+		assert.Equal(t, 2, primary.loadCount())
+	})
+
+	t.Run("a later change superseding the stored one still reloads once", func(t *testing.T) {
+		id := model.NewId()
+		primary := &staticPolicyStore{policies: []*model.AccessControlPolicy{atRevision(policy(id, "true"), 1)}}
+		cache := newSystemSettingPolicyCache()
+		_, err := cache.Get(rctx, primary)
+		require.NoError(t, err)
+
+		primary.set()
+		for range 3 {
+			policies, getErr := cache.GetIncluding(rctx, primary, systemSettingPolicyChangeRef{PolicyID: id, Revision: 2})
+			require.NoError(t, getErr)
+			assert.Empty(t, policies)
+		}
+		assert.Equal(t, 2, primary.loadCount())
 	})
 }
 

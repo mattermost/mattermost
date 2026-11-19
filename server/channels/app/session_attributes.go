@@ -233,13 +233,32 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 	}
 
 	if len(attrsToMerge) > 0 {
+		sessionID := rctx.Session().Id
+		prevAttrs, _, prevErr := a.Srv().Store().SessionAttribute().Get(sessionID)
 		refreshAt := model.GetMillis()
-		if err := a.Srv().Store().SessionAttribute().Refresh(rctx.Session().Id, attrsToMerge, refreshAt); err != nil {
+		if err := a.Srv().Store().SessionAttribute().Refresh(sessionID, attrsToMerge, refreshAt); err != nil {
 			rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 		} else {
-			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt)
+			a.broadcastSessionAttributes(rctx, sessionID, attrsToMerge, refreshAt)
+			if prevErr == nil || errors.Is(prevErr, cache.ErrKeyNotFound) {
+				if changed := changedSessionAttributes(prevAttrs, attrsToMerge); len(changed) > 0 {
+					a.pushClientConfigOverridesForSessionAttributes(rctx, rctx.Session().UserId, sessionID, changed)
+				}
+			}
 		}
 	}
+}
+
+// Values are compared the way the session attribute store does when deciding
+// whether a refresh changed anything.
+func changedSessionAttributes(prev, merged map[string]any) []string {
+	var changed []string
+	for name, value := range merged {
+		if prevValue, ok := prev[name]; !ok || prevValue != value {
+			changed = append(changed, name)
+		}
+	}
+	return changed
 }
 
 func (a *App) broadcastSessionAttributes(rctx request.CTX, sessionID string, attrs map[string]any, refreshAt int64) {

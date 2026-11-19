@@ -76,6 +76,10 @@ func (ms *mockSuite) HasChannelReadAccessByID(rctx request.CTX, userID string, c
 	return true
 }
 
+func (ms *mockSuite) EvaluateClientConfigOverrides(rctx request.CTX) (map[string]string, *model.AppError) {
+	return map[string]string{}, nil
+}
+
 func (ms *mockSuite) MFARequired(rctx request.CTX, method string) *model.AppError {
 	return nil
 }

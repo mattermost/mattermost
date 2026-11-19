@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"regexp"
 	"slices"
 	"sync/atomic"
 	"unicode"
@@ -26,16 +27,77 @@ type cachedSystemSettingRule struct {
 }
 
 type cachedSystemSettingPolicy struct {
-	ID    string
-	Roles []string
-	Rules []cachedSystemSettingRule
+	ID       string
+	Revision int
+	Roles    []string
+	Rules    []cachedSystemSettingRule
+	// FieldIDs holds every id_<id> token in the expressions, so it can also hold
+	// the property group ID.
+	FieldIDs            map[string]struct{}
+	AnyField            bool
+	SessionAttributes   map[string]struct{}
+	AnySessionAttribute bool
+}
+
+var (
+	expressionIDTokenPattern          = regexp.MustCompile(`id_([a-z0-9]{26})`)
+	expressionAttributesByNamePattern = regexp.MustCompile(`\buser\s*\.\s*attributes\b`)
+	expressionSessionRootPattern      = regexp.MustCompile(`\buser\s*\.\s*session\b`)
+	expressionSessionAttributePattern = regexp.MustCompile(`\buser\s*\.\s*session\s*\.\s*([A-Za-z_][A-Za-z0-9_]*)`)
+)
+
+// A user.attributes reference counts as reading every field, and a
+// user.session reference other than user.session.<name> as reading every
+// session attribute.
+func (p *cachedSystemSettingPolicy) addExpressionReferences(expr string) {
+	for _, match := range expressionIDTokenPattern.FindAllStringSubmatch(expr, -1) {
+		p.FieldIDs[match[1]] = struct{}{}
+	}
+	if expressionAttributesByNamePattern.MatchString(expr) {
+		p.AnyField = true
+	}
+
+	named := expressionSessionAttributePattern.FindAllStringSubmatch(expr, -1)
+	for _, match := range named {
+		p.SessionAttributes[match[1]] = struct{}{}
+	}
+	if len(expressionSessionRootPattern.FindAllStringIndex(expr, -1)) > len(named) {
+		p.AnySessionAttribute = true
+	}
+}
+
+func (p *cachedSystemSettingPolicy) referencesField(fieldIDs []string) bool {
+	if p.AnyField && len(fieldIDs) > 0 {
+		return true
+	}
+	for _, id := range fieldIDs {
+		if _, ok := p.FieldIDs[id]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func (p *cachedSystemSettingPolicy) referencesSessionAttribute(names []string) bool {
+	if p.AnySessionAttribute && len(names) > 0 {
+		return true
+	}
+	for _, name := range names {
+		if _, ok := p.SessionAttributes[name]; ok {
+			return true
+		}
+	}
+	return false
 }
 
 func newCachedSystemSettingPolicy(p *model.AccessControlPolicy) cachedSystemSettingPolicy {
 	item := cachedSystemSettingPolicy{
-		ID:    p.ID,
-		Roles: slices.Clone(p.Roles),
-		Rules: make([]cachedSystemSettingRule, 0, len(p.Rules)),
+		ID:                p.ID,
+		Revision:          p.Revision,
+		Roles:             slices.Clone(p.Roles),
+		Rules:             make([]cachedSystemSettingRule, 0, len(p.Rules)),
+		FieldIDs:          map[string]struct{}{},
+		SessionAttributes: map[string]struct{}{},
 	}
 	for _, r := range p.Rules {
 		if len(r.Actions) != 1 || r.Expression == "" {
@@ -45,6 +107,7 @@ func newCachedSystemSettingPolicy(p *model.AccessControlPolicy) cachedSystemSett
 			Key:   r.Actions[0],
 			Value: r.Value,
 		})
+		item.addExpressionReferences(r.Expression)
 	}
 	return item
 }
@@ -54,10 +117,31 @@ type systemSettingPolicyCacheEntries struct {
 	policies   []cachedSystemSettingPolicy
 }
 
+// A Revision of 0 marks the policy deleted.
+type systemSettingPolicyChangeRef struct {
+	PolicyID string `json:"policy_id"`
+	Revision int    `json:"revision"`
+}
+
+func (e *systemSettingPolicyCacheEntries) includes(change systemSettingPolicyChangeRef) bool {
+	i := slices.IndexFunc(e.policies, func(p cachedSystemSettingPolicy) bool { return p.ID == change.PolicyID })
+	if change.Revision == 0 {
+		return i < 0
+	}
+	return i >= 0 && e.policies[i].Revision >= change.Revision
+}
+
+// Entries loaded at minGeneration or later were read after change was stored.
+type systemSettingPolicyReload struct {
+	change        systemSettingPolicyChangeRef
+	minGeneration uint64
+}
+
 type systemSettingPolicyCache struct {
 	entries    atomic.Pointer[systemSettingPolicyCacheEntries]
 	group      singleflight.Group
 	generation atomic.Uint64
+	reload     atomic.Pointer[systemSettingPolicyReload]
 }
 
 func newSystemSettingPolicyCache() *systemSettingPolicyCache {
@@ -85,6 +169,28 @@ func (c *systemSettingPolicyCache) Get(rctx request.CTX, policyStore store.Acces
 		return nil, err
 	}
 	return entries.policies, nil
+}
+
+// GetIncluding is for callers that must see a change already stored, such as a
+// broadcast that can reach this node before the cluster invalidation for it.
+// Entries loaded before the change are reloaded once, however many callers
+// notice it.
+func (c *systemSettingPolicyCache) GetIncluding(rctx request.CTX, policyStore store.AccessControlPolicyStore, change systemSettingPolicyChangeRef) ([]cachedSystemSettingPolicy, error) {
+	entries, err := c.get(rctx, policyStore)
+	if err != nil {
+		return nil, err
+	}
+	if entries.includes(change) {
+		return entries.policies, nil
+	}
+	// A later change can keep the reloaded entries from including this one.
+	if reload := c.reload.Load(); reload != nil && reload.change == change && entries.generation >= reload.minGeneration {
+		return entries.policies, nil
+	}
+
+	c.reload.Store(&systemSettingPolicyReload{change: change, minGeneration: entries.generation + 1})
+	c.generation.CompareAndSwap(entries.generation, entries.generation+1)
+	return c.Get(rctx, policyStore)
 }
 
 func (c *systemSettingPolicyCache) get(rctx request.CTX, policyStore store.AccessControlPolicyStore) (*systemSettingPolicyCacheEntries, error) {
@@ -302,6 +408,12 @@ func (a *App) validateSystemSettingPolicyOnSave(rctx request.CTX, policy *model.
 	}
 
 	return nil
+}
+
+func (a *App) publishSystemSettingPolicyUpdate(targetRoles []string, change *systemSettingPolicyChangeRef) {
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+	useSystemSettingPolicyHook(messageWs, targetRoles, change)
+	a.Publish(messageWs)
 }
 
 func expressionReferencesResourceRoot(expr string) bool {

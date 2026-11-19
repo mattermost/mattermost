@@ -1714,3 +1714,231 @@ func TestSetupBroadcastHookForAbacBookmarks(t *testing.T) {
 		assert.Empty(t, message.GetBroadcast().BroadcastHooks)
 	})
 }
+
+func TestSystemSettingPolicyBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &systemSettingPolicyBroadcastHook{}
+
+	t.Run("attaches per-connection overrides without mutating shared original event", func(t *testing.T) {
+		baseEvent := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+
+		msgNilSession := platform.MakeHookedWebSocketEvent(baseEvent)
+		wcNil := &platform.WebConn{
+			UserId:   model.NewId(),
+			Platform: &platform.PlatformService{},
+			Suite:    &platform_mocks.SuiteIFace{},
+		}
+		require.NoError(t, hook.Process(msgNilSession, wcNil, map[string]any{}))
+		assert.True(t, msgNilSession.Event().IsRejected())
+		assert.False(t, baseEvent.IsRejected(), "rejecting one connection must not reject the shared event")
+
+		user1 := model.NewId()
+		suite1 := &platform_mocks.SuiteIFace{}
+		suite1.On("EvaluateClientConfigOverrides", mock.Anything).Return(map[string]string{
+			model.ClientConfigKeyMobileEnableBiometrics: "true",
+		}, nil).Once()
+		wc1 := &platform.WebConn{
+			UserId:   user1,
+			Platform: &platform.PlatformService{},
+			Suite:    suite1,
+		}
+		wc1.SetSession(&model.Session{Id: model.NewId(), UserId: user1, Roles: model.SystemUserRoleId})
+
+		msg1 := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg1, wc1, map[string]any{}))
+		assert.False(t, msg1.Event().IsRejected())
+		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "true"}, msg1.Get("overrides"))
+
+		user2 := model.NewId()
+		suite2 := &platform_mocks.SuiteIFace{}
+		suite2.On("EvaluateClientConfigOverrides", mock.Anything).Return(map[string]string{}, nil).Once()
+		wc2 := &platform.WebConn{
+			UserId:   user2,
+			Platform: &platform.PlatformService{},
+			Suite:    suite2,
+		}
+		wc2.SetSession(&model.Session{Id: model.NewId(), UserId: user2, Roles: model.SystemUserRoleId})
+
+		msg2 := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg2, wc2, map[string]any{}))
+		assert.False(t, msg2.Event().IsRejected())
+		assert.Equal(t, map[string]string{}, msg2.Get("overrides"))
+
+		user3 := model.NewId()
+		suite3 := &platform_mocks.SuiteIFace{}
+		suite3.On("EvaluateClientConfigOverrides", mock.Anything).Return(nil, model.NewAppError("test", "app.access_control.evaluate_system_settings.app_error", nil, "", 500)).Once()
+		wc3 := &platform.WebConn{
+			UserId:   user3,
+			Platform: &platform.PlatformService{},
+			Suite:    suite3,
+		}
+		wc3.SetSession(&model.Session{Id: model.NewId(), UserId: user3, Roles: model.SystemUserRoleId})
+
+		msg3 := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg3, wc3, map[string]any{}))
+		assert.True(t, msg3.Event().IsRejected())
+		assert.False(t, baseEvent.IsRejected())
+
+		suite1.AssertExpectations(t)
+		suite2.AssertExpectations(t)
+		suite3.AssertExpectations(t)
+	})
+
+	t.Run("target_roles rejects connections whose role chain no policy targets", func(t *testing.T) {
+		baseEvent := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+		useSystemSettingPolicyHook(baseEvent, []string{model.SystemAdminRoleId}, nil)
+		require.Len(t, baseEvent.GetBroadcast().BroadcastHookArgs, 1)
+		args := baseEvent.GetBroadcast().BroadcastHookArgs[0]
+
+		var clusterArgs map[string]any
+		buf, err := json.Marshal(args)
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(buf, &clusterArgs))
+
+		connection := func(roles string, suite *platform_mocks.SuiteIFace) *platform.WebConn {
+			userID := model.NewId()
+			wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}, Suite: suite}
+			wc.SetSession(&model.Session{Id: model.NewId(), UserId: userID, Roles: roles})
+			return wc
+		}
+
+		for name, hookArgs := range map[string]map[string]any{"local": args, "cluster": clusterArgs} {
+			t.Run(name, func(t *testing.T) {
+				untargeted := &platform_mocks.SuiteIFace{}
+				msg := platform.MakeHookedWebSocketEvent(baseEvent)
+				require.NoError(t, hook.Process(msg, connection(model.SystemUserRoleId, untargeted), hookArgs))
+				assert.True(t, msg.Event().IsRejected())
+				untargeted.AssertNotCalled(t, "EvaluateClientConfigOverrides", mock.Anything)
+
+				targeted := &platform_mocks.SuiteIFace{}
+				targeted.On("EvaluateClientConfigOverrides", mock.Anything).Return(map[string]string{}, nil).Once()
+				msg = platform.MakeHookedWebSocketEvent(baseEvent)
+				require.NoError(t, hook.Process(msg, connection(model.SystemUserRoleId+" "+model.SystemAdminRoleId, targeted), hookArgs))
+				assert.False(t, msg.Event().IsRejected())
+				assert.Equal(t, map[string]string{}, msg.Get("overrides"))
+				targeted.AssertExpectations(t)
+			})
+		}
+
+		t.Run("system_user policies reach admins without a system_admin policy", func(t *testing.T) {
+			event := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+			useSystemSettingPolicyHook(event, []string{model.SystemUserRoleId}, nil)
+
+			suite := &platform_mocks.SuiteIFace{}
+			suite.On("EvaluateClientConfigOverrides", mock.Anything).Return(map[string]string{}, nil).Once()
+			msg := platform.MakeHookedWebSocketEvent(event)
+			require.NoError(t, hook.Process(msg, connection(model.SystemUserRoleId+" "+model.SystemAdminRoleId, suite), event.GetBroadcast().BroadcastHookArgs[0]))
+			assert.False(t, msg.Event().IsRejected())
+			suite.AssertExpectations(t)
+		})
+
+		t.Run("an invalid value rejects the event", func(t *testing.T) {
+			msg := platform.MakeHookedWebSocketEvent(baseEvent)
+			err := hook.Process(msg, connection(model.SystemAdminRoleId, &platform_mocks.SuiteIFace{}), map[string]any{"target_roles": 42})
+			require.Error(t, err)
+			assert.True(t, msg.Event().IsRejected())
+		})
+
+		t.Run("no target_roles evaluates every connection", func(t *testing.T) {
+			event := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+			useSystemSettingPolicyHook(event, nil, nil)
+			assert.NotContains(t, event.GetBroadcast().BroadcastHookArgs[0], "target_roles")
+			assert.NotContains(t, event.GetBroadcast().BroadcastHookArgs[0], "policy_change")
+		})
+	})
+
+	t.Run("policy_change survives the cluster round trip", func(t *testing.T) {
+		change := systemSettingPolicyChangeRef{PolicyID: model.NewId(), Revision: 3}
+		event := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
+		useSystemSettingPolicyHook(event, nil, &change)
+
+		var clusterArgs map[string]any
+		buf, err := json.Marshal(event.GetBroadcast().BroadcastHookArgs[0])
+		require.NoError(t, err)
+		require.NoError(t, json.Unmarshal(buf, &clusterArgs))
+
+		decoded, err := getTypedArg[systemSettingPolicyChangeRef](clusterArgs, "policy_change")
+		require.NoError(t, err)
+		assert.Equal(t, change, decoded)
+
+		userID := model.NewId()
+		wc := &platform.WebConn{UserId: userID, Platform: &platform.PlatformService{}, Suite: &platform_mocks.SuiteIFace{}}
+		wc.SetSession(&model.Session{Id: model.NewId(), UserId: userID, Roles: model.SystemUserRoleId})
+		msg := platform.MakeHookedWebSocketEvent(event)
+		require.Error(t, hook.Process(msg, wc, map[string]any{"policy_change": "invalid"}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+}
+
+func TestSystemSettingOverridesBySessionBroadcastHook_Process(t *testing.T) {
+	mainHelper.Parallel(t)
+	hook := &systemSettingOverridesBySessionBroadcastHook{}
+
+	userID := model.NewId()
+	matchedSessionID := model.NewId()
+	clearedSessionID := model.NewId()
+	baseEvent := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", userID, nil, "")
+	args := map[string]any{
+		"overrides_by_session": map[string]map[string]string{
+			matchedSessionID: {model.ClientConfigKeyMobileEnableBiometrics: "true"},
+			clearedSessionID: {},
+		},
+	}
+
+	makeConn := func(session *model.Session) *platform.WebConn {
+		wc := &platform.WebConn{
+			UserId:   userID,
+			Platform: &platform.PlatformService{},
+			Suite:    &platform_mocks.SuiteIFace{},
+		}
+		if session != nil {
+			wc.SetSession(session)
+		}
+		return wc
+	}
+
+	t.Run("attaches the entry for the connection's session", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(&model.Session{Id: matchedSessionID, UserId: userID}), args))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "true"}, msg.Get("overrides"))
+		assert.Nil(t, baseEvent.GetData()["overrides"], "must not mutate the shared original event")
+	})
+
+	t.Run("attaches an empty map when the session's overrides were cleared", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(&model.Session{Id: clearedSessionID, UserId: userID}), args))
+		assert.False(t, msg.Event().IsRejected())
+		assert.Equal(t, map[string]string{}, msg.Get("overrides"))
+	})
+
+	t.Run("rejects connections whose session has no entry", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(&model.Session{Id: model.NewId(), UserId: userID}), args))
+		assert.True(t, msg.Event().IsRejected())
+		assert.False(t, baseEvent.IsRejected())
+	})
+
+	t.Run("rejects unauthenticated connections", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(nil), args))
+		assert.True(t, msg.Event().IsRejected())
+	})
+
+	t.Run("decodes args that went through a cluster round trip", func(t *testing.T) {
+		buf, err := json.Marshal(args)
+		require.NoError(t, err)
+		var decoded map[string]any
+		require.NoError(t, json.Unmarshal(buf, &decoded))
+
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.NoError(t, hook.Process(msg, makeConn(&model.Session{Id: matchedSessionID, UserId: userID}), decoded))
+		assert.Equal(t, map[string]string{model.ClientConfigKeyMobileEnableBiometrics: "true"}, msg.Get("overrides"))
+	})
+
+	t.Run("rejects the event when args are invalid", func(t *testing.T) {
+		msg := platform.MakeHookedWebSocketEvent(baseEvent)
+		require.Error(t, hook.Process(msg, makeConn(&model.Session{Id: matchedSessionID, UserId: userID}), map[string]any{}))
+		assert.True(t, msg.Event().IsRejected())
+	})
+}

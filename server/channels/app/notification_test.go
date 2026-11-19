@@ -618,6 +618,10 @@ func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
 }
 
 func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectionID string, eventTypes []model.WebsocketEventType) (chan *model.WebSocketEvent, func()) {
+	return connectFakeWebSocketWithSessionRoles(t, th, userID, "", connectionID, eventTypes)
+}
+
+func connectFakeWebSocketWithSessionRoles(t *testing.T, th *TestHelper, userID, roles string, connectionID string, eventTypes []model.WebsocketEventType) (chan *model.WebSocketEvent, func()) {
 	var session *model.Session
 	var server *httptest.Server
 	var webConn *platform.WebConn
@@ -644,6 +648,7 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 	var appErr *model.AppError
 	session, appErr = th.App.CreateSession(th.Context, &model.Session{
 		UserId: userID,
+		Roles:  roles,
 	})
 	require.Nil(t, appErr)
 
