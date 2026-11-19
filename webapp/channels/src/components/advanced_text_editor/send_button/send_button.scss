@@ -1,4 +1,4 @@
-// Channel send is a pill so the schedule chevron shares the shape.
+// Channel send uses the medium corner so the schedule chevron shares the shape.
 // Agent send adds --round and stays a circle; that split is hidden there.
 .splitSendButton {
     display: flex;
@@ -7,7 +7,7 @@
     height: 32px;
     flex-direction: row;
     justify-content: center;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-m);
     background: var(--button-bg);
     color: var(--button-color);
 
@@ -42,7 +42,7 @@
 
     .SendMessageButton {
         flex: 1;
-        border-radius: var(--radius-pill) 0 0 var(--radius-pill);
+        border-radius: var(--radius-m) 0 0 var(--radius-m);
         cursor: pointer;
         padding-inline: 7px;
         place-content: center;
@@ -64,7 +64,7 @@
         }
 
         &.singleAction {
-            border-radius: var(--radius-pill);
+            border-radius: var(--radius-m);
         }
 
         &:not(.disabled):hover {
@@ -75,11 +75,11 @@
     .button_send_post_options {
         position: relative;
         width: 21px;
-        border-radius: 0 var(--radius-pill) var(--radius-pill) 0;
+        border-radius: 0 var(--radius-m) var(--radius-m) 0;
         border-left: none;
         padding-inline: 2px;
 
-        // The divider sits 8px in from the top and bottom of the 32px pill.
+        // The divider sits 8px in from the top and bottom of the 32px button.
         &::before {
             position: absolute;
             top: 8px;
