@@ -156,6 +156,10 @@ func (h *MainHelper) Main(m *testing.M) {
 	}
 
 	h.status = m.Run()
+
+	if n := reportGoroutineLeaks(); n > 0 && os.Getenv(goroutineLeakEnvVar) == "fail" && h.status == 0 {
+		h.status = 1
+	}
 }
 
 func (h *MainHelper) GetNewStores(tb testing.TB) (store.Store, *sqlstore.SqlStore, *model.SqlSettings, *searchengine.Broker) {
