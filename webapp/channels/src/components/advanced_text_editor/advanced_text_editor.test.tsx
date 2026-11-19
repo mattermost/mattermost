@@ -8,6 +8,7 @@ import type {PostType} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {PropertyTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -1911,6 +1912,45 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
             expect(textbox).toHaveValue('');
             expectNothingStaged();
+        });
+
+        // A field can stop applying while the post is being written: deleted, or
+        // its permission changed so this user may no longer set it. Its chip goes,
+        // and its value must go with it rather than ride on the post unseen for
+        // the server to refuse it.
+        it.each([
+            ['its field is deleted', {type: PropertyTypes.PROPERTY_FIELD_DELETED, data: {fieldId: pickedField.id}}],
+            ['the user may no longer set it', {type: PropertyTypes.RECEIVED_PROPERTY_FIELDS, data: {fields: [{...pickedField, permission_values: 'none'}]}}],
+        ])('does not send a staged value once %s', async (_, action) => {
+            const {store} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                withAttributes,
+            );
+
+            await stageAttributes();
+
+            act(() => {
+                store.dispatch(action);
+            });
+            await waitFor(() => expect(screen.queryByTestId('post-attribute-chip-priority')).not.toBeInTheDocument());
+
+            fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+
+            await act(async () => {
+                fireEvent.click(screen.getByTestId('SendMessageButton'));
+            });
+
+            expect(mockedOnSubmit).toHaveBeenCalledWith(
+                channelId,
+                '',
+                expect.anything(),
+                expect.objectContaining({
+                    propertyValues: [{field_id: alwaysField.id, value: 'opt_secret'}],
+                }),
+                undefined,
+            );
         });
 
         it('keeps the staged values when the submit fails', async () => {

@@ -509,7 +509,7 @@ const AdvancedTextEditor = ({
         undefined,
         isInEditMode,
         postId,
-        stagedAttributes.values,
+        composerAttributes.values,
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
@@ -774,7 +774,7 @@ const AdvancedTextEditor = ({
     }, [channelId, rootId]);
 
     const disableSendButton = Boolean(isDisabled || (!draft.message.trim().length && !draft.fileInfos.length)) || !isDraftSendable;
-    const schedulingBlockedReason = stagedAttributes.values.length > 0 ? formatMessage({
+    const schedulingBlockedReason = composerAttributes.values.length > 0 ? formatMessage({
         id: 'post_attributes.composer.cannot_schedule',
         defaultMessage: 'Messages with attributes can’t be scheduled',
         description: 'Tooltip on the disabled schedule button in the message composer while attributes are attached to the message being written.',

@@ -28,6 +28,12 @@ export type ComposerAttributes = {
     // The fields the add controls may offer right now: not already taken into
     // the post, and ones this user could fill in.
     addable: PropertyField[];
+
+    // The staged values to send: only those whose field still has a chip. A
+    // field deleted, or one the user lost permission to set, while the post is
+    // being written loses its chip, and its value must not go out unseen for
+    // the server to refuse the post over.
+    values: ComposerPropertyValue[];
 };
 
 // The edit modal's hooks take store-shaped values, so each staged pair is
@@ -86,8 +92,10 @@ export function useComposerAttributes(
 
     const propertyValues = useMemo(() => values.map(toPropertyValue), [values]);
 
-    return useMemo(
-        () => splitComposerAttributes(settable, propertyValues, added),
-        [settable, propertyValues, added],
-    );
+    return useMemo(() => {
+        const {chips, addable} = splitComposerAttributes(settable, propertyValues, added);
+        const chipIds = new Set(chips.map(({field}) => field.id));
+
+        return {chips, addable, values: values.filter((value) => chipIds.has(value.field_id))};
+    }, [settable, propertyValues, added, values]);
 }
