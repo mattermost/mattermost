@@ -113,6 +113,8 @@ export default function ScheduledPostCustomTimeModal({
         try {
             response = await onConfirm(schedulingInfo);
         } finally {
+            // Always release the pending guard, even if onConfirm rejects. Skip the state
+            // update if the modal was dismissed while the request was in flight.
             isPending.current = false;
             if (isMounted.current) {
                 setIsConfirming(false);
