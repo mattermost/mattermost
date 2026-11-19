@@ -4,7 +4,11 @@
 import {Divider} from '@mui/material';
 import type {DividerProps} from '@mui/material';
 import type {ElementType} from 'react';
-import React from 'react';
+import React, {useContext} from 'react';
+
+import {PopoverMenuDivider} from '@mattermost/compass-ui/components/popover-menu';
+
+import {MenuContext} from './menu_context';
 
 /**
  * A horizontal separator for use in menus.
@@ -15,6 +19,11 @@ import React from 'react';
  * </Menu.Container>
  */
 export function MenuItemSeparator(props: DividerProps & {component?: ElementType}) {
+    const menuContext = useContext(MenuContext);
+    if (menuContext.compass) {
+        return <PopoverMenuDivider/>;
+    }
+
     return (
         <Divider
             aria-orientation='vertical'

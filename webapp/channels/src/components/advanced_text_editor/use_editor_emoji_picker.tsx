@@ -135,7 +135,13 @@ const useEditorEmojiPicker = (
         );
     }
 
-    return {emojiPicker: emojiPickerControls, enableEmojiPicker, toggleEmojiPicker};
+    return {
+        emojiPicker: emojiPickerControls,
+        emojiPickerPortal: enableEmojiPicker && !isDisabled ? emojiPicker : null,
+        enableEmojiPicker,
+        toggleEmojiPicker,
+        setEmojiReference: setReference,
+    };
 };
 
 export default useEditorEmojiPicker;

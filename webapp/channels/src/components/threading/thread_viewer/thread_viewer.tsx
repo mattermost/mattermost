@@ -56,6 +56,12 @@ export type Props = Attrs & {
     inputPlaceholder?: string;
     rootPostId: string;
 
+    /** Agent chat only. Forwarded to the reply composer. */
+    agentMode?: boolean;
+
+    /** Forwarded to the reply composer so a plugin can turn send into stop. */
+    renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
+
     /** When set, the list shows replies only. The root post stays selected so the thread still loads. */
     hideRoot?: boolean;
     lastUpdateAt: number;
@@ -249,6 +255,8 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                             {this.props.selected && (
                                 <DeferredThreadViewerVirt
                                     inputPlaceholder={this.props.inputPlaceholder}
+                                    agentMode={this.props.agentMode}
+                                    renderSendButton={this.props.renderSendButton}
                                     key={this.props.selected.id}
                                     channelId={this.props.channel.id}
                                     onCardClick={this.handleCardClick}

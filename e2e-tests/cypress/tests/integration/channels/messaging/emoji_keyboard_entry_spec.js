@@ -35,7 +35,8 @@ describe('MM-T154 Use keyboard navigation in emoji picker', () => {
             testSelectedIndex((idx) => expect(idx).to.equal((dir === 'right') ? 1 : 0));
 
             // # Close emoji picker
-            cy.get('#emojiPickerButton').click();
+            cy.get('#emojiPickerSearch').type('{esc}');
+            cy.get('#emojiPicker').should('not.exist');
         });
     });
 
@@ -48,7 +49,8 @@ describe('MM-T154 Use keyboard navigation in emoji picker', () => {
             cy.get('.emoji-picker__item.selected').should('not.exist');
 
             // # Close emoji picker
-            cy.get('#emojiPickerButton').click();
+            cy.get('#emojiPickerSearch').type('{esc}');
+            cy.get('#emojiPicker').should('not.exist');
         });
     });
 
@@ -84,7 +86,8 @@ describe('MM-T154 Use keyboard navigation in emoji picker', () => {
         }
 
         // # Close emoji picker
-        cy.get('#emojiPickerButton').click();
+        cy.get('#emojiPickerSearch').type('{esc}');
+        cy.get('#emojiPicker').should('not.exist');
     });
 
     it('should post selected emoji', () => {

@@ -32739,6 +32739,26 @@
     "defaultMessage": "I Disagree",
     "description": "Button on the custom Terms of Service acceptance screen to decline the terms (logs the user out)."
   },
+  "textbox.agent_menu": {
+    "defaultMessage": "Message options",
+    "description": "Accessible name of the + button on the composer. Opens a menu of attach, emoji, attributes, priority, burn-on-read, skills, rewrite, and formatting."
+  },
+  "textbox.agent_menu.attach": {
+    "defaultMessage": "Attach files",
+    "description": "Menu item in the agent composer that opens the file picker. Noun phrase."
+  },
+  "textbox.agent_menu.emoji": {
+    "defaultMessage": "Emoji",
+    "description": "Menu item in the agent composer that opens the emoji picker."
+  },
+  "textbox.agent_menu.hide_formatting": {
+    "defaultMessage": "Hide formatting",
+    "description": "Menu item in the composer + menu that closes the formatting bar."
+  },
+  "textbox.agent_menu.show_formatting": {
+    "defaultMessage": "Show formatting",
+    "description": "Menu item in the composer + menu that opens the formatting bar."
+  },
   "textbox.bold": {
     "defaultMessage": "**bold**",
     "description": "Markdown formatting hint shown under the message box; keep the literal ** characters around the translated word."
@@ -33226,6 +33246,10 @@
   "upgradeLink.warn.upgrade_now": {
     "defaultMessage": "Upgrade now",
     "description": "Call-to-action button/link prompting the workspace to upgrade to a paid plan."
+  },
+  "upload_overlay.drop_to_attach": {
+    "defaultMessage": "Drop file to attach",
+    "description": "Pill label on the agent composer while a file is dragged over it."
   },
   "upload_overlay.info": {
     "defaultMessage": "Drop a file to upload it.",

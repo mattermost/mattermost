@@ -38,8 +38,9 @@ describe('M17448 Does not post draft message', () => {
         const draft = `Draft message ${getRandomId()}`;
         cy.uiGetPostTextBox().clear().type(draft);
 
-        // # Open file upload options and select draw plugin
-        cy.get('#fileUploadButton').click();
+        // # Open attach from the + menu and select the draw plugin
+        cy.get('#create_post [data-testid="agent-composer-menu-button"]').click();
+        cy.findByRole('menuitem', {name: 'Attach files'}).click();
         cy.get('#fileUploadOptions').findByText('Draw').click();
 
         // * Upload a file and verify drafted message still exist in textbox
@@ -54,8 +55,9 @@ describe('M17448 Does not post draft message', () => {
         const draft = `Draft message ${getRandomId()}`;
         cy.uiGetPostTextBox().clear().type(draft);
 
-        // # Open file upload options and select draw plugin
-        cy.get('#fileUploadButton').click();
+        // # Open attach from the + menu and select the draw plugin
+        cy.get('#create_post [data-testid="agent-composer-menu-button"]').click();
+        cy.findByRole('menuitem', {name: 'Attach files'}).click();
         cy.get('#fileUploadOptions').findByText('Draw').click();
 
         // * Cancel file upload process and verify drafted message still exist in textbox
@@ -69,8 +71,9 @@ describe('M17448 Does not post draft message', () => {
         const draft = `Draft message ${getRandomId()}`;
         cy.uiGetPostTextBox().clear().type(draft);
 
-        // # Open file upload options and select "Your Computer"
-        cy.get('#fileUploadButton').click();
+        // # Open attach from the + menu and select "Your Computer"
+        cy.get('#create_post [data-testid="agent-composer-menu-button"]').click();
+        cy.findByRole('menuitem', {name: 'Attach files'}).click();
         cy.get('#fileUploadOptions').findByText('Your computer').click();
 
         // * Verify drafted message still exist in textbox

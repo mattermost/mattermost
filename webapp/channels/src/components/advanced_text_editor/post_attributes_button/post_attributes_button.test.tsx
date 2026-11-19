@@ -19,6 +19,7 @@ describe('PostAttributesButton', () => {
 
         expect(button).toBeInTheDocument();
         expect(button).toHaveAttribute('id', 'postAttributesButton');
+        expect(button).toHaveClass('post-attributes-composer-button');
     });
 
     test('looks disabled but stays focusable and shows its tooltip', async () => {

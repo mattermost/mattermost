@@ -27,11 +27,11 @@ import {getSelectedPostFocussedAt} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
-import PostAttributesButton from 'components/advanced_text_editor/post_attributes_button';
 import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator/post_box_indicator';
 import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
+import BurnOnReadTourTip from 'components/burn_on_read/burn_on_read_tour_tip';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -72,19 +72,19 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
-import AIActionsMenu from './ai_actions_menu';
+import AgentComposerMenu from './agent_composer_menu';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
 import FormattingBar from './formatting_bar';
-import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
+import {FormattingBarSpacer} from './formatting_bar/formatting_bar';
 import type {FormattingBarHandle} from './formatting_bar/formatting_bar';
+import LinkPopover from './formatting_bar/link_popover';
 import MessageWithMentionsFooter from './message_with_mentions_footer';
 import OutOfOfficeWarning from './out_of_office_warning';
 import SendButton from './send_button';
 import ShowFormat from './show_formatting';
 import TexteditorActions from './texteditor_actions';
-import ToggleFormattingBar from './toggle_formatting_bar';
 import UnifiedLabelsWrapper from './unified_labels_wrapper';
 import useBurnOnRead from './use_burn_on_read';
 import {useComposerPlaceholder} from './use_composer_placeholder';
@@ -123,7 +123,51 @@ export type Props = {
      * Used by plugins to act after the post is made
      */
     afterSubmit?: (response: SubmitPostReturnType) => void;
+
+    /**
+     * Agent chat only. Hides channel controls, starts with the formatting bar
+     * closed, and does not write the shared formatting-bar preference.
+     */
+    agentMode?: boolean;
+
+    /**
+     * In agent mode, replaces the send control. The plugin receives the host
+     * send button and can return it, or a stop control while a thread is
+     * generating. Ignored when agent mode is off, so channel composers stay
+     * as they are.
+     */
+    renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
 };
+
+// The + and send share the first line. Once the text is wider than the room
+// beside them, or the user breaks a line, the text uses the full width and
+// those buttons sit on the row under it.
+const PLUS_ROW_CLEARANCE = 46;
+
+export function messageUsesFullWidth(longestLineWidth: number, lineCount: number, roomBesideButtons: number): boolean {
+    return lineCount > 1 || longestLineWidth >= roomBesideButtons;
+}
+
+function measureLongestLine(text: string, fontSource: Element): number {
+    const style = window.getComputedStyle(fontSource);
+    const probe = document.createElement('span');
+    probe.setAttribute('aria-hidden', 'true');
+    probe.style.position = 'absolute';
+    probe.style.visibility = 'hidden';
+    probe.style.whiteSpace = 'pre';
+    probe.style.font = style.font;
+    probe.style.letterSpacing = style.letterSpacing;
+    probe.style.wordSpacing = style.wordSpacing;
+    document.body.appendChild(probe);
+
+    let max = 0;
+    for (const line of text.split('\n')) {
+        probe.textContent = line;
+        max = Math.max(max, probe.offsetWidth);
+    }
+    probe.remove();
+    return max;
+}
 
 const AdvancedTextEditor = ({
     location,
@@ -135,6 +179,8 @@ const AdvancedTextEditor = ({
     isInEditMode = false,
     afterSubmit,
     storageKey,
+    agentMode = false,
+    renderSendButton,
 }: Props) => {
     // rootId is typed as required, but plugins reach this component through the untyped
     // window.Components bridge and may omit it. Every draft carries '' rather than undefined
@@ -257,10 +303,15 @@ const AdvancedTextEditor = ({
     const [isMessageLong, setIsMessageLong] = useState(false);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+    const [agentFormattingBarOpen, setAgentFormattingBarOpen] = useState(false);
+    const [agentLinkPopoverOpen, setAgentLinkPopoverOpen] = useState(false);
 
     const readOnlyChannel = !canPost;
     const hasDraftMessage = Boolean(draft.message);
-    const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
+
+    // Agent chat starts closed and toggles for this composer only. The channel
+    // composer still follows the shared preference.
+    const showFormattingBar = (agentMode ? agentFormattingBarOpen : !isFormattingBarHidden) && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
     const postAttributesEnabled = useSelector(isPostAttributesEnabled);
     const wysiwygEnabled = useSelector(getWysiwygEditorPreference);
@@ -364,7 +415,14 @@ const AdvancedTextEditor = ({
                 return;
             }
             if (mode === 'link') {
-                formattingBarRef.current?.openLinkPopover();
+                if (formattingBarRef.current) {
+                    formattingBarRef.current.openLinkPopover();
+                } else if (agentMode) {
+                    // The bar is unmounted while closed, so the shortcut cannot
+                    // reach its popover. Open the same popover here and leave
+                    // the bar closed.
+                    setAgentLinkPopoverOpen(true);
+                }
                 return;
             }
             applyWysiwygFormatting(editor, mode);
@@ -395,9 +453,14 @@ const AdvancedTextEditor = ({
                 Utils.setSelectionRange(textbox, res.selectionStart, res.selectionEnd);
             }
         });
-    }, [showPreview, wysiwygEnabled, handleDraftChange]);
+    }, [agentMode, showPreview, wysiwygEnabled, handleDraftChange]);
 
     const toggleAdvanceTextEditor = useCallback(() => {
+        if (agentMode) {
+            setAgentFormattingBarOpen((open) => !open);
+            return;
+        }
+
         dispatch(savePreferences(currentUserId, [{
             category: Preferences.ADVANCED_TEXT_EDITOR,
             user_id: currentUserId,
@@ -406,7 +469,7 @@ const AdvancedTextEditor = ({
             name: getFormattingBarPreferenceName(),
             value: String(!isFormattingBarHidden),
         }]));
-    }, [dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
+    }, [agentMode, dispatch, currentUserId, getFormattingBarPreferenceName, isFormattingBarHidden]);
 
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
     const focusTextbox = useTextboxFocus(textboxRef, channelId, isRHS, canPost, wysiwygRef);
@@ -417,9 +480,23 @@ const AdvancedTextEditor = ({
     const hasAIActionsMenu = (aiActionMenuItems?.length ?? 0) > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
     const isDisabled = Boolean(readOnlyChannel || (!enableSharedChannelsDMs && isDMOrGMRemote) || rewriteIsProcessing);
 
+    // One + on the left of this composer, agent chat and channels. It opens
+    // attach, emoji, attributes, and formatting. The file button stays hidden
+    // because attach lives in that menu.
+    const showPlus = !isDisabled;
+
     usePendingQuote(draft, handleDraftChange, channelId, rootId, isInEditMode, isDisabled, rewriteIsProcessing, textboxRef, wysiwygRef);
 
-    const [attachmentPreview, fileUploadJSX] = useUploadFiles(
+    let dropOverlayId = DropOverlayIdCreatePost;
+    if (agentMode) {
+        dropOverlayId = `agentComposerFileDropOverlay_${location}_${rootId || 'new'}`;
+    } else if (isInEditMode) {
+        dropOverlayId = DropOverlayIdEditPost;
+    } else if (isRHS) {
+        dropOverlayId = DropOverlayIdCreateComment;
+    }
+
+    const [attachmentPreview, fileUploadJSX, openFileDialog, uploadDisabledByPolicy] = useUploadFiles(
         draft,
         rootId,
         channelId,
@@ -431,6 +508,8 @@ const AdvancedTextEditor = ({
         focusTextbox,
         setServerError,
         isInEditMode,
+        true,
+        agentMode ? dropOverlayId : undefined,
     );
 
     const insertWysiwygText = useCallback((text: string) => {
@@ -438,9 +517,10 @@ const AdvancedTextEditor = ({
     }, []);
 
     const {
-        emojiPicker,
+        emojiPickerPortal,
         enableEmojiPicker,
         toggleEmojiPicker,
+        setEmojiReference,
     } = useEditorEmojiPicker(
         textboxId,
         isDisabled,
@@ -455,7 +535,9 @@ const AdvancedTextEditor = ({
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
     const {
         labels: burnOnReadLabels,
-        additionalControl: burnOnReadAdditionalControl,
+        canSetBurnOnRead,
+        hasBurnOnReadSet,
+        handleBurnOnReadApply,
         isBurnOnReadSendable: burnOnReadSendable,
     } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
     const [handleSubmit, errorClass] = useSubmit(
@@ -630,26 +712,29 @@ const AdvancedTextEditor = ({
         });
     }, [handleDraftChange]);
 
-    const handleWidthChange = useCallback((width: number) => {
-        const input = textboxRef.current?.getInputBox();
-        if (!editorBodyRef.current || !editorActionsRef.current || !input) {
+    const message = draft?.message ?? '';
+
+    const handleWidthChange = useCallback(() => {
+        const body = editorBodyRef.current;
+        const actions = editorActionsRef.current;
+        if (!body || !actions) {
             return;
         }
-
-        const maxWidth = editorBodyRef.current.offsetWidth - editorActionsRef.current.offsetWidth;
 
         if (!hasDraftMessage) {
-            // if we do not have a message we can just render the default state
             setIsMessageLong(false);
             return;
         }
 
-        if (width >= maxWidth) {
-            setIsMessageLong(true);
-        } else {
-            setIsMessageLong(false);
-        }
-    }, [hasDraftMessage]);
+        const fontSource = body.querySelector('textarea, .ProseMirror') ?? body;
+        const longest = measureLongestLine(message, fontSource);
+        const roomBesideButtons = body.offsetWidth - actions.offsetWidth - (showPlus ? PLUS_ROW_CLEARANCE : 0);
+        setIsMessageLong(messageUsesFullWidth(longest, message.split('\n').length, roomBesideButtons));
+    }, [hasDraftMessage, message, showPlus]);
+
+    useEffect(() => {
+        handleWidthChange();
+    }, [handleWidthChange]);
 
     const prefillMessage = useCallback((message: string) => {
         handleDraftChange({
@@ -661,13 +746,6 @@ const AdvancedTextEditor = ({
         inputBox?.click();
         focusTextbox(true);
     }, [handleDraftChange, focusTextbox, draft, textboxRef]);
-
-    // Handle width change when there is no message.
-    useEffect(() => {
-        if (!hasDraftMessage) {
-            handleWidthChange(0);
-        }
-    }, [hasDraftMessage, handleWidthChange]);
 
     // Clear timeout on unmount
     useEffect(() => {
@@ -689,10 +767,13 @@ const AdvancedTextEditor = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedPostFocussedAt]);
 
-    // Remove show preview when we switch channels or posts
+    // Drop preview, errors, and a shortcut-opened link popover when the composer
+    // moves to another channel or thread. The popover holds a URL that must not
+    // be saved into the new draft.
     useEffect(() => {
         setShowPreview(false);
         setServerError(null);
+        setAgentLinkPopoverOpen(false);
     }, [channelId, rootId]);
 
     // Register listener to store the draft when the page unloads
@@ -732,8 +813,11 @@ const AdvancedTextEditor = ({
             handleSubmit={handleSubmitPostAndScheduledMessage}
             channelId={channelId}
             repeatDisabledReason={getDraftRepeatDisabledReason(draft)}
+            hideSchedule={agentMode}
+            round={agentMode}
         />
     );
+    const sendControl = agentMode && renderSendButton && sendButton ? renderSendButton(sendButton) : sendButton;
 
     const showFormatJSX = (disableSendButton || wysiwygEnabled) ? null : (
         <ShowFormat
@@ -801,30 +885,11 @@ const AdvancedTextEditor = ({
     });
 
     const ariaLabel = loginSuccessfulLabel ? `${loginSuccessfulLabel} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
+    const agentLinkEditor = agentLinkPopoverOpen ? wysiwygRef.current?.getEditor() ?? null : null;
 
-    const additionalControls = useMemo(() => [
-        !isInEditMode && priorityAdditionalControl,
-        !isInEditMode && burnOnReadAdditionalControl,
-        ...(pluginItems || []),
-    ].filter(Boolean), [pluginItems, priorityAdditionalControl, isInEditMode, burnOnReadAdditionalControl]);
-
-    const aiActionsMenu = useMemo(() => {
-        if (!hasAIActionsMenu) {
-            return null;
-        }
-
-        return (
-            <AIActionsMenu
-                draft={draft}
-                getSelectedText={getSelectedText}
-                updateText={updateText}
-                channelId={channelId}
-                isRHS={location === Locations.RHS_COMMENT}
-                rewriteMenuProps={rewriteMenuProps}
-                aiRewriteEnabled={aiRewriteEnabled}
-            />
-        );
-    }, [draft, getSelectedText, updateText, channelId, location, rewriteMenuProps, aiRewriteEnabled, hasAIActionsMenu]);
+    const additionalControls = useMemo(() => {
+        return (pluginItems || []).filter(Boolean);
+    }, [pluginItems]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -836,7 +901,6 @@ const AdvancedTextEditor = ({
                     disableControls={showPreview}
                     additionalControls={additionalControls}
                     location={location}
-                    aiActionsMenu={aiActionsMenu}
                     getEditor={wysiwygEnabled ? () => wysiwygRef.current?.getEditor() ?? null : undefined}
                 />
             )}
@@ -849,24 +913,124 @@ const AdvancedTextEditor = ({
         const overlayType = isRHS ? 'right' : 'center';
         const direction = 'horizontal';
 
-        return isInEditMode ? (
+        return (
             <FileUploadOverlay
                 overlayType={overlayType}
-                isInEditMode={true}
-                id={DropOverlayIdEditPost}
+                isInEditMode={isInEditMode}
+                id={dropOverlayId}
                 direction={direction}
-            />
-        ) : (
-            <FileUploadOverlay
-                overlayType={overlayType}
-                isInEditMode={false}
-                id={isRHS ? DropOverlayIdCreateComment : DropOverlayIdCreatePost}
-                direction={direction}
+                pill={agentMode}
             />
         );
-    }, [isInEditMode, isRHS]);
+    }, [agentMode, dropOverlayId, isInEditMode, isRHS]);
 
-    const showFormattingSpacer = isMessageLong || showPreview || attachmentPreview || isRHS || isThreadView;
+    // A hidden formatting bar starts as one line: the + and send overlay the
+    // text. Wrapped text, a preview, or attachments take the row under it.
+    // Opening the bar uses the same in-flow height animation in the center,
+    // the thread, and the agents RHS. A spacer here would pop that row in.
+    const oneLine = !showFormattingBar && !isMessageLong && !showPreview && !attachmentPreview;
+    const showFormattingSpacer = !agentMode && (isMessageLong || showPreview || attachmentPreview);
+
+    const messageEditor = wysiwygEnabled ? (
+        <WysiwygEditor
+            ref={wysiwygRef}
+            value={messageValue}
+            onChange={handleWysiwygChange}
+            onSubmit={handleSubmitWrapper}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+            placeholder={createMessage}
+            channelId={channelId}
+            rootId={rootId}
+            id={textboxId}
+            disabled={isDisabled && !rewriteIsProcessing}
+            useCtrlSend={ctrlSend}
+            sendCodeBlockOnCtrlEnter={codeBlockOnCtrlEnter}
+            onKeyDown={handleKeyDown as unknown as (e: React.KeyboardEvent<HTMLDivElement>) => void}
+        />
+    ) : (
+        <Textbox
+            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
+            suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
+            onChange={handleChange}
+            onKeyPress={postMsgKeyPress}
+            onKeyDown={handleKeyDown}
+            onCompositionUpdate={emitTypingEvent}
+            onHeightChange={handleHeightChange}
+            handlePostError={handlePostError}
+            value={messageValue}
+            onBlur={handleBlur}
+            onFocus={handleFocus}
+            emojiEnabled={enableEmojiPicker}
+            createMessage={createMessage}
+            channelId={channelId}
+            id={textboxId}
+            ref={textboxRef!}
+            disabled={isDisabled && !rewriteIsProcessing}
+            characterLimit={maxPostSize}
+            preview={showPreview}
+            badConnection={badConnection}
+            useChannelMentions={useChannelMentions}
+            rootId={rootId}
+            onWidthChange={handleWidthChange}
+        />
+    );
+
+    const fileInput = showPlus && (
+        <div className='AdvancedTextEditor__agent-file-input'>
+            {fileUploadJSX}
+        </div>
+    );
+    const plusButton = showPlus && (
+        <div
+            className='AdvancedTextEditor__plus'
+            data-testid='composer-plus'
+        >
+            {!isInEditMode && canSetBurnOnRead && (
+                <BurnOnReadTourTip
+                    anchorId='agentComposerMenuButton'
+                    onTryItOut={() => handleBurnOnReadApply(true)}
+                />
+            )}
+            <AgentComposerMenu
+                canAttach={canUploadFiles}
+                attachDisabled={uploadDisabledByPolicy}
+                onAttach={openFileDialog}
+                enableEmojiPicker={enableEmojiPicker}
+                emojiDisabled={showPreview}
+                onEmoji={toggleEmojiPicker}
+                showAttributes={postAttributesEnabled && !isInEditMode}
+                formattingOpen={showFormattingBar}
+                formattingDisabled={showPreview}
+                onToggleFormatting={toggleAdvanceTextEditor}
+                emojiAnchorRef={setEmojiReference}
+                priorityItem={isInEditMode ? null : priorityAdditionalControl}
+                burnOnRead={!isInEditMode && canSetBurnOnRead ? {
+                    on: hasBurnOnReadSet,
+                    disabled: showPreview,
+                    onToggle: () => handleBurnOnReadApply(!hasBurnOnReadSet),
+                } : null}
+                aiActions={hasAIActionsMenu ? {
+                    draft,
+                    getSelectedText,
+                    updateText,
+                    channelId,
+                    isRHS: location === Locations.RHS_COMMENT,
+                    rewriteMenuProps,
+                    aiRewriteEnabled,
+                } : null}
+            />
+        </div>
+    );
+    const sendActions = showPlus && (
+        <TexteditorActions
+            ref={editorActionsRef}
+            className={agentMode ? 'AdvancedTextEditor__send' : undefined}
+            placement='bottom'
+        >
+            {sendControl}
+        </TexteditorActions>
+    );
 
     const containsAtMentionsInMessage = allAtMentions(draft?.message)?.length > 0;
 
@@ -886,11 +1050,15 @@ const AdvancedTextEditor = ({
                     location={location}
                     postId={rootId}
                     hideRemoteUserHour={showOooWarning}
+                    hideScheduledPosts={agentMode}
                 />
             )}
             <div
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
+                    'AdvancedTextEditor--agent': agentMode,
+                    'AdvancedTextEditor--plus': showPlus,
+                    'AdvancedTextEditor--plus-overlay': showPlus && oneLine,
                     scroll: renderScrollbar,
                     'formatting-bar': showFormattingBar,
                 })}
@@ -930,80 +1098,36 @@ const AdvancedTextEditor = ({
                                 />
                             </div>
                         )}
-                        {wysiwygEnabled ? (
-                            <WysiwygEditor
-                                ref={wysiwygRef}
-                                value={messageValue}
-                                onChange={handleWysiwygChange}
-                                onSubmit={handleSubmitWrapper}
-                                onFocus={handleFocus}
-                                onBlur={handleBlur}
-                                placeholder={createMessage}
-                                channelId={channelId}
-                                rootId={rootId}
-                                id={textboxId}
-                                disabled={isDisabled && !rewriteIsProcessing}
-                                useCtrlSend={ctrlSend}
-                                sendCodeBlockOnCtrlEnter={codeBlockOnCtrlEnter}
-                                onKeyDown={handleKeyDown as unknown as (e: React.KeyboardEvent<HTMLDivElement>) => void}
-                            />
-                        ) : (
-                            <Textbox
-                                hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
-                                suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
-                                onChange={handleChange}
-                                onKeyPress={postMsgKeyPress}
-                                onKeyDown={handleKeyDown}
-                                onCompositionUpdate={emitTypingEvent}
-                                onHeightChange={handleHeightChange}
-                                handlePostError={handlePostError}
-                                value={messageValue}
-                                onBlur={handleBlur}
-                                onFocus={handleFocus}
-                                emojiEnabled={enableEmojiPicker}
-                                createMessage={createMessage}
-                                channelId={channelId}
-                                id={textboxId}
-                                ref={textboxRef!}
-                                disabled={isDisabled && !rewriteIsProcessing}
-                                characterLimit={maxPostSize}
-                                preview={showPreview}
-                                badConnection={badConnection}
-                                useChannelMentions={useChannelMentions}
-                                rootId={rootId}
-                                onWidthChange={handleWidthChange}
-                            />
-                        )}
+                        {messageEditor}
                         {attachmentPreview}
-                        {!isDisabled && (showFormattingBar || showPreview) && (
-                            <TexteditorActions
-                                placement='top'
-                                isScrollbarRendered={renderScrollbar}
-                            >
-                                {showFormatJSX}
-                            </TexteditorActions>
-                        )}
-                        {showFormattingSpacer ? (
-                            <FormattingBarSpacer>
+                        {agentMode ? (
+                            <div className='AdvancedTextEditor__agent-controls'>
+                                {fileInput}
+                                {plusButton}
                                 {formattingBar}
-                            </FormattingBarSpacer>
-                        ) : formattingBar}
-                        {!isDisabled && (
-                            <TexteditorActions
-                                ref={editorActionsRef}
-                                placement='bottom'
-                            >
-                                {postAttributesEnabled && !isInEditMode && <PostAttributesButton/>}
-                                <ToggleFormattingBar
-                                    onClick={toggleAdvanceTextEditor}
-                                    active={showFormattingBar}
-                                    disabled={showPreview}
-                                />
-                                <Separator/>
-                                {fileUploadJSX}
-                                {emojiPicker}
-                                {sendButton}
-                            </TexteditorActions>
+                                {showPlus && emojiPickerPortal}
+                                {sendActions}
+                            </div>
+                        ) : (
+                            <>
+                                {!isDisabled && (showFormattingBar || showPreview) && (
+                                    <TexteditorActions
+                                        placement='top'
+                                        isScrollbarRendered={renderScrollbar}
+                                    >
+                                        {showFormatJSX}
+                                    </TexteditorActions>
+                                )}
+                                {showFormattingSpacer ? (
+                                    <FormattingBarSpacer $compact={!showFormattingBar}>
+                                        {formattingBar}
+                                    </FormattingBarSpacer>
+                                ) : formattingBar}
+                                {fileInput}
+                                {plusButton}
+                                {showPlus && emojiPickerPortal}
+                                {sendActions}
+                            </>
                         )}
                     </div>
                     {showSendTutorialTip && (
@@ -1038,6 +1162,12 @@ const AdvancedTextEditor = ({
                 aria-live='assertive'
                 className='sr-only'
             />
+            {agentLinkEditor && !agentLinkEditor.isDestroyed && (
+                <LinkPopover
+                    editor={agentLinkEditor}
+                    onClose={() => setAgentLinkPopoverOpen(false)}
+                />
+            )}
         </form>
     );
 };

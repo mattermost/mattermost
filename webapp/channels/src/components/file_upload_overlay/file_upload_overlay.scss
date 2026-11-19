@@ -85,4 +85,38 @@
         margin-right: 8px;
         font-size: 1.1em;
     }
+
+    // Agent composer. The label is a pill with elevation-3.
+    &.file-overlay--pill {
+        border-radius: inherit;
+        color: var(--button-bg);
+        font-size: var(--font-size-100);
+        font-weight: var(--font-weight-semibold);
+
+        .overlay__indent {
+            border: 1.5px dashed var(--button-bg);
+            border-radius: inherit;
+            background-color: rgba(var(--button-bg-rgb), 0.08);
+        }
+
+        .overlay__circle {
+            width: auto;
+            height: auto;
+            max-height: none;
+            gap: 0;
+        }
+
+        .overlay__label {
+            padding: var(--spacing-s) var(--spacing-l);
+            border-radius: var(--radius-pill);
+            margin: 0;
+            background: var(--center-channel-bg);
+            box-shadow: var(--elevation-3);
+            color: var(--button-bg);
+            font-family: var(--font-family-body);
+            font-size: var(--font-size-100);
+            font-weight: var(--font-weight-semibold);
+            line-height: var(--line-height-100);
+        }
+    }
 }

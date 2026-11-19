@@ -5,15 +5,17 @@ import MuiMenuList from '@mui/material/MenuList';
 import MuiPopover from '@mui/material/Popover';
 import type {PopoverOrigin} from '@mui/material/Popover';
 import classNames from 'classnames';
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {ChevronRightIcon, CreationOutlineIcon, PencilOutlineIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 
 import * as Menu from 'components/menu';
+import {MenuContext} from 'components/menu/menu_context';
 
 import PluggableErrorBoundary from 'plugins/pluggable/error_boundary';
 import Constants from 'utils/constants';
@@ -23,6 +25,7 @@ import type {GlobalState} from 'types/store';
 import type {PostDraft} from 'types/store/draft';
 import type {AIActionMenuItemComponent} from 'types/store/plugins';
 
+import {submenuPointerDestination, useComposerSubmenuHover, useDelayedSubmenuClose} from './composer_submenu_hover';
 import type {RewriteMenuProps} from './rewrite_menu';
 import {RewriteSubmenu, RewriteSubMenuHeader, RewriteSubMenuFooter} from './rewrite_menu';
 
@@ -36,6 +39,10 @@ interface AIActionsMenuProps {
     isRHS: boolean;
     rewriteMenuProps?: RewriteMenuProps;
     aiRewriteEnabled?: boolean;
+
+    // Render the rows inside the composer + menu instead of a separate button.
+    embedded?: boolean;
+    parentOpen?: boolean;
 }
 
 const AIActionsMenu = ({
@@ -46,8 +53,17 @@ const AIActionsMenu = ({
     isRHS,
     rewriteMenuProps,
     aiRewriteEnabled,
-}: AIActionsMenuProps): JSX.Element => {
+    embedded = false,
+    parentOpen = false,
+}: AIActionsMenuProps): JSX.Element | null => {
     const {formatMessage} = useIntl();
+    const parentMenu = useContext(MenuContext);
+    const submenuMenuContext = useMemo(() => ({
+        ...parentMenu,
+        compass: true,
+    }), [parentMenu]);
+    const {activeRow, claimRow} = useComposerSubmenuHover();
+    const panelRef = useRef<HTMLDivElement>(null);
 
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [activeSubmenu, setActiveSubmenu] = useState<string | null>(null);
@@ -65,23 +81,76 @@ const AIActionsMenu = ({
 
     const hasItems = sortedItems.length > 0 || (aiRewriteEnabled && Boolean(rewriteMenuProps));
 
+    const closeSubmenu = useCallback(() => {
+        setActiveSubmenu(null);
+        setSubmenuAnchorEl(null);
+    }, []);
+    const {cancel: cancelClose, schedule: scheduleClose} = useDelayedSubmenuClose(closeSubmenu);
+
     const handleToggle = useCallback((open: boolean) => {
         setIsMenuOpen(open);
         if (!open) {
-            setActiveSubmenu(null);
-            setSubmenuAnchorEl(null);
+            cancelClose();
+            closeSubmenu();
         }
         if (rewriteMenuProps) {
             rewriteMenuProps.setIsMenuOpen(open);
         }
-    }, [rewriteMenuProps]);
+    }, [cancelClose, closeSubmenu, rewriteMenuProps]);
+
+    useEffect(() => {
+        if (!embedded) {
+            return;
+        }
+        if (!parentOpen || (activeSubmenu && activeRow !== activeSubmenu)) {
+            cancelClose();
+            closeSubmenu();
+        }
+        if (rewriteMenuProps) {
+            rewriteMenuProps.setIsMenuOpen(Boolean(
+                parentOpen && activeSubmenu === '__rewrite__' && activeRow === '__rewrite__',
+            ));
+        }
+    }, [activeRow, activeSubmenu, cancelClose, closeSubmenu, embedded, parentOpen, rewriteMenuProps]);
+
+    const closeUnlessInside = useCallback((next: EventTarget | null, anchor: HTMLElement | null) => {
+        const destination = submenuPointerDestination(next, panelRef.current, anchor);
+        if (destination === 'stay') {
+            cancelClose();
+            return;
+        }
+        if (destination === 'close') {
+            cancelClose();
+            closeSubmenu();
+            return;
+        }
+        scheduleClose();
+    }, [cancelClose, closeSubmenu, scheduleClose]);
 
     const handleItemHover = useCallback((submenuId: string) => {
         return (event: MouseEvent<HTMLLIElement>) => {
+            cancelClose();
+            claimRow(submenuId);
             setActiveSubmenu(submenuId);
             setSubmenuAnchorEl(event.currentTarget);
         };
-    }, []);
+    }, [cancelClose, claimRow]);
+
+    const handleItemLeave = useCallback((event: MouseEvent<HTMLLIElement>) => {
+        closeUnlessInside(event.relatedTarget, event.currentTarget);
+    }, [closeUnlessInside]);
+
+    const handlePanelLeave = useCallback((event: MouseEvent<HTMLDivElement>) => {
+        closeUnlessInside(event.relatedTarget, submenuAnchorEl);
+    }, [closeUnlessInside, submenuAnchorEl]);
+
+    const handlePlainHover = useCallback((rowId: string) => {
+        return () => {
+            cancelClose();
+            claimRow(rowId);
+            closeSubmenu();
+        };
+    }, [cancelClose, claimRow, closeSubmenu]);
 
     const handleItemKeyDown = useCallback((submenuId: string) => {
         return (event: KeyboardEvent<HTMLLIElement>) => {
@@ -91,11 +160,13 @@ const AIActionsMenu = ({
                 isKeyPressed(event, Constants.KeyCodes.RIGHT)
             ) {
                 event.preventDefault();
+                cancelClose();
+                claimRow(submenuId);
                 setActiveSubmenu(submenuId);
                 setSubmenuAnchorEl(event.currentTarget);
             }
         };
-    }, []);
+    }, [cancelClose, claimRow]);
 
     const handleActionClick = useCallback((action: NonNullable<AIActionMenuItemComponent['action']>) => {
         return () => {
@@ -122,7 +193,7 @@ const AIActionsMenu = ({
     }, [submenuAnchorEl]);
 
     if (!hasItems) {
-        return <></>;
+        return null;
     }
 
     const isRewriteSubmenu = activeSubmenu === '__rewrite__';
@@ -133,119 +204,108 @@ const AIActionsMenu = ({
         'menu_menuStyled',
         'AsSubMenu',
         'ai-actions-submenu',
+        'menu_menuStyled--compass',
         {
             'ai-actions-submenu-rewrite': isRewriteSubmenu,
         },
     );
 
-    return (
-        <>
-            <Menu.Container
-                menuButton={{
-                    id: 'ai-actions-button',
-                    as: AIActionsMenuTrigger,
-                    class: 'control',
-                    'aria-label': formatMessage({
-                        id: 'texteditor.ai_actions',
-                        defaultMessage: 'AI Actions',
-                    }),
-                    children: <Icon glyph={<CreationOutlineIcon/>}/>,
-                }}
-                menuButtonTooltip={{
-                    text: formatMessage({
-                        id: 'texteditor.ai_actions',
-                        defaultMessage: 'AI Actions',
-                    }),
-                }}
-                menu={{
-                    id: 'ai-actions-menu',
-                    'aria-label': formatMessage({
-                        id: 'texteditor.ai_actions.menu',
-                        defaultMessage: 'AI Actions',
-                    }),
-                    className: 'ai-actions-menu',
-                    onToggle: handleToggle,
-                    isMenuOpen,
-                }}
-                anchorOrigin={{
-                    vertical: 'top',
-                    horizontal: 'left',
-                }}
-                transformOrigin={{
-                    vertical: 'bottom',
-                    horizontal: 'left',
-                }}
-            >
-                {sortedItems.map((item) => {
-                    if (item.component) {
-                        return (
-                            <Menu.Item
-                                key={item.id}
-                                id={`ai-action-${item.id}`}
-                                role='menuitem'
-                                aria-haspopup='menu'
-                                aria-expanded={activeSubmenu === item.id}
-                                leadingElement={item.icon}
-                                labels={<span>{item.text}</span>}
-                                trailingElements={<ChevronRightIcon size={18}/>}
-                                onMouseEnter={handleItemHover(item.id)}
-                                onKeyDown={handleItemKeyDown(item.id)}
-                            />
-                        );
-                    }
-                    if (item.action) {
-                        return (
-                            <Menu.Item
-                                key={item.id}
-                                id={`ai-action-${item.id}`}
-                                role='menuitem'
-                                leadingElement={item.icon}
-                                labels={<span>{item.text}</span>}
-                                onClick={handleActionClick(item.action)}
-                            />
-                        );
-                    }
-                    return null;
-                })}
-                {aiRewriteEnabled && rewriteMenuProps && sortedItems.length > 0 && (
-                    <Menu.Separator/>
-                )}
-                {aiRewriteEnabled && rewriteMenuProps && (
-                    <Menu.Item
-                        id='ai-action-rewrite'
-                        role='menuitem'
-                        aria-haspopup='menu'
-                        aria-expanded={activeSubmenu === '__rewrite__'}
-                        leadingElement={<PencilOutlineIcon size={18}/>}
-                        labels={(
-                            <FormattedMessage
-                                id='texteditor.rewrite'
-                                defaultMessage='Rewrite'
-                            />
-                        )}
-                        trailingElements={<ChevronRightIcon size={18}/>}
-                        onMouseEnter={handleItemHover('__rewrite__')}
-                        onKeyDown={handleItemKeyDown('__rewrite__')}
-                    />
-                )}
-            </Menu.Container>
+    const menuIsOpen = embedded ? parentOpen : isMenuOpen;
 
-            {/* Cascading submenu popover — anchored to the hovered menu item */}
-            {hasActiveSubmenu && isMenuOpen && (
-                <MuiPopover
-                    open={true}
-                    anchorEl={submenuAnchorEl}
-                    anchorOrigin={submenuOrigins.anchorOrigin}
-                    transformOrigin={submenuOrigins.transformOrigin}
-                    className={submenuClassName}
-                    disableAutoFocus={true}
-                    disableEnforceFocus={true}
-                    disableRestoreFocus={true}
-                    hideBackdrop={true}
-                >
-                    {/* pointer-events wrapper: AsSubMenu disables pointer-events on the popover root,
-                        so we re-enable on the content div to make everything inside clickable */}
-                    <div style={{pointerEvents: 'auto'}}>
+    const rows = (
+        <>
+            {sortedItems.map((item) => {
+                if (item.component) {
+                    return (
+                        <Menu.Item
+                            key={item.id}
+                            id={`ai-action-${item.id}`}
+                            role='menuitem'
+                            aria-haspopup='menu'
+                            aria-expanded={activeSubmenu === item.id}
+                            leadingElement={item.icon}
+                            labels={<span>{item.text}</span>}
+                            trailingElements={<ChevronRightIcon size={18}/>}
+                            onMouseEnter={handleItemHover(item.id)}
+                            onMouseLeave={handleItemLeave}
+                            onKeyDown={handleItemKeyDown(item.id)}
+                        />
+                    );
+                }
+                if (item.action) {
+                    return (
+                        <Menu.Item
+                            key={item.id}
+                            id={`ai-action-${item.id}`}
+                            role='menuitem'
+                            leadingElement={item.icon}
+                            labels={<span>{item.text}</span>}
+                            onMouseEnter={handlePlainHover(item.id)}
+                            onClick={handleActionClick(item.action)}
+                        />
+                    );
+                }
+                return null;
+            })}
+            {aiRewriteEnabled && rewriteMenuProps && sortedItems.length > 0 && (
+                <Menu.Separator/>
+            )}
+            {aiRewriteEnabled && rewriteMenuProps && (
+                <Menu.Item
+                    id='ai-action-rewrite'
+                    role='menuitem'
+                    aria-haspopup='menu'
+                    aria-expanded={activeSubmenu === '__rewrite__'}
+                    leadingElement={<PencilOutlineIcon size={18}/>}
+                    labels={(
+                        <FormattedMessage
+                            id='texteditor.rewrite'
+                            defaultMessage='Rewrite'
+                        />
+                    )}
+                    trailingElements={<ChevronRightIcon size={18}/>}
+                    onMouseEnter={handleItemHover('__rewrite__')}
+                    onMouseLeave={handleItemLeave}
+                    onKeyDown={handleItemKeyDown('__rewrite__')}
+                />
+            )}
+        </>
+    );
+
+    const submenu = hasActiveSubmenu && menuIsOpen && (
+        <MuiPopover
+            open={true}
+            anchorEl={submenuAnchorEl}
+            anchorOrigin={submenuOrigins.anchorOrigin}
+            transformOrigin={submenuOrigins.transformOrigin}
+            className={submenuClassName}
+            disableAutoFocus={true}
+            disableEnforceFocus={true}
+            disableRestoreFocus={true}
+            hideBackdrop={true}
+            transitionDuration={0}
+            slotProps={{
+                paper: {
+                    ref: panelRef,
+                    style: {
+                        overflow: 'visible',
+                        background: 'transparent',
+                        boxShadow: 'none',
+                        maxHeight: 'none',
+                    },
+                    onMouseEnter: cancelClose,
+                    onMouseLeave: handlePanelLeave,
+                },
+            }}
+        >
+            {/* pointer-events wrapper: AsSubMenu disables pointer-events on the popover root,
+                so we re-enable on the content div to make everything inside clickable */}
+            <div style={{pointerEvents: 'auto'}}>
+                <MenuContext.Provider value={submenuMenuContext}>
+                    <PopoverMenu
+                        variant='child'
+                        className='menu_menuStyled__surface'
+                    >
                         {isRewriteSubmenu && rewriteMenuProps && (
                             <>
                                 <RewriteSubMenuHeader
@@ -262,6 +322,8 @@ const AIActionsMenu = ({
                                     customPromptRef={rewriteMenuProps.customPromptRef}
                                 />
                                 <MuiMenuList
+                                    className='menu_menuStyled__list--compass'
+                                    component='div'
                                     sx={{py: 0}}
                                 >
                                     <RewriteSubmenu
@@ -293,9 +355,63 @@ const AIActionsMenu = ({
                                 </PluggableErrorBoundary>
                             );
                         })()}
-                    </div>
-                </MuiPopover>
-            )}
+                    </PopoverMenu>
+                </MenuContext.Provider>
+            </div>
+        </MuiPopover>
+    );
+
+    if (embedded) {
+        return (
+            <>
+                {rows}
+                {submenu}
+            </>
+        );
+    }
+
+    return (
+        <>
+            <Menu.Container
+                menuButton={{
+                    id: 'ai-actions-button',
+                    as: AIActionsMenuTrigger,
+                    class: 'control',
+                    'aria-label': formatMessage({
+                        id: 'texteditor.ai_actions',
+                        defaultMessage: 'AI Actions',
+                    }),
+                    children: <Icon glyph={<CreationOutlineIcon/>}/>,
+                }}
+                menuButtonTooltip={{
+                    text: formatMessage({
+                        id: 'texteditor.ai_actions',
+                        defaultMessage: 'AI Actions',
+                    }),
+                }}
+                menu={{
+                    id: 'ai-actions-menu',
+                    'aria-label': formatMessage({
+                        id: 'texteditor.ai_actions.menu',
+                        defaultMessage: 'AI Actions',
+                    }),
+                    className: 'ai-actions-menu',
+                    onToggle: handleToggle,
+                    isMenuOpen,
+                    compass: true,
+                }}
+                anchorOrigin={{
+                    vertical: 'top',
+                    horizontal: 'left',
+                }}
+                transformOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'left',
+                }}
+            >
+                {rows}
+            </Menu.Container>
+            {submenu}
         </>
     );
 };

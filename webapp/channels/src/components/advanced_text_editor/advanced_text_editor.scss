@@ -35,22 +35,10 @@
 
     .sidebar--right & {
         padding-top: 12px;
-
-        .AutoHeight {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-        }
     }
 
     .ThreadViewer & {
         padding-top: 0px;
-
-        .AutoHeight {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-        }
     }
 
     .custom-textarea {
@@ -83,32 +71,58 @@
         --right-padding-for-scrollbar: 8px;
     }
 
-    // With the formatting bar disabled, leave room on the right for the post controls until the text takes up
-    // multiple lines. At that point, leave space below the text as if the controls were still there.
+    // Leave room beside the + and send until the text takes up multiple lines.
+    // Then the text uses the full width, including the space above the +, and
+    // the buttons sit on the row under it.
     &.formatting-bar {
         --right-padding-for-preview-button: 32px;
     }
 
+    // Agent mode has no preview button on the text. The controls are the row below it.
+    &--agent.formatting-bar {
+        --right-padding-for-preview-button: 0px;
+    }
+
+    // The body is the composer box, in agent mode and in a channel composer.
+    // The large corner stays the same as the box grows. Resting shadow lifts
+    // it; focus lifts it further. Hover and focus darken the border.
     &__body {
         position: relative;
         max-width: 100%;
         flex: 1;
-        border: 2px solid rgba(var(--center-channel-color-rgb), 0.16);
-        border-radius: 4px;
+        border: var(--border-default);
+        border-radius: var(--radius-l);
         background-color: var(--center-channel-bg);
+        box-shadow: var(--elevation-4);
+        transition: border-color var(--duration-quick) var(--ease-transition), box-shadow var(--duration-quick) var(--ease-transition);
+
+        &:hover {
+            border: var(--border-dark);
+        }
 
         &:focus-visible,
         &:focus-within,
         &:focus-visible:hover,
         &:focus-within:hover {
-            border: 2px solid rgba(var(--center-channel-color-rgb), 0.32);
+            border: var(--border-dark);
+            border-color: rgba(var(--center-channel-color-rgb), 0.24);
+            box-shadow: var(--elevation-5);
             outline: none;
             outline-offset: 0;
         }
 
-        &:hover {
-            border: 2px solid rgba(var(--center-channel-color-rgb), 0.24);
+        @media (prefers-reduced-motion: reduce) {
+            transition: none;
         }
+    }
+
+    // The textarea's own inset border would draw a second box inside the capsule.
+    .app__body & .custom-textarea,
+    .app__body & .custom-textarea:focus,
+    .app__body & .WysiwygEditor .ProseMirror,
+    .app__body & .WysiwygEditor .ProseMirror:focus {
+        border: none;
+        box-shadow: none;
     }
 
     &__action-button {
@@ -204,27 +218,121 @@
         gap: 8px;
     }
 
+    // Compass IconButton rests on the small corner, and a :not() pair raises
+    // that rule to three classes. The extra attribute wins, so every icon
+    // button in the composer uses the medium corner.
+    button[class*='_icon-button_']:not([class*='_icon-button__']) {
+        border-radius: var(--radius-m);
+    }
+
+    // The + sits on the left. Its resting fill is the icon button's hover fill,
+    // so hover itself has to go one step more opaque to still read as hover.
+    // The :not chain matches Compass, plus the element, so this wins on hover
+    // and loses once the menu is open or the button is pressed.
+    &__plus {
+        position: absolute;
+        z-index: 2;
+        bottom: 7px;
+        left: 7px;
+
+        .agent-composer-menu-button {
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        button.agent-composer-menu-button:is(:hover, :focus-visible):not(:disabled):not(:active):not([class*='_icon-button--active']):not([class*='_icon-button--toggled']) {
+            background-color: rgba(var(--center-channel-color-rgb), 0.12);
+        }
+    }
+
+    // Agent mode: the text is the top row. This row under it holds the +,
+    // the formatting bar, and send. The buttons stay absolute against this
+    // row, so they line up with the formatting controls. Its height follows
+    // the formatting bar's own animation. A fixed min-height would snap the
+    // row open in the RHS before that animation runs.
+    &__agent-controls {
+        position: relative;
+
+        [data-testid='formattingBarContainer'] {
+            // Clears the 44px send button, the 7px inset, and the gap to the
+            // formatting icons.
+            padding-right: 74px;
+            padding-left: 46px;
+        }
+    }
+
+    // On a channel composer the + overlays the left of the formatting bar.
+    &--plus:not(&--agent) [data-testid='formattingBarContainer'] {
+        padding-left: 46px;
+    }
+
+    &--plus-overlay textarea.custom-textarea,
+    .post-create__container &--plus-overlay textarea.custom-textarea,
+    &--plus-overlay .textbox-preview-area,
+    &--plus-overlay .WysiwygEditor .ProseMirror {
+        padding-left: 46px;
+    }
+
+    // The closed bar leaves only the + and send on the row under wrapped text.
+    // The editor's 12px bottom padding plus the unused top of a 46px row
+    // reads as an empty band once the text wraps. Pull the last line down
+    // toward those buttons. The open bar keeps its own height. A one-line
+    // composer (plus-overlay) keeps the text line's own padding.
+    &--agent:not(.formatting-bar):not(&--plus-overlay) {
+        .AdvancedTextEditor__agent-controls {
+            min-height: 40px;
+        }
+    }
+
+    &--agent:not(.formatting-bar):not(&--plus-overlay),
+    &--plus:not(&--agent):not(.formatting-bar):not(&--plus-overlay) {
+        textarea.custom-textarea,
+        .textbox-preview-area,
+        .WysiwygEditor .ProseMirror {
+            padding-bottom: 4px;
+        }
+    }
+
+    // Stop replaces send in this slot. Same 32px medium corner, without the
+    // primary fill. Send stays absolutely placed (bottom: 7px) by
+    // TexteditorActions.
+    &--agent &__send {
+        button:not(.SendMessageButton) {
+            display: flex;
+            width: 32px;
+            height: 32px;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            border: none;
+            border-radius: var(--radius-m);
+            background: transparent;
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            cursor: pointer;
+
+            &:hover {
+                background: rgba(var(--center-channel-color-rgb), 0.08);
+                color: rgba(var(--center-channel-color-rgb), 0.8);
+            }
+        }
+    }
+
+    // Out of the flow, but not display:none, so a click from the + menu can
+    // still open the file dialog.
+    &__agent-file-input {
+        position: absolute;
+        overflow: hidden;
+        width: 32px;
+        height: 32px;
+        opacity: 0;
+        pointer-events: none;
+    }
+
 }
 
 @media screen and (max-width: 768px) {
     #post-create {
         .AdvancedTextEditor {
             padding: 0;
-
-            &__body {
-                border-radius: 0;
-                border-right: none;
-                border-left: none;
-
-                &:focus-visible,
-                &:focus-within,
-                &:focus-visible:hover,
-                &:focus-within:hover,
-                &:hover {
-                    border-right: none;
-                    border-left: none;
-                }
-            }
 
             .ThreadViewer & {
                 .msg-typing:empty {
@@ -250,6 +358,13 @@
     font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+// The link popover is portaled out of the composer, and it uses the same
+// icon buttons. Compass's corner rule is three classes; the extra attribute
+// wins over it.
+.composer-link-popover button[class*='_icon-button_']:not([class*='_icon-button__']) {
+    border-radius: var(--radius-m);
 }
 
 // Compass sets width/padding with a single hashed class, so match its

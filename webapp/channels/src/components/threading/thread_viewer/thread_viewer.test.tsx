@@ -18,9 +18,12 @@ import type {Props} from './thread_viewer';
 
 jest.mock('components/deferComponentRender', () => (component: any) => component);
 
-jest.mock('../virtualized_thread_viewer', () => () => (
-    <div data-testid='virtualized-thread-viewer'/>
-));
+const mockVirtualizedThreadViewer = jest.fn(() => <div data-testid='virtualized-thread-viewer'/>) as jest.Mock;
+
+jest.mock('../virtualized_thread_viewer', () => ({
+    __esModule: true,
+    default: (props: unknown) => mockVirtualizedThreadViewer(props),
+}));
 
 jest.mock('components/file_upload_overlay', () => () => (
     <div data-testid='file-upload-overlay'/>
@@ -102,6 +105,39 @@ describe('components/threading/ThreadViewer', () => {
                 },
             },
         });
+    });
+
+    test('forwards agent mode and the send slot to the reply list', async () => {
+        const renderSendButton = () => null;
+        mockVirtualizedThreadViewer.mockClear();
+
+        renderWithContext(
+            <ThreadViewer
+                {...baseProps}
+                agentMode={true}
+                renderSendButton={renderSendButton}
+            />,
+        );
+
+        await screen.findByTestId('virtualized-thread-viewer');
+        expect(mockVirtualizedThreadViewer).toHaveBeenCalledWith(expect.objectContaining({
+            agentMode: true,
+            renderSendButton,
+        }));
+    });
+
+    test('does not turn agent mode on for an ordinary thread', async () => {
+        mockVirtualizedThreadViewer.mockClear();
+
+        renderWithContext(
+            <ThreadViewer {...baseProps}/>,
+        );
+
+        await screen.findByTestId('virtualized-thread-viewer');
+        expect(mockVirtualizedThreadViewer).toHaveBeenCalledWith(expect.objectContaining({
+            agentMode: undefined,
+            renderSendButton: undefined,
+        }));
     });
 
     test('should render', async () => {

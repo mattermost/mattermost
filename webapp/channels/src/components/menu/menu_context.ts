@@ -6,6 +6,9 @@ import {createContext, useMemo, useRef} from 'react';
 interface MenuSubmenuContextType {
     close?: () => void;
     isOpen: boolean;
+
+    // Composer menus opt in. Items and separators then render Compass menu rows.
+    compass?: boolean;
     addOnClosedListener: (listener: () => void) => void;
     handleClosed: () => void;
 }
@@ -24,12 +27,13 @@ export const SubMenuContext = createContext<MenuSubmenuContextType>({
 });
 SubMenuContext.displayName = 'SubMenuContext';
 
-export function useMenuContextValue(close: () => void, isOpen: boolean): MenuSubmenuContextType {
+export function useMenuContextValue(close: () => void, isOpen: boolean, compass = false): MenuSubmenuContextType {
     const onClosedListeners = useRef(new Set<() => void>());
 
     return useMemo(() => ({
         close,
         isOpen,
+        compass,
         addOnClosedListener: (listener: () => void) => {
             onClosedListeners.current.add(listener);
         },
@@ -37,5 +41,5 @@ export function useMenuContextValue(close: () => void, isOpen: boolean): MenuSub
             onClosedListeners.current.forEach((listener) => listener());
             onClosedListeners.current.clear();
         },
-    }), [close, isOpen]);
+    }), [close, isOpen, compass]);
 }

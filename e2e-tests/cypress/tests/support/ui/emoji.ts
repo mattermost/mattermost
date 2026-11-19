@@ -14,7 +14,15 @@ Cypress.Commands.add('uiOpenEmojiPicker', (): ChainableT<JQuery> => {
         }
     });
     cy.get('#emojiPicker').should('not.exist');
-    cy.findByRole('button', {name: 'select an emoji'}).should('be.visible').click();
+
+    // Emoji is a row in the composer + menu. Prefer the center composer when it is on the page.
+    cy.get('body').then(($body) => {
+        const center = $body.find('#create_post [data-testid="agent-composer-menu-button"]:visible');
+        const target = center.length ? center : $body.find('[data-testid="agent-composer-menu-button"]:visible');
+        cy.wrap(target.first()).click();
+    });
+    cy.findByRole('menu', {name: 'Message options'}).should('be.visible');
+    cy.findByRole('menuitem', {name: 'Emoji'}).should('be.visible').click();
     return cy.get('#emojiPicker').should('be.visible');
 });
 

@@ -30,11 +30,11 @@ test('should show "Upload using Demo Plugin" entry in attachment menu and open R
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Click the attachment button to open the upload type menu
-    await channelsPage.centerView.postCreate.attachmentButton.click();
+    // # Open the + menu. Attach is the upload entry.
+    await channelsPage.centerView.postCreate.openPlusMenu();
 
-    // * Verify both upload entries are visible
-    await expect(channelsPage.page.getByText('Your computer')).toBeVisible();
+    // * Verify the demo plugin still offers its upload entry from that menu
+    await expect(channelsPage.page.getByRole('menuitem', {name: 'Attach files'})).toBeVisible();
     await expect(channelsPage.page.getByText('Upload using Demo Plugin')).toBeVisible();
 
     // # Click "Upload using Demo Plugin"
@@ -139,12 +139,14 @@ test('should upload a file via "Your computer" from the demo plugin attachment s
     await channelsPage.goto(team.name, 'town-square');
     await channelsPage.toBeVisible();
 
-    // # Upload a file via the UI — the demo plugin intercepts the attachment button
-    // and shows a submenu. uploadFileViaYourComputer clicks "Your computer" to reach
-    // the native file chooser.
+    // # Upload a file via the + menu. If the demo plugin still shows an upload-type
+    // menu, the helper chooses "Your computer" from it.
     await uploadFileViaYourComputer(
         channelsPage.page,
-        channelsPage.centerView.postCreate.attachmentButton,
+        async () => {
+            await channelsPage.centerView.postCreate.openPlusMenu();
+            await channelsPage.centerView.postCreate.attachFilesItem.click();
+        },
         'sample_text_file.txt',
     );
 

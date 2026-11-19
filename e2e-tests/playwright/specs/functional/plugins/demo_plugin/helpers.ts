@@ -37,13 +37,12 @@ export async function closeRootModal(page: Page): Promise<void> {
 }
 
 /**
- * Upload a file via the UI attachment menu when the demo plugin is active.
- * The demo plugin intercepts the attachment button and shows a submenu — this
- * helper clicks "Your computer" from that submenu to reach the native file chooser.
+ * Upload a file from the composer. Attach lives in the + menu. When a plugin
+ * still offers an upload-type menu, choose "Your computer" from it.
  */
 export async function uploadFileViaYourComputer(
     page: Page,
-    attachmentButton: {click: () => Promise<void>},
+    openAttach: () => Promise<void>,
     filename: string,
 ): Promise<void> {
     const filePath = path.join(assetPath, filename);
@@ -56,8 +55,15 @@ export async function uploadFileViaYourComputer(
         {timeout: 60_000},
     );
     const fileChooserPromise = page.waitForEvent('filechooser');
-    await attachmentButton.click();
-    await page.getByText('Your computer').click();
+    await openAttach();
+    const yourComputer = page.getByText('Your computer');
+    const showedPluginMenu = await yourComputer
+        .waitFor({state: 'visible', timeout: 1500})
+        .then(() => true)
+        .catch(() => false);
+    if (showedPluginMenu) {
+        await yourComputer.click();
+    }
     const fileChooser = await fileChooserPromise;
     await fileChooser.setFiles(filePath);
     await uploadResponsePromise;

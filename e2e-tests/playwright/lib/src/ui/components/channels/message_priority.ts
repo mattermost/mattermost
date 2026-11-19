@@ -24,7 +24,9 @@ export default class MessagePriority {
         // Formatting bar priority icon
         this.priorityIcon = container.locator('#messagePriority');
 
-        this.priorityMenu = container.page().getByRole('menu', {name: 'Post priority options'});
+        // The priority row in the + menu opens this list. Its accessible name is the
+        // picker header, not the old formatting-bar menu.
+        this.priorityMenu = container.page().getByRole('menu', {name: 'Message priority'});
 
         // Header and footer render as siblings of the menu list, not inside it.
         this.dialogHeader = container.page().getByRole('heading', {name: 'Message priority', level: 4});
@@ -108,8 +110,17 @@ export default class MessagePriority {
     }
 
     async closePriorityMenu() {
-        await this.priorityMenu.press('Escape');
-        await expect(this.priorityMenu).not.toBeVisible();
+        // Escape inside the priority list closes that panel. The + menu stays open
+        // behind it, and its backdrop would cover Send, so close that next.
+        if (await this.priorityMenu.isVisible()) {
+            await this.priorityMenu.press('Escape');
+            await expect(this.priorityMenu).not.toBeVisible();
+        }
+        const parentMenu = this.container.page().getByRole('menu', {name: 'Message options'});
+        if (await parentMenu.isVisible()) {
+            await parentMenu.press('Escape');
+            await expect(parentMenu).not.toBeVisible();
+        }
     }
 
     async verifyNoPriorityLabel(postText: string) {

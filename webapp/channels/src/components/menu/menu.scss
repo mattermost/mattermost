@@ -13,7 +13,16 @@ a.MuiMenuItem-root {
         max-height: 80vh;
         background-color: var(--center-channel-bg);
         box-shadow: var(--elevation-4), 0 0 0 1px rgba(var(--center-channel-color-rgb), 0.12) inset;
+
+        // MUI sets top on the paper's margin edge and measures the border box,
+        // so this margin shifts a menu that opens below its trigger down by 4px.
         margin-block-start: 4px;
+    }
+
+    // Composer menus open above the trigger. The same start margin would move
+    // them down onto the button. A negative margin leaves the 4px gap above it.
+    &.menu_menuStyled--above .MuiPaper-root {
+        margin-block-start: -4px;
     }
     &.AsSubMenu {
         pointer-events: none;
@@ -23,6 +32,28 @@ a.MuiMenuItem-root {
             pointer-events: auto;
         }
     }
+}
+
+// Compass menus paint their own surface. The MUI paper stays in place for
+// positioning and must not add a second shadow, fill, or clip.
+.MuiPopover-root.MuiModal-root.menu_menuStyled.menu_menuStyled--compass {
+    & .MuiPaper-root {
+        overflow: visible;
+        min-width: 0;
+        max-width: none;
+        max-height: none;
+        background-color: transparent;
+        box-shadow: none;
+    }
+}
+
+.menu_menuStyled__surface {
+    overflow: auto;
+    max-height: 80vh;
+}
+
+.menu_menuStyled__list--compass.MuiList-root {
+    padding: 0;
 }
 
 .modal-dialog.menuModal {

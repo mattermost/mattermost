@@ -25,6 +25,9 @@ type Props = {
     // When inside a GenericModal, we need to communicate with the parent to set enforceFocus off when this menu is open
     // Otherwise the underlying mui popover and GenericModal will exhaust the call stack trying to set focus when this closes
     onMenuToggle?: (isOpen: boolean) => void;
+
+    // Composer rewrite menus use Compass rows. Other callers keep the app menu.
+    compass?: boolean;
 };
 
 const AgentDropdown = ({
@@ -35,6 +38,7 @@ const AgentDropdown = ({
     disabled = false,
     showLabel = false,
     onMenuToggle,
+    compass = false,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -89,7 +93,7 @@ const AgentDropdown = ({
                 </span>
             )}
             <Menu.Container
-                menu={menuConfig}
+                menu={{...menuConfig, compass}}
                 menuButton={menuButtonConfig}
                 menuHeader={menuHeaderElement}
             >

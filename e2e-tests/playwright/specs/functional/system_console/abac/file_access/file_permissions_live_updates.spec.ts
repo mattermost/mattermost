@@ -3,7 +3,7 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {expect, test, enableABAC, getAdminClient, getRandomId, TestBrowser} from '@mattermost/playwright-lib';
+import {test, enableABAC, getAdminClient, getRandomId, TestBrowser} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {
@@ -159,17 +159,13 @@ test.describe('ABAC file permissions - live updates', () => {
             await channelsPage.toBeVisible();
 
             // * Verify upload starts out available
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({
-                timeout: pw.duration.half_min,
-            });
+            await channelsPage.centerView.postCreate.expectAttachFilesEnabled(pw.duration.half_min);
 
             // # Admin moves the user out of the granted department
             await revokeByAttribute(user.id);
 
             // * Verify the control becomes unavailable without the page being reloaded
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({
-                timeout: pw.duration.half_min,
-            });
+            await channelsPage.centerView.postCreate.expectAttachFilesDisabled(pw.duration.half_min);
         },
     );
 
@@ -224,9 +220,7 @@ test.describe('ABAC file permissions - live updates', () => {
             await channelsPage.toBeVisible();
 
             // * Verify access starts out granted
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({
-                timeout: pw.duration.half_min,
-            });
+            await channelsPage.centerView.postCreate.expectAttachFilesEnabled(pw.duration.half_min);
             const post = await channelsPage.centerView.getPostByText(FIXTURE_MESSAGE);
             await post.toHaveFilesVisible();
 
@@ -236,9 +230,7 @@ test.describe('ABAC file permissions - live updates', () => {
             await channelsPage.toBeVisible();
 
             // * Verify the fresh fetch is sanitized rather than served from the stale cache
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({
-                timeout: pw.duration.half_min,
-            });
+            await channelsPage.centerView.postCreate.expectAttachFilesDisabled(pw.duration.half_min);
             const reloadedPost = await channelsPage.centerView.getPostByText(FIXTURE_MESSAGE);
             await reloadedPost.toHaveFilesRedacted();
         },
@@ -270,9 +262,7 @@ test.describe('ABAC file permissions - live updates', () => {
             await channelsPage.toBeVisible();
 
             // * Verify upload starts out available
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({
-                timeout: pw.duration.half_min,
-            });
+            await channelsPage.centerView.postCreate.expectAttachFilesEnabled(pw.duration.half_min);
 
             // # Restore the fixture even if the assertion below fails, so the shared policy does
             // not leak a revoking expression into the tests that run after this one.
@@ -282,9 +272,7 @@ test.describe('ABAC file permissions - live updates', () => {
                 await updatePermissionPolicyExpression(sharedAdminClient, policyName, REVOKING_EXPRESSION);
 
                 // * Verify the upload affordance is withdrawn without the page being reloaded
-                await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({
-                    timeout: pw.duration.half_min,
-                });
+                await channelsPage.centerView.postCreate.expectAttachFilesDisabled(pw.duration.half_min);
             } finally {
                 await updatePermissionPolicyExpression(sharedAdminClient, policyName, GRANTING_EXPRESSION);
             }

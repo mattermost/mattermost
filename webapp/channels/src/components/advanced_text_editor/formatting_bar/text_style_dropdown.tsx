@@ -149,6 +149,7 @@ const TextStyleDropdown = ({getWysiwygEditor, disabled}: TextStyleDropdownProps)
             menu={{
                 id: 'textStyleDropdownMenu',
                 'aria-label': formatMessage(messages.ariaLabel),
+                compass: true,
             }}
             anchorOrigin={{vertical: 'top', horizontal: 'left'}}
             transformOrigin={{vertical: 'bottom', horizontal: 'left'}}

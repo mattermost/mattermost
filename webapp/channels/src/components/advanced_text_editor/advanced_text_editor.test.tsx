@@ -7,6 +7,7 @@ import React from 'react';
 import type {PostType} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
 
+import * as PreferenceActions from 'mattermost-redux/actions/preferences';
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {onSubmit} from 'actions/views/create_comment';
@@ -16,13 +17,13 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, createEvent, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent, waitFor} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, Preferences, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
 import type {PostDraft} from 'types/store/draft';
 
-import AdvancedTextEditor from './advanced_text_editor';
+import AdvancedTextEditor, {messageUsesFullWidth} from './advanced_text_editor';
 import type {Props} from './advanced_text_editor';
 
 jest.mock('actions/views/drafts', () => ({
@@ -207,6 +208,20 @@ const baseProps = {
 };
 
 describe('components/avanced_text_editor/advanced_text_editor', () => {
+    describe('messageUsesFullWidth', () => {
+        it('keeps a short line beside the plus', () => {
+            expect(messageUsesFullWidth(120, 1, 400)).toBe(false);
+        });
+
+        it('uses the full width once the line reaches the plus', () => {
+            expect(messageUsesFullWidth(400, 1, 400)).toBe(true);
+        });
+
+        it('uses the full width when the message breaks onto another line', () => {
+            expect(messageUsesFullWidth(40, 2, 400)).toBe(true);
+        });
+    });
+
     afterEach(() => {
         jest.useRealTimers();
     });
@@ -1055,7 +1070,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1064,7 +1083,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox.selectionEnd).toEqual(3);
 
             // Do it again
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'relaxed emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'relaxed emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1086,7 +1109,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('This is some text');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1112,7 +1139,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('aaabbb');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1138,7 +1169,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(textbox).toHaveValue('aaa bbb');
 
             // Open the emoji picker and select an emoji
-            await userEvent.click(screen.getByRole('button', {name: 'select an emoji'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
             await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
 
             expect(textbox).toHaveFocus();
@@ -1208,7 +1243,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
         });
     });
 
-    describe('post attributes button', () => {
+    describe('composer plus menu', () => {
         const flagOn = mergeObjects(initialState, {
             entities: {
                 general: {
@@ -1219,7 +1254,11 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             },
         });
 
-        it('is absent with the feature flag off', () => {
+        const openMenu = async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+        };
+
+        it('omits Add attributes when the feature flag is off', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1227,10 +1266,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 initialState,
             );
 
+            await openMenu();
+
+            expect(screen.queryByRole('menuitem', {name: 'Add attributes'})).not.toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
             expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
         });
 
-        it('is present in the centre channel composer with the flag on', () => {
+        it('includes Add attributes in the centre channel plus menu when the flag is on', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1238,10 +1281,13 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            await openMenu();
+
+            expect(screen.getByRole('menuitem', {name: 'Add attributes'})).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
         });
 
-        it('is present in the RHS reply composer with the flag on', () => {
+        it('includes Add attributes in the RHS reply plus menu when the flag is on', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1251,10 +1297,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.getByTestId('post-attributes-composer-add')).toBeInTheDocument();
+            await openMenu();
+
+            expect(screen.getByRole('menuitem', {name: 'Add attributes'})).toBeInTheDocument();
         });
 
-        it('is absent when editing an existing post', () => {
+        it('omits Add attributes when editing an existing post', async () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1263,10 +1311,12 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            await openMenu();
+
+            expect(screen.queryByRole('menuitem', {name: 'Add attributes'})).not.toBeInTheDocument();
         });
 
-        it('sits before the formatting toggle in the action row', () => {
+        it('sits on the left of the composer', () => {
             renderWithContext(
                 <AdvancedTextEditor
                     {...baseProps}
@@ -1274,10 +1324,14 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 flagOn,
             );
 
-            const add = screen.getByLabelText('Add attributes');
-            const formatting = screen.getByLabelText('formatting');
+            const plus = screen.getByTestId('composer-plus');
+            const menu = screen.getByRole('button', {name: 'Message options'});
+            const send = screen.getByTestId('SendMessageButton');
 
-            expect(add.compareDocumentPosition(formatting) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(plus).toContainElement(menu);
+            expect(menu).toHaveClass('agent-composer-menu-button');
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus');
+            expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
     });
 
@@ -1355,6 +1409,461 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             });
 
             expect(textbox).toHaveValue(valueBefore);
+        });
+    });
+
+    describe('agent mode', () => {
+        const chromeState = mergeObjects(initialState, {
+            entities: {
+                general: {
+                    config: {
+                        EnableEmojiPicker: 'true',
+                        EnableFileAttachments: 'true',
+                        PostPriority: 'true',
+                        ScheduledPosts: 'true',
+                        EnableBurnOnRead: 'true',
+                        FeatureFlagPostAttributes: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        SkuShortName: 'advanced',
+                    },
+                },
+            },
+            plugins: {
+                components: {
+                    AIActionMenuItem: [{
+                        id: 'ai-item',
+                        pluginId: 'agents',
+                        icon: null,
+                        text: 'Use a skill',
+                        sortOrder: 0,
+                        action: () => {},
+                    }],
+                },
+            },
+        });
+
+        const openMenu = async () => {
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+        };
+
+        it('puts attach, emoji, attributes, priority, burn-on-read, skills, and formatting in the left plus', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                chromeState,
+            );
+
+            expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Schedule message'})).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
+            expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+            const channelSend = screen.getByTestId('SendMessageButton').closest('.splitSendButton');
+            expect(channelSend).not.toHaveClass('splitSendButton--round');
+            expect(channelSend).toHaveClass('splitSendButton--pill');
+            expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--plus-overlay');
+            expect(document.getElementById('createPostFileDropOverlay')).not.toHaveClass('file-overlay--pill');
+            expect(screen.getByText('Drop a file to upload it.')).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'attachment'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'select an emoji'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'formatting'})).not.toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--agent');
+
+            await openMenu();
+            expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
+        });
+
+        it('closes an open submenu when the pointer moves to another row', async () => {
+            renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                chromeState,
+            );
+
+            await openMenu();
+            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Message priority', hidden: true}));
+            expect(screen.getByRole('menuitemradio', {name: 'Standard'})).toBeInTheDocument();
+
+            fireEvent.mouseEnter(screen.getByRole('menuitem', {name: 'Hide formatting', hidden: true}));
+            expect(screen.getByRole('menuitem', {name: 'Message priority', hidden: true})).toHaveAttribute('aria-expanded', 'false');
+            await waitFor(() => {
+                expect(screen.queryByRole('menuitemradio', {name: 'Standard'})).not.toBeInTheDocument();
+            });
+        });
+
+        it('hides channel chrome and keeps send', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            expect(screen.queryByRole('button', {name: 'formatting'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Schedule message'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'attachment'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'select an emoji'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
+            expect(screen.getByRole('button', {name: 'Message options'})).toBeInTheDocument();
+            expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+        });
+
+        it('uses a circular send button and a pill drop label', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            const send = screen.getByTestId('SendMessageButton');
+            expect(send.closest('.splitSendButton')).toHaveClass('splitSendButton--round');
+            expect(send.closest('.splitSendButton')).not.toHaveClass('splitSendButton--pill');
+            expect(send.querySelector('.SendMessageButton__icon')).toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus-overlay');
+            expect(document.querySelector('.AdvancedTextEditor__send')).toContainElement(send);
+
+            const overlay = document.getElementById('agentComposerFileDropOverlay_CENTER_new');
+            expect(overlay).toHaveClass('file-overlay--pill');
+            expect(overlay).toHaveTextContent('Drop file to attach');
+            expect(screen.queryByText('Drop a file to upload it.')).not.toBeInTheDocument();
+        });
+
+        it('starts as one line while the formatting bar is hidden', () => {
+            const hiddenBar = {
+                [`${Preferences.ADVANCED_TEXT_EDITOR}--post`]: {
+                    category: Preferences.ADVANCED_TEXT_EDITOR,
+                    name: 'post',
+                    user_id: currentUserId,
+                    value: 'true',
+                },
+                [`${Preferences.ADVANCED_TEXT_EDITOR}--comment`]: {
+                    category: Preferences.ADVANCED_TEXT_EDITOR,
+                    name: 'comment',
+                    user_id: currentUserId,
+                    value: 'true',
+                },
+            };
+
+            const center = renderWithContext(
+                <AdvancedTextEditor {...baseProps}/>,
+                mergeObjects(chromeState, {
+                    entities: {preferences: {myPreferences: hiddenBar}},
+                }),
+            );
+
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus-overlay');
+            center.unmount();
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    location={Locations.RHS_COMMENT}
+                    rootId='root-post-id'
+                />,
+                mergeObjects(chromeState, {
+                    entities: {preferences: {myPreferences: hiddenBar}},
+                }),
+            );
+
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus-overlay');
+        });
+
+        it('puts the + on the left of the composer and send at the end', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            const plus = screen.getByTestId('composer-plus');
+            const menu = screen.getByRole('button', {name: 'Message options'});
+            const send = screen.getByTestId('SendMessageButton');
+
+            expect(plus).toContainElement(menu);
+            expect(menu).toHaveClass('agent-composer-menu-button');
+            expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--agent');
+            const controls = document.querySelector('.AdvancedTextEditor__agent-controls');
+            const textbox = screen.getByTestId('post_textbox');
+            expect(controls).toContainElement(plus);
+            expect(controls).toContainElement(send);
+            expect(textbox.compareDocumentPosition(controls!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(plus.compareDocumentPosition(document.querySelector('.AutoHeight')!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+        });
+
+        it('omits Add attributes when post attributes are off', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                mergeObjects(chromeState, {
+                    entities: {
+                        general: {
+                            config: {
+                                FeatureFlagPostAttributes: 'false',
+                            },
+                        },
+                    },
+                }),
+            );
+
+            await openMenu();
+
+            expect(screen.queryByRole('menuitem', {name: 'Add attributes'})).not.toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Attach files'})).toBeInTheDocument();
+        });
+
+        it('puts attach, emoji, attributes, and formatting in the + menu', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            await openMenu();
+
+            expect(screen.getByRole('menuitem', {name: 'Attach files'})).toHaveFocus();
+            expect(screen.getByRole('menuitem', {name: 'Emoji'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Use a skill'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Show formatting'})).toBeInTheDocument();
+
+            const attributes = screen.getByRole('menuitem', {name: 'Add attributes'});
+            expect(attributes).toHaveAttribute('aria-disabled', 'true');
+            expect(attributes.querySelector('svg')).toBeInTheDocument();
+            expect(screen.queryByTestId('post-attributes-composer-add')).not.toBeInTheDocument();
+        });
+
+        it('opens the formatting bar for this composer without saving the shared preference', async () => {
+            const savePreferences = jest.spyOn(PreferenceActions, 'savePreferences');
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            await openMenu();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Show formatting'}));
+
+            await waitFor(() => {
+                expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
+            });
+            expect(document.querySelector('.AdvancedTextEditor')).not.toHaveClass('AdvancedTextEditor--plus-overlay');
+
+            await openMenu();
+            expect(screen.getByRole('menuitem', {name: 'Hide formatting'})).toBeInTheDocument();
+            await userEvent.keyboard('{Escape}');
+            const textbox = screen.getByTestId('post_textbox');
+            const bar = screen.getByTestId('formattingBarContainer');
+            const controls = document.querySelector('.AdvancedTextEditor__agent-controls');
+            expect(controls).toContainElement(bar);
+            expect(textbox.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
+            expect(savePreferences).not.toHaveBeenCalled();
+
+            savePreferences.mockRestore();
+        });
+
+        it('opens the file picker from the + menu', async () => {
+            const clickSpy = jest.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(() => {});
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            const input = document.querySelector('input.file-attachment-menu-item-input');
+            expect(input).toBeInTheDocument();
+            expect(input?.closest('[hidden]')).toBeNull();
+
+            const clicksBefore = clickSpy.mock.calls.length;
+            await openMenu();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Attach files'}));
+
+            expect(clickSpy.mock.calls.length).toBeGreaterThan(clicksBefore);
+
+            clickSpy.mockRestore();
+        });
+
+        it('inserts an emoji chosen from the + menu', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            await openMenu();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Emoji'}));
+            await waitFor(() => {
+                expect(screen.getByRole('button', {name: 'blush emoji'})).toBeInTheDocument();
+            });
+            await userEvent.click(screen.getByRole('button', {name: 'blush emoji'}));
+
+            expect(screen.getByTestId('post_textbox')).toHaveValue('\uD83D\uDE0A ');
+        });
+
+        it('keeps markdown shortcuts working while the formatting bar is closed', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                chromeState,
+            );
+
+            const textbox = screen.getByTestId('post_textbox') as HTMLTextAreaElement;
+            await userEvent.type(textbox, 'hello');
+            textbox.setSelectionRange(0, 5);
+            fireEvent.keyDown(textbox, {key: 'b', keyCode: 66, ctrlKey: true});
+
+            expect(textbox).toHaveValue('**hello**');
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+        });
+
+        it('keeps the rich text editor and starts with its formatting bar closed', () => {
+            const rect = () => ({top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0, x: 0, y: 0, toJSON: () => {}}) as DOMRect;
+            const originalRects = Range.prototype.getClientRects;
+            const originalRect = Range.prototype.getBoundingClientRect;
+            Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+            Range.prototype.getBoundingClientRect = rect;
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                mergeObjects(chromeState, {
+                    entities: {
+                        general: {config: {FeatureFlagWysiwygEditor: 'true'}},
+                        preferences: {
+                            myPreferences: {
+                                [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.WYSIWYG_EDITOR}`]: {
+                                    category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                                    name: Preferences.WYSIWYG_EDITOR,
+                                    user_id: currentUserId,
+                                    value: 'true',
+                                },
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(document.querySelector('.ProseMirror')).toBeInTheDocument();
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+            expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+
+            Range.prototype.getClientRects = originalRects;
+            Range.prototype.getBoundingClientRect = originalRect;
+        });
+
+        it('opens the link popover from the keyboard while the formatting bar stays closed', () => {
+            const rect = () => ({top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0, x: 0, y: 0, toJSON: () => {}}) as DOMRect;
+            const originalRects = Range.prototype.getClientRects;
+            const originalRect = Range.prototype.getBoundingClientRect;
+            Range.prototype.getClientRects = () => [] as unknown as DOMRectList;
+            Range.prototype.getBoundingClientRect = rect;
+
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                mergeObjects(chromeState, {
+                    entities: {
+                        general: {config: {FeatureFlagWysiwygEditor: 'true'}},
+                        preferences: {
+                            myPreferences: {
+                                [`${Preferences.CATEGORY_DISPLAY_SETTINGS}--${Preferences.WYSIWYG_EDITOR}`]: {
+                                    category: Preferences.CATEGORY_DISPLAY_SETTINGS,
+                                    name: Preferences.WYSIWYG_EDITOR,
+                                    user_id: currentUserId,
+                                    value: 'true',
+                                },
+                            },
+                        },
+                    },
+                }),
+            );
+
+            const editor = document.querySelector('.ProseMirror');
+            expect(editor).toBeInTheDocument();
+            fireEvent.keyDown(editor!, {key: 'k', keyCode: 75, ctrlKey: true, altKey: true});
+
+            expect(screen.getByPlaceholderText('Type or paste a link')).toBeInTheDocument();
+            expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                    channelId={otherChannelId}
+                />,
+            );
+
+            expect(screen.queryByPlaceholderText('Type or paste a link')).not.toBeInTheDocument();
+
+            Range.prototype.getClientRects = originalRects;
+            Range.prototype.getBoundingClientRect = originalRect;
+        });
+
+        it('lets a plugin replace send, and ignores that slot when the mode is off', () => {
+            const renderSendButton = () => <button type='button'>{'Stop generating'}</button>;
+
+            const {rerender} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                    renderSendButton={renderSendButton}
+                />,
+                chromeState,
+            );
+
+            const stop = screen.getByRole('button', {name: 'Stop generating'});
+            expect(stop).toBeInTheDocument();
+            expect(document.querySelector('.AdvancedTextEditor__send')).toContainElement(stop);
+            expect(screen.queryByTestId('SendMessageButton')).not.toBeInTheDocument();
+
+            rerender(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    renderSendButton={renderSendButton}
+                />,
+            );
+
+            expect(screen.getByTestId('SendMessageButton')).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'Stop generating'})).not.toBeInTheDocument();
         });
     });
 });

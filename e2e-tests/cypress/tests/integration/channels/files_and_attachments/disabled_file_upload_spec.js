@@ -43,10 +43,12 @@ describe('Upload Files - Settings', () => {
         cy.get('.post-create__container .AdvancedTextEditor').should('be.visible').within(() => {
             // * Attachment input should not exist in the DOM
             cy.get('#fileUploadInput').should('not.exist');
-
-            // * Paper clip icon should not be visible in the center channel
-            cy.get('#fileUploadButton').should('not.exist');
         });
+
+        // * Attach is not offered in the center composer's + menu
+        cy.get('#create_post [data-testid="agent-composer-menu-button"]').click();
+        cy.findByRole('menu', {name: 'Message options'}).should('be.visible').and('not.contain', 'Attach files');
+        cy.get('body').type('{esc}');
 
         // * Channel header file icon should not be visible
         cy.get('#channel-header').find('#channelHeaderFilesButton').should('not.exist');
@@ -60,10 +62,12 @@ describe('Upload Files - Settings', () => {
         cy.get('.post-right-comments-container .AdvancedTextEditor').should('be.visible').within(() => {
             // * Attachment input should not exist in the DOM
             cy.get('#fileUploadInput').should('not.exist');
-
-            // * Paper clip icon should not be visible in the RHS
-            cy.get('#fileUploadButton').should('not.exist');
         });
+
+        // * Attach is not offered in the reply composer's + menu
+        cy.get('.post-right-comments-container').find('[data-testid="agent-composer-menu-button"]').click();
+        cy.findByRole('menu', {name: 'Message options'}).should('be.visible').and('not.contain', 'Attach files');
+        cy.get('body').type('{esc}');
 
         // # Click on the search input
         cy.uiGetSearchContainer().click();

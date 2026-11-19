@@ -15,8 +15,9 @@ export default class ChannelsPostEdit {
     readonly container: Locator;
     readonly input;
 
-    readonly attachmentButton;
-    readonly emojiButton;
+    readonly plusButton;
+    readonly plusMenu;
+    readonly attachFilesItem;
     readonly sendMessageButton;
     readonly suggestionList;
     readonly suggestionOptions;
@@ -28,8 +29,9 @@ export default class ChannelsPostEdit {
 
         this.input = container.getByTestId('edit_textbox');
 
-        this.attachmentButton = container.locator('#fileUploadButton');
-        this.emojiButton = container.getByLabel('select an emoji');
+        this.plusButton = container.getByTestId('agent-composer-menu-button');
+        this.plusMenu = container.page().getByRole('menu', {name: 'Message options'});
+        this.attachFilesItem = this.plusMenu.getByRole('menuitem', {name: 'Attach files', exact: true});
         this.sendMessageButton = container.getByRole('button', {name: 'Save'});
         this.suggestionList = container.getByRole('listbox', {name: 'Suggestions'});
         this.suggestionOptions = this.suggestionList.getByRole('option');
@@ -60,11 +62,15 @@ export default class ChannelsPostEdit {
 
     async addFiles(files: string[]) {
         const filePaths = files.map((file) => path.join(assetPath, file));
-        this.container.page().once('filechooser', async (fileChooser) => {
-            await fileChooser.setFiles(filePaths);
-        });
-
-        await this.attachmentButton.click();
+        const fileChooserPromise = this.container.page().waitForEvent('filechooser');
+        if ((await this.plusButton.getAttribute('aria-expanded')) !== 'true') {
+            await expect(this.plusButton).toBeVisible();
+            await this.plusButton.click();
+        }
+        await expect(this.plusMenu).toBeVisible();
+        await this.attachFilesItem.click();
+        const fileChooser = await fileChooserPromise;
+        await fileChooser.setFiles(filePaths);
     }
 
     async removeFile(fileName: string) {

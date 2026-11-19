@@ -118,9 +118,11 @@ const useBurnOnRead = (
         ) : undefined
     ), [hasBurnOnReadSet, rootId, showIndividualCloseButton, shouldShowPreview, handleRemoveBurnOnRead, durationMinutes]);
 
+    const canSetBurnOnRead = Boolean(!rootId && isEnabled && allowedByPolicy && isAllowedInChannel);
+
     // Button component with tour tip wrapper (in formatting bar)
     const additionalControl = useMemo(() =>
-        (!rootId && isEnabled && allowedByPolicy && isAllowedInChannel ? (
+        (canSetBurnOnRead ? (
             <div
                 key='burn-on-read-control-key'
                 className='BurnOnReadControl'
@@ -137,11 +139,13 @@ const useBurnOnRead = (
                     onTryItOut={() => handleBurnOnReadApply(true)}
                 />
             </div>
-        ) : undefined), [rootId, isEnabled, allowedByPolicy, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
+        ) : undefined), [canSetBurnOnRead, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
 
     return {
         labels,
         additionalControl,
+        canSetBurnOnRead,
+        hasBurnOnReadSet,
         handleBurnOnReadApply,
         handleRemoveBurnOnRead,
         isBurnOnReadSendable,

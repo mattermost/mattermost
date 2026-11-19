@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {fireEvent} from '@testing-library/react';
+import {act, fireEvent} from '@testing-library/react';
 import React from 'react';
 
 import {testPluginComponentErrorHandling} from 'tests/helpers/plugin_error_handling';
@@ -10,6 +10,7 @@ import {renderWithContext, screen} from 'tests/react_testing_utils';
 import type {PostDraft} from 'types/store/draft';
 
 import AIActionsMenu from './ai_actions_menu';
+import {COMPOSER_PLUS_MENU_ID, ComposerSubmenuHoverProvider, submenuPointerDestination, useComposerSubmenuHover} from './composer_submenu_hover';
 import {RewriteAction} from './rewrite_action';
 import type {RewriteMenuProps} from './rewrite_menu';
 
@@ -33,7 +34,7 @@ jest.mock('components/menu', () => {
         Container: ({children, menuButton, menu}: any) => {
             react.useEffect(() => {
                 menu?.onToggle?.(true);
-            }, []); // eslint-disable-line react-hooks/exhaustive-deps
+            }, []);
             return (
                 <div>
                     <div>{menuButton.children}</div>
@@ -41,11 +42,12 @@ jest.mock('components/menu', () => {
                 </div>
             );
         },
-        Item: ({labels, onClick, leadingElement, trailingElements, onMouseEnter, onKeyDown, ...rest}: any) => (
+        Item: ({labels, onClick, leadingElement, trailingElements, onMouseEnter, onMouseLeave, onKeyDown, ...rest}: any) => (
             <li
                 role='menuitem'
                 onClick={onClick}
                 onMouseEnter={onMouseEnter}
+                onMouseLeave={onMouseLeave}
                 onKeyDown={onKeyDown}
                 aria-haspopup={rest['aria-haspopup']}
                 aria-expanded={rest['aria-expanded']}
@@ -420,6 +422,216 @@ describe('AIActionsMenu', () => {
         expect(receivedProps.draft).toBeDefined();
         expect(receivedProps.getSelectedText).toBeDefined();
         expect(receivedProps.updateText).toBeDefined();
+    });
+
+    test('should close the submenu when the pointer moves to another row', () => {
+        renderWithContext(
+            <AIActionsMenu
+                {...getBaseProps()}
+                aiRewriteEnabled={false}
+            />,
+            {
+                entities: {
+                    general: {config: {}},
+                    preferences: {myPreferences: {}},
+                    users: {currentUserId: 'user1'},
+                },
+                plugins: {
+                    components: {
+                        AIActionMenuItem: [
+                            {
+                                id: 'plugin1',
+                                pluginId: 'test-plugin',
+                                component: () => <div data-testid='plugin-submenu'>{'Plugin Content'}</div>,
+                                icon: <span>{'icon'}</span>,
+                                text: 'Hover Me',
+                                sortOrder: 1,
+                            },
+                            {
+                                id: 'plugin2',
+                                pluginId: 'test-plugin',
+                                action: () => {},
+                                icon: <span>{'icon'}</span>,
+                                text: 'Do Something',
+                                sortOrder: 2,
+                            },
+                        ],
+                    },
+                },
+            } as any,
+        );
+
+        const submenuItem = screen.getByText('Hover Me').closest('li')!;
+        fireEvent.mouseEnter(submenuItem);
+        expect(screen.getByTestId('plugin-submenu')).toBeInTheDocument();
+
+        fireEvent.mouseEnter(screen.getByText('Do Something').closest('li')!);
+        expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+    });
+
+    test('should keep the submenu open while the pointer is in its panel', async () => {
+        renderWithContext(
+            <AIActionsMenu
+                {...getBaseProps()}
+                aiRewriteEnabled={false}
+            />,
+            {
+                entities: {
+                    general: {config: {}},
+                    preferences: {myPreferences: {}},
+                    users: {currentUserId: 'user1'},
+                },
+                plugins: {
+                    components: {
+                        AIActionMenuItem: [
+                            {
+                                id: 'plugin1',
+                                pluginId: 'test-plugin',
+                                component: () => <div data-testid='plugin-submenu'>{'Plugin Content'}</div>,
+                                icon: <span>{'icon'}</span>,
+                                text: 'Hover Me',
+                                sortOrder: 1,
+                            },
+                        ],
+                    },
+                },
+            } as any,
+        );
+
+        const submenuItem = screen.getByText('Hover Me').closest('li')!;
+        fireEvent.mouseEnter(submenuItem);
+        const panel = screen.getByTestId('plugin-submenu');
+        fireEvent.mouseLeave(submenuItem, {relatedTarget: panel});
+
+        await act(async () => {
+            await new Promise((resolve) => setTimeout(resolve, 120));
+        });
+
+        expect(screen.getByTestId('plugin-submenu')).toBeInTheDocument();
+    });
+
+    test('closes an embedded submenu when another row in the plus menu is hovered', () => {
+        const baseState = {
+            entities: {
+                general: {config: {}},
+                preferences: {myPreferences: {}},
+                users: {currentUserId: 'user1'},
+            },
+            plugins: {
+                components: {
+                    AIActionMenuItem: [
+                        {
+                            id: 'plugin1',
+                            pluginId: 'test-plugin',
+                            component: () => <div data-testid='plugin-submenu'>{'Plugin Content'}</div>,
+                            icon: <span>{'icon'}</span>,
+                            text: 'Hover Me',
+                            sortOrder: 1,
+                        },
+                    ],
+                },
+            },
+        };
+
+        function Harness() {
+            const {claimRow} = useComposerSubmenuHover();
+            return (
+                <>
+                    <button
+                        type='button'
+                        onMouseEnter={() => claimRow('other')}
+                    >
+                        {'Other row'}
+                    </button>
+                    <AIActionsMenu
+                        {...getBaseProps()}
+                        embedded={true}
+                        parentOpen={true}
+                        aiRewriteEnabled={false}
+                    />
+                </>
+            );
+        }
+
+        renderWithContext(
+            <ComposerSubmenuHoverProvider>
+                <Harness/>
+            </ComposerSubmenuHoverProvider>,
+            baseState as any,
+        );
+
+        fireEvent.mouseEnter(screen.getByText('Hover Me').closest('li')!);
+        expect(screen.getByTestId('plugin-submenu')).toBeInTheDocument();
+
+        fireEvent.mouseEnter(screen.getByRole('button', {name: 'Other row', hidden: true}));
+        expect(screen.queryByTestId('plugin-submenu')).not.toBeInTheDocument();
+    });
+
+    test('treats a nested menu item as part of the open panel', () => {
+        const nestedItem = document.createElement('div');
+        nestedItem.setAttribute('role', 'menuitem');
+        document.body.appendChild(nestedItem);
+
+        expect(submenuPointerDestination(nestedItem, null, null)).toBe('stay');
+        nestedItem.remove();
+    });
+
+    test('treats another plus-menu row as leaving the panel', () => {
+        const parentMenu = document.createElement('ul');
+        parentMenu.id = COMPOSER_PLUS_MENU_ID;
+        const otherRow = document.createElement('li');
+        otherRow.setAttribute('role', 'menuitem');
+        parentMenu.appendChild(otherRow);
+        document.body.appendChild(parentMenu);
+
+        expect(submenuPointerDestination(otherRow, null, null)).toBe('close');
+        parentMenu.remove();
+    });
+
+    test('marks rewrite open only while the rewrite row is showing', () => {
+        const setIsMenuOpen = jest.fn();
+
+        renderWithContext(
+            <ComposerSubmenuHoverProvider>
+                <AIActionsMenu
+                    {...getBaseProps()}
+                    embedded={true}
+                    parentOpen={true}
+                    aiRewriteEnabled={true}
+                    rewriteMenuProps={{
+                        ...getRewriteMenuProps(),
+                        setIsMenuOpen,
+                    }}
+                />
+            </ComposerSubmenuHoverProvider>,
+            {
+                entities: {
+                    general: {config: {}},
+                    preferences: {myPreferences: {}},
+                    users: {currentUserId: 'user1'},
+                },
+                plugins: {
+                    components: {
+                        AIActionMenuItem: [
+                            {
+                                id: 'plugin1',
+                                pluginId: 'test-plugin',
+                                component: () => <div data-testid='plugin-submenu'>{'Plugin Content'}</div>,
+                                icon: <span>{'icon'}</span>,
+                                text: 'Hover Me',
+                                sortOrder: 1,
+                            },
+                        ],
+                    },
+                },
+            } as any,
+        );
+
+        fireEvent.mouseEnter(screen.getByText('Hover Me').closest('li')!);
+        expect(setIsMenuOpen).not.toHaveBeenCalledWith(true);
+
+        fireEvent.mouseEnter(screen.getByText('Rewrite').closest('li')!);
+        expect(setIsMenuOpen).toHaveBeenCalledWith(true);
     });
 
     testPluginComponentErrorHandling((pluginComponent) => {

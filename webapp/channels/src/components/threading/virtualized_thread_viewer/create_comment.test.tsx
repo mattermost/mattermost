@@ -19,7 +19,12 @@ jest.mock('components/channel_type_icon/compass_icon_resolver', () => ({
     compassIconForName: jest.fn(),
 }));
 
-jest.mock('components/advanced_create_comment', () => () => <div data-testid='advanced-create-comment'/>);
+const mockAdvancedCreateComment = jest.fn(() => <div data-testid='advanced-create-comment'/>) as jest.Mock;
+
+jest.mock('components/advanced_create_comment', () => ({
+    __esModule: true,
+    default: (props: unknown) => mockAdvancedCreateComment(props),
+}));
 
 function makeState(channel: Channel, threadId: string, overrides: any[] = []): DeepPartial<GlobalState> {
     const post = TestHelper.getPostMock({id: threadId, channel_id: channel.id});
@@ -123,6 +128,32 @@ describe('components/threading/CreateComment', () => {
 
         expect(screen.queryByTestId('stub-override-icon')).not.toBeInTheDocument();
         expect(container.querySelector('.channel-archived-warning__content svg')).toBeInTheDocument();
+    });
+
+    it('forwards agent mode to the reply editor', () => {
+        const channel = TestHelper.getChannelMock({
+            id: 'ch-1',
+            type: 'O',
+            delete_at: 0,
+        });
+        const renderSendButton = () => null;
+        mockAdvancedCreateComment.mockClear();
+
+        renderWithContext(
+            <CreateComment
+                threadId={threadId}
+                agentMode={true}
+                renderSendButton={renderSendButton}
+            />,
+            makeState(channel, threadId),
+        );
+
+        expect(mockAdvancedCreateComment).toHaveBeenCalledWith(expect.objectContaining({
+            agentMode: true,
+            renderSendButton,
+            rootId: threadId,
+            channelId: channel.id,
+        }));
     });
 
     it('renders create comment form for non-archived channel', () => {

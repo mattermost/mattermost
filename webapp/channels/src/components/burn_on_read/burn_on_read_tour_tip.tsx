@@ -20,9 +20,12 @@ type Props = {
 
     // Callback when user clicks "Try it out" button to enable BoR
     onTryItOut: () => void;
+
+    // Element the pulsating dot points at. The composer + is the control that opens burn-on-read.
+    anchorId?: string;
 };
 
-const BurnOnReadTourTip = ({onTryItOut}: Props) => {
+const BurnOnReadTourTip = ({onTryItOut, anchorId = 'burnOnReadButton'}: Props) => {
     const dispatch = useDispatch();
     const currentUserId = useSelector(getCurrentUserId);
     const hasSeenTip = useSelector(hasSeenBurnOnReadTourTip);
@@ -32,7 +35,7 @@ const BurnOnReadTourTip = ({onTryItOut}: Props) => {
     const [showTourTip, setShowTourTip] = useState(false);
 
     // Measure the button position - targeting the button element
-    const overlayPunchOut = useMeasurePunchouts(['burnOnReadButton'], []);
+    const overlayPunchOut = useMeasurePunchouts([anchorId], []);
 
     // Save preference that user has seen the tour tip
     const markTourTipAsSeen = useCallback(() => {
