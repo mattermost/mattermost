@@ -107,9 +107,9 @@ const FormattingIcon = forwardRef<HTMLButtonElement, FormattingIconProps>((props
                 onMouseDown={handleMouseDown}
                 aria-label={buttonAriaLabel}
                 aria-pressed={typeof isActive === 'boolean' ? isActive : undefined}
-                toggled={isActive === true}
                 className={classNames(className)}
                 {...otherProps}
+                active={isActive === true}
             />
         </WithTooltip>
     );

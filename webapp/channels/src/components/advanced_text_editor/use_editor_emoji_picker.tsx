@@ -126,7 +126,7 @@ const useEditorEmojiPicker = (
                         onClick={toggleEmojiPicker}
                         aria-label={intl.formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                         disabled={shouldShowPreview}
-                        toggled={showEmojiPicker}
+                        active={showEmojiPicker}
                         {...getReferenceProps()}
                     />
                 </WithTooltip>

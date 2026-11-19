@@ -37,7 +37,8 @@ const ShowFormatting = (props: ShowFormatProps): JSX.Element => {
                 size='small'
                 onClick={onClick}
                 aria-label={buttonAriaLabel}
-                toggled={active}
+                aria-pressed={active}
+                active={active}
                 icon={
                     <Icon
                         glyph={
