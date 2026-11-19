@@ -5,6 +5,8 @@ import type {Locator, Page, Request} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {FieldType, PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
 
+import type {ChannelsPage, ChannelsPost} from '@mattermost/playwright-lib';
+
 export const GROUP = 'post_attributes';
 export const OBJECT_TYPE = 'post';
 
@@ -287,4 +289,35 @@ export async function chooseOption(page: Page, name: string, {multi = false}: {m
 export async function foreignSystemFields(adminClient: Client4): Promise<PropertyField[]> {
     const fields = await adminClient.getPropertyFields(GROUP, OBJECT_TYPE, {targetType: 'system'});
     return (fields ?? []).filter((field) => !field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
+}
+
+// The edit modal's locators for one field. The modal is a dialog on the page, so they are
+// found from the page rather than from a post.
+export function modalRow(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-row-${field.name}`);
+}
+
+export function modalTrigger(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-trigger-${field.name}`);
+}
+
+export function modalClear(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-clear-${field.name}`);
+}
+
+export function modalInput(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-input-${field.name}`);
+}
+
+/**
+ * Opens the post's `…` menu with the pointer and picks `Attributes`. The message text is
+ * hovered rather than the post, so the pointer never rests on the chip row and the hover
+ * card is not what opened the modal.
+ */
+export async function openModalFromPostMenu(channelsPage: ChannelsPage, post: ChannelsPost) {
+    await post.messageText.hover();
+    await post.postMenu.toBeVisible();
+    await post.postMenu.dotMenuButton.click();
+    await channelsPage.postDotMenu.toBeVisible();
+    await channelsPage.postDotMenu.container.getByRole('menuitem', {name: 'Attributes'}).click();
 }
