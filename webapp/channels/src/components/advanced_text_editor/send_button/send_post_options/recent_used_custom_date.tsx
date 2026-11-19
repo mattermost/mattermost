@@ -19,6 +19,7 @@ import {scheduledPosts} from 'utils/constants';
 type Props = {
     handleOnSelect: (e: React.FormEvent, scheduledAt: number) => void;
     userCurrentTimezone: string;
+    today9amTime?: number;
     tomorrow9amTime: number;
     nextMonday: number;
 };
@@ -50,13 +51,15 @@ function shouldShowRecentlyUsedCustomTime(
     userCurrentTimezone: string,
     tomorrow9amTime: number,
     nextMonday: number,
+    today9amTime?: number,
 ) {
     return recentlyUsedCustomDateVal &&
     typeof recentlyUsedCustomDateVal.update_at === 'number' &&
     typeof recentlyUsedCustomDateVal.timestamp === 'number' &&
     recentlyUsedCustomDateVal.timestamp > nowMillis && // is in the future
+    recentlyUsedCustomDateVal.timestamp !== today9amTime && // is not the existing option today 9a.m
     recentlyUsedCustomDateVal.timestamp !== tomorrow9amTime && // is not the existing option tomorrow 9a.m
-    recentlyUsedCustomDateVal.timestamp !== nextMonday && // is not the existing option tomorrow 9a.m
+    recentlyUsedCustomDateVal.timestamp !== nextMonday && // is not the existing option next Monday 9a.m
     isTimestampWithinLast30Days(recentlyUsedCustomDateVal.update_at, userCurrentTimezone);
 }
 
@@ -73,7 +76,7 @@ function getDateOption(now: DateTime, timestamp: number | undefined, userCurrent
     return isInCurrentWeek ? USE_DATE_WEEKDAY_LONG : USE_DATE_MONTH_DAY;
 }
 
-function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, tomorrow9amTime}: Props) {
+function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, tomorrow9amTime, today9amTime}: Props) {
     const now = DateTime.now().setZone(userCurrentTimezone);
     const recentlyUsedCustomDate = useSelector((state: GlobalState) => getPreference(state, scheduledPosts.SCHEDULED_POSTS, scheduledPosts.RECENTLY_USED_CUSTOM_TIME));
     const recentlyUsedCustomDateVal: RecentlyUsedCustomDate = useMemo(() => {
@@ -89,7 +92,7 @@ function RecentUsedCustomDate({handleOnSelect, userCurrentTimezone, nextMonday, 
     const handleRecentlyUsedCustomTime = useCallback((e: React.UIEvent) => handleOnSelect(e, recentlyUsedCustomDateVal.timestamp!), [handleOnSelect, recentlyUsedCustomDateVal.timestamp]);
 
     if (
-        !shouldShowRecentlyUsedCustomTime(now.toMillis(), recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday)
+        !shouldShowRecentlyUsedCustomTime(now.toMillis(), recentlyUsedCustomDateVal, userCurrentTimezone, tomorrow9amTime, nextMonday, today9amTime)
     ) {
         return null;
     }
