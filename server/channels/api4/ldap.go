@@ -495,7 +495,7 @@ func addUserToGroupSyncables(c *Context, w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	if user.AuthService != model.UserAuthServiceLdap && (user.AuthService != model.UserAuthServiceSaml || !*c.App.Config().SamlSettings.EnableSyncWithLdap) {
+	if user.AuthService != model.UserAuthServiceLdap && (user.AuthService != model.UserAuthServiceSaml || !c.App.Config().SamlSettings.SyncsWithLdap()) {
 		c.Err = model.NewAppError("addUserToGroupSyncables", "api.user.add_user_to_group_syncables.not_ldap_user.app_error", nil, "", http.StatusBadRequest)
 		return
 	}

@@ -3,7 +3,7 @@
 
 import type {GlobalState} from 'types/store';
 
-import {isTeamMembershipAccessControlEnabled} from './general';
+import {areChannelAccessControlIndicatorsEnabled, isTeamMembershipAccessControlEnabled} from './general';
 
 function buildState(abacEnabled: boolean, teamFlag: string): GlobalState {
     return {
@@ -36,6 +36,34 @@ describe('selectors/general', () => {
 
         test('should be true when both ABAC and the team flag are on', () => {
             expect(isTeamMembershipAccessControlEnabled(buildState(true, 'true'))).toBe(true);
+        });
+    });
+
+    describe('areChannelAccessControlIndicatorsEnabled', () => {
+        const buildAdminState = (abacEnabled: boolean, indicatorsEnabled: boolean) => ({
+            entities: {
+                admin: {
+                    config: {
+                        AccessControlSettings: {
+                            EnableAttributeBasedAccessControl: abacEnabled,
+                            EnableChannelPolicyIndicators: indicatorsEnabled,
+                        },
+                    },
+                },
+                general: {config: {}},
+            },
+        } as unknown as GlobalState);
+
+        test('should be false when ABAC is disabled even if indicators are on', () => {
+            expect(areChannelAccessControlIndicatorsEnabled(buildAdminState(false, true))).toBe(false);
+        });
+
+        test('should be false when indicators are off', () => {
+            expect(areChannelAccessControlIndicatorsEnabled(buildAdminState(true, false))).toBe(false);
+        });
+
+        test('should be true when both ABAC and indicators are on', () => {
+            expect(areChannelAccessControlIndicatorsEnabled(buildAdminState(true, true))).toBe(true);
         });
     });
 });

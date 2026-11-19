@@ -12718,6 +12718,7 @@ func TestSessionAttributesDeviceMismatchRejectsSubsequentRequest(t *testing.T) {
 	defer th.ConfigStore.SetReadOnlyFF(true)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.FeatureFlags.SessionAttributes = true
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = model.NewPointer(true)
 		cfg.AccessControlSettings.EnforceDeviceIDConsistency = model.NewPointer(true)
 	})
 

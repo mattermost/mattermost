@@ -97,6 +97,7 @@ func enableSessionAttributeFields(t *testing.T, th *TestHelper, fieldNames ...st
 func setSessionAttributesAccessControlSettings(t *testing.T, th *TestHelper, trustProxyDeviceIdentityHeader, enforceDeviceIDConsistency bool) {
 	t.Helper()
 	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(true)
 		cfg.AccessControlSettings.TrustProxyDeviceIdentityHeader = new(trustProxyDeviceIdentityHeader)
 		cfg.AccessControlSettings.EnforceDeviceIDConsistency = new(enforceDeviceIDConsistency)
 	})
@@ -379,6 +380,28 @@ func TestProcessSessionAttributesRequest(t *testing.T) {
 		enableSessionAttributesCollection(t, th)
 		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
 		setSessionAttributesAccessControlSettings(t, th, false, false)
+
+		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+		require.Nil(t, appErr)
+		rctx := th.Context.WithSession(session)
+
+		r := newSessionAttributesRequest(t, testUserAgentDesktop, "192.0.2.10:1234")
+		r.Header.Set(model.SessionAttributeHeaderProxyDeviceID, "proxy-device-id")
+
+		th.App.ProcessSessionAttributesRequest(rctx, r)
+
+		values := sessionAttributeValuesByFieldName(t, th, session.Id)
+		assert.NotContains(t, values, model.SessionAttributesPropertyFieldTLSDDeviceID)
+	})
+
+	t.Run("ignores proxy device ID header when attribute-based access control is disabled", func(t *testing.T) {
+		th := Setup(t).InitBasic(t)
+		enableSessionAttributesCollection(t, th)
+		enableSessionAttributeFields(t, th, model.SessionAttributesPropertyFieldTLSDDeviceID)
+		setSessionAttributesAccessControlSettings(t, th, true, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.AccessControlSettings.EnableAttributeBasedAccessControl = new(false)
+		})
 
 		session, appErr := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 		require.Nil(t, appErr)

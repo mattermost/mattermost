@@ -217,7 +217,7 @@ func (a *App) sendNotificationEmail(rctx request.CTX, notification *PostNotifica
 		return nil, nil
 	}
 
-	if *a.Config().EmailSettings.EnableEmailBatching {
+	if a.Config().EmailSettings.EmailBatchingEnabled() {
 		var sendBatched bool
 		if data, err := a.Srv().Store().Preference().Get(user.Id, model.PreferenceCategoryNotifications, model.PreferenceNameEmailInterval); err != nil {
 			// if the call fails, assume that the interval has not been explicitly set and batch the notifications

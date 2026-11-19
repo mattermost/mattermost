@@ -411,6 +411,15 @@ describe('channel_members_rhs/channel_members_rhs', () => {
             <ChannelMembersRHS
                 {...props as any}
             />,
+            {
+                entities: {
+                    general: {
+                        config: {
+                            EnableAttributeBasedAccessControl: 'true',
+                        },
+                    },
+                },
+            },
         );
 
         expect(useAccessControlAttributes).toHaveBeenCalledWith('channel', 'channel_id', true);

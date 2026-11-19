@@ -53,8 +53,7 @@ type AccessControlMembershipAuditData struct {
 // logging is enabled. Records are still only persisted when an audit target is
 // active; this only reflects the operator opt-in.
 func (a *App) accessControlAuditLoggingEnabled() bool {
-	setting := a.Config().AccessControlSettings.EnableAccessControlAuditLogging
-	return setting != nil && *setting
+	return a.Config().AccessControlSettings.AuditLoggingEnabled()
 }
 
 // accessControlPolicyRevision returns the revision of the access control policy

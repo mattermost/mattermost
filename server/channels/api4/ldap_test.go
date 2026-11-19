@@ -311,6 +311,7 @@ func TestAddUserToGroupSyncables(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
+		th.SetupSamlConfig()
 		th.App.UpdateConfig(func(cfg *model.Config) {
 			*cfg.SamlSettings.EnableSyncWithLdap = true
 		})

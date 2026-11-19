@@ -15,7 +15,7 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, getMetrics func() 
 	const workerName = "MobileSessionMetadata"
 
 	isEnabled := func(cfg *model.Config) bool {
-		return *cfg.MetricsSettings.EnableClientMetrics
+		return cfg.MetricsSettings.ClientMetricsEnabled()
 	}
 	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
 		defer jobServer.HandleJobPanic(logger, job)
