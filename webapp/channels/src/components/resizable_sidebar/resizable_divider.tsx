@@ -121,15 +121,18 @@ function ResizableDivider({
     };
 
     const handleOnResize = (width: number, cssVarProp: string, cssVarValue: string) => {
+        // A width limit can hold the rendered width where it was, and the layout can change it between
+        // pointer moves, so compare what rendered just before and just after this update.
+        const widthBefore = containerRef.current?.getBoundingClientRect().width;
+
         if (onResize) {
             onResize(width, cssVarProp, cssVarValue);
         }
 
         defaultOnResizeChange(width, cssVarProp, cssVarValue);
 
-        // A width limit can hold the rendered width where it was, so check what actually rendered
-        const renderedWidth = containerRef.current?.getBoundingClientRect().width;
-        if (renderedWidth && renderedWidth !== startWidth.current) {
+        const widthAfter = containerRef.current?.getBoundingClientRect().width;
+        if (widthAfter && widthAfter !== widthBefore) {
             pointerResized.current = true;
         }
     };
