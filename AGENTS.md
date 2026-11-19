@@ -40,7 +40,6 @@ When creating a pull request, follow `.github/PULL_REQUEST_TEMPLATE.md` exactly:
 | A notice says "Reviews paused" | `@coderabbitai resume` |
 | New commits, not paused, no review after 20 minutes | `@coderabbitai review` |
 | Findings fixed, but CodeRabbit still requests changes | `@coderabbitai resolve` |
-| A rate-limit notice | `@coderabbitai rate limit`, then `@coderabbitai review` once capacity returns |
 
 ## Cursor Cloud Agents
 
