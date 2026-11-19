@@ -199,7 +199,7 @@ jobs:
               SHOULD_RUN="true"
             fi
 
-            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/e2e-.*\.yml$'; then
+            if echo "$CHANGED_FILES" | grep -qE '^\.github/workflows/(e2e-.*|server-image-check)\.yml$'; then
               echo "Found E2E CI workflow file changes"
               SHOULD_RUN="true"
             fi

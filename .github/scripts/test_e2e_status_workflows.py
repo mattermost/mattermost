@@ -718,6 +718,22 @@ class ServerImageCheck(unittest.TestCase):
         self.assertIn('The image check failed before it could confirm the image.', early)
         self.assertNotEqual(self.run_notify(curl='exit 22')[0].returncode, 0)
 
+    def test_a_change_to_the_gate_alone_runs_e2e(self):
+        """check-changes and the E2E check workflow both match the gate, and the regex matches nothing else new."""
+        run = step(workflow('ci')['jobs']['check-changes'], 'ci/check-relevant-changes')['run']
+        pattern = re.search(r"grep -qE '([^']*)'; then\n\s*echo \"Found E2E CI workflow file changes\"", run).group(1)
+        files = {'.github/workflows/server-image-check.yml': True, '.github/workflows/e2e-tests-ci.yml': True,
+                 '.github/workflows/e2e-tests-lane-result.yml': True, '.github/workflows/server-ci.yml': False,
+                 '.github/workflows/server-image-check.yml.bak': False, '.github/workflows/xserver-image-check.yml': False,
+                 '.github/workflows/server-image-check-extra.yml': False, 'server-image-check.yml': False}
+        matched = subprocess.run(['grep', '-E', pattern], input='\n'.join(files) + '\n', capture_output=True,
+                                 text=True).stdout.split()
+        self.assertEqual(sorted(matched), sorted(f for f, hit in files.items() if hit))
+        check = yaml.safe_load((WORKFLOWS / 'e2e-tests-check.yml').read_text())
+        self.assertIn('.github/workflows/server-image-check.yml', check[True]['pull_request']['paths'])
+        wiring = yaml.safe_load((WORKFLOWS / 'e2e-tests-status-wiring.yml').read_text())
+        self.assertIn('.github/workflows/server-image-check.yml', wiring[True]['pull_request']['paths'])
+
 
 def build_outputs(suite, edition, deploy, report_type, repo='mattermostdevelopment', tag='abc1234'):
     """Runs the lane's own build step and returns its outputs (context, server image, ...)."""
