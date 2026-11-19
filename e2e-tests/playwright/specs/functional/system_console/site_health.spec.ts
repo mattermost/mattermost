@@ -72,7 +72,20 @@ async function runHealthCheck(adminClient: Client4) {
     await waitForIdleHealthCheck(adminClient);
     const job = await adminClient.createJob({type: 'health_check'});
     await expect
-        .poll(async () => (await adminClient.getJob(job.id)).status, {timeout: 60000})
+        .poll(
+            async () => {
+                try {
+                    return (await adminClient.getJob(job.id)).status;
+                } catch (error) {
+                    // Jobs are read from a replica, which may not have the new job yet.
+                    if ((error as {status_code?: number}).status_code === 404) {
+                        return 'pending';
+                    }
+                    throw error;
+                }
+            },
+            {timeout: 60000},
+        )
         .toMatch(/^(success|warning)$/);
 }
 
@@ -221,7 +234,8 @@ test('lists a firing finding in Open and in its severity tab', {tag: '@system_co
     const openRow = siteHealth.section('Info').finding(SESSION_EXTEND_OFF.title);
     await expect(openRow.container).toBeVisible();
     await expect(openRow.area).toHaveText('Authentication');
-    await expect(openRow.trend).toHaveText(/^Firing for \d+m$/);
+    // The finding may have been firing since before this test on a reused server.
+    await expect(openRow.trend).toHaveText(/^Firing for (\d+d( \d+h)?|\d+h( \d+m)?|\d+m)$/);
 
     // # Select the Info tab
     await siteHealth.infoTab.click();
@@ -285,10 +299,10 @@ test('moves a fixed finding to Recently resolved', {tag: '@system_console'}, asy
     await skipUnlessLicensed(pw, ENTERPRISE_TIER);
 
     const {adminUser, adminClient} = await pw.initSetup();
+    const hadPluginHealthFinding = Boolean(await getStoredFinding(adminClient, 'PLUGIN_HEALTH_OFF'));
     await adminClient.patchConfig(SESSION_EXTEND_OFF.fire);
     await runHealthCheck(adminClient);
     const firstSeenAt = (await getStoredFinding(adminClient, SESSION_EXTEND_OFF.code))!.first_seen_at;
-    const hadPluginHealthFinding = Boolean(await getStoredFinding(adminClient, 'PLUGIN_HEALTH_OFF'));
 
     const {systemConsolePage} = await pw.testBrowser.login(adminUser);
     const siteHealth = systemConsolePage.siteHealth;
