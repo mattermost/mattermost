@@ -164,7 +164,11 @@ func (a *App) EvaluatePluginAccessRequest(rctx request.CTX, pluginID, userID, re
 // on each plugin-owned resource in resourceIDs and returns the decisions keyed
 // by resource ID. The subject is built once; each ID is then evaluated through
 // the engine, whose compiled-policy and no-policy caches make the per-ID cost
-// a lookup.
+// a lookup once compiled. A cold batch compiles each policy first, so the first
+// call is noticeably slower than later ones.
+//
+// The subject is a snapshot but each ID is evaluated on its own, so a policy or
+// attribute change during a call can give a mixed view across the IDs.
 //
 // A resource ID absent from the result could not be evaluated and must be
 // treated as a deny by the caller. Whole-batch failures (bad arguments, batch
@@ -233,6 +237,7 @@ func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userI
 
 	acs := a.Srv().ch.AccessControl
 	var failed []string
+	var firstEvalErr error
 	for _, id := range ids {
 		decision, evalErr := acs.AccessEvaluation(rctx, model.AccessRequest{
 			Subject:  *subject,
@@ -240,10 +245,9 @@ func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userI
 			Action:   action,
 		})
 		if evalErr != nil {
-			rctx.Logger().Warn("Plugin access batch evaluation: evaluator error; resolving policy existence",
-				mlog.String("plugin_id", pluginID),
-				mlog.String("resource_id", id),
-				mlog.Err(evalErr))
+			if firstEvalErr == nil {
+				firstEvalErr = evalErr
+			}
 			failed = append(failed, id)
 			continue
 		}
@@ -252,6 +256,14 @@ func (a *App) EvaluatePluginAccessRequestBatch(rctx request.CTX, pluginID, userI
 	}
 
 	if len(failed) > 0 {
+		// One line per batch, not per ID: an evaluator outage fails every ID,
+		// and a plugin calling this per page view would otherwise flood the log.
+		rctx.Logger().Warn("Plugin access batch evaluation: evaluator errors; resolving policy existence",
+			mlog.String("plugin_id", pluginID),
+			mlog.Int("failed_count", len(failed)),
+			mlog.Int("resource_count", len(ids)),
+			mlog.Err(firstEvalErr))
+
 		// Leaving the IDs out on a failed probe is the deny the single-ID
 		// call returns as an error.
 		if gated, err := a.pluginGatedResourceIDs(rctx, resourceType, failed); err != nil {
@@ -545,6 +557,8 @@ func (a *App) DeletePluginAccessControlPolicy(rctx request.CTX, pluginID, acting
 	// is not adversary-reachable by the calling plugin.
 	acs := a.Srv().ch.AccessControl
 	if acs == nil || !a.pluginAccessControlAvailable() {
+		// Mirrors enterprise DeletePolicy (store delete, then cache
+		// invalidation), with a broader purge instead of a per-ID one.
 		if err := a.Srv().Store().AccessControlPolicy().Delete(rctx, id); err != nil {
 			return model.NewAppError(where, "app.pap.delete_policy.app_error", nil, err.Error(), http.StatusInternalServerError)
 		}

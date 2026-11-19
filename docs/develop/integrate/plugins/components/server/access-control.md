@@ -77,7 +77,7 @@ Things to know about saving:
 
 From Mattermost v12.3, `GetAccessControlPolicy` and `DeleteAccessControlPolicy` keep working when attribute-based access control is unavailable, for example after a license lapses or when an admin turns it off. This lets your plugin show an admin the restrictions on a resource, and remove them, even though they can't be enforced:
 
-- `GetAccessControlPolicy` returns the policy as stored, without normalization. Attribute references in rule expressions come back in their stored form rather than as `user.attributes.<name>`. Use this policy to display the restriction only, and don't pass it back to `SaveAccessControlPolicy`. Read it again once attribute-based access control is available.
+- `GetAccessControlPolicy` returns the policy as stored, without normalization. Attribute references in rule expressions come back in their stored, ID-encoded form (for example `user.id_<groupID>.id_<fieldID>`) rather than as `user.attributes.<name>`, so a policy editor needs to expect that form while attribute-based access control is unavailable. Use this policy to display the restriction only, and don't pass it back to `SaveAccessControlPolicy`. Read it again once attribute-based access control is available.
 - `DeleteAccessControlPolicy` deletes the policy directly.
 - `SaveAccessControlPolicy` still needs attribute-based access control, and returns an error without it.
 
@@ -120,6 +120,7 @@ Each decision in the map means the same as a decision from `EvaluateAccessContro
 - **A resource ID that is missing from the map must be denied.** Mattermost leaves out a resource when its policy couldn't be evaluated, or when it couldn't tell whether the resource has a policy.
 - **If the call returns an error, deny every resource.** The error means the whole batch failed, for example because of an invalid argument or because the store couldn't be read. Also deny everything if the call returns a `nil` map without an error, which is what the plugin API returns on a server without this method.
 - When a resource can't be evaluated, Mattermost checks whether it has a policy, as `EvaluateAccessControl` does. A resource without a policy gets the "no policy" decision, and one with a policy is left out of the map.
+- Mattermost loads the user's attributes once, but evaluates each resource on its own. If a policy or the user's attributes change while the call is running, different resources in the same batch can reflect different states. The first call for a policy that isn't cached yet is slower than later ones, because Mattermost compiles the policy first.
 
 ```go
 func (p *Plugin) filterReports(userID string, reportIDs []string, action string) []string {

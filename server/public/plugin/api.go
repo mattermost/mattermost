@@ -1871,7 +1871,16 @@ type API interface {
 	// each of the plugin-owned resources (resourceType, resourceIDs[i]) and
 	// returns one decision per resource ID, keyed by ID. The user's subject is
 	// built once for the whole batch, so this is the method to use when
-	// filtering a list of resources for a single user.
+	// filtering a list of resources for a single user. It is the plugin form of
+	// the access control engine's "evaluate candidates" step: any future
+	// plugin-facing resource or subject search must verify candidates with these
+	// same semantics (an omitted ID is a deny, IsNoPolicy() is a vacuous allow)
+	// rather than introduce a second set.
+	//
+	// Evaluation per resource is a cheap lookup once its policy is compiled; the
+	// first call for a cold policy is slower. The subject is built once but each
+	// resource is evaluated on its own, so a policy or attribute change during a
+	// call can give a mixed view across the resources.
 	//
 	// Each decision has the same semantics as EvaluateAccessControl, including
 	// IsNoPolicy(), and failures resolve the same way: when a resource could not
@@ -1905,10 +1914,11 @@ type API interface {
 	// (not licensed, disabled, or not registered) the stored policy is still
 	// returned, read straight from the store, so a plugin can show its
 	// restrictions after a license lapse. In that case CPA attribute references
-	// in rule expressions are returned as stored (id-encoded, not
-	// "user.attributes.<name>"), so the policy is for display only and must not
-	// be passed back to SaveAccessControlPolicy; re-read it once the engine is
-	// available. Servers before 12.3 return a not-implemented error instead,
+	// in rule expressions are returned as stored (id-encoded, for example
+	// "user.id_<groupID>.id_<fieldID>", not "user.attributes.<name>"), so a
+	// policy editor must expect that form during a lapse. The policy is for
+	// display only and must not be passed back to SaveAccessControlPolicy;
+	// re-read it once the engine is available. Servers before 12.3 return a not-implemented error instead,
 	// which plugins can use to detect the older behavior.
 	//
 	// @tag AccessControl
