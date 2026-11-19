@@ -571,6 +571,8 @@ type SessionStore interface {
 	Save(rctx request.CTX, session *model.Session) (*model.Session, error)
 	GetSessions(rctx request.CTX, userID string) ([]*model.Session, error)
 	GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
+	// GetUnexpiredSessions reads from the master when rctx requests it.
+	GetUnexpiredSessions(rctx request.CTX, opts UnexpiredSessionsOpts) ([]*model.Session, error)
 	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error)
@@ -1289,6 +1291,8 @@ type AccessControlPolicyStore interface {
 	SetMembershipAutoAdd(rctx request.CTX, list []model.AccessControlPolicyAutoAddUpdate) ([]*model.AccessControlPolicy, error)
 	Get(rctx request.CTX, id string) (*model.AccessControlPolicy, error)
 	SearchPolicies(rctx request.CTX, opts model.AccessControlPolicySearch) ([]*model.AccessControlPolicy, int64, error)
+	// GetByType reads from the master when rctx requests it, unlike SearchPolicies.
+	GetByType(rctx request.CTX, policyType string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.AccessControlPolicy, error)
 	GetPoliciesByFieldID(rctx request.CTX, fieldID string) ([]*model.AccessControlPolicy, error)
 
 	// GetActionsForPolicy returns the union of action keys declared by the
@@ -1481,6 +1485,12 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
+}
+
+type UnexpiredSessionsOpts struct {
+	UserIDs []string
+	AfterID string
+	Limit   int
 }
 
 // ThreadMembershipOpts defines some properties to be passed to

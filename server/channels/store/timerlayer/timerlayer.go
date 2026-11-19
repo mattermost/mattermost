@@ -729,6 +729,22 @@ func (s *TimerLayerAccessControlPolicyStore) GetActionsForPolicy(rctx request.CT
 	return result, err
 }
 
+func (s *TimerLayerAccessControlPolicyStore) GetByType(rctx request.CTX, policyType string, cursor model.AccessControlPolicyCursor, limit int) ([]*model.AccessControlPolicy, error) {
+	start := time.Now()
+
+	result, err := s.AccessControlPolicyStore.GetByType(rctx, policyType, cursor, limit)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("AccessControlPolicyStore.GetByType", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerAccessControlPolicyStore) GetEtagEpoch(rctx request.CTX, channelID string) (string, error) {
 	start := time.Now()
 
@@ -11627,6 +11643,22 @@ func (s *TimerLayerSessionStore) GetSessionsWithActiveDeviceIds(userID string) (
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetSessionsWithActiveDeviceIds", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerSessionStore) GetUnexpiredSessions(rctx request.CTX, opts store.UnexpiredSessionsOpts) ([]*model.Session, error) {
+	start := time.Now()
+
+	result, err := s.SessionStore.GetUnexpiredSessions(rctx, opts)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("SessionStore.GetUnexpiredSessions", success, elapsed)
 	}
 	return result, err
 }
