@@ -28611,6 +28611,14 @@
     "defaultMessage": "Add attributes",
     "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb."
   },
+  "post_attributes.composer.cannot_add_burn_on_read": {
+    "defaultMessage": "Burn-on-read messages can’t have attributes",
+    "description": "Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read."
+  },
+  "post_attributes.composer.cannot_burn_on_read": {
+    "defaultMessage": "Messages with attributes can’t be burn-on-read",
+    "description": "Tooltip on the disabled burn-on-read button in the message composer while attributes are attached to the message being written."
+  },
   "post_attributes.composer.cannot_schedule": {
     "defaultMessage": "Messages with attributes can’t be scheduled",
     "description": "Tooltip on the disabled schedule button in the message composer while attributes are attached to the message being written."

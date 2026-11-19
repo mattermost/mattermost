@@ -471,11 +471,27 @@ const AdvancedTextEditor = ({
         isValidPersistentNotifications,
         onSubmitCheck: prioritySubmitCheck,
     } = usePriority(draft, handleDraftChange, focusTextbox, showPreview, false);
+
+    // The server refuses a burn-on-read post with attributes, every time, so
+    // the composer doesn't let the two meet: a staged chip disables
+    // burn-on-read, and burn-on-read disables adding attributes. Any chip, not
+    // only one with a value, since an empty text chip can still be filled in.
+    const burnOnReadBlockedReason = postAttributesEnabled && composerAttributes.chips.length > 0 ? formatMessage({
+        id: 'post_attributes.composer.cannot_burn_on_read',
+        defaultMessage: 'Messages with attributes can’t be burn-on-read',
+        description: 'Tooltip on the disabled burn-on-read button in the message composer while attributes are attached to the message being written.',
+    }) : undefined;
     const {
         labels: burnOnReadLabels,
         additionalControl: burnOnReadAdditionalControl,
         isBurnOnReadSendable: burnOnReadSendable,
-    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
+        hasBurnOnReadSet,
+    } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false, burnOnReadBlockedReason);
+    const addAttributesBlockedReason = hasBurnOnReadSet ? formatMessage({
+        id: 'post_attributes.composer.cannot_add_burn_on_read',
+        defaultMessage: 'Burn-on-read messages can’t have attributes',
+        description: 'Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read.',
+    }) : undefined;
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -1054,6 +1070,7 @@ const AdvancedTextEditor = ({
                                     <PostAttributesButton
                                         fields={composerAttributes.addable}
                                         onSelect={stagedAttributes.add}
+                                        disabledReason={addAttributesBlockedReason}
                                     />
                                 )}
                                 <ToggleFormattingBar

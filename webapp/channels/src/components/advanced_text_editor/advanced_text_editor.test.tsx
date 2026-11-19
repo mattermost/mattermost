@@ -2142,5 +2142,111 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
             });
         });
+
+        // The server refuses a burn-on-read post with attributes, so the
+        // composer keeps the two apart, in both directions.
+        describe('burn-on-read', () => {
+            const withBurnOnRead = mergeObjects(withAttributes, {
+                entities: {
+                    general: {
+                        config: {
+                            EnableBurnOnRead: 'true',
+                        },
+                        license: {
+                            IsLicensed: 'true',
+                            SkuShortName: 'advanced',
+                        },
+                    },
+                },
+            });
+
+            const burnOnReadButton = () => document.getElementById('burnOnReadButton') as HTMLElement;
+
+            it('disables burn-on-read while a chip is staged, says why, and enables it again when the chip is removed', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withBurnOnRead,
+                );
+
+                fireEvent.input(screen.getByTestId('post_textbox'), {target: {value: 'a message with attributes'}});
+                expect(burnOnReadButton()).toBeEnabled();
+
+                await stageClassification();
+
+                expect(burnOnReadButton()).toBeDisabled();
+                await userEvent.hover(screen.getByTestId('burn-on-read-blocked'));
+
+                // Another control's tooltip may still be open from the click before.
+                expect((await screen.findByText('Messages with attributes can’t be burn-on-read')).closest('[role="tooltip"]')).not.toBeNull();
+                expect(screen.getByTestId('SendMessageButton')).toBeEnabled();
+
+                await userEvent.click(screen.getByTestId('post-attribute-remove-classification'));
+
+                await waitFor(() => expect(burnOnReadButton()).toBeEnabled());
+                expect(screen.queryByTestId('burn-on-read-blocked')).not.toBeInTheDocument();
+            });
+
+            it('disables burn-on-read for a staged chip that has no value yet', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withBurnOnRead,
+                );
+
+                // The value menu opens on the pick; nothing is chosen yet.
+                await userEvent.click(screen.getByTestId('post-attributes-composer-add'));
+                await userEvent.click(screen.getByTestId('post-attribute-add-priority'));
+                await screen.findByRole('menuitemradio', {name: /^SECRET/});
+
+                expect(screen.getByTestId('post-attribute-chip-priority')).toBeInTheDocument();
+                expect(burnOnReadButton()).toBeDisabled();
+            });
+
+            it('disables adding attributes while the message is burn-on-read, says why, and enables it again when turned off', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withBurnOnRead,
+                );
+
+                await userEvent.click(burnOnReadButton());
+
+                const add = screen.getByTestId('post-attributes-composer-add');
+                await waitFor(() => expect(add).toBeDisabled());
+
+                await userEvent.hover(screen.getByTestId('post-attributes-composer-add-blocked'));
+
+                // Another control's tooltip may still be open from the click before.
+                expect((await screen.findByText('Burn-on-read messages can’t have attributes')).closest('[role="tooltip"]')).not.toBeNull();
+
+                await userEvent.click(add);
+                expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('post-attribute-chip-classification')).not.toBeInTheDocument();
+
+                await userEvent.click(burnOnReadButton());
+
+                await waitFor(() => expect(screen.getByTestId('post-attributes-composer-add')).toBeEnabled());
+                expect(screen.queryByTestId('post-attributes-composer-add-blocked')).not.toBeInTheDocument();
+            });
+
+            it('leaves adding attributes alone when burn-on-read is not available', async () => {
+                renderWithContext(
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />,
+                    withAttributes,
+                );
+
+                expect(document.getElementById('burnOnReadButton')).toBeNull();
+                expect(screen.getByTestId('post-attributes-composer-add')).toBeEnabled();
+
+                await stageClassification();
+                expect(screen.getByTestId('post-attribute-chip-classification')).toBeInTheDocument();
+            });
+        });
     });
 });

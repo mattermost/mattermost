@@ -306,6 +306,29 @@ describe('PostAttributesFieldPicker', () => {
         expect(screen.getByRole('dialog')).toContainElement(screen.getByRole('menu', {name: 'Add an attribute'}));
     });
 
+    test('with a disabled reason, the trigger is disabled, opens nothing, and shows the reason as its tooltip', async () => {
+        const onSelect = jest.fn();
+        renderWithContext(
+            <PostAttributesFieldPicker
+                fields={[makeField({id: 'f_a', name: 'alpha'})]}
+                onSelect={onSelect}
+                trigger={{label: 'Add attributes', icon: <span/>}}
+                dataTestId='composer-add'
+                disabledReason='Burn-on-read messages can’t have attributes'
+            />,
+        );
+
+        const trigger = screen.getByTestId('composer-add');
+        expect(trigger).toBeDisabled();
+
+        await userEvent.click(trigger);
+        expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+
+        await userEvent.hover(screen.getByTestId('composer-add-blocked'));
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('Burn-on-read messages can’t have attributes');
+        expect(screen.queryByText('Add attributes', {selector: '[role="tooltip"] *'})).not.toBeInTheDocument();
+    });
+
     test('outside a dialog, the menu renders in the page body', async () => {
         renderPicker([makeField({id: 'f_a', name: 'alpha'})]);
         await openPicker();

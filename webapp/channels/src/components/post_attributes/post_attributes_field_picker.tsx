@@ -18,6 +18,7 @@ import type IconProps from '@mattermost/compass-icons/components/props';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {SearchInput} from '@mattermost/compass-ui/components/search-input';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {FieldType, PropertyField} from '@mattermost/types/properties';
 
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
@@ -48,6 +49,11 @@ type Props = {
     // Draws the labelled `+ Add attribute` at the composer's chip row size
     // (`x-small`, 24px) rather than the modal's (`small` compact, 28px).
     compact?: boolean;
+
+    // Why no attribute can be added right now, such as the message being
+    // burn-on-read. Disables the trigger and replaces its tooltip with the
+    // reason.
+    disabledReason?: string;
 };
 
 const IconTrigger = Menu.createMenuIconButtonTrigger({size: 'small'});
@@ -100,7 +106,7 @@ function matches(field: PropertyField, term: string): boolean {
  * in the same order, which is the channel's field order, so a field found in one
  * is where the other left it.
  */
-export default function PostAttributesFieldPicker({fields, onSelect, id = 'postAttributesAdd', dataTestId = 'post-attributes-add', trigger, compact}: Props) {
+export default function PostAttributesFieldPicker({fields, onSelect, id = 'postAttributesAdd', dataTestId = 'post-attributes-add', trigger, compact, disabledReason}: Props) {
     const {formatMessage} = useIntl();
 
     const searchable = fields.length >= SEARCH_THRESHOLD;
@@ -197,10 +203,10 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
         </div>
     ) : undefined;
 
-    return (
+    const menu = (
         <Menu.Container
-            menuButton={menuButton}
-            menuButtonTooltip={trigger ? {text: trigger.label} : undefined}
+            menuButton={{...menuButton, disabled: Boolean(disabledReason)}}
+            menuButtonTooltip={trigger && !disabledReason ? {text: trigger.label} : undefined}
             menuHeader={searchBox}
 
             // An icon trigger sits in the composer's bottom action row, so the
@@ -235,6 +241,26 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
                 />
             ))}
         </Menu.Container>
+    );
+
+    if (!disabledReason) {
+        return menu;
+    }
+
+    // A disabled trigger gets no hover or focus, so the reason's tooltip sits
+    // on a focusable wrapper, as the schedule button does when it's blocked.
+    return (
+        <WithTooltip title={disabledReason}>
+            <span
+                className='PostAttributesFieldPicker__blocked'
+                data-testid={`${dataTestId}-blocked`}
+
+                // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled trigger is unreachable by keyboard, so the tooltip explaining why is mouse-only
+                tabIndex={0}
+            >
+                {menu}
+            </span>
+        </WithTooltip>
     );
 }
 
