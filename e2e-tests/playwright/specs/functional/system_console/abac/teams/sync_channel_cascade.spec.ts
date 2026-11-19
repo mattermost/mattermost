@@ -215,7 +215,6 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
 
         // * Navigating to the governed team URL redirects mkt1 away (no membership)
         await mkt1Page.goto(`/${team.name}/channels/town-square`);
-        await mkt1Page.waitForLoadState('networkidle');
         await expect(mkt1Page).not.toHaveURL(new RegExp(`/${team.name}/`), {timeout: 10000});
 
         // =========================================================

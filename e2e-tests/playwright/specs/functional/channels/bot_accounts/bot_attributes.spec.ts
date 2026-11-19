@@ -51,7 +51,7 @@ async function dismissWebpackOverlay(page: Page) {
 }
 
 function botAttributeCombobox(page: Page, fieldId: string) {
-    return page.getByTestId(`bot-attribute-label-${fieldId}`).getByRole('combobox');
+    return page.getByTestId(`bot-attribute-combobox-${fieldId}`);
 }
 
 // Focus alone doesn't open the menu, so click and wait for it; the listbox is portaled to the page.

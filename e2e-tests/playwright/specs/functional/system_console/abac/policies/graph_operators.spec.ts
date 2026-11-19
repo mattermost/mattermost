@@ -122,10 +122,8 @@ test.describe('System Console - Membership Policy graph operators', () => {
      */
     async function openPolicyEditorOnGraphAttribute(page: any, policyName: string) {
         await page.goto('/admin_console/system_attributes/membership_policies');
-        await page.waitForLoadState('networkidle');
 
         await page.getByRole('button', {name: 'Add policy'}).click();
-        await page.waitForLoadState('networkidle');
         const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
         await nameInput.waitFor({state: 'visible', timeout: 10000});
         await nameInput.fill(policyName);
@@ -134,7 +132,6 @@ test.describe('System Console - Membership Policy graph operators', () => {
         await addAttributeButton.waitFor({state: 'visible', timeout: 10000});
         if (await addAttributeButton.isDisabled()) {
             await page.reload();
-            await page.waitForLoadState('networkidle');
             await nameInput.fill(policyName);
             await expect(addAttributeButton).toBeEnabled({timeout: 15000});
         }
@@ -212,7 +209,7 @@ test.describe('System Console - Membership Policy graph operators', () => {
         onPolicyId?: (id: string) => void,
     ): Promise<string> {
         await page.getByRole('button', {name: 'Save'}).last().click();
-        await page.waitForLoadState('networkidle');
+        await expect(page).toHaveURL(/\/admin_console\/system_attributes\/membership_policies$/);
 
         const policyId = await policyIdByExactName(policyName);
         onPolicyId?.(policyId);

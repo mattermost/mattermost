@@ -204,7 +204,7 @@ class AdminUserCard {
 
     /** The combobox input of a select, multiselect or rank CPA field, located by its exact label. */
     getCpaCombobox(labelText: string): Locator {
-        return this.getFieldColumn(labelText).getByRole('combobox', {name: labelText, exact: true});
+        return this.getFieldColumn(labelText).locator('[role="combobox"]');
     }
 
     /** The field-name <label> that points at a CPA combobox. */

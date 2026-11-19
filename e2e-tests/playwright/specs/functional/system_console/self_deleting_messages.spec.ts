@@ -46,7 +46,6 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Posts section
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
 
         // * Verify Posts section is visible
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
@@ -88,7 +87,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.sidebar.userManagement.users.click();
         await systemConsolePage.users.toBeVisible();
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
+        await expect(postsSection).toBeVisible();
 
         // * Verify feature is still enabled
         expect(await enableToggleTrue.isChecked()).toBe(true);
@@ -124,7 +123,6 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Posts section
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
         const durationDropdown = postsSection.getByTestId('ServiceSettings.BurnOnReadDurationSecondsdropdown');
@@ -141,7 +139,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.sidebar.userManagement.users.click();
         await systemConsolePage.users.toBeVisible();
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
+        await expect(durationDropdown).toBeVisible();
 
         // * Verify duration is still 60 seconds
         expect(await durationDropdown.inputValue()).toBe('60');
@@ -177,7 +175,6 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Posts section
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
         const maxTTLDropdown = postsSection.getByTestId('ServiceSettings.BurnOnReadMaximumTimeToLiveSecondsdropdown');
@@ -194,7 +191,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await systemConsolePage.sidebar.userManagement.users.click();
         await systemConsolePage.users.toBeVisible();
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
+        await expect(maxTTLDropdown).toBeVisible();
 
         // * Verify max TTL is still 1 day
         expect(await maxTTLDropdown.inputValue()).toBe('86400');
@@ -231,7 +228,6 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Posts section
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
         const enableToggleTrue = postsSection.getByTestId('ServiceSettings.EnableBurnOnReadtrue');
@@ -300,12 +296,12 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Posts section
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
         const enableToggleTrue = postsSection.getByTestId('ServiceSettings.EnableBurnOnReadtrue');
         const durationDropdown = postsSection.getByTestId('ServiceSettings.BurnOnReadDurationSecondsdropdown');
         const maxTTLDropdown = postsSection.getByTestId('ServiceSettings.BurnOnReadMaximumTimeToLiveSecondsdropdown');
+        await expect(postsSection).toBeVisible();
 
         // * Verify configured values are displayed
         expect(await enableToggleTrue.isChecked()).toBe(true);
@@ -327,7 +323,6 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Reload directly to Posts section
         await page.goto('/admin_console/site_config/posts');
-        await page.waitForLoadState('networkidle');
 
         // * Verify values persist after reload — toHaveValue has built-in retry
         await expect(enableToggleTrue).toBeChecked({timeout: 5000});
@@ -365,7 +360,6 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Posts section
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
         const enableToggleTrue = postsSection.getByTestId('ServiceSettings.EnableBurnOnReadtrue');
@@ -385,7 +379,6 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Channels by going to the team URL
         await page.goto(`/${team.name}/channels/off-topic`);
-        await page.waitForLoadState('networkidle');
 
         // * Verify BoR toggle is visible in post create area
         const borButton = page.getByRole('button', {name: /Burn-on-read/i});
@@ -422,7 +415,6 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Posts section
         await systemConsolePage.sidebar.siteConfiguration.posts.click();
-        await page.waitForLoadState('networkidle');
 
         const postsSection = page.getByTestId('sysconsole_section_PostSettings');
         const enableToggleFalse = postsSection.getByTestId('ServiceSettings.EnableBurnOnReadfalse');
@@ -442,7 +434,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Channels by going to the team URL
         await page.goto(`/${team.name}/channels/off-topic`);
-        await page.waitForLoadState('networkidle');
+        await expect(page.getByTestId('post-create')).toBeVisible();
 
         // * Verify BoR toggle is NOT visible in post create area
         const borButton = page.getByRole('button', {name: /Burn-on-read/i});

@@ -197,7 +197,7 @@ test('MM-T5775 Update custom profile attributes when changed @custom_profile_att
     }
 
     // 4. Close the profile popover
-    await channelsPage.page.click('body', {position: {x: 10, y: 10}});
+    await channelsPage.page.locator('body').click({position: {x: 10, y: 10}});
 
     // 5. Update custom profile attributes
     const updatedAttributes: CustomProfileAttribute[] = [

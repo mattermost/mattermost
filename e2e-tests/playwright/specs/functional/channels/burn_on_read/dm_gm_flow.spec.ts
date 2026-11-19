@@ -354,21 +354,26 @@ test.describe('Burn-on-Read in DMs and GMs', () => {
         const count = await concealedPlaceholders.count();
         expect(count).toBeGreaterThanOrEqual(1);
 
-        // # Reveal all concealed messages
-        for (let i = 0; i < count; i++) {
-            const placeholder = concealedPlaceholders.nth(i);
+        // # Reveal all concealed messages. Capture ids first: `.first()` retargets
+        // the next still-concealed message after one is revealed.
+        const concealedIds = await concealedPlaceholders.evaluateAll((elements: Element[]) =>
+            elements.map((element) => element.getAttribute('data-testid')).filter((id): id is string => Boolean(id)),
+        );
+        for (const id of concealedIds) {
+            const placeholder = receiverPage.centerView.container.getByTestId(id);
             if (await placeholder.isVisible()) {
                 await placeholder.click();
-                // Wait for reveal animation
-                await receiverPage.page.waitForTimeout(500);
+                await expect(placeholder).toBeHidden();
             }
         }
 
-        // * Verify at least one of the messages is visible after revealing
-        const pageContent = await receiverPage.centerView.container.textContent();
-        const hasMessage1 = pageContent?.includes(message1);
-        const hasMessage2 = pageContent?.includes(message2);
-        expect(hasMessage1 || hasMessage2).toBe(true);
+        // * Verify at least one of the messages is visible after revealing.
+        // Match the post body only; the screen-reader live region repeats the same text.
+        const revealedMessage = receiverPage.centerView.container
+            .locator('p')
+            .filter({hasText: message1})
+            .or(receiverPage.centerView.container.locator('p').filter({hasText: message2}));
+        await expect(revealedMessage.first()).toBeVisible();
     });
 
     test('MM-66742_8 BoR toggle resets after sending message', {tag: [BOR_TAG]}, async ({pw}) => {

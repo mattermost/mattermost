@@ -93,8 +93,7 @@ export class FilterPopover {
     async searchInTeamMenu(teamDisplayName: string) {
         await expect(this.teamMenuInput).toBeVisible();
         await this.teamMenuInput.fill(teamDisplayName);
-        // Wait a bit for async search results to appear
-        await this.container.page().waitForTimeout(500);
+        await expect(this.container.getByRole('option').first()).toBeVisible();
     }
 
     /**

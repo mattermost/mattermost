@@ -260,9 +260,7 @@ test.describe('System Console - Session Attributes', () => {
 
             // # Open a new permission policy and add an attribute row
             await page.goto('/admin_console/system_attributes/permission_policies');
-            await page.waitForLoadState('networkidle');
             await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
             await page.getByPlaceholder('Add a unique policy name').fill(`PP Session ${pw.random.id()}`);
 
             await openAttributePicker(page);
@@ -284,9 +282,7 @@ test.describe('System Console - Session Attributes', () => {
 
             // # Open a new membership policy and add an attribute row
             await page.goto('/admin_console/system_attributes/membership_policies');
-            await page.waitForLoadState('networkidle');
             await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
             await page
                 .locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName')
                 .fill(`MP Session ${pw.random.id()}`);
@@ -310,9 +306,7 @@ test.describe('System Console - Session Attributes', () => {
 
             // # Open a fresh permission policy, pick the session attribute, set a value
             await page.goto('/admin_console/system_attributes/permission_policies');
-            await page.waitForLoadState('networkidle');
             await page.getByRole('button', {name: 'Add policy'}).click();
-            await page.waitForLoadState('networkidle');
             await page.getByPlaceholder('Add a unique policy name').fill(`PP CEL ${pw.random.id()}`);
 
             await openAttributePicker(page);

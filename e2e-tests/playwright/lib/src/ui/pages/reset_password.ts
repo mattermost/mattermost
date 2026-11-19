@@ -13,6 +13,7 @@ export default class ResetPasswordPage {
     readonly subtitle;
     readonly emailInput;
     readonly resetButton;
+    readonly emailSent;
 
     readonly header;
     readonly footer;
@@ -24,13 +25,13 @@ export default class ResetPasswordPage {
         this.subtitle = page.getByText('To reset your password, enter the email address you used to sign up');
         this.emailInput = page.locator('#passwordResetEmailInput');
         this.resetButton = page.locator('#passwordResetButton');
+        this.emailSent = page.locator('#passwordResetEmailSent');
 
         this.header = new components.MainHeader(page.getByTestId('signup-header'));
         this.footer = new components.Footer(page.locator('#footer_section'));
     }
 
     async toBeVisible() {
-        await this.page.waitForLoadState('networkidle');
         await expect(this.title).toBeVisible();
         await expect(this.subtitle).toBeVisible();
         await expect(this.emailInput).toBeVisible();
@@ -43,6 +44,7 @@ export default class ResetPasswordPage {
 
     async reset(email: string) {
         await this.emailInput.fill(email);
-        await Promise.all([this.page.waitForNavigation(), this.resetButton.click()]);
+        await this.resetButton.click();
+        await expect(this.emailSent).toBeVisible();
     }
 }

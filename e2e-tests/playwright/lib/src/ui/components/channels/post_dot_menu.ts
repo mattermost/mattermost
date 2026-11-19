@@ -31,7 +31,7 @@ export default class PostDotMenu {
         const getMenuItem = (hasText: string) => container.getByRole('menuitem').filter({hasText});
 
         this.replyMenuItem = getMenuItem('Reply');
-        this.quoteMenuItem = getMenuItem('Quote');
+        this.quoteMenuItem = container.locator('[data-testid^="quote_post_"]');
         this.forwardMenuItem = getMenuItem('Forward');
         this.followMessageMenuItem = getMenuItem('Follow message');
         this.markAsUnreadMenuItem = getMenuItem('Mark as Unread');

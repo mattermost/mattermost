@@ -27,6 +27,12 @@ if (isUpgradeToPhaseProjectSelected()) {
 
 exportUpgradePathProjectSelection();
 
+function withoutDeviceScreen<T extends object>(device: T): T {
+    const copy = {...device};
+    delete (copy as {screen?: unknown}).screen;
+    return copy;
+}
+
 const chromeUse = {
     browserName: 'chromium' as const,
     permissions: ['notifications', 'clipboard-read', 'clipboard-write'] as string[],
@@ -78,7 +84,8 @@ export default defineConfig({
             name: 'ipad',
             use: {
                 browserName: 'chromium',
-                ...devices['iPad Pro 11'],
+                // Use the device viewport without its screen size.
+                ...withoutDeviceScreen(devices['iPad Pro 11']),
                 permissions: ['notifications', 'clipboard-read', 'clipboard-write'],
             },
             dependencies: ['setup'],

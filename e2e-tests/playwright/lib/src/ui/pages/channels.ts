@@ -8,6 +8,7 @@ import {waitUntil} from 'async-wait-until';
 import type {
     ChannelNotificationPreferencesModal,
     ChannelsPost,
+    ChannelsSidebarRight,
     SettingsModal,
     TeamSettingsModal,
     InvitePeopleModal,
@@ -35,7 +36,7 @@ export default class ChannelsPage {
     readonly searchBox;
     readonly centerView;
     readonly sidebarLeft;
-    readonly sidebarRight;
+    readonly sidebarRight: ChannelsSidebarRight;
     readonly appBar;
     readonly userProfilePopover;
     readonly messagePriority;

@@ -359,7 +359,7 @@ export default class ChannelsPostCreate {
         await expect(this.input).toBeVisible();
         await this.input.focus();
 
-        await this.input.evaluate(
+        const notCancelled = await this.input.evaluate(
             (el, {html, plainText, withoutFormatting}) => {
                 if (withoutFormatting) {
                     el.dispatchEvent(
@@ -376,15 +376,14 @@ export default class ChannelsPostCreate {
                 const dataTransfer = new DataTransfer();
                 dataTransfer.setData('text/html', html);
                 dataTransfer.setData('text/plain', plainText);
-                const notCancelled = el.dispatchEvent(
+                return el.dispatchEvent(
                     new ClipboardEvent('paste', {clipboardData: dataTransfer, bubbles: true, cancelable: true}),
                 );
-
-                if (notCancelled) {
-                    document.execCommand('insertText', false, plainText);
-                }
             },
             {html, plainText, withoutFormatting},
         );
+        if (notCancelled) {
+            await this.input.page().keyboard.insertText(plainText);
+        }
     }
 }

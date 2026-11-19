@@ -405,7 +405,7 @@ export async function setChannelMultiselectValue(
  */
 export async function openPolicyEditor(page: Page, policyId: string): Promise<void> {
     await page.goto(`/admin_console/system_attributes/membership_policies/edit_policy/${policyId}`);
-    await page.waitForLoadState('networkidle');
+    await expect(page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName')).toBeVisible();
 }
 
 type ApiError = {status_code?: number; server_error_id?: string};

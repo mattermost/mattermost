@@ -130,7 +130,5 @@ const setupSystemManagerPermission = async (
 
     // Wait for save to complete - successful save redirects to system_roles list
     await systemConsolePage.page.waitForURL('**/admin_console/user_management/system_roles');
-
-    // Wait for the page to fully load
-    await systemConsolePage.page.waitForLoadState('networkidle');
+    await expect(systemConsolePage.delegatedGranularAdministration.adminRolesPanel.title).toBeVisible();
 };
