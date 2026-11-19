@@ -101,7 +101,7 @@ func NewAzureFileBackend(settings FileBackendSettings) (*AzureFileBackend, error
 		pathPrefix:     settings.AzurePathPrefix,
 		timeout:        timeout,
 		presignExpires: time.Duration(settings.AzurePresignExpiresSeconds) * time.Second,
-		ssl:            settings.AzureSSL,
+		ssl:            strings.HasPrefix(strings.ToLower(serviceURL), "https://"),
 	}, nil
 }
 

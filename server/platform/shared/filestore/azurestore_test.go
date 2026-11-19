@@ -455,6 +455,43 @@ func TestAzureGeneratePublicLink(t *testing.T) {
 	})
 }
 
+func TestAzureGeneratePublicLinkProtocol(t *testing.T) {
+	for name, tc := range map[string]struct {
+		cloud            string
+		endpoint         string
+		azureSSL         bool
+		expectedProtocol string
+	}{
+		"commercial cloud with SSL":         {cloud: model.AzureCloudCommercial, azureSSL: true, expectedProtocol: "https"},
+		"commercial cloud without SSL":      {cloud: model.AzureCloudCommercial, azureSSL: false, expectedProtocol: "https,http"},
+		"custom http endpoint ignores SSL":  {cloud: model.AzureCloudCustom, endpoint: "http://localhost:10000/devstoreaccount1/", azureSSL: true, expectedProtocol: "https,http"},
+		"custom https endpoint ignores SSL": {cloud: model.AzureCloudCustom, endpoint: "https://acme.blob.core.chinacloudapi.cn/", azureSSL: false, expectedProtocol: "https"},
+		"custom uppercase HTTPS endpoint":   {cloud: model.AzureCloudCustom, endpoint: "HTTPS://acme.blob.core.chinacloudapi.cn/", azureSSL: false, expectedProtocol: "https"},
+	} {
+		t.Run(name, func(t *testing.T) {
+			be, err := NewAzureFileBackend(FileBackendSettings{
+				DriverName:                      driverAzure,
+				AzureStorageAccount:             azuriteWellKnownAccount,
+				AzureAuthMode:                   model.AzureAuthModeSharedKey,
+				AzureAccessKey:                  azuriteWellKnownKey,
+				AzureContainer:                  "acontainer",
+				AzureCloud:                      tc.cloud,
+				AzureEndpoint:                   tc.endpoint,
+				AzureSSL:                        tc.azureSSL,
+				AzureRequestTimeoutMilliseconds: 30000,
+				AzurePresignExpiresSeconds:      300,
+			})
+			require.NoError(t, err)
+
+			link, _, err := be.GeneratePublicLink("any/path")
+			require.NoError(t, err)
+			u, err := url.Parse(link)
+			require.NoError(t, err)
+			require.Equal(t, tc.expectedProtocol, u.Query().Get("spr"))
+		})
+	}
+}
+
 // flipBase64Char swaps a base64 character for another in the same alphabet
 // to produce a still-valid-but-wrong signature character. Used only by the
 // tamper test above.
