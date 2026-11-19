@@ -281,6 +281,8 @@ test('treats members of a direct and a group message as admins', {tag: '@post_at
 test('does not make a guest an admin of a direct message', {tag: '@post_attributes'}, async ({pw}) => {
     await pw.ensureFeatureFlag('PostAttributes', true);
 
+    await pw.skipIfNoLicense();
+
     const {adminClient, team} = await pw.initSetup();
     const restoreGuests = await enableGuestAccounts(adminClient);
     test.skip(!restoreGuests, 'the licence does not allow guest accounts');
@@ -310,8 +312,8 @@ test('does not make a guest an admin of a direct message', {tag: '@post_attribut
         await expectModalAccess(page, channelsPage, post.id, fields, ['member']);
         await expectServerAccess(guestClient, post.id, fields, ['member']);
     } finally {
-        await restoreGuests?.();
         await deleteFields(adminClient, created);
+        await restoreGuests?.();
     }
 });
 
@@ -323,6 +325,8 @@ test('does not make a guest an admin of a direct message', {tag: '@post_attribut
  */
 test('lets a guest set member and creator fields on their own post', {tag: '@post_attributes'}, async ({pw}) => {
     await pw.ensureFeatureFlag('PostAttributes', true);
+
+    await pw.skipIfNoLicense();
 
     const {adminClient, team} = await pw.initSetup();
     const restoreGuests = await enableGuestAccounts(adminClient);
@@ -376,6 +380,10 @@ test('lets a guest set member and creator fields on their own post', {tag: '@pos
             ]),
         );
 
+        // The request resolving means only that the browser sent it; the guest's own
+        // client lists the channel separately, so wait until the server has answered.
+        await (await request).response();
+
         const sent = (await guestClient.getPosts(channel.id)).posts;
         const post = Object.values(sent).find((candidate) => candidate.message === `guest post ${suffix}`)!;
         const onScreen = await channelsPage.centerView.getPostById(post.id);
@@ -388,8 +396,8 @@ test('lets a guest set member and creator fields on their own post', {tag: '@pos
         await expectModalAccess(page, channelsPage, post.id, fields, ['member', 'creator']);
         await expectServerAccess(guestClient, post.id, fields, ['member', 'creator']);
     } finally {
-        await restoreGuests?.();
         await deleteFields(adminClient, created);
+        await restoreGuests?.();
     }
 });
 

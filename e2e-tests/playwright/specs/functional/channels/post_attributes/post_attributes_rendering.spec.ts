@@ -121,13 +121,13 @@ test(
 );
 
 /**
- * @objective Verify a field that no longer fits in the row is not skipped in favour of a
- * later one that would: the row reads in field order, so the leftovers go to the badge.
+ * @objective Verify a multiselect that fills the row is cut short, and the badge counts
+ * its remaining entries and every field after it: the row reads in field order.
  *
  * @precondition The PostAttributes feature flag is enabled.
  */
 test(
-    'sends a field that does not fit to the badge rather than skipping to a later one',
+    'cuts a multiselect that fills the row short and counts the rest in the badge',
     {tag: '@post_attributes'},
     async ({pw}) => {
         await pw.ensureFeatureFlag('PostAttributes', true);
@@ -721,8 +721,8 @@ test('draws no chips on a burn-on-read post, concealed or revealed', {tag: '@pos
         await expect(borPost.container).toContainText(`burn after reading ${suffix}`);
         await expect(borPost.container.getByTestId(CHIPS)).toHaveCount(0);
     } finally {
-        await adminClient.patchConfig({ServiceSettings: {EnableBurnOnRead: config.ServiceSettings.EnableBurnOnRead}});
         await deleteFields(adminClient, created);
+        await adminClient.patchConfig({ServiceSettings: {EnableBurnOnRead: config.ServiceSettings.EnableBurnOnRead}});
     }
 });
 

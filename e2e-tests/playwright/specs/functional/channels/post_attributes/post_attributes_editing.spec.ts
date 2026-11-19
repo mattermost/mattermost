@@ -6,12 +6,11 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
-    VALUES_ROUTE,
+    activeSystemFields,
     countLoads,
     createField,
     deleteFields,
     fieldName,
-    foreignSystemFields,
     modalClear,
     modalRow,
     modalTrigger,
@@ -21,6 +20,7 @@ import {
     purgeFields,
     recordRequests,
     setPostValues,
+    VALUES_ROUTE,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -768,11 +768,8 @@ test('omits the field picker when every field already has a row', {tag: '@post_a
     try {
         await purgeFields(adminClient);
 
-        const foreign = await foreignSystemFields(adminClient);
-        test.skip(
-            foreign.length > 0,
-            `${foreign.length} post attribute fields this suite did not create exist on the server`,
-        );
+        const others = await activeSystemFields(adminClient);
+        test.skip(others.length > 0, `${others.length} other post attribute fields exist on the server`);
 
         const classification = await createField(adminClient, fieldName('classification', suffix), {
             options: ['SECRET', 'UNCLASSIFIED'],

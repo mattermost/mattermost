@@ -115,8 +115,8 @@ test('shows a post and a reply from another user with their chips, live', {tag: 
         await expect(rootInRhs.container.getByTestId(CHIPS).getByTestId(OPTION_CHIP)).toHaveText('SECRET');
         expect(loads()).toBe(0);
     } finally {
-        await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: collapsedThreads}});
         await deleteFields(adminClient, created);
+        await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: collapsedThreads}});
     }
 });
 

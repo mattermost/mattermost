@@ -8,12 +8,11 @@ import type {ChannelsPage, ChannelsPost} from '@mattermost/playwright-lib';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
-    VALUES_ROUTE,
+    activeSystemFields,
     countLoads,
     createField,
     deleteFields,
     fieldName,
-    foreignSystemFields,
     modalClear,
     modalInput,
     modalRow,
@@ -23,6 +22,7 @@ import {
     pickerItem,
     purgeFields,
     setPostValues,
+    VALUES_ROUTE,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -145,11 +145,8 @@ test('offers no Attributes item when there is nothing to view or add', {tag: '@p
     try {
         await purgeFields(adminClient);
 
-        const foreign = await foreignSystemFields(adminClient);
-        test.skip(
-            foreign.length > 0,
-            `${foreign.length} post attribute fields this suite did not create exist on the server`,
-        );
+        const others = await activeSystemFields(adminClient);
+        test.skip(others.length > 0, `${others.length} other post attribute fields exist on the server`);
 
         const restricted = await createField(adminClient, fieldName('restricted', suffix), {
             options: ['NOFORN'],
@@ -282,10 +279,10 @@ test(
             await expect(channelsPage.postDotMenu.container.getByRole('menuitem', {name: /Remind/})).toBeVisible();
             await expect(channelsPage.postDotMenu.container.getByRole('menuitem', {name: 'Attributes'})).toHaveCount(0);
         } finally {
+            await deleteFields(adminClient, created);
             await adminClient.patchConfig({
                 ServiceSettings: {EnableBurnOnRead: config.ServiceSettings.EnableBurnOnRead},
             });
-            await deleteFields(adminClient, created);
         }
     },
 );
@@ -631,7 +628,9 @@ test(
             await expect(search).toHaveValue('');
             await expect(pickerItem(page, fields.alpha)).toBeVisible();
 
-            // # Move into the list and pick the first field
+            // # Narrow the list to one field, so the first entry is it whatever other fields
+            // the server has, then move into the list and pick it
+            await page.keyboard.type(`alpha_${suffix}`);
             await page.keyboard.press('ArrowDown');
             await expect(pickerItem(page, fields.alpha)).toBeFocused();
             await page.keyboard.press('Enter');

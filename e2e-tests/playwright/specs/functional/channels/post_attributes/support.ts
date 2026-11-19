@@ -375,13 +375,14 @@ export async function chooseOption(page: Page, name: string, {multi = false}: {m
 }
 
 /**
- * The system-scoped fields on the server that this suite did not create. They are
- * not the suite's to touch, but they decide whether a case that needs "no other
- * field" can run.
+ * The active system-scoped fields on the server, for a case that needs "no other field"
+ * to decide whether it can run. Call it after `purgeFields` and before the case creates
+ * its own: anything left then is either not the suite's to touch, or one of the suite's
+ * that the purge failed to delete, and either one would be offered alongside the case's.
  */
-export async function foreignSystemFields(adminClient: Client4): Promise<PropertyField[]> {
+export async function activeSystemFields(adminClient: Client4): Promise<PropertyField[]> {
     const fields = await adminClient.getPropertyFields(GROUP, OBJECT_TYPE, {targetType: 'system'});
-    return (fields ?? []).filter((field) => !field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
+    return (fields ?? []).filter((field) => field.delete_at === 0);
 }
 
 // The edit modal's locators for one field. The modal is a dialog on the page, so they are

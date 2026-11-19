@@ -583,8 +583,10 @@ test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, a
         const noforn = postOnScreen.container.getByTestId(OPTION_CHIP).filter({hasText: 'NOFORN'});
         const orcon = postOnScreen.container.getByTestId(OPTION_CHIP).filter({hasText: 'ORCON'});
         const nofornBackground = await noforn.evaluate((el: Element) => getComputedStyle(el).backgroundColor);
+        const nofornColour = await noforn.evaluate((el: Element) => getComputedStyle(el).color);
 
         await expect(orcon).toHaveCSS('background-color', nofornBackground);
+        await expect(orcon).toHaveCSS('color', nofornColour);
         await expect(noforn).toHaveCSS('background-color', /^rgba\(/);
         await expect(noforn).not.toHaveAttribute('style', /./);
         await expect(orcon).not.toHaveAttribute('style', /./);

@@ -8,6 +8,7 @@ import type {PropertyField} from '@mattermost/types/properties';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
+    activeSystemFields,
     chooseOption,
     composerChip,
     composerChips,
@@ -20,7 +21,6 @@ import {
     createField,
     deleteFields,
     fieldName,
-    foreignSystemFields,
     optionId,
     pickerItem,
     purgeFields,
@@ -503,11 +503,8 @@ test('hides both add controls when every settable field is staged', {tag: '@post
     try {
         await purgeFields(adminClient);
 
-        const foreign = await foreignSystemFields(adminClient);
-        test.skip(
-            foreign.length > 0,
-            `${foreign.length} post attribute fields this suite did not create exist on the server`,
-        );
+        const others = await activeSystemFields(adminClient);
+        test.skip(others.length > 0, `${others.length} other post attribute fields exist on the server`);
 
         const one = await createField(adminClient, fieldName('one', suffix), {type: 'text'});
         const two = await createField(adminClient, fieldName('two', suffix), {type: 'text'});
@@ -627,8 +624,8 @@ test(
             await expect(composerChips(thread)).toHaveCount(0);
             await expect(composerChip(centre, other)).toBeVisible();
         } finally {
-            await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: collapsedThreads}});
             await deleteFields(adminClient, created);
+            await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: collapsedThreads}});
         }
     },
 );
@@ -696,8 +693,8 @@ test('sends a reply with attributes', {tag: '@post_attributes'}, async ({pw}) =>
                 .getByTestId(TEXT_CHIP),
         ).toHaveText('on the reply');
     } finally {
-        await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: collapsedThreads}});
         await deleteFields(adminClient, created);
+        await adminClient.patchConfig({ServiceSettings: {CollapsedThreads: collapsedThreads}});
     }
 });
 
@@ -876,8 +873,8 @@ test('blocks scheduling while a value is staged', {tag: '@post_attributes'}, asy
         // * Verify Send still works, and carries the value
         expect(sentValues(await request)).toEqual([{field_id: note.id, value: 'sent'}]);
     } finally {
-        await adminClient.patchConfig({ServiceSettings: {ScheduledPosts: scheduledPosts}});
         await deleteFields(adminClient, created);
+        await adminClient.patchConfig({ServiceSettings: {ScheduledPosts: scheduledPosts}});
     }
 });
 
@@ -895,6 +892,8 @@ test('keeps burn-on-read and attributes apart', {tag: '@post_attributes'}, async
     const {adminClient, user, userClient, team} = await pw.initSetup();
     const suffix = pw.random.id();
     const created: PropertyField[] = [];
+
+    await pw.skipIfNoLicense();
 
     const license = await adminClient.getClientLicenseOld();
     test.skip(
@@ -973,8 +972,8 @@ test('keeps burn-on-read and attributes apart', {tag: '@post_attributes'}, async
         expect(refused?.status_code).toBe(400);
         expect(refused?.server_error_id).toBe('api.post.create_post.attributes_burn_on_read.app_error');
     } finally {
-        await adminClient.patchConfig({ServiceSettings: {EnableBurnOnRead: enableBurnOnRead}});
         await deleteFields(adminClient, created);
+        await adminClient.patchConfig({ServiceSettings: {EnableBurnOnRead: enableBurnOnRead}});
     }
 });
 
@@ -1109,8 +1108,8 @@ test('sends values together with a file and a priority label', {tag: '@post_attr
         await channelsPage.messagePriority.verifyPriorityLabel(withPriority, 'Important');
         await expect(withPriority.getByTestId(CHIPS).getByTestId(TEXT_CHIP)).toHaveText('with a label');
     } finally {
-        await adminClient.patchConfig({ServiceSettings: {PostPriority: postPriority}});
         await deleteFields(adminClient, created);
+        await adminClient.patchConfig({ServiceSettings: {PostPriority: postPriority}});
     }
 });
 
