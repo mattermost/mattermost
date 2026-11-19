@@ -14,10 +14,11 @@ import (
 )
 
 const (
-	AccessControlPolicyTypeParent     = "parent"
-	AccessControlPolicyTypeChannel    = "channel"
-	AccessControlPolicyTypePermission = "permission"
-	AccessControlPolicyTypeTeam       = "team"
+	AccessControlPolicyTypeParent        = "parent"
+	AccessControlPolicyTypeChannel       = "channel"
+	AccessControlPolicyTypePermission    = "permission"
+	AccessControlPolicyTypeTeam          = "team"
+	AccessControlPolicyTypeSystemSetting = "system_setting"
 
 	MaxPolicyNameLength = 128
 
@@ -293,6 +294,8 @@ type AccessControlPolicy struct {
 type AccessControlPolicyRule struct {
 	Actions    []string `json:"actions"`
 	Expression string   `json:"expression"`
+	// Value is the serialized ClientConfig value of a system_setting rule.
+	Value string `json:"value,omitempty"`
 	// Name is an admin-facing label for the rule. Required for v0.4 permission
 	// rules and must be unique within the same policy.
 	Name string `json:"name,omitempty"`
@@ -675,7 +678,7 @@ func validatePermissionPolicyRoles(roles []string) *AppError {
 }
 
 func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
-	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission, AccessControlPolicyTypeTeam}, p.Type) {
+	if !slices.Contains([]string{AccessControlPolicyTypeParent, AccessControlPolicyTypeChannel, AccessControlPolicyTypePermission, AccessControlPolicyTypeTeam, AccessControlPolicyTypeSystemSetting}, p.Type) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.type.app_error", nil, "", 400)
 	}
 
@@ -683,7 +686,7 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.id.app_error", nil, "", 400)
 	}
 
-	if (p.Type == AccessControlPolicyTypeParent || p.Type == AccessControlPolicyTypePermission) && (p.Name == "" || len(p.Name) > MaxPolicyNameLength) {
+	if (p.Type == AccessControlPolicyTypeParent || p.Type == AccessControlPolicyTypePermission || p.Type == AccessControlPolicyTypeSystemSetting) && (p.Name == "" || len(p.Name) > MaxPolicyNameLength) {
 		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.name.app_error", nil, "", 400)
 	}
 
@@ -726,9 +729,14 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 		if len(p.Imports) > 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
 		}
+	case AccessControlPolicyTypeSystemSetting:
+		return p.validateSystemSettingPolicyRules()
 	}
 
 	for _, rule := range p.Rules {
+		if rule.Value != "" {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_value.app_error", nil, "value is only valid on system_setting policy rules", 400)
+		}
 		if len(rule.Actions) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "actions must not be empty", 400)
 		}
@@ -773,6 +781,55 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_3() *AppError {
 			}
 		}
 
+		if appErr := rule.validateRuleContract(); appErr != nil {
+			return appErr
+		}
+	}
+
+	return nil
+}
+
+func (p *AccessControlPolicy) validateSystemSettingPolicyRules() *AppError {
+	if len(p.Rules) == 0 {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rules.app_error", nil, "", 400)
+	}
+
+	if err := validatePermissionPolicyRoles(p.Roles); err != nil {
+		return err
+	}
+
+	if len(p.Imports) > 0 {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.imports.app_error", nil, "", 400)
+	}
+
+	if p.Scope != "" || p.ScopeID != "" {
+		return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.scope.app_error", nil, "", 400)
+	}
+
+	seenKeys := make(map[string]struct{}, len(p.Rules))
+	for _, rule := range p.Rules {
+		if len(rule.Actions) != 1 {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "system_setting rules must specify exactly one setting key", 400)
+		}
+		key := rule.Actions[0]
+		def, ok := LookupSystemSettingDefinition(key)
+		if !ok {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.system_setting_key.app_error", map[string]any{"Key": key}, fmt.Sprintf("unrecognized system setting key: %s", key), 400)
+		}
+		if _, dup := seenKeys[key]; dup {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.system_setting_duplicate_key.app_error", map[string]any{"Key": key}, fmt.Sprintf("duplicate system setting key: %s", key), 400)
+		}
+		seenKeys[key] = struct{}{}
+
+		if !def.ValidateValue(rule.Value) {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.system_setting_value.app_error", map[string]any{"Key": key}, fmt.Sprintf("invalid value for system setting %s", key), 400)
+		}
+		if rule.Role != "" {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_role.app_error", nil, "system_setting rules must not have a role", 400)
+		}
+		if len(rule.Name) > MaxPolicyNameLength {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_name.app_error", nil, "rule name exceeds the policy max length", 400)
+		}
 		if appErr := rule.validateRuleContract(); appErr != nil {
 			return appErr
 		}
@@ -860,6 +917,9 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_4() *AppError {
 
 	seenNames := make(map[string]struct{})
 	for _, rule := range p.Rules {
+		if rule.Value != "" {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_value.app_error", nil, "value is only valid on system_setting policy rules", 400)
+		}
 		if len(rule.Actions) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "actions must not be empty", 400)
 		}
@@ -966,6 +1026,9 @@ func (p *AccessControlPolicy) accessPolicyVersionV0_5() *AppError {
 	}
 
 	for _, rule := range p.Rules {
+		if rule.Value != "" {
+			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.rule_value.app_error", nil, "value is only valid on system_setting policy rules", 400)
+		}
 		if len(rule.Actions) == 0 {
 			return NewAppError("AccessControlPolicy.IsValid", "model.access_policy.is_valid.actions.app_error", nil, "actions must not be empty", 400)
 		}
@@ -1010,7 +1073,8 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 		}
 		p.Imports = append(p.Imports, parent.ID)
 	case AccessControlPolicyVersionV0_3:
-		if p.Type == AccessControlPolicyTypePermission || parent.Type == AccessControlPolicyTypePermission {
+		if p.Type == AccessControlPolicyTypePermission || parent.Type == AccessControlPolicyTypePermission ||
+			p.Type == AccessControlPolicyTypeSystemSetting || parent.Type == AccessControlPolicyTypeSystemSetting {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.permission.app_error", nil, "", 400)
 		}
 		if parent.Type != AccessControlPolicyTypeParent {
@@ -1024,7 +1088,8 @@ func (p *AccessControlPolicy) Inherit(parent *AccessControlPolicy) *AppError {
 		}
 		p.Imports = append(p.Imports, parent.ID)
 	case AccessControlPolicyVersionV0_4:
-		if p.Type == AccessControlPolicyTypePermission || parent.Type == AccessControlPolicyTypePermission {
+		if p.Type == AccessControlPolicyTypePermission || parent.Type == AccessControlPolicyTypePermission ||
+			p.Type == AccessControlPolicyTypeSystemSetting || parent.Type == AccessControlPolicyTypeSystemSetting {
 			return NewAppError("AccessControlPolicy.Inherit", "model.access_policy.inherit.permission.app_error", nil, "", 400)
 		}
 		// v0.4 channel policies may import v0.3 or v0.4 parent policies.

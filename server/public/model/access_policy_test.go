@@ -2227,3 +2227,164 @@ func TestCreateBurnOnReadPostAction(t *testing.T) {
 		require.Nil(t, policy.accessPolicyVersionV0_4())
 	})
 }
+
+func TestSystemSettingPolicyValidation(t *testing.T) {
+	validPolicy := func() *AccessControlPolicy {
+		return &AccessControlPolicy{
+			ID:       NewId(),
+			Name:     "Biometrics for Finance",
+			Type:     AccessControlPolicyTypeSystemSetting,
+			Revision: 0,
+			Version:  AccessControlPolicyVersionV0_3,
+			Roles:    []string{SystemUserRoleId},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{ClientConfigKeyMobileEnableBiometrics},
+				Expression: `user.attributes.Department == "Finance"`,
+				Value:      "true",
+			}},
+		}
+	}
+
+	t.Run("valid boolean true and false", func(t *testing.T) {
+		p := validPolicy()
+		require.Nil(t, p.IsValid())
+
+		p.Rules[0].Value = "false"
+		require.Nil(t, p.IsValid())
+	})
+
+	t.Run("default feature flag is enabled", func(t *testing.T) {
+		var flags FeatureFlags
+		flags.SetDefaults()
+		require.True(t, flags.SystemSettingPolicies)
+	})
+
+	t.Run("requires name", func(t *testing.T) {
+		p := validPolicy()
+		p.Name = ""
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.name.app_error", err.Id)
+	})
+
+	t.Run("requires single role", func(t *testing.T) {
+		p := validPolicy()
+		p.Roles = nil
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
+
+		p.Roles = []string{SystemUserRoleId, SystemAdminRoleId}
+		err = p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.roles.app_error", err.Id)
+	})
+
+	t.Run("rejects imports and scope", func(t *testing.T) {
+		p := validPolicy()
+		p.Imports = []string{NewId()}
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.imports.app_error", err.Id)
+
+		p = validPolicy()
+		p.Scope = AccessControlPolicyScopeTeam
+		p.ScopeID = NewId()
+		err = p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.scope.app_error", err.Id)
+	})
+
+	t.Run("rejects unknown setting key", func(t *testing.T) {
+		p := validPolicy()
+		p.Rules[0].Actions = []string{"SiteURL"}
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.system_setting_key.app_error", err.Id)
+	})
+
+	t.Run("rejects multiple actions in one rule", func(t *testing.T) {
+		p := validPolicy()
+		p.Rules[0].Actions = []string{ClientConfigKeyMobileEnableBiometrics, "OtherKey"}
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.actions.app_error", err.Id)
+	})
+
+	t.Run("rejects duplicate setting key across rules", func(t *testing.T) {
+		p := validPolicy()
+		p.Rules = append(p.Rules, AccessControlPolicyRule{
+			Actions:    []string{ClientConfigKeyMobileEnableBiometrics},
+			Expression: `user.attributes.Department == "Engineering"`,
+			Value:      "false",
+		})
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.system_setting_duplicate_key.app_error", err.Id)
+	})
+
+	t.Run("rejects invalid setting value", func(t *testing.T) {
+		for _, badVal := range []string{"", "yes", "1", "TRUE"} {
+			p := validPolicy()
+			p.Rules[0].Value = badVal
+			err := p.IsValid()
+			require.NotNil(t, err, "expected error for value %q", badVal)
+			require.Equal(t, "model.access_policy.is_valid.system_setting_value.app_error", err.Id)
+		}
+	})
+
+	t.Run("rejects empty expression or rule role", func(t *testing.T) {
+		p := validPolicy()
+		p.Rules[0].Expression = "   "
+		err := p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.rule_expression.app_error", err.Id)
+
+		p = validPolicy()
+		p.Rules[0].Role = ChannelUserRoleId
+		err = p.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.rule_role.app_error", err.Id)
+	})
+
+	t.Run("rejects rule value on non-system_setting policies", func(t *testing.T) {
+		perm := &AccessControlPolicy{
+			ID:      NewId(),
+			Name:    "Perm",
+			Type:    AccessControlPolicyTypePermission,
+			Version: AccessControlPolicyVersionV0_3,
+			Roles:   []string{SystemUserRoleId},
+			Rules: []AccessControlPolicyRule{{
+				Actions:    []string{AccessControlPolicyActionUploadFileAttachment},
+				Expression: "true",
+				Value:      "true",
+			}},
+		}
+		err := perm.IsValid()
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.is_valid.rule_value.app_error", err.Id)
+	})
+
+	t.Run("rejects inherit involving system_setting policy", func(t *testing.T) {
+		parent := &AccessControlPolicy{
+			ID:      NewId(),
+			Name:    "Parent",
+			Type:    AccessControlPolicyTypeParent,
+			Version: AccessControlPolicyVersionV0_3,
+			Rules:   []AccessControlPolicyRule{{Actions: []string{AccessControlPolicyActionMembership}, Expression: "true"}},
+		}
+		sys := validPolicy()
+		err := sys.Inherit(parent)
+		require.NotNil(t, err)
+		require.Equal(t, "model.access_policy.inherit.permission.app_error", err.Id)
+	})
+
+	t.Run("SystemSettingDefinition ValidateValue covers all value types", func(t *testing.T) {
+		require.True(t, SystemSettingDefinition{ValueType: SystemSettingValueTypeNumber}.ValidateValue("42"))
+		require.False(t, SystemSettingDefinition{ValueType: SystemSettingValueTypeNumber}.ValidateValue("abc"))
+		require.True(t, SystemSettingDefinition{ValueType: SystemSettingValueTypeSelect, AllowedOptions: []string{"a", "b"}}.ValidateValue("a"))
+		require.False(t, SystemSettingDefinition{ValueType: SystemSettingValueTypeSelect, AllowedOptions: []string{"a", "b"}}.ValidateValue("c"))
+		require.True(t, SystemSettingDefinition{ValueType: SystemSettingValueTypeString}.ValidateValue("anything"))
+		require.False(t, SystemSettingDefinition{ValueType: "unknown"}.ValidateValue("anything"))
+	})
+}

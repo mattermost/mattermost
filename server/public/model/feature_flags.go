@@ -70,6 +70,9 @@ type FeatureFlags struct {
 	// the webapp doesn't offer them, and rules already stored aren't enforced.
 	ChannelPermissionActions bool
 
+	// Enable system setting policies (session-scoped ClientConfig overrides).
+	SystemSettingPolicies bool
+
 	ContentFlagging bool
 
 	EnableMattermostEntry bool
@@ -240,6 +243,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
 	f.ChannelPermissionActions = false
+	f.SystemSettingPolicies = true
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 

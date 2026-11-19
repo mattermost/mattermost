@@ -737,6 +737,7 @@
         "ChannelPermissionPolicies": false,
         "PolicySimulation": false,
         "ChannelPermissionActions": false,
+        "SystemSettingPolicies": false,
         "ContentFlagging": false,
         "EnableMattermostEntry": false,
         "MobileSSOCodeExchange": false,

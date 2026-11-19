@@ -16990,6 +16990,11 @@
     "description": "API validation error shown to system admins saving an attribute-based access control policy; 'rule' is a policy rule and 'role' is the user role the rule applies to."
   },
   {
+    "id": "model.access_policy.is_valid.rule_value.app_error",
+    "translation": "Rule value is only allowed on system setting policies.",
+    "description": "API validation error shown when saving a non-system-setting access control policy whose rule carries a configuration override value."
+  },
+  {
     "id": "model.access_policy.is_valid.rules.app_error",
     "translation": "Rule(s) is not valid.",
     "description": "API validation error shown to system admins saving an attribute-based access control policy when one or more of its rules fail validation; 'Rule(s)' refers to policy rules."
@@ -17018,6 +17023,21 @@
     "id": "model.access_policy.is_valid.session_attribute_on_membership.app_error",
     "translation": "Membership rules cannot reference session attributes (user.session). Use a permission policy instead.",
     "description": "API validation error shown to system admins saving an access control policy; 'user.session' is a literal attribute prefix in the rule expression and 'membership'/'permission' are policy rule kinds."
+  },
+  {
+    "id": "model.access_policy.is_valid.system_setting_duplicate_key.app_error",
+    "translation": "System setting policy cannot contain multiple rules for {{.Key}}.",
+    "description": "API validation error shown to system admins saving a system setting policy that specifies the same ClientConfig setting key ({{.Key}}) in more than one rule."
+  },
+  {
+    "id": "model.access_policy.is_valid.system_setting_key.app_error",
+    "translation": "{{.Key}} is not a supported policy-configurable system setting.",
+    "description": "API validation error shown to system admins saving a system setting policy targeting an unrecognized or unsupported ClientConfig setting key ({{.Key}})."
+  },
+  {
+    "id": "model.access_policy.is_valid.system_setting_value.app_error",
+    "translation": "Invalid value for system setting {{.Key}}.",
+    "description": "API validation error shown to system admins saving a system setting policy whose rule value does not match the expected format for {{.Key}} (for example, 'true' or 'false' for boolean settings)."
   },
   {
     "id": "model.access_policy.is_valid.type.app_error",
