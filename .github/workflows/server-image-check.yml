@@ -1,8 +1,9 @@
 ---
 # Checks that the server image an E2E run needs is on Docker Hub before any of its lanes start.
 # Callers run it once per edition, and that edition's lanes need it. An image still missing after
-# 5 minutes fails this check, under its own name and commit status: the fix belongs in the pipeline
-# that pushes the image, not in E2E, and waiting longer is deliberately not an option.
+# 5 minutes fails this check, under its own name and commit status (and, outside PRs, alerts the report
+# channel): the fix belongs in the pipeline that pushes the image, not in E2E, and waiting longer is
+# deliberately not an option.
 name: Server image check
 on:
   workflow_call:
@@ -33,6 +34,15 @@ on:
         required: false
         default: "true"
         description: "'false' when no lane of this edition will start a server: passes at once, without probing or publishing a status"
+      ref_branch:
+        type: string
+        required: false
+        default: ""
+        description: "Tested branch, shown in the failure alert"
+    secrets:
+      REPORT_WEBHOOK_URL:
+        required: false
+        description: "Report channel webhook; a failed check alerts it on MASTER, RELEASE and RELEASE_CUT runs, never on PRs"
 
 permissions: {}
 
@@ -45,6 +55,7 @@ jobs:
       statuses: write
     steps:
       - name: ci/check-server-image
+        id: check
         if: inputs.should_run != 'false'
         env:
           COMMIT_SHA: ${{ inputs.commit_sha }}
@@ -80,6 +91,7 @@ jobs:
           esac
           REPOSITORY_PATH="${SERVER_IMAGE_REPO}/${NAME}"
           IMAGE="${REPOSITORY_PATH}:${SERVER_IMAGE_TAG}"
+          printf 'image=%s\ncontext=%s\n' "$IMAGE" "server-image/${SERVER_EDITION}${SUFFIX}" >> "${GITHUB_OUTPUT:-/dev/null}"
           ACCEPT="application/vnd.oci.image.index.v1+json,application/vnd.docker.distribution.manifest.list.v2+json,application/vnd.oci.image.manifest.v1+json,application/vnd.docker.distribution.manifest.v2+json"
 
           # The registry's HTTP status for the manifest, or 000 when it cannot be reached.
@@ -136,9 +148,45 @@ jobs:
             message="${IMAGE} is not on Docker Hub: still missing after ${waited} (${checks} checks, limit ${POLL_MINUTES} min). No E2E lane for this edition started. The pipeline that builds and pushes this image has to deliver it on time; fix it there, then re-run. E2E will not wait longer."
             echo "::error title=Server image not available::${message}"
             echo "### Server image not available"$'\n\n'"${message}" >> "${GITHUB_STEP_SUMMARY:-/dev/null}"
+            echo "detail=Still missing after ${waited} (${checks} checks, limit ${POLL_MINUTES} min)." >> "${GITHUB_OUTPUT:-/dev/null}"
             publish failure "Not available after ${waited}: ${IMAGE}; fix its image build, then re-run"
             exit 1
           fi
           # A Docker Hub outage is not a missing image: the lanes start and their own pulls report it.
           echo "::warning title=Server image not verified::Docker Hub could not be checked for ${IMAGE}; the E2E workers will try to pull it."
           publish success "Docker Hub unreachable; ${IMAGE} not verified"
+      # A failed check skips this edition's lanes, so their lane result never posts: alert the report
+      # channel here instead. Best effort, bounded, and never on a PR run or a cancelled one.
+      - name: ci/notify-server-image-unavailable
+        if: failure() && inputs.report_type != 'PR' && env.REPORT_WEBHOOK_URL != ''
+        continue-on-error: true
+        timeout-minutes: 1
+        env:
+          REPORT_WEBHOOK_URL: ${{ secrets.REPORT_WEBHOOK_URL }}
+          IMAGE: ${{ steps.check.outputs.image }}
+          CONTEXT: ${{ steps.check.outputs.context }}
+          DETAIL: ${{ steps.check.outputs.detail }}
+          COMMIT_SHA: ${{ inputs.commit_sha }}
+          SERVER_EDITION: ${{ inputs.server_edition }}
+          SERVER_IMAGE_REPO: ${{ inputs.server_image_repo }}
+          SERVER_IMAGE_TAG: ${{ inputs.server_image_tag }}
+          REPORT_TYPE: ${{ inputs.report_type }}
+          REF_BRANCH: ${{ inputs.ref_branch }}
+          REPOSITORY: ${{ github.repository }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}/attempts/${{ github.run_attempt }}
+        run: |
+          set -euo pipefail
+          case "$REPORT_TYPE" in
+            RELEASE_CUT) icon=":github_round:" ;;
+            *) icon=":git_merge:" ;;
+          esac
+          text="**Server image not available - ${CONTEXT:-server-image/${SERVER_EDITION}}**
+
+          ${icon} [${COMMIT_SHA:0:7}](https://github.com/${REPOSITORY}/commit/${COMMIT_SHA}) on \`${REF_BRANCH}\`
+          :docker: \`${IMAGE:-${SERVER_IMAGE_REPO} ${SERVER_EDITION} image, tag ${SERVER_IMAGE_TAG}}\`
+          Edition \`${SERVER_EDITION}\`: no E2E lane for it started. ${DETAIL:-The image check failed before it could confirm the image.}
+          Fix the pipeline that builds and pushes this image, then re-run; E2E does not wait for it. | [run](${RUN_URL})"
+          payload=$(jq -nc --arg text "$text" \
+            '{username: "E2E Test", icon_url: "https://mattermost.com/wp-content/uploads/2022/02/icon_WS.png",
+              attachments: [{color: "#F44336", text: $text}]}')
+          curl -fsS -o /dev/null --max-time 20 -X POST -H "Content-Type: application/json" -d "$payload" "$REPORT_WEBHOOK_URL"

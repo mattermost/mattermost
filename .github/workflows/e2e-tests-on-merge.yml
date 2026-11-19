@@ -140,6 +140,9 @@ jobs:
       server_edition: enterprise
       server_image_tag: ${{ inputs.server_image_tag }}
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
 
   # FIPS builds were introduced in release-11.0; skip for older branches.
   server-image-fips:
@@ -153,6 +156,9 @@ jobs:
       server_edition: fips
       server_image_tag: ${{ inputs.server_image_tag }}
       report_type: ${{ needs.generate-build-variables.outputs.report_type }}
+      ref_branch: ${{ needs.generate-build-variables.outputs.ref_branch }}
+    secrets:
+      REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
 
   # Enterprise Edition
   e2e-cypress:

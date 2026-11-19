@@ -445,6 +445,10 @@ class ServerImageCheck(unittest.TestCase):
                ('on-merge', 'mattermostdevelopment', '${{ inputs.server_image_tag }}',
                 '${{ needs.generate-build-variables.outputs.report_type }}'),
                ('on-release', 'mattermost', '${{ inputs.server_image_tag }}', 'RELEASE_CUT'))
+    # Callers whose gate alerts the report channel on failure, with the branch each passes.
+    ALERTING_CALLERS = {'on-merge': '${{ needs.generate-build-variables.outputs.ref_branch }}',
+                        'on-release': '${{ needs.validate.outputs.ref_branch }}'}
+    WEBHOOK = '${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}'
 
     def gate_job(self):
         """The gate's only job."""
@@ -458,13 +462,14 @@ class ServerImageCheck(unittest.TestCase):
         job = self.gate_job()
         self.assertEqual(job['timeout-minutes'], 10)
         self.assertEqual(job['permissions'], {'statuses': 'write'})
-        self.assertEqual([s['name'] for s in job['steps']], ['ci/check-server-image'])
+        self.assertEqual([s['name'] for s in job['steps']], ['ci/check-server-image', 'ci/notify-server-image-unavailable'])
         check = job['steps'][0]
         self.assertNotIn('continue-on-error', check)
+        self.assertNotIn('timeout-minutes', check)
         self.assertNotIn('uses', check)
         self.assertEqual((check['env']['POLL_MINUTES'], check['env']['INTERVAL_SECONDS']), ('5', '30'))
         inputs = yaml.safe_load(self.GATE.read_text())[True]['workflow_call']['inputs']
-        self.assertEqual(sorted(inputs), ['commit_sha', 'report_type', 'server_edition', 'server_image_repo',
+        self.assertEqual(sorted(inputs), ['commit_sha', 'ref_branch', 'report_type', 'server_edition', 'server_image_repo',
                                           'server_image_tag', 'should_run'])
         self.assertEqual(inputs['should_run']['default'], 'true')
 
@@ -506,6 +511,8 @@ class ServerImageCheck(unittest.TestCase):
                         expected['commit_sha'] = '${{ needs.resolve-pr.outputs.COMMIT_SHA }}'
                     if repo != 'mattermostdevelopment':
                         expected['server_image_repo'] = repo
+                    if caller in self.ALERTING_CALLERS:
+                        expected['ref_branch'] = self.ALERTING_CALLERS[caller]
                     self.assertEqual({k: v for k, v in gate['with'].items() if k != 'should_run'}, expected)
                 lanes = {name: job for name, job in jobs.items() if job.get('uses') in self.LANE_USES}
                 self.assertEqual(len(lanes), 5)
@@ -550,9 +557,10 @@ class ServerImageCheck(unittest.TestCase):
                         'COMMIT_SHA': commit, 'SERVER_EDITION': edition, 'SERVER_IMAGE_REPO': repo,
                         'SERVER_IMAGE_TAG': tag, 'REPORT_TYPE': report_type, 'GH_TOKEN': 't',
                         'REPOSITORY': 'mattermost/mattermost', 'RUN_URL': 'https://example.test/run',
-                        'GITHUB_STEP_SUMMARY': str(state / 'summary')})
+                        'GITHUB_STEP_SUMMARY': str(state / 'summary'), 'GITHUB_OUTPUT': str(state / 'output')})
             result = subprocess.run(['bash', '-c', check['run']], capture_output=True, text=True, env=env)
             read = lambda name: (state / name).read_text() if (state / name).exists() else ''
+            self.outputs = dict(line.split('=', 1) for line in read('output').splitlines())
             calls = [c.strip().split('\n') for c in read('gh').split('---') if c.strip()]
             return result, read('summary'), read('urls').split(), calls
 
@@ -628,6 +636,87 @@ class ServerImageCheck(unittest.TestCase):
                 result, _, urls, calls = self.run_check('200', **kwargs)
                 self.assertEqual(result.returncode, 1)
                 self.assertEqual((urls, calls), ([], []))
+
+    def test_failure_alert_is_best_effort_and_never_on_prs(self):
+        """A failed check alerts the report channel only outside PRs, never on a pass, skip or cancel, and the
+        alert can neither fail the gate nor outlast its job limit."""
+        notify = self.gate_job()['steps'][1]
+        self.assertEqual(notify['if'], "failure() && inputs.report_type != 'PR' && env.REPORT_WEBHOOK_URL != ''")
+        self.assertIs(notify['continue-on-error'], True)
+        self.assertEqual(notify['timeout-minutes'], 1)
+        self.assertIn('--max-time 20', notify['run'])
+        self.assertEqual(notify['env']['REPORT_WEBHOOK_URL'], '${{ secrets.REPORT_WEBHOOK_URL }}')
+        self.assertNotIn('${{', notify['run'])
+        secrets = yaml.safe_load(self.GATE.read_text())[True]['workflow_call']['secrets']
+        self.assertEqual(secrets['REPORT_WEBHOOK_URL']['required'], False)
+
+    def test_only_trunk_and_release_gates_get_the_webhook(self):
+        """Merge and release-cut gates get the same webhook secret as their lanes; the PR gates get none."""
+        for caller, ref_branch in self.ALERTING_CALLERS.items():
+            jobs = workflow(caller)['jobs']
+            lane_secrets = {job['secrets']['REPORT_WEBHOOK_URL'] for job in jobs.values()
+                            if job.get('uses') in self.LANE_USES}
+            self.assertEqual(lane_secrets, {self.WEBHOOK}, caller)
+            for edition in ('enterprise', 'fips'):
+                gate = jobs[f'server-image-{edition}']
+                self.assertEqual(gate['secrets'], {'REPORT_WEBHOOK_URL': self.WEBHOOK}, (caller, edition))
+                self.assertEqual(gate['with']['ref_branch'], ref_branch, (caller, edition))
+                self.assertNotEqual(gate['with']['report_type'], 'PR', (caller, edition))
+        for edition in ('enterprise', 'fips'):
+            gate = workflow('ci')['jobs'][f'server-image-{edition}']
+            self.assertNotIn('secrets', gate)
+            self.assertEqual(gate['with']['report_type'], 'PR')
+
+    def test_failed_check_hands_the_alert_its_image_and_wait(self):
+        """The check step's outputs name the image and status context, and say how long it waited when missing."""
+        self.run_check('404', '404', report_type='MASTER')
+        self.assertEqual(self.outputs, {
+            'image': 'mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678',
+            'context': 'server-image/fips/master', 'detail': 'Still missing after 5m 0s (2 checks, limit 5 min).'})
+        self.run_check('200', report_type='RELEASE_CUT', repo='mattermost', edition='enterprise')
+        self.assertEqual(self.outputs, {'image': 'mattermost/mattermost-enterprise-edition:abc1234_def5678',
+                                        'context': 'server-image/enterprise/release-cut'})
+
+    def run_notify(self, curl='exit 0', **env):
+        """Runs the alert step with a fake curl. Returns the process and the webhook payload it posted."""
+        notify = self.gate_job()['steps'][1]
+        with tempfile.TemporaryDirectory() as tmp:
+            calls = pathlib.Path(tmp) / 'curl'
+            values = {'REPORT_WEBHOOK_URL': 'https://hooks.example.test/x', 'COMMIT_SHA': 'a' * 40,
+                      'SERVER_EDITION': 'fips', 'SERVER_IMAGE_REPO': 'mattermostdevelopment',
+                      'SERVER_IMAGE_TAG': 'abc1234_def5678', 'REPORT_TYPE': 'MASTER', 'REF_BRANCH': 'master',
+                      'IMAGE': 'mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678',
+                      'CONTEXT': 'server-image/fips/master', 'DETAIL': 'Still missing after 5m 0s (11 checks, limit 5 min).',
+                      'REPOSITORY': 'mattermost/mattermost', 'RUN_URL': 'https://example.test/run'}
+            values.update(env)
+            values['PATH'] = fake_bin(tmp, curl=f'printf "%s\\n" "$@" > {calls}; {curl}')
+            result = subprocess.run(['bash', '-c', notify['run']], capture_output=True, text=True, env=values)
+            args = calls.read_text().split('\n') if calls.exists() else []
+            payload = json.loads(args[args.index('-d') + 1]) if '-d' in args else None
+            if payload is not None:
+                self.assertEqual(args[-2], 'https://hooks.example.test/x')
+            return result, payload
+
+    def test_alert_says_what_is_missing_where_and_who_fixes_it(self):
+        """The alert uses the lane result's webhook layout and names the image, edition, commit, run and the fix."""
+        result, payload = self.run_notify()
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertEqual((payload['username'], payload['attachments'][0]['color']), ('E2E Test', '#F44336'))
+        text = payload['attachments'][0]['text']
+        self.assertTrue(text.startswith('**Server image not available - server-image/fips/master**\n\n:git_merge: '), text)
+        for part in (f'[aaaaaaa](https://github.com/mattermost/mattermost/commit/{"a" * 40}) on `master`',
+                     ':docker: `mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678`',
+                     'Edition `fips`: no E2E lane for it started.', 'Still missing after 5m 0s',
+                     'Fix the pipeline that builds and pushes this image', 'E2E does not wait for it',
+                     '[run](https://example.test/run)'):
+            self.assertIn(part, text)
+        cut = self.run_notify(REPORT_TYPE='RELEASE_CUT', REF_BRANCH='release-11.4')[1]['attachments'][0]['text']
+        self.assertIn(':github_round: [aaaaaaa]', cut)
+        self.assertIn('on `release-11.4`', cut)
+        early = self.run_notify(IMAGE='', CONTEXT='', DETAIL='')[1]['attachments'][0]['text']
+        self.assertIn('**Server image not available - server-image/fips**', early)
+        self.assertIn('The image check failed before it could confirm the image.', early)
+        self.assertNotEqual(self.run_notify(curl='exit 22')[0].returncode, 0)
 
 
 def build_outputs(suite, edition, deploy, report_type, repo='mattermostdevelopment', tag='abc1234'):

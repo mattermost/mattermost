@@ -366,8 +366,9 @@ Where `<phase>` is `cypress-smoke`, `cypress-full`, `playwright-smoke`, or `play
 - **Limits:** it polls for at most 5 minutes, and the job is cut off at 10 (`timeout-minutes: 10`). Neither is an input.
 - **Skip-only PRs:** when `check-changes` finds no E2E-relevant change, the enterprise lanes still run, but only to post `No E2E-relevant changes - skipped`. `e2e-tests-ci.yml` then passes `should_run: 'false'` to `server-image-enterprise`, and the check passes at once without probing or publishing a status. It still probes when a rolling-upgrade or subpath lane will run, because those lanes have their own gates and boot a server even when `should_run` is false. The merge and release callers leave it at the default `'true'`.
 - **Image missing at the deadline:** the job fails with `Server image not available`, naming the image, how long it waited and how many checks it made. None of that edition's lanes start. A late image is a delivery problem: fix the pipeline that pushes the image, then re-run. E2E does not wait longer.
+- **Channel alert on failure:** a failed check skips its lanes, so no lane result posts to the report webhook. On merge to master, merge to a release branch and release cut, the check posts its own `Server image not available` message instead (see [Webhook Message Format](#server-image-not-available)). The merge and release callers pass `MM_E2E_REPORT_WEBHOOK_URL` to it as `REPORT_WEBHOOK_URL`, the same secret their lanes get; `e2e-tests-ci.yml` passes none, and the step also skips `report_type: PR`, so PR runs never alert. It runs only on `failure()`: not on a pass, a skip-only pass or a cancel. It is best effort (`continue-on-error`, 1-minute step limit, 20 s request timeout), so a webhook problem never changes the check's result or lengthens its job.
 - **Its own commit status:** on the tested commit it publishes `server-image/<edition>` (`/master`, `/release` or `/release-cut` appended as the lanes do), `success` or `failure`, linked to the run. It is outside the `e2e-test/` prefix, so the `e2e-test/triage` summary neither reads nor changes it. It never writes `pending`, so a cancelled check leaves nothing waiting.
-- **Registry unreachable** (5xx, 429, 401 or no answer at the deadline): it warns, publishes `success` with "not verified", and the lanes start and pull as before. A Docker Hub outage is not reported as a missing image.
+- **Registry unreachable** (5xx, 429, 401 or no answer at the deadline): it warns, publishes `success` with "not verified", and the lanes start and pull as before. A Docker Hub outage is not reported as a missing image. Only the last answer counts, by design: a `404` followed by a 5xx or no answer at the deadline is treated as an outage and passes, and the lanes' own pulls then report a truly missing image.
 - **Effect on the lanes' statuses:** a lane that never started never claims its context, so nothing is left `pending`. The triage summary treats a lane with no status as one that did not run. If the enterprise image is missing, the required `e2e-test/cypress-full/enterprise` and `e2e-test/playwright-full/enterprise` stay unreported, and the red `server-image/enterprise` status beside them says why. A re-run after the image is pushed runs the check again and then the lanes.
 - **No automatic re-run:** `e2e-tests-rerun.yml` re-runs only when a lane's triage left a marker. A lane that never started never triages, so a failed check is never re-run automatically.
 
@@ -508,6 +509,18 @@ After full tests complete, a webhook notification is sent to the configured `REP
 ```
 
 The commit short SHA links to the commit on GitHub. The PR number links to the pull request.
+
+### Server image not available
+
+Posted by `server-image-check.yml`, not a lane, when the image check fails on a merge or release-cut run (never on a PR). Same layout and red color; release cuts use `:github_round:`.
+
+```
+Server image not available - server-image/fips/master
+:git_merge: abc1234 on master
+:docker: mattermostdevelopment/mattermost-enterprise-fips-edition:abc1234_def5678
+Edition fips: no E2E lane for it started. Still missing after 5m 0s (11 checks, limit 5 min).
+Fix the pipeline that builds and pushes this image, then re-run; E2E does not wait for it. | run
+```
 
 ---
 
