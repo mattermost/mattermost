@@ -478,7 +478,7 @@ const AdvancedTextEditor = ({
     );
 
     const handleSubmitWithErrorHandling = useCallback((submittingDraft?: PostDraft, schedulingInfo?: SchedulingInfo, options?: CreatePostOptions) => {
-        handleSubmit(submittingDraft, schedulingInfo, options);
+        const result = handleSubmit(submittingDraft, schedulingInfo, options);
         if (!errorClass) {
             const messageStatusElement = messageStatusRef.current;
             const messageStatusInnerText = messageStatusElement?.textContent;
@@ -488,6 +488,7 @@ const AdvancedTextEditor = ({
                 messageStatusElement!.textContent = 'Message Sent';
             }
         }
+        return result;
     }, [errorClass, handleSubmit]);
 
     const handleCancel = useCallback(() => {
@@ -710,7 +711,7 @@ const AdvancedTextEditor = ({
     }, [draft]);
 
     const handleSubmitPostAndScheduledMessage = useCallback((schedulingInfo?: SchedulingInfo) => {
-        handleSubmitWithErrorHandling(undefined, schedulingInfo);
+        return handleSubmitWithErrorHandling(undefined, schedulingInfo);
     }, [handleSubmitWithErrorHandling]);
 
     // Store the previous draft when changing post or channels

@@ -130,6 +130,36 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(baseProps.handleChange).toHaveBeenCalled();
         });
 
+        test.each([
+            ['an interval boundary with seconds elapsed', '2025-06-08T10:30:20.500Z', '2025-06-08T10:45:00.000Z'],
+            ['an exact interval boundary', '2025-06-08T10:30:00.000Z', '2025-06-08T10:30:00.000Z'],
+            ['between interval boundaries', '2025-06-08T10:31:20.500Z', '2025-06-08T10:45:00.000Z'],
+        ])('should never pick a time in the past when today is selected at %s', async (_name, now, expected) => {
+            fakeNow(now);
+            mockGetCurrentMomentForTimezone.mockReturnValue(moment.tz(now, 'UTC'));
+            const handleChange = jest.fn();
+
+            try {
+                renderWithContext(
+                    <DateTimeInput
+                        {...baseProps}
+                        time={moment.tz('2025-06-09T09:00:00Z', 'UTC')}
+                        handleChange={handleChange}
+                        timePickerInterval={15}
+                    />,
+                );
+
+                await userEvent.click(screen.getByText('Date').closest('.date-time-input')!);
+                await userEvent.click(screen.getByText('8')); // June 8th, today
+
+                const picked = handleChange.mock.lastCall[0];
+                expect(picked.toISOString()).toBe(expected);
+                expect(picked.valueOf()).toBeGreaterThanOrEqual(new Date(now).getTime());
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
         test('should handle day selection for future date', async () => {
             mockGetCurrentMomentForTimezone.mockReturnValue(moment('2025-06-08T08:00:00Z'));
 
@@ -378,6 +408,27 @@ describe('components/datetime_input/DateTimeInput', () => {
             expect(handleChange).toHaveBeenCalledTimes(1);
             const roundedTime = handleChange.mock.calls[0][0];
             expect(roundedTime.minute()).toBe(30); // 14:17 -> 14:30
+        });
+    });
+
+    describe('getRoundedTime', () => {
+        it.each([
+            ['keeps a time already on a boundary', '2025-06-08T10:30:00.000Z', 15, '2025-06-08T10:30:00.000Z'],
+            ['advances a boundary time that has seconds', '2025-06-08T10:30:20.000Z', 15, '2025-06-08T10:45:00.000Z'],
+            ['advances a boundary time that has only milliseconds', '2025-06-08T10:30:00.500Z', 15, '2025-06-08T10:45:00.000Z'],
+            ['rounds an off-boundary time up', '2025-06-08T10:31:20.000Z', 15, '2025-06-08T10:45:00.000Z'],
+            ['advances a minute with seconds when the interval is one minute', '2025-06-08T10:30:20.000Z', 1, '2025-06-08T10:31:00.000Z'],
+            ['rolls into the next day', '2025-06-08T23:50:20.000Z', 30, '2025-06-09T00:00:00.000Z'],
+        ])('%s', (_name, input, interval, expected) => {
+            expect(getRoundedTime(moment.utc(input), interval).toISOString()).toBe(expected);
+        });
+
+        it('does not mutate the given moment', () => {
+            const input = moment.utc('2025-06-08T10:30:20.000Z');
+
+            getRoundedTime(input, 15);
+
+            expect(input.toISOString()).toBe('2025-06-08T10:30:20.000Z');
         });
     });
 
