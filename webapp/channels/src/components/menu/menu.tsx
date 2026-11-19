@@ -422,6 +422,13 @@ export function Menu(props: Props) {
     const providerValue = useMenuContextValue(closeMenu, isMenuOpen, Boolean(props.menu.compass));
     const pointerEventsPassThrough = Boolean(props.menu.hideBackdrop || props.menu.allowTriggerInteraction);
     const compass = Boolean(props.menu.compass);
+    const anchorOrigin = props.anchorOrigin || defaultAnchorOrigin;
+    const transformOrigin = props.transformOrigin || defaultTransformOrigin;
+
+    // The shared paper margin offsets menus that open below the trigger.
+    // These origins open above it, and the above class reverses that margin
+    // so the menu sits 4px clear of the button.
+    const opensAboveTrigger = anchorOrigin.vertical === 'top' && transformOrigin.vertical === 'bottom';
 
     if (isMobileView) {
         // In mobile view, the menu is rendered as a modal
@@ -444,10 +451,11 @@ export function Menu(props: Props) {
                         onKeyDown={handleMenuKeyDown}
                         className={classNames(A11yClassNames.POPUP, 'menu_menuStyled', {
                             'menu_menuStyled--compass': compass,
+                            'menu_menuStyled--above': opensAboveTrigger,
                         })}
                         marginThreshold={0}
-                        anchorOrigin={props.anchorOrigin || defaultAnchorOrigin}
-                        transformOrigin={props.transformOrigin || defaultTransformOrigin}
+                        anchorOrigin={anchorOrigin}
+                        transformOrigin={transformOrigin}
                         hideBackdrop={props.menu.hideBackdrop}
                         disableRestoreFocus={props.menu.disableRestoreFocus}
 
