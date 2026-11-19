@@ -9,6 +9,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {BellOffOutlineIcon, RefreshIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {HealthFinding, HealthFindingFilter, HealthFindingList} from '@mattermost/types/health';
 import type {Job, JobType, JobTypeBase} from '@mattermost/types/jobs';
 
@@ -114,6 +115,11 @@ const muteErrorMessage = defineMessage({
 const unmuteErrorMessage = defineMessage({
     id: 'admin.health_dashboard.unmute.error',
     defaultMessage: 'The finding could not be unmuted, so it is still muted. Try again.',
+});
+
+const runNotAllowedMessage = defineMessage({
+    id: 'admin.health_dashboard.run.not_allowed',
+    defaultMessage: 'Only system admins can run checks.',
 });
 
 const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, jobs, actions}: Props) => {
@@ -227,28 +233,34 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
 
     const rowState = canManage ? {now, expanded, onToggle: toggle, onMute: mute, onUnmute: unmute} : {now, expanded, onToggle: toggle};
 
+    // Always wrapped so the button node is stable whether or not the tooltip applies.
     const runButton = (
-        <Button
-            emphasis='secondary'
-            size='small'
-            loading={running}
-            disabled={running || !canManage}
-            aria-busy={running}
-            leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
-            onClick={startRun}
+        <WithTooltip
+            title={runNotAllowedMessage}
+            disabled={canManage}
         >
-            {running ? (
-                <FormattedMessage
-                    id='admin.health_dashboard.run.running'
-                    defaultMessage='Running checks…'
-                />
-            ) : (
-                <FormattedMessage
-                    id='admin.health_dashboard.run.button'
-                    defaultMessage='Re-run checks'
-                />
-            )}
-        </Button>
+            <Button
+                emphasis='secondary'
+                size='small'
+                loading={running}
+                disabled={running || !canManage}
+                aria-busy={running}
+                leadingIcon={<Icon glyph={<RefreshIcon/>}/>}
+                onClick={startRun}
+            >
+                {running ? (
+                    <FormattedMessage
+                        id='admin.health_dashboard.run.running'
+                        defaultMessage='Running checks…'
+                    />
+                ) : (
+                    <FormattedMessage
+                        id='admin.health_dashboard.run.button'
+                        defaultMessage='Re-run checks'
+                    />
+                )}
+            </Button>
+        </WithTooltip>
     );
     let banner: RunError | undefined;
     if (runError) {
@@ -311,7 +323,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
                     body={
                         <FormattedMessage
                             id='admin.health_dashboard.empty.body'
-                            defaultMessage='The first health check runs within an hour of enabling the feature. To run it now, select Re-run checks.'
+                            defaultMessage='The first health check runs within an hour of enabling the feature. A system admin can run it sooner with Re-run checks.'
                         />
                     }
                 />

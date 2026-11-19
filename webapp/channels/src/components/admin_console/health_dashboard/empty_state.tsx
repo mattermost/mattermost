@@ -65,7 +65,7 @@ export const TabEmptyState = ({tab, muted}: {tab: HealthFindingTab; muted: numbe
                 body={
                     <FormattedMessage
                         id='admin.health_dashboard.empty_tab.muted_body'
-                        defaultMessage='Muted findings are still checked but hidden from this list. Open Muted to review or unmute them.'
+                        defaultMessage='Muted findings are still checked but hidden from this list. Open Muted to review them.'
                     />
                 }
             />

@@ -894,6 +894,12 @@ describe('components/admin_console/health_dashboard', () => {
             expect(runButton()).toHaveTextContent('Re-run checks');
             expect(runButton()).toBeDisabled();
 
+            await setupUser().hover(runButton());
+            await act(async () => {
+                await jest.advanceTimersByTimeAsync(1000);
+            });
+            expect(screen.getByText('Only system admins can run checks.')).toBeInTheDocument();
+
             await jobUpdated(store, makeRun('in_progress'));
 
             expect(runButton()).toHaveTextContent('Running checks…');
