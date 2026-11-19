@@ -8,18 +8,24 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"slices"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"time"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/mock/gomock"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
 func healthTestFindings(lastSeen time.Time) []*model.HealthFinding {
@@ -200,6 +206,141 @@ func (s *MmctlUnitTestSuite) TestHealthCheckCmd() {
 		err := healthCheckCmdF(s.client, healthTestCommand(false, false), []string{})
 		s.Require().EqualError(err, "failed to get health findings: mock error")
 		s.Empty(printer.GetLines())
+	})
+}
+
+func healthTestJob(status string, createAt int64) *model.Job {
+	return &model.Job{Id: model.NewId(), Type: model.JobTypeHealthCheck, Status: status, CreateAt: createAt}
+}
+
+func (s *MmctlUnitTestSuite) TestHealthRun() {
+	saved := healthRunPollInterval
+	healthRunPollInterval = time.Millisecond
+	s.T().Cleanup(func() { healthRunPollInterval = saved })
+
+	lastSeen := time.Now()
+
+	s.Run("waits for the run to succeed, then prints the findings", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		pending := healthTestJob(model.JobStatusPending, 100)
+		inProgress := *pending
+		inProgress.Status = model.JobStatusInProgress
+		succeeded := *pending
+		succeeded.Status = model.JobStatusSuccess
+
+		gomock.InOrder(
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(pending, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), pending.Id).Return(&inProgress, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), pending.Id).Return(&succeeded, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
+		)
+
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.True(strings.HasPrefix(output, "Last evaluated "), output)
+		s.Contains(output, "Push notification server is not HTTPS")
+	})
+
+	s.Run("keeps waiting while a lagging replica hasn't seen the new run", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		started := healthTestJob(model.JobStatusPending, 100)
+		succeeded := *started
+		succeeded.Status = model.JobStatusSuccess
+
+		gomock.InOrder(
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(nil, &model.Response{StatusCode: http.StatusNotFound}, errors.New("not found")).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&succeeded, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
+		)
+
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
+		s.Require().NoError(err)
+	})
+
+	s.Run("fails when the run's status can't be read", func() {
+		printer.Clean()
+
+		started := healthTestJob(model.JobStatusPending, 100)
+		gomock.InOrder(
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(nil, &model.Response{StatusCode: http.StatusInternalServerError}, errors.New("mock error")).Times(1),
+		)
+
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
+		s.Require().EqualError(err, "failed to get the health check run status: mock error")
+	})
+
+	s.Run("a run that already finished is not polled", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		gomock.InOrder(
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(healthTestJob(model.JobStatusSuccess, 100), &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetHealthFindings(context.TODO(), model.HealthFindingFilter{}).Return(healthTestList(lastSeen), &model.Response{}, nil).Times(1),
+		)
+
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
+		s.Require().NoError(err)
+	})
+
+	s.Run("a failed run reports the job's error and prints nothing", func() {
+		printer.Clean()
+
+		started := healthTestJob(model.JobStatusPending, 100)
+		failed := *started
+		failed.Status = model.JobStatusError
+		failed.Data = model.StringMap{"error": "collect failed"}
+
+		gomock.InOrder(
+			s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1),
+			s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(&failed, &model.Response{}, nil).Times(1),
+		)
+
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
+		s.Require().EqualError(err, "health check run "+started.Id+" failed: collect failed")
+		s.Empty(printer.GetLines())
+	})
+
+	s.Run("timeout", func() {
+		printer.Clean()
+
+		started := healthTestJob(model.JobStatusPending, 100)
+		s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetJob(gomock.Any(), started.Id).Return(started, &model.Response{}, nil).AnyTimes()
+
+		err := runHealthCheckAndWait(s.T().Context(), s.client, 50*time.Millisecond)
+		s.Require().EqualError(err, "timed out after 50ms waiting for health check run "+started.Id+", which is still pending; run `mmctl health check` later to see its findings")
+	})
+
+	s.Run("Ctrl+C stops the wait without reporting a timeout", func() {
+		printer.Clean()
+
+		ctx, cancel := context.WithCancel(s.T().Context())
+		started := healthTestJob(model.JobStatusPending, 100)
+		s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(started, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetJob(gomock.Any(), started.Id).DoAndReturn(func(context.Context, string) (*model.Job, *model.Response, error) {
+			cancel()
+			return started, &model.Response{}, nil
+		}).AnyTimes()
+
+		err := runHealthCheckAndWait(ctx, s.client, time.Minute)
+		s.Require().ErrorIs(err, context.Canceled)
+	})
+
+	s.Run("the run cannot be started", func() {
+		printer.Clean()
+
+		s.client.EXPECT().CreateJob(gomock.Any(), &model.Job{Type: model.JobTypeHealthCheck}).Return(nil, &model.Response{}, errors.New("mock error")).Times(1)
+
+		err := healthRunCmdF(s.client, newTestCmd(s.T(), HealthRunCmd), []string{})
+		s.Require().EqualError(err, "failed to start a health check run: mock error")
 	})
 }
 
@@ -412,13 +553,69 @@ func (s *MmctlUnitTestSuite) writeHealthTestPacket(files map[string]string) stri
 	return path
 }
 
-func healthPacketTestCommand(path string, includeResolved, includeMuted bool) *cobra.Command {
-	cmd := healthTestCommand(includeResolved, includeMuted)
-	cmd.Flags().String("packet", path, "")
+func (s *MmctlUnitTestSuite) healthPacketTestCommand(path string, includeResolved, includeMuted bool) *cobra.Command {
+	cmd := newTestCmd(s.T(), HealthCheckCmd)
+	s.Require().NoError(cmd.Flags().Set("packet", path))
+	s.Require().NoError(cmd.Flags().Set("include-resolved", strconv.FormatBool(includeResolved)))
+	s.Require().NoError(cmd.Flags().Set("include-muted", strconv.FormatBool(includeMuted)))
 	return cmd
 }
 
+func healthTestRelease(tag string) http.HandlerFunc {
+	return func(w http.ResponseWriter, _ *http.Request) {
+		_, _ = fmt.Fprintf(w, `{"id": 1, "tag_name": %q}`, tag)
+	}
+}
+
+// serveLatestRelease points the --packet latest release fetch at handler until the test ends,
+// and counts the requests that reach it.
+func (s *MmctlUnitTestSuite) serveLatestRelease(handler http.HandlerFunc) *atomic.Int32 {
+	var requests atomic.Int32
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		requests.Add(1)
+		handler(w, r)
+	}))
+	originalURL := healthLatestVersionURL
+	healthLatestVersionURL = server.URL
+	s.T().Cleanup(func() {
+		healthLatestVersionURL = originalURL
+		server.Close()
+	})
+	return &requests
+}
+
+// healthTestBehindVersions returns a supported regular release and a latest release two minors
+// past the newest line in the table, so VERSION_BEHIND fires whatever today's date.
+func (s *MmctlUnitTestSuite) healthTestBehindVersions() (running, latest string) {
+	table := model.ReleaseLifecycles()
+	i := slices.IndexFunc(table, func(l model.ReleaseLifecycle) bool { return !l.ESR && time.Now().Before(l.EOLDate) })
+	s.Require().NotEqual(-1, i, "model.ReleaseLifecycles has no supported regular release")
+	major, minor, _ := model.SplitVersion(table[0].MajorMinor)
+	return table[i].MajorMinor + ".0", fmt.Sprintf("%d.%d.0", major, minor+2)
+}
+
+func (s *MmctlUnitTestSuite) runHealthPacketJSON(packetPath string) []*model.HealthFinding {
+	printer.Clean()
+	printer.SetFormat(printer.FormatJSON)
+	cmd := newTestCmd(s.T(), HealthCheckCmd)
+	cmd.SetContext(context.Background())
+	s.Require().NoError(cmd.Flags().Set("packet", packetPath))
+	s.Require().NoError(healthCheckRunE(cmd, []string{}))
+	s.Require().Len(printer.GetLines(), 1)
+	list, ok := printer.GetLines()[0].(*model.HealthFindingList)
+	s.Require().True(ok)
+	return list.Findings
+}
+
+func healthTestFinding(findings []*model.HealthFinding, code string) *model.HealthFinding {
+	if i := slices.IndexFunc(findings, func(f *model.HealthFinding) bool { return f.Code == code }); i >= 0 {
+		return findings[i]
+	}
+	return nil
+}
+
 func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
+	s.serveLatestRelease(healthTestRelease("v12.4.0"))
 	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
 	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04")
 	packetWithFilestoreDisk := func(totalMB, availableMB uint64) string {
@@ -445,7 +642,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 		err := healthCheckRunE(healthTestCommand(false, false), []string{})
 		s.Require().ErrorContains(err, "failed to create client")
 
-		err = healthCheckRunE(healthPacketTestCommand(packetPath, false, false), []string{})
+		err = healthCheckRunE(s.healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 		s.Contains(s.printedHealthFindings(), "PushNotificationServer does not use https://")
 	})
@@ -454,7 +651,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 
 		s.Equal(healthPacketDisclaimer+`
@@ -486,7 +683,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 4096), false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetWithFilestoreDisk(102400, 4096), false, false), []string{})
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
@@ -499,7 +696,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetWithFilestoreDisk(102400, 9216), false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetWithFilestoreDisk(102400, 9216), false, false), []string{})
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
@@ -512,7 +709,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 		s.NotContains(s.printedHealthFindings(), "Evaluation appears to have stopped")
 	})
@@ -521,7 +718,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, true, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetPath, true, false), []string{})
 		s.Require().NoError(err)
 		output := s.printedHealthFindings()
 		s.Contains(output, "PushNotificationServer does not use https://")
@@ -531,7 +728,7 @@ Could not evaluate
 	s.Run("--include-muted is rejected", func() {
 		printer.Clean()
 
-		err := healthCheckRunE(healthPacketTestCommand(packetPath, false, true), []string{})
+		err := healthCheckRunE(s.healthPacketTestCommand(packetPath, false, true), []string{})
 		s.Require().ErrorContains(err, "--include-muted cannot be used with --packet")
 		s.Empty(printer.GetLines())
 	})
@@ -540,7 +737,7 @@ Could not evaluate
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(packetPath, false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(packetPath, false, false), []string{})
 		s.Require().NoError(err)
 
 		s.Require().Len(printer.GetLines(), 1)
@@ -568,6 +765,89 @@ Could not evaluate
 		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
 	})
 
+	running, latest := s.healthTestBehindVersions()
+	supportedFiles := healthTestPacketFiles()
+	supportedFiles[model.PacketMetadataFileName] = strings.Replace(supportedFiles[model.PacketMetadataFileName], "server_version: 11.0.4", "server_version: "+running, 1)
+	supportedPacket := s.writeHealthTestPacket(supportedFiles)
+
+	s.Run("fetches the latest release the packet doesn't record", func() {
+		requests := s.serveLatestRelease(healthTestRelease("v" + latest))
+
+		findings := s.runHealthPacketJSON(supportedPacket)
+
+		s.Equal(int32(1), requests.Load())
+		s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+		behind := healthTestFinding(findings, "VERSION_BEHIND")
+		s.Require().NotNil(behind)
+		s.Equal("firing", behind.State)
+		s.Equal("Running "+running+". Latest is "+latest+", two or more releases newer.", behind.Message)
+	})
+
+	requireVersionBehindUnknown := func(findings []*model.HealthFinding) {
+		for _, code := range []string{"VERSION_BEHIND", "VERSION_BEHIND_ONE"} {
+			finding := healthTestFinding(findings, code)
+			s.Require().NotNil(finding, code)
+			s.Equal("unknown", finding.State, code)
+			s.Equal("Latest release unknown: it could not be fetched, or the packet does not record it.", finding.Message, code)
+		}
+	}
+
+	s.Run("a failed fetch leaves version-behind findings unknown", func() {
+		s.serveLatestRelease(func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusBadGateway)
+		})
+
+		findings := s.runHealthPacketJSON(supportedPacket)
+
+		s.Equal([]string{healthPacketDisclaimer, "Could not fetch the latest release (unexpected status code 502): version-behind findings are unknown."}, printer.GetErrorLines())
+		requireVersionBehindUnknown(findings)
+	})
+
+	s.Run("a timed out fetch leaves version-behind findings unknown", func() {
+		s.serveLatestRelease(func(_ http.ResponseWriter, r *http.Request) {
+			select {
+			case <-r.Context().Done():
+			case <-time.After(5 * time.Second):
+			}
+		})
+		originalTimeout := healthLatestVersionTimeout
+		healthLatestVersionTimeout = 50 * time.Millisecond
+		s.T().Cleanup(func() { healthLatestVersionTimeout = originalTimeout })
+
+		findings := s.runHealthPacketJSON(supportedPacket)
+
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.True(strings.HasPrefix(printer.GetErrorLines()[1], "Could not fetch the latest release ("))
+		s.Contains(printer.GetErrorLines()[1], "context deadline exceeded")
+		requireVersionBehindUnknown(findings)
+	})
+
+	s.Run("an interrupted command stops the fetch", func() {
+		requests := s.serveLatestRelease(healthTestRelease("v" + latest))
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+		cmd := s.healthPacketTestCommand(supportedPacket, false, false)
+		ctx, cancel := context.WithCancel(context.Background())
+		cancel()
+		cmd.SetContext(ctx)
+
+		s.Require().NoError(healthCheckPacketCmdF(cmd, []string{}))
+
+		s.Zero(requests.Load())
+		s.Require().Len(printer.GetErrorLines(), 2)
+		s.Contains(printer.GetErrorLines()[1], "context canceled")
+	})
+
+	s.Run("a latest release the snapshot already records is not fetched", func() {
+		requests := s.serveLatestRelease(healthTestRelease("v99.0.0"))
+		snapshot := &healthcheck.Snapshot{}
+		snapshot.Version.Latest = "12.1.0"
+
+		s.Empty(fillLatestVersion(context.Background(), snapshot))
+		s.Equal("12.1.0", snapshot.Version.Latest)
+		s.Zero(requests.Load())
+	})
+
 	s.Run("renders a Posts dead tuples finding after a stale vacuum", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
@@ -592,6 +872,7 @@ Could not evaluate
 		)
 
 		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		cmd.SetContext(context.Background())
 		s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
 		s.Require().NoError(healthCheckRunE(cmd, []string{}))
 		s.Require().Len(printer.GetLines(), 1)
@@ -626,6 +907,7 @@ Could not evaluate
 		)
 
 		cmd := newTestCmd(s.T(), HealthCheckCmd)
+		cmd.SetContext(context.Background())
 		s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
 		s.Require().NoError(healthCheckRunE(cmd, []string{}))
 		s.Require().Len(printer.GetLines(), 1)
@@ -657,6 +939,7 @@ Could not evaluate
 			printer.Clean()
 			printer.SetFormat(printer.FormatJSON)
 			cmd := newTestCmd(s.T(), HealthCheckCmd)
+			cmd.SetContext(context.Background())
 			s.Require().NoError(cmd.Flags().Set("packet", s.writeHealthTestPacket(files)))
 			s.Require().NoError(healthCheckRunE(cmd, []string{}))
 			s.Require().Len(printer.GetLines(), 1)
@@ -679,7 +962,7 @@ Could not evaluate
 		delete(files, model.PacketMetadataFileName)
 		files[model.SupportPacketDiagnosticsFileName] = "version: 99\n"
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(s.writeHealthTestPacket(files), true, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(s.writeHealthTestPacket(files), true, false), []string{})
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
@@ -692,7 +975,7 @@ Could not evaluate
 	s.Run("an unreadable packet is an error", func() {
 		printer.Clean()
 
-		err := healthCheckPacketCmdF(healthPacketTestCommand(filepath.Join(s.T().TempDir(), "missing.zip"), false, false), []string{})
+		err := healthCheckPacketCmdF(s.healthPacketTestCommand(filepath.Join(s.T().TempDir(), "missing.zip"), false, false), []string{})
 		s.Require().ErrorContains(err, "failed to read Support Packet")
 		s.Empty(printer.GetLines())
 	})

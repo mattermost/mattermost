@@ -8,6 +8,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
@@ -22,17 +23,33 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 // The server evaluates hourly, so results older than two intervals mean evaluation stopped.
 const healthEvaluationStaleAfter = 2 * time.Hour
+
+// healthRunPollInterval is how often health run checks on the run it started. A variable so tests
+// don't wait.
+var healthRunPollInterval = 2 * time.Second
+
+// healthRunWaitTimeout is how long health run waits for the run to finish. The server caps a run at a
+// few minutes, so a run still going after this belongs to a node that died or was never picked up.
+const healthRunWaitTimeout = 5 * time.Minute
 
 var HealthCmd = &cobra.Command{
 	Use:   "health",
 	Short: "Inspect workspace health findings",
 }
 
-const healthPacketDisclaimer = "Evaluated offline from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state. Version support is judged as of today."
+const healthPacketDisclaimer = "Evaluated locally from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state. Version support is judged as of today."
+
+// Packets don't record the latest release, so --packet fetches it. Variables so tests can
+// point them at a local server.
+var (
+	healthLatestVersionURL     = releases.LatestURL
+	healthLatestVersionTimeout = 5 * time.Second
+)
 
 var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
@@ -44,12 +61,24 @@ var HealthCheckCmd = &cobra.Command{
 	RunE:    healthCheckRunE,
 }
 
+var HealthRunCmd = &cobra.Command{
+	Use:   "run",
+	Short: "Run the health check now and report its findings",
+	Long: "Run the health check now, wait for it to finish, then report its findings as health check does. " +
+		"If a run is already pending or in progress, wait for that one instead of starting another.",
+	Example: "  health run\n  health run --include-resolved --include-muted",
+	Args:    cobra.NoArgs,
+	RunE:    withClient(healthRunCmdF),
+}
+
 func init() {
 	HealthCheckCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthCheckCmd.Flags().Bool("include-muted", false, "Include muted findings")
-	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate offline, without a server")
+	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate without a server")
+	HealthRunCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
+	HealthRunCmd.Flags().Bool("include-muted", false, "Include muted findings")
 
-	HealthCmd.AddCommand(HealthCheckCmd)
+	HealthCmd.AddCommand(HealthCheckCmd, HealthRunCmd)
 	RootCmd.AddCommand(HealthCmd)
 }
 
@@ -80,6 +109,60 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func healthRunCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	if err := runHealthCheckAndWait(cmd.Context(), c, healthRunWaitTimeout); err != nil {
+		return err
+	}
+	return healthCheckCmdF(c, cmd, args)
+}
+
+// runHealthCheckAndWait starts a health check run, or joins the one already pending or in
+// progress, and polls its job until it finishes, timeout passes, or ctx is canceled (by Ctrl+C).
+func runHealthCheckAndWait(ctx context.Context, c client.Client, timeout time.Duration) error {
+	waitCtx, cancel := context.WithTimeout(ctx, timeout)
+	defer cancel()
+
+	job, _, err := c.CreateJob(waitCtx, &model.Job{Type: model.JobTypeHealthCheck})
+	if err != nil {
+		return fmt.Errorf("failed to start a health check run: %w", err)
+	}
+
+	ticker := time.NewTicker(healthRunPollInterval)
+	defer ticker.Stop()
+	for {
+		switch job.Status {
+		case model.JobStatusPending, model.JobStatusInProgress:
+		case model.JobStatusSuccess, model.JobStatusWarning:
+			return nil
+		default:
+			if msg := job.Data["error"]; msg != "" {
+				return fmt.Errorf("health check run %s failed: %s", job.Id, msg)
+			}
+			return fmt.Errorf("health check run %s failed", job.Id)
+		}
+
+		select {
+		case <-waitCtx.Done():
+			if err := ctx.Err(); err != nil {
+				return err
+			}
+			return fmt.Errorf("timed out after %s waiting for health check run %s, which is still %s; run `mmctl health check` later to see its findings", timeout, job.Id, job.Status)
+		case <-ticker.C:
+		}
+
+		latest, resp, err := c.GetJob(waitCtx, job.Id)
+		if err != nil {
+			// Report the timeout or cancellation, not the request it cut short. A 404 means a lagging
+			// read replica hasn't seen the new job yet.
+			if waitCtx.Err() != nil || (resp != nil && resp.StatusCode == http.StatusNotFound) {
+				continue
+			}
+			return fmt.Errorf("failed to get the health check run status: %w", err)
+		}
+		job = latest
+	}
+}
+
 // healthCheckPacketCmdF evaluates a Support Packet with the same engine and reconciler the
 // server uses, against an in-memory store, and renders with the English catalog built into mmctl.
 func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
@@ -93,6 +176,12 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("failed to read Support Packet: %w", err)
 	}
+
+	notes := []string{healthPacketDisclaimer}
+	if note := fillLatestVersion(cmd.Context(), p.Snapshot); note != "" {
+		notes = append(notes, note)
+	}
+	notes = append(notes, p.Warnings...)
 
 	// Findings are stamped with when the packet was generated, not when mmctl ran.
 	evaluatedAt := p.Snapshot.CollectedAt
@@ -125,8 +214,28 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, append([]string{healthPacketDisclaimer}, p.Warnings...)...)
+	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, notes...)
 	return nil
+}
+
+// fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one.
+// A failed fetch is not an error: the version-behind rules report unknown and the returned note
+// says why.
+func fillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot) string {
+	if snapshot.Version.Latest != "" {
+		return ""
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, healthLatestVersionTimeout)
+	defer cancel()
+
+	release, err := releases.FetchLatest(ctx, healthLatestVersionURL)
+	if err != nil {
+		return fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err)
+	}
+
+	snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+	return ""
 }
 
 // printHealthFindings prints already-rendered findings, leaving out resolved ones unless
