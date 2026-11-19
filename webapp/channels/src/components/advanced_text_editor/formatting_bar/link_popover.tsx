@@ -23,7 +23,7 @@ import {isUrlSafe} from 'utils/url';
 const POPOVER_MAX_WIDTH = 496;
 const POPOVER_VIEWPORT_PADDING = 32;
 
-const PopoverContainer = styled.div`
+const PopoverContainer = styled.div.attrs({className: 'composer-link-popover'})`
     width: min(${POPOVER_MAX_WIDTH}px, calc(100vw - ${POPOVER_VIEWPORT_PADDING}px));
     border-radius: 8px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);

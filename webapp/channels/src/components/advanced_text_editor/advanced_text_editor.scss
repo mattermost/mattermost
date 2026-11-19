@@ -218,9 +218,14 @@
         gap: 8px;
     }
 
+    // Compass IconButton rests on the small corner, and a :not() pair raises
+    // that rule to three classes. The extra attribute wins, so every icon
+    // button in the composer uses the medium corner.
+    button[class*='_icon-button_']:not([class*='_icon-button__']) {
+        border-radius: var(--radius-m);
+    }
+
     // The + sits on the left. Its resting fill is the icon button's hover fill.
-    // Two classes, so this wins over the transparent rest state and loses to
-    // hover and pressed.
     &__plus {
         position: absolute;
         z-index: 2;
@@ -343,6 +348,13 @@
     font-size: 12px;
     text-overflow: ellipsis;
     white-space: nowrap;
+}
+
+// The link popover is portaled out of the composer, and it uses the same
+// icon buttons. Compass's corner rule is three classes; the extra attribute
+// wins over it.
+.composer-link-popover button[class*='_icon-button_']:not([class*='_icon-button__']) {
+    border-radius: var(--radius-m);
 }
 
 // Compass sets width/padding with a single hashed class, so match its
