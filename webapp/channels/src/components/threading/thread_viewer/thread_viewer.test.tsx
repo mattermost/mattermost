@@ -116,6 +116,7 @@ describe('components/threading/ThreadViewer', () => {
                 {...baseProps}
                 agentMode={true}
                 renderSendButton={renderSendButton}
+                hiddenControls={['priority']}
             />,
         );
 
@@ -123,6 +124,7 @@ describe('components/threading/ThreadViewer', () => {
         expect(mockVirtualizedThreadViewer).toHaveBeenCalledWith(expect.objectContaining({
             agentMode: true,
             renderSendButton,
+            hiddenControls: ['priority'],
         }));
     });
 
@@ -137,6 +139,7 @@ describe('components/threading/ThreadViewer', () => {
         expect(mockVirtualizedThreadViewer).toHaveBeenCalledWith(expect.objectContaining({
             agentMode: undefined,
             renderSendButton: undefined,
+            hiddenControls: undefined,
         }));
     });
 

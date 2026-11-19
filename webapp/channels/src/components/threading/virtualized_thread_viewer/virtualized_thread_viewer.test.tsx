@@ -112,6 +112,7 @@ describe('components/threading/VirtualizedThreadViewer', () => {
                 {...baseProps}
                 agentMode={true}
                 renderSendButton={renderSendButton}
+                hiddenControls={['priority']}
             />,
             baseState,
         );
@@ -119,6 +120,7 @@ describe('components/threading/VirtualizedThreadViewer', () => {
         expect(mockCreateComment).toHaveBeenCalledWith(expect.objectContaining({
             agentMode: true,
             renderSendButton,
+            hiddenControls: ['priority'],
             threadId: baseProps.selected.id,
         }));
     });

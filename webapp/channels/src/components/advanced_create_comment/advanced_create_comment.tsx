@@ -8,6 +8,7 @@ import React from 'react';
 import type {SubmitPostReturnType} from 'actions/views/create_comment';
 
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
+import type {ComposerControl} from 'components/advanced_text_editor/advanced_text_editor';
 
 import {Locations} from 'utils/constants';
 
@@ -32,6 +33,9 @@ export type Props = {
 
     /** In agent mode, replaces send so a plugin can show stop. Ignored otherwise. */
     renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
+
+    /** Forwarded to the editor. See AdvancedTextEditor hiddenControls. */
+    hiddenControls?: readonly ComposerControl[];
 };
 
 const AdvancedCreateComment = ({
@@ -42,6 +46,7 @@ const AdvancedCreateComment = ({
     afterSubmit,
     agentMode,
     renderSendButton,
+    hiddenControls,
 }: Props) => {
     return (
         <AdvancedTextEditor
@@ -53,6 +58,7 @@ const AdvancedCreateComment = ({
             afterSubmit={afterSubmit}
             agentMode={agentMode}
             renderSendButton={renderSendButton}
+            hiddenControls={hiddenControls}
         />
     );
 };

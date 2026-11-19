@@ -25,12 +25,14 @@ describe('AdvancedCreateComment', () => {
                 rootId='root-id'
                 agentMode={true}
                 renderSendButton={renderSendButton}
+                hiddenControls={['priority', 'burnOnRead', 'attributes']}
             />,
         );
 
         expect(mockAdvancedTextEditor).toHaveBeenCalledWith(expect.objectContaining({
             agentMode: true,
             renderSendButton,
+            hiddenControls: ['priority', 'burnOnRead', 'attributes'],
             channelId: 'channel-id',
             rootId: 'root-id',
             location: 'RHS_COMMENT',

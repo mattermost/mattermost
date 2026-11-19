@@ -11,6 +11,7 @@ import type {UserThread} from '@mattermost/types/threads';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import type {ComposerControl} from 'components/advanced_text_editor/advanced_text_editor';
 import ChannelBanner from 'components/channel_banner/channel_banner';
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
@@ -61,6 +62,9 @@ export type Props = Attrs & {
 
     /** Forwarded to the reply composer so a plugin can turn send into stop. */
     renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
+
+    /** Forwarded to the reply composer. See AdvancedTextEditor hiddenControls. */
+    hiddenControls?: readonly ComposerControl[];
 
     /** When set, the list shows replies only. The root post stays selected so the thread still loads. */
     hideRoot?: boolean;
@@ -257,6 +261,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
                                     inputPlaceholder={this.props.inputPlaceholder}
                                     agentMode={this.props.agentMode}
                                     renderSendButton={this.props.renderSendButton}
+                                    hiddenControls={this.props.hiddenControls}
                                     key={this.props.selected.id}
                                     channelId={this.props.channel.id}
                                     onCardClick={this.handleCardClick}

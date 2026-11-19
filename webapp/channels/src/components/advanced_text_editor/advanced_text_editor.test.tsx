@@ -1849,6 +1849,70 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             Range.prototype.getBoundingClientRect = originalRect;
         });
 
+        it('omits the controls a caller lists, including their labels and tour tip', async () => {
+            const labeledState = mergeObjects(chromeState, {
+                storage: {
+                    storage: {
+                        [StoragePrefixes.DRAFT + channelId]: {
+                            value: TestHelper.getPostDraftMock({
+                                message: 'priority draft',
+                                type: PostTypes.BURN_ON_READ,
+                                metadata: {
+                                    priority: {
+                                        priority: PostPriority.IMPORTANT,
+                                    },
+                                },
+                            }),
+                        },
+                    },
+                },
+            });
+
+            const shown = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                />,
+                labeledState,
+            );
+
+            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+            expect(screen.getByTestId('burn-on-read-label')).toBeInTheDocument();
+            expect(document.querySelector('.tour-tip__pulsating-dot-ctr')).toBeInTheDocument();
+            await openMenu();
+            expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Add attributes'})).toBeInTheDocument();
+            shown.unmount();
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    agentMode={true}
+                    hiddenControls={['burnOnRead', 'priority', 'attributes']}
+                />,
+                labeledState,
+            );
+
+            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('burn-on-read-label')).not.toBeInTheDocument();
+            expect(document.querySelector('.tour-tip__pulsating-dot-ctr')).not.toBeInTheDocument();
+            await openMenu();
+            expect(screen.queryByRole('menuitem', {name: 'Message priority'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Burn-on-read'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Add attributes'})).not.toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Attach files'})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: 'Emoji'})).toBeInTheDocument();
+            await userEvent.keyboard('{Escape}');
+            await openMenu();
+            await userEvent.click(screen.getByRole('menuitem', {name: 'Show formatting'}));
+            await waitFor(() => {
+                expect(screen.getByTestId('formattingBarContainer')).toBeInTheDocument();
+            });
+            expect(screen.getByTestId('formattingBarContainer')).toContainElement(screen.getByRole('button', {name: 'select an emoji'}));
+            expect(screen.queryByRole('button', {name: 'Message priority'})).not.toBeInTheDocument();
+        });
+
         it('lets a plugin replace send, and ignores that slot when the mode is off', () => {
             const renderSendButton = () => <button type='button'>{'Stop generating'}</button>;
 

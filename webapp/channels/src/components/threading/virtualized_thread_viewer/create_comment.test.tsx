@@ -144,6 +144,7 @@ describe('components/threading/CreateComment', () => {
                 threadId={threadId}
                 agentMode={true}
                 renderSendButton={renderSendButton}
+                hiddenControls={['priority']}
             />,
             makeState(channel, threadId),
         );
@@ -151,6 +152,7 @@ describe('components/threading/CreateComment', () => {
         expect(mockAdvancedCreateComment).toHaveBeenCalledWith(expect.objectContaining({
             agentMode: true,
             renderSendButton,
+            hiddenControls: ['priority'],
             rootId: threadId,
             channelId: channel.id,
         }));

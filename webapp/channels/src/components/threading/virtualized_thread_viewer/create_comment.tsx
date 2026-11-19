@@ -11,6 +11,7 @@ import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost, getLimitedViews} from 'mattermost-redux/selectors/entities/posts';
 
 import AdvancedCreateComment from 'components/advanced_create_comment';
+import type {ComposerControl} from 'components/advanced_text_editor/advanced_text_editor';
 import {compassIconForName, useChannelIconOverrideName} from 'components/channel_type_icon';
 import {ChannelComposerBanner} from 'components/channel_view/channel_composer_banner';
 import BasicSeparator from 'components/widgets/separator/basic-separator';
@@ -27,6 +28,7 @@ type Props = {
     placeholder?: string;
     agentMode?: boolean;
     renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
+    hiddenControls?: readonly ComposerControl[];
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
@@ -36,6 +38,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     placeholder,
     agentMode,
     renderSendButton,
+    hiddenControls,
 }: Props, ref) => {
     const getChannel = useMemo(makeGetChannel, []);
     const rootPost = useSelector((state: GlobalState) => getPost(state, threadId));
@@ -117,6 +120,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
                 isThreadView={isThreadView}
                 agentMode={agentMode}
                 renderSendButton={renderSendButton}
+                hiddenControls={hiddenControls}
             />
         </div>
     );

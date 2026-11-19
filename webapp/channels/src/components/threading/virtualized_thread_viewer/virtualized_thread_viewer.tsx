@@ -11,6 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {Posts} from 'mattermost-redux/constants';
 import {getNewMessagesIndex, isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
+import type {ComposerControl} from 'components/advanced_text_editor/advanced_text_editor';
 import type {OnScrollArgs, OnItemsRenderedArgs, InitialScrollIndex, DynamicVirtualizedChildProps} from 'components/dynamic_virtualized_list';
 import {DynamicVirtualizedList} from 'components/dynamic_virtualized_list';
 import NewRepliesBanner from 'components/new_replies_banner';
@@ -46,6 +47,7 @@ type Props = {
     inputPlaceholder?: string;
     agentMode?: boolean;
     renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
+    hiddenControls?: readonly ComposerControl[];
     measureRhsOpened: () => void;
     isChannelAutotranslated: boolean;
 };
@@ -473,6 +475,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     threadId={this.props.selected.id}
                     agentMode={this.props.agentMode}
                     renderSendButton={this.props.renderSendButton}
+                    hiddenControls={this.props.hiddenControls}
                 />
             </div>
         );

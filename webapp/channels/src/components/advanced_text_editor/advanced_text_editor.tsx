@@ -99,6 +99,9 @@ import useUploadFiles from './use_upload_files';
 
 import './advanced_text_editor.scss';
 
+/** Host controls a caller may omit. The server still decides which are allowed. */
+export type ComposerControl = 'attributes' | 'burnOnRead' | 'priority';
+
 export type Props = {
 
     /**
@@ -136,6 +139,14 @@ export type Props = {
      * as they are.
      */
     renderSendButton?: (sendButton: React.ReactNode) => React.ReactNode;
+
+    /**
+     * Host controls to leave out of this composer. A listed control is removed
+     * from the plus menu, the formatting bar, the label row, and its tour tip.
+     * The caller can only hide a control the server would have shown. When
+     * omitted, every allowed control stays.
+     */
+    hiddenControls?: readonly ComposerControl[];
 };
 
 // The + and send share the first line. Once the text is wider than the room
@@ -180,7 +191,12 @@ const AdvancedTextEditor = ({
     storageKey,
     agentMode = false,
     renderSendButton,
+    hiddenControls,
 }: Props) => {
+    const hideAttributes = hiddenControls?.includes('attributes') === true;
+    const hideBurnOnRead = hiddenControls?.includes('burnOnRead') === true;
+    const hidePriority = hiddenControls?.includes('priority') === true;
+
     // rootId is typed as required, but plugins reach this component through the untyped
     // window.Components bridge and may omit it. Every draft carries '' rather than undefined
     // for a non-thread composer, so an undefined prop desyncs the id comparisons below.
@@ -545,6 +561,8 @@ const AdvancedTextEditor = ({
         handleBurnOnReadApply,
         isBurnOnReadSendable: burnOnReadSendable,
     } = useBurnOnRead(draft, handleDraftChange, focusTextbox, showPreview, false);
+    const visiblePriorityLabels = hidePriority ? undefined : priorityLabels;
+    const visibleBurnOnReadLabels = hideBurnOnRead ? undefined : burnOnReadLabels;
     const [handleSubmit, errorClass] = useSubmit(
         draft,
         postError,
@@ -904,9 +922,9 @@ const AdvancedTextEditor = ({
         return [
             ...controls,
             emojiPicker ? <Fragment key='composer-emoji'>{emojiPicker}</Fragment> : null,
-            isInEditMode ? null : priorityAdditionalControl,
+            isInEditMode || hidePriority ? null : priorityAdditionalControl,
         ].filter(Boolean);
-    }, [controlsInToolbar, emojiPicker, isInEditMode, pluginItems, priorityAdditionalControl]);
+    }, [controlsInToolbar, emojiPicker, hidePriority, isInEditMode, pluginItems, priorityAdditionalControl]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -967,7 +985,7 @@ const AdvancedTextEditor = ({
         />
     ) : (
         <Textbox
-            hasLabels={isInEditMode ? false : Boolean(priorityLabels || burnOnReadLabels)}
+            hasLabels={isInEditMode ? false : Boolean(visiblePriorityLabels || visibleBurnOnReadLabels)}
             suggestionList={location === Locations.RHS_COMMENT ? RhsSuggestionList : SuggestionList}
             onChange={handleChange}
             onKeyPress={postMsgKeyPress}
@@ -1003,7 +1021,7 @@ const AdvancedTextEditor = ({
             className='AdvancedTextEditor__plus'
             data-testid='composer-plus'
         >
-            {!isInEditMode && canSetBurnOnRead && (
+            {!hideBurnOnRead && !isInEditMode && canSetBurnOnRead && (
                 <BurnOnReadTourTip
                     anchorId='agentComposerMenuButton'
                     onTryItOut={() => handleBurnOnReadApply(true)}
@@ -1016,13 +1034,13 @@ const AdvancedTextEditor = ({
                 enableEmojiPicker={enableEmojiPicker && !showFormattingBar}
                 emojiDisabled={showPreview}
                 onEmoji={toggleEmojiPicker}
-                showAttributes={postAttributesEnabled && !isInEditMode}
+                showAttributes={postAttributesEnabled && !isInEditMode && !hideAttributes}
                 formattingOpen={showFormattingBar}
                 formattingDisabled={showPreview}
                 onToggleFormatting={toggleAdvanceTextEditor}
                 emojiAnchorRef={showFormattingBar ? undefined : setEmojiReference}
-                priorityItem={showFormattingBar || isInEditMode ? null : priorityAdditionalControl}
-                burnOnRead={!isInEditMode && canSetBurnOnRead ? {
+                priorityItem={showFormattingBar || isInEditMode || hidePriority ? null : priorityAdditionalControl}
+                burnOnRead={!hideBurnOnRead && !isInEditMode && canSetBurnOnRead ? {
                     on: hasBurnOnReadSet,
                     disabled: showPreview,
                     onToggle: () => handleBurnOnReadApply(!hasBurnOnReadSet),
@@ -1105,11 +1123,11 @@ const AdvancedTextEditor = ({
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
-                        {!isInEditMode && (priorityLabels || burnOnReadLabels) && (
+                        {!isInEditMode && (visiblePriorityLabels || visibleBurnOnReadLabels) && (
                             <div className='AdvancedTextEditor__labels'>
                                 <UnifiedLabelsWrapper
-                                    priorityLabels={priorityLabels}
-                                    burnOnReadLabels={burnOnReadLabels}
+                                    priorityLabels={visiblePriorityLabels}
+                                    burnOnReadLabels={visibleBurnOnReadLabels}
                                     onRemoveAll={handleRemoveAllLabels}
                                     canRemove={!showPreview}
                                 />
