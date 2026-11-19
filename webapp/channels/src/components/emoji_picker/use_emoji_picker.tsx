@@ -15,9 +15,11 @@ import {
     useInteractions,
     useRole,
 } from '@floating-ui/react';
-import React, {useCallback} from 'react';
+import classNames from 'classnames';
+import React, {useCallback, useState} from 'react';
 import {useSelector} from 'react-redux';
 
+import {PopoverMenu} from '@mattermost/compass-ui/components/popover-menu';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import {getIsMobileView} from 'selectors/views/browser';
@@ -64,6 +66,18 @@ export default function useEmojiPicker({
 
     const hideEmojiPicker = useCallback(() => setShowEmojiPicker(false), [setShowEmojiPicker]);
 
+    // Stay mounted through the PopoverMenu close animation. Mobile is fullscreen
+    // and does not use that surface, so it leaves with the open flag.
+    const [present, setPresent] = useState(showEmojiPicker);
+    if (showEmojiPicker && !present) {
+        setPresent(true);
+    } else if (!showEmojiPicker && isMobileView && present) {
+        setPresent(false);
+    }
+    const handleExited = useCallback(() => {
+        setPresent(false);
+    }, []);
+
     let middleware: UseFloatingOptions['middleware'];
     if (isMobileView) {
         // Disable middleware in mobile view because we use CSS to make the emoji picker fullscreen
@@ -81,7 +95,7 @@ export default function useEmojiPicker({
     }
 
     // Set up Floating UI
-    const {context: floatingContext, floatingStyles, refs} = useFloating({
+    const {context: floatingContext, floatingStyles, placement, refs} = useFloating({
         open: showEmojiPicker,
         onOpenChange: setShowEmojiPicker,
 
@@ -118,20 +132,28 @@ export default function useEmojiPicker({
             </div>
         );
     } else {
+        const origin = placement.startsWith('bottom') ? 'top' : 'bottom';
         emojiPicker = (
             <div
                 ref={refs.setFloating}
                 style={{...floatingStyles}}
                 {...getFloatingProps()}
             >
-                {emojiPicker}
+                <PopoverMenu
+                    variant='parent'
+                    open={showEmojiPicker}
+                    onExited={handleExited}
+                    className={classNames('emoji-picker-surface', `emoji-picker-surface--origin-${origin}`)}
+                >
+                    {emojiPicker}
+                </PopoverMenu>
             </div>
         );
     }
 
     return {
         emojiPicker: (
-            showEmojiPicker && <FloatingPortal id={RootHtmlPortalId}>
+            present && <FloatingPortal id={RootHtmlPortalId}>
                 <FloatingOverlay className='emoji-picker-overlay'>
                     <FloatingFocusManager context={floatingContext}>
                         {emojiPicker}

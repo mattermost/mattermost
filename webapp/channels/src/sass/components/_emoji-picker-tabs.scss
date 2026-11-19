@@ -57,6 +57,31 @@
     pointer-events: none;
 }
 
+// The picker sits in a Compass PopoverMenu. That surface owns the border,
+// radius, elevation, and the scale-and-fade. The picker fills it edge to edge.
+.emoji-picker-overlay .emoji-picker-surface {
+    overflow: hidden;
+    width: 350px;
+    padding: 0;
+
+    &.emoji-picker-surface--origin-bottom {
+        transform-origin: bottom center;
+    }
+
+    &.emoji-picker-surface--origin-top {
+        transform-origin: top center;
+    }
+
+    > .emoji-picker {
+        width: 100%;
+        border: 0;
+        border-radius: 0;
+        margin-right: 0;
+        background: transparent;
+        box-shadow: none;
+    }
+}
+
 .custom-emoji-tab__icon__text {
     display: flex;
     flex-direction: row;
