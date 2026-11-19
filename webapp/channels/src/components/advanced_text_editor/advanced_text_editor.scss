@@ -225,7 +225,10 @@
         border-radius: var(--radius-m);
     }
 
-    // The + sits on the left. Its resting fill is the icon button's hover fill.
+    // The + sits on the left. Its resting fill is the icon button's hover fill,
+    // so hover itself has to go one step more opaque to still read as hover.
+    // The :not chain matches Compass, plus the element, so this wins on hover
+    // and loses once the menu is open or the button is pressed.
     &__plus {
         position: absolute;
         z-index: 2;
@@ -234,6 +237,10 @@
 
         .agent-composer-menu-button {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
+        button.agent-composer-menu-button:is(:hover, :focus-visible):not(:disabled):not(:active):not([class*='_icon-button--active']):not([class*='_icon-button--toggled']) {
+            background-color: rgba(var(--center-channel-color-rgb), 0.12);
         }
     }
 
