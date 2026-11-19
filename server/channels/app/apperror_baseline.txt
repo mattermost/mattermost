@@ -331,8 +331,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetFileInfosForPo
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetFileInfosForPostWithMigration
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetFilteredUsersStats
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetFlaggedPosts
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetFlaggedPostsForChannel
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetFlaggedPostsForTeam
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetGlobalRetentionPolicy
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetGroup
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).GetGroupByName

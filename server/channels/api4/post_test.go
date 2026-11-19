@@ -11,11 +11,13 @@ import (
 	"fmt"
 	"io"
 	"maps"
+	"math"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -4015,7 +4017,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 
 	mockStore := mocks.Store{}
 	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetFlaggedPosts", mock.AnythingOfType("string"), mock.AnythingOfType("int"), mock.AnythingOfType("int")).Return(nil, errors.New("some-error"))
+	mockPostStore.On("GetFlaggedPosts", mock.AnythingOfType("model.GetFlaggedPostsOptions")).Return(nil, errors.New("some-error"))
 	mockPostStore.On("ClearCaches").Return()
 	mockStore.On("Team").Return(th.App.Srv().Store().Team())
 	mockStore.On("Channel").Return(th.App.Srv().Store().Channel())
@@ -4082,16 +4084,220 @@ func TestGetFlaggedPostsForUserPaging(t *testing.T) {
 			require.Len(t, all.Order, 7)
 
 			var paged []string
-			for page, expectedLen := range []int{3, 3, 1, 0} {
+			for page, expected := range []struct {
+				len     int
+				hasNext bool
+			}{{3, true}, {3, true}, {1, false}, {0, false}} {
 				rpl, _, err := getFlaggedPosts(page, 3)
 				require.NoError(t, err)
-				assert.Len(t, rpl.Order, expectedLen, "page %d", page)
+				assert.Len(t, rpl.Order, expected.len, "page %d", page)
+				require.NotNil(t, rpl.HasNext, "page %d", page)
+				assert.Equal(t, expected.hasNext, *rpl.HasNext, "page %d", page)
 				paged = append(paged, rpl.Order...)
 			}
 
 			assert.ElementsMatch(t, all.Order, paged)
 		})
 	}
+
+	t.Run("invalid paging", func(t *testing.T) {
+		for _, tc := range []struct {
+			name          string
+			page, perPage int
+		}{
+			{"negative page", -1, 3},
+			{"zero per page", 0, 0},
+			{"overflowing offset", math.MaxInt / 100, 200},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				_, resp, err := client.GetFlaggedPostsForUser(context.Background(), user.Id, tc.page, tc.perPage)
+				require.Error(t, err)
+				CheckBadRequestStatus(t, resp)
+			})
+		}
+	})
+}
+
+func TestGetFlaggedPostsForUserTiedCreateAt(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	user := th.BasicUser
+
+	createAt := model.GetMillis()
+	var ids []string
+	preferences := model.Preferences{}
+	for range 5 {
+		post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
+			UserId:    user.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "tied",
+			CreateAt:  createAt,
+		})
+		require.NoError(t, err)
+		ids = append(ids, post.Id)
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     post.Id,
+			Value:    "true",
+		})
+	}
+	_, err := client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
+
+	slices.Sort(ids)
+	slices.Reverse(ids)
+
+	rpl, _, err := client.GetFlaggedPostsForUser(context.Background(), user.Id, 0, 10)
+	require.NoError(t, err)
+	assert.Equal(t, ids, rpl.Order)
+
+	var paged []string
+	before := ""
+	for {
+		rpl, _, err = client.GetFlaggedPostsForUserBefore(context.Background(), user.Id, "", "", before, 2)
+		require.NoError(t, err)
+		paged = append(paged, rpl.Order...)
+		if !*rpl.HasNext {
+			break
+		}
+		before = rpl.Order[len(rpl.Order)-1]
+	}
+	assert.Equal(t, ids, paged)
+}
+
+func TestGetFlaggedPostsForUserBefore(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	user := th.BasicUser
+
+	preferences := model.Preferences{}
+	for range 7 {
+		post := th.CreatePost(t)
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     post.Id,
+			Value:    "true",
+		})
+	}
+	_, err := client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
+
+	all, _, err := client.GetFlaggedPostsForUser(context.Background(), user.Id, 0, 100)
+	require.NoError(t, err)
+	require.Len(t, all.Order, 7)
+
+	for name, filter := range map[string]struct{ channelId, teamId string }{
+		"all":     {},
+		"team":    {teamId: th.BasicTeam.Id},
+		"channel": {channelId: th.BasicChannel.Id},
+	} {
+		t.Run(name, func(t *testing.T) {
+			var paged []string
+			before := ""
+			for _, expected := range []struct {
+				len     int
+				hasNext bool
+			}{{3, true}, {3, true}, {1, false}} {
+				rpl, _, err := client.GetFlaggedPostsForUserBefore(context.Background(), user.Id, filter.channelId, filter.teamId, before, 3)
+				require.NoError(t, err)
+				require.Len(t, rpl.Order, expected.len)
+				require.NotNil(t, rpl.HasNext)
+				assert.Equal(t, expected.hasNext, *rpl.HasNext)
+				paged = append(paged, rpl.Order...)
+				before = rpl.Order[len(rpl.Order)-1]
+			}
+
+			assert.Equal(t, all.Order, paged)
+		})
+	}
+
+	t.Run("unsaving loaded posts does not skip later ones", func(t *testing.T) {
+		first, _, err := client.GetFlaggedPostsForUserBefore(context.Background(), user.Id, "", "", "", 3)
+		require.NoError(t, err)
+		require.Equal(t, all.Order[:3], first.Order)
+
+		unsaved := model.Preferences{}
+		for _, id := range first.Order {
+			unsaved = append(unsaved, model.Preference{UserId: user.Id, Category: model.PreferenceCategoryFlaggedPost, Name: id, Value: "true"})
+		}
+		_, err = client.DeletePreferences(context.Background(), user.Id, unsaved)
+		require.NoError(t, err)
+		t.Cleanup(func() {
+			_, cleanupErr := client.UpdatePreferences(context.Background(), user.Id, unsaved)
+			require.NoError(t, cleanupErr)
+		})
+
+		next, _, err := client.GetFlaggedPostsForUserBefore(context.Background(), user.Id, "", "", first.Order[2], 3)
+		require.NoError(t, err)
+		assert.Equal(t, all.Order[3:6], next.Order)
+	})
+
+	t.Run("cursor post that no longer exists", func(t *testing.T) {
+		gone := th.CreatePost(t)
+		require.Nil(t, th.App.PermanentDeletePost(th.Context, gone.Id, user.Id))
+
+		_, resp, err := client.GetFlaggedPostsForUserBefore(context.Background(), user.Id, "", "", gone.Id, 3)
+		require.Error(t, err)
+		CheckNotFoundStatus(t, resp)
+	})
+
+	t.Run("invalid before", func(t *testing.T) {
+		_, resp, err := client.GetFlaggedPostsForUserBefore(context.Background(), user.Id, "", "", "junk", 3)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+
+		httpResp, err := client.DoAPIGet(context.Background(), "/users/"+user.Id+"/posts/flagged?page=1&per_page=3&before="+all.Order[0], "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, model.BuildResponse(httpResp))
+	})
+}
+
+func TestGetFlaggedPostsForUserHasNextWithHistoryLimit(t *testing.T) {
+	mainHelper.Parallel(t)
+
+	th := Setup(t).InitBasic(t)
+	client := th.Client
+	user := th.BasicUser
+
+	var posts []*model.Post
+	preferences := model.Preferences{}
+	for range 4 {
+		post := th.CreatePost(t)
+		posts = append(posts, post)
+		preferences = append(preferences, model.Preference{
+			UserId:   user.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     post.Id,
+			Value:    "true",
+		})
+		time.Sleep(2 * time.Millisecond)
+	}
+	_, err := client.UpdatePreferences(context.Background(), user.Id, preferences)
+	require.NoError(t, err)
+
+	license := model.NewTestLicense("")
+	license.Limits = &model.LicenseLimits{PostHistory: 10000}
+	th.App.Srv().SetLicense(license)
+
+	newest := posts[len(posts)-1]
+	err = th.App.Srv().Store().System().SaveOrUpdate(&model.System{
+		Name:  model.SystemLastAccessiblePostTime,
+		Value: strconv.FormatInt(newest.CreateAt, 10),
+	})
+	require.NoError(t, err)
+
+	rpl, _, err := client.GetFlaggedPostsForUser(context.Background(), user.Id, 0, 2)
+	require.NoError(t, err)
+	assert.Equal(t, []string{newest.Id}, rpl.Order)
+	require.NotNil(t, rpl.HasNext)
+	assert.False(t, *rpl.HasNext)
+	assert.Equal(t, posts[len(posts)-2].CreateAt, rpl.FirstInaccessiblePostTime)
 }
 
 func TestGetPostsBefore(t *testing.T) {

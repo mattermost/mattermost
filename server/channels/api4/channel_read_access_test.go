@@ -12,9 +12,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	putils "github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -1045,5 +1047,129 @@ func TestChannelReadAccessUnreadCountsExcludeDeniedChannels(t *testing.T) {
 		require.NoError(t, err)
 		require.Zero(t, unread.MentionCount)
 		require.Zero(t, unread.MsgCount)
+	})
+}
+
+// setupFlaggedPostsReadAccess saves n posts for BasicUser, each in a channel of its own
+// so that a decision about one channel decides exactly one post, and returns them in the
+// order the API serves them. The ACS mock is installed afterwards, for the caller to
+// program.
+func setupFlaggedPostsReadAccess(t *testing.T, n int) (*TestHelper, *model.PostList, *mocks.AccessControlServiceInterface) {
+	t.Helper()
+
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.PermissionPolicies = true
+		cfg.FeatureFlags.ChannelPermissionActions = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.AccessControlSettings.EnableAttributeBasedAccessControl = true
+	})
+
+	preferences := model.Preferences{}
+	for range n {
+		channel := th.CreatePublicChannel(t)
+		post := th.CreatePostWithClient(t, th.Client, channel)
+		preferences = append(preferences, model.Preference{
+			UserId:   th.BasicUser.Id,
+			Category: model.PreferenceCategoryFlaggedPost,
+			Name:     post.Id,
+			Value:    "true",
+		})
+	}
+	_, err := th.Client.UpdatePreferences(context.Background(), th.BasicUser.Id, preferences)
+	require.NoError(t, err)
+
+	all, _, err := th.Client.GetFlaggedPostsForUserBefore(context.Background(), th.BasicUser.Id, "", "", "", 100)
+	require.NoError(t, err)
+	require.Len(t, all.Order, n)
+
+	mockACS := installMockACS(t, th)
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).Return(true, nil)
+	return th, all, mockACS
+}
+
+func readAccessFor(mockACS *mocks.AccessControlServiceInterface, decide func(req model.AccessRequest) bool) {
+	mockACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
+		return req.Action == model.AccessControlPolicyActionChannelReadAccess && !decide(req)
+	})).Return(model.AccessDecision{Decision: false}, nil)
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil)
+}
+
+func TestChannelReadAccessFlaggedPostsBefore(t *testing.T) {
+	t.Run("pages past a denied channel", func(t *testing.T) {
+		th, all, mockACS := setupFlaggedPostsReadAccess(t, 5)
+		denied := all.Posts[all.Order[1]]
+		readAccessFor(mockACS, func(req model.AccessRequest) bool { return req.Resource.ID != denied.ChannelId })
+
+		var paged []string
+		before := ""
+		for range len(all.Order) {
+			rpl, _, err := th.Client.GetFlaggedPostsForUserBefore(context.Background(), th.BasicUser.Id, "", "", before, 2)
+			require.NoError(t, err)
+			paged = append(paged, rpl.Order...)
+			if !*rpl.HasNext {
+				break
+			}
+			assert.Len(t, rpl.Order, 2, "a page with more to come must be topped up")
+			before = rpl.Order[len(rpl.Order)-1]
+		}
+
+		var want []string
+		for _, id := range all.Order {
+			if id != denied.Id {
+				want = append(want, id)
+			}
+		}
+		assert.Equal(t, want, paged)
+	})
+
+	t.Run("a short page after the last readable post reports the end", func(t *testing.T) {
+		th, all, mockACS := setupFlaggedPostsReadAccess(t, 4)
+		denied := map[string]bool{
+			all.Posts[all.Order[0]].ChannelId: true,
+			all.Posts[all.Order[3]].ChannelId: true,
+		}
+		readAccessFor(mockACS, func(req model.AccessRequest) bool { return !denied[req.Resource.ID] })
+
+		rpl, _, err := th.Client.GetFlaggedPostsForUserBefore(context.Background(), th.BasicUser.Id, "", "", "", 3)
+		require.NoError(t, err)
+		assert.Equal(t, all.Order[1:3], rpl.Order)
+		assert.False(t, *rpl.HasNext, "nothing readable remains after the denied post")
+	})
+
+	// Known limit: a PostList has nowhere to carry a cursor for an empty page, so when
+	// the refill gives up without keeping a post the list ends there, even though
+	// readable posts remain past the denied run.
+	t.Run("an empty page from a refill that gives up ends the list", func(t *testing.T) {
+		th, all, mockACS := setupFlaggedPostsReadAccess(t, putils.FetchUntilMaxRounds+1)
+		allowed := all.Posts[all.Order[putils.FetchUntilMaxRounds]]
+		readAccessFor(mockACS, func(req model.AccessRequest) bool { return req.Resource.ID == allowed.ChannelId })
+
+		rpl, _, err := th.Client.GetFlaggedPostsForUserBefore(context.Background(), th.BasicUser.Id, "", "", "", 1)
+		require.NoError(t, err)
+		assert.Empty(t, rpl.Order)
+		assert.False(t, *rpl.HasNext)
+	})
+
+	// Known limit: the refill decides for the user whose posts these are, but the
+	// handler then filters for the session. A page the session can read none of is
+	// empty, and so ends the list for it.
+	t.Run("an empty page after the session filter ends the list", func(t *testing.T) {
+		th, all, mockACS := setupFlaggedPostsReadAccess(t, 2)
+		hidden := all.Posts[all.Order[0]]
+		readAccessFor(mockACS, func(req model.AccessRequest) bool {
+			return req.Subject.ID != th.SystemAdminUser.Id || req.Resource.ID != hidden.ChannelId
+		})
+
+		rpl, _, err := th.SystemAdminClient.GetFlaggedPostsForUserBefore(context.Background(), th.BasicUser.Id, "", "", "", 1)
+		require.NoError(t, err)
+		assert.Empty(t, rpl.Order)
+		assert.False(t, *rpl.HasNext)
+
+		rpl, _, err = th.Client.GetFlaggedPostsForUserBefore(context.Background(), th.BasicUser.Id, "", "", "", 1)
+		require.NoError(t, err)
+		assert.Equal(t, all.Order[:1], rpl.Order, "the user whose posts these are still reads the page")
 	})
 }

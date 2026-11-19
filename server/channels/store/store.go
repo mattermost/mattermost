@@ -428,9 +428,7 @@ type PostStore interface {
 	PermanentDeleteByUser(rctx request.CTX, userID string) error
 	PermanentDeleteByChannel(rctx request.CTX, channelID string) error
 	GetPosts(rctx request.CTX, options model.GetPostsOptions, allowFromCache bool, sanitizeOptions map[string]bool) (*model.PostList, error)
-	GetFlaggedPosts(userID string, offset int, limit int) (*model.PostList, error)
-	GetFlaggedPostsForTeam(userID, teamID string, offset int, limit int) (*model.PostList, error)
-	GetFlaggedPostsForChannel(userID, channelID string, offset int, limit int) (*model.PostList, error)
+	GetFlaggedPosts(options model.GetFlaggedPostsOptions) (*model.PostList, error)
 	GetPostsBefore(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsAfter(rctx request.CTX, options model.GetPostsOptions, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetPostsForReporting(rctx request.CTX, queryParams model.ReportPostQueryParams) (*model.ReportPostListResponse, error)
