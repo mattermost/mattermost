@@ -136,6 +136,11 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if policy.Type == model.AccessControlPolicyTypeSystemSetting && !c.App.Config().FeatureFlags.SystemSettingPolicies {
+		c.Err = model.NewAppError("createAccessControlPolicy", "api.access_control_policy.system_setting_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+		return
+	}
+
 	// Channel-scope policies are always available, but a channel policy
 	// that carries a permission-rule action (upload_file_attachment,
 	// download_file_attachment, channel_read_access, create_burn_on_read_post)
@@ -200,7 +205,7 @@ func createAccessControlPolicy(c *Context, w http.ResponseWriter, r *http.Reques
 			policy.Scope = model.AccessControlPolicyScopeTeam
 			policy.ScopeID = teamID
 		}
-	case model.AccessControlPolicyTypePermission:
+	case model.AccessControlPolicyTypePermission, model.AccessControlPolicyTypeSystemSetting:
 		if !hasManageSystem {
 			c.SetPermissionError(model.PermissionManageSystem)
 			return
@@ -878,6 +883,7 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	permissionPoliciesEnabled := c.App.Config().FeatureFlags.PermissionPolicies
+	systemSettingPoliciesEnabled := c.App.Config().FeatureFlags.SystemSettingPolicies
 	var policies []*model.AccessControlPolicy
 	var total int64
 	var appErr *model.AppError
@@ -899,6 +905,10 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 			c.Err = model.NewAppError("searchAccessControlPolicies", "api.access_control_policy.permission_policies.feature_disabled", nil, "", http.StatusNotImplemented)
 			return
 		}
+		if props.Type == model.AccessControlPolicyTypeSystemSetting && !systemSettingPoliciesEnabled {
+			c.Err = model.NewAppError("searchAccessControlPolicies", "api.access_control_policy.system_setting_policies.feature_disabled", nil, "", http.StatusNotImplemented)
+			return
+		}
 
 		// System-wide search: requires system permission
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
@@ -913,12 +923,16 @@ func searchAccessControlPolicies(c *Context, w http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	if !permissionPoliciesEnabled && props.Type == "" {
+	if (!permissionPoliciesEnabled || !systemSettingPoliciesEnabled) && props.Type == "" {
 		filtered := make([]*model.AccessControlPolicy, 0, len(policies))
 		for _, p := range policies {
-			if p.Type != model.AccessControlPolicyTypePermission {
-				filtered = append(filtered, p)
+			if !permissionPoliciesEnabled && p.Type == model.AccessControlPolicyTypePermission {
+				continue
 			}
+			if !systemSettingPoliciesEnabled && p.Type == model.AccessControlPolicyTypeSystemSetting {
+				continue
+			}
+			filtered = append(filtered, p)
 		}
 		total -= int64(len(policies) - len(filtered))
 		policies = filtered

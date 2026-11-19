@@ -39,6 +39,7 @@ func (api *API) InitConfig() {
 	api.BaseRoutes.APIRoot.Handle("/config/patch", api.APISessionRequired(patchConfig)).Methods(http.MethodPut)
 	api.BaseRoutes.APIRoot.Handle("/config/reload", api.APISessionRequired(configReload)).Methods(http.MethodPost)
 	api.BaseRoutes.APIRoot.Handle("/config/client", api.APIHandler(getClientConfig)).Methods(http.MethodGet)
+	api.BaseRoutes.APIRoot.Handle("/config/client/overrides", api.APISessionRequired(getClientConfigOverrides)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/environment", api.APISessionRequired(getEnvironmentConfig)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/history", api.APISessionRequired(getConfigHistory)).Methods(http.MethodGet)
 	api.BaseRoutes.APIRoot.Handle("/config/history/{config_id:[A-Za-z0-9]+}", api.APISessionRequired(getHistoricalConfig)).Methods(http.MethodGet)
@@ -293,6 +294,22 @@ func getClientConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := json.NewEncoder(w).Encode(config); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getClientConfigOverrides(c *Context, w http.ResponseWriter, _ *http.Request) {
+	overrides, appErr := c.App.EvaluateClientConfigOverrides(c.AppContext)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	if overrides == nil {
+		overrides = map[string]string{}
+	}
+
+	w.Header().Set("Cache-Control", "no-cache, no-store, must-revalidate")
+	if err := json.NewEncoder(w).Encode(overrides); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

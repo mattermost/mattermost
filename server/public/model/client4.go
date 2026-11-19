@@ -4671,6 +4671,16 @@ func (c *Client4) GetClientConfig(ctx context.Context, etag string) (map[string]
 	return DecodeJSONFromResponse[map[string]string](r)
 }
 
+// GetClientConfigOverrides returns the ClientConfig overrides for the caller's session.
+func (c *Client4) GetClientConfigOverrides(ctx context.Context) (map[string]string, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.configRoute().Join("client", "overrides"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[map[string]string](r)
+}
+
 // GetEnvironmentConfig will retrieve a map mirroring the server configuration where fields
 // are set to true if the corresponding config setting is set through an environment variable.
 // Settings that haven't been set through environment variables will be missing from the map.

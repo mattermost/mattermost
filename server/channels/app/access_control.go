@@ -148,11 +148,19 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	}
 
 	policy.Version = model.AccessControlPolicyVersionV0_3
-	for i, rule := range policy.Rules {
-		for j, action := range rule.Actions {
-			if action == "*" {
-				policy.Rules[i].Actions[j] = model.AccessControlPolicyActionMembership
+	if policy.Type != model.AccessControlPolicyTypeSystemSetting {
+		for i, rule := range policy.Rules {
+			for j, action := range rule.Actions {
+				if action == "*" {
+					policy.Rules[i].Actions[j] = model.AccessControlPolicyActionMembership
+				}
 			}
+		}
+	}
+
+	if policy.Type == model.AccessControlPolicyTypeSystemSetting {
+		if appErr := a.validateSystemSettingPolicyOnSave(rctx, policy); appErr != nil {
+			return nil, appErr
 		}
 	}
 
@@ -194,6 +202,8 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 		a.publishTeamPolicyEnforcedForTeamPoliciesWithImport(rctx, policy.ID)
 	case model.AccessControlPolicyTypePermission:
 		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(previous, policy))
+	case model.AccessControlPolicyTypeSystemSetting:
+		a.invalidateSystemSettingPolicyCache()
 	}
 
 	return policy, nil
@@ -360,12 +370,15 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 	// Name) is pinned by its membership Action so it round-trips
 	// through reorders too.
 	storedByName := make(map[string]*model.AccessControlPolicyRule, len(existingPolicy.Rules))
+	storedBySystemSettingKey := make(map[string]*model.AccessControlPolicyRule, len(existingPolicy.Rules))
 	var storedMembership *model.AccessControlPolicyRule
 	for i := range existingPolicy.Rules {
 		r := &existingPolicy.Rules[i]
 		switch {
 		case r.Name != "":
 			storedByName[r.Name] = r
+		case existingPolicy.Type == model.AccessControlPolicyTypeSystemSetting && len(r.Actions) == 1:
+			storedBySystemSettingKey[r.Actions[0]] = r
 		case r.IsMembershipRule():
 			if storedMembership == nil {
 				storedMembership = r
@@ -374,6 +387,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 	}
 
 	pairedNames := make(map[string]bool, len(existingPolicy.Rules))
+	pairedSystemSettingKeys := make(map[string]bool, len(existingPolicy.Rules))
 	membershipPaired := false
 	mergedHidden := false
 
@@ -385,6 +399,11 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 			stored = storedByName[rule.Name]
 			if stored != nil {
 				pairedNames[rule.Name] = true
+			}
+		case policy.Type == model.AccessControlPolicyTypeSystemSetting && len(rule.Actions) == 1:
+			stored = storedBySystemSettingKey[rule.Actions[0]]
+			if stored != nil {
+				pairedSystemSettingKeys[rule.Actions[0]] = true
 			}
 		case rule.IsMembershipRule():
 			if !membershipPaired {
@@ -421,6 +440,7 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		if mergedExpr != submittedExpr {
 			rule.Actions = stored.Actions
 			rule.Role = stored.Role
+			rule.Value = stored.Value
 			mergedHidden = true
 		}
 	}
@@ -436,6 +456,10 @@ func (a *App) mergeStoredPolicyExpressions(rctx request.CTX, policy *model.Acces
 		switch {
 		case stored.Name != "":
 			if pairedNames[stored.Name] {
+				continue
+			}
+		case existingPolicy.Type == model.AccessControlPolicyTypeSystemSetting && len(stored.Actions) == 1:
+			if pairedSystemSettingKeys[stored.Actions[0]] {
 				continue
 			}
 		case stored.IsMembershipRule():
@@ -733,6 +757,8 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 		a.publishTeamPolicyEnforcedUpdatesForTeams(rctx, affectedTeamIDs)
 	case policy.Type == model.AccessControlPolicyTypePermission:
 		a.publishPermissionPolicyUpdate(rctx, policyRuleActions(policy))
+	case policy.Type == model.AccessControlPolicyTypeSystemSetting:
+		a.invalidateSystemSettingPolicyCache()
 	}
 
 	return nil

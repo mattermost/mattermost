@@ -188,10 +188,16 @@ func (a *App) GetClusterStatus(rctx request.CTX) ([]*model.ClusterInfo, error) {
 }
 
 func (s *Server) InvalidateAllCaches() *model.AppError {
+	if s.ch != nil {
+		s.ch.invalidateSystemSettingPolicyCache()
+	}
 	return s.platform.InvalidateAllCaches()
 }
 
 func (s *Server) InvalidateAllCachesSkipSend() *model.AppError {
+	if s.ch != nil && s.ch.systemSettingPoliciesCache != nil {
+		s.ch.systemSettingPoliciesCache.Invalidate()
+	}
 	return s.platform.InvalidateAllCachesSkipSend()
 }
 

@@ -105,6 +105,11 @@
     "description": "API error in the access control policy simulation tool when some test users are not members of the team or channel being simulated; admin-facing."
   },
   {
+    "id": "api.access_control_policy.system_setting_policies.feature_disabled",
+    "translation": "System setting policies feature is not enabled.",
+    "description": "API error for admins when the system setting policies (session-scoped client configuration overrides) feature is not enabled."
+  },
+  {
     "id": "api.access_control_policy.team_membership.feature_disabled",
     "translation": "Team membership access control feature is not enabled.",
     "description": "API error for admins when team-membership access control (policy-managed team membership) is not enabled."
@@ -6968,6 +6973,11 @@
     "description": "Internal error in attribute-based access control when loading the attribute group used to evaluate policies fails."
   },
   {
+    "id": "app.access_control.evaluate_system_settings.app_error",
+    "translation": "Failed to evaluate system setting policies.",
+    "description": "Internal error when loading or evaluating system setting access control policies for a user session."
+  },
+  {
     "id": "app.access_control.get_channel_role.app_error",
     "translation": "Unable to get channel role for the user. Please try again.",
     "description": "Error in attribute-based access control when the user's channel role cannot be determined; asks the user to retry."
@@ -10660,6 +10670,16 @@
     "id": "app.pap.save_policy.self_exclusion",
     "translation": "You do not satisfy one or more conditions in this policy.",
     "description": "API error when saving an access control policy would lock the saving admin out because they do not satisfy the policy's conditions."
+  },
+  {
+    "id": "app.pap.save_policy.system_setting_key_exists.app_error",
+    "translation": "A policy ({{.PolicyName}}) already configures {{.Key}}.",
+    "description": "API validation error shown to system admins saving a system setting policy when another policy ({{.PolicyName}}) already configures the same ClientConfig setting key ({{.Key}})."
+  },
+  {
+    "id": "app.pap.save_policy.system_setting_resource_attributes",
+    "translation": "System setting policies cannot reference channel attributes (resource.attributes).",
+    "description": "API validation error (400) shown to system admins saving a system setting policy whose rule expression references resource.attributes."
   },
   {
     "id": "app.pap.save_policy.team_resource_attributes",
