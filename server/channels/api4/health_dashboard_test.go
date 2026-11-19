@@ -5,7 +5,9 @@ package api4
 
 import (
 	"context"
+	"maps"
 	"os"
+	"slices"
 	"strings"
 	"testing"
 
@@ -182,6 +184,44 @@ func TestHealthDashboardAccess(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
+	t.Run("compliance and job findings follow the permissions of what they are about", func(t *testing.T) {
+		th := setupHealthDashboard(t, true)
+		th.LoginSystemManager(t)
+		finding := func(code string, area model.HealthArea, subject string) *model.HealthFinding {
+			f := newHealthFinding(code, healthcheck.SurfaceProduct)
+			f.Fingerprint = healthcheck.Fingerprint(code, subject, "")
+			f.Area = area
+			f.Subject = subject
+			return f
+		}
+		siteURL := finding("SITE_URL_HTTP", model.AreaPlatform, "ServiceSettings.SiteURL")
+		export := finding("EXPORT_GR_TIMEOUT_LOW", model.AreaCompliance, "MessageExportSettings.GlobalRelaySettings.SMTPServerTimeout")
+		exportJob := finding("JOB_FAILED", model.AreaJobs, model.JobTypeMessageExport)
+		ldapJob := finding("JOB_FAILED", model.AreaJobs, model.JobTypeLdapSync)
+		storeHealthFindings(t, th, siteURL, export, exportJob, ldapJob)
+
+		getFingerprints := func(client *model.Client4) []string {
+			t.Helper()
+			list, resp, err := client.GetHealthFindings(context.Background(), model.HealthFindingFilter{})
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			return findingFingerprints(list.Findings)
+		}
+
+		// A System Manager can read LDAP but not Compliance.
+		assert.ElementsMatch(t, []string{siteURL.Fingerprint, ldapJob.Fingerprint}, getFingerprints(th.SystemManagerClient))
+		assert.ElementsMatch(t, []string{siteURL.Fingerprint, export.Fingerprint, exportJob.Fingerprint, ldapJob.Fingerprint}, getFingerprints(th.SystemAdminClient))
+
+		// Granting Compliance Export read reveals the export findings, whatever the role.
+		th.AddPermissionToRole(t, model.PermissionSysconsoleReadComplianceComplianceExport.Id, model.SystemManagerRoleId)
+		th.AddPermissionToRole(t, model.PermissionReadComplianceExportJob.Id, model.SystemManagerRoleId)
+		t.Cleanup(func() {
+			th.RemovePermissionFromRole(t, model.PermissionSysconsoleReadComplianceComplianceExport.Id, model.SystemManagerRoleId)
+			th.RemovePermissionFromRole(t, model.PermissionReadComplianceExportJob.Id, model.SystemManagerRoleId)
+		})
+		assert.ElementsMatch(t, []string{siteURL.Fingerprint, export.Fingerprint, exportJob.Fingerprint, ldapJob.Fingerprint}, getFingerprints(th.SystemManagerClient))
+	})
+
 	t.Run("health check jobs follow the findings read permission", func(t *testing.T) {
 		th := setupHealthDashboard(t, true)
 		th.LoginSystemManager(t)
@@ -294,6 +334,18 @@ func TestHealthDashboardAccess(t *testing.T) {
 		assert.Empty(t, list.Findings)
 		assert.Zero(t, list.EvaluatedAt)
 	})
+}
+
+// TestComplianceFindingPermissions keeps the stopgap map in step with the rules: a compliance rule
+// missing from it is hidden from everyone without manage_system.
+func TestComplianceFindingPermissions(t *testing.T) {
+	var codes []string
+	for _, rule := range healthcheck.Builtin().Rules() {
+		if rule.Area == model.AreaCompliance {
+			codes = append(codes, rule.Code)
+		}
+	}
+	assert.ElementsMatch(t, codes, slices.Collect(maps.Keys(complianceFindingPermissions)))
 }
 
 func TestHealthDashboardLocal(t *testing.T) {

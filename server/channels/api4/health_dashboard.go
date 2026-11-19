@@ -49,6 +49,45 @@ func requireHealthDashboard(c *Context, permissions ...*model.Permission) bool {
 	return true
 }
 
+// complianceFindingPermissions maps each compliance rule to the read permission of the System
+// Console page its setting is on, the same permission GET /config checks for that setting. It is
+// a stopgap until every rule declares the permission that gates it: compliance is the area a
+// delegated admin's default role may not read.
+var complianceFindingPermissions = map[string]*model.Permission{
+	"AUDIT_LOG_OFF":           model.PermissionSysconsoleReadExperimentalFeatures,
+	"COMPLIANCE_NO_DIR":       model.PermissionSysconsoleReadComplianceComplianceMonitoring,
+	"EXPORT_GR_TIMEOUT_LOW":   model.PermissionSysconsoleReadComplianceComplianceExport,
+	"RETENTION_TIGHT_BATCHES": model.PermissionSysconsoleReadComplianceDataRetentionPolicy,
+}
+
+// readableFindings drops the findings the caller may not read. A compliance finding needs read
+// access to its setting's System Console page, and one whose rule isn't listed needs
+// manage_system. A job finding, whose subject is the job type, needs read access to that type's
+// jobs. Every other finding is visible to anyone who may use the dashboard.
+func readableFindings(c *Context, findings []*model.HealthFinding) []*model.HealthFinding {
+	session := *c.AppContext.Session()
+	readable := make([]*model.HealthFinding, 0, len(findings))
+	for _, finding := range findings {
+		switch finding.Area {
+		case model.AreaCompliance:
+			permission, ok := complianceFindingPermissions[finding.Code]
+			if !ok {
+				permission = model.PermissionManageSystem
+			}
+			if !c.App.SessionHasPermissionTo(session, permission) {
+				continue
+			}
+		case model.AreaJobs:
+			if ok, _ := c.App.SessionHasPermissionToReadJob(session, finding.Subject); !ok {
+				continue
+			}
+		}
+		readable = append(readable, finding)
+	}
+
+	return readable
+}
+
 // renderFindings resolves each finding's message and its rule's title and remediation into the
 // request locale. A finding whose code is no longer registered cannot be rendered or acted on,
 // so it is dropped.
@@ -82,7 +121,7 @@ func getHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
-	list.Findings = renderFindings(c, list.Findings)
+	list.Findings = renderFindings(c, readableFindings(c, list.Findings))
 
 	if err := json.NewEncoder(w).Encode(list); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
