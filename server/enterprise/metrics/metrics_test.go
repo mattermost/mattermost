@@ -412,6 +412,21 @@ func TestWebsocketReconnectMetricsCardinality(t *testing.T) {
 		return n
 	}
 
+	sumCounter := func(c prometheus.Collector) float64 {
+		ch := make(chan prometheus.Metric)
+		go func() {
+			c.Collect(ch)
+			close(ch)
+		}()
+		total := 0.0
+		for metric := range ch {
+			m := &prometheusModels.Metric{}
+			require.NoError(t, metric.Write(m))
+			total += m.GetCounter().GetValue()
+		}
+		return total
+	}
+
 	url := fmt.Sprintf("ws://localhost:%v", th.App.Srv().ListenAddr.Port) + model.APIURLSuffix + "/websocket"
 	header := http.Header{"Authorization": []string{"Bearer " + th.Client.AuthToken}}
 	reconnect := func(rawCode string) {
@@ -427,12 +442,20 @@ func TestWebsocketReconnectMetricsCardinality(t *testing.T) {
 	}, 5*time.Second, 20*time.Millisecond)
 	baseReconnect := countSeries(miImpl.WebSocketReconnectCounter)
 	baseFailure := countSeries(miImpl.WebSocketReconnectFailureCounter)
+	baseReconnectTotal := sumCounter(miImpl.WebSocketReconnectCounter)
+	baseFailureTotal := sumCounter(miImpl.WebSocketReconnectFailureCounter)
 
-	for _, rawCode := range []string{"%2B1000", "01000", "001000", strings.Repeat("0", 500) + "1000", "%2B0001000", "abc", "5000"} {
+	rawCodes := []string{"%2B1000", "01000", "001000", strings.Repeat("0", 500) + "1000", "%2B0001000", "abc", "5000"}
+	for _, rawCode := range rawCodes {
 		reconnect(rawCode)
 	}
 
-	time.Sleep(500 * time.Millisecond)
+	expected := float64(len(rawCodes))
+	require.Eventually(t, func() bool {
+		return sumCounter(miImpl.WebSocketReconnectCounter) >= baseReconnectTotal+expected &&
+			sumCounter(miImpl.WebSocketReconnectFailureCounter) >= baseFailureTotal+expected
+	}, 5*time.Second, 20*time.Millisecond)
+
 	require.LessOrEqual(t, countSeries(miImpl.WebSocketReconnectCounter), baseReconnect+1)
 	require.LessOrEqual(t, countSeries(miImpl.WebSocketReconnectFailureCounter), baseFailure+1)
 }
