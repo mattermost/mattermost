@@ -455,45 +455,10 @@ func getConfigHistory(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord(model.AuditEventGetConfigHistory, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
 
-	// The oldest entry on the page is compared with the one saved before it, so fetch one more.
-	history, err := c.App.GetConfigHistory(c.Params.Page*c.Params.PerPage, c.Params.PerPage+1)
+	entries, err := c.App.GetConfigHistoryChanges(c.AppContext, c.Params.Page*c.Params.PerPage, c.Params.PerPage, newReadableConfigFilter(c), c.App.ConfigSanitizer(nil))
 	if err != nil {
 		c.SetError(err)
 		return
-	}
-
-	readableConfig := newReadableConfigFilter(c)
-	sanitize := c.App.ConfigSanitizer()
-	entries := make([]*model.ConfigHistoryEntry, len(history))
-	var newer *model.Config
-	for i, saved := range history {
-		entries[i] = saved.ConfigHistoryEntry
-		if saved.LoadErr != nil {
-			// Listed without its changes, or those of the configuration saved after it.
-			c.Logger.Warn("Failed to load a saved configuration", mlog.String("config_id", saved.Id), mlog.Err(saved.LoadErr))
-			newer = nil
-			continue
-		}
-
-		cfg, appErr := readableConfig(saved.Config)
-		if appErr != nil {
-			c.Err = appErr
-			return
-		}
-
-		if newer != nil {
-			diffs, err := config.SanitizedDiff(cfg, newer, sanitize)
-			if err != nil {
-				c.Err = model.NewAppError("getConfigHistory", "api.config.get_config_history.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-				return
-			}
-			entries[i-1].Changes = diffs.ToConfigChanges()
-		}
-		newer = cfg
-	}
-
-	if len(entries) > c.Params.PerPage {
-		entries = entries[:c.Params.PerPage]
 	}
 
 	auditRec.Success()
@@ -531,9 +496,9 @@ func getHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.AppContext.Session().IsUnrestricted() {
 		c.App.SanitizedConfig(cfg)
 	}
-	cfg, appErr := newReadableConfigFilter(c)(cfg)
-	if appErr != nil {
-		c.Err = appErr
+	cfg, err = newReadableConfigFilter(c)(cfg)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
 
@@ -616,17 +581,17 @@ func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	readableConfig := newReadableConfigFilter(c)
-	oldCfg, appErr = readableConfig(oldCfg)
-	if appErr != nil {
-		c.Err = appErr
+	oldCfg, err = readableConfig(oldCfg)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
-	newCfg, appErr = readableConfig(newCfg)
-	if appErr != nil {
-		c.Err = appErr
+	newCfg, err = readableConfig(newCfg)
+	if err != nil {
+		c.SetError(err)
 		return
 	}
-	diffs, err := config.SanitizedDiff(oldCfg, newCfg, c.App.ConfigSanitizer())
+	diffs, err := config.SanitizedDiff(oldCfg, newCfg, c.App.ConfigSanitizer(nil))
 	if err != nil {
 		c.Err = model.NewAppError("restoreHistoricalConfig", "api.config.restore_historical_config.diff.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		return
@@ -644,7 +609,7 @@ func restoreHistoricalConfig(c *Context, w http.ResponseWriter, r *http.Request)
 // session may read, using the same filters as getConfig. It does not sanitize. readFilter's
 // answer depends only on a field's type and tags, so it is cached across calls: a config has
 // over a thousand settings, and each answer can take several permission checks.
-func newReadableConfigFilter(c *Context) func(*model.Config) (*model.Config, *model.AppError) {
+func newReadableConfigFilter(c *Context) func(*model.Config) (*model.Config, error) {
 	type fieldKey struct {
 		typ reflect.Type
 		tag reflect.StructTag
@@ -663,7 +628,7 @@ func newReadableConfigFilter(c *Context) func(*model.Config) (*model.Config, *mo
 	}
 	filterCloudRestricted := !c.AppContext.Session().IsUnrestricted() && c.App.Channels().License().IsCloud()
 
-	return func(cfg *model.Config) (*model.Config, *model.AppError) {
+	return func(cfg *model.Config) (*model.Config, error) {
 		filtered, err := config.Merge(&model.Config{}, cfg, mergeConfig)
 		if err != nil {
 			return nil, model.NewAppError("readableConfig", "api.config.get_config.restricted_merge.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

@@ -1,0 +1,29 @@
+[
+    {
+        "saved_at": "1970-01-01T00:00:02.222Z",
+        "id": "config-new",
+        "create_at": 2222,
+        "active": true,
+        "unreadable": false,
+        "changes": [
+            {
+                "path": "TeamSettings.SiteName",
+                "old_value": "Old Site",
+                "new_value": "New Site"
+            },
+            {
+                "path": "EmailSettings.SMTPPassword",
+                "old_value": "********************************",
+                "new_value": "********************************"
+            }
+        ]
+    },
+    {
+        "saved_at": "1970-01-01T00:00:01.111Z",
+        "id": "config-old",
+        "create_at": 1111,
+        "active": false,
+        "unreadable": false,
+        "changes": null
+    }
+]

@@ -995,6 +995,30 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 				}, nil)
 			},
 		},
+		{
+			name:     "config history",
+			filename: "config_history.json",
+			marshal: func() (*model.FileData, error) {
+				return supportPacketConfigHistoryFile(&model.SupportPacketConfigHistory{
+					{
+						SavedAt: "1970-01-01T00:00:02.222Z",
+						ConfigHistoryEntry: &model.ConfigHistoryEntry{
+							Id:       "config-new",
+							CreateAt: 2222,
+							Active:   true,
+							Changes: []*model.ConfigChange{
+								{Path: "TeamSettings.SiteName", OldValue: "Old Site", NewValue: "New Site"},
+								{Path: "EmailSettings.SMTPPassword", OldValue: model.FakeSetting, NewValue: model.FakeSetting},
+							},
+						},
+					},
+					{
+						SavedAt:            "1970-01-01T00:00:01.111Z",
+						ConfigHistoryEntry: &model.ConfigHistoryEntry{Id: "config-old", CreateAt: 1111},
+					},
+				}, nil)
+			},
+		},
 	}
 
 	for _, tc := range cases {

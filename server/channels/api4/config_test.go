@@ -13,11 +13,13 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/utils/timeutils"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
@@ -1545,6 +1547,76 @@ func TestGetConfigHistory(t *testing.T) {
 		require.Len(t, entries, 1)
 		assert.Nil(t, findConfigChange(entries[0].Changes, "ServiceSettings.TLSStrictTransport"))
 		assert.NotNil(t, findConfigChange(entries[0].Changes, "TeamSettings.SiteName"))
+	})
+}
+
+func TestSupportPacketConfigHistory(t *testing.T) {
+	th := setupConfigHistory(t)
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.SqlSettings.DataSourceSearchReplicas = []string{"postgres://replica-user:replica-password@search-replica:5432/mattermost?sslmode=disable"}
+	})
+
+	noCPUProfile := time.Duration(0)
+	generate := func(t *testing.T) model.SupportPacketConfigHistory {
+		t.Helper()
+		for _, file := range th.App.GenerateSupportPacket(th.Context, &model.SupportPacketOptions{CPUProfileDuration: &noCPUProfile}) {
+			if file.Filename == model.SupportPacketConfigHistoryFileName {
+				var history model.SupportPacketConfigHistory
+				require.NoError(t, json.Unmarshal(file.Body, &history))
+				return history
+			}
+		}
+		require.FailNow(t, "the Support Packet has no "+model.SupportPacketConfigHistoryFileName)
+		return nil
+	}
+
+	t.Run("lists the changes sanitized as sanitized_config.json is", func(t *testing.T) {
+		latest, err := th.App.GetConfigHistory(0, 1)
+		require.NoError(t, err)
+		require.Len(t, latest, 1)
+
+		history := generate(t)
+		require.GreaterOrEqual(t, len(history), 2)
+		assert.Equal(t, latest[0].Id, history[0].Id)
+		assert.True(t, history[0].Active)
+		for _, entry := range history {
+			savedAt, parseErr := timeutils.ParseFormatedMillis(entry.SavedAt)
+			require.NoError(t, parseErr)
+			assert.Equal(t, entry.CreateAt, savedAt)
+		}
+
+		replicas := findConfigChange(history[0].Changes, "SqlSettings.DataSourceSearchReplicas")
+		require.NotNil(t, replicas)
+		newReplicas, ok := replicas.NewValue.([]any)
+		require.True(t, ok, "unexpected value %#v", replicas.NewValue)
+		require.Len(t, newReplicas, 1)
+		assert.Contains(t, newReplicas[0], "search-replica:5432", "the host should stay visible, as in sanitized_config.json")
+		assert.NotContains(t, newReplicas[0], "replica-password")
+
+		siteName := findConfigChange(history[1].Changes, "TeamSettings.SiteName")
+		require.NotNil(t, siteName)
+		assert.Equal(t, "Old Site", siteName.OldValue)
+		assert.Equal(t, "New Site", siteName.NewValue)
+
+		smtpPassword := findConfigChange(history[1].Changes, "EmailSettings.SMTPPassword")
+		require.NotNil(t, smtpPassword, "a changed sensitive setting should be listed")
+		assert.Equal(t, model.FakeSetting, smtpPassword.OldValue)
+		assert.Equal(t, model.FakeSetting, smtpPassword.NewValue)
+	})
+
+	t.Run("lists only the ten latest configurations", func(t *testing.T) {
+		for i := range 11 {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.TeamSettings.SiteName = fmt.Sprintf("Site %d", i)
+			})
+		}
+
+		history := generate(t)
+		require.Len(t, history, 10)
+		siteName := findConfigChange(history[9].Changes, "TeamSettings.SiteName")
+		require.NotNil(t, siteName, "the oldest configuration listed should still list its changes")
+		assert.Equal(t, "Site 0", siteName.OldValue)
+		assert.Equal(t, "Site 1", siteName.NewValue)
 	})
 }
 
