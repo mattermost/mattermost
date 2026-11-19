@@ -60,6 +60,8 @@ type Channels struct {
 	// See scheduleGuardCacheReloadRetry.
 	guardCacheRetryInFlight atomic.Bool
 
+	systemSettingPoliciesCache *systemSettingPolicyCache
+
 	imageProxy *imageproxy.ImageProxy
 
 	agentsBridge AgentsBridge
@@ -117,6 +119,10 @@ func NewChannels(s *Server) (*Channels, error) {
 		interruptQuitChan: make(chan struct{}),
 	}
 	ch.guardCache.Store(&sync.Map{})
+	ch.systemSettingPoliciesCache = newSystemSettingPolicyCache()
+	if s.Platform().Cluster() != nil {
+		s.Platform().Cluster().RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForSystemSettingPolicies, ch.handleClusterInvalidateSystemSettingPolicies)
+	}
 
 	if s.agentsBridgeOverride != nil {
 		ch.agentsBridge = s.agentsBridgeOverride
