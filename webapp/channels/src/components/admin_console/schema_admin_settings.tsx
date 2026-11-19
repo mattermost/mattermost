@@ -1736,11 +1736,8 @@ export const getSettingValue = (
     config: Partial<AdminConfig>,
     isDisabled: (setting: AdminDefinitionSetting) => boolean,
 ) => {
-    // Force boolean values to false when disabled.
-    if (setting.type === Constants.SettingsTypes.TYPE_BOOL) {
-        if (isDisabled(setting)) {
-            return false;
-        }
+    if (setting.type === Constants.SettingsTypes.TYPE_BOOL && setting.saveFalseWhenDisabled && isDisabled(setting)) {
+        return false;
     }
     if (!setting.key) {
         return undefined;

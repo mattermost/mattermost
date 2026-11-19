@@ -1153,6 +1153,93 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         });
     });
 
+    test('should save the existing value of a disabled bool setting', async () => {
+        const mockPatchConfig = jest.fn(() => Promise.resolve({data: true}));
+        const schema = {
+            id: 'Config',
+            name: 'config',
+            settings: [
+                {
+                    key: 'FirstSettings.settinga',
+                    label: 'label-a',
+                    type: 'text',
+                },
+                {
+                    key: 'FirstSettings.dependentSetting',
+                    label: 'dependent-label',
+                    type: 'bool',
+                    isDisabled: it.stateIsFalse('FirstSettings.parentSetting'),
+                },
+            ],
+        } as unknown as AdminDefinitionSubSectionSchema;
+
+        renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={{FirstSettings: {settinga: 'a', parentSetting: false, dependentSetting: true}} as unknown as Partial<AdminConfig>}
+                environmentConfig={{}}
+                schema={schema}
+                patchConfig={mockPatchConfig}
+            />,
+        );
+
+        expect(screen.getByTestId('FirstSettings.dependentSettingtrue')).toBeDisabled();
+        expect(screen.getByTestId('FirstSettings.dependentSettingtrue')).toBeChecked();
+
+        await userEvent.type(screen.getByRole('textbox', {name: /label-a/i}), 'b');
+        await userEvent.click(screen.getByRole('button', {name: /save/i}));
+
+        await waitFor(() => {
+            expect(mockPatchConfig).toHaveBeenCalledWith(expect.objectContaining({
+                FirstSettings: expect.objectContaining({settinga: 'ab', dependentSetting: true}),
+            }));
+        });
+    });
+
+    test('should save a disabled bool setting as false when marked saveFalseWhenDisabled', async () => {
+        const mockPatchConfig = jest.fn(() => Promise.resolve({data: true}));
+        const schema = {
+            id: 'Config',
+            name: 'config',
+            settings: [
+                {
+                    key: 'FirstSettings.settinga',
+                    label: 'label-a',
+                    type: 'text',
+                },
+                {
+                    key: 'FirstSettings.dependentSetting',
+                    label: 'dependent-label',
+                    type: 'bool',
+                    isDisabled: it.stateIsFalse('FirstSettings.parentSetting'),
+                    saveFalseWhenDisabled: true,
+                },
+            ],
+        } as unknown as AdminDefinitionSubSectionSchema;
+
+        renderWithContext(
+            <SchemaAdminSettings
+                {...DefaultProps}
+                config={{FirstSettings: {settinga: 'a', parentSetting: false, dependentSetting: true}} as unknown as Partial<AdminConfig>}
+                environmentConfig={{}}
+                schema={schema}
+                patchConfig={mockPatchConfig}
+            />,
+        );
+
+        expect(screen.getByTestId('FirstSettings.dependentSettingtrue')).toBeDisabled();
+        expect(screen.getByTestId('FirstSettings.dependentSettingtrue')).toBeChecked();
+
+        await userEvent.type(screen.getByRole('textbox', {name: /label-a/i}), 'b');
+        await userEvent.click(screen.getByRole('button', {name: /save/i}));
+
+        await waitFor(() => {
+            expect(mockPatchConfig).toHaveBeenCalledWith(expect.objectContaining({
+                FirstSettings: expect.objectContaining({settinga: 'ab', dependentSetting: false}),
+            }));
+        });
+    });
+
     describe('fileupload setting', () => {
         const renderFileUpload = (uploadAction: jest.Mock) => {
             const fileUploadSchema = {
