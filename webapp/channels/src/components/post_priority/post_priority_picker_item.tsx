@@ -65,7 +65,7 @@ const Header = styled.h4`
     font-weight: 600;
     letter-spacing: 0;
     line-height: 20px;
-    padding: 14px 20px;
+    padding: 14px 20px 6px;
     text-align: left;
     color: var(--center-channel-color);
 `;
@@ -75,7 +75,7 @@ const Footer = styled.div`
     display: flex;
     font-family: Open Sans;
     justify-content: flex-end;
-    padding: 16px;
+    padding: 8px 16px 16px;
     gap: 8px;
 `;
 
