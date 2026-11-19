@@ -180,7 +180,7 @@
         "disabledInputs": [
             {
                 "path": "/admin_console/environment/smtp",
-                "selector": "EmailSettings.EnableSMTPAuthtrue"
+                "selector": "ServiceSettings.EnableSecurityFixAlerttrue"
             }
         ]
     },

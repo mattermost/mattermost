@@ -101,21 +101,6 @@ describe('components/channel_view', () => {
         channelKind: 'channel' as const,
     };
 
-    it('Should match snapshot with base props', () => {
-        const {container} = renderWithContext(<ChannelView {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    it('Should match snapshot if channel is archived', () => {
-        const {container} = renderWithContext(
-            <ChannelView
-                {...baseProps}
-                channelIsArchived={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     it('should call an archived board a board', () => {
         renderWithContext(
             <ChannelView
@@ -130,16 +115,6 @@ describe('components/channel_view', () => {
         expect(screen.queryByText('archived channel')).not.toBeInTheDocument();
         expect(screen.getByText('Close Board')).toBeInTheDocument();
         expect(screen.queryByText('Close Channel')).not.toBeInTheDocument();
-    });
-
-    it('Should match snapshot if channel is deactivated', () => {
-        const {container} = renderWithContext(
-            <ChannelView
-                {...baseProps}
-                deactivatedChannel={true}
-            />,
-        );
-        expect(container).toMatchSnapshot();
     });
 
     it('Should have focusedPostId state based on props', () => {

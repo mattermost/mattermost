@@ -379,27 +379,33 @@ func queryLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	logsJSON := make(map[string][]any)
-	var result any
+	logsJSON := make(map[string][]any, len(logs))
 	for node, logLines := range logs {
-		entries := make([]any, 0, len(logLines))
-		for _, log := range logLines {
-			err = json.Unmarshal([]byte(log), &result)
-			if err != nil {
-				c.Logger.Warn("Error parsing log line in Server Logs", mlog.String("from_node", node), mlog.Err(err))
-			} else {
-				entries = append(entries, result)
-			}
-		}
-		logsJSON[node] = entries
+		logsJSON[node] = decodeLogLines(logLines)
 	}
 
 	auditRec.AddMeta("page", c.Params.Page)
 	auditRec.AddMeta("logs_per_page", c.Params.LogsPerPage)
+	auditRec.Success()
 
 	if _, err := w.Write(model.ToJSON(logsJSON)); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
+}
+
+// decodeLogLines decodes the JSON log lines and skips the others, as a log file holds plain-text
+// lines when LogSettings.FileJson is off. It doesn't log them: each message would be a line in
+// the log file, which a client polling the logs would read back on its next query.
+func decodeLogLines(logLines []string) []any {
+	entries := make([]any, 0, len(logLines))
+	for _, line := range logLines {
+		var entry any
+		if err := json.Unmarshal([]byte(line), &entry); err != nil {
+			continue
+		}
+		entries = append(entries, entry)
+	}
+	return entries
 }
 
 func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -419,6 +425,7 @@ func getLogs(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	model.AddEventParameterToAuditRec(auditRec, "page", c.Params.Page)
 	model.AddEventParameterToAuditRec(auditRec, "logs_per_page", c.Params.LogsPerPage)
+	auditRec.Success()
 
 	if _, err := w.Write([]byte(model.ArrayToJSON(lines))); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))

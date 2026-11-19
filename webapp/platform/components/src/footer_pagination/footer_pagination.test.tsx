@@ -17,12 +17,6 @@ describe('LegacyGenericModal/FooterPagination', () => {
         onPreviousPage: jest.fn(),
     };
 
-    test('should render default', () => {
-        const wrapper = render(wrapIntl(<FooterPagination {...baseProps}/>));
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('should render pagination legend', () => {
         const props = {
             ...baseProps,

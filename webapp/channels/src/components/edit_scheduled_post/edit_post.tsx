@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useCallback, useEffect, useRef, useState, type JSX} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch, useSelector, useStore} from 'react-redux';
 
 import {EmoticonPlusOutlineIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Emoji, SystemEmoji} from '@mattermost/types/emojis';
@@ -18,6 +18,7 @@ import {getEmojiName, isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
 
 import {openModal} from 'actions/views/modals';
 import {getConnectionId} from 'selectors/general';
+import {getPostDraft} from 'selectors/rhs';
 
 import DeletePostModal from 'components/delete_post_modal';
 import DeleteScheduledPostModal from 'components/drafts/draft_actions/schedule_post_actions/delete_scheduled_post_modal';
@@ -27,6 +28,7 @@ import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import {AppEvents, Constants, ModalIdentifiers, StoragePrefixes} from 'utils/constants';
 import {unifiedToUnicode} from 'utils/emoji_utils';
+import {replaceTextboxValue} from 'utils/exec_commands';
 import * as Keyboard from 'utils/keyboard';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown} from 'utils/markdown/apply_markdown';
@@ -107,13 +109,15 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
 
     const dispatch = useDispatch();
+    const store = useStore<GlobalState>();
 
     const [editText, setEditText] = useState<string>(
-        draft.message || editingPost?.post?.message_source || editingPost?.post?.message || scheduledPost?.message || '',
+        draft.message.trim() ? draft.message : (editingPost?.post?.message_source || editingPost?.post?.message || scheduledPost?.message || ''),
     );
     const [selectionRange, setSelectionRange] = useState<State['selectionRange']>({start: editText.length, end: editText.length});
     const caretPosition = useRef<number>(editText.length);
     const [postError, setPostError] = useState<React.ReactNode | null>(null);
+    const [hasLengthError, setHasLengthError] = useState<boolean>(false);
     const [errorClass, setErrorClass] = useState<string>('');
     const [showEmojiPicker, setShowEmojiPicker] = useState<boolean>(false);
     const [renderScrollbar, setRenderScrollbar] = useState<boolean>(false);
@@ -127,6 +131,8 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     // function closure on initial render
     const draftRef = useRef<PostDraft>(draft);
     const saveDraftFrame = useRef<number | null>(undefined);
+    const isFirstRender = useRef(true);
+    const isCancelled = useRef(false);
 
     const id = scheduledPost ? scheduledPost.id : editingPost.postId;
     const draftStorageId = `${StoragePrefixes.EDIT_DRAFT}${id}`;
@@ -135,23 +141,31 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
     const saveDraft = useCallback(() => {
         // to be run on unmount and only when there is an active saveDraftFrame timer
-        if (saveDraftFrame.current && editingPost.postId) {
+        if (saveDraftFrame.current && id) {
             actions.setDraft(draftStorageId, draftRef.current);
             clearTimeout(saveDraftFrame.current);
             saveDraftFrame.current = null;
         }
-    }, [actions, draftStorageId, editingPost.postId]);
+    }, [actions, draftStorageId, id]);
 
     useEffect(() => saveDraft, [saveDraft]);
 
     useEffect(() => {
-        if (saveDraftFrame.current) {
-            clearTimeout(saveDraftFrame.current);
-        }
+        // paste, hotkeys and line breaks update editText without going through handleChange
+        draftRef.current = {...draftRef.current, message: editText};
 
-        saveDraftFrame.current = window.setTimeout(() => {
-            actions.setDraft(draftStorageId, draftRef.current);
-        }, Constants.SAVE_DRAFT_TIMEOUT);
+        if (isFirstRender.current) {
+            isFirstRender.current = false;
+        } else {
+            if (saveDraftFrame.current) {
+                clearTimeout(saveDraftFrame.current);
+            }
+
+            saveDraftFrame.current = window.setTimeout(() => {
+                saveDraftFrame.current = null;
+                actions.setDraft(draftStorageId, draftRef.current);
+            }, Constants.SAVE_DRAFT_TIMEOUT);
+        }
 
         if (!scheduledPost) {
             const isMentions = allAtMentions(editText).length > 0;
@@ -241,7 +255,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
         const res = applyMarkdown(params);
 
-        setEditText(res.message);
+        const textbox = textboxRef.current?.getInputBox();
+        if (!textbox || !replaceTextboxValue(textbox, res.message)) {
+            setEditText(res.message);
+        }
         setSelectionRange({start: res.selectionStart, end: res.selectionEnd});
     };
 
@@ -254,7 +271,16 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         actions.unsetEditingPost();
     };
 
+    const discardDraft = () => {
+        if (saveDraftFrame.current) {
+            clearTimeout(saveDraftFrame.current);
+            saveDraftFrame.current = null;
+        }
+        actions.setDraft(draftStorageId, null);
+    };
+
     const handleAutomatedRefocusAndExit = () => {
+        discardDraft();
         draftRef.current = {
             ...draftRef.current,
             message: '',
@@ -265,7 +291,6 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const handleEdit = async () => {
         if (scheduledPost) {
             await handleEditScheduledPost();
-            afterSave?.();
             return;
         }
 
@@ -324,6 +349,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     };
 
     const handleCancel = useCallback(() => {
+        isCancelled.current = true;
         onCancel?.();
         handleAutomatedRefocusAndExit();
     }, [onCancel, handleAutomatedRefocusAndExit]);
@@ -332,6 +358,14 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         if (!scheduledPost || isSaveDisabled() || !channel || !onDeleteScheduledPost) {
             return;
         }
+
+        if (hasLengthError) {
+            setErrorClass('animation--highlight');
+            setTimeout(() => setErrorClass(''), Constants.ANIMATION_TIMEOUT);
+            return;
+        }
+
+        setPostError(null);
 
         const post = scheduledPostToPost(scheduledPost);
 
@@ -342,6 +376,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         };
 
         const hookResult = await actions.runMessageWillBeUpdatedHooks(updatedPost, post);
+        if (isCancelled.current) {
+            return;
+        }
+
         if (hookResult.error && hookResult.error.message) {
             setPostError(<>{hookResult.error.message}</>);
             return;
@@ -349,14 +387,19 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
 
         updatedPost = hookResult.data;
 
-        if (postError) {
-            setErrorClass('animation--highlight');
-            setTimeout(() => setErrorClass(''), Constants.ANIMATION_TIMEOUT);
-            return;
-        }
+        const closeEditor = () => {
+            if (draftRef.current.message === editText) {
+                handleAutomatedRefocusAndExit();
+            } else {
+                // text typed while the save was in flight is kept as a draft
+                saveDraft();
+                handleRefocusAndExit(editingPost.refocusId || null);
+            }
+            afterSave?.();
+        };
 
         if (updatedPost.message === post.message) {
-            handleAutomatedRefocusAndExit();
+            closeEditor();
             return;
         }
 
@@ -366,12 +409,25 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         if (updatedPost.message.trim().length === 0 && !hasAttachment) {
             handleRefocusAndExit(null);
 
+            const confirmDelete = async () => {
+                const pendingDraft = draftRef.current;
+                discardDraft();
+
+                const response = await onDeleteScheduledPost();
+                const hasNewerDraft = draftRef.current.message !== pendingDraft.message ||
+                    Boolean(getPostDraft(store.getState(), StoragePrefixes.EDIT_DRAFT, scheduledPost.id).message);
+                if (response.error && !hasNewerDraft) {
+                    actions.setDraft(draftStorageId, pendingDraft);
+                }
+                return response;
+            };
+
             const deleteScheduledPostModalData = {
                 modalId: ModalIdentifiers.DELETE_DRAFT,
                 dialogType: DeleteScheduledPostModal,
                 dialogProps: {
                     channelDisplayName: channel.display_name,
-                    onConfirm: onDeleteScheduledPost,
+                    onConfirm: confirmDelete,
                 },
             };
 
@@ -385,11 +441,14 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         };
 
         const response = await actions.updateScheduledPost(updatedScheduledPost, connectionId);
+        if (isCancelled.current) {
+            return;
+        }
+
         if (response.error) {
             setPostError(response.error.message);
         } else {
-            handleAutomatedRefocusAndExit();
-            afterSave?.();
+            closeEditor();
         }
     }, [
         actions,
@@ -397,8 +456,11 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         editText,
         handleAutomatedRefocusAndExit,
         handleRefocusAndExit,
+        saveDraft,
+        store,
+        draftStorageId,
         isSaveDisabled,
-        postError,
+        hasLengthError,
         scheduledPost,
         afterSave,
         channel,
@@ -451,6 +513,7 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
         } else if (ctrlEnterKeyCombo) {
             handleEdit();
         } else if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE) && !showEmojiPicker) {
+            isCancelled.current = true;
             onCancel?.();
             handleAutomatedRefocusAndExit();
         } else if (ctrlAltCombo && markdownLinkKey) {
@@ -495,6 +558,10 @@ const EditPost = ({editingPost, actions, canEditPost, config, channelId, draft, 
     const handleHeightChange = (height: number, maxHeight: number) => setRenderScrollbar(height > maxHeight);
 
     const handlePostError = (_postError: React.ReactNode) => {
+        if (hasLengthError !== Boolean(_postError)) {
+            setHasLengthError(Boolean(_postError));
+        }
+
         if (_postError !== postError) {
             setPostError(_postError);
         }

@@ -163,6 +163,19 @@ func (env *Environment) IsActive(id string) bool {
 	return env.GetPluginState(id) == model.PluginStateRunning
 }
 
+// IsStarting returns true while the server component of the plugin with the
+// given id is still in OnActivate. Its state is already running, so OnActivate
+// cannot re-enter activation, but it receives no hooks or inter-plugin requests
+// until OnActivate returns.
+func (env *Environment) IsStarting(id string) bool {
+	rp, ok := env.registeredPlugins.Load(id)
+	if !ok {
+		return false
+	}
+	p := rp.(registeredPlugin)
+	return p.State == model.PluginStateRunning && p.supervisor == nil && p.BundleInfo.Manifest.HasServer()
+}
+
 func (env *Environment) SetPluginError(id string, err string) {
 	if rp, ok := env.registeredPlugins.Load(id); ok {
 		p := rp.(registeredPlugin)
@@ -231,6 +244,9 @@ func (env *Environment) Statuses() (model.PluginStatuses, error) {
 		}
 
 		pluginState := env.GetPluginState(plugin.Manifest.Id)
+		if env.IsStarting(plugin.Manifest.Id) {
+			pluginState = model.PluginStateStarting
+		}
 
 		status := &model.PluginStatus{
 			PluginId:    plugin.Manifest.Id,
@@ -419,7 +435,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err := checkMinServerVersion(pluginInfo)
 	if err != nil {
-		return nil
+		return err
 	}
 
 	if !pluginInfo.Manifest.HasServer() {
@@ -432,7 +448,7 @@ func (env *Environment) Reattach(manifest *model.Manifest, pluginReattachConfig 
 
 	err = env.startPluginServer(pluginInfo, WithReattachConfig(pluginReattachConfig))
 	if err != nil {
-		return nil
+		return err
 	}
 
 	mlog.Debug("Plugin reattached", mlog.String("plugin_id", pluginInfo.Manifest.Id), mlog.String("version", pluginInfo.Manifest.Version))
@@ -462,9 +478,15 @@ func (env *Environment) RemovePlugin(id string) {
 func (env *Environment) deactivateAndTeardown(rp registeredPlugin) bool {
 	id := rp.BundleInfo.Manifest.Id
 
-	if rp.supervisor == nil || !env.IsActive(id) {
+	if !env.IsActive(id) {
 		env.setPluginState(id, model.PluginStateNotRunning)
 		return false
+	}
+
+	// A webapp-only plugin has no server process to tear down.
+	if rp.supervisor == nil {
+		env.setPluginState(id, model.PluginStateNotRunning)
+		return true
 	}
 
 	done := make(chan struct{})

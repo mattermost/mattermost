@@ -4,12 +4,14 @@
 package app
 
 import (
+	"context"
 	"encoding/json"
 	"maps"
 	"net/http"
 	"net/http/httptest"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -101,6 +103,94 @@ func TestGetLatestVersion(t *testing.T) {
 
 		_, appErr := th.App.GetLatestVersion(th.Context, errorServer.URL)
 		require.NotNil(t, appErr)
+	})
+
+	var requests atomic.Int32
+	countingServer := func(t *testing.T, status int) *httptest.Server {
+		requests.Store(0)
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			requests.Add(1)
+			w.WriteHeader(status)
+			_, err := w.Write(validJSON)
+			assert.NoError(t, err)
+		}))
+		t.Cleanup(server.Close)
+		return server
+	}
+
+	t.Run("a failure is cached", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		badGateway := countingServer(t, http.StatusBadGateway)
+
+		for range 2 {
+			_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
+			require.NotNil(t, appErr)
+			assert.Equal(t, http.StatusInternalServerError, appErr.StatusCode)
+		}
+		assert.Equal(t, int32(1), requests.Load())
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.NotNil(t, appErr, "the cached failure is returned until it expires")
+		assert.Nil(t, release)
+	})
+
+	t.Run("toggling security alerts clears a cached failure", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		badGateway := countingServer(t, http.StatusBadGateway)
+		_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
+		require.NotNil(t, appErr)
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = model.NewPointer("http://other.example.com") })
+		_, appErr = th.App.GetLatestVersion(th.Context, ts.URL)
+		require.NotNil(t, appErr, "an unrelated config change keeps the cached failure")
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		require.Nil(t, appErr)
+		assert.Equal(t, version.TagName, release.TagName)
+	})
+
+	t.Run("a cancelled request is not cached", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		ok := countingServer(t, http.StatusOK)
+
+		ctx, cancel := context.WithCancel(th.Context.Context())
+		cancel()
+		_, appErr := th.App.GetLatestVersion(th.Context.WithContext(ctx), ok.URL)
+		require.NotNil(t, appErr)
+
+		release, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+		require.Nil(t, appErr)
+		assert.Equal(t, version.TagName, release.TagName)
+		assert.Equal(t, int32(1), requests.Load())
+	})
+
+	t.Run("no request while security alerts are off", func(t *testing.T) {
+		require.NoError(t, th.App.clearLatestVersionCache())
+		ok := countingServer(t, http.StatusOK)
+		_, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+		require.Nil(t, appErr)
+		require.Equal(t, int32(1), requests.Load())
+
+		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
+		t.Cleanup(func() {
+			th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
+		})
+
+		assertDisabled := func(t *testing.T) {
+			t.Helper()
+			release, appErr := th.App.GetLatestVersion(th.Context, ok.URL)
+			require.NotNil(t, appErr)
+			assert.Nil(t, release)
+			assert.Equal(t, "app.admin.get_latest_version.disabled.app_error", appErr.Id)
+			assert.Equal(t, http.StatusNotImplemented, appErr.StatusCode)
+		}
+		assertDisabled(t)
+		require.NoError(t, th.App.clearLatestVersionCache())
+		assertDisabled(t)
+		assert.Equal(t, int32(1), requests.Load())
 	})
 }
 

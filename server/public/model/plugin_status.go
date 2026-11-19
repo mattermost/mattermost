@@ -5,7 +5,7 @@ package model
 
 const (
 	PluginStateNotRunning          = 0
-	PluginStateStarting            = 1 // unused by server
+	PluginStateStarting            = 1 // reported while the plugin's OnActivate runs
 	PluginStateRunning             = 2
 	PluginStateFailedToStart       = 3
 	PluginStateFailedToStayRunning = 4

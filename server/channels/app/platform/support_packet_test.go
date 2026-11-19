@@ -70,6 +70,7 @@ type failingDiagnosticsStore struct {
 	store.Store
 	schemaVersionErr error
 	dbVersionErr     error
+	diagnostics      *store.DatabaseDiagnostics
 	diagnosticsErr   error
 }
 
@@ -89,7 +90,7 @@ func (s *failingDiagnosticsStore) GetDbVersion(numerical bool) (string, error) {
 
 func (s *failingDiagnosticsStore) GetDiagnostics(rctx request.CTX) (*store.DatabaseDiagnostics, error) {
 	if s.diagnosticsErr != nil {
-		return nil, s.diagnosticsErr
+		return s.diagnostics, s.diagnosticsErr
 	}
 	return s.Store.GetDiagnostics(rctx)
 }
@@ -1295,6 +1296,12 @@ func TestGetSupportPacketDiagnostics(t *testing.T) {
 func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 	th := Setup(t)
 
+	// The default "./data/" only exists once the file store probe has created it, which
+	// races with the disk space lookup on the first call.
+	th.Service.UpdateConfig(func(cfg *model.Config) {
+		cfg.FileSettings.Directory = model.NewPointer(t.TempDir())
+	})
+
 	setStore := func(t *testing.T, s *failingDiagnosticsStore) {
 		originalStore := th.Service.Store
 		s.Store = originalStore
@@ -1406,6 +1413,27 @@ func TestGetSupportPacketDiagnosticsSectionErrors(t *testing.T) {
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxIdle)
 		assert.Nil(t, d.Database.ReplicaConnectionsClosedMaxLifetime)
 		assert.Nil(t, d.Database.ReplicasOnline)
+	})
+
+	t.Run("partial store diagnostics fail only the stats section", func(t *testing.T) {
+		deadTuples := int64(200_000)
+		lastVacuum := time.Date(2026, 10, 20, 12, 0, 0, 0, time.UTC)
+		setStore(t, &failingDiagnosticsStore{
+			diagnostics: &store.DatabaseDiagnostics{
+				MasterConnectionsInUse: 3,
+				PostsDeadTuples:        &deadTuples,
+				PostsLastVacuum:        &lastVacuum,
+			},
+			diagnosticsErr: errors.New("one pg_stat query failed"),
+		})
+
+		d := requireSectionErrors(t, map[model.NodeSection][]string{
+			model.SectionDatabaseStats: {"error while collecting support packet database diagnostics"},
+		})
+		require.NotNil(t, d.Database.MasterConnectionsInUse)
+		assert.Equal(t, 3, *d.Database.MasterConnectionsInUse)
+		assert.Equal(t, &deadTuples, d.Database.PostsDeadTuples)
+		assert.Equal(t, &lastVacuum, d.Database.PostsLastVacuum)
 	})
 
 	t.Run("disk space fails", func(t *testing.T) {
@@ -1858,6 +1886,8 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	longestQuerySeconds := 7.25
 	waitingForLock := int64(5)
 	postsDeadTuples := int64(9)
+	postsEstimatedRows := int64(41)
+	postsLastVacuum := time.Date(2026, 7, 9, 11, 12, 13, 0, time.UTC)
 	postsLastAutovacuum := time.Date(2026, 7, 10, 12, 13, 14, 0, time.UTC)
 
 	diagnostics := &model.SupportPacketDiagnostics{
@@ -1931,6 +1961,9 @@ func TestSupportPacketMarshalGolden(t *testing.T) {
 	diagnostics.Database.LongestQueryDurationSeconds = &longestQuerySeconds
 	diagnostics.Database.WaitingForLockCount = &waitingForLock
 	diagnostics.Database.PostsDeadTuples = &postsDeadTuples
+	diagnostics.Database.PostsEstimatedRows = &postsEstimatedRows
+	diagnostics.Database.PostsVacuumInProgress = new(true)
+	diagnostics.Database.PostsLastVacuum = &postsLastVacuum
 	diagnostics.Database.PostsLastAutovacuum = &postsLastAutovacuum
 	diagnostics.FileStore.Status = model.StatusOk
 	diagnostics.FileStore.Driver = model.ImageDriverLocal

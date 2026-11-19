@@ -910,6 +910,22 @@ func (mr *MockClientMockRecorder) GetConfig(ctx any) *gomock.Call {
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfig", reflect.TypeOf((*MockClient)(nil).GetConfig), ctx)
 }
 
+// GetConfigHistory mocks base method.
+func (m *MockClient) GetConfigHistory(ctx context.Context, page, perPage int) ([]*model.ConfigHistoryEntry, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "GetConfigHistory", ctx, page, perPage)
+	ret0, _ := ret[0].([]*model.ConfigHistoryEntry)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// GetConfigHistory indicates an expected call of GetConfigHistory.
+func (mr *MockClientMockRecorder) GetConfigHistory(ctx, page, perPage any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "GetConfigHistory", reflect.TypeOf((*MockClient)(nil).GetConfigHistory), ctx, page, perPage)
+}
+
 // GetConfigWithOptions mocks base method.
 func (m *MockClient) GetConfigWithOptions(ctx context.Context, options model.GetConfigOptions) (map[string]any, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2196,6 +2212,22 @@ func (mr *MockClientMockRecorder) PromoteGuestToUser(ctx, userID any) *gomock.Ca
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "PromoteGuestToUser", reflect.TypeOf((*MockClient)(nil).PromoteGuestToUser), ctx, userID)
 }
 
+// QueryLogs mocks base method.
+func (m *MockClient) QueryLogs(ctx context.Context, page, perPage int, filter *model.LogFilter) (map[string][]json.RawMessage, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "QueryLogs", ctx, page, perPage, filter)
+	ret0, _ := ret[0].(map[string][]json.RawMessage)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// QueryLogs indicates an expected call of QueryLogs.
+func (mr *MockClientMockRecorder) QueryLogs(ctx, page, perPage, filter any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "QueryLogs", reflect.TypeOf((*MockClient)(nil).QueryLogs), ctx, page, perPage, filter)
+}
+
 // RegenOutgoingHookToken mocks base method.
 func (m *MockClient) RegenOutgoingHookToken(ctx context.Context, hookID string) (*model.OutgoingWebhook, *model.Response, error) {
 	m.ctrl.T.Helper()
@@ -2333,6 +2365,22 @@ func (m *MockClient) RestoreGroup(ctx context.Context, groupID, etag string) (*m
 func (mr *MockClientMockRecorder) RestoreGroup(ctx, groupID, etag any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreGroup", reflect.TypeOf((*MockClient)(nil).RestoreGroup), ctx, groupID, etag)
+}
+
+// RestoreHistoricalConfig mocks base method.
+func (m *MockClient) RestoreHistoricalConfig(ctx context.Context, configID string, dryRun bool) ([]*model.ConfigChange, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "RestoreHistoricalConfig", ctx, configID, dryRun)
+	ret0, _ := ret[0].([]*model.ConfigChange)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// RestoreHistoricalConfig indicates an expected call of RestoreHistoricalConfig.
+func (mr *MockClientMockRecorder) RestoreHistoricalConfig(ctx, configID, dryRun any) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "RestoreHistoricalConfig", reflect.TypeOf((*MockClient)(nil).RestoreHistoricalConfig), ctx, configID, dryRun)
 }
 
 // RestoreTeam mocks base method.

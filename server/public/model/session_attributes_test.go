@@ -47,21 +47,41 @@ func TestSessionAttributeSystemFieldsDisplayNames(t *testing.T) {
 	}
 
 	expected := map[string]string{
-		SessionAttributesPropertyFieldClientIPAddress:      SessionAttributesDisplayNameClientIPAddress,
-		SessionAttributesPropertyFieldNetworkInterfaceType: SessionAttributesDisplayNameNetworkInterfaceType,
-		SessionAttributesPropertyFieldVPNActive:            SessionAttributesDisplayNameVPNActive,
-		SessionAttributesPropertyFieldSSID:                 SessionAttributesDisplayNameSSID,
-		SessionAttributesPropertyFieldClientDeviceID:       SessionAttributesDisplayNameClientDeviceID,
-		SessionAttributesPropertyFieldHardwareID:           SessionAttributesDisplayNameHardwareID,
-		SessionAttributesPropertyFieldMDMEnrolled:          SessionAttributesDisplayNameMDMEnrolled,
-		SessionAttributesPropertyFieldClientVersion:        SessionAttributesDisplayNameClientVersion,
-		SessionAttributesPropertyFieldOSPlatform:           SessionAttributesDisplayNameOSPlatform,
-		SessionAttributesPropertyFieldOSVersion:            SessionAttributesDisplayNameOSVersion,
-		SessionAttributesPropertyFieldJailbreakDetected:    SessionAttributesDisplayNameJailbreakDetected,
+		SessionAttributesPropertyFieldClientIPAddress:        SessionAttributesDisplayNameClientIPAddress,
+		SessionAttributesPropertyFieldNetworkInterfaceType:   SessionAttributesDisplayNameNetworkInterfaceType,
+		SessionAttributesPropertyFieldVPNActive:              SessionAttributesDisplayNameVPNActive,
+		SessionAttributesPropertyFieldSSID:                   SessionAttributesDisplayNameSSID,
+		SessionAttributesPropertyFieldClientDeviceID:         SessionAttributesDisplayNameClientDeviceID,
+		SessionAttributesPropertyFieldHardwareID:             SessionAttributesDisplayNameHardwareID,
+		SessionAttributesPropertyFieldMDMEnrolled:            SessionAttributesDisplayNameMDMEnrolled,
+		SessionAttributesPropertyFieldClientVersion:          SessionAttributesDisplayNameClientVersion,
+		SessionAttributesPropertyFieldOSPlatform:             SessionAttributesDisplayNameOSPlatform,
+		SessionAttributesPropertyFieldOSVersion:              SessionAttributesDisplayNameOSVersion,
+		SessionAttributesPropertyFieldJailbreakDetected:      SessionAttributesDisplayNameJailbreakDetected,
+		SessionAttributesPropertyFieldBiometricAuthenticated: SessionAttributesDisplayNameBiometricAuthenticated,
 	}
 	for name, displayName := range expected {
 		assert.Equal(t, displayName, displayNamesByName[name], "display name for %q", name)
 	}
+}
+
+func TestSessionAttributeSystemFieldsBiometricAuthenticated(t *testing.T) {
+	var field *PropertyField
+	for _, f := range SessionAttributeSystemFields("group-id") {
+		if f.Name == SessionAttributesPropertyFieldBiometricAuthenticated {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+
+	saField, err := SAFieldFromPropertyField(field)
+	require.NoError(t, err)
+	assert.Equal(t, []string{SessionAttributePlatformMobile}, saField.Attrs.Platforms)
+	assert.Equal(t, 300, saField.Attrs.TTLSeconds)
+	assert.Equal(t, 300, saField.Attrs.GracePeriodSeconds)
+	assert.True(t, IsValidSessionAttributeValue(field, "true"))
+	assert.True(t, IsValidSessionAttributeValue(field, "false"))
 }
 
 func TestSessionAttributeSystemFieldsOSPlatform(t *testing.T) {

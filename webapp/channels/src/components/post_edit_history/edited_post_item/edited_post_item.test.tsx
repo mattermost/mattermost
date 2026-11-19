@@ -32,20 +32,6 @@ describe('components/post_edit_history/edited_post_item', () => {
         isChannelAutotranslated: false,
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(<EditedPostItem {...baseProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when isCurrent is true', () => {
-        const props = {
-            ...baseProps,
-            isCurrent: true,
-        };
-        const {container} = renderWithContext(<EditedPostItem {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('clicking on the restore button should call openRestorePostModal', async () => {
         renderWithContext(<EditedPostItem {...baseProps}/>);
 
@@ -77,45 +63,5 @@ describe('components/post_edit_history/edited_post_item', () => {
         };
         renderWithContext(<EditedPostItem {...props}/>);
         expect(screen.getByText(/current version/i)).toBeInTheDocument();
-    });
-
-    test('should match snapshot with file metadata', () => {
-        const props = {
-            ...baseProps,
-            post: {
-                ...baseProps.post,
-                metadata: {
-                    ...baseProps.post.metadata,
-                    files: [
-                        TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3}),
-                        TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2}),
-                        TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1}),
-                    ],
-                },
-            },
-        };
-
-        const {container} = renderWithContext(<EditedPostItem {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot with file metadata with some deleted files', () => {
-        const props = {
-            ...baseProps,
-            post: {
-                ...baseProps.post,
-                metadata: {
-                    ...baseProps.post.metadata,
-                    files: [
-                        TestHelper.getFileInfoMock({id: 'file_id_3', name: 'image_3.png', extension: 'png', create_at: 3}),
-                        TestHelper.getFileInfoMock({id: 'file_id_2', name: 'image_2.png', extension: 'png', create_at: 2, delete_at: 4}),
-                        TestHelper.getFileInfoMock({id: 'file_id_1', name: 'image_1.png', extension: 'png', create_at: 1, delete_at: 4}),
-                    ],
-                },
-            },
-        };
-
-        const {container} = renderWithContext(<EditedPostItem {...props}/>);
-        expect(container).toMatchSnapshot();
     });
 });

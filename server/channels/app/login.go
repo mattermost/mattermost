@@ -60,18 +60,18 @@ func (a *App) AuthenticateUserForLogin(rctx request.CTX, id, loginId, password, 
 	// CWS login allow to use the one-time token to login the users when they're redirected to their
 	// installation for the first time
 	if cwsLogin {
-		if err = checkUserNotDisabled(user); err != nil {
-			return nil, err
+		if err := checkUserNotDisabled(user); err != nil {
+			return nil, model.AsAppError(err)
 		}
-		if err = checkUserNotBot(user); err != nil {
-			return nil, err
+		if err := checkUserNotBot(user); err != nil {
+			return nil, model.AsAppError(err)
 		}
 		if user.LastLogin > 0 {
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusBadRequest)
 		}
 		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
-		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
+		if _, ok := errors.AsType[*store.ErrNotFound](err); err != nil && !ok {
 			rctx.Logger().Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -150,6 +150,14 @@ func (a *App) GetUserForLogin(rctx request.CTX, id, loginId string) (*model.User
 }
 
 func (a *App) DoLogin(rctx request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, opts model.LoginOptions) (*model.Session, *model.AppError) {
+	if err := checkUserNotDisabled(user); err != nil {
+		return nil, model.AsAppError(err)
+	}
+
+	if err := checkUserNotBot(user); err != nil {
+		return nil, model.AsAppError(err)
+	}
+
 	var rejectionReason string
 	pluginContext := pluginContext(rctx)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks, _ *model.Manifest) bool {
