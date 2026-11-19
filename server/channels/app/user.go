@@ -2146,6 +2146,7 @@ func (a *App) UpdateUserRolesWithUser(rctx request.CTX, user *model.User, newRol
 
 	a.InvalidateCacheForUser(user.Id)
 	a.ClearSessionCacheForUser(user.Id)
+	a.pushClientConfigOverrides(rctx, user.Id, "", true)
 
 	if sendWebSocketEvent {
 		message := model.NewWebSocketEvent(model.WebsocketEventUserRoleUpdated, "", "", user.Id, nil, "")
@@ -2937,6 +2938,7 @@ func (a *App) PromoteGuestToUser(rctx request.CTX, user *model.User, requestorId
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
+	a.pushClientConfigOverrides(rctx, user.Id, "", true)
 	return nil
 }
 
@@ -2988,6 +2990,7 @@ func (a *App) DemoteUserToGuest(rctx request.CTX, user *model.User) *model.AppEr
 	}
 
 	a.ClearSessionCacheForUser(user.Id)
+	a.pushClientConfigOverrides(rctx, user.Id, "", true)
 	return nil
 }
 

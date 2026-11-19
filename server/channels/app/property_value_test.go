@@ -304,7 +304,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		thMock, mockAttributes := setup(t, false, true)
 
 		thMock.App.invalidateUserPropertyValuesEpochs(values)
-		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID)
+		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID, nil)
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
 		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
@@ -332,7 +332,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 	t.Run("single-target form skips non-user targets", func(t *testing.T) {
 		thMock, mockAttributes := setup(t, true, true)
 
-		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypePost, model.NewId())
+		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypePost, model.NewId(), nil)
 
 		mockAttributes.AssertNotCalled(t, "InvalidateUserPropertyValuesEpoch", mock.Anything)
 		mockAttributes.AssertNotCalled(t, "InvalidateUserAttributes", mock.Anything)
@@ -349,7 +349,7 @@ func TestInvalidateUserPropertyValuesEpochs_GatedOnABAC(t *testing.T) {
 		require.True(t, ch.attributeViewRefreshLast.IsZero(), "a user-targeted write should mark the view stale")
 
 		ch.attributeViewRefreshLast = time.Now()
-		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID)
+		thMock.App.invalidateUserPropertyValuesEpoch(model.PropertyFieldObjectTypeUser, userID, nil)
 		require.True(t, ch.attributeViewRefreshLast.IsZero(), "the single-target form should too")
 	})
 

@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -135,7 +136,7 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		CheckForbiddenStatus(t, resp)
 	})
 
-	t.Run("CRUD and overrides endpoint with X-MM-Session-Attributes", func(t *testing.T) {
+	t.Run("CRUD, overrides endpoint with X-MM-Session-Attributes, and WebSocket BroadcastHook", func(t *testing.T) {
 		mockACS := setupMocks(t)
 
 		group, appErr := th.App.GetPropertyGroup(th.Context, model.SessionAttributesPropertyGroupName)
@@ -170,6 +171,16 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		_, _, err := client2.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 		require.NoError(t, err)
 
+		wsUser1, err := th.CreateWebSocketClient()
+		require.NoError(t, err)
+		defer wsUser1.Close()
+		wsUser1.Listen()
+
+		wsUser2, err := th.CreateWebSocketClientWithClient(client2)
+		require.NoError(t, err)
+		defer wsUser2.Close()
+		wsUser2.Listen()
+
 		policy := &model.AccessControlPolicy{
 			Name:  "Mobile Biometrics Override",
 			Type:  model.AccessControlPolicyTypeSystemSetting,
@@ -200,6 +211,38 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		assert.Equal(t, created.ID, found.Policies[0].ID)
 		assert.Equal(t, "true", found.Policies[0].Rules[0].Value)
 
+		waitForSystemSettingEvent := func(ws *model.WebSocketClient) map[string]any {
+			deadline := time.After(5 * time.Second)
+			for {
+				select {
+				case ev := <-ws.EventChannel:
+					require.NotEqual(t, model.WebsocketEventPermissionPolicyUpdated, ev.EventType(), "saving system_setting policy must not emit permission_policy_updated")
+					if ev.EventType() == model.WebsocketEventSystemSettingPolicyUpdated {
+						raw, ok := ev.GetData()["overrides"].(map[string]any)
+						require.True(t, ok, "expected overrides map on system_setting_policy_updated event")
+						return raw
+					}
+				case <-deadline:
+					t.Fatal("timed out waiting for system_setting_policy_updated websocket event")
+				}
+			}
+		}
+
+		expectNoSystemSettingEvent := func(ws *model.WebSocketClient) {
+			deadline := time.After(500 * time.Millisecond)
+			for {
+				select {
+				case ev := <-ws.EventChannel:
+					require.NotEqual(t, model.WebsocketEventSystemSettingPolicyUpdated, ev.EventType(), "unexpected system_setting_policy_updated: %v", ev.GetData())
+				case <-deadline:
+					return
+				}
+			}
+		}
+
+		assert.Equal(t, map[string]any{model.ClientConfigKeyMobileEnableBiometrics: "true"}, waitForSystemSettingEvent(wsUser1))
+		expectNoSystemSettingEvent(wsUser2)
+
 		overrides1, resp, err := th.Client.GetClientConfigOverrides(context.Background())
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
@@ -225,6 +268,7 @@ func TestSystemSettingPoliciesAPI(t *testing.T) {
 		resp, err = th.SystemAdminClient.DeleteAccessControlPolicy(context.Background(), created.ID)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
+		assert.Equal(t, map[string]any{}, waitForSystemSettingEvent(wsUser1))
 
 		overridesAfterDelete, resp, err := th.Client.GetClientConfigOverrides(context.Background())
 		require.NoError(t, err)
