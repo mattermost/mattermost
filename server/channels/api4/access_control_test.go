@@ -625,6 +625,14 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		ok := th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
 		require.True(t, ok, "SetLicense should return true")
 
+		// Install the mock before creating the channel: channel creation
+		// publishes websocket events that consult the access control service,
+		// and the previous subtests leave a bare mock behind that panics on
+		// those calls.
+		mockAccessControlService := newMockAccessControlService()
+		th.App.Srv().Channels().AccessControl = mockAccessControlService
+		ungovernedChannelAccess(mockAccessControlService)
+
 		// Use a real private channel for the policy ID; channel-
 		// scope creation runs an eligibility check that fetches the
 		// channel even for system admins. The sibling
@@ -647,9 +655,6 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 			},
 		}
 
-		mockAccessControlService := newMockAccessControlService()
-		th.App.Srv().Channels().AccessControl = mockAccessControlService
-		ungovernedChannelAccess(mockAccessControlService)
 		// We only care that the gate let the request through to the
 		// PAP; the validation chain past this point is exercised by
 		// other tests, so the mock returns success straight away.
