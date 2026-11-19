@@ -5,7 +5,8 @@ package healthcheck
 
 // SampledCodes are the rules whose value and details come from what a node measures when its
 // diagnostics are collected, so two collections of the same server can disagree on them. Tests
-// comparing a live check with a Support Packet of the same server ignore them.
+// comparing a live check with a Support Packet of the same server ignore them. A new rule whose
+// value or details read such a measurement belongs here too.
 var SampledCodes = []string{
 	"DB_POOL_SATURATED",
 	"FILESTORE_DISK_FULL",
