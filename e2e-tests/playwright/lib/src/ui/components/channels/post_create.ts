@@ -391,13 +391,28 @@ export default class ChannelsPostCreate {
     }
 
     /**
+     * The formatting bar holds the burn-on-read button while it is open.
+     * The + menu holds the row while the bar is hidden.
+     */
+    private async burnOnReadControl() {
+        if (await this.formattingBarOpen()) {
+            return this.container.locator('#burnOnReadButton');
+        }
+        return this.burnOnReadButton;
+    }
+
+    /**
      * Toggle the burn-on-read feature for the message
      */
     async toggleBurnOnRead() {
         const wasOn = await this.burnOnReadLabel.isVisible();
-        await this.openPlusMenu();
-        await expect(this.burnOnReadButton).toBeEnabled();
-        await this.burnOnReadButton.click();
+        const barOpen = await this.formattingBarOpen();
+        if (!barOpen) {
+            await this.openPlusMenu();
+        }
+        const control = await this.burnOnReadControl();
+        await expect(control).toBeEnabled();
+        await control.click();
 
         // The menu runs this item's action after its close animation. Wait until the
         // label matches the new state so a later write is not overwritten by that action.
@@ -409,19 +424,25 @@ export default class ChannelsPostCreate {
     }
 
     /**
-     * Burn-on-read is a row in the + menu. Hidden means the row is not rendered,
-     * so this opens the menu and asserts the row is absent. A disabled row would
-     * still be attached and should not pass here.
+     * Hidden means the control is not rendered. A disabled control would still be
+     * attached and should not pass here.
      */
     async toHaveBurnOnReadHidden() {
+        if (await this.formattingBarOpen()) {
+            await expect(this.container.locator('#burnOnReadButton')).toHaveCount(0);
+            return;
+        }
+
         await this.openPlusMenu();
         await expect(this.burnOnReadButton).toHaveCount(0);
         await this.closePlusMenu();
     }
 
     async toHaveBurnOnReadVisible() {
-        await this.openPlusMenu();
-        await expect(this.burnOnReadButton).toBeVisible();
+        if (!(await this.formattingBarOpen())) {
+            await this.openPlusMenu();
+        }
+        await expect(await this.burnOnReadControl()).toBeVisible();
     }
 
     async toHaveBurnOnReadLabel() {

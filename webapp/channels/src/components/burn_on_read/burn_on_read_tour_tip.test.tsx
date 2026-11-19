@@ -29,6 +29,8 @@ describe('BurnOnReadTourTip', () => {
         const tour = screen.getByTestId('burn-on-read-tour');
         expect(tour).toHaveAttribute('data-anchor-id', 'burnOnReadButton');
         expect(tour).toHaveAttribute('data-pointer-position', 'bottom-center');
+        expect(tour).toHaveStyle({pointerEvents: 'none'});
+        expect(screen.getByRole('button', {name: 'Try it out'})).toHaveStyle({pointerEvents: 'auto'});
         expect(screen.getByText('Burn-on-read messages')).toBeInTheDocument();
     });
 

@@ -14,6 +14,20 @@ import React, {useLayoutEffect, useState} from 'react';
 import {TourPoint} from '@mattermost/compass-ui/components/tour-point';
 import type {TourPointPointerPosition} from '@mattermost/compass-ui/components/tour-point';
 
+// The card floats over the channel. Every part of it ignores the pointer except
+// its buttons, so a post, the emoji picker, or the composer under the card
+// still receives the click.
+const passThroughStyles = `
+.anchored-tour-point,
+.anchored-tour-point * {
+    pointer-events: none;
+}
+.anchored-tour-point button,
+.anchored-tour-point button * {
+    pointer-events: auto;
+}
+`;
+
 // The pointer hangs 9px past the card. Its tip is --spacing-xl (20px) in from
 // the card edge the pointer sits on. The pulse is centered on that tip.
 const POINTER_OUTSET = 9;
@@ -94,11 +108,13 @@ const AnchoredTourPoint = ({
         <FloatingPortal id='root-portal'>
             <div
                 ref={refs.setFloating}
+                className='anchored-tour-point'
                 style={{...floatingStyles, zIndex: TOUR_Z_INDEX}}
                 data-testid={testId}
                 data-anchor-id={anchorId}
                 data-pointer-position={position}
             >
+                <style>{passThroughStyles}</style>
                 <TourPoint
                     className={className}
                     title={title}
