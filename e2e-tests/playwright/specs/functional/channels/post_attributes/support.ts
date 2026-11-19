@@ -3,9 +3,12 @@
 
 import type {Locator, Page, Request} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
+import type {Post} from '@mattermost/types/posts';
 import type {FieldType, PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import type {ChannelsPage, ChannelsPost} from '@mattermost/playwright-lib';
+import type {ChannelsPage, ChannelsPost, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GROUP = 'post_attributes';
 export const OBJECT_TYPE = 'post';
@@ -149,6 +152,96 @@ export function countLoads(page: Page): () => number {
     });
 
     return () => loads;
+}
+
+/**
+ * Creates a post the way the composer does: the values ride on the create request as
+ * `metadata.property_values`, so the server writes them as the post is made and announces
+ * them over the websocket, rather than a second request setting them afterwards.
+ */
+export async function createPostWithValues(
+    client: Client4,
+    channelId: string,
+    message: string,
+    items: SentValue[],
+    {rootId, type}: {rootId?: string; type?: string} = {},
+): Promise<Post> {
+    return client.createPost({
+        channel_id: channelId,
+        message,
+        root_id: rootId,
+        type,
+        metadata: {property_values: items},
+    } as unknown as Parameters<Client4['createPost']>[0]);
+}
+
+export type MemberOptions = {
+    // A guest account. The server refuses to make one while guest accounts are off.
+    guest?: boolean;
+
+    // Roles to hold on top of a plain account's.
+    systemAdmin?: boolean;
+    teamAdmin?: boolean;
+    channelAdmin?: boolean;
+};
+
+/**
+ * Creates another user, puts them on the team and in the given channels, and logs a
+ * client in as them, for a case that needs a second person acting on the same posts.
+ *
+ * `channelAdmin` applies to every channel given. `initSetup` already makes the first
+ * user and team; this is the second one, and the third.
+ */
+export async function addMember(
+    pw: PlaywrightExtended,
+    adminClient: Client4,
+    team: Team,
+    channelIds: string[],
+    {guest, systemAdmin, teamAdmin, channelAdmin}: MemberOptions = {},
+): Promise<{user: UserProfile & {password: string}; client: Client4}> {
+    const user = await pw.createNewUserProfile(adminClient, {prefix: guest ? 'guest' : 'member'});
+
+    if (guest) {
+        await adminClient.demoteUserToGuest(user.id);
+    }
+    if (systemAdmin) {
+        await adminClient.updateUserRoles(user.id, 'system_user system_admin');
+    }
+
+    await adminClient.addToTeam(team.id, user.id);
+
+    if (teamAdmin) {
+        await adminClient.updateTeamMemberSchemeRoles(team.id, user.id, true, true);
+    }
+
+    for (const channelId of channelIds) {
+        await adminClient.addToChannel(user.id, channelId);
+        if (channelAdmin) {
+            await adminClient.updateChannelMemberRoles(channelId, user.id, 'channel_user channel_admin');
+        }
+    }
+
+    const {client} = await pw.makeClient(user);
+
+    return {user, client};
+}
+
+/**
+ * Turns guest accounts on and gives back what undoes it, or undefined when the licence
+ * has no guest accounts at all, which is the case's cue to skip.
+ */
+export async function enableGuestAccounts(adminClient: Client4): Promise<(() => Promise<void>) | undefined> {
+    const license = await adminClient.getClientLicenseOld();
+    if (license.GuestAccounts !== 'true') {
+        return undefined;
+    }
+
+    const before = (await adminClient.getConfig()).GuestAccountsSettings.Enable;
+    await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}});
+
+    return async () => {
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: before}});
+    };
 }
 
 export async function deleteFields(adminClient: Client4, fields: PropertyField[]): Promise<void> {
