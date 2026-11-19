@@ -553,10 +553,6 @@ export type ProductRailSectionMessages = {
     // The quick switcher button's text and accessible label, such as "Find space" and "Find Spaces".
     findChannel?: MessageDescriptor;
     channelSwitcherLabel?: MessageDescriptor;
-
-    // The quick switcher's hint, such as "Type to find a space. Use <b>UP/DOWN</b> to browse…".
-    // Formatted with a `b` value for the key names. Only the section's channels are listed.
-    channelSwitcherHint?: MessageDescriptor;
 };
 
 export type ChannelComposerBannerComponent = PluginComponent & {
