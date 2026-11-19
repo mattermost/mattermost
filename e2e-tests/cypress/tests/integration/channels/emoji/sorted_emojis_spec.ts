@@ -40,6 +40,10 @@ describe('Emoji sorting', () => {
                 }
             });
 
+        // # The picker opens from the formatting bar and covers the textbox.
+        cy.get('#emojiPickerSearch').type('{esc}');
+        cy.get('#emojiPicker').should('not.exist');
+
         const emojiList: string[] = [];
 
         // # Post a guardsman emoji
