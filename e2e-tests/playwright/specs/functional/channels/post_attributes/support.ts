@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page, Request} from '@playwright/test';
+import type {Locator, Page, Request} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 import type {FieldType, PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
 
@@ -31,8 +31,10 @@ type CreateOptions = {
     options?: Array<string | {name: string; color: string}>;
 
     // Omitted means system-scoped, which applies to every channel. A channel id
-    // scopes the field to that channel only.
+    // scopes the field to that channel only, and a team id to that team's channels
+    // (and so never to a direct or group message).
     channelId?: string;
+    teamId?: string;
 
     visibility?: 'always' | 'when_set' | 'hidden';
     sortOrder?: number;
@@ -55,7 +57,7 @@ type CreateOptions = {
 export async function createField(
     adminClient: Client4,
     name: string,
-    {type, options = [], channelId, visibility, sortOrder, permissionValues}: CreateOptions = {},
+    {type, options = [], channelId, teamId, visibility, sortOrder, permissionValues}: CreateOptions = {},
 ): Promise<PropertyField> {
     const attrs: Record<string, unknown> = {};
 
@@ -79,8 +81,8 @@ export async function createField(
     const field: Record<string, unknown> = {
         name,
         type: type ?? (options.length ? 'select' : 'text'),
-        target_type: channelId ? 'channel' : 'system',
-        target_id: channelId ?? '',
+        target_type: (channelId && 'channel') || (teamId && 'team') || 'system',
+        target_id: channelId ?? teamId ?? '',
         attrs,
     };
 
@@ -159,4 +161,97 @@ export function recordRequests(page: Page, fragment: string): string[] {
     });
 
     return urls;
+}
+
+/**
+ * Resolves with the request the composer sends to create a post. Arm it before the
+ * click that sends, or the request is missed.
+ *
+ * Matches the path exactly, so the per-post values and reaction calls that share the
+ * `/posts` prefix are not mistaken for it.
+ */
+export function waitForCreatePost(page: Page): Promise<Request> {
+    return page.waitForRequest((request) => {
+        return request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/api/v4/posts');
+    });
+}
+
+export type SentValue = {field_id: string; value: unknown};
+
+/**
+ * What a create-post request carried as `metadata.property_values`, or undefined when
+ * the body has none.
+ */
+export function sentValues(request: Request): SentValue[] | undefined {
+    return request.postDataJSON()?.metadata?.property_values;
+}
+
+/**
+ * The composer-side locators for one field, scoped to one composer (centre or thread
+ * sidebar): both can be on screen at once and carry the same test ids.
+ */
+export function composerChips(scope: Locator) {
+    return scope.getByTestId('post-attributes-composer');
+}
+
+export function composerChip(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-chip-${field.name}`);
+}
+
+export function composerRest(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-rest-${field.name}`);
+}
+
+export function composerTrigger(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-trigger-${field.name}`);
+}
+
+export function composerInput(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-input-${field.name}`);
+}
+
+export function composerRemove(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-remove-${field.name}`);
+}
+
+// The `+` in the action row, and the `Add attribute` control that follows the chips.
+export function composerPlus(scope: Locator) {
+    return scope.getByTestId('post-attributes-composer-add');
+}
+
+export function composerInlineAdd(scope: Locator) {
+    return scope.getByTestId('post-attributes-add');
+}
+
+// The picker menu is portalled out of the composer, so it is found from the page.
+export function pickerItem(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-add-${field.name}`);
+}
+
+/**
+ * Stages a field by opening the `+` in the action row and choosing it from the
+ * picker. A select field's value menu opens by itself afterwards, and a text or user
+ * field's control takes focus.
+ */
+export async function stageField(page: Page, scope: Locator, field: PropertyField) {
+    await composerPlus(scope).click();
+    await pickerItem(page, field).click();
+}
+
+/**
+ * Picks an option in the value menu a select, rank or multiselect chip has open. The
+ * role differs by type: a multiselect's items are checkboxes and the others radios.
+ */
+export async function chooseOption(page: Page, name: string, {multi = false}: {multi?: boolean} = {}) {
+    await page.getByRole(multi ? 'menuitemcheckbox' : 'menuitemradio', {name, exact: true}).click();
+}
+
+/**
+ * The system-scoped fields on the server that this suite did not create. They are
+ * not the suite's to touch, but they decide whether a case that needs "no other
+ * field" can run.
+ */
+export async function foreignSystemFields(adminClient: Client4): Promise<PropertyField[]> {
+    const fields = await adminClient.getPropertyFields(GROUP, OBJECT_TYPE, {targetType: 'system'});
+    return (fields ?? []).filter((field) => !field.name.startsWith(FIELD_PREFIX) && field.delete_at === 0);
 }
