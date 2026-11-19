@@ -226,13 +226,8 @@
         z-index: 2;
         bottom: 7px;
         left: 7px;
-        border-radius: var(--radius-m);
 
-        // Compass IconButton's rounded state uses an undefined pill radius and
-        // falls back to the small corner. Repeat the class so this medium
-        // corner wins over that rule.
-        button.agent-composer-menu-button.agent-composer-menu-button {
-            border-radius: var(--radius-m);
+        .agent-composer-menu-button {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
         }
     }

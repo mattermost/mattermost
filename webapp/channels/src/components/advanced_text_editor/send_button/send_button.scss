@@ -1,4 +1,5 @@
-// Channel send uses the medium corner so the schedule chevron shares the shape.
+// Channel send keeps the 4px corner from before the capsule, so the schedule
+// chevron shares that shape.
 // Agent send adds --round and stays a circle; that split is hidden there.
 .splitSendButton {
     display: flex;
@@ -7,7 +8,7 @@
     height: 32px;
     flex-direction: row;
     justify-content: center;
-    border-radius: var(--radius-m);
+    border-radius: 4px;
     background: var(--button-bg);
     color: var(--button-color);
 
@@ -42,7 +43,7 @@
 
     .SendMessageButton {
         flex: 1;
-        border-radius: var(--radius-m) 0 0 var(--radius-m);
+        border-radius: 4px 0 0 4px;
         cursor: pointer;
         padding-inline: 7px;
         place-content: center;
@@ -64,7 +65,7 @@
         }
 
         &.singleAction {
-            border-radius: var(--radius-m);
+            border-radius: 4px;
         }
 
         &:not(.disabled):hover {
@@ -75,7 +76,7 @@
     .button_send_post_options {
         position: relative;
         width: 21px;
-        border-radius: 0 var(--radius-m) var(--radius-m) 0;
+        border-radius: 0 4px 4px 0;
         border-left: none;
         padding-inline: 2px;
 
