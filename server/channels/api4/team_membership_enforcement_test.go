@@ -72,6 +72,7 @@ func TestTeamDirectoryABACVisibility(t *testing.T) {
 	setMockACS := func(t *testing.T) *mocks.AccessControlServiceInterface {
 		t.Helper()
 		m := &mocks.AccessControlServiceInterface{}
+		ungovernedChannelAccess(m)
 		th.App.Srv().Channels().AccessControl = m
 		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
 		return m
@@ -222,6 +223,7 @@ func TestTeamSelfJoinABACAttributeGating(t *testing.T) {
 	setMockACS := func(t *testing.T) *mocks.AccessControlServiceInterface {
 		t.Helper()
 		m := &mocks.AccessControlServiceInterface{}
+		ungovernedChannelAccess(m)
 		th.App.Srv().Channels().AccessControl = m
 		t.Cleanup(func() { th.App.Srv().Channels().AccessControl = nil })
 		return m
