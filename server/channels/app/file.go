@@ -1460,9 +1460,9 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 		return model.NewFileInfoList(), true, nil
 	}
 
-	fileInfoSearchResults, rawLen, allFilesHaveMembership, appErr := a.searchFilesInTeamForUserPage(rctx, finalParamsList, userId, teamId, page, perPage)
-	if appErr != nil {
-		return nil, false, appErr
+	fileInfoSearchResults, rawLen, allFilesHaveMembership, err := a.searchFilesInTeamForUserPage(rctx, finalParamsList, userId, teamId, page, perPage)
+	if err != nil {
+		return nil, false, model.AsAppError(err)
 	}
 
 	if !a.ChannelAccessEnforcementActive() {
@@ -1479,7 +1479,7 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 		page++
 		next, nextRawLen, nextAllHaveMembership, nextErr := a.searchFilesInTeamForUserPage(rctx, finalParamsList, userId, teamId, page, perPage)
 		if nextErr != nil {
-			return nil, false, nextErr
+			return nil, false, model.AsAppError(nextErr)
 		}
 
 		fileInfoSearchResults.Extend(next)
@@ -1497,7 +1497,7 @@ func (a *App) SearchFilesInTeamForUser(rctx request.CTX, terms string, userId st
 
 // searchFilesInTeamForUserPage runs one store page through the filters. rawLen is the
 // number of files the store returned before any filtering.
-func (a *App) searchFilesInTeamForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userId, teamId string, page, perPage int) (results *model.FileInfoList, rawLen int, allFilesHaveMembership bool, appErr *model.AppError) {
+func (a *App) searchFilesInTeamForUserPage(rctx request.CTX, finalParamsList []*model.SearchParams, userId, teamId string, page, perPage int) (results *model.FileInfoList, rawLen int, allFilesHaveMembership bool, err error) {
 	fileInfoSearchResults, nErr := a.Srv().Store().FileInfo().Search(rctx, finalParamsList, userId, teamId, page, perPage)
 	if nErr != nil {
 		if nAppErr, ok := errors.AsType[*model.AppError](nErr); ok {
@@ -1508,7 +1508,7 @@ func (a *App) searchFilesInTeamForUserPage(rctx request.CTX, finalParamsList []*
 
 	rawLen = len(fileInfoSearchResults.Order)
 
-	allFilesHaveMembership, appErr = a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId)
+	allFilesHaveMembership, appErr := a.FilterFilesByChannelPermissions(rctx, fileInfoSearchResults, userId)
 	if appErr != nil {
 		return nil, 0, false, appErr
 	}

@@ -448,7 +448,7 @@ func (b *accessDecisionBroadcaster) takeLocked() *accessDecisionInvalidation {
 // evaluateAccessCached returns the PDP decision, from the cache when current. build runs only on a
 // miss. Errors aren't cached. A zero ref bypasses the cache. Callers keep RBAC, bypasses and
 // governance checks outside.
-func (a *App) evaluateAccessCached(rctx request.CTX, ref accessSubjectRef, resource model.Resource, action string, build func() (model.Subject, *model.AppError)) (model.AccessDecision, *model.AppError) {
+func (a *App) evaluateAccessCached(rctx request.CTX, ref accessSubjectRef, resource model.Resource, action string, build func() (model.Subject, error)) (model.AccessDecision, error) {
 	c := a.ch.accessDecisions
 	var lookup accessDecisionLookup
 	cacheable := false
@@ -462,9 +462,9 @@ func (a *App) evaluateAccessCached(rctx request.CTX, ref accessSubjectRef, resou
 	}
 
 	// cache missed, evaluate, store and return
-	subject, appErr := build()
-	if appErr != nil {
-		return model.AccessDecision{}, appErr
+	subject, err := build()
+	if err != nil {
+		return model.AccessDecision{}, err
 	}
 	decision, appErr := a.ch.AccessControl.AccessEvaluation(rctx, model.AccessRequest{
 		Subject:  subject,

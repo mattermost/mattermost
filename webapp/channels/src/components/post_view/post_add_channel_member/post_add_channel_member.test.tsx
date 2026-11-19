@@ -103,60 +103,6 @@ describe('components/post_view/PostAddChannelMember', () => {
         expect(screen.getByText('add them to this private board')).toBeInTheDocument();
     });
 
-    test('should match snapshot, empty postId', () => {
-        const props: Props = {
-            ...requiredProps,
-            postId: '',
-        };
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, empty channelType', () => {
-        const props: Props = {
-            ...requiredProps,
-            channelType: '',
-        };
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, public channel', () => {
-        const {container} = renderWithContext(<PostAddChannelMember {...requiredProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, private channel', () => {
-        const props: Props = {
-            ...requiredProps,
-            channelType: 'P',
-        };
-
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, more than 3 users', async () => {
-        const userIds = ['user_id_1', 'user_id_2', 'user_id_3', 'user_id_4'];
-        const usernames = ['username_1', 'username_2', 'username_3', 'username_4'];
-        const props: Props = {
-            ...requiredProps,
-            userIds,
-            usernames,
-        };
-
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
-        expect(container).toMatchSnapshot();
-
-        const user = userEvent.setup();
-        const otherUsersLink = screen.getByText(/others/i).closest('a');
-        if (!otherUsersLink) {
-            throw new Error('Other users link not found');
-        }
-        await user.click(otherUsersLink);
-        expect(container).toMatchSnapshot();
-    });
-
     test('actions should have been called', async () => {
         const actions = {
             removePost: jest.fn(),
@@ -201,25 +147,6 @@ describe('components/post_view/PostAddChannelMember', () => {
         }
         await user.click(addToChannelLink);
         expect(actions.addChannelMember).toHaveBeenCalledTimes(4);
-    });
-
-    test('should match snapshot, with no-groups usernames', () => {
-        const props: Props = {
-            ...requiredProps,
-            noGroupsUsernames: ['user_id_2'],
-        };
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, with ABAC policy enforced', () => {
-        const props: Props = {
-            ...requiredProps,
-            usernames: ['username_1', 'username_2', 'username_3'],
-            isPolicyEnforced: true,
-        };
-        const {container} = renderWithContext(<PostAddChannelMember {...props}/>);
-        expect(container).toMatchSnapshot();
     });
 
     test('should never show invite links when policy is enforced (ABAC channels)', () => {

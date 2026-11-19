@@ -354,16 +354,16 @@ func TestEvaluateAccessCachedBuildError(t *testing.T) {
 	buildErr := model.NewAppError("test", "app.access_control.build_subject.get_subject.app_error", nil, "", http.StatusInternalServerError).Wrap(errors.New("boom"))
 
 	var rctx request.CTX = h.th.Context.WithSession(h.session)
-	_, appErr := h.th.App.evaluateAccessCached(rctx, ref, resource, model.AccessControlPolicyActionChannelReadAccess, func() (model.Subject, *model.AppError) {
+	_, appErr := h.th.App.evaluateAccessCached(rctx, ref, resource, model.AccessControlPolicyActionChannelReadAccess, func() (model.Subject, error) {
 		return model.Subject{}, buildErr
 	})
 	require.Equal(t, buildErr, appErr)
 	require.Equal(t, 0, h.evaluations())
 
-	decision, appErr := h.th.App.evaluateAccessCached(rctx, ref, resource, model.AccessControlPolicyActionChannelReadAccess, func() (model.Subject, *model.AppError) {
+	decision, appErr := h.th.App.evaluateAccessCached(rctx, ref, resource, model.AccessControlPolicyActionChannelReadAccess, func() (model.Subject, error) {
 		return model.Subject{ID: h.th.BasicUser.Id}, nil
 	})
-	require.Nil(t, appErr)
+	require.NoError(t, appErr)
 	require.True(t, decision.Decision)
 	require.Equal(t, 1, h.evaluations(), "a failed build left nothing in the cache")
 }
@@ -387,14 +387,14 @@ func TestEvaluateAccessCachedSessionAttributeExpiry(t *testing.T) {
 		resource := model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: h.th.BasicChannel.Id}
 
 		run := func() bool {
-			got, appErr := h.th.App.evaluateAccessCached(rctx, ref, resource, model.AccessControlPolicyActionChannelReadAccess, func() (model.Subject, *model.AppError) {
+			got, appErr := h.th.App.evaluateAccessCached(rctx, ref, resource, model.AccessControlPolicyActionChannelReadAccess, func() (model.Subject, error) {
 				return model.Subject{
 					ID:               h.th.BasicUser.Id,
 					Session:          map[string]any{attr: "true"},
 					SessionExpiresAt: map[string]int64{attr: expiresAt},
 				}, nil
 			})
-			require.Nil(t, appErr)
+			require.NoError(t, appErr)
 			return got.Decision
 		}
 		return h, clock, run

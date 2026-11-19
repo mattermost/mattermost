@@ -529,14 +529,14 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 	}
 
 	userID := ref.userID
-	var buildErr *model.AppError
+	var buildErr error
 	decision, evalErr := a.evaluateAccessCached(rctx, channelAccessCacheRef(ref, action),
 		model.Resource{Type: model.AccessControlPolicyTypeChannel, ID: channel.Id},
 		action,
-		func() (model.Subject, *model.AppError) {
-			subject, appErr := a.channelAccessSubject(rctx, ref, channel.Id, byChannelPolicy)
-			buildErr = appErr
-			return subject, appErr
+		func() (model.Subject, error) {
+			subject, err := a.channelAccessSubject(rctx, ref, channel.Id, byChannelPolicy)
+			buildErr = err
+			return subject, err
 		},
 	)
 	if buildErr != nil {
@@ -565,11 +565,11 @@ func (a *App) evaluateChannelAccess(rctx request.CTX, ref accessSubjectRef, chan
 // The base subject comes from channelAccessBaseSubject; withChannelRole adds the user's
 // role in the channel, taken from the roles prepareChannelAccess fetched for the page
 // when it has one, and read from the member row otherwise.
-func (a *App) channelAccessSubject(rctx request.CTX, ref accessSubjectRef, channelID string, withChannelRole bool) (model.Subject, *model.AppError) {
+func (a *App) channelAccessSubject(rctx request.CTX, ref accessSubjectRef, channelID string, withChannelRole bool) (model.Subject, error) {
 	userID := ref.userID
-	base, appErr := a.channelAccessBaseSubject(rctx, ref)
-	if appErr != nil {
-		return model.Subject{}, appErr
+	base, err := a.channelAccessBaseSubject(rctx, ref)
+	if err != nil {
+		return model.Subject{}, err
 	}
 
 	// A copy: SetScopedRole allocates a fresh ScopedRoles slice, so the memoised
@@ -585,14 +585,18 @@ func (a *App) channelAccessSubject(rctx request.CTX, ref accessSubjectRef, chann
 			return subject, nil
 		}
 	}
-	return a.attachChannelScopedRole(rctx, subject, userID, channelID)
+	subject, appErr := a.attachChannelScopedRole(rctx, subject, userID, channelID)
+	if appErr != nil {
+		return model.Subject{}, appErr
+	}
+	return subject, nil
 }
 
 // channelAccessBaseSubject returns ref's subject without a channel role. Nothing else
 // in it depends on the channel, so a request with a memo builds it once per subject
 // rather than once per channel. ref's kind picks the build, so the subject always
 // matches the cache key it is stored under (see accessSubjectRefFor).
-func (a *App) channelAccessBaseSubject(rctx request.CTX, ref accessSubjectRef) (*model.Subject, *model.AppError) {
+func (a *App) channelAccessBaseSubject(rctx request.CTX, ref accessSubjectRef) (*model.Subject, error) {
 	memo := getChannelAccessMemo(rctx)
 	if memo != nil {
 		if subject := memo.getSubject(ref); subject != nil {
@@ -759,7 +763,7 @@ func (a *App) FilterChannelMembersByReadAccess(rctx request.CTX, userID string, 
 // channel_read_access policy denies them. Unread counts are summed in the store over every
 // membership, and a denied channel left in them is a badge the user can never clear, since
 // clearing it means opening the channel. Nil while enforcement is off.
-func (a *App) channelReadAccessDeniedChannelIDs(rctx request.CTX, userID string) ([]string, *model.AppError) {
+func (a *App) channelReadAccessDeniedChannelIDs(rctx request.CTX, userID string) ([]string, error) {
 	if userID == "" || !a.ChannelAccessEnforcementActive() {
 		return nil, nil
 	}
@@ -793,10 +797,10 @@ func (a *App) channelReadAccessDeniedChannelIDs(rctx request.CTX, userID string)
 
 // channelReadAccessDeniedChannelSet is channelReadAccessDeniedChannelIDs as a set, for
 // callers that sum per-channel unread rows themselves.
-func (a *App) channelReadAccessDeniedChannelSet(rctx request.CTX, userID string) (map[string]struct{}, *model.AppError) {
-	denied, appErr := a.channelReadAccessDeniedChannelIDs(rctx, userID)
-	if appErr != nil {
-		return nil, appErr
+func (a *App) channelReadAccessDeniedChannelSet(rctx request.CTX, userID string) (map[string]struct{}, error) {
+	denied, err := a.channelReadAccessDeniedChannelIDs(rctx, userID)
+	if err != nil {
+		return nil, err
 	}
 	set := make(map[string]struct{}, len(denied))
 	for _, channelID := range denied {

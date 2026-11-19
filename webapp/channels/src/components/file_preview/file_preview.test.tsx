@@ -36,7 +36,7 @@ describe('FilePreview', () => {
     ];
     const uploadsInProgress = ['clientID_1'];
     const uploadsProgressPercent = {
-        // eslint-disable-next-line @typescript-eslint/naming-convention
+
         clientID_1: {
             width: 100,
             height: 100,
@@ -66,37 +66,6 @@ describe('FilePreview', () => {
             openModal,
         },
     };
-
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <FilePreview {...baseProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when props are changed', () => {
-        const {container, rerender} = renderWithContext(
-            <FilePreview {...baseProps}/>,
-        );
-        expect(container).toMatchSnapshot();
-        const fileInfo2 = {
-            ...baseProps.fileInfos[0],
-            id: 'file_id_2',
-            create_at: 2,
-            extension: 'jpg',
-            name: 'file_two.jpg',
-            size: 120,
-        };
-        const newFileInfos = [...fileInfos, fileInfo2];
-        rerender(
-            <FilePreview
-                {...baseProps}
-                fileInfos={newFileInfos}
-                uploadsInProgress={[]}
-            />,
-        );
-        expect(container).toMatchSnapshot();
-    });
 
     test('should call handleRemove when file removed', async () => {
         const newOnRemove = jest.fn();

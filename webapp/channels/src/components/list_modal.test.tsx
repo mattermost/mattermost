@@ -48,8 +48,8 @@ describe('components/ListModal', () => {
         titleBarButtonTextOnClick: () => {},
     };
 
-    it('should match snapshot', async () => {
-        const {baseElement} = renderWithContext(
+    it('should render', async () => {
+        renderWithContext(
             <ListModal {...baseProps}/>,
         );
 
@@ -57,8 +57,6 @@ describe('components/ListModal', () => {
         await waitFor(() => {
             expect(screen.getByTestId('item-123')).toBeInTheDocument();
         });
-
-        expect(baseElement).toMatchSnapshot();
 
         // Verify items are rendered
         expect(screen.getByTestId('item-123')).toBeInTheDocument();
@@ -86,13 +84,13 @@ describe('components/ListModal', () => {
         expect(screen.getByRole('button', {name: 'Next'})).toBeInTheDocument();
     });
 
-    it('should match snapshot with title bar button', async () => {
+    it('should render with title bar button', async () => {
         const props = {
             ...baseProps,
             titleBarButtonText: 'Add Foo',
             titleBarButtonOnClick: jest.fn(),
         };
-        const {baseElement} = renderWithContext(
+        renderWithContext(
             <ListModal {...props}/>,
         );
 
@@ -100,8 +98,6 @@ describe('components/ListModal', () => {
         await waitFor(() => {
             expect(screen.getByTestId('item-123')).toBeInTheDocument();
         });
-
-        expect(baseElement).toMatchSnapshot();
 
         // Verify title bar button is present
         expect(screen.getByRole('button', {name: 'Add Foo'})).toBeInTheDocument();

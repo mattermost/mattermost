@@ -165,7 +165,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         Object.keys(mockPlaybookTreeProps).forEach((key) => delete mockPlaybookTreeProps[key]);
     });
 
-    test('should match snapshot on new with default roles without permissions', async () => {
+    test('should render on new with default roles without permissions', async () => {
         renderWithContext(
             <PermissionTeamSchemeSettings {...defaultProps}/>,
         );
@@ -182,7 +182,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(mockPermissionsTreeProps.team_admin.role.permissions).toEqual([]);
     });
 
-    test('should match snapshot on new with default roles with permissions', async () => {
+    test('should render on new with default roles with permissions', async () => {
         const roles = {
             system_guest: {
                 permissions: ['create_post'],
@@ -394,7 +394,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(teamAdminPanel).not.toHaveClass('closed');
     });
 
-    test('should match snapshot on edit without permissions', async () => {
+    test('should render on edit without permissions', async () => {
         const props = {
             ...defaultProps,
             schemeId: 'xyz',
@@ -432,7 +432,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(mockPermissionsTreeProps.all_users.role.permissions).toEqual([]);
     });
 
-    test('should match snapshot on edit with permissions', async () => {
+    test('should render on edit with permissions', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -534,7 +534,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(mockPermissionsTreeProps.team_admin.role.permissions).not.toContain(Permissions.CREATE_POST);
     });
 
-    test('should match snapshot on edit without guest permissions', async () => {
+    test('should render on edit without guest permissions', async () => {
         const props = {
             ...defaultProps,
             config: {
@@ -575,7 +575,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         expect(screen.getByTestId('permissions-tree-team_admin')).toBeInTheDocument();
     });
 
-    test('should match snapshot on edit without license', async () => {
+    test('should render on edit without license', async () => {
         const props = {
             ...defaultProps,
             license: {

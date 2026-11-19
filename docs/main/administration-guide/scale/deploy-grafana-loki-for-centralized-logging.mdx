@@ -375,7 +375,7 @@ The PostgreSQL configuration handles common Ubuntu/Debian JSON log paths (`/var/
 
 </Note>
 
-Once running, PostgreSQL logs appear in Grafana under the label `&#123;service_name="postgres"&#125;`:
+Once running, PostgreSQL logs appear in Grafana under the label `{service_name="postgres"}`:
 
 ``` text
 {service_name="postgres"} | json | detected_level="error"
@@ -399,7 +399,7 @@ Once running, PostgreSQL logs appear in Grafana under the label `&#123;service_n
     # Look for export successful messages or lack of errors
     ```
 
-3.  Logs are visible in Grafana: Go to **Explore**, select the **Loki** data source, and run `&#123;service_name="mattermost"&#125;`. You should see recent log lines.
+3.  Logs are visible in Grafana: Go to **Explore**, select the **Loki** data source, and run `{service_name="mattermost"}`. You should see recent log lines.
 
 4.  The dashboard loads: Open the **Mattermost Log Aggregation** dashboard and confirm panels are populated. (Note: You may need to update dashboard queries to use <code>service_name</code> and <code>service_instance_id</code>).
 

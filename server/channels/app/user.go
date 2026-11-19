@@ -1764,7 +1764,7 @@ func (a *App) UpdatePasswordByUserIdSendEmail(rctx request.CTX, userID, newPassw
 
 func (a *App) UpdatePassword(rctx request.CTX, user *model.User, newPassword string) *model.AppError {
 	if err := a.IsPasswordValid(rctx, newPassword); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	// remote/synthetic users cannot update password via any mechanism
@@ -2830,7 +2830,7 @@ func (a *App) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId s
 	if len(restrictions.Channels) > 0 {
 		result, err := a.userBelongsToChannels(otherUserId, restrictions.Channels)
 		if err != nil {
-			return false, err
+			return false, model.AsAppError(err)
 		}
 		if result {
 			return true, nil
@@ -2840,7 +2840,7 @@ func (a *App) UserCanSeeOtherUser(rctx request.CTX, userID string, otherUserId s
 	return false, nil
 }
 
-func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, *model.AppError) {
+func (a *App) userBelongsToChannels(userID string, channelIDs []string) (bool, error) {
 	belongs, err := a.Srv().Store().Channel().UserBelongsToChannels(userID, channelIDs)
 	if err != nil {
 		return false, model.NewAppError("userBelongsToChannels", "app.channel.user_belongs_to_channels.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -3087,9 +3087,9 @@ func (a *App) GetThreadsForUser(rctx request.CTX, userID, teamID string, options
 
 	if !options.ThreadsOnly {
 		// The page below drops threads in denied channels, so the totals must too.
-		denied, appErr := a.channelReadAccessDeniedChannelIDs(rctx, userID)
-		if appErr != nil {
-			return nil, appErr
+		denied, err := a.channelReadAccessDeniedChannelIDs(rctx, userID)
+		if err != nil {
+			return nil, model.AsAppError(err)
 		}
 		options.ExcludeChannelIds = denied
 

@@ -1041,6 +1041,7 @@ export type CloudSettings = {
     CWSMock: boolean;
     Disable: boolean;
     PreviewModalBucketURL: string;
+    PreviewLandingPath: string;
 };
 
 export type FeatureFlags = Record<string, string | boolean>;

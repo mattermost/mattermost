@@ -319,13 +319,13 @@ func (a *App) GetSessionAttributesManifest(rctx request.CTX, r *http.Request) ([
 }
 
 func (a *App) GetSessionAttributes(rctx request.CTX, sessionID string) (map[string]any, *model.AppError) {
-	attrs, _, appErr := a.getSessionAttributesWithExpiry(rctx, sessionID)
-	return attrs, appErr
+	attrs, _, err := a.getSessionAttributesWithExpiry(rctx, sessionID)
+	return attrs, model.AsAppError(err)
 }
 
 // getSessionAttributesWithExpiry is GetSessionAttributes plus, for each value it returns, the
 // epoch ms at which filterStaleSessionAttributes would start dropping it.
-func (a *App) getSessionAttributesWithExpiry(rctx request.CTX, sessionID string) (map[string]any, map[string]int64, *model.AppError) {
+func (a *App) getSessionAttributesWithExpiry(rctx request.CTX, sessionID string) (map[string]any, map[string]int64, error) {
 	if !a.sessionAttributesEnabled() {
 		return nil, nil, nil
 	}

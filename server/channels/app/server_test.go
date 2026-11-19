@@ -16,12 +16,14 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/getsentry/sentry-go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/crypto/acme"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -553,6 +555,106 @@ func TestOriginChecker(t *testing.T) {
 		}
 		res := th.App.OriginChecker()(r)
 		require.Equalf(t, tc.Pass, res, "Test case (%d)", i)
+	}
+}
+
+func TestLetsEncryptManagerHostPolicy(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	var acmeRequests atomic.Int32
+	fakeCA := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		acmeRequests.Add(1)
+		http.Error(w, "fake CA", http.StatusBadRequest)
+	}))
+	t.Cleanup(fakeCA.Close)
+
+	const previousHost = "previous.example.com"
+
+	tcs := []struct {
+		name         string
+		siteURL      string
+		allowedHosts []string
+		deniedHosts  []string
+	}{
+		{
+			name:         "only the Site URL hostname is allowed",
+			siteURL:      "https://chat.example.com",
+			allowedHosts: []string{"chat.example.com"},
+			deniedHosts:  []string{"scanner.example.net", "www.chat.example.com", "example.com", "127.0.0.1"},
+		},
+		{
+			name:         "Site URL port and path are ignored",
+			siteURL:      "https://chat.example.com:8443/mattermost",
+			allowedHosts: []string{"chat.example.com"},
+			deniedHosts:  []string{"scanner.example.net"},
+		},
+		{
+			name:         "Site URL hostname is matched case-insensitively",
+			siteURL:      "https://Chat.Example.COM",
+			allowedHosts: []string{"chat.example.com"},
+			deniedHosts:  []string{"scanner.example.net"},
+		},
+		{
+			name:        "every hostname is denied without a Site URL",
+			siteURL:     "",
+			deniedHosts: []string{"chat.example.com", "mm.internal.example"},
+		},
+		{
+			name:        "every hostname is denied when the Site URL has no host",
+			siteURL:     "/mattermost",
+			deniedHosts: []string{"chat.example.com"},
+		},
+	}
+
+	for _, tc := range tcs {
+		t.Run(tc.name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = "https://" + previousHost
+				*cfg.ServiceSettings.LetsEncryptCertificateCacheFile = t.TempDir()
+			})
+			// autocert remembers failed issuance per host, so each case needs its own manager.
+			m := th.Server.newLetsEncryptManager()
+			m.Client = &acme.Client{DirectoryURL: fakeCA.URL}
+			challengeHandler := m.HTTPHandler(nil)
+
+			// The Site URL changes after the manager is created, as it can at runtime.
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.ServiceSettings.SiteURL = tc.siteURL
+			})
+
+			issuanceAttempted := func(host string) bool {
+				before := acmeRequests.Load()
+				cert, err := m.GetCertificate(&tls.ClientHelloInfo{ServerName: host})
+				require.Error(t, err)
+				require.Nil(t, cert)
+				return acmeRequests.Load() > before
+			}
+
+			challengeStatus := func(host string) int {
+				req := httptest.NewRequest(http.MethodGet, "http://"+host+"/.well-known/acme-challenge/token", nil)
+				req.Host = host
+				rec := httptest.NewRecorder()
+				challengeHandler.ServeHTTP(rec, req)
+				return rec.Code
+			}
+
+			for _, host := range tc.allowedHosts {
+				assert.Truef(t, issuanceAttempted(host), "certificate for %q should be requested from the CA", host)
+				// A cache miss (404) means the request passed the host policy.
+				assert.Equalf(t, http.StatusNotFound, challengeStatus(host), "challenge for %q", host)
+				assert.Equalf(t, http.StatusNotFound, challengeStatus(strings.ToUpper(host)), "challenge for uppercase %q", host)
+			}
+
+			for _, host := range append(tc.deniedHosts, previousHost) {
+				assert.Falsef(t, issuanceAttempted(host), "certificate for %q should not be requested from the CA", host)
+				assert.Equalf(t, http.StatusForbidden, challengeStatus(host), "challenge for %q", host)
+			}
+
+			if len(tc.allowedHosts) == 0 {
+				assert.Equal(t, http.StatusForbidden, challengeStatus(""), "challenge without a Host header")
+			}
+		})
 	}
 }
 

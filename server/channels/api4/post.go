@@ -159,6 +159,20 @@ func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		SilentNotification: silentBool,
 	}
 
+	propertyValues, appErr := postAttributeValuesForCreate(c, &post)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Only touched when there is something to write, so a post without values reaches
+	// CreatePost exactly as the client sent it. Values only come from post.Metadata, so it is
+	// non-nil here. This replaces the client's submission with the validated values, which is
+	// what CreatePost reads back off the saved post.
+	if len(propertyValues) > 0 {
+		post.Metadata.PropertyValues = propertyValues
+	}
+
 	rp, isMemberForPreviews, err := c.App.CreatePostAsUserWithFlags(c.AppContext, c.App.PostWithProxyRemovedFromImageURLs(&post), c.AppContext.Session().Id, createFlags)
 	if err != nil {
 		c.Err = err
@@ -773,7 +787,7 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	originalPost, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return
 	}
 
@@ -1195,7 +1209,7 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	// a lagging read replica would report it missing (MM-70867).
 	originalPost, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return
 	}
 
@@ -1361,7 +1375,7 @@ func postPatchChecks(c *Context, auditRec *model.AuditRecord, patch *model.PostP
 	// a lagging read replica would report it missing (MM-70867).
 	originalPost, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionEditPost)
+		c.Err = err
 		return nil, false
 	}
 	auditRec.AddEventPriorState(originalPost)
@@ -1470,7 +1484,7 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 	// a lagging read replica would report it missing (MM-70867).
 	post, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false)
 	if err != nil {
-		c.SetPermissionError(model.PermissionReadChannelContent)
+		c.Err = err
 		return
 	}
 	auditRec.AddEventPriorState(post)
@@ -1874,6 +1888,11 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.PostId)
 	model.AddEventParameterToAuditRec(auditRec, "restore_version_id", restoreVersionId)
 	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+
+	if _, err := c.App.GetSinglePost(c.AppContext.With(app.RequestContextWithMaster), c.Params.PostId, false); err != nil {
+		c.Err = err
+		return
+	}
 
 	toRestorePost, err := c.App.GetSinglePost(c.AppContext, restoreVersionId, true)
 	if err != nil {
