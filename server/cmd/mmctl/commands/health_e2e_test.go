@@ -5,14 +5,18 @@ package commands
 
 import (
 	"cmp"
+	"net/http"
 	"net/http/httptest"
 	"path/filepath"
 	"slices"
 	"strconv"
+	"sync/atomic"
 
 	"github.com/spf13/cobra"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/api4"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
@@ -20,7 +24,20 @@ import (
 // mmctl health check --packet on a server's Support Packet prints the findings mmctl health check
 // prints for that server, with mmctl's own latest-release fetch, rendering and resolved filtering.
 func (s *MmctlE2ETestSuite) TestHealthCheckPacketMatchesLiveFindings() {
-	s.SetupTestHelper().InitBasic(s.T())
+	// The server and mmctl look up the latest release here instead of on GitHub.
+	var latestRequests atomic.Int32
+	latestRelease := healthTestRelease("v99.0.0")
+	latest := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		latestRequests.Add(1)
+		latestRelease(w, r)
+	}))
+	s.T().Cleanup(latest.Close)
+	originalURL := healthLatestVersionURL
+	healthLatestVersionURL = latest.URL
+	s.T().Cleanup(func() { healthLatestVersionURL = originalURL })
+
+	s.th = api4.SetupWithServerOptions(s.T(), []app.Option{app.LatestVersionURL(latest.URL)})
+	s.th.InitBasic(s.T())
 	license := model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
 	// The packet's metadata needs valid IDs, and the permissions collector the migration, or the
 	// packet carries a warning.txt.
@@ -41,21 +58,16 @@ func (s *MmctlE2ETestSuite) TestHealthCheckPacketMatchesLiveFindings() {
 		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
 		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
 		cfg.ServiceSettings.EnableEmailInvitations = model.NewPointer(false)
+		// Turning security fix alerts off clears the process-wide latest-release cache an earlier
+		// test may have filled; they are turned back on below.
+		cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false)
+	})
+	s.th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true)
 	})
 
-	// The health check reads the latest release from a cache that isn't keyed by URL, so filling
-	// it from a stub keeps the run off GitHub. mmctl is served whatever the cache holds.
-	stub := httptest.NewServer(healthTestRelease("v99.0.0"))
-	s.T().Cleanup(stub.Close)
-	latest, appErr := s.th.App.GetLatestVersion(s.th.Context, stub.URL)
-	s.Require().Nil(appErr, "a cached latest-release failure would leave mmctl's fetch uncompared")
-	fetch := httptest.NewServer(healthTestRelease(latest.TagName))
-	s.T().Cleanup(fetch.Close)
-	originalURL := healthLatestVersionURL
-	healthLatestVersionURL = fetch.URL
-	s.T().Cleanup(func() { healthLatestVersionURL = originalURL })
-
 	s.Require().NoError(s.th.App.RunHealthCheck(s.th.Context))
+	s.Require().Equal(int32(1), latestRequests.Load(), "the health check didn't fetch the latest release")
 
 	packetPath := filepath.Join(s.T().TempDir(), "mm_support_packet.zip")
 	cmd := newTestCmd(s.T(), SystemSupportPacketCmd)
@@ -80,7 +92,7 @@ func (s *MmctlE2ETestSuite) TestHealthCheckPacketMatchesLiveFindings() {
 		s.Run("include-resolved="+strconv.FormatBool(includeResolved), func() {
 			live := findings(func(cmd *cobra.Command) error { return healthCheckCmdF(s.th.SystemAdminClient, cmd, nil) }, includeResolved, "")
 			offline := findings(func(cmd *cobra.Command) error { return healthCheckPacketCmdF(cmd, nil) }, includeResolved, packetPath)
-			s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines())
+			s.Equal([]string{healthPacketDisclaimer}, printer.GetErrorLines(), "the packet was incomplete, or mmctl couldn't fetch the latest release")
 			// The findings API serves product findings only; a packet is evaluated for support engineers too.
 			offline = slices.DeleteFunc(offline, func(f *model.HealthFinding) bool { return f.Surface != string(healthcheck.SurfaceProduct) })
 
@@ -100,9 +112,7 @@ func comparableHealthFindings(findings []*model.HealthFinding) []model.HealthFin
 		if len(f.Details) == 0 {
 			f.Details = nil
 		}
-		switch f.Code {
-		case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL", "DB_POOL_SATURATED",
-			"NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED":
+		if slices.Contains(healthcheck.SampledCodes, f.Code) {
 			f.Details, f.Message = nil, ""
 		}
 		result = append(result, f)
