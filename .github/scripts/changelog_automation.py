@@ -506,7 +506,7 @@ def benchmark_written(entry: str, gap: dict) -> bool:
     if not number:
         return True
     negative = delta.startswith("-")
-    written = re.compile(rf"(?<![\d.])([+-−]?){re.escape(number)}(?!\d)\s*%")
+    written = re.compile(rf"(?<![\d.])([+\-−]?){re.escape(number)}(?!\d)\s*%")
     for line in _BENCHMARK_LINE.findall(entry):
         if line.lstrip(" -*").startswith("Benchmarking test results showed no significant"):
             continue
