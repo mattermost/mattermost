@@ -48,6 +48,27 @@ var LicenseToLicenseTier = map[string]int{
 	LicenseShortSkuMattermostEntry:    EntryTier,
 }
 
+// LicenseSkuDisplayName returns the product name of a license SKU, as the webapp shows it, or
+// skuShortName itself if the SKU is unknown.
+func LicenseSkuDisplayName(skuShortName string) string {
+	switch skuShortName {
+	case LicenseShortSkuE20:
+		return "Enterprise E20"
+	case LicenseShortSkuE10:
+		return "Enterprise E10"
+	case LicenseShortSkuProfessional:
+		return "Professional"
+	case LicenseShortSkuEnterprise:
+		return "Enterprise"
+	case LicenseShortSkuMattermostEntry:
+		return "Entry"
+	case LicenseShortSkuEnterpriseAdvanced:
+		return "Enterprise Advanced"
+	default:
+		return skuShortName
+	}
+}
+
 const (
 	LicenseUpForRenewalEmailSent = "LicenseUpForRenewalEmailSent"
 )

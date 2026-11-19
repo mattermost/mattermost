@@ -144,7 +144,7 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		opts.ServerVersion = config["Version"]
 	}
 	if license, _, licenseErr := c.GetOldClientLicense(context.TODO(), ""); licenseErr == nil && license["IsLicensed"] == "true" {
-		opts.License = license["SkuShortName"]
+		opts.License = model.LicenseSkuDisplayName(license["SkuShortName"])
 		opts.Company = license["Company"]
 	}
 	return exportHealthReport(cmd, format, list, opts)
@@ -278,7 +278,7 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	opts.SiteURL, _ = p.Snapshot.ConfigString(func(cfg *model.Config) *string { return cfg.ServiceSettings.SiteURL })
 	opts.ServerVersion = p.Snapshot.Version.Current
 	if license, ok := p.Snapshot.License(); ok {
-		opts.License = license.SkuShortName
+		opts.License = model.LicenseSkuDisplayName(license.SkuShortName)
 		opts.Company = license.Company
 	}
 	return exportHealthReport(cmd, format, list, opts)

@@ -1059,7 +1059,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		s.client.
 			EXPECT().
 			GetOldClientLicense(context.TODO(), "").
-			Return(map[string]string{"IsLicensed": "true", "SkuShortName": "enterprise", "Company": "Acme Corp"}, &model.Response{}, nil).
+			Return(map[string]string{"IsLicensed": "true", "SkuShortName": "advanced", "Company": "Acme Corp"}, &model.Response{}, nil).
 			Times(1)
 	}
 
@@ -1068,7 +1068,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		want   []string
 	}{
 		{"html", []string{"<!DOCTYPE html>", "<dt>Site URL</dt>", "<dt>Licensed to</dt>"}},
-		{"md", []string{"# Health report\n", "- **Site URL:** https://chat.example.com\n", "- **License:** enterprise\n", "- **Licensed to:** Acme Corp\n"}},
+		{"md", []string{"# Health report\n", "- **Site URL:** https://chat.example.com\n", "- **License:** Enterprise Advanced\n", "- **Licensed to:** Acme Corp\n"}},
 	} {
 		s.Run("online "+tc.format+" export includes resolved and muted findings", func() {
 			printer.Clean()
@@ -1080,7 +1080,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 			s.Require().NoError(err)
 
 			output := s.printedHealthFindings()
-			for _, want := range append(tc.want, "https://chat.example.com", "12.2.0", "enterprise", "Acme Corp",
+			for _, want := range append(tc.want, "https://chat.example.com", "12.2.0", "Enterprise Advanced", "Acme Corp",
 				"Push notification server is not HTTPS", "Site URL is not HTTPS", "Site URL is empty", "Muted finding") {
 				s.Contains(output, want)
 			}
@@ -1168,7 +1168,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 		{"md", []string{
 			"# Health report\n", "> " + healthPacketDisclaimer + "\n",
 			"- **Data collected:** " + time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04 MST") + "\n",
-			"- **Site URL:** https://chat.example.com\n", "- **Server version:** 11.0.4\n", "- **License:** enterprise\n", "- **Licensed to:** Acme Corp\n",
+			"- **Site URL:** https://chat.example.com\n", "- **Server version:** 11.0.4\n", "- **License:** Enterprise\n", "- **Licensed to:** Acme Corp\n",
 		}},
 	} {
 		s.Run("packet "+tc.format+" export leaves out internal findings", func() {
@@ -1178,7 +1178,7 @@ func (s *MmctlUnitTestSuite) TestHealthCheckExport() {
 			s.Require().NoError(healthCheckRunE(s.healthExportTestCommand("packet", packetPath, "output-format", tc.format), []string{}))
 
 			output := s.printedHealthFindings()
-			for _, want := range append(tc.want, "https://chat.example.com", "11.0.4", "enterprise", "Acme Corp",
+			for _, want := range append(tc.want, "https://chat.example.com", "11.0.4", "Enterprise", "Acme Corp",
 				"Evaluated locally from a Support Packet", "PushNotificationServer does not use https://") {
 				s.Contains(output, want)
 			}
