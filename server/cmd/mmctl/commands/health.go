@@ -23,6 +23,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 // The server evaluates hourly, so results older than two intervals mean evaluation stopped.
@@ -41,7 +42,14 @@ var HealthCmd = &cobra.Command{
 	Short: "Inspect workspace health findings",
 }
 
-const healthPacketDisclaimer = "Evaluated offline from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state. Version support is judged as of today."
+const healthPacketDisclaimer = "Evaluated locally from a Support Packet. The packet is a point-in-time snapshot: findings describe the server when the packet was generated, not its current state. Version support is judged as of today."
+
+// Packets don't record the latest release, so --packet fetches it. Variables so tests can
+// point them at a local server.
+var (
+	healthLatestVersionURL     = releases.LatestURL
+	healthLatestVersionTimeout = 5 * time.Second
+)
 
 var HealthCheckCmd = &cobra.Command{
 	Use:   "check",
@@ -66,7 +74,7 @@ var HealthRunCmd = &cobra.Command{
 func init() {
 	HealthCheckCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthCheckCmd.Flags().Bool("include-muted", false, "Include muted findings")
-	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate offline, without a server")
+	HealthCheckCmd.Flags().String("packet", "", "Path to a Support Packet zip to evaluate without a server")
 	HealthRunCmd.Flags().Bool("include-resolved", false, "Include resolved findings")
 	HealthRunCmd.Flags().Bool("include-muted", false, "Include muted findings")
 
@@ -169,6 +177,12 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to read Support Packet: %w", err)
 	}
 
+	notes := []string{healthPacketDisclaimer}
+	if note := fillLatestVersion(cmd.Context(), p.Snapshot); note != "" {
+		notes = append(notes, note)
+	}
+	notes = append(notes, p.Warnings...)
+
 	// Findings are stamped with when the packet was generated, not when mmctl ran.
 	evaluatedAt := p.Snapshot.CollectedAt
 	if evaluatedAt.IsZero() {
@@ -200,8 +214,28 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, append([]string{healthPacketDisclaimer}, p.Warnings...)...)
+	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, notes...)
 	return nil
+}
+
+// fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one.
+// A failed fetch is not an error: the version-behind rules report unknown and the returned note
+// says why.
+func fillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot) string {
+	if snapshot.Version.Latest != "" {
+		return ""
+	}
+
+	ctx, cancel := context.WithTimeout(ctx, healthLatestVersionTimeout)
+	defer cancel()
+
+	release, err := releases.FetchLatest(ctx, healthLatestVersionURL)
+	if err != nil {
+		return fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err)
+	}
+
+	snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+	return ""
 }
 
 // printHealthFindings prints already-rendered findings, leaving out resolved ones unless
