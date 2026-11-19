@@ -72,6 +72,7 @@ import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
 import AgentComposerMenu from './agent_composer_menu';
+import ComposerPlusTourTip, {hasSeenComposerPlusTourTip} from './composer_plus_tour_tip';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
@@ -297,6 +298,7 @@ const AdvancedTextEditor = ({
 
         return enableTutorial && (tutorialStep === tourStep);
     });
+    const hasSeenComposerPlusTour = useSelector(hasSeenComposerPlusTourTip);
 
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
@@ -1018,12 +1020,14 @@ const AdvancedTextEditor = ({
             {fileUploadJSX}
         </div>
     );
+    const showComposerPlusTour = showPlus && location === Locations.CENTER && !isInEditMode && !showSendTutorialTip && !hasSeenComposerPlusTour;
     const plusButton = showPlus && (
         <div
             className='AdvancedTextEditor__plus'
             data-testid='composer-plus'
         >
-            {!hideBurnOnRead && !isInEditMode && canSetBurnOnRead && (
+            {showComposerPlusTour && <ComposerPlusTourTip/>}
+            {!hideBurnOnRead && !isInEditMode && canSetBurnOnRead && !showComposerPlusTour && (
                 <BurnOnReadTourTip
                     anchorId='agentComposerMenuButton'
                     onTryItOut={() => handleBurnOnReadApply(true)}

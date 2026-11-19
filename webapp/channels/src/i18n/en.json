@@ -32755,6 +32755,14 @@
     "defaultMessage": "*italic*",
     "description": "Markdown formatting hint under the message box; keep the literal * characters around the translated word."
   },
+  "textbox.plus_tour.description": {
+    "defaultMessage": "Attach files, add an emoji, set a priority, and open formatting from this button. Skills and AI rewrite show up here when they are available.",
+    "description": "Body of the one-time tour tip on the center-channel composer + button. Names the options that now live in that menu."
+  },
+  "textbox.plus_tour.title": {
+    "defaultMessage": "Message options moved here",
+    "description": "Title of the one-time tour tip on the center-channel composer + button."
+  },
   "textbox.preformatted": {
     "defaultMessage": "```preformatted```",
     "description": "Markdown formatting hint under the message box; keep the literal ``` characters around the translated word."

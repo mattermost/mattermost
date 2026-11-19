@@ -25,6 +25,7 @@ import type {PostDraft} from 'types/store/draft';
 
 import AdvancedTextEditor, {messageUsesFullWidth} from './advanced_text_editor';
 import type {Props} from './advanced_text_editor';
+import {COMPOSER_PLUS_TOUR_TIP_PREFERENCE} from './composer_plus_tour_tip';
 
 jest.mock('actions/views/drafts', () => ({
     ...jest.requireActual('actions/views/drafts'),
@@ -1327,6 +1328,62 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(document.querySelector('.AdvancedTextEditor')).toHaveClass('AdvancedTextEditor--plus');
             expect(plus.compareDocumentPosition(send) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
         });
+
+        it('points a tour tip at the centre channel plus until it has been seen', async () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                initialState,
+            );
+
+            const plus = screen.getByTestId('composer-plus');
+            const tourPoint = document.getElementById('tipButton');
+            expect(tourPoint).toBeInTheDocument();
+            expect(plus).toContainElement(tourPoint);
+
+            await userEvent.click(tourPoint!);
+
+            expect(screen.getByText('Message options moved here')).toBeInTheDocument();
+            expect(screen.getByText('Attach files, add an emoji, set a priority, and open formatting from this button. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
+        });
+
+        it('does not show the plus tour tip in a reply', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    location={Locations.RHS_COMMENT}
+                    rootId='root-post-id'
+                />,
+                initialState,
+            );
+
+            expect(document.getElementById('tipButton')).not.toBeInTheDocument();
+        });
+
+        it('does not show the plus tour tip after it has been seen', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                mergeObjects(initialState, {
+                    entities: {
+                        preferences: {
+                            myPreferences: {
+                                [`${COMPOSER_PLUS_TOUR_TIP_PREFERENCE}--${currentUserId}`]: {
+                                    category: COMPOSER_PLUS_TOUR_TIP_PREFERENCE,
+                                    name: currentUserId,
+                                    user_id: currentUserId,
+                                    value: '1',
+                                },
+                            },
+                        },
+                    },
+                }),
+            );
+
+            expect(document.getElementById('tipButton')).not.toBeInTheDocument();
+        });
     });
 
     describe('quoting text from a post', () => {
@@ -1854,6 +1911,18 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
         it('omits the controls a caller lists, including their labels and tour tip', async () => {
             const labeledState = mergeObjects(chromeState, {
+                entities: {
+                    preferences: {
+                        myPreferences: {
+                            [`${COMPOSER_PLUS_TOUR_TIP_PREFERENCE}--${currentUserId}`]: {
+                                category: COMPOSER_PLUS_TOUR_TIP_PREFERENCE,
+                                name: currentUserId,
+                                user_id: currentUserId,
+                                value: '1',
+                            },
+                        },
+                    },
+                },
                 storage: {
                     storage: {
                         [StoragePrefixes.DRAFT + channelId]: {
