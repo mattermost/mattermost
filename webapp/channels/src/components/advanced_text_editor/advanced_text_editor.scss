@@ -283,8 +283,9 @@
         }
     }
 
-    // Stop replaces send in this slot. Same 32px circle, without the primary fill.
-    // Send stays absolutely placed (bottom: 7px) by TexteditorActions.
+    // Stop replaces send in this slot. Same 32px medium corner, without the
+    // primary fill. Send stays absolutely placed (bottom: 7px) by
+    // TexteditorActions.
     &--agent &__send {
         button:not(.SendMessageButton) {
             display: flex;
@@ -294,7 +295,7 @@
             justify-content: center;
             padding: 0;
             border: none;
-            border-radius: var(--radius-full);
+            border-radius: var(--radius-m);
             background: transparent;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             cursor: pointer;

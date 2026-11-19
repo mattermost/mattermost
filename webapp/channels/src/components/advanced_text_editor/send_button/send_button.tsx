@@ -31,7 +31,7 @@ type SendButtonProps = {
     /** Agent chat has no scheduled or repeating send. The split stays off. */
     hideSchedule?: boolean;
 
-    /** Agent chat. A 32px circle, the same size as stop. */
+    /** Agent chat. A 32px medium corner, the same shape as stop. */
     round?: boolean;
 };
 
