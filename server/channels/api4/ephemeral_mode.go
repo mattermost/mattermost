@@ -58,15 +58,15 @@ func logCleanup(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if report.PostsDeleted != nil {
-		model.AddEventParameterToAuditRec(auditRec, "posts_deleted", *report.PostsDeleted)
+		auditRec.AddEventParameter("posts_deleted", *report.PostsDeleted)
 	}
 	if report.PlaybookRunsDeleted != nil {
-		model.AddEventParameterToAuditRec(auditRec, "playbook_runs_deleted", *report.PlaybookRunsDeleted)
+		auditRec.AddEventParameter("playbook_runs_deleted", *report.PlaybookRunsDeleted)
 	}
 	if report.CleanupAt != nil {
-		model.AddEventParameterToAuditRec(auditRec, "cleanup_at", *report.CleanupAt)
+		auditRec.AddEventParameter("cleanup_at", *report.CleanupAt)
 	}
-	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
+	auditRec.AddEventParameter("server_ts", model.GetMillis())
 
 	if report.ErrorReason != nil {
 		auditRec.AddErrorDesc(truncateErrorReason(*report.ErrorReason))
@@ -100,12 +100,12 @@ func logOfflinePurge(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if report.OfflineTimeMinutes != nil {
-		model.AddEventParameterToAuditRec(auditRec, "offline_time_minutes", *report.OfflineTimeMinutes)
+		auditRec.AddEventParameter("offline_time_minutes", *report.OfflineTimeMinutes)
 	}
 	if report.PurgeAt != nil {
-		model.AddEventParameterToAuditRec(auditRec, "purge_at", *report.PurgeAt)
+		auditRec.AddEventParameter("purge_at", *report.PurgeAt)
 	}
-	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
+	auditRec.AddEventParameter("server_ts", model.GetMillis())
 
 	if report.ErrorReason != nil {
 		auditRec.AddErrorDesc(truncateErrorReason(*report.ErrorReason))
@@ -142,13 +142,13 @@ func logSessionWipe(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 
 	auditRec.Actor.UserId = claims.UserId
-	model.AddEventParameterToAuditRec(auditRec, "device_id", model.RedactDeviceId(claims.DeviceId))
-	model.AddEventParameterToAuditRec(auditRec, "ack_id", claims.AckId)
+	auditRec.AddEventParameter("device_id", model.RedactDeviceId(claims.DeviceId))
+	auditRec.AddEventParameter("ack_id", claims.AckId)
 
 	if report.WipeAt != nil {
-		model.AddEventParameterToAuditRec(auditRec, "wipe_at", *report.WipeAt)
+		auditRec.AddEventParameter("wipe_at", *report.WipeAt)
 	}
-	model.AddEventParameterToAuditRec(auditRec, "server_ts", model.GetMillis())
+	auditRec.AddEventParameter("server_ts", model.GetMillis())
 
 	if report.ErrorReason != nil {
 		auditRec.AddErrorDesc(truncateErrorReason(*report.ErrorReason))

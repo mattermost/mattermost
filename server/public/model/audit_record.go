@@ -79,13 +79,18 @@ func (rec *AuditRecord) Fail() {
 	rec.Status = AuditStatusFail
 }
 
-// AddEventParameterToAuditRec adds a parameter, e.g. query or post body, to the event
-func AddEventParameterToAuditRec[T string | bool | int | int64 | []string | map[string]string](rec *AuditRecord, key string, val T) {
+// AddEventParameter adds a parameter, e.g. query or post body, to the event
+func (rec *AuditRecord) AddEventParameter[T string | bool | int | int64 | []string | map[string]string](key string, val T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]any)
 	}
 
 	rec.EventData.Parameters[key] = val
+}
+
+// AddEventParameterToAuditRec adds a parameter, e.g. query or post body, to the event
+func AddEventParameterToAuditRec[T string | bool | int | int64 | []string | map[string]string](rec *AuditRecord, key string, val T) {
+	rec.AddEventParameter(key, val)
 }
 
 // AddEventParameterAuditableToAuditRec adds an object that is of type Auditable to the event
@@ -97,8 +102,8 @@ func AddEventParameterAuditableToAuditRec(rec *AuditRecord, key string, val Audi
 	rec.EventData.Parameters[key] = val.Auditable()
 }
 
-// AddEventParameterAuditableArrayToAuditRec adds an array of objects of type Auditable to the event
-func AddEventParameterAuditableArrayToAuditRec[T Auditable](rec *AuditRecord, key string, val []T) {
+// AddEventParameterAuditableArray adds an array of objects of type Auditable to the event
+func (rec *AuditRecord) AddEventParameterAuditableArray[T Auditable](key string, val []T) {
 	if rec.EventData.Parameters == nil {
 		rec.EventData.Parameters = make(map[string]any)
 	}
@@ -109,6 +114,11 @@ func AddEventParameterAuditableArrayToAuditRec[T Auditable](rec *AuditRecord, ke
 	}
 
 	rec.EventData.Parameters[key] = processedAuditables
+}
+
+// AddEventParameterAuditableArrayToAuditRec adds an array of objects of type Auditable to the event
+func AddEventParameterAuditableArrayToAuditRec[T Auditable](rec *AuditRecord, key string, val []T) {
+	rec.AddEventParameterAuditableArray(key, val)
 }
 
 // AddEventPriorState adds the prior state of the modified object to the audit record

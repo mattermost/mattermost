@@ -101,7 +101,7 @@ func getViewsForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventListViewsForChannel, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
 	if !isMember {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
@@ -163,7 +163,7 @@ func getView(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetView, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "view_id", c.Params.ViewId)
+	auditRec.AddEventParameter("view_id", c.Params.ViewId)
 	if !isMember {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
@@ -214,7 +214,7 @@ func updateView(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateView, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "view_id", c.Params.ViewId)
+	auditRec.AddEventParameter("view_id", c.Params.ViewId)
 
 	if !checkViewWritePermission(c, channel) {
 		return
@@ -270,7 +270,7 @@ func deleteView(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventDeleteView, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "view_id", c.Params.ViewId)
+	auditRec.AddEventParameter("view_id", c.Params.ViewId)
 
 	if !checkViewWritePermission(c, channel) {
 		return
@@ -334,7 +334,7 @@ func updateViewSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateViewSortOrder, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "view_id", c.Params.ViewId)
+	auditRec.AddEventParameter("view_id", c.Params.ViewId)
 
 	if !checkViewWritePermission(c, channel) {
 		return
@@ -401,8 +401,8 @@ func getPostsForView(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventGetPostsForView, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
-	model.AddEventParameterToAuditRec(auditRec, "view_id", c.Params.ViewId)
+	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
+	auditRec.AddEventParameter("view_id", c.Params.ViewId)
 	if !isMember {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}

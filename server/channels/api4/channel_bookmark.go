@@ -312,7 +312,7 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 
 	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelBookmarkSortOrder, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelBookmarkId)
+	auditRec.AddEventParameter("id", c.Params.ChannelBookmarkId)
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
@@ -412,7 +412,7 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec := c.MakeAuditRecord(model.AuditEventDeleteChannelBookmark, model.AuditStatusFail)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "id", c.Params.ChannelBookmarkId)
+	auditRec.AddEventParameter("id", c.Params.ChannelBookmarkId)
 
 	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
 	if appErr != nil {
@@ -534,7 +534,7 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 
 	auditRec := c.MakeAuditRecord(model.AuditEventListChannelBookmarksForChannel, model.AuditStatusSuccess)
 	defer c.LogAuditRec(auditRec)
-	model.AddEventParameterToAuditRec(auditRec, "channel_id", c.Params.ChannelId)
+	auditRec.AddEventParameter("channel_id", c.Params.ChannelId)
 	if !isMember {
 		model.AddEventParameterToAuditRec(auditRec, "non_channel_member_access", true)
 	}
