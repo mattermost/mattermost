@@ -46,4 +46,4 @@ Shown under its raw area name. Pasting `@channel` stays inert, and https://examp
 
 ## Could not evaluate
 
-- **Host load is high on app-2.example.com** `NODE_HOST_LOAD_HIGH`: Server diagnostics unavailable.
+- **Host load is high on app-2.example.com** `NODE_HOST_LOAD_HIGH` (Info): Server diagnostics unavailable.

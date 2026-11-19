@@ -364,7 +364,7 @@ Critical
       → Set Push Notification Server to an https:// URL.
 
 Could not evaluate
-  Site URL is not HTTPS
+  Site URL is not HTTPS (Warning)
       Config section unavailable.
 
 1 critical, 1 could not be evaluated`, s.printedHealthFindings())
@@ -415,6 +415,29 @@ Muted
 
 1 critical, 3 warnings
 Also included: 1 muted.`, s.printedHealthFindings())
+	})
+
+	s.Run("a muted finding shows its remediation, or that its check could not run", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		findings := []*model.HealthFinding{
+			{Severity: "warning", State: "firing", Area: model.AreaCluster, Title: "Firing", Message: "Still a problem.", Remediation: "Fix it.", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()},
+			{Severity: "warning", State: "unknown", Area: model.AreaCluster, Title: "Unknown", Message: "Was a problem.", Remediation: "Fix it.", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()},
+		}
+
+		s.Require().NoError(printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, false, opts))
+
+		s.Equal(evaluated+`
+
+Muted
+  Firing (Warning)
+      Still a problem.
+      → Fix it.
+  Unknown (Warning, Could not evaluate)
+      Was a problem.
+
+No open findings.
+Also included: 2 muted.`, s.printedHealthFindings())
 	})
 
 	s.Run("a muted resolved finding is listed as resolved", func() {
@@ -692,11 +715,11 @@ Critical
       → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
 
 Could not evaluate
-  GOMAXPROCS exceeds the container CPU limit on mm.example.com
+  GOMAXPROCS exceeds the container CPU limit on mm.example.com (Warning)
       Server diagnostics unavailable.
-  Host memory is running low on mm.example.com
+  Host memory is running low on mm.example.com (Warning)
       Server diagnostics unavailable.
-  Host load is high on mm.example.com
+  Host load is high on mm.example.com (Info)
       Server diagnostics unavailable.
 
 2 critical, 3 could not be evaluated`, s.printedHealthFindings())

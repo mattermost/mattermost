@@ -54,19 +54,21 @@ func (r *Report) WriteMarkdown(w io.Writer) error {
 	for _, section := range r.Sections {
 		fmt.Fprintf(&b, "\n## %s\n", escapeMarkdown(section.Title))
 		switch section.Kind {
-		case SectionUnknown:
+		case SectionUnknown, SectionMuted:
 			b.WriteString("\n")
 			for _, f := range section.Findings {
-				fmt.Fprintf(&b, "- **%s**%s: %s\n", escapeMarkdown(f.Title), codeSuffix(f.Code), escapeMarkdown(f.Message))
-			}
-		case SectionMuted:
-			b.WriteString("\n")
-			for _, f := range section.Findings {
-				fmt.Fprintf(&b, "- **%s**%s (%s)", escapeMarkdown(f.Title), codeSuffix(f.Code), escapeMarkdown(f.Severity))
+				tags := f.Severity
+				if section.Kind == SectionMuted && f.Unknown {
+					tags += ", " + r.Labels.Unknown
+				}
+				fmt.Fprintf(&b, "- **%s**%s (%s)", escapeMarkdown(f.Title), codeSuffix(f.Code), escapeMarkdown(tags))
 				if f.Message != "" {
 					fmt.Fprintf(&b, ": %s", escapeMarkdown(f.Message))
 				}
 				b.WriteString("\n")
+				if f.Remediation != "" {
+					fmt.Fprintf(&b, "  - **%s:** %s\n", escapeMarkdown(r.Labels.Remediation), escapeMarkdown(f.Remediation))
+				}
 			}
 		case SectionResolved:
 			b.WriteString("\n")
@@ -106,7 +108,7 @@ var (
 	// markdownVerbatim matches bare URLs, which a backslash escape would break, and @mentions,
 	// which a backslash escape would not stop from notifying when pasted into Mattermost. Neither
 	// can contain a character that starts a link, HTML or a code span.
-	markdownVerbatim = regexp.MustCompile(`https?://[A-Za-z0-9\-._~:/?#!$&'+,;=%]+|\B@[A-Za-z0-9_](?:[A-Za-z0-9_.\-]*[A-Za-z0-9_])?`)
+	markdownVerbatim = regexp.MustCompile(`https?://[A-Za-z0-9\-._~:/?#!$&'+,;=%@]+|\B@[A-Za-z0-9_](?:[A-Za-z0-9_.\-]*[A-Za-z0-9_])?`)
 )
 
 // escapeMarkdown makes s render as the literal text it is, on one line, wherever it is placed,

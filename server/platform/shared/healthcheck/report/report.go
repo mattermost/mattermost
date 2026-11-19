@@ -54,7 +54,8 @@ type Report struct {
 	// Site lists the site facts the caller set.
 	Site []Field
 	// Age is how old the evaluation was when the report was generated. It is zero for a
-	// point-in-time evaluation and when nothing has been evaluated yet.
+	// point-in-time evaluation, when nothing has been evaluated yet and when the server's clock
+	// is ahead of the generating host's.
 	Age time.Duration
 	// Stale warns that evaluation appears to have stopped; it is empty otherwise.
 	Stale string
@@ -82,6 +83,8 @@ type Labels struct {
 	Documentation string
 	Console       string
 	Details       string
+	// Unknown tags a muted finding whose check could not run.
+	Unknown string
 }
 
 type SectionKind string
@@ -109,8 +112,11 @@ type Finding struct {
 	Area     string
 	Severity string
 	// Title names the node too for a node-scoped finding.
-	Title       string
-	Message     string
+	Title   string
+	Message string
+	// Unknown is set when the check could not run.
+	Unknown bool
+	// Remediation is empty when the check could not run, as the problem is not currently detected.
 	Remediation string
 	DocsURL     string
 	// ConsoleURL opens the finding's setting in the System Console; it is empty unless the
@@ -136,6 +142,7 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 			Documentation: T("health.report.label.documentation"),
 			Console:       T("health.report.label.console"),
 			Details:       T("health.report.label.details"),
+			Unknown:       sectionTitle(SectionUnknown, T),
 		},
 	}
 
@@ -149,7 +156,7 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 		evaluatedAt := time.UnixMilli(list.EvaluatedAt)
 		r.EvaluatedAt.Value = formatTime(evaluatedAt)
 		if !opts.PointInTime {
-			r.Age = opts.GeneratedAt.Sub(evaluatedAt)
+			r.Age = max(opts.GeneratedAt.Sub(evaluatedAt), 0)
 		}
 		if r.Age > staleAfter {
 			r.Stale = T("health.report.header.stale")
@@ -186,7 +193,7 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 		{SectionInfo, healthcheck.TranslationId("health.report.summary.info")},
 		{SectionUnknown, healthcheck.TranslationId("health.report.summary.unknown")},
 	}), T("health.report.summary.none"))
-	if list.EvaluatedAt == 0 {
+	if list.EvaluatedAt == 0 && len(list.Findings) == 0 {
 		r.Summary = T("health.report.summary.not_evaluated")
 	}
 
@@ -248,13 +255,20 @@ func newFinding(finding *model.HealthFinding, T i18n.TranslateFunc, siteURL stri
 		details = append(details, Field{Label: key, Value: finding.Details[key]})
 	}
 
+	unknown := finding.State == string(healthcheck.StateUnknown)
+	remediation := finding.Remediation
+	if unknown {
+		remediation = ""
+	}
+
 	return Finding{
 		Code:        finding.Code,
 		Area:        areaLabel(finding.Area, T),
 		Severity:    severityLabel(finding.Severity, T),
 		Title:       title,
 		Message:     finding.Message,
-		Remediation: finding.Remediation,
+		Unknown:     unknown,
+		Remediation: remediation,
 		DocsURL:     finding.DocsURL,
 		ConsoleURL:  consoleURL(siteURL, finding.ConsolePath),
 		Details:     details,

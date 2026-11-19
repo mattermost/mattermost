@@ -51,12 +51,13 @@ Shown under its raw area name. Pasting `@channel` stays inert, and https://examp
 
 ## Could not evaluate
 
-- **Host load is high on app-2.example.com** `NODE_HOST_LOAD_HIGH`: Server diagnostics unavailable.
+- **Host load is high on app-2.example.com** `NODE_HOST_LOAD_HIGH` (Info): Server diagnostics unavailable.
 
 ## Muted
 
 - **Site URL is not HTTPS** `SITE_URL_HTTP` (Warning): SiteURL http://chat.example.com does not use https://.
-- **GOMAXPROCS exceeds the container CPU limit** `GOMAXPROCS` (Warning)
+  - **How to fix it:** Serve Mattermost over HTTPS and update SiteURL.
+- **GOMAXPROCS exceeds the container CPU limit** `GOMAXPROCS` (Warning, Could not evaluate): GOMAXPROCS is 16 and the container CPU limit is 4.
 
 ## Resolved
 

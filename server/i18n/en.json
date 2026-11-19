@@ -14743,12 +14743,12 @@
   {
     "id": "health.report.summary.none",
     "translation": "No open findings.",
-    "description": "Summary of the shareable health report (Site health export and mmctl health check output) when nothing is firing and every check could run."
+    "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the critical, warning, info and could-not-evaluate sections are all empty. Muted and resolved findings can still be listed below it."
   },
   {
     "id": "health.report.summary.not_evaluated",
     "translation": "The first health check runs within an hour of enabling the feature.",
-    "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the health checks have never run."
+    "description": "Summary of the shareable health report (Site health export and mmctl health check output) when the health checks have never completed and there are no findings."
   },
   {
     "id": "health.report.summary.resolved",

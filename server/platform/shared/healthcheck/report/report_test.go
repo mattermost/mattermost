@@ -86,10 +86,13 @@ func everySectionFindings() []*model.HealthFinding {
 
 	muted := finding("SITE_URL_HTTP", "warning", "firing", model.AreaCluster, "Site URL is not HTTPS")
 	muted.Message = "SiteURL http://chat.example.com does not use https://."
+	muted.Remediation = "Serve Mattermost over HTTPS and update SiteURL."
 	muted.MutedAt = evaluatedAt.UnixMilli()
 	muted.MutedBy = "muting-admin-user-id"
 
 	mutedUnknown := finding("GOMAXPROCS", "warning", "unknown", model.AreaPlatform, "GOMAXPROCS exceeds the container CPU limit")
+	mutedUnknown.Message = "GOMAXPROCS is 16 and the container CPU limit is 4."
+	mutedUnknown.Remediation = "Unset GOMAXPROCS."
 	mutedUnknown.MutedAt = evaluatedAt.UnixMilli()
 	mutedUnknown.MutedBy = "muting-admin-user-id"
 
@@ -204,6 +207,29 @@ func TestBuild(t *testing.T) {
 		assert.Equal(t, "Evaluation appears to have stopped.", Build(list, opts).Stale)
 	})
 
+	t.Run("a server clock ahead of the generating host gives no age", func(t *testing.T) {
+		opts := testOptions()
+		opts.GeneratedAt = evaluatedAt.Add(-2 * time.Minute)
+		r := Build(list, opts)
+		assert.Zero(t, r.Age)
+		assert.Empty(t, r.Stale)
+	})
+
+	t.Run("counts the findings when no evaluation has completed", func(t *testing.T) {
+		r := Build(&model.HealthFindingList{Findings: everySectionFindings()}, testOptions())
+		assert.Equal(t, "2 critical, 2 warnings, 1 info, 1 could not be evaluated", r.Summary)
+		assert.Equal(t, "Not evaluated yet", r.EvaluatedAt.Value)
+	})
+
+	t.Run("leaves out the remediation of a check that could not run", func(t *testing.T) {
+		muted := Build(list, testOptions()).Sections[4]
+		require.Equal(t, SectionMuted, muted.Kind)
+		assert.False(t, muted.Findings[0].Unknown)
+		assert.Equal(t, "Serve Mattermost over HTTPS and update SiteURL.", muted.Findings[0].Remediation)
+		assert.True(t, muted.Findings[1].Unknown)
+		assert.Empty(t, muted.Findings[1].Remediation)
+	})
+
 	t.Run("a nil Location shows times in UTC", func(t *testing.T) {
 		opts := testOptions()
 		opts.Location = nil
@@ -289,7 +315,7 @@ func TestEscaping(t *testing.T) {
 		assert.Equal(t, 7, strings.Count(out, escaped), "every hostile value renders escaped")
 		assert.Contains(t, out, `on \<img src=x onerror=alert(1)\>`)
 		assert.Contains(t, out, `- **1\. `+escaped)
-		assert.Contains(t, out, "** EVIL\\`CODE: \\+ "+escaped, "a backtick in a rule code cannot open a code span")
+		assert.Contains(t, out, "** EVIL\\`CODE (Warning): \\+ "+escaped, "a backtick in a rule code cannot open a code span")
 		assert.Contains(t, out, `\[\<i\>area\</i\>\]`)
 		assert.Contains(t, out, "\nRead the documentation: javascript:alert(1)\n")
 
@@ -315,6 +341,7 @@ func TestEscapeMarkdown(t *testing.T) {
 		"notify @channel, @all and @here.":               "notify `@channel`, `@all` and `@here`.",
 		"mail admin@example.com":                         "mail admin@example.com",
 		"see https://chat.example.com/my_team#x_y.":      "see https://chat.example.com/my_team#x_y.",
+		"https://example.com/@support":                   "https://example.com/@support",
 		"https://x.example.com/a_b <b>":                  `https://x.example.com/a_b \<b\>`,
 		"https://x.example.com/[x](javascript:alert(1))": `https://x.example.com/\[x\](javascript:alert(1))`,
 	} {

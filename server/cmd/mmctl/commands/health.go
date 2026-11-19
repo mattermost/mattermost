@@ -292,12 +292,16 @@ func formatHealthReport(r *report.Report) string {
 		}
 		for _, finding := range section.Findings {
 			switch section.Kind {
-			case report.SectionUnknown:
-				lines = append(lines, "  "+finding.Title)
+			case report.SectionUnknown, report.SectionMuted:
+				tags := finding.Severity
+				if section.Kind == report.SectionMuted && finding.Unknown {
+					tags += ", " + r.Labels.Unknown
+				}
+				lines = append(lines, fmt.Sprintf("  %s (%s)", finding.Title, tags))
 				detail(finding.Message)
-			case report.SectionMuted:
-				lines = append(lines, fmt.Sprintf("  %s (%s)", finding.Title, finding.Severity))
-				detail(finding.Message)
+				if finding.Remediation != "" {
+					detail("→ " + finding.Remediation)
+				}
 			case report.SectionResolved:
 				lines = append(lines, "  "+finding.Title)
 			default:
