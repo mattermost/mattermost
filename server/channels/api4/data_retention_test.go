@@ -1245,3 +1245,99 @@ func TestRemoveChannelsFromPolicy(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 	})
 }
+
+func TestDataRetentionInvalidPolicyId(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	// No license is set on purpose: an invalid policy_id must be rejected
+	// with 400 before the app layer (and its license check) is reached.
+	// Regression test for https://github.com/mattermost/mattermost/issues/40238
+	// — the handlers called c.RequirePolicyId() but never checked c.Err, so
+	// an invalid id was passed to the app layer instead of returning 400.
+	// "bad" matches the route regex ([A-Za-z0-9]+) so it reaches the handler,
+	// but it is not a valid model id, so RequirePolicyId rejects it.
+	invalidPolicyID := "bad"
+
+	t.Run("GetPolicy", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetDataRetentionPolicyByID(context.Background(), invalidPolicyID)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("PatchPolicy", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.PatchDataRetentionPolicy(context.Background(), &model.RetentionPolicyWithTeamAndChannelIDs{
+			RetentionPolicy: model.RetentionPolicy{
+				ID:          invalidPolicyID,
+				DisplayName: "Updated Policy",
+			},
+		})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("DeletePolicy", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.DeleteDataRetentionPolicy(context.Background(), invalidPolicyID)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("GetTeamsForPolicy", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetTeamsForRetentionPolicy(context.Background(), invalidPolicyID, 0, 100)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("SearchTeamsInPolicy", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.SearchTeamsForRetentionPolicy(context.Background(), invalidPolicyID, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("AddTeamsToPolicy", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.AddTeamsToRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("RemoveTeamsFromPolicy", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.RemoveTeamsFromRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("GetChannelsForPolicy", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.GetChannelsForRetentionPolicy(context.Background(), invalidPolicyID, 0, 100)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("SearchChannelsInPolicy", func(t *testing.T) {
+		_, resp, err := th.SystemAdminClient.SearchChannelsForRetentionPolicy(context.Background(), invalidPolicyID, "")
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("AddChannelsToPolicy", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.AddChannelsToRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+
+	t.Run("RemoveChannelsFromPolicy", func(t *testing.T) {
+		resp, err := th.SystemAdminClient.RemoveChannelsFromRetentionPolicy(context.Background(), invalidPolicyID, []string{})
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+		CheckErrorID(t, err, "api.context.invalid_url_param.app_error")
+	})
+}
