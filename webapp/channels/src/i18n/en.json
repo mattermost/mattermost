@@ -7685,35 +7685,35 @@
   },
   "admin.health_dashboard.export.button": {
     "defaultMessage": "Export",
-    "description": ""
+    "description": "Secondary menu button in the summary header of the System Console Site health page, next to Re-run checks, that opens the menu of ways to export the health findings."
   },
   "admin.health_dashboard.export.error": {
     "defaultMessage": "The health findings could not be exported. Try again.",
-    "description": ""
+    "description": "Error banner on the System Console Site health page shown when downloading or printing the health findings export fails."
   },
   "admin.health_dashboard.export.exporting": {
     "defaultMessage": "Exporting…",
-    "description": ""
+    "description": "Label of the Export menu button on the System Console Site health page while the export is being fetched from the server."
   },
   "admin.health_dashboard.export.help": {
     "defaultMessage": "Includes all findings, including muted and resolved ones.",
-    "description": ""
+    "description": "Help text at the top of the Export menu on the System Console Site health page, explaining that the export is not limited to the tab or view on screen."
   },
   "admin.health_dashboard.export.html": {
     "defaultMessage": "Download HTML",
-    "description": ""
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a self-contained HTML report file."
   },
   "admin.health_dashboard.export.markdown": {
     "defaultMessage": "Download Markdown",
-    "description": ""
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a Markdown file."
   },
   "admin.health_dashboard.export.menu_label": {
     "defaultMessage": "Export health findings",
-    "description": ""
+    "description": "Accessible label of the Export menu on the System Console Site health page."
   },
   "admin.health_dashboard.export.print": {
     "defaultMessage": "Print / Save as PDF",
-    "description": ""
+    "description": "Export menu item on the System Console Site health page that opens the browser print dialog for the health findings report, from which it can be saved as a PDF."
   },
   "admin.health_dashboard.finding.resolved": {
     "defaultMessage": "Resolved",
