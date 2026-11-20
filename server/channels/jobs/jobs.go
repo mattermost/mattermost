@@ -175,8 +175,12 @@ func (srv *JobServer) publishJobStatus(job *model.Job, status string) {
 		model.JobTypeExtractContent,
 		model.JobTypeCleanupExpiredAccessTokens:
 		permission = model.PermissionReadJobs
-	case model.JobTypeAccessControlSync, model.JobTypeHealthCheck:
+	case model.JobTypeAccessControlSync:
 		permission = model.PermissionManageSystem
+	case model.JobTypeHealthCheck:
+		// The default system_admin role holds this permission, so this reaches system admins and
+		// delegated admins alike. RequiredPermissions can't express manage_system OR this.
+		permission = model.PermissionSysconsoleReadReportingSiteStatistics
 	case model.JobTypeAccessControlTeamSync:
 		permission = model.PermissionManageTeamAccessRules
 	}

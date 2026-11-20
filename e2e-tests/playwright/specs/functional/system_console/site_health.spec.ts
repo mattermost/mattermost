@@ -41,3 +41,35 @@ test('shows the Site health page to a system admin', {tag: '@system_console'}, a
     await expect(systemConsolePage.page.getByText(/^(Not evaluated yet|Last evaluated)/)).toBeVisible();
     await expect(systemConsolePage.page.getByText('Health findings could not be loaded')).not.toBeVisible();
 });
+
+/**
+ * @objective Verify a System Manager, who can read Site Statistics, gets Site health in place of Workspace Optimization,
+ * with the HealthDashboard feature flag at its default (on).
+ */
+test(
+    'shows the Site health page to a system manager instead of Workspace Optimization',
+    {tag: '@system_console'},
+    async ({pw}) => {
+        await skipUnlessProfessional(pw);
+
+        const {adminClient, user} = await pw.initSetup();
+        await adminClient.updateUserRoles(user.id, 'system_user system_manager');
+        const {systemConsolePage} = await pw.testBrowser.login(user);
+
+        // # Open the System Console
+        await systemConsolePage.goto();
+        await systemConsolePage.toBeVisible();
+
+        // * Verify Site health replaces Workspace Optimization in Reporting
+        await expect(systemConsolePage.sidebar.reporting.siteHealth.link).toBeVisible();
+        await expect(systemConsolePage.sidebar.reporting.workspaceOptimization.link).not.toBeVisible();
+
+        // # Open Reporting > Site health
+        await systemConsolePage.sidebar.reporting.siteHealth.click();
+
+        // * Verify the page loaded from the findings API without an error
+        await expect(systemConsolePage.page.getByTestId('admin-console-header')).toHaveText('Site health');
+        await expect(systemConsolePage.page.getByText(/^(Not evaluated yet|Last evaluated)/)).toBeVisible();
+        await expect(systemConsolePage.page.getByText('Health findings could not be loaded')).not.toBeVisible();
+    },
+);
