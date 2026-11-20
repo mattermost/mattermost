@@ -160,6 +160,7 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
 
         return (
             <ConfirmModal
+                testId='integrations.edit_outgoing_webhook.confirm_modal'
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
@@ -173,7 +174,7 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
 
     render(): JSX.Element {
         if (!this.props.hook) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='edit_outgoing_webhook.loading_screen'/>;
         }
 
         return (

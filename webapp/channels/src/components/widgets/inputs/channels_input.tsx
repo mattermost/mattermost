@@ -41,6 +41,9 @@ type Props<T extends Channel> = {
     loadingMessage?: MessageDescriptor;
     noOptionsMessage?: MessageDescriptor;
     formatOptionLabel?: ComponentProps<typeof AsyncSelect<T>>['formatOptionLabel'];
+
+    /** The scope of the loading message (`<testId>.loading_spinner`); without it the spinner keeps the widget's own default. */
+    testId?: string;
 };
 
 type State<T> = {
@@ -108,7 +111,12 @@ export default class ChannelsInput<T extends Channel> extends React.PureComponen
             />
         );
 
-        return (<LoadingSpinner text={text}/>);
+        return (
+            <LoadingSpinner
+                text={text}
+                testId={this.props.testId ? `${this.props.testId}.loading_spinner` : undefined}
+            />
+        );
     };
 
     NoOptionsMessage = (props: Record<string, any>) => {

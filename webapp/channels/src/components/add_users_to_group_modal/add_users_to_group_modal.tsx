@@ -147,6 +147,7 @@ const AddUsersToGroupModal = (props: Props) => {
                             <div className='group-add-user'>
                                 <AddUserToGroupMultiSelect
                                     multilSelectKey={'addUsersToGroupKey'}
+                                    testId='add_users_to_group_modal.users'
                                     onSubmitCallback={addUsersToGroup}
                                     focusOnLoad={false}
                                     savingEnabled={isSaveEnabled()}

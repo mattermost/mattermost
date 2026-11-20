@@ -226,9 +226,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             <UserSettingsGeneral {...{...props, ldapPictureAttributeSet: true}}/>,
         );
         expect(container.querySelector('.profile-img')).toBeTruthy();
-        expect(screen.queryByTestId('inputSettingPictureButton')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('saveSettingPicture')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('removeSettingPicture')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('settings.general.section.picture.select--button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('settings.general.section.picture.save--button')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('settings.general.section.picture.remove--button')).not.toBeInTheDocument();
     });
 
     describe('locked profile fields for email users', () => {
@@ -297,9 +297,9 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             );
 
             expect(container.querySelector('.profile-img')).toBeTruthy();
-            expect(screen.queryByTestId('inputSettingPictureButton')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('saveSettingPicture')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('removeSettingPicture')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('settings.general.section.picture.select--button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('settings.general.section.picture.save--button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('settings.general.section.picture.remove--button')).not.toBeInTheDocument();
         });
 
         test('should show the login provider message instead of the admin lock', () => {
@@ -1371,7 +1371,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             };
         };
 
-        const trigger = () => screen.getByTestId('settings.section.graph:field1--button');
+        const trigger = () => screen.getByTestId('settings.general.section.graph:field1--button');
 
         // The collapsed row's `describe`, by SettingItem's own id. Read as an
         // element rather than by text: FormattedList collapses to a single
@@ -1406,7 +1406,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             mockPageAll.mockResolvedValue(REGIME_1);
             renderSettings([buildAttribute({options_omitted: true, options_count: 1010})], {field1: ['opt1', 'opt2']});
 
-            expect(await screen.findByTestId('settings.section.graph:field1--button')).toBeInTheDocument();
+            expect(await screen.findByTestId('settings.general.section.graph:field1--button')).toBeInTheDocument();
             expect(screen.getByRole('button', {name: 'Save'})).toBeInTheDocument();
             expect(screen.queryByText(OMITTED_COPY)).not.toBeInTheDocument();
         });
@@ -1415,7 +1415,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             mockPageAll.mockResolvedValue(REGIME_1);
             renderSettings([buildAttribute({options_omitted: true})], {field1: ['opt1']});
 
-            await screen.findByTestId('settings.section.graph:field1--button');
+            await screen.findByTestId('settings.general.section.graph:field1--button');
             expect(screen.queryByText(OMITTED_COPY)).not.toBeInTheDocument();
 
             // The other extraInfo branches still fire for their own fixture.
@@ -1576,7 +1576,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             );
 
             expect(await screen.findByText('This field can only be changed by an administrator.')).toBeInTheDocument();
-            expect(screen.queryByTestId('settings.section.graph:field1--button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('settings.general.section.graph:field1--button')).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
             expect(mockPageAll).not.toHaveBeenCalled();
         });
@@ -1606,7 +1606,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
                 // "(pluginId)" node, so no element holds it exactly.
                 // eslint-disable-next-line no-await-in-loop
                 expect(await screen.findByText(copy, {exact: false})).toBeInTheDocument();
-                expect(screen.queryByTestId('settings.section.graph:field1--button')).not.toBeInTheDocument();
+                expect(screen.queryByTestId('settings.general.section.graph:field1--button')).not.toBeInTheDocument();
                 expect(screen.queryByRole('button', {name: 'Save'})).not.toBeInTheDocument();
                 expect(screen.queryByText(OMITTED_COPY)).not.toBeInTheDocument();
 
@@ -1647,7 +1647,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             // paint. A negative assertion on its own would pass either way.
             expect(await screen.findByText('Visible Field')).toBeInTheDocument();
             expect(screen.queryByText(customProfileAttribute.name)).not.toBeInTheDocument();
-            expect(screen.queryByTestId('settings.section.graph:field1--button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('settings.general.section.graph:field1--button')).not.toBeInTheDocument();
         });
 
         test('A14: shows a shared_only graph field read-only rather than hiding it', async () => {
@@ -1658,7 +1658,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             );
 
             expect(await screen.findByText(customProfileAttribute.name)).toBeInTheDocument();
-            expect(screen.queryByTestId('settings.section.graph:field1--button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('settings.general.section.graph:field1--button')).not.toBeInTheDocument();
         });
 
         test('A15: keeps a read_only option selectable', async () => {
@@ -1716,7 +1716,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
             // Expanded, and expanded as a read-only field: the admin notice only
             // renders in SettingItemMax, and no picker sits beside it.
             expect(await screen.findByText('This field can only be changed by an administrator.')).toBeInTheDocument();
-            expect(screen.queryByTestId('settings.section.graph:field1--button')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('settings.general.section.graph:field1--button')).not.toBeInTheDocument();
             expect(mockPageAll).not.toHaveBeenCalled();
 
             collapse();

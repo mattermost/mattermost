@@ -17,6 +17,7 @@ export default function UserAccountLogoutMenuItem() {
 
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.log_out--menuitem'
             leadingElement={
                 <ExitToAppIcon
                     size={18}

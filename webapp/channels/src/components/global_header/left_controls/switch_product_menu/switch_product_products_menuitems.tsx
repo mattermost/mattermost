@@ -43,6 +43,7 @@ export default function ProductSwitcherProductsMenuItems(props: Props) {
                     <ProductSwitcherProductMenuItem
                         key={product.id}
                         id={`product-menu-item-${product.pluginId || product.id}`}
+                        productId={product.pluginId}
                         icon={product.switcherIcon}
                         label={product.switcherText}
                         link={link}
@@ -56,6 +57,8 @@ export default function ProductSwitcherProductsMenuItems(props: Props) {
 
 interface ProductSwitcherProductMenuItemProps {
     id: string;
+
+    productId: string;
     icon: IconGlyphTypes | React.ReactNode;
     label: React.ReactNode;
     link: string;
@@ -85,6 +88,7 @@ function ProductSwitcherProductMenuItem(props: ProductSwitcherProductMenuItemPro
     return (
         <Menu.Item
             id={props.id}
+            data-testid={`global_header.product_menu.product:${props.productId}--menuitem`}
             className='globalHeader-leftControls-productSwitcherMenu-productMenuItem'
             leadingElement={Icon ? (
                 <Icon
@@ -107,6 +111,7 @@ function ProductSwitcherProductMenuItem(props: ProductSwitcherProductMenuItemPro
                     <button
                         type='button'
                         className='globalHeader-leftControls-productSwitcherMenu-openInNewTabButton'
+                        data-testid='global_header.product_menu.product.open_in_new_tab--button'
                         aria-label={openInNewTabLabel}
                         onClick={handleOpenInNewTabClick}
                     >

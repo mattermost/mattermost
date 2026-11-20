@@ -116,7 +116,7 @@ describe('components/emoji/components/AddEmoji', () => {
         await userEvent.type(nameInput, 'emojiName');
         await userEvent.upload(fileInput, file);
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(baseProps.actions.createCustomEmoji).toHaveBeenCalled();
@@ -146,7 +146,7 @@ describe('components/emoji/components/AddEmoji', () => {
         await userEvent.type(nameInput, 'emojiName');
         await userEvent.upload(fileInput, file);
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
 
         // First submit - this will set saving=true and remain so (never-resolving promise)
         await userEvent.click(saveButton);
@@ -163,7 +163,7 @@ describe('components/emoji/components/AddEmoji', () => {
     test('should show error if emoji name unset', async () => {
         renderWithContext(<AddEmoji {...baseProps}/>);
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(screen.getByText('A name is required for the emoji')).toBeInTheDocument();
@@ -176,7 +176,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'emojiName');
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(screen.getByText('An image is required for the emoji')).toBeInTheDocument();
@@ -199,7 +199,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, emojiName);
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(baseProps.actions.createCustomEmoji).toHaveBeenCalled();
@@ -230,7 +230,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, emojiName);
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
@@ -253,7 +253,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, emojiName);
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(baseProps.actions.createCustomEmoji).toHaveBeenCalledWith({creator_id: baseProps.user.id, name: expectedName}, file);
@@ -271,7 +271,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'smiley');
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
@@ -290,7 +290,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'mycustomemoji');
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
@@ -311,7 +311,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'newcustomemoji');
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         expect(baseProps.actions.createCustomEmoji).not.toHaveBeenCalled();
@@ -337,7 +337,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'newemoji');
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         await waitFor(() => {
@@ -367,7 +367,7 @@ describe('components/emoji/components/AddEmoji', () => {
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'newemoji');
 
-        const saveButton = screen.getByTestId('save-button');
+        const saveButton = screen.getByTestId('add_emoji.save--button');
         await userEvent.click(saveButton);
 
         await waitFor(() => {

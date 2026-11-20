@@ -69,6 +69,7 @@ export default function ProductSwitcherEditionFooter() {
         <>
             <Menu.Separator/>
             <Menu.Item
+                data-testid='global_header.product_menu.edition--menuitem'
                 className='globalHeader-leftControls-productSwitcherMenu-editionMenuItem'
                 labels={
                     <>

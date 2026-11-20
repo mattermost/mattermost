@@ -60,6 +60,7 @@ export default function UserAccountProfileMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.profile--menuitem'
             leadingElement={
                 <AccountOutlineIcon
                     size={18}

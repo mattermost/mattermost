@@ -55,6 +55,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='incomingWebhook'
+                        testId='integrations.options.incoming_webhooks'
                         image={(
                             <Illustration
                                 height='80px'
@@ -90,6 +91,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='outgoingWebhook'
+                        testId='integrations.options.outgoing_webhooks'
                         image={(
                             <Illustration
                                 height='80px'
@@ -125,6 +127,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='command'
+                        testId='integrations.options.commands'
                         image={(
                             <Illustration
                                 height='80px'
@@ -159,6 +162,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='oauth2Apps'
+                        testId='integrations.options.oauth2_apps'
                         image={(
                             <Illustration
                                 height='80px'
@@ -194,6 +198,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 >
                     <IntegrationOption
                         key='outgoingOAuthConnections'
+                        testId='integrations.options.outgoing_oauth_connections'
                         image={(
                             <Illustration
                                 height='80px'
@@ -226,6 +231,7 @@ export default class Integrations extends React.PureComponent <Props> {
                 key='botsPermissions'
             >
                 <IntegrationOption
+                    testId='integrations.options.bots'
                     image={(
                         <Illustration
                             height='80px'

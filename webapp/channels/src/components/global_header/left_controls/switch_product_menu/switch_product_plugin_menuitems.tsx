@@ -69,6 +69,7 @@ function ProductSwitcherPluginMenuItem(props: Props) {
     return (
         <Menu.Item
             id={`product-switcher-menu-item-${item.id}`}
+            data-testid={`global_header.product_menu.plugin:${item.pluginId}--menuitem`}
             leadingElement={Icon ? (
                 <Icon
                     size={20}

@@ -66,7 +66,7 @@ describe('Bot accounts - CRUD Testing', () => {
             cy.wrap(el[0].parentElement!.parentElement!).find('input').click().type('description!');
 
             // # Save
-            cy.findByTestId('saveSetting').click();
+            cy.findByTestId('integrations.bots.bot.new_token.save--button').click();
 
             // # Click Close button
             cy.wrap(el[0].parentElement!.parentElement!).findByText('Close').should('be.visible').click();

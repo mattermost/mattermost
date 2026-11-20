@@ -123,6 +123,7 @@ function DesktopAndMobileNotificationSettings({
                     {optionsOfSendNotifications.map((optionOfSendNotifications) => (
                         <Radio
                             key={optionOfSendNotifications.value}
+                            data-testid={optionOfSendNotifications.testId}
                             name='desktopActivity'
                             checked={desktopActivity === optionOfSendNotifications.value}
                             value={optionOfSendNotifications.value}
@@ -305,6 +306,8 @@ function DesktopAndMobileNotificationSettings({
     if (active) {
         return (
             <SettingItemMax
+                testIdScope='settings.notifications.section'
+                testKey={UserSettingsNotificationSections.DESKTOP_AND_MOBILE}
                 title={
                     <FormattedMessage
                         id={'user.settings.notifications.desktopAndMobile.title'}
@@ -335,6 +338,8 @@ function DesktopAndMobileNotificationSettings({
             }
             describe={getCollapsedText(desktopActivity, pushActivity)}
             section={UserSettingsNotificationSections.DESKTOP_AND_MOBILE}
+            testId='settings.notifications.section'
+            testKey={UserSettingsNotificationSections.DESKTOP_AND_MOBILE}
             updateSection={handleChangeForMinSection}
         />
     );
@@ -351,6 +356,7 @@ const optionsOfSendNotifications = [
             defaultMessage: 'All new messages',
         }),
         value: NotificationLevels.ALL,
+        testId: 'settings.notifications.section.desktop_activity.option:all--radio',
     },
     {
         label: defineMessage({
@@ -358,6 +364,7 @@ const optionsOfSendNotifications = [
             defaultMessage: 'Mentions, direct messages, and group messages',
         }),
         value: NotificationLevels.MENTION,
+        testId: 'settings.notifications.section.desktop_activity.option:mention--radio',
     },
     {
         label: defineMessage({
@@ -365,6 +372,7 @@ const optionsOfSendNotifications = [
             defaultMessage: 'Nothing',
         }),
         value: NotificationLevels.NONE,
+        testId: 'settings.notifications.section.desktop_activity.option:none--radio',
     },
 ];
 

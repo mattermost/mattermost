@@ -82,9 +82,9 @@ describe('CRT Desktop notifications', () => {
         cy.get('.channel-notifications-settings-modal__body').get('#desktopNotification-all').should('be.checked');
 
         cy.get('#desktopNotification-mention').should('be.visible').click().then(() => {
-            cy.get('[data-testid="desktopReplyThreads"]').should('be.checked');
-            cy.get('[data-testid="desktopReplyThreads"]').should('be.visible').click();
-            cy.get('[data-testid="desktopReplyThreads"]').should('not.be.checked');
+            cy.get('[data-testid="channel_notifications_modal.desktop_reply_threads--checkbox"]').should('be.checked');
+            cy.get('[data-testid="channel_notifications_modal.desktop_reply_threads--checkbox"]').should('be.visible').click();
+            cy.get('[data-testid="channel_notifications_modal.desktop_reply_threads--checkbox"]').should('not.be.checked');
         });
         cy.get('.channel-notifications-settings-modal__body').scrollTo('center').get('#desktopNotification-mention').should('be.checked');
 
@@ -150,24 +150,24 @@ describe('CRT Desktop notifications', () => {
         cy.uiOpenChannelMenu('Notification Preferences');
 
         // * As per previous conditions the mobile and desktop settings should be the same
-        cy.get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().should('be.checked');
+        cy.get('[data-testid="channel_notifications_modal.same_mobile_as_desktop--checkbox"]').scrollIntoView().should('be.checked');
 
         // * Verify that Notify me about section of mobile settings is not visible
-        cy.get('[data-testid="mobile-notify-me-radio-section"]').should('not.exist');
+        cy.get('[data-testid="channel_notifications_modal.mobile_notify"]').should('not.exist');
 
         // # Now uncheck the sameMobileSettingsDesktop so that mobile and desktop settings are different
-        cy.get('[data-testid="sameMobileSettingsDesktop"]').scrollIntoView().should('be.visible').click();
+        cy.get('[data-testid="channel_notifications_modal.same_mobile_as_desktop--checkbox"]').scrollIntoView().should('be.visible').click();
 
         // * Verify that Notify me about section of mobile settings is visible
-        cy.get('[data-testid="mobile-notify-me-radio-section"]').should('be.visible').scrollIntoView().within(() => {
+        cy.get('[data-testid="channel_notifications_modal.mobile_notify"]').should('be.visible').scrollIntoView().within(() => {
             cy.findByText('Notify me about…').should('be.visible');
 
             // # Click on mentions option
-            cy.get('[data-testid="MobileNotification-mention"]').should('be.visible').click();
+            cy.get('[data-testid="channel_notifications_modal.mobile.mention--radio"]').should('be.visible').click();
         });
 
         // * Verify that Thread reply notifications section of mobile settings is visible
-        cy.get('[data-testid="mobile-reply-threads-checkbox-section"]').should('be.visible').scrollIntoView().within(() => {
+        cy.get('[data-testid="channel_notifications_modal.mobile_reply_threads_item"]').should('be.visible').scrollIntoView().within(() => {
             cy.findByText('Notify me about replies to threads I’m following').should('be.visible');
         });
 
@@ -189,14 +189,14 @@ describe('CRT Desktop notifications', () => {
         cy.get('#desktopNotification-mention').scrollIntoView().should('be.visible').click();
 
         // # Unselect "Notify me about replies to threads I’m following"
-        cy.get('[data-testid="desktopReplyThreads"]').scrollIntoView().should('be.visible').then(($el) => {
+        cy.get('[data-testid="channel_notifications_modal.desktop_reply_threads--checkbox"]').scrollIntoView().should('be.visible').then(($el) => {
             if ($el.is(':checked')) {
                 cy.wrap($el).click();
             }
         });
 
         // # Select notification checkbox active
-        cy.get('[data-testid="desktopNotificationSoundsCheckbox"]').scrollIntoView().should('be.visible').then(($el) => {
+        cy.get('[data-testid="channel_notifications_modal.desktop_sound--checkbox"]').scrollIntoView().should('be.visible').then(($el) => {
             if (!$el.is(':checked')) {
                 cy.wrap($el).click();
             }

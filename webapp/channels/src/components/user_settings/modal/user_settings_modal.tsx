@@ -308,6 +308,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         return Object.values(this.props.pluginSettings).map((v) => {
             return {
                 name: v.id,
+                pluginId: v.id,
                 uiName: v.uiName,
                 icon: normalizePluginIcon(v.icon, this.props.basePath),
                 iconTitle: v.uiName,
@@ -355,6 +356,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
         return (
             <GenericModal
                 id='accountSettingsModal'
+                testId='user_settings_modal'
                 className='a11y__modal settings-modal UserSettingsModal'
                 show={this.state.show}
                 onHide={this.handleHide}
@@ -377,7 +379,10 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                             className='loadingIndicator'
                             onLoaded={this.setLoadingFinished}
                         >
-                            <LoadingSpinner size='32'/>
+                            <LoadingSpinner
+                                size='32'
+                                testId='user_settings_modal.loading_spinner'
+                            />
                         </SmartLoader>
                     }
 
@@ -391,6 +396,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                         pluginTabs={this.props.isContentProductSettings ? this.getPluginsSettingsTab() : []}
                                         activeTab={this.state.active_tab}
                                         updateTab={this.updateTab}
+                                        testIdScope='user_settings_modal'
                                     />
                                 </div>
                                 <div className='settings-content minimize-settings'>
@@ -429,6 +435,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                     show={this.state.showConfirmModal}
                     onConfirm={this.handleConfirm}
                     onCancel={this.handleCancelConfirmation}
+                    testId='settings.discard_changes'
                 />
             </GenericModal>
         );

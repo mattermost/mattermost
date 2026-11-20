@@ -59,6 +59,7 @@ export default function UserAccountOfflineMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.offline--menuitem'
             leadingElement={
                 <RadioboxBlankIcon
                     size='18'

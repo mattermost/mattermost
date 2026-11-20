@@ -103,7 +103,7 @@ describe('components/integrations/EditOAuthApp', () => {
         });
 
         // Dismiss the modal via cancel (use the modal's cancel button, not the form's Cancel link)
-        const cancelButton = screen.getByTestId('cancel-button');
+        const cancelButton = screen.getByTestId('integrations.edit_oauth_app.confirm_modal.cancel--button');
         await userEvent.click(cancelButton);
 
         await waitFor(() => {

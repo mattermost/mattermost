@@ -98,6 +98,8 @@ const PerformanceDebuggingSectionCollapsed = React.forwardRef<SettingItemMinComp
             }
             describe={description}
             section={AdvancedSections.PERFORMANCE_DEBUGGING}
+            testId='settings.advanced.section'
+            testKey={AdvancedSections.PERFORMANCE_DEBUGGING}
             updateSection={props.onUpdateSection}
             ref={ref}
         />
@@ -147,6 +149,8 @@ function PerformanceDebuggingSectionExpanded(props: Props) {
 
     return (
         <SettingItemMax
+            testIdScope='settings.advanced.section'
+            testKey={AdvancedSections.PERFORMANCE_DEBUGGING}
             title={
                 <FormattedMessage
                     id='user.settings.advance.performance.title'

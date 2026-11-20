@@ -85,6 +85,7 @@ export default function ProductSwitcherIntegrationsMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.product_menu.integrations--menuitem'
             leadingElement={<WebhookIncomingIcon size={18}/>}
             labels={
                 <FormattedMessage

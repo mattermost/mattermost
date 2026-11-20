@@ -49,7 +49,7 @@ export default function NoPermissionsView(props: Props) {
                 <Button
                     onClick={props.onDone}
                     emphasis='primary'
-                    data-testid='confirm-done'
+                    data-testid='invitation_modal.no_permissions.done--button'
                     aria-label={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                     title={formatMessage({id: 'generic.close', defaultMessage: 'Close'})}
                 >

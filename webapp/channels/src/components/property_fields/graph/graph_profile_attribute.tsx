@@ -129,7 +129,7 @@ export default function GraphProfileAttribute({
                     onIdsChange={onDraftIdsChange}
                     menuId={`customProfileAttributeGraph_${attribute.id}`}
                     buttonId={`customProfileAttributeGraphButton_${attribute.id}`}
-                    buttonDataTestId={`settings.section.graph:${attribute.id}--button`}
+                    buttonDataTestId={`settings.general.section.graph:${attribute.id}--button`}
                     placeholder={formatMessage({
                         id: 'user.settings.general.select',
                         defaultMessage: 'Select',
@@ -151,6 +151,8 @@ export default function GraphProfileAttribute({
 
         max = (
             <SettingItemMax
+                testIdScope='settings.custom_attribute'
+                testKey={attribute.id}
                 key={'settingItemMax_' + attribute.id}
                 title={getUserPropertyFieldLabel(attribute)}
                 inputs={inputs}
@@ -207,6 +209,8 @@ export default function GraphProfileAttribute({
                 title={getUserPropertyFieldLabel(attribute)}
                 describe={describe}
                 section={sectionName}
+                testId='settings.custom_attribute'
+                testKey={attribute.id}
                 updateSection={updateSection}
                 max={max}
             />

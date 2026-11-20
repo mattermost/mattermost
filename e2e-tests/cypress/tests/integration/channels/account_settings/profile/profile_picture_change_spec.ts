@@ -27,7 +27,7 @@ describe('Profile Settings', () => {
         cy.findByRole('button', {name: /remove profile picture/i}).click();
 
         // # Select a new profile picture and click Save
-        cy.findByTestId('uploadPicture').attachFile('png-image-file.png');
+        cy.findByTestId('settings.general.section.picture.upload').attachFile('png-image-file.png');
         cy.uiSave().wait(TIMEOUTS.HALF_SEC);
         cy.findByRole('button', {name: /close/i}).click();
 
@@ -77,7 +77,7 @@ function verifyProfilePictureDoesNotUpdateAfterCancel() {
     cy.uiOpenProfileModal('Profile Settings').findByRole('button', {name: /picture edit/i}).click();
 
     // # Select a new profile picture
-    cy.findByTestId('uploadPicture').attachFile('png-image-file.png');
+    cy.findByTestId('settings.general.section.picture.upload').attachFile('png-image-file.png');
 
     cy.uiCancel().wait(TIMEOUTS.HALF_SEC);
 

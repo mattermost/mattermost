@@ -340,36 +340,36 @@ describe('UserAccessTokenSection component', () => {
 
     describe('token list status display', () => {
         test('shows an Active badge and "Never" for an active token without expiry', () => {
-            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: true}}});
+            renderSection({userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'desc', is_active: true}}});
             expect(screen.getByText('Active')).toBeInTheDocument();
             expect(screen.getByText(/Never/)).toBeInTheDocument();
         });
 
         test('shows an Expired badge for an active token whose expiry has passed', () => {
-            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: true, expires_at: FROZEN_NOW - DAY_MS}}});
+            renderSection({userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'desc', is_active: true, expires_at: FROZEN_NOW - DAY_MS}}});
             expect(screen.getByText('Expired')).toBeInTheDocument();
         });
 
         test('shows a Disabled badge for an inactive token', () => {
-            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: false, expires_at: FROZEN_NOW + DAY_MS}}});
+            renderSection({userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'desc', is_active: false, expires_at: FROZEN_NOW + DAY_MS}}});
             expect(screen.getByText('Disabled')).toBeInTheDocument();
         });
 
         test('shows an "expires soon" warning for a token within 7 days of expiry', () => {
-            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: true, expires_at: FROZEN_NOW + (3 * DAY_MS)}}});
+            renderSection({userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'desc', is_active: true, expires_at: FROZEN_NOW + (3 * DAY_MS)}}});
             expect(screen.getByText('Active')).toBeInTheDocument();
             expect(screen.getByText('Expires in 3 days')).toBeInTheDocument();
         });
 
         test('does not show a Regenerate link for a disabled token', () => {
-            renderSection({userAccessTokens: {t1: {id: 't1', description: 'desc', is_active: false}}});
+            renderSection({userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'desc', is_active: false}}});
             expect(screen.queryByText('Regenerate')).not.toBeInTheDocument();
         });
     });
 
     describe('regenerate token', () => {
         test('shows a confirmation modal naming the token before regenerating', () => {
-            renderSection({userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}}});
+            renderSection({userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'my token', is_active: true}}});
 
             fireEvent.click(screen.getByText('Regenerate'));
 
@@ -378,10 +378,10 @@ describe('UserAccessTokenSection component', () => {
         });
 
         test('rotates the token and displays the new secret on confirmation', async () => {
-            const rotateUserAccessToken = jest.fn().mockResolvedValue({data: {id: 't1', description: 'my token', is_active: true, token: 'new-secret'}});
+            const rotateUserAccessToken = jest.fn().mockResolvedValue({data: {id: 't1', user_id: 'u1', description: 'my token', is_active: true, token: 'new-secret'}});
             const setRequireConfirm = jest.fn();
             renderSection({
-                userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}},
+                userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'my token', is_active: true}},
                 setRequireConfirm,
                 actions: {...getBaseProps().actions, rotateUserAccessToken},
             });
@@ -396,9 +396,9 @@ describe('UserAccessTokenSection component', () => {
         });
 
         test('lets the user pick a new expiry before regenerating', async () => {
-            const rotateUserAccessToken = jest.fn().mockResolvedValue({data: {id: 't1', description: 'my token', is_active: true, token: 'new-secret'}});
+            const rotateUserAccessToken = jest.fn().mockResolvedValue({data: {id: 't1', user_id: 'u1', description: 'my token', is_active: true, token: 'new-secret'}});
             renderSection({
-                userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}},
+                userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'my token', is_active: true}},
                 actions: {...getBaseProps().actions, rotateUserAccessToken},
             });
 
@@ -413,7 +413,7 @@ describe('UserAccessTokenSection component', () => {
         test('disables the confirm button until a required custom expiry date is chosen', () => {
             renderSection({
                 maxLifetimeDays: 30,
-                userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}},
+                userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'my token', is_active: true}},
             });
 
             fireEvent.click(screen.getByText('Regenerate'));
@@ -426,7 +426,7 @@ describe('UserAccessTokenSection component', () => {
         test('shows the server error message when rotation fails', async () => {
             const rotateUserAccessToken = jest.fn().mockResolvedValue({error: {message: 'rotate failed'}});
             renderSection({
-                userAccessTokens: {t1: {id: 't1', description: 'my token', is_active: true}},
+                userAccessTokens: {t1: {id: 't1', user_id: 'u1', description: 'my token', is_active: true}},
                 actions: {...getBaseProps().actions, rotateUserAccessToken},
             });
 

@@ -159,6 +159,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                 onExited={this.props.onExited}
                 onHide={this.handleHide}
                 id='leaveTeamModal'
+                data-testid='leave_team_modal'
                 role='none'
                 aria-labelledby='leaveTeamModalLabel'
             >
@@ -182,6 +183,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                         emphasis='tertiary'
                         onClick={this.handleHide}
                         id='leaveTeamNo'
+                        data-testid='leave_team_modal.cancel--button'
                     >
                         <FormattedMessage
                             id='leave_team_modal.no'
@@ -192,6 +194,7 @@ export default class LeaveTeamModal extends React.PureComponent<Props, State> {
                         type='button'
                         onClick={this.handleSubmit}
                         id='leaveTeamYes'
+                        data-testid='leave_team_modal.confirm--button'
                         destructive={true}
                     >
                         <FormattedMessage

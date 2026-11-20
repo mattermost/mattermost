@@ -36,6 +36,15 @@ type Props = {
      * Settings or tab section
      */
     section?: string;
+
+    testKey?: string;
+
+    /** The scope of a section that is keyed by `testKey` outside the built-in set (a tab's `settings.<tab>.section`; without it the section has no test ids). */
+    testIdScope?: string;
+
+    /** A plugin's section: its scope (`settings.plugin_panel.section`) and its position in the plugin's panel. */
+    testId?: string;
+    pluginSectionIndex?: number;
     updateSection?: (section: string) => void;
     setting?: string;
     submit?: ((setting?: string) => void) | null;
@@ -56,6 +65,10 @@ const SettingItemMax = ({
     infoPosition = 'bottom',
     saving = false,
     section = '',
+    testKey,
+    testIdScope,
+    testId,
+    pluginSectionIndex,
     containerStyle = '',
     shiftEnter,
     disableEnterSubmit,
@@ -166,6 +179,28 @@ const SettingItemMax = ({
         }, [section, updateSection],
     );
 
+    let rootTestId;
+    let serverErrorTestId;
+    let saveTestId;
+    let cancelTestId;
+    if (testId) {
+        rootTestId = `${testId}:${pluginSectionIndex}--group`;
+        serverErrorTestId = `${testId}.server_error--text`;
+        saveTestId = `${testId}.save`;
+        cancelTestId = `${testId}.cancel--button`;
+    } else {
+        let sectionKey;
+        if (section) {
+            sectionKey = section;
+        } else {
+            sectionKey = testKey;
+        }
+        rootTestId = testIdScope && sectionKey ? `${testIdScope}:${sectionKey}--group` : undefined;
+        serverErrorTestId = testIdScope ? `${testIdScope}.server_error--text` : undefined;
+        saveTestId = testIdScope ? `${testIdScope}.save` : undefined;
+        cancelTestId = testIdScope ? `${testIdScope}.cancel--button` : undefined;
+    }
+
     let serverError = null;
     if (serverErrorFromProps) {
         serverError = (
@@ -183,7 +218,10 @@ const SettingItemMax = ({
                             defaultMessage='Error'
                         />
                     </span>
-                    <span id='serverError'>
+                    <span
+                        id='serverError'
+                        data-testid={serverErrorTestId}
+                    >
                         {serverErrorFromProps}
                     </span>
                 </label>
@@ -218,6 +256,7 @@ const SettingItemMax = ({
                 disabled={saving || isValid === false}
                 onClick={handleSubmit}
                 variant={saveButtonVariant}
+                testId={saveTestId}
             />
         );
     }
@@ -267,6 +306,8 @@ const SettingItemMax = ({
     return (
         <section
             className={`section-max form-horizontal ${containerStyle}`}
+            role='group'
+            data-testid={rootTestId}
             ref={settingList}
         >
             {title}
@@ -294,7 +335,7 @@ const SettingItemMax = ({
                             {submit}
                             <Button
                                 id='cancelSetting'
-                                data-testid='cancelButton'
+                                data-testid={cancelTestId}
                                 emphasis='tertiary'
                                 onClick={handleUpdateSection}
                             >

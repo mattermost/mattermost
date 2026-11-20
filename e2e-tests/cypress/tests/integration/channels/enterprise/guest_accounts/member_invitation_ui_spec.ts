@@ -55,21 +55,21 @@ describe('Guest Account - Member Invitation Flow', () => {
         cy.uiOpenTeamMenu('Invite people');
 
         // * Verify UI Elements in initial step
-        cy.findByTestId('invitationModal').within(() => {
+        cy.findByTestId('invitation_modal').within(() => {
             cy.get('h1').should('have.text', `Invite people to ${testTeam.display_name}`);
         });
 
         stubClipboard().as('clipboard');
 
         // * Verify share link button
-        cy.findByTestId('InviteView__copyInviteLink').should('be.visible').should('have.text', 'Copy invite link').click();
+        cy.findByTestId('invitation_modal.invite.copy_link--button').should('be.visible').should('have.text', 'Copy invite link').click();
 
         // * Verify share link url
         const baseUrl = Cypress.config('baseUrl');
 
         cy.get('@clipboard').its('contents').should('eq', `${baseUrl}/signup_user_complete/?id=${testTeam.invite_id}`);
 
-        cy.findByTestId('inviteButton').scrollIntoView().should('be.visible').and('be.disabled');
+        cy.findByTestId('invitation_modal.invite.send--button').scrollIntoView().should('be.visible').and('be.disabled');
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
             // * Verify the input placeholder text
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
@@ -224,10 +224,10 @@ describe('Guest Account - Member Invitation Flow', () => {
             });
 
             // # Click Invite Members
-            cy.findByTestId('inviteButton').scrollIntoView().click();
+            cy.findByTestId('invitation_modal.invite.send--button').scrollIntoView().click();
 
             // * Verify the content and message in the Invitation Modal
-            cy.findByTestId('invitationModal').within(() => {
+            cy.findByTestId('invitation_modal').within(() => {
                 cy.get('h1').should('have.text', `Members invited to ${team.display_name}`);
                 cy.get('div.invitation-modal-confirm--not-sent').should('be.visible').within(() => {
                     cy.get('h2 > span').should('have.text', 'Invitations Not Sent');
@@ -267,13 +267,13 @@ function invitePeople(typeText: string, resultsCount: number, verifyText: string
 
     // # Click Invite Members
     if (clickInvite) {
-        cy.findByTestId('inviteButton').scrollIntoView().click();
+        cy.findByTestId('invitation_modal.invite.send--button').scrollIntoView().click();
     }
 }
 
 function verifyInvitationError(user: string, team: Cypress.Team, errorText: string) {
     // * Verify the content and error message in the Invitation Modal
-    cy.findByTestId('invitationModal').within(() => {
+    cy.findByTestId('invitation_modal').within(() => {
         cy.get('h1').should('have.text', `Members invited to ${team.display_name}`);
         cy.get('div.invitation-modal-confirm--sent').should('not.exist');
         cy.get('div.invitation-modal-confirm--not-sent').should('be.visible').within(() => {
@@ -283,7 +283,7 @@ function verifyInvitationError(user: string, team: Cypress.Team, errorText: stri
             cy.get('.username-or-icon').should('contain', user);
             cy.get('.reason').should('have.text', errorText);
         });
-        cy.findByTestId('confirm-done').should('be.visible').and('not.be.disabled').click();
+        cy.findByTestId('invitation_modal.result.done--button').should('be.visible').and('not.be.disabled').click();
     });
 
     // * Verify if Invitation Modal was closed
@@ -292,7 +292,7 @@ function verifyInvitationError(user: string, team: Cypress.Team, errorText: stri
 
 function verifyInvitationSuccess(user: string, team: Cypress.Team, successText: string) {
     // * Verify the content and success message in the Invitation Modal
-    cy.findByTestId('invitationModal').within(() => {
+    cy.findByTestId('invitation_modal').within(() => {
         cy.get('h1').should('have.text', `Members invited to ${team.display_name}`);
         cy.get('div.invitation-modal-confirm--not-sent').should('not.exist');
         cy.get('div.invitation-modal-confirm--sent').should('be.visible').within(() => {
@@ -302,7 +302,7 @@ function verifyInvitationSuccess(user: string, team: Cypress.Team, successText: 
             cy.get('.username-or-icon').should('contain', user);
             cy.get('.reason').should('have.text', successText);
         });
-        cy.findByTestId('confirm-done').should('be.visible').and('not.be.disabled').click();
+        cy.findByTestId('invitation_modal.result.done--button').should('be.visible').and('not.be.disabled').click();
     });
 
     // * Verify if Invitation Modal was closed

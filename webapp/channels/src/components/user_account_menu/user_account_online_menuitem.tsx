@@ -59,6 +59,7 @@ export default function UserAccountOnlineMenuItem(props: Props) {
 
     return (
         <Menu.Item
+            data-testid='global_header.account_menu.online--menuitem'
             leadingElement={
                 <CheckCircleIcon
                     size='18'

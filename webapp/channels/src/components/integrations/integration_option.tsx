@@ -9,13 +9,16 @@ type Props = {
     title: JSX.Element;
     description: JSX.Element;
     link: string;
+
+    testId?: string;
 };
 
-const IntegrationOption = ({image, title, description, link}: Props) => {
+const IntegrationOption = ({image, title, description, link, testId}: Props) => {
     return (
         <Link
             to={link}
             className='integration-option'
+            data-testid={testId ? `${testId}--link` : undefined}
         >
             <div className='integration-option__image'>
                 {image}

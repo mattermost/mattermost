@@ -129,7 +129,7 @@ function verifyInvitationTable($subel, tableTitle, user, reason) {
 
 function verifyInvitationResult(team, user, reason, isInvitationSent) {
     // * Verify the content and success message in the Invitation Modal
-    cy.findByTestId('invitationModal').within(($el) => {
+    cy.findByTestId('invitation_modal').within(($el) => {
         cy.wrap($el).find('h1').should('have.text', `Members invited to ${team.display_name}`);
         if (isInvitationSent) {
             cy.wrap($el).find('div.invitation-modal-confirm--not-sent').should('not.exist');
@@ -143,8 +143,8 @@ function verifyInvitationResult(team, user, reason, isInvitationSent) {
             });
         }
 
-        cy.wrap($el).findByTestId('confirm-done').should('be.visible');
-        cy.wrap($el).findByTestId('invite-more').should('be.visible').and('not.be.disabled').click();
+        cy.wrap($el).findByTestId('invitation_modal.result.done--button').should('be.visible');
+        cy.wrap($el).findByTestId('invitation_modal.result.invite_more--button').should('be.visible').and('not.be.disabled').click();
     });
 }
 
@@ -158,12 +158,12 @@ function verifyInvitationError(team, user) {
 
 function verifyInviteMembersModal(team) {
     // * Verify the header has changed in the modal
-    cy.findByTestId('invitationModal').within(($el) => {
+    cy.findByTestId('invitation_modal').within(($el) => {
         cy.wrap($el).find('h1').should('have.text', `Invite people to ${team.display_name}`);
     });
 
     // * Verify Share Link Header and helper text
-    cy.findByTestId('InviteView__copyInviteLink').should('be.visible').should('have.text', 'Copy invite link');
+    cy.findByTestId('invitation_modal.invite.copy_link--button').should('be.visible').should('have.text', 'Copy invite link');
 }
 
 function inviteUser(user) {
@@ -172,7 +172,7 @@ function inviteUser(user) {
     cy.get('.users-emails-input__menu').children().eq(0).should('contain', user.username).click();
 
     // # Click Invite Members
-    cy.findByTestId('inviteButton').scrollIntoView().click();
+    cy.findByTestId('invitation_modal.invite.send--button').scrollIntoView().click();
 }
 
 function inviteUserToTeamAsMember(testUser, testTeam, user) {

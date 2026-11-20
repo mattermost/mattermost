@@ -14,6 +14,7 @@ import type {A11yFocusEventDetail} from 'utils/constants';
 
 describe('components/SettingItemMax', () => {
     const baseProps = {
+        testIdScope: 'settings.general.section',
         inputs: ['input_1'],
         clientError: '',
         serverError: '',
@@ -30,7 +31,7 @@ describe('components/SettingItemMax', () => {
     test('should have called updateSection on handleUpdateSection with section after clicking cancel button', async () => {
         const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
-        await userEvent.click(getByTestId('cancelButton'));
+        await userEvent.click(getByTestId('settings.general.section.cancel--button'));
 
         expect(baseProps.updateSection).toHaveBeenCalled();
         expect(baseProps.updateSection).toHaveBeenCalledWith(baseProps.section);
@@ -39,7 +40,7 @@ describe('components/SettingItemMax', () => {
     test('should have called submit on handleSubmit with setting after clicking save button', async () => {
         const {getByTestId} = renderWithContext(<SettingItemMax {...baseProps}/>);
 
-        await userEvent.click(getByTestId('saveSetting'));
+        await userEvent.click(getByTestId('settings.general.section.save--button'));
 
         expect(baseProps.submit).toHaveBeenCalled();
         expect(baseProps.submit).toHaveBeenCalledWith(baseProps.setting);

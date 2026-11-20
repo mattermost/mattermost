@@ -25,6 +25,8 @@ type Props = {
     onMouseMove: (user: UserProfileValue) => void;
     userStatuses: RelationOneToOne<UserProfile, string>;
     isSelected: boolean;
+
+    testId?: string;
 };
 
 const MultiSelectOption = React.forwardRef(({
@@ -33,10 +35,12 @@ const MultiSelectOption = React.forwardRef(({
     onMouseMove,
     userStatuses,
     isSelected,
+    testId,
 }: Props, ref?: React.Ref<HTMLDivElement>) => {
     return (
         <div
             key={option.id}
+            data-testid={testId ? `${testId}.user:${option.id}` : undefined}
             className={classNames('more-modal__row clickable', {'more-modal__row--selected': isSelected})}
             onClick={() => onAdd(option)}
             ref={ref}

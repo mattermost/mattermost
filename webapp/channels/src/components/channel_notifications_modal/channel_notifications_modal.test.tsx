@@ -57,7 +57,7 @@ describe('ChannelNotificationsModal', () => {
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
-        const muteChannel = screen.getByTestId('muteChannel');
+        const muteChannel = screen.getByTestId('channel_notifications_modal.mute--checkbox');
 
         await userEvent.click(muteChannel);
         expect(muteChannel).toBeChecked();
@@ -108,7 +108,7 @@ describe('ChannelNotificationsModal', () => {
         expect(screen.queryByText('Follow all threads in this channel')).not.toBeInTheDocument();
         expect(screen.queryByText('Automatically follow threads in this channel')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('muteChannel'));
+        await userEvent.click(screen.getByTestId('channel_notifications_modal.mute--checkbox'));
 
         expect(screen.getByText('This board is muted')).toBeInTheDocument();
         expect(screen.getByText('All other notification preferences for this board are disabled')).toBeInTheDocument();
@@ -121,7 +121,7 @@ describe('ChannelNotificationsModal', () => {
             <ChannelNotificationsModal {...baseProps}/>,
         );
 
-        const ignoreChannel = screen.getByTestId('ignoreMentions');
+        const ignoreChannel = screen.getByTestId('channel_notifications_modal.ignore_mentions--checkbox');
         await userEvent.click(ignoreChannel);
         expect(ignoreChannel).toBeChecked();
 
@@ -155,9 +155,9 @@ describe('ChannelNotificationsModal', () => {
 
         expect(screen.getByText('Desktop Notifications')).toBeInTheDocument();
 
-        const allRadio: HTMLInputElement = screen.getByTestId('desktopNotification-all');
-        const mentionsRadio: HTMLInputElement = screen.getByTestId('desktopNotification-mention');
-        const nothingRadio: HTMLInputElement = screen.getByTestId('desktopNotification-none');
+        const allRadio: HTMLInputElement = screen.getByTestId('channel_notifications_modal.desktop.all--radio');
+        const mentionsRadio: HTMLInputElement = screen.getByTestId('channel_notifications_modal.desktop.mention--radio');
+        const nothingRadio: HTMLInputElement = screen.getByTestId('channel_notifications_modal.desktop.none--radio');
 
         // Verify all radio options are present
         expect(allRadio).toBeInTheDocument();
@@ -205,8 +205,8 @@ describe('ChannelNotificationsModal', () => {
         renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
 
         // Since the default value is checked, we will uncheck the checkbox
-        await userEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
-        expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).not.toBeChecked();
+        await userEvent.click(screen.getByTestId('channel_notifications_modal.desktop_sound--checkbox'));
+        expect(screen.getByTestId('channel_notifications_modal.desktop_sound--checkbox')).not.toBeChecked();
 
         await userEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() => {
@@ -232,14 +232,14 @@ describe('ChannelNotificationsModal', () => {
         renderWithContext(<ChannelNotificationsModal {...baseProps}/>);
 
         // Since the default value is on, we will uncheck the checkbox
-        await userEvent.click(screen.getByTestId('desktopNotificationSoundsCheckbox'));
-        expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).not.toBeChecked();
+        await userEvent.click(screen.getByTestId('channel_notifications_modal.desktop_sound--checkbox'));
+        expect(screen.getByTestId('channel_notifications_modal.desktop_sound--checkbox')).not.toBeChecked();
 
         // Reset to default button is clicked
-        await userEvent.click(screen.getByTestId('resetToDefaultButton-desktop'));
+        await userEvent.click(screen.getByTestId('channel_notifications_modal.reset:desktop--button'));
 
         // Verify that the checkbox is checked to default to user desktop notification sound
-        expect(screen.getByTestId('desktopNotificationSoundsCheckbox')).toBeChecked();
+        expect(screen.getByTestId('channel_notifications_modal.desktop_sound--checkbox')).toBeChecked();
     });
 
     test('should save the options exactly same as Desktop for mobile if use same as desktop checkbox is checked', async () => {
@@ -250,14 +250,14 @@ describe('ChannelNotificationsModal', () => {
         expect(screen.getByText('Desktop Notifications')).toBeInTheDocument();
         expect(screen.getByText('Mobile Notifications')).toBeInTheDocument();
 
-        const sameAsDesktop: HTMLInputElement = screen.getByTestId('sameMobileSettingsDesktop');
+        const sameAsDesktop: HTMLInputElement = screen.getByTestId('channel_notifications_modal.same_mobile_as_desktop--checkbox');
         expect(sameAsDesktop).toBeChecked();
 
         // Verify the checkbox label is present
         expect(screen.getByText('Use the same notification settings as desktop')).toBeInTheDocument();
 
         // When "same as desktop" is checked, mobile-specific options should not be visible
-        expect(screen.queryByTestId('mobile-notify-me-radio-section')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('channel_notifications_modal.mobile_notify')).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('button', {name: /Save/i}));
         await waitFor(() =>
@@ -294,15 +294,15 @@ describe('ChannelNotificationsModal', () => {
         );
 
         // First uncheck "same as desktop" to show mobile options
-        const sameAsDesktop = screen.getByTestId('sameMobileSettingsDesktop');
+        const sameAsDesktop = screen.getByTestId('channel_notifications_modal.same_mobile_as_desktop--checkbox');
         expect(sameAsDesktop).not.toBeChecked();
 
         // Now mobile notification options should be visible
-        expect(screen.getByTestId('mobile-notify-me-radio-section')).toBeInTheDocument();
+        expect(screen.getByTestId('channel_notifications_modal.mobile_notify')).toBeInTheDocument();
 
-        const allRadio = screen.getByTestId('MobileNotification-all');
-        const mentionRadio = screen.getByTestId('MobileNotification-mention');
-        const noneRadio = screen.getByTestId('MobileNotification-none');
+        const allRadio = screen.getByTestId('channel_notifications_modal.mobile.all--radio');
+        const mentionRadio = screen.getByTestId('channel_notifications_modal.mobile.mention--radio');
+        const noneRadio = screen.getByTestId('channel_notifications_modal.mobile.none--radio');
 
         // Test clicking through the mobile notification options
         await userEvent.click(allRadio);

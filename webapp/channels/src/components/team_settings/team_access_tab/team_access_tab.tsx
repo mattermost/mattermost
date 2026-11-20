@@ -249,6 +249,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
         <div
             className='modal-access-tab-content user-settings'
             id='accessSettings'
+            data-testid='team_settings_modal.access'
             aria-labelledby='accessButton'
             role='tabpanel'
         >
@@ -274,6 +275,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
             )}
             {(areThereUnsavedChanges || saveChangesPanelState === 'saved') && (
                 <SaveChangesPanel
+                    testId='team_settings_modal.save_panel'
                     handleCancel={handleCancel}
                     handleSubmit={handleSaveChanges}
                     handleClose={handleClose}
@@ -284,6 +286,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
             )}
 
             <ConfirmModal
+                testId='team_settings_modal.access.mode_flip_modal'
                 show={showModeFlipModal}
                 title={
                     <FormattedMessage
@@ -310,6 +313,7 @@ const AccessTab = ({showTabSwitchError, areThereUnsavedChanges, setShowTabSwitch
             />
 
             <ConfirmModal
+                testId='team_settings_modal.access.self_exclusion_modal'
                 show={showSelfExclusionModal}
                 title={
                     <FormattedMessage

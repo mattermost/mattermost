@@ -145,7 +145,7 @@ export default function InviteView(props: Props) {
     const copyButton = (
         <Button
             onClick={copyText.onClick}
-            data-testid='InviteView__copyInviteLink'
+            data-testid='invitation_modal.invite.copy_link--button'
             aria-label={
                 formatMessage({
                     id: 'invite_modal.copy_link.url_aria',
@@ -256,6 +256,7 @@ export default function InviteView(props: Props) {
             <Modal.Header className={props.headerClass}>
                 <h1
                     id='invitation_modal_title'
+                    data-testid='invitation_modal.invite.title--text'
                     className='modal-title'
                 >
                     <FormattedMessage
@@ -272,6 +273,7 @@ export default function InviteView(props: Props) {
                 <WithTooltip title={closeLabel}>
                     <IconButton
                         id='closeIcon'
+                        data-testid='invitation_modal.invite.close--button'
                         className='GenericModal__close'
                         size='medium'
                         icon={<Icon glyph={<CloseIcon/>}/>}
@@ -285,6 +287,7 @@ export default function InviteView(props: Props) {
                     <div
                         className='InviteView__policyBanner'
                         role='status'
+                        data-testid='invitation_modal.invite.policy_banner--status'
                     >
                         <AlertBanner
                             mode='info'
@@ -328,6 +331,7 @@ export default function InviteView(props: Props) {
                 </div>
                 <UsersEmailsInput
                     {...errorProperties}
+                    testId='invitation_modal.invite.users'
                     usersLoader={props.usersLoader}
                     placeholder={placeholder}
                     ariaLabel={formatMessage({
@@ -384,7 +388,7 @@ export default function InviteView(props: Props) {
                                 type='checkbox'
                                 checked={props.useGuestMagicLink}
                                 onChange={props.toggleGuestMagicLink}
-                                data-testid='InviteView__guestMagicLinkCheckbox'
+                                data-testid='invitation_modal.invite.guest_magic_link--checkbox'
                             />
                             <FormattedMessage
                                 id='invite_modal.guest_magic_link'
@@ -400,6 +404,7 @@ export default function InviteView(props: Props) {
                     <span
                         className='InviteView__inviteLinkWarning'
                         role='status'
+                        data-testid='invitation_modal.invite.link_warning--status'
                     >
                         {props.membershipPolicyStrict ? (
                             <FormattedMessage
@@ -419,7 +424,7 @@ export default function InviteView(props: Props) {
                     disabled={!isInviteValid}
                     onClick={props.invite}
                     emphasis='primary'
-                    data-testid={'inviteButton'}
+                    data-testid='invitation_modal.invite.send--button'
                 >
                     <FormattedMessage
                         id='invite_modal.invite'

@@ -60,7 +60,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         const props = {...requiredProps, updateSection, activeSection: 'formatting'};
         renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('settings.advanced.section.save--button'));
         expect(updateSection).toHaveBeenCalledWith('');
     });
 
@@ -70,7 +70,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         renderWithContext(<AdvancedSettingsDisplay {...props}/>);
 
         // Click Save → handleSubmit → handleUpdateSection('') → updateSection('')
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('settings.advanced.section.save--button'));
         expect(updateSection).toHaveBeenCalledWith('');
     });
 
@@ -148,7 +148,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
     });
 
     describe('dividers around the Performance Debugging section', () => {
-        const getSettingRow = (title: string) => screen.getByRole('heading', {name: title}).closest('[data-testid="section-min"]')!;
+        const getSettingRow = (title: string) => screen.getByRole('heading', {name: title}).closest('.section-min')!;
         const isDivider = (element: Element | null) => element?.classList.contains('divider-light') ?? false;
 
         const renderWithPerformanceDebugging = (enabled: boolean) => renderWithContext(

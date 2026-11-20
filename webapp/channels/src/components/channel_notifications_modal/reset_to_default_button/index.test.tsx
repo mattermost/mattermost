@@ -63,7 +63,7 @@ describe('ResetToDefaultButton', () => {
         };
 
         renderWithContext(<ResetToDefaultButton {...props}/>);
-        const button = screen.getByTestId('resetToDefaultButton-desktop');
+        const button = screen.getByTestId('channel_notifications_modal.reset:desktop--button');
         expect(button).toBeInTheDocument();
         expect(button).toBeDisabled();
         expect(button).toHaveAttribute('aria-hidden', 'true');
@@ -90,7 +90,7 @@ describe('ResetToDefaultButton', () => {
         };
 
         const {rerender} = renderWithContext(<ResetToDefaultButton {...props1}/>);
-        let button = screen.getByTestId('resetToDefaultButton-desktop');
+        let button = screen.getByTestId('channel_notifications_modal.reset:desktop--button');
         expect(button).toBeVisible();
         expect(button).toBeEnabled();
         expect(button).not.toHaveClass('ChannelNotificationModal__reset-btn--hidden');
@@ -106,7 +106,7 @@ describe('ResetToDefaultButton', () => {
         };
 
         rerender(<ResetToDefaultButton {...props2}/>);
-        button = screen.getByTestId('resetToDefaultButton-desktop');
+        button = screen.getByTestId('channel_notifications_modal.reset:desktop--button');
         expect(button).toBeVisible();
         expect(button).toBeEnabled();
     });
@@ -128,7 +128,7 @@ describe('ResetToDefaultButton', () => {
         };
 
         renderWithContext(<ResetToDefaultButton {...props}/>);
-        const button = screen.getByTestId('resetToDefaultButton-mobile');
+        const button = screen.getByTestId('channel_notifications_modal.reset:mobile--button');
         expect(button).toBeInTheDocument();
         expect(button).toBeDisabled();
         expect(button).toHaveAttribute('aria-hidden', 'true');
@@ -153,7 +153,7 @@ describe('ResetToDefaultButton', () => {
         };
 
         const {rerender} = renderWithContext(<ResetToDefaultButton {...props}/>);
-        let button = screen.getByTestId('resetToDefaultButton-mobile');
+        let button = screen.getByTestId('channel_notifications_modal.reset:mobile--button');
         expect(button).toBeVisible();
         expect(button).toBeEnabled();
         expect(button).not.toHaveClass('ChannelNotificationModal__reset-btn--hidden');
@@ -169,7 +169,7 @@ describe('ResetToDefaultButton', () => {
         };
 
         rerender(<ResetToDefaultButton {...props2}/>);
-        button = screen.getByTestId('resetToDefaultButton-mobile');
+        button = screen.getByTestId('channel_notifications_modal.reset:mobile--button');
         expect(button).toBeVisible();
         expect(button).toBeEnabled();
     });

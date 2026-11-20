@@ -177,6 +177,7 @@ const LeaveChannelModal = ({actions, channel, callback, currentUserId, isMuted, 
 
     return (
         <ConfirmModal
+            testId='leave_channel_modal'
             show={show}
             title={title}
             message={message}

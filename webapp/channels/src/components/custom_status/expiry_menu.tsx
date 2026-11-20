@@ -82,6 +82,7 @@ const ExpiryMenu: React.FC<Props> = (props: Props) => {
                 ariaLabel={expiryMenuItems[item as CustomStatusDuration]?.text.toLowerCase()}
                 text={expiryMenuItems[item as CustomStatusDuration]?.text}
                 id={`expiry_menu_item_${index}`}
+                slotTestId={`custom_status_modal.expiry.menu.duration:${index}--menuitem`}
             />
         ));
 
@@ -94,7 +95,10 @@ const ExpiryMenu: React.FC<Props> = (props: Props) => {
                 <MenuWrapper
                     className={'statusExpiry__menu'}
                 >
-                    <button className='style--none expiry-wrapper expiry-selector'>
+                    <button
+                        className='style--none expiry-wrapper expiry-selector'
+                        data-testid='custom_status_modal.expiry.open--button'
+                    >
                         <FormattedMessage
                             id='custom_status.expiry_dropdown.clear_after'
                             defaultMessage='Clear after'
@@ -120,6 +124,7 @@ const ExpiryMenu: React.FC<Props> = (props: Props) => {
                     <Menu
                         ariaLabel={formatMessage({id: 'custom_status.expiry_dropdown.clear_after', defaultMessage: 'Clear after'})}
                         id='statusExpiryMenu'
+                        testId='custom_status_modal.expiry.menu'
                     >
                         <Menu.Group>
                             {menuItems}
