@@ -11,6 +11,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 
 import {onSubmit} from 'actions/views/create_comment';
 import {quoteTextInDraft, removeDraft, updateDraft} from 'actions/views/drafts';
+import {openShowEditHistory} from 'actions/views/rhs';
 
 import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
@@ -1466,6 +1467,84 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             });
 
             expect(textbox).toHaveValue(valueBefore);
+        });
+    });
+
+    describe('focus when a thread is selected', () => {
+        // A thread was selected earlier in the session and has already taken focus once.
+        const stateWithSelectedThread = mergeObjects(initialState, {
+            views: {
+                rhs: {
+                    selectedPostFocussedAt: 1234,
+                    shouldFocusRHS: false,
+                },
+            },
+        });
+
+        it('should leave focus on the channel textbox when it is mounted together with the thread textbox', () => {
+            renderWithContext(
+                <>
+                    <AdvancedTextEditor
+                        {...baseProps}
+                    />
+                    <AdvancedTextEditor
+                        {...baseProps}
+                        location={Locations.RHS_COMMENT}
+                        rootId='root-post-id'
+                    />
+                </>,
+                stateWithSelectedThread,
+            );
+
+            expect(screen.getByTestId('post_textbox')).toHaveFocus();
+            expect(screen.getByTestId('reply_textbox')).not.toHaveFocus();
+        });
+
+        it('should still focus the thread textbox of the Threads view when it is mounted', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    location={Locations.RHS_COMMENT}
+                    isThreadView={true}
+                    rootId='root-post-id'
+                />,
+                stateWithSelectedThread,
+            );
+
+            expect(screen.getByTestId('reply_textbox')).toHaveFocus();
+        });
+
+        it('should still focus a reply that is opened for editing in the thread', () => {
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    location={Locations.RHS_COMMENT}
+                    rootId='root-post-id'
+                    isInEditMode={true}
+                />,
+                stateWithSelectedThread,
+            );
+
+            expect(screen.getByTestId('edit_textbox')).toHaveFocus();
+        });
+
+        it('should still focus the thread textbox when selectedPostFocussedAt changes', () => {
+            const {store} = renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                    location={Locations.RHS_COMMENT}
+                    rootId='root-post-id'
+                />,
+                stateWithSelectedThread,
+            );
+
+            expect(screen.getByTestId('reply_textbox')).not.toHaveFocus();
+
+            act(() => {
+                store.dispatch(openShowEditHistory(TestHelper.getPostMock({id: 'root-post-id', channel_id: channelId})));
+            });
+
+            expect(screen.getByTestId('reply_textbox')).toHaveFocus();
         });
     });
 });
