@@ -1054,7 +1054,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 		s.client.
 			EXPECT().
 			GetClientConfig(context.TODO(), "").
-			Return(map[string]string{"SiteName": "Example Chat", "SiteURL": "https://chat.example.com", "Version": "12.2.0"}, &model.Response{}, nil).
+			Return(map[string]string{"SiteURL": "https://chat.example.com", "Version": "12.2.0"}, &model.Response{}, nil).
 			Times(1)
 		s.client.
 			EXPECT().
@@ -1067,7 +1067,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 		format string
 		want   []string
 	}{
-		{"html", []string{"<!DOCTYPE html>", "<title>site-health-Example_Chat-", "<dt>Site URL</dt>", "<dt>Licensed to</dt>"}},
+		{"html", []string{"<!DOCTYPE html>", "<title>mm_site_health_Acme_Corp_", "<dt>Site URL</dt>", "<dt>Licensed to</dt>"}},
 		{"md", []string{"# Health report\n", "- **Site URL:** https://chat.example.com\n", "- **License:** Enterprise Advanced Gov\n", "- **Licensed to:** Acme Corp\n"}},
 	} {
 		s.Run("online "+tc.format+" export includes resolved and muted findings", func() {
@@ -1164,7 +1164,7 @@ func (s *MmctlUnitTestSuite) TestHealthExport() {
 		format string
 		want   []string
 	}{
-		{"html", []string{"<!DOCTYPE html>", "<title>site-health-Mattermost-", "<dt>Site URL</dt>"}},
+		{"html", []string{"<!DOCTYPE html>", "<title>mm_site_health_Acme_Corp_", "<dt>Site URL</dt>"}},
 		{"md", []string{
 			"# Health report\n", "> " + healthPacketDisclaimer + "\n",
 			"- **Data collected:** " + time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04 MST") + "\n",
