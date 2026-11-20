@@ -164,11 +164,13 @@ func TestInitTranslationsWithDir(t *testing.T) {
 func TestGetTranslationsAndLocaleFromRequest(t *testing.T) {
 	i18nDir, found := utils.FindDir("server/i18n")
 	require.True(t, found, "unable to find i18n dir")
-	require.NoError(t, initTranslationsWithDir(i18nDir))
 
-	previous := defaultClientLocale
+	previousLocales, previousDefault := locales, defaultClientLocale
+	locales = make(map[string]string)
 	defaultClientLocale = "en"
-	t.Cleanup(func() { defaultClientLocale = previous })
+	t.Cleanup(func() { locales, defaultClientLocale = previousLocales, previousDefault })
+
+	require.NoError(t, initTranslationsWithDir(i18nDir))
 
 	for acceptLanguage, expected := range map[string]string{
 		"":               "en",
@@ -186,6 +188,13 @@ func TestGetTranslationsAndLocaleFromRequest(t *testing.T) {
 			assert.Equal(t, expected, locale)
 		})
 	}
+
+	t.Run("unavailable default locale", func(t *testing.T) {
+		defaultClientLocale = "sw"
+
+		_, locale := GetTranslationsAndLocaleFromRequest(httptest.NewRequest(http.MethodGet, "/", nil))
+		assert.Equal(t, "en", locale)
+	})
 }
 
 func TestGetTranslationFuncForDir(t *testing.T) {
