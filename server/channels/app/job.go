@@ -40,13 +40,10 @@ func (a *App) getChannelIDFromJobData(jobData model.StringMap) string {
 func (a *App) GetJob(rctx request.CTX, id string) (*model.Job, *model.AppError) {
 	job, err := a.Srv().Store().Job().Get(rctx, id)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetJob", "app.job.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return job, nil
@@ -94,7 +91,8 @@ func (a *App) CreateJob(rctx request.CTX, job *model.Job) (*model.Job, *model.Ap
 		return a.CreateAccessControlTeamSyncJob(rctx, job.Data)
 	case model.JobTypeHealthCheck:
 		// One run at a time: an active run is returned instead of a new one.
-		return a.StartHealthCheckRun(rctx)
+		run, err := a.StartHealthCheckRun(rctx)
+		return run, model.AsAppError(err)
 	case model.JobTypeElasticsearchPostIndexing:
 		if _, ok := job.Data["index_files"]; !ok {
 			if job.Data == nil {
@@ -233,185 +231,4 @@ func (a *App) UpdateJobStatus(rctx request.CTX, job *model.Job, newStatus string
 	default:
 		return model.NewAppError("UpdateJobStatus", "app.job.update_status.app_error", nil, "", http.StatusInternalServerError)
 	}
-}
-
-func (a *App) SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission) {
-	switch job.Type {
-	case model.JobTypeDataRetention:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateDataRetentionJob), model.PermissionCreateDataRetentionJob
-	case model.JobTypeMessageExport:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateComplianceExportJob), model.PermissionCreateComplianceExportJob
-	case model.JobTypeElasticsearchPostIndexing:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateElasticsearchPostIndexingJob), model.PermissionCreateElasticsearchPostIndexingJob
-	case model.JobTypeElasticsearchPostAggregation:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateElasticsearchPostAggregationJob), model.PermissionCreateElasticsearchPostAggregationJob
-	case model.JobTypeLdapSync:
-		return a.SessionHasPermissionTo(session, model.PermissionCreateLdapSyncJob), model.PermissionCreateLdapSyncJob
-	case
-		model.JobTypeMigrations,
-		model.JobTypePlugins,
-		model.JobTypeProductNotices,
-		model.JobTypeExpiryNotify,
-		model.JobTypeActiveUsers,
-		model.JobTypeImportProcess,
-		model.JobTypeImportDelete,
-		model.JobTypeExportProcess,
-		model.JobTypeExportDelete,
-		model.JobTypeCloud,
-		model.JobTypeExtractContent,
-		model.JobTypeCleanupExpiredAccessTokens,
-		model.JobTypeNotifyExpiringAccessTokens:
-		return a.SessionHasPermissionTo(session, model.PermissionManageJobs), model.PermissionManageJobs
-	case model.JobTypeHealthCheck:
-		return a.SessionHasPermissionTo(session, model.PermissionManageSystem), model.PermissionManageSystem
-	case model.JobTypeAccessControlTeamSync:
-		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
-			return true, model.PermissionManageSystem
-		}
-		// Team-type policies use the team ID as the policy ID.
-		// Allow a team admin to trigger a sync job for their own team's policy.
-		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
-			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
-				return true, model.PermissionManageTeamAccessRules
-			}
-		}
-		return false, model.PermissionManageSystem
-	case model.JobTypeAccessControlSync:
-		// Allow system admins to create access control sync jobs
-		hasSystemPermission := a.SessionHasPermissionTo(session, model.PermissionManageSystem)
-		if hasSystemPermission {
-			return true, model.PermissionManageSystem
-		}
-
-		// For channel admins, check if they have permission for the specific channel/policy
-		channelID := a.getChannelIDFromJobData(job.Data)
-		if channelID != "" {
-			// Check specific channel permission
-			ctx := request.EmptyContext(a.Srv().Log())
-			hasChannelPermission, _ := a.HasPermissionToChannel(ctx, session.UserId, channelID, model.PermissionManageChannelAccessRules)
-			if hasChannelPermission {
-				return true, model.PermissionManageChannelAccessRules
-			}
-		}
-
-		// Check team admin permission. This is needed for jobs that are scoped to a team but don't specify a channel (i.e. team-level syncs).
-		teamID, hasTeamID := job.Data["team_id"]
-		if hasTeamID && teamID != "" && model.IsValidId(teamID) && job.Data["policy_id"] == "" {
-			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
-				return true, model.PermissionManageTeamAccessRules
-			}
-		}
-
-		// Check team admin permission for policy-scoped syncs (e.g. triggered after policy creation).
-		// Verify the team admin owns the policy via ValidateTeamAdminPolicyOwnership.
-		policyID, hasPolicyID := job.Data["policy_id"]
-		if hasPolicyID && policyID != "" && model.IsValidId(policyID) && hasTeamID && teamID != "" && model.IsValidId(teamID) {
-			if a.SessionHasPermissionToTeam(session, teamID, model.PermissionManageTeamAccessRules) {
-				ctx := request.EmptyContext(a.Srv().Log())
-				if owned, appErr := a.ValidateTeamAdminPolicyOwnership(ctx, teamID, policyID); appErr == nil && owned {
-					return true, model.PermissionManageTeamAccessRules
-				}
-			}
-		}
-
-		return false, model.PermissionManageSystem
-	}
-
-	return false, nil
-}
-
-func (a *App) SessionHasPermissionToManageJob(session model.Session, job *model.Job) (bool, *model.Permission) {
-	var permission *model.Permission
-
-	switch job.Type {
-	case model.JobTypeDataRetention:
-		permission = model.PermissionManageDataRetentionJob
-	case model.JobTypeMessageExport:
-		permission = model.PermissionManageComplianceExportJob
-	case model.JobTypeElasticsearchPostIndexing:
-		permission = model.PermissionManageElasticsearchPostIndexingJob
-	case model.JobTypeElasticsearchPostAggregation:
-		permission = model.PermissionManageElasticsearchPostAggregationJob
-	case model.JobTypeLdapSync:
-		permission = model.PermissionManageLdapSyncJob
-	case
-		model.JobTypeMigrations,
-		model.JobTypePlugins,
-		model.JobTypeProductNotices,
-		model.JobTypeExpiryNotify,
-		model.JobTypeActiveUsers,
-		model.JobTypeImportProcess,
-		model.JobTypeImportDelete,
-		model.JobTypeExportProcess,
-		model.JobTypeExportDelete,
-		model.JobTypeCloud,
-		model.JobTypeExtractContent,
-		model.JobTypeCleanupExpiredAccessTokens:
-		permission = model.PermissionManageJobs
-	case model.JobTypeAccessControlSync:
-		permission = model.PermissionManageSystem
-	case model.JobTypeAccessControlTeamSync:
-		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
-			return true, model.PermissionManageSystem
-		}
-		if policyID, ok := job.Data["policy_id"]; ok && policyID != "" && model.IsValidId(policyID) {
-			if a.SessionHasPermissionToTeam(session, policyID, model.PermissionManageTeamAccessRules) {
-				return true, model.PermissionManageTeamAccessRules
-			}
-		}
-		return false, model.PermissionManageSystem
-	}
-
-	if permission == nil {
-		return false, nil
-	}
-
-	return a.SessionHasPermissionTo(session, permission), permission
-}
-
-func (a *App) SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission) {
-	var permission *model.Permission
-
-	switch jobType {
-	case model.JobTypeDataRetention:
-		permission = model.PermissionReadDataRetentionJob
-	case model.JobTypeMessageExport:
-		permission = model.PermissionReadComplianceExportJob
-	case model.JobTypeElasticsearchPostIndexing:
-		permission = model.PermissionReadElasticsearchPostIndexingJob
-	case model.JobTypeElasticsearchPostAggregation:
-		permission = model.PermissionReadElasticsearchPostAggregationJob
-	case model.JobTypeLdapSync:
-		permission = model.PermissionReadLdapSyncJob
-	case
-		model.JobTypeMigrations,
-		model.JobTypePlugins,
-		model.JobTypeProductNotices,
-		model.JobTypeExpiryNotify,
-		model.JobTypeActiveUsers,
-		model.JobTypeImportProcess,
-		model.JobTypeImportDelete,
-		model.JobTypeExportProcess,
-		model.JobTypeExportDelete,
-		model.JobTypeCloud,
-		model.JobTypeMobileSessionMetadata,
-		model.JobTypeExtractContent,
-		model.JobTypePostPersistentNotifications,
-		model.JobTypeDeleteExpiredPosts,
-		model.JobTypeCleanupExpiredAccessTokens:
-		permission = model.PermissionReadJobs
-	case model.JobTypeAccessControlSync, model.JobTypeHealthCheck:
-		permission = model.PermissionManageSystem
-	case model.JobTypeAccessControlTeamSync:
-		if a.SessionHasPermissionTo(session, model.PermissionManageSystem) {
-			return true, model.PermissionManageSystem
-		}
-		permission = model.PermissionManageTeamAccessRules
-	}
-
-	if permission == nil {
-		return false, nil
-	}
-
-	return a.SessionHasPermissionTo(session, permission), permission
 }
