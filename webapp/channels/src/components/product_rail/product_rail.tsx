@@ -299,13 +299,16 @@ export default function ProductRail() {
         if (!viewedTab) {
             if (urlChannelPath !== awaitedPath) {
                 awaitingBoardAt.current = null;
+                keepBoardsSectionAt.current = null;
             }
             return;
         }
 
-        // Leaving the channel, or the Boards sidebar, stops waiting.
+        // Leaving the channel, or the Boards sidebar, stops waiting, and a later visit to that channel
+        // is an ordinary one, which moves the sidebar to Channels.
         if (viewedPath !== awaitedPath || section !== 'boards' || currentChannelIsBoard) {
             awaitingBoardAt.current = null;
+            keepBoardsSectionAt.current = null;
             return;
         }
 
@@ -681,6 +684,7 @@ function RailItemContainer({entry, index, hidden}: RailItemContainerProps) {
                     ref={provided.innerRef}
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
+                    aria-describedby={undefined}
 
                     // The link inside takes keyboard focus.
                     tabIndex={-1}
@@ -694,6 +698,9 @@ function RailItemContainer({entry, index, hidden}: RailItemContainerProps) {
                     <ProductRailItem
                         id={entry.elementId}
                         to={entry.to}
+
+                        // The link takes focus, so it carries the drag handle's instructions.
+                        describedBy={provided.dragHandleProps?.['aria-describedby']}
                         onClick={entry.onClick}
                         icon={entry.icon}
                         label={entry.label}
@@ -799,9 +806,12 @@ type ProductRailItemProps = {
     mentions?: number;
     hasUrgent?: boolean;
     unread?: boolean;
+
+    // An element describing the item further, such as how to drag it.
+    describedBy?: string;
 };
 
-function ProductRailItem({id, to, onClick, icon, label, active, mentions = 0, hasUrgent = false, unread = false}: ProductRailItemProps) {
+function ProductRailItem({id, to, onClick, icon, label, active, mentions = 0, hasUrgent = false, unread = false, describedBy}: ProductRailItemProps) {
     const indicator = renderIndicator(mentions, hasUrgent, unread);
 
     const className = classNames('ProductRail__item', {
@@ -838,6 +848,7 @@ function ProductRailItem({id, to, onClick, icon, label, active, mentions = 0, ha
             onClick={onClick}
             className={className}
             aria-current={active ? 'page' : undefined}
+            aria-describedby={describedBy}
             draggable={false}
         >
             {content}

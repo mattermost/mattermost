@@ -465,6 +465,37 @@ describe('ProductRail', () => {
         });
     });
 
+    describe('Boards with no board to open, leaving before the channel loads', () => {
+        test('should move the sidebar to Channels on a later, ordinary visit to that channel', async () => {
+            // Bugs is still the open channel, so the fallback channel hasn't loaded yet when the user leaves.
+            const state = getBoardsState(bugs.id, 'channels');
+            const history = createMemoryHistory({initialEntries: ['/mattermost-ai']});
+            const {store} = renderWithContext(<ProductRail/>, {
+                ...state,
+                plugins: {
+                    components: {
+                        Product: [agents],
+                        ChannelKind: [{...boardKind, matcher: () => false}],
+                    } as unknown as GlobalState['plugins']['components'],
+                },
+            }, {history});
+
+            await userEvent.click(screen.getByRole('link', {name: /Boards/}));
+            expect(history.location.pathname).toBe('/team-one/channels/town-square');
+            act(() => {
+                history.push('/mattermost-ai');
+            });
+
+            // Later, town square opens from an ordinary link.
+            act(() => {
+                store.dispatch({type: ChannelTypes.SELECT_CHANNEL, data: townSquare.id});
+                history.push('/team-one/channels/town-square');
+            });
+
+            expect(store.getState().views.productRail.section).toBe('channels');
+        });
+    });
+
     describe('Boards before the team\'s boards are known, leaving first', () => {
         test('should not open the first board after the user leaves for a page outside the rail', async () => {
             const historyReplace = (global as unknown as {historyMock: {replace: jest.Mock}}).historyMock.replace;
@@ -652,6 +683,15 @@ describe('ProductRail', () => {
             await userEvent.click(screen.getByRole('button', {name: 'Pin Agents One', hidden: true}));
 
             await waitFor(() => expect(savedHiddenItems()).toBe(JSON.stringify(['mattermost-ai:/agents-two'])));
+        });
+
+        test('should describe how to drag an item on its link, which takes focus', () => {
+            renderAt('/team-one/channels/town-square', getHiddenState([]));
+
+            const link = screen.getByRole('link', {name: /Agents/});
+            const descriptionId = link.getAttribute('aria-describedby');
+            expect(descriptionId).toBeTruthy();
+            expect(document.getElementById(descriptionId!)).toHaveTextContent(/space/i);
         });
 
         test('should offer no right-click menu on Threads or Channels', () => {
