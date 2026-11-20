@@ -103,6 +103,9 @@ func getPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	policy, appErr := c.App.GetRetentionPolicy(c.Params.PolicyId)
 	if appErr != nil {
 		c.Err = appErr
@@ -161,6 +164,9 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	patch.ID = c.Params.PolicyId
 
 	auditRec := c.MakeAuditRecord(model.AuditEventPatchPolicy, model.AuditStatusFail)
@@ -194,6 +200,9 @@ func patchPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func deletePolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	policyId := c.Params.PolicyId
 
 	auditRec := c.MakeAuditRecord(model.AuditEventDeletePolicy, model.AuditStatusFail)
@@ -220,6 +229,9 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	policyId := c.Params.PolicyId
 	limit := c.Params.PerPage
 	offset := c.Params.Page * limit
@@ -243,6 +255,9 @@ func getTeamsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 
 	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadComplianceDataRetentionPolicy) {
 		c.SetPermissionError(model.PermissionSysconsoleReadComplianceDataRetentionPolicy)
@@ -277,6 +292,9 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	policyId := c.Params.PolicyId
 	teamIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
@@ -304,6 +322,9 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	policyId := c.Params.PolicyId
 	teamIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
@@ -337,6 +358,9 @@ func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	policyId := c.Params.PolicyId
 	limit := c.Params.PerPage
 	offset := c.Params.Page * limit
@@ -359,6 +383,9 @@ func getChannelsForPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	var props *model.ChannelSearch
 	err := json.NewDecoder(r.Body).Decode(&props)
 	if err != nil || props == nil {
@@ -400,6 +427,9 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	policyId := c.Params.PolicyId
 	channelIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
@@ -428,6 +458,9 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
+	if c.Err != nil {
+		return
+	}
 	policyId := c.Params.PolicyId
 	channelIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
