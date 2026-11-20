@@ -491,35 +491,18 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(screen.getByText("Older entries weren't searched.")).toBeInTheDocument();
         });
 
-        test('should only show the notice while the gap reaches into the time range', () => {
-            const timeRangeStart = Date.parse('2026-03-12T10:05:00.000Z');
-            const props = {logs: [makeNodeLog('default', 'a')], nodes: ['default'], timeRange: 5, timeRangeStart};
-
-            const {unmount} = renderListWith({...props, scanLimitedNodes: [{node: 'default', scannedBackTo: '2026-03-12 10:04:59.000 Z'}]});
-            expect(screen.queryByText(/The search stopped/)).not.toBeInTheDocument();
-            unmount();
-
-            const inRange = renderListWith({...props, scanLimitedNodes: [{node: 'default', scannedBackTo: '2026-03-12 10:06:00.000 Z'}]});
-            expect(screen.getByText('The search stopped before reaching older entries')).toBeInTheDocument();
-            inRange.unmount();
-
-            // With no readable end, the gap might still hide an entry
-            renderListWith({...props, scanLimitedNodes: [{node: 'default'}]});
-            expect(screen.getByText('The search stopped before reaching older entries')).toBeInTheDocument();
-        });
-
-        test('should not mark the filtered download partial for a gap before the time range', () => {
-            const timeRangeStart = Date.parse('2026-03-12T10:05:00.000Z');
+        test('should keep the notice and the partial download when the scan stopped before the time range', () => {
+            // Entries can be logged out of order, so the last line read doesn't bound the unread ones
             renderListWith({
                 logs: [makeLog('in range', '2026-03-12T10:06:00.000Z')],
                 timeRange: 5,
-                timeRangeStart,
+                timeRangeStart: Date.parse('2026-03-12T10:05:00.000Z'),
                 scanLimitedNodes: [{node: 'default', scannedBackTo: '2026-03-12 10:00:00.000 Z'}],
             });
+            expect(screen.getByText('The search stopped before reaching older entries')).toBeInTheDocument();
 
             fireEvent.click(screen.getByLabelText('Open menu to download the logs'));
-            expect(screen.getByRole('menuitem', {name: /^Filtered entries \(1\)/})).toBeInTheDocument();
-            expect(screen.queryByText('Only the loaded entries are included')).not.toBeInTheDocument();
+            expect(screen.getByText('Only the loaded entries are included')).toBeInTheDocument();
         });
 
         test('should only show the notice for the selected node', () => {

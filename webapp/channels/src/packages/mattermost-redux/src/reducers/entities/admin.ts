@@ -26,8 +26,8 @@ import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
 function mergeLogEntries(existing: LogObject[], allIncoming: LogObject[]): LogObject[] {
     // The entry standing in for a node that could not be reached only describes the latest response.
     // A scan limit entry says entries before its scanned_back_to may be missing. A poll can hit a limit
-    // too, and that gap stays after the next poll. Gaps only move forward in time, so the newest one is
-    // kept at the end: once it's older than the time range, every earlier gap is too
+    // too, and that gap stays after the next poll. The notice only needs to know that a scan stopped
+    // and how far the latest one reached, so the newest one is kept at the end
     const kept = existing.filter((entry) => !entry.failed_node && !entry.scan_limited);
     const loadedScanLimits = existing.filter((entry) => entry.scan_limited);
     const incomingScanLimits = allIncoming.filter((entry) => entry.scan_limited);
