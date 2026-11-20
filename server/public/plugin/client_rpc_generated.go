@@ -9831,6 +9831,38 @@ func (s *apiRPCServer) EvaluateAccessControl(args *Z_EvaluateAccessControlArgs, 
 	return nil
 }
 
+type Z_EvaluateAccessControlBatchArgs struct {
+	A string
+	B string
+	C string
+	D []string
+}
+
+type Z_EvaluateAccessControlBatchReturns struct {
+	A map[string]*model.AccessDecision
+	B *model.AppError
+}
+
+func (g *apiRPCClient) EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+	_args := &Z_EvaluateAccessControlBatchArgs{userID, resourceType, action, resourceIDs}
+	_returns := &Z_EvaluateAccessControlBatchReturns{}
+	if err := g.client.Call("Plugin.EvaluateAccessControlBatch", _args, _returns); err != nil {
+		log.Printf("RPC call to EvaluateAccessControlBatch API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) EvaluateAccessControlBatch(args *Z_EvaluateAccessControlBatchArgs, returns *Z_EvaluateAccessControlBatchReturns) error {
+	if hook, ok := s.impl.(interface {
+		EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.EvaluateAccessControlBatch(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("API EvaluateAccessControlBatch called but not implemented."))
+	}
+	return nil
+}
+
 type Z_SaveAccessControlPolicyArgs struct {
 	A string
 	B *model.AccessControlPolicy
@@ -9947,6 +9979,37 @@ func (s *apiRPCServer) CheckAccessControlExpression(args *Z_CheckAccessControlEx
 		returns.A, returns.B = hook.CheckAccessControlExpression(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API CheckAccessControlExpression called but not implemented."))
+	}
+	return nil
+}
+
+type Z_CheckAccessControlExpressionForSearchArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_CheckAccessControlExpressionForSearchReturns struct {
+	A []model.CELExpressionError
+	B *model.AppError
+}
+
+func (g *apiRPCClient) CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	_args := &Z_CheckAccessControlExpressionForSearchArgs{actingUserID, resourceType, expression}
+	_returns := &Z_CheckAccessControlExpressionForSearchReturns{}
+	if err := g.client.Call("Plugin.CheckAccessControlExpressionForSearch", _args, _returns); err != nil {
+		log.Printf("RPC call to CheckAccessControlExpressionForSearch API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) CheckAccessControlExpressionForSearch(args *Z_CheckAccessControlExpressionForSearchArgs, returns *Z_CheckAccessControlExpressionForSearchReturns) error {
+	if hook, ok := s.impl.(interface {
+		CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.CheckAccessControlExpressionForSearch(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API CheckAccessControlExpressionForSearch called but not implemented."))
 	}
 	return nil
 }
