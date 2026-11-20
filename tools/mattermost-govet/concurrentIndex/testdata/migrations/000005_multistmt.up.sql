@@ -1,1 +1,1 @@
-CREATE INDEX CONCURRENTLY idx_safe ON t (c); CREATE INDEX idx_unsafe ON t (d);
+CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_safe ON t (c); CREATE INDEX idx_unsafe ON t (d);

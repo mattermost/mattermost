@@ -17,16 +17,21 @@ import (
 )
 
 const (
-	diagCreateIndex = "use CREATE INDEX CONCURRENTLY instead of CREATE INDEX to avoid blocking DML"
-	diagDropIndex   = "use DROP INDEX CONCURRENTLY instead of DROP INDEX to avoid blocking DML"
+	diagCreateIndex       = "use CREATE INDEX CONCURRENTLY instead of CREATE INDEX to avoid blocking DML"
+	diagDropIndex         = "use DROP INDEX CONCURRENTLY instead of DROP INDEX to avoid blocking DML"
+	diagCreateIfNotExists = "use CREATE INDEX CONCURRENTLY IF NOT EXISTS so a retried migration is idempotent"
+	diagDropIfExists      = "use DROP INDEX CONCURRENTLY IF EXISTS so a retried migration is idempotent"
 )
 
 var (
-	createIndexRegex      = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\b`)
-	concurrentlyRegex     = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\b`)
-	dropIndexRegex        = regexp.MustCompile(`(?i)\bDROP\s+INDEX\b`)
-	dropConcurrentlyRegex = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\b`)
-	ignoreRegex           = regexp.MustCompile(`--\s*concurrentIndex:ignore\b`)
+	createIndexRegex       = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\b`)
+	concurrentlyRegex      = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\b`)
+	createIfNotExistsRegex = regexp.MustCompile(`(?i)\bCREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\s+IF\s+NOT\s+EXISTS\b`)
+	dropIndexRegex         = regexp.MustCompile(`(?i)\bDROP\s+INDEX\b`)
+	dropConcurrentlyRegex  = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\b`)
+	dropIfExistsRegex      = regexp.MustCompile(`(?i)\bDROP\s+INDEX\s+CONCURRENTLY\s+IF\s+EXISTS\b`)
+	ignoreRegex            = regexp.MustCompile(`--\s*concurrentIndex:ignore\b`)
+	lineCommentRegex       = regexp.MustCompile(`--[^\n]*`)
 )
 
 var sqlPath string
@@ -36,7 +41,7 @@ var migrationNumberRegex = regexp.MustCompile(`^\d+`)
 
 var Analyzer = &analysis.Analyzer{
 	Name: "concurrentIndex",
-	Doc:  "checks that CREATE INDEX and DROP INDEX use CONCURRENTLY to avoid blocking DML",
+	Doc:  "checks that CREATE INDEX and DROP INDEX use CONCURRENTLY to avoid blocking DML, with IF [NOT] EXISTS so retries are idempotent",
 	Run:  run,
 }
 
@@ -49,11 +54,22 @@ func checkStatement(stmt string) string {
 	if ignoreRegex.MatchString(stmt) {
 		return ""
 	}
-	if createIndexRegex.MatchString(stmt) && !concurrentlyRegex.MatchString(stmt) {
-		return diagCreateIndex
+	stmt = lineCommentRegex.ReplaceAllString(stmt, "")
+	if createIndexRegex.MatchString(stmt) {
+		if !concurrentlyRegex.MatchString(stmt) {
+			return diagCreateIndex
+		}
+		if !createIfNotExistsRegex.MatchString(stmt) {
+			return diagCreateIfNotExists
+		}
 	}
-	if dropIndexRegex.MatchString(stmt) && !dropConcurrentlyRegex.MatchString(stmt) {
-		return diagDropIndex
+	if dropIndexRegex.MatchString(stmt) {
+		if !dropConcurrentlyRegex.MatchString(stmt) {
+			return diagDropIndex
+		}
+		if !dropIfExistsRegex.MatchString(stmt) {
+			return diagDropIfExists
+		}
 	}
 	return ""
 }
@@ -168,7 +184,7 @@ func checkSQLFile(pass *analysis.Pass, name string) error {
 			startLine = lineNum
 		}
 		if stmtBuf.Len() > 0 {
-			stmtBuf.WriteByte(' ')
+			stmtBuf.WriteByte('\n')
 		}
 		stmtBuf.WriteString(trimmed)
 
