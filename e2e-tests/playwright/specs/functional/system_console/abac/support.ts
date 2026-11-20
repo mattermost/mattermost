@@ -497,11 +497,12 @@ export async function createBasicPolicy(
             .locator(`[id^="attribute-selector-menu"] li:has-text("${options.attribute}")`)
             .first();
         await attributeOption.click({force: true});
+        await expect(attributeMenu).toBeHidden();
 
         // Select operator
         const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
-        await operatorButton.waitFor({state: 'visible', timeout: 5000});
-        await operatorButton.click({force: true});
+        await expect(operatorButton).toBeVisible();
+        await operatorButton.click();
 
         const operatorMap: Record<string, string> = {
             '==': 'is',
@@ -513,7 +514,8 @@ export async function createBasicPolicy(
         };
         const operatorText = operatorMap[options.operator] || options.operator;
         const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
-        await operatorOption.click({force: true});
+        await expect(operatorOption).toBeVisible();
+        await operatorOption.click();
 
         // Fill value
         if (options.operator === 'in') {
@@ -650,12 +652,13 @@ export async function createMultiAttributePolicy(
             .locator(`[id^="attribute-selector-menu"] li:has-text("${rule.attribute}")`)
             .first();
         await attributeOption.click({force: true});
+        await expect(page.locator('[id^="attribute-selector-menu"]')).toBeHidden();
 
         // Select operator
         const operatorButtons = page.locator('[data-testid="operatorSelectorMenuButton"]');
         const operatorButton = operatorButtons.nth(i);
-        await operatorButton.waitFor({state: 'visible', timeout: 5000});
-        await operatorButton.click({force: true});
+        await expect(operatorButton).toBeVisible();
+        await operatorButton.click();
 
         // Map operator to display text
         const operatorMap: Record<string, string> = {
@@ -668,7 +671,8 @@ export async function createMultiAttributePolicy(
         };
         const operatorText = operatorMap[rule.operator] || 'is';
         const operatorOption = page.locator(`[id^="operator-selector-menu"] li:has-text("${operatorText}")`).first();
-        await operatorOption.click({force: true});
+        await expect(operatorOption).toBeVisible();
+        await operatorOption.click();
 
         // Enter value - check if it's a text input or select menu
         const valueInput = page.locator('.values-editor__simple-input').nth(i);
