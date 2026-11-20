@@ -17,6 +17,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -127,6 +128,8 @@ type Server struct {
 	htmlTemplates           *templates.Container
 	seenPendingPostIdsCache cache.Cache
 	openGraphDataCache      cache.Cache
+	entityCardCache         cache.Cache
+	entityPatternCache      cache.Cache
 	clusterLeaderListenerId string
 	loggerLicenseListenerId string
 
@@ -141,6 +144,8 @@ type Server struct {
 	propertyService  *properties.PropertyService
 	// propertyAccessControlHook is kept so tests can observe it.
 	propertyAccessControlHook *properties.AccessControlHook
+
+	sessionAttributeSchema atomic.Pointer[sessionAttributeSchema]
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -339,6 +344,7 @@ func NewServer(options ...Option) (*Server, error) {
 	app := New(ServerConnector(channels))
 
 	s.platform.SetPostDeliveryRecorder(app.RecordBroadcastDelivery)
+	s.platform.SetPrePublishHook(app.attachChannelReadAccessHook)
 
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use
@@ -525,6 +531,20 @@ func NewServer(options ...Option) (*Server, error) {
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")
+	}
+	if s.entityCardCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:          "entity_card",
+		Size:          openGraphMetadataCacheSize,
+		DefaultExpiry: 30 * time.Minute,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create entity card cache")
+	}
+	if s.entityPatternCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+		Name:          "entity_pattern",
+		Size:          entityPatternCacheSize,
+		DefaultExpiry: entityPatternTTL,
+	}); err != nil {
+		return nil, errors.Wrap(err, "Unable to create entity pattern cache")
 	}
 
 	s.createPushNotificationsHub(request.EmptyContext(s.Log()))

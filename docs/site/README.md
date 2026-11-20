@@ -140,13 +140,32 @@ feature — any `.md`/`.mdx` file with a leading underscore in its name is
 excluded from the docs plugin's routing/sidebars and can be `import`ed
 into another MDX file and rendered as `<Component />`. `stage-agents-docs.mjs`
 uses this to reproduce Sphinx's `.. include:: /agents/docs/admin_guide.md`
-behavior: it stages `admin_guide.md`/`user_guide.md` as normal (but
-`unlisted: true`) docs for direct-link parity, *and* as
-`_admin_guide_partial.mdx`/`_user_guide_partial.mdx` partials that
-`administration-guide/configure/agents-admin-guide.mdx` and
-`end-user-guide/agents.mdx` import and render inline — so those two pages
-show the full vendored guide content directly, with zero extra clicks,
-instead of just linking out to a separate page.
+behavior: it stages `admin_guide.md`, `user_guide.md` and `what_agents_see.md`
+as normal (but `unlisted: true`) docs for direct-link parity, *and* as
+`_admin_guide_partial.mdx`/`_user_guide_partial.mdx`/`_what_agents_see_partial.mdx`
+partials that `administration-guide/configure/agents-admin-guide.mdx`,
+`end-user-guide/agents.mdx` and
+`end-user-guide/collaborate/agents-context-management.mdx` import and render
+inline — so those pages show the vendored content directly, with zero extra
+clicks, instead of just linking out to a separate page. Links from other
+staged pages to these three docs are rewritten to the curated page's URL
+(`INLINE_CANONICAL_URLS`), since the staged copy is `noindex`.
+
+**Which Agents pages are listed:** `NAV_CHILDREN` in `stage-agents-docs.mjs`
+(keyed by path under the plugin's `docs/`, e.g. `managing_agents`)
+decides which staged pages are indexable; every other staged page is
+`unlisted` (`noindex`). The sidebar placement of the listed pages is in
+`gen-documentation-sidebar.mjs` (`ADMIN_CONFIGURE_GROUPS.agents` and
+`buildEndUserGuideSidebar`) via `agentsDocItems()`, which skips, with a
+warning, any page the pinned submodule doesn't contain yet, so bumping the
+submodule and extending these lists can land in either order. Nested
+categories inside the Agents group use `agentsDocCategory()`, which falls
+back to a flat list when the category's landing page isn't staged yet.
+
+**Renaming or removing an Agents page:** every removed or renamed
+`/agents/docs/<path>` URL needs an entry in `sidebars/active-redirects.json`,
+and any `/agents/docs/...` or curated-page link elsewhere in `main/` has to
+be updated (`grep -rn "agents/docs" main --include=*.mdx`).
 
 ### Plugin SDK reference generators
 
