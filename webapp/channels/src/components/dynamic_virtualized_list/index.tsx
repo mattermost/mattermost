@@ -101,6 +101,12 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     private _keepScrollPosition = false;
     private _keepScrollToBottom = false;
     private _scrollTopAfterResizeCorrection: number | null = null;
+
+    // Unrounded row heights and the part of the resize corrections that couldn't be applied to the whole pixel
+    // scroll position yet. Rows can have fractional heights (e.g. images scaled to the list width), so compensating
+    // with the rounded up sizes would be off by up to a pixel per resize, and that adds up over several resizes.
+    private _exactItemSizeMap: Partial<Record<string, number>> = {};
+    private _resizeCorrectionRemainder = 0;
     private _mountingCorrections = 0;
     private _correctedInstances = 0;
 
@@ -436,7 +442,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         // Rows are rendered in reverse order and only rendered items are list items, the rest are spacers
         for (let i = 0; i < rows.length; i++) {
             if (rows[i].getAttribute('role') === 'listitem') {
-                sizes.set(itemData[itemData.length - 1 - i], roundItemHeight(rows[i].getBoundingClientRect().height));
+                sizes.set(itemData[itemData.length - 1 - i], rows[i].getBoundingClientRect().height);
             }
         }
         return sizes;
@@ -450,11 +456,19 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         const sizesAfterChange = this._getRenderedItemSizes(this.props.itemData);
         let resized = false;
 
-        for (const [key, sizeAfterChange] of sizesAfterChange) {
-            const sizeBeforeChange = sizesBeforeChange.get(key);
+        for (const [key, exactSizeAfterChange] of sizesAfterChange) {
+            const exactSizeBeforeChange = sizesBeforeChange.get(key);
             const measuredSize = itemSizeMap[key];
-            if (sizeBeforeChange !== undefined && measuredSize && sizeAfterChange !== sizeBeforeChange) {
-                itemSizeMap[key] = measuredSize + (sizeAfterChange - sizeBeforeChange);
+            if (exactSizeBeforeChange === undefined || !measuredSize || exactSizeAfterChange === exactSizeBeforeChange) {
+                continue;
+            }
+
+            const exactMeasuredSize = this._exactItemSizeMap[key] ?? measuredSize;
+            this._exactItemSizeMap[key] = exactMeasuredSize + (exactSizeAfterChange - exactSizeBeforeChange);
+
+            const sizeChange = roundItemHeight(exactSizeAfterChange) - roundItemHeight(exactSizeBeforeChange);
+            if (sizeChange !== 0) {
+                itemSizeMap[key] = measuredSize + sizeChange;
                 resized = true;
             }
         }
@@ -593,7 +607,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         }
     };
 
-    _handleNewMeasurements = (key: string, newSize: number, forceScrollCorrection: boolean) => {
+    _handleNewMeasurements = (key: string, newSize: number, forceScrollCorrection: boolean, exactNewSize = newSize) => {
         const {itemSizeMap} = this._listMetaData;
         const {itemData} = this.props;
         const index = itemData.findIndex((item) => item === key);
@@ -603,6 +617,8 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         // Handle this edge case to prevent NaN values from breaking styles.
         // Slow scrolling back over these skipped rows will adjust their sizes.
         const oldSize = itemSizeMap[key] || 0;
+        const exactOldSize = this._exactItemSizeMap[key] ?? oldSize;
+        this._exactItemSizeMap[key] = exactNewSize;
         if (oldSize === newSize) {
             return;
         }
@@ -678,7 +694,11 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         // the viewport resizes (e.g. an image finishes loading), the visible rows have to be held in place.
         // Rows measured for the first time are skipped since prepended rows are compensated for separately.
         if (oldSize && index > visibleStartIndex) {
-            const scrollTop = Math.max(0, previousScrollTop + (newSize - oldSize));
+            const correction = (exactNewSize - exactOldSize) + this._resizeCorrectionRemainder;
+            const roundedCorrection = Math.round(correction);
+            this._resizeCorrectionRemainder = correction - roundedCorrection;
+
+            const scrollTop = Math.max(0, previousScrollTop + roundedCorrection);
             element.scrollTop = scrollTop;
             this._scrollTopAfterResizeCorrection = scrollTop;
         }
@@ -709,6 +729,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         if (!doesItemExist) {
             delete this._listMetaData.itemSizeMap[itemId];
             delete this._listMetaData.itemOffsetMap[itemId];
+            delete this._exactItemSizeMap[itemId];
             const element = this._outerRef;
             if (!element) {
                 return;

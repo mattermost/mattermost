@@ -191,6 +191,40 @@ describe('DynamicVirtualizedList', () => {
         expect(scroller.scrollTop).toBe(610);
     });
 
+    test('keeps the visible rows in place within a pixel when rows above the viewport get fractional heights', () => {
+        const {scroller} = renderList();
+        userScrollTo(scroller, 440);
+
+        const visibleRowTop = () => {
+            let top = 0;
+            for (const row of document.querySelectorAll<HTMLElement>('.item_measurer')) {
+                if (row.firstElementChild === screen.getByTestId('item-5')) {
+                    return top - scroller.scrollTop;
+                }
+                top += renderedRowHeight(row);
+            }
+            throw new Error('item-5 is not rendered');
+        };
+        expect(visibleRowTop()).toBe(0);
+
+        // Like images scaled to the width of the list, each resize would be overcompensated by up to a pixel if the
+        // rounded up heights were used, adding up to 2px here
+        resizeRow('item-8', 250.3);
+        resizeRow('item-6', 180.6);
+        resizeRow('item-7', 300.7);
+        resizeRow('item-9', 160.4);
+
+        expect(Math.abs(visibleRowTop())).toBeLessThan(1);
+
+        // Scroll events in between don't let the error add up either
+        fireEvent.scroll(scroller);
+        resizeRow('item-8', 400.3);
+        fireEvent.scroll(scroller);
+        resizeRow('item-6', 120.9);
+
+        expect(Math.abs(visibleRowTop())).toBeLessThan(1);
+    });
+
     test('keeps the visible rows in place when a row partially above the viewport changes height', () => {
         const {scroller} = renderList();
         userScrollTo(scroller, 450);
@@ -251,6 +285,10 @@ describe('DynamicVirtualizedList', () => {
         // item-5 is now partially above the viewport
         resizeRow('item-5', 200);
         expect(scroller.scrollTop).toBe(540);
+
+        // A later resize of item-9 is compensated from its height after the update
+        resizeRow('item-9', 250);
+        expect(scroller.scrollTop).toBe(690);
     });
 
     test('keeps the visible rows in place when older items are rendered while scrolling up', async () => {
