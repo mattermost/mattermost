@@ -501,13 +501,12 @@ func postLog(c *Context, w http.ResponseWriter, r *http.Request) {
 		mlog.String("type", "client_message"),
 		mlog.String("user_agent", c.AppContext.UserAgent()),
 		mlog.String("session_id", c.AppContext.Session().Id),
-		mlog.String("user_id", c.AppContext.Session().UserId),
 	}
 
 	if !forceToDebug && lvl == "ERROR" {
-		mlog.Error(msg, fields...)
+		c.Logger.Error(msg, fields...)
 	} else {
-		mlog.Debug(msg, fields...)
+		c.Logger.Debug(msg, fields...)
 	}
 
 	m["message"] = msg
