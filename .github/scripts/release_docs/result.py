@@ -21,21 +21,11 @@ class Result:
     title: str = ""
     body: str = ""
     files: dict = field(default_factory=dict)  # repo path -> new text, for PR tasks
-    text: str = ""  # for tasks whose output is text: a release description, posts, drafts
-    artifacts: dict = field(default_factory=dict)  # extra artifact file name -> text
+    text: str = ""  # for tasks whose output is text: a release description, the ESR comms outcome
     todos: list = field(default_factory=list)
     notes: list = field(default_factory=list)
     skipped: str = ""  # why the task does not apply to this version
-    # Private results (drafts, release-highlights, breaking-changes) name Jira keys, epics and
-    # mattermost/enterprise PRs: everything goes to Hub, and Actions get only ``counts`` and
-    # mattermost/mattermost refs. See report.py.
-    private: bool = False
-    counts: dict = field(default_factory=dict)
     pr_branch: str = ""  # for tasks whose branch is not named after one version
-    # Kept with a private result's Hub post (report.py), for a later task to read: the
-    # breaking-change candidates, or a confirmation (``report_kind`` "decision").
-    state: dict = field(default_factory=dict)
-    report_kind: str = ""
 
     def todo(self, reason: str, bare: bool = False) -> str:
         """Record a missing input and return the visible marker to put where the value goes.

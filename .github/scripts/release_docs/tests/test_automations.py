@@ -33,17 +33,8 @@ HIGHLIGHT_ANSWER = {"highlights": [{"name": "Attribute Management", "source": 0,
                                     "url": "https://docs.mattermost.com/administration-guide/manage/admin/attribute-management"}]}
 
 
-def ics(events: list) -> str:
-    lines = ["BEGIN:VCALENDAR"]
-    for title, day in events:
-        lines += ["BEGIN:VEVENT", f"SUMMARY:{title}", f"DTSTART;VALUE=DATE:{day}", "END:VEVENT"]
-    return "\n".join(lines + ["END:VCALENDAR"])
-
-
-def calendar_fetch(fetch, events: list):
-    def answer(url, method="GET"):
-        return (200, ics(events)) if url == "https://cal" else fetch(url, method)
-    return answer
+MILESTONES = [{"title": "v12.1.0", "due_on": "2026-11-13T00:00:00Z"}, {"title": "v12.2.0", "due_on": "2026-12-16T00:00:00Z"},
+              {"title": "v12.3.0", "due_on": "2027-01-15T00:00:00Z"}]
 
 
 class Scenario:
@@ -58,6 +49,7 @@ class Scenario:
         gh.add_repo(self.repo, self.files())
         if self.repo != SERVER:
             gh.add_repo(SERVER, {"docs/main/product-overview/mattermost-v12-changelog.mdx": CHANGELOG})
+        gh.milestone_list[SERVER] = [dict(m) for m in MILESTONES]
         return gh
 
     def inputs(self, complete: bool) -> dict:
@@ -65,26 +57,27 @@ class Scenario:
         env = {"EVENT_NAME": "workflow_dispatch", "ESR_VERSIONS": ESR, "WAIT_ATTEMPTS": "1", **self.env}
         claude = FakeClaude(HIGHLIGHT_ANSWER)
         fetch = published_fetch()
-        if self.task == "release-docs":
-            # The Release Dates calendar, for the next two releases' Release Days.
-            env["CALENDAR_ICS_URL"] = "https://cal"
-            fetch = calendar_fetch(fetch, [("v12.2 Release Day", "20261216"), ("v12.3 Release Day", "20270115")])
         if not complete:
             if self.task == "version-archive":
                 fetch = release_server({}, missing=("mattermost-team",))
             elif self.task == "upgrade-notice":
                 claude = None
             elif self.task == "release-docs":
-                env.pop("RELEASE_DATE")
+                env["MISSING_DUE_DATE"] = "v12.1.0"
         return {"env": env, "claude": claude, "fetch": fetch}
 
     def run(self, gh, live: bool, complete: bool = True):
         inputs = self.inputs(complete)
         env = {**inputs.pop("env"), "MODE": "live" if live else "dry_run"}
-        # The breaking-change list ran and found nothing: the upgrade pages have nothing to add.
+        for milestone in gh.milestone_list.get(SERVER, []):  # the release's milestone has no due date yet
+            if milestone["title"] == env.get("MISSING_DUE_DATE"):
+                milestone["due_on"] = None
+            elif milestone["title"] == self.version:
+                milestone["due_on"] = next(m["due_on"] for m in MILESTONES if m["title"] == self.version)
+        # No breaking changes were confirmed: the upgrade pages have nothing to add.
         # (test_upgrade_docs.py covers the pages themselves.)
-        with mock.patch.object(cli, "upgrade_from_breaking_changes", return_value=upgrade_docs.plan([], [], [], {}, {})):
-            return cli.run_task(self.task, self.version, env, gh, gh, sleep=lambda _: None, **inputs)
+        with mock.patch.object(cli, "upgrade_from_marker", return_value=upgrade_docs.plan([], {}, {})):
+            return cli.run_task(self.task, self.version, env, gh, sleep=lambda _: None, **inputs)
 
     @property
     def branch(self):
@@ -97,8 +90,7 @@ SCENARIOS = [
     Scenario("upgrade-notice", "v12.0.0", notice.REPO, notice.PATH,
              lambda: {notice.PATH: fixture("notices-before-v12.0.json")}, {"RELEASE_DATE": "2026-10-16"}),
     Scenario("release-docs", "v12.1.0", SERVER, release_docs_pr.SERVER_RELEASES,
-             lambda: {**real_docs(), release_docs_pr.POSTGRES_REQUIREMENT: "\tMinimumPostgresMajorVersion = 15\n"},
-             {"RELEASE_DATE": "2026-11-13"}),
+             lambda: {**real_docs(), release_docs_pr.POSTGRES_REQUIREMENT: "\tMinimumPostgresMajorVersion = 15\n"}),
     Scenario("docker-env", "v11.7.0", docker_env.REPO, docker_env.PATH,
              lambda: {docker_env.PATH: fixture("env.example-before-v11.7.0")}),
 ]
@@ -210,14 +202,14 @@ class AutomationTest(unittest.TestCase):
     def test_docker_env_without_esr_lines_opens_nothing(self):
         s = SCENARIOS[-1]
         gh = s.github()
-        run = cli.run_task(s.task, s.version, {"MODE": "live", "ESR_VERSIONS": ""}, gh, gh, None)
+        run = cli.run_task(s.task, s.version, {"MODE": "live", "ESR_VERSIONS": ""}, gh, None)
         self.assertEqual(gh.writes, [])
         self.assertTrue(run.result.failed)
 
     def test_docker_env_regular_release_is_skipped(self):
         s = SCENARIOS[-1]
         gh = s.github()
-        run = cli.run_task(s.task, "v12.2.0", {"MODE": "live", "ESR_VERSIONS": ESR}, gh, gh, None)
+        run = cli.run_task(s.task, "v12.2.0", {"MODE": "live", "ESR_VERSIONS": ESR}, gh, None)
         self.assertEqual(gh.writes, [])
         self.assertTrue(run.outcome.startswith("Skipped:"))
 
@@ -234,7 +226,7 @@ class ReleaseEventTest(unittest.TestCase):
 
     def run_task(self, task, version, gh, live, claude=None):
         env = {"EVENT_NAME": "release", "MODE": "live" if live else "dry_run", "ESR_VERSIONS": ESR}
-        return cli.run_task(task, version, env, gh, gh, claude or FakeClaude(HIGHLIGHT_ANSWER))
+        return cli.run_task(task, version, env, gh, claude or FakeClaude(HIGHLIGHT_ANSWER))
 
     def test_github_release_text_dry_run_shows_only(self):
         gh = self.github()
@@ -268,32 +260,19 @@ class ReleaseEventTest(unittest.TestCase):
         self.assertEqual(gh.writes, [])
 
 
-class TextTaskTest(unittest.TestCase):
-    def test_posts_and_breaking_changes_never_write(self):
-        gh = FakeGitHub()
-        gh.add_repo(SERVER, {"docs/main/product-overview/mattermost-v12-changelog.mdx": CHANGELOG,
-                             release_docs_pr.SERVER_RELEASES: real_docs()[release_docs_pr.SERVER_RELEASES]})
-        ics = fixture("release-dates.ics")
-        env = {"EVENT_NAME": "workflow_dispatch", "MODE": "live", "ESR_VERSIONS": ESR, "CALENDAR_ICS_URL": "https://cal"}
-        run = cli.run_task("posts", "v12.0.0", env, gh, gh, FakeClaude(HIGHLIGHT_ANSWER), fetch=lambda u, m="GET": (200, ics))
-        self.assertIn("Attribute Management", run.result.text)
-        gh.search_results['milestone:"v12.2.0" label:"Breaking Change"'] = []
-        run = cli.run_task("breaking-changes", "v12.2.0", env, gh, gh, None)
-        self.assertEqual(run.result.text.count(TODO_MARKER), 0)
-        self.assertEqual(gh.writes, [])
-
-
 class ResolveTest(unittest.TestCase):
     def test_events(self):
         resolve = cli.resolve
         self.assertEqual(resolve("version-archive", {"EVENT_NAME": "release"}, {"action": "published", "release": {"tag_name": "v12.1.0"}}),
                          {"run": "true", "version": "v12.1.0", "mode": "dry_run", "reason": "release published"})
         self.assertEqual(resolve("version-archive", {"EVENT_NAME": "release"}, {"release": {"tag_name": "v12.1.0-rc1"}})["run"], "false")
-        self.assertEqual(resolve("breaking-changes", {"EVENT_NAME": "push", "PHASE3_MODE": "live"},
-                                 {"ref": "refs/heads/release-12.2", "created": True}),
-                         {"run": "true", "version": "v12.2.0", "mode": "live", "reason": "branch cut"})
-        self.assertEqual(resolve("breaking-changes", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2", "created": False})["run"], "false")
-        self.assertEqual(resolve("breaking-changes", {"EVENT_NAME": "push"}, {"ref": "refs/heads/release-12.2-fix", "created": True})["run"], "false")
+        self.assertEqual(resolve("esr-comms", {"EVENT_NAME": "schedule", "PHASE3_MODE": "live"}, {}),
+                         {"run": "true", "version": "scheduled", "mode": "live",
+                          "reason": "weekday run: the task checks whether it's due"})
+        self.assertEqual(resolve("esr-comms", {"EVENT_NAME": "workflow_dispatch", "INPUT_VERSION": ""}, {})["version"],
+                         "scheduled")
+        with self.assertRaises(ValueError):
+            resolve("version-archive", {"EVENT_NAME": "schedule"}, {})
 
     def test_weekday_run_opens_the_release_docs_pr_when_the_tag_event_did_not(self):
         s = next(s for s in SCENARIOS if s.task == "release-docs")
@@ -336,8 +315,10 @@ class ResolveTest(unittest.TestCase):
         tag = {"ref": "refs/tags/v12.2.0-rc1", "created": True}
         self.assertEqual(cli.resolve("release-docs", env, tag, gh),
                          {"run": "true", "version": "v12.2.0", "mode": "live", "reason": "v12.2.0-rc1 tagged"})
-        # Not at the branch cut any more, not for later RCs, and not for a tag that isn't on release-X.Y.
-        self.assertEqual(cli.resolve("release-docs", env, {"ref": "refs/heads/release-12.2", "created": True}, gh)["run"], "false")
+        # Not at the branch cut (no workflow runs on branch pushes), not for later RCs, and not for a tag
+        # that isn't on release-X.Y.
+        with self.assertRaises(ValueError):
+            cli.resolve("release-docs", env, {"ref": "refs/heads/release-12.2", "created": True}, gh)
         self.assertEqual(cli.resolve("release-docs", env, {"ref": "refs/tags/v12.2.0-rc2", "created": True}, gh)["run"], "false")
         gh.push("mattermost/mattermost", "master", {"c": "d"})
         gh.tag_commits[("mattermost/mattermost", "v12.2.0-rc1")] = branches["master"][-1]["sha"]
@@ -352,9 +333,9 @@ class ResolveTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             cli.resolve("version-archive", {**env, "INPUT_MODE": "yes"}, {})
 
-    def test_breaking_changes_needs_a_milestone(self):
+    def test_dot_release_docs_needs_versions(self):
         with self.assertRaises(ValueError):
-            cli.resolve("breaking-changes", {"EVENT_NAME": "workflow_dispatch"}, {})
+            cli.resolve("dot-release-docs", {"EVENT_NAME": "workflow_dispatch"}, {})
 
 
 class MainTest(unittest.TestCase):

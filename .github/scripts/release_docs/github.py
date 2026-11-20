@@ -64,39 +64,9 @@ class GitHub:
         blob = self.request("GET", found["git_url"])
         return base64.b64decode(blob["content"]).decode()
 
-    def list_dir(self, repo: str, path: str, ref: str) -> list[str]:
-        """File names in a directory at ``ref`` (the contents API lists up to 1,000)."""
-        found = self.request("GET", f"/repos/{repo}/contents/{urllib.parse.quote(path)}?ref={urllib.parse.quote(ref)}",
-                             missing_ok=True)
-        return [item["name"] for item in found] if isinstance(found, list) else []
-
     def last_commit_for_path(self, repo: str, path: str, ref: str) -> str | None:
         found = self.request("GET", f"/repos/{repo}/commits?" + urllib.parse.urlencode({"path": path, "sha": ref, "per_page": 1}))
         return found[0]["sha"] if found else None
-
-    def commits_for_path(self, repo: str, path: str, ref: str, since: str, limit: int = 300) -> list[str]:
-        """The commits on ``ref`` since ``since`` (ISO 8601) that touched ``path`` (a file or folder), newest first."""
-        shas, page = [], 1
-        while len(shas) < limit:
-            batch = self.request("GET", f"/repos/{repo}/commits?" + urllib.parse.urlencode(
-                {"path": path, "sha": ref, "since": since, "per_page": 100, "page": page})) or []
-            shas += [c["sha"] for c in batch]
-            if len(batch) < 100:
-                break
-            page += 1
-        return shas[:limit]
-
-    def merge_base_date(self, repo: str, base: str, head: str) -> str | None:
-        """When the last commit both refs share was made: for a release tag and the next release
-        branch, the previous release branch's cut."""
-        found = self.request("GET", f"/repos/{repo}/compare/{urllib.parse.quote(base)}...{urllib.parse.quote(head)}"
-                                    "?per_page=1", missing_ok=True) or {}
-        return ((found.get("merge_base_commit") or {}).get("commit") or {}).get("committer", {}).get("date")
-
-    def commit_patches(self, repo: str, sha: str) -> dict:
-        """``{file name: patch}`` of one commit (a file too large for the API has no patch)."""
-        found = self.request("GET", f"/repos/{repo}/commits/{urllib.parse.quote(sha)}") or {}
-        return {f["filename"]: f.get("patch") or "" for f in found.get("files") or []}
 
     def matching_refs(self, repo: str, prefix: str) -> list[str]:
         """Full ref names starting with ``prefix``, such as ``tags/v12.`` or ``heads/release-``."""
@@ -187,6 +157,10 @@ class GitHub:
     def update_pr(self, repo: str, number: int, title: str, body: str) -> None:
         self.request("PATCH", f"/repos/{repo}/pulls/{number}", {"title": title, "body": body})
 
+    def request_reviewers(self, repo: str, number: int, users: list[str], teams: list[str]) -> None:
+        self.request("POST", f"/repos/{repo}/pulls/{number}/requested_reviewers",
+                     {"reviewers": users, "team_reviewers": teams})
+
     def add_labels(self, repo: str, number: int, labels: list[str]) -> None:
         self.request("POST", f"/repos/{repo}/issues/{number}/labels", {"labels": labels})
 
@@ -196,17 +170,15 @@ class GitHub:
     def remove_label(self, repo: str, number: int, label: str) -> None:
         self.request("DELETE", f"/repos/{repo}/issues/{number}/labels/{urllib.parse.quote(label)}", missing_ok=True)
 
-    def search_issues(self, query: str, limit: int = 1000) -> list[dict]:
-        items, page = [], 1
-        while len(items) < limit:
-            params = urllib.parse.urlencode({"q": query, "per_page": 100, "page": page})
-            found = self.request("GET", f"/search/issues?{params}")
-            batch = found.get("items", [])
-            items += batch
+    def milestones(self, repo: str) -> list[dict]:
+        """Every milestone, open and closed."""
+        found, page = [], 1
+        while True:
+            batch = self.request("GET", f"/repos/{repo}/milestones?state=all&per_page=100&page={page}") or []
+            found += batch
             if len(batch) < 100:
-                break
+                return found
             page += 1
-        return items[:limit]
 
     # ── Releases ────────────────────────────────────────────────────────────────────
 

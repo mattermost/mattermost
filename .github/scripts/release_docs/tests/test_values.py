@@ -1,10 +1,10 @@
-"""Calculated values, templates, the calendar and the changelog reader."""
+"""Calculated values, templates, Release Days from milestones and the changelog reader."""
 
 import json
 import unittest
 from datetime import date
 
-from release_docs import calendar, changelog, templates
+from release_docs import changelog, milestones, templates
 from release_docs.changelog import Highlight
 from release_docs.versions import (
     Version,
@@ -20,7 +20,7 @@ from release_docs.versions import (
     support_end,
 )
 
-from .fakes import FakeClaude, fixture
+from .fakes import FakeClaude, FakeGitHub
 
 ESR = "v10.11, v11.7,v12.4"
 
@@ -77,9 +77,6 @@ class TemplatesTest(unittest.TestCase):
                                "signature_url", "sbom_url"},
         "notice.json": {"short", "display_date", "description_json", "changelog_page_url"},
         "github-release.txt": {"release_kind", "version", "highlights"},
-        "announcement-post.md": {"short", "esr_label", "highlight_list", "changelog_url", "blog_url", "download_url"},
-        "esr-section.md": {"new_esr", "new_desktop_esr", "new_esr_month", "new_esr_support_end", "old_esr",
-                           "old_desktop_esr", "old_esr_support_end", "life_cycle", "backports"},
         "dot-release-security.md": {"version", "fixes"},
         "dot-release-pr-body.md": {"versions", "files", "details"},
     }
@@ -101,28 +98,21 @@ class TemplatesTest(unittest.TestCase):
         self.assertEqual(json.loads(text)["localizedMessages"]["en"]["description"], 'Has "quotes"')
 
 
-class CalendarTest(unittest.TestCase):
-    def setUp(self):
-        self.events = calendar.parse_ics(fixture("release-dates.ics"))
-
-    def test_release_days_skip_mobile_desktop_and_dot_releases(self):
-        self.assertEqual(calendar.release_day(self.events, Version.parse("v12.2.0")), date(2026, 12, 16))
-        self.assertEqual(calendar.release_day(self.events, Version.parse("v12.3.1")), date(2027, 1, 15))
-        self.assertIsNone(calendar.release_day(self.events, Version.parse("v12.9.0")))
-
-    def test_folded_escaped_and_timed_titles(self):
-        milestones = calendar.milestones(self.events)
-        self.assertEqual(milestones[(12, 3)]["code_freeze"].start, date(2026, 11, 25))
-        self.assertEqual(milestones[(12, 3)]["final_build"].start, date(2026, 12, 7))
-        self.assertEqual(milestones[(12, 2)]["code_freeze"].time, "09:00 America/Toronto")
-        self.assertEqual(calendar.format_day(milestones[(12, 2)]["release_day"]), "Wed, Dec 16, 2026 at 14:00 UTC")
-
-    def test_next_two_releases(self):
-        upcoming = calendar.next_releases(self.events, Version.parse("v12.1.0"))
-        self.assertEqual([v.short for v, _ in upcoming], ["v12.2", "v12.3"])
-
-    def test_jira_fix_version(self):
-        self.assertEqual(calendar.fix_version(Version.parse("v12.2.0"), date(2026, 12, 16)), "v12.2 (December 2026)")
+class MilestonesTest(unittest.TestCase):
+    def test_release_days_are_the_due_dates_of_the_x_y_0_milestones(self):
+        gh = FakeGitHub()
+        gh.milestone_list["mattermost/mattermost"] = [
+            {"title": "v12.3.0", "due_on": "2027-01-16T08:00:00Z"},  # a due date set in a US time zone
+            {"title": "v12.2.0", "due_on": "2026-12-16T00:00:00Z"},
+            {"title": "v12.4.0", "due_on": None},  # no due date: no Release Day, never a guess
+            {"title": "v12.2.1", "due_on": "2026-12-20T00:00:00Z"},  # a dot release
+            {"title": "Backlog", "due_on": "2026-12-01T00:00:00Z"},
+        ]
+        self.assertEqual(milestones.release_days(gh, "mattermost/mattermost"),
+                         {(12, 3): date(2027, 1, 16), (12, 2): date(2026, 12, 16)})
+        self.assertEqual(milestones.release_days(gh, "mattermost/desktop"), {})
+        self.assertEqual(milestones.missing(Version.parse("v12.4.1")),
+                         "no due date on the v12.4.0 milestone in mattermost/mattermost, so no Release Day")
 
 
 ENTRY = """## Release v12.2 - [Feature Release](https://docs.mattermost.com/x) \\{#release-v12-2-feature-release}
@@ -153,8 +143,6 @@ class ChangelogTest(unittest.TestCase):
         bullets = changelog.improvement_bullets(entry)
         self.assertEqual(len(bullets), 3)
         self.assertTrue(bullets[0].startswith("Added Shared Drafts"))
-        self.assertEqual(changelog.blog_url(entry, Version.parse("v12.2.0")),
-                         "https://mattermost.com/blog/mattermost-v12-2-is-now-available/")
         self.assertIsNone(changelog.entry(ENTRY, Version.parse("v12.3.0")))
 
     def test_highlights_must_cite_a_bullet_and_only_its_links(self):

@@ -27,11 +27,12 @@ class FakeGitHub:
         self.releases = {}
         self.release_list = {}  # repo -> releases, newest first
         self.latest = {}
-        self.search_results = {}
         self.tags = {}  # repo -> tag names
         self.path_commits = {}  # (repo, path) -> the last commit that touched it
         self.pulls_by_commit = {}  # (repo, sha) -> PRs
         self.writes = []
+        self.milestone_list = {}  # repo -> milestones as the API lists them
+        self.reviewers_refused = False  # request_reviewers answers 422, as for a login without access
         self.labels_in_repo = {"release-agent"}  # labels that exist; the workflow never creates one
         self._shas = (f"sha{n}" for n in itertools.count(1))
 
@@ -64,14 +65,6 @@ class FakeGitHub:
     def file(self, repo, path, ref):
         commits = self.repos.get(repo, {}).get("branches", {}).get(ref)
         return commits[-1]["files"].get(path) if commits else None
-
-    def list_dir(self, repo, path, ref):
-        files = self.file_map(repo, ref)
-        return sorted({p[len(path) + 1:].split("/")[0] for p in files if p.startswith(path + "/")})
-
-    def file_map(self, repo, ref):
-        commits = self.repos.get(repo, {}).get("branches", {}).get(ref)
-        return commits[-1]["files"] if commits else {}
 
     def matching_refs(self, repo, prefix):
         return [f"refs/heads/{b}" for b in self.repos.get(repo, {}).get("branches", {}) if f"heads/{b}".startswith(prefix)] + \
@@ -127,8 +120,13 @@ class FakeGitHub:
         pr = next(p for p in self.pulls[repo] if p["number"] == number)
         pr["labels"] = sorted(set(pr["labels"]) | set(labels))
 
-    def search_issues(self, query, limit=1000):
-        return [item for key, items in self.search_results.items() if key in query for item in items]
+    def request_reviewers(self, repo, number, users, teams):
+        if self.reviewers_refused:
+            raise GitHubError(422, "Reviews may only be requested from collaborators.")
+        self.writes.append(("request_reviewers", repo, number, tuple(users), tuple(teams)))
+
+    def milestones(self, repo):
+        return self.milestone_list.get(repo, [])
 
     def release_by_tag(self, repo, tag):
         return self.releases.get((repo, tag))

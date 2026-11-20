@@ -1,11 +1,19 @@
 """Opening and updating a task's draft PR: one branch per task, never a second PR, never a force-push."""
 
 import os
+import re
 from dataclasses import dataclass
 
+from .github import GitHubError
 from .result import LABEL as OPTIONAL_LABEL, TODO_MARKER, Result, branch_name
 
 TRAILER = "Release-Agent-Task"
+REVIEWERS_SETTING = "RELEASE_DOCS_REVIEWERS"
+LOGIN = re.compile(r"^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$")
+TEAM = re.compile(r"^([A-Za-z0-9][A-Za-z0-9-]*)/([A-Za-z0-9][A-Za-z0-9_.-]*)$")
+# Hidden markers another workflow writes into a PR body (mattermost/release-automation's
+# confirmed breaking changes): kept whenever this workflow rewrites the body.
+KEPT_MARKER = re.compile(r"<!--\s*release-automation:.*?-->", re.DOTALL)
 
 
 @dataclass
@@ -61,7 +69,46 @@ def commit_message(result: Result) -> str:
     return f"{result.title}\n\n{TRAILER}: {result.task}\n"
 
 
-def apply(gh, result: Result, target: Target, live: bool) -> str:
+def parse_reviewers(raw: str, owner: str) -> tuple[list[str], list[str], list[str]]:
+    """(logins, team slugs, problems) from RELEASE_DOCS_REVIEWERS: comma-separated GitHub logins
+    and ``org/team`` teams, with or without ``@``. A team must be in the repo owner's org."""
+    users, teams, problems = [], [], []
+    for item in (part.strip().lstrip("@") for part in (raw or "").split(",")):
+        if not item:
+            continue
+        team = TEAM.match(item)
+        if team and team.group(1).lower() == owner.lower():
+            teams.append(team.group(2))
+        elif team:
+            problems.append(f"{REVIEWERS_SETTING}: {item} is not a team in {owner}, so it can't review here")
+        elif LOGIN.match(item):
+            users.append(item)
+        else:
+            problems.append(f"{REVIEWERS_SETTING}: {item!r} is neither a GitHub login nor an org/team")
+    return list(dict.fromkeys(users)), list(dict.fromkeys(teams)), problems
+
+
+def request_reviewers(gh, repo: str, number: int, raw: str) -> str:
+    """Ask RELEASE_DOCS_REVIEWERS to review a new PR. Returns a note for the outcome ("" when unset)."""
+    users, teams, problems = parse_reviewers(raw, repo.split("/")[0])
+    asked = users + [f"{repo.split('/')[0]}/{t}" for t in teams]
+    note = "".join(f" {p}." for p in problems)
+    if not asked:
+        return note
+    try:
+        gh.request_reviewers(repo, number, users, teams)
+    except GitHubError as err:
+        return f"{note} Review not requested from {', '.join(asked)}: GitHub answered {err.status}."
+    return f"{note} Review requested from {', '.join(asked)}."
+
+
+def kept_markers(old_body: str | None, new_body: str) -> str:
+    """``new_body`` with the hidden markers of ``old_body`` that it doesn't already have."""
+    missing = [m for m in KEPT_MARKER.findall(old_body or "") if m not in new_body]
+    return new_body.rstrip() + "\n\n" + "\n".join(missing) + "\n" if missing else new_body
+
+
+def apply(gh, result: Result, target: Target, live: bool, reviewers: str = "") -> str:
     """Publish ``result`` (live) or describe what would happen (dry run). Returns that description."""
     pr = target.pr
     prefix = "" if live else "Dry run: would have "
@@ -77,9 +124,9 @@ def apply(gh, result: Result, target: Target, live: bool) -> str:
     if not live:
         action = f"updated PR #{pr['number']}" if pr else f"opened a draft PR from `{target.branch}`"
         return f"{prefix}{action} in {target.repo}, changing {paths}."
-    action, number, skipped = write(gh, target, result.files, commit_message(result), result.title,
-                                    pr_body(result), [])
-    return f"{action} PR {target.repo}#{number}, changing {paths}.{skipped_label_note(skipped, target.repo)}"
+    action, number, skipped, review = write(gh, target, result.files, commit_message(result), result.title,
+                                            pr_body(result), [], reviewers=reviewers)
+    return f"{action} PR {target.repo}#{number}, changing {paths}.{skipped_label_note(skipped, target.repo)}{review}"
 
 
 def skipped_label_note(skipped: list[str], repo: str) -> str:
@@ -88,18 +135,22 @@ def skipped_label_note(skipped: list[str], repo: str) -> str:
 
 
 def write(gh, target: Target, files: dict, message: str, title: str, body: str, labels: list[str],
-          optional_labels: tuple[str, ...] = (OPTIONAL_LABEL,)) -> tuple[str, int, list[str]]:
+          optional_labels: tuple[str, ...] = (OPTIONAL_LABEL,), reviewers: str = "") -> tuple[str, int, list[str], str]:
     """Commit ``files`` on top of ``target.sha`` (creating the branch if needed), then open or
     update the draft PR and add ``labels``, plus each of ``optional_labels`` that already exists in
-    the repo (never created; the ones skipped are returned). The ref only ever moves forward."""
+    the repo (never created; the ones skipped are returned). The ref only ever moves forward.
+    A PR this opens asks ``reviewers`` (RELEASE_DOCS_REVIEWERS) for review; the last value
+    returned says how that went. An updated PR keeps the hidden markers in its body."""
     if target.ref != target.branch:
         gh.create_branch(target.repo, target.branch, target.sha)
     gh.commit_files(target.repo, target.branch, target.sha, files, message)
+    review = ""
     if target.pr:
-        gh.update_pr(target.repo, target.pr["number"], title, body)
+        gh.update_pr(target.repo, target.pr["number"], title, kept_markers(target.pr.get("body"), body))
         number, action = target.pr["number"], "Updated"
     else:
         number, action = gh.create_pr(target.repo, target.branch, target.base, title, body)["number"], "Opened draft"
+        review = request_reviewers(gh, target.repo, number, reviewers)
     present = [l for l in optional_labels if gh.label_exists(target.repo, l)]
     gh.add_labels(target.repo, number, [*labels, *present])
-    return action, number, [l for l in optional_labels if l not in present]
+    return action, number, [l for l in optional_labels if l not in present], review

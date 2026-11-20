@@ -43,5 +43,20 @@ class TokensAndCommitter(unittest.TestCase):
         self.assertEqual((commit["author"], commit["committer"]), (who, who))
 
 
+class Milestones(unittest.TestCase):
+    def test_every_page_of_open_and_closed_milestones(self):
+        pages = [[{"title": f"v1.{n}.0"} for n in range(100)], [{"title": "v2.0.0"}]]
+        urls = []
+
+        def opener(request, timeout):
+            urls.append(request.full_url)
+            return Response(pages[len(urls) - 1])
+
+        found = GitHub("token", opener=opener).milestones("o/r")
+        self.assertEqual(len(found), 101)
+        self.assertEqual(urls, ["https://api.github.com/repos/o/r/milestones?state=all&per_page=100&page=1",
+                                "https://api.github.com/repos/o/r/milestones?state=all&per_page=100&page=2"])
+
+
 if __name__ == "__main__":
     unittest.main()

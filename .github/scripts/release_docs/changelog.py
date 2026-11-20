@@ -7,7 +7,6 @@ from .versions import Version
 
 HIGHLIGHT_LIMIT = 6
 PLUGIN_BUMP = re.compile(r"^Pre-packaged .+ plugin version", re.IGNORECASE)
-LINK = re.compile(r"\[([^\]]+)\]\((https?://[^)\s]+)\)")
 BARE_URL = re.compile(r"https?://[^\s)>\]]+")
 
 
@@ -45,14 +44,6 @@ def improvement_bullets(entry_text: str) -> list[str]:
         if match and not PLUGIN_BUMP.match(match.group(1).strip()):
             bullets.append(match.group(1).strip())
     return bullets
-
-
-def blog_url(entry_text: str, version: Version) -> str:
-    """The blog post the Improvements section links, else the URL the changelog workflow builds."""
-    match = re.search(r"\[this blog post\]\((https?://[^)\s]+)\)", section(entry_text, "Improvements"))
-    if match:
-        return match.group(1)
-    return f"https://mattermost.com/blog/mattermost-v{version.major}-{version.minor}-is-now-available/"
 
 
 def urls_in(text: str) -> set[str]:

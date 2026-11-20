@@ -19,7 +19,6 @@ from changelog_release import (
     MIGRATIONS_DIR,
     PLUGIN_MAKEFILE,
     go_version_from_buildenv,
-    jira_keys,
     plugin_display_name,
     plugin_packages,
     plugin_version_link,
@@ -28,7 +27,7 @@ from check_config_changes_ci import _AUTO_LINE_RE as CHECKER_LINE
 from check_config_changes_ci import _scan_struct_fields
 
 from . import release_docs_pr, templates, version_archive
-from .breaking import signals as breaking_signals
+from .breaking_signals import signals as breaking_signals
 from .publish import TRAILER, Target, run_url, skipped_label_note, write
 from .result import Result
 from .versions import Version, changelog_page
@@ -44,7 +43,7 @@ ARCHIVE = version_archive.ARCHIVE_PATH
 DOCS_DIR = "docs/main/product-overview"
 CONFIG_GO = "server/public/model/config.go"
 GO_VERSION_FILE = "server/.go-version"
-# Labels that mark a PR or its Jira ticket as a security fix. GitHub's "3: Security Review"
+# Labels that mark a PR as a security fix. GitHub's "3: Security Review"
 # and "Security/Review code" are review steps, not fixes, so they are not listed.
 SECURITY_LABELS = {"security", "security fix", "security-fix", "securityfix", "kind/security", "type/security"}
 # MDX reads a bare <SEVERITY> as a component and fails the build; escaped, it renders as is.
@@ -322,8 +321,8 @@ def go_version(gh, ref: str) -> tuple[str | None, str]:
     return pinned or image, note
 
 
-def _security(labels: set, jira: set) -> bool:
-    return bool({label.lower() for label in labels | jira} & SECURITY_LABELS)
+def _security(labels: set) -> bool:
+    return bool({label.lower() for label in labels} & SECURITY_LABELS)
 
 
 def _config_changed(gh, commit: dict) -> bool:
@@ -334,7 +333,7 @@ def _config_changed(gh, commit: dict) -> bool:
     return before != after
 
 
-def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labels, result: Result) -> None:
+def gather(gh, release: Release, changelogs: list[str], claude, fetch, result: Result) -> None:
     """Fill ``release`` from the tags: Go and plugin lines, bullets, and what was left out."""
     version, previous = release.version, release.previous
     tag, previous_tag = version.tag, previous.tag
@@ -407,15 +406,13 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, jira_labe
         # The opt-out is read from the PR whose release note is used: the original, not its backport,
         # since a backport carries Changelog/Not Needed and release-note-none whatever the original says.
         opted_out = sorted({l["name"] for l in original.get("labels", [])} & _changelog_module().NO_NOTE_LABELS)
-        keys = jira_keys(original.get("title", ""), (original.get("head") or {}).get("ref", ""), original.get("body") or "")
-        jira = (jira_labels(keys) or set()) if keys and jira_labels else set()
-        security = _security(labels, jira)
+        security = _security(labels)
         if opted_out and not security:
             # As in the changelog generator, an opt-out label settles it, even next to a release-note block.
             release.skipped.append((source, _core_title(original.get("title", "")),
                                     f"has the {opted_out[0]} label, so it is left out"))
             continue
-        found = breaking_signals(labels, original.get("body") or "", jira)
+        found = breaking_signals(labels, original.get("body") or "")
         breaking = any(strong for _, strong in found)
         maybe = [] if breaking else [reason for reason, _ in found]
         author = (original.get("user") or {}).get("login", "")
@@ -1058,7 +1055,7 @@ def check_pr(title: str, files: dict, base: dict) -> list[str]:
     return problems + found
 
 
-def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, jira_labels=None, sleep=None) -> tuple[Result, str, dict]:
+def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep=None) -> tuple[Result, str, dict]:
     """Add ``versions`` to the open dot release docs PR, or open one. Returns (result, outcome,
     the files before this run's edits)."""
     result = Result(TASK, ", ".join(v.tag for v in versions), repo=REPO)
@@ -1112,7 +1109,7 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, jira_
         release = Release(v, tabs=item[2], severity=severities.get(v.tag))
         if env.get("RELEASE_DATE", "").strip():
             release.date, release.date_source = env["RELEASE_DATE"].strip(), "from the release_date input"
-        gather(gh, release, changelogs, claude, fetch, jira_labels, result)
+        gather(gh, release, changelogs, claude, fetch, result)
         release.checksums = checksums_for(v, fetch, attempts, interval, sleep)
         for page in DEPLOY_PAGES:
             files[page] = update_deploy(current(page) or "", v, release.tabs, page, result)
@@ -1152,9 +1149,10 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, jira_
         action = f"updated PR #{target.pr['number']}" if target.pr else f"opened a draft PR from `{target.branch}`"
         return result, f"Dry run: would have {action} in {REPO}, changing {paths}.", base_files
     message = f"{result.title}\n\n{TRAILER}: {TASK}\n"
-    action, number, skipped = write(gh, target, result.files, message, result.title, result.body, LABELS)
+    action, number, skipped, review = write(gh, target, result.files, message, result.title, result.body, LABELS,
+                                            reviewers=env.get("REVIEWERS", ""))
     pr = target.pr or {"number": number, "labels": []}
-    return result, (f"{action} PR {REPO}#{number}, changing {paths}.{skipped_label_note(skipped, REPO)} "
+    return result, (f"{action} PR {REPO}#{number}, changing {paths}.{skipped_label_note(skipped, REPO)}{review} "
                     f"{sync_awaiting(gh, pr, state['order'])}"), base_files
 
 

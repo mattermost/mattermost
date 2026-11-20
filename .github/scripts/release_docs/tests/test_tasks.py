@@ -5,15 +5,12 @@ import os
 import unittest
 from datetime import date
 
-for name, value in {"GITHUB_TOKEN": "test", "REPOS": "mattermost/mattermost", "MILESTONE": "v12.2.0", "VERSION": "v12.2.0"}.items():
-    os.environ.setdefault(name, value)
-
-from release_docs import calendar, docker_env, drafts, github_release, notice, posts, release_docs_pr, version_archive
+from release_docs import docker_env, github_release, notice, release_docs_pr, version_archive
 from release_docs.changelog import Highlight
 from release_docs.result import TODO_MARKER
 from release_docs.versions import Version
 
-from .fakes import FakeClaude, fixture, release_server
+from .fakes import fixture, release_server
 
 ESR = "v10.11,v11.7,v12.4"
 HIGHLIGHTS = [Highlight("Shared Drafts", "https://docs.mattermost.com/drafts", "b0"), Highlight("Audit Exports", "", "b1")]
@@ -261,69 +258,16 @@ class ReleaseDocsTest(unittest.TestCase):
 
     def test_full_pr_on_the_real_docs_is_idempotent(self):
         files = real_docs()
-        events = calendar.parse_ics("\n".join(
-            f"BEGIN:VEVENT\nSUMMARY:{title}\nDTSTART;VALUE=DATE:{day}\nEND:VEVENT" for title, day in (
-                ("v12.3 Release Day", "20270115"), ("v12.4 Release Day", "20270216"),
-                ("v12.1 & Mobile v2.46 Release Day", "20261116"), ("Desktop v6.4 Release Day", "20261116"))))
-        first = release_docs_pr.build(Version.parse("v12.2.0"), files, ESR, date(2026, 12, 16), 15, events)
+        days = {"Server": {(12, 1): date(2026, 11, 16), (12, 3): date(2027, 1, 15), (12, 4): date(2027, 2, 16)},
+                "Mobile": {(2, 46): date(2026, 11, 16)}, "Desktop": {(6, 4): date(2026, 11, 16)}}
+        first = release_docs_pr.build(Version.parse("v12.2.0"), files, ESR, date(2026, 12, 16), 15, days)
         self.assertEqual(sorted(first.files), sorted(set(release_docs_pr.FILES) - {
             release_docs_pr.REQUIREMENTS, release_docs_pr.DESKTOP_RELEASES, release_docs_pr.MOBILE_RELEASES}))
         self.assertIn("the newest Desktop App release (v6.3) is no longer supported", first.todos[0])
         for path in (release_docs_pr.UI_ADA_CHANGELOG, release_docs_pr.UPGRADE_NOTES, release_docs_pr.DEPRECATED_FEATURES):
             self.assertIn(f"{{/* {release_docs_pr.PLACEHOLDER_MARKER}: v12.2", first.files[path])
-        again = release_docs_pr.build(Version.parse("v12.2.0"), {**files, **first.files}, ESR, date(2026, 12, 16), 15, events)
+        again = release_docs_pr.build(Version.parse("v12.2.0"), {**files, **first.files}, ESR, date(2026, 12, 16), 15, days)
         self.assertEqual(again.files, {})
-
-
-class PostsTest(unittest.TestCase):
-    def test_announcement_post(self):
-        result = posts.build(Version.parse("v12.1.0"), ESR, HIGHLIGHTS, "https://blog")
-        self.assertEqual(result.todos, [])
-        self.assertIn("- [Shared Drafts](https://docs.mattermost.com/drafts)\n- Audit Exports", result.text)
-        self.assertIn("- Blog post: https://blog", result.text)
-
-    def test_missing_highlights_are_a_todo(self):
-        result = posts.build(Version.parse("v12.1.0"), ESR, [], "https://blog")
-        self.assertEqual(result.todos, ["no highlights for the Announcements post"])
-        self.assertIn(TODO_MARKER, result.text)
-
-
-PR_ITEM = {"repository_url": "https://api.github.com/repos/mattermost/mattermost", "number": 7, "title": "Remove X",
-           "html_url": "https://github.com/mattermost/mattermost/pull/7",
-           "body": "#### Upgrade notes\nRun the migration first.\n\n#### Release Note\n```release-note\nRemoved the X setting.\n```"}
-
-
-class DraftsTest(unittest.TestCase):
-    def test_breaking_notices_cite_their_pr(self):
-        prs = [drafts.pr_source(PR_ITEM)]
-        self.assertEqual(prs[0]["note"], "Removed the X setting.")
-        self.assertEqual(prs[0]["upgrade_notes"], "Run the migration first.")
-        result = drafts.breaking_notices("v12.2.0", prs, FakeClaude({"notices": [
-            {"source": "mattermost/mattermost#7", "notice": "The X setting was removed. Unset it before upgrading."}]}))
-        self.assertEqual(result.todos, [])
-        self.assertIn("Unset it before upgrading.\n\nSource: [mattermost/mattermost#7](https://github.com/mattermost/mattermost/pull/7)", result.text)
-
-    def test_breaking_notices_missing_draft_is_a_todo(self):
-        result = drafts.breaking_notices("v12.2.0", [drafts.pr_source(PR_ITEM)], None)
-        self.assertTrue(result.failed)
-        self.assertIn("no notice drafted for mattermost/mattermost#7", result.todos)
-
-    def test_blog_and_email_points_need_a_given_source(self):
-        prs = [drafts.pr_source(PR_ITEM)]
-        epics = [{"key": "MM-1", "summary": "Shared Drafts", "url": "https://jira/MM-1"}]
-        claude = FakeClaude({
-            "blog_outline": [{"heading": "Drafts", "points": [{"text": "Co-write messages.", "sources": ["MM-1"]},
-                                                              {"text": "Made up.", "sources": ["MM-999"]}]}],
-            "email": {"subject": "v12.2 is here", "points": [{"text": "X was removed (mattermost/mattermost#7).", "sources": []}]},
-        })
-        result = drafts.blog_and_email(Version.parse("v12.2.0"), ["b"], prs, epics, claude, [])
-        self.assertIn("- Co-write messages. ([MM-1](https://jira/MM-1))", result.text)
-        self.assertIn("([mattermost/mattermost#7](https://github.com/mattermost/mattermost/pull/7))", result.text)
-        self.assertEqual(result.todos, ["no valid source for: Made up."])
-
-    def test_missing_jira_or_claude_fails(self):
-        result = drafts.blog_and_email(Version.parse("v12.2.0"), [], [], [], None, ["Jira not configured"])
-        self.assertEqual(len(result.todos), 2)
 
 
 if __name__ == "__main__":

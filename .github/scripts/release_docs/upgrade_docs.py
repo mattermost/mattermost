@@ -1,20 +1,28 @@
 """Important Upgrade Notes rows and Deprecated Features entries from confirmed breaking changes.
 
-Only PRs a person confirmed (breaking-changes with ``confirmed``) are written. The wording is
-the PR's changelog bullet as the entry has it now, from Upgrade Impact (Compatibility,
-Database Schema Changes, config.json removals) and API Changes. A confirmed PR with no such
-bullet gets Claude's notice, marked for review in the PR body; a PR in a private repo never
-does, since its title and description would reach a public PR. While a candidate is neither
-confirmed nor removed, or a confirmed PR has no wording, the page keeps its placeholder and
-the run fails, so the PR check does too.
+Which mattermost/mattermost PRs are confirmed breaking changes is decided elsewhere
+(mattermost/release-automation) and written into the release docs PR's description as a hidden
+marker: ``<!-- release-automation:confirmed-breaking: 39012,39088 -->`` (an empty list, or
+``none``, confirms that there are none). Only those PRs are written. The wording is the PR's
+changelog bullet as the entry has it now, from Upgrade Impact (Compatibility, Database Schema
+Changes, config.json removals) and API Changes. A confirmed PR with no such bullet gets
+Claude's notice, drafted from the PR's title and release note and listed for review in the PR
+body. Without the marker, or while a confirmed PR has no wording, the pages keep their
+placeholders and the PR check fails from T-2.
 """
 
 import html
+import json
 import re
 from dataclasses import dataclass, field
 from datetime import date
 
+from .result import Result
+
 PUBLIC_REPO = "mattermost/mattermost"
+MARKER_NAME = "release-automation:confirmed-breaking"
+MARKER = re.compile(r"<!--\s*" + re.escape(MARKER_NAME) + r"\s*:(.*?)-->", re.DOTALL)
+MARKER_ITEM = re.compile(r"^(?:(?:mattermost/mattermost)?#)?(\d+)$")
 WORDING_PLACES = {("Upgrade Impact", "Compatibility"), ("Upgrade Impact", "Database Schema Changes"),
                   ("Upgrade Impact", "config.json"), ("API Changes", None)}
 REMOVAL = re.compile(r"(?i)^(?:removed|deprecated)\b|\b(?:is|are|was|were|has been|have been) (?:removed|deprecated)\b"
@@ -32,7 +40,6 @@ class Entry:
 class UpgradeDocs:
     notes: list = field(default_factory=list)  # Entry per confirmed PR, for Important Upgrade Notes
     removed: list = field(default_factory=list)  # Entry per removal or deprecation, for Deprecated Features
-    pending: int = 0  # candidates neither confirmed nor removed yet
     todos: list = field(default_factory=list)  # public wording: never a private PR
 
     @property
@@ -41,6 +48,30 @@ class UpgradeDocs:
 
     def drafted(self) -> list[Entry]:
         return [e for e in self.notes + self.removed if e.drafted]
+
+
+def parse_marker(body: str | None) -> tuple[list[str] | None, str | None]:
+    """(the confirmed PRs as ``mattermost/mattermost#N``, a problem) from a PR description.
+
+    No marker: ``(None, None)``. An empty list or ``none``: ``([], None)``. Entries are PR
+    numbers (``39012``, ``#39012`` or ``mattermost/mattermost#39012``), separated by commas or
+    spaces. Anything else, or two markers that disagree, is a problem and confirms nothing; the
+    entries themselves are never repeated, since they may not be public."""
+    found = [" ".join(m.split()) for m in MARKER.findall(body or "")]
+    if not found:
+        return None, None
+    if len(set(found)) > 1:
+        return None, f"the description has {len(found)} `{MARKER_NAME}` markers that disagree"
+    raw = found[0]
+    if raw.lower() in ("", "none"):
+        return [], None
+    items = [part for part in re.split(r"[\s,]+", raw) if part]
+    numbers = [MARKER_ITEM.match(part) for part in items]
+    bad = sum(1 for n in numbers if n is None)
+    if bad:
+        return None, (f"the `{MARKER_NAME}` marker has {bad} entr{'y' if bad == 1 else 'ies'} that "
+                      f"{'is' if bad == 1 else 'are'} not a {PUBLIC_REPO} PR number")
+    return list(dict.fromkeys(f"{PUBLIC_REPO}#{n.group(1)}" for n in numbers)), None
 
 
 def _wording(bullets: list[dict]) -> list[str]:
@@ -54,22 +85,17 @@ def _wording(bullets: list[dict]) -> list[str]:
     return list(dict.fromkeys(texts))
 
 
-def plan(confirmed: list[str], candidates: list[str] | None, reviewed: list[str] | None,
-         bullets_by_source: dict, drafts: dict, problem: str | None = None) -> UpgradeDocs:
-    """What the two pages get. ``candidates`` are the latest list's (None: the list never ran),
-    ``reviewed`` the candidates the confirmation decided on (None: no confirmation yet),
-    ``bullets_by_source`` each confirmed PR's changelog bullets (changelog_run.bullets_for) and
-    ``drafts`` Claude's notice for a public confirmed PR with none."""
+def has_wording(bullets: list[dict]) -> bool:
+    return bool(_wording(bullets))
+
+
+def plan(confirmed: list[str], bullets_by_source: dict, drafts: dict, problem: str | None = None) -> UpgradeDocs:
+    """What the two pages get. ``confirmed`` are the marker's PRs, ``bullets_by_source`` each
+    one's changelog bullets (changelog_run.bullets_for) and ``drafts`` Claude's notice for a
+    public confirmed PR with none."""
     docs = UpgradeDocs()
     if problem:
         docs.todos.append(problem)
-    elif candidates is None:
-        docs.todos.append("the breaking-change list hasn't run for this release, so the Important Upgrade Notes and "
-                          "Deprecated Features can't be filled yet")
-    docs.pending = len([c for c in candidates or [] if c not in set(reviewed or [])])
-    if docs.pending:
-        docs.todos.append(f"{docs.pending} breaking-change candidate(s) are neither confirmed nor removed: run Release "
-                          "Docs - Breaking Change Notices with `confirmed` set to the ones to keep (or `none`)")
     private_missing = 0
     for source in confirmed:
         texts = _wording(bullets_by_source.get(source, []))
@@ -89,6 +115,55 @@ def plan(confirmed: list[str], candidates: list[str] | None, reviewed: list[str]
         docs.todos.append(f"{private_missing} confirmed breaking change(s) from a private repo have no changelog bullet "
                           "in Upgrade Impact or API Changes: write their upgrade notes by hand")
     return docs
+
+
+# ── Claude's notice, for a confirmed PR with no changelog bullet ────────────────────
+
+NOTICE_SYSTEM = """You write upgrade notices for Mattermost administrators, one per breaking change.
+
+Reply with JSON only: {"notices": [{"source": "org/repo#123", "notice": "..."}]}
+- One notice per PR you are given, using only that PR's title, release note and upgrade notes.
+- Two to four plain sentences: what changed, who is affected, and what to do before or
+  after upgrading. Past tense for the change, imperative for the action.
+- Do not invent settings, versions or steps that the release note does not state.
+"""
+
+
+def release_note(body: str) -> str:
+    """The PR's release note, through the changelog generator's own parser; empty for NONE."""
+    from generate_changelog import extract_release_notes  # needs requests; imported where used
+
+    return " ".join(extract_release_notes(body or "") or [])
+
+
+def upgrade_section(body: str) -> str:
+    """Text under a PR body heading that mentions upgrading, such as "#### Upgrade Notes"."""
+    text = re.sub(r"<!--.*?-->", "", body or "", flags=re.DOTALL)
+    match = re.search(r"(?mi)^#+[^\n]*upgrad[^\n]*\n(.*?)(?=^#|\Z)", text, re.DOTALL)
+    return " ".join(match.group(1).split()) if match else ""
+
+
+def draft_notices(prs: dict, claude, result: Result) -> dict:
+    """``{source: notice}`` drafted by Claude for ``prs`` (``{source: PR from the GitHub API}``),
+    each from its title, release note and upgrade notes only. Public PRs only: the notice goes into
+    a public PR."""
+    drafts = {}
+    prs = {source: pr for source, pr in prs.items() if source.startswith(PUBLIC_REPO + "#")}
+    if not prs:
+        return drafts
+    if claude is None:
+        result.todo("ANTHROPIC_API_KEY is not set, so no upgrade notice was drafted for the confirmed breaking "
+                    "changes with no changelog bullet")
+        return drafts
+    listing = json.dumps([{"source": source, "title": pr.get("title", ""), "release_note": release_note(pr.get("body")),
+                           "upgrade_notes": upgrade_section(pr.get("body"))} for source, pr in prs.items()], indent=1)
+    try:
+        for item in claude.ask_json(NOTICE_SYSTEM, listing).get("notices", []):
+            if item.get("source") in prs:
+                drafts[item["source"]] = " ".join(str(item.get("notice", "")).split())
+    except Exception as err:  # noqa: BLE001 - surfaced as a TODO
+        result.todo(f"Claude could not draft the upgrade notices: {type(err).__name__}")
+    return {source: text for source, text in drafts.items() if text}
 
 
 # ── The templates ───────────────────────────────────────────────────────────────────

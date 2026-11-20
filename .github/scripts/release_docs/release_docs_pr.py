@@ -1,16 +1,20 @@
 """The calculated parts of the release docs PR (playbook T-16).
 
 Server releases table, the Release Lifecycle chart on the release policy page (this release,
-the next two from the calendar, versions past their support end marked unsupported, and the
-next ESR), the latest server, desktop and mobile releases' end dates when the next release is
-late, ESR/PostgreSQL rows, Desktop compatibility and the deploy pages' version strings.
-Sections that need a person get a marked placeholder, filled in a later PR. The accessibility
-tickets for the UI & Accessibility changelog are counted here and listed on Hub only.
+the next two, versions past their support end marked unsupported, and the next ESR), the
+latest server, desktop and mobile releases' end dates when the next release is late,
+ESR/PostgreSQL rows, Desktop compatibility and the deploy pages' version strings. Every
+Release Day is the due date of the release's ``vX.Y.0`` milestone (milestones.py); a
+milestone with no due date is a TODO, never a guess. Important Upgrade Notes and Deprecated
+Features are filled from the confirmed breaking changes (upgrade_docs.py). Other sections that
+need a person get a marked placeholder, filled in a later PR.
 """
 
 import re
 from datetime import date, datetime, timedelta
 
+from . import schedule
+from .milestones import DESKTOP_REPO, MOBILE_REPO, SERVER_REPO
 from .result import TODO_MARKER, Result
 from .versions import (
     Version,
@@ -29,9 +33,6 @@ TASK = "release-docs"
 # The last release docs PR a person made, whose format the generated lines copy.
 EXAMPLE_PR = "https://github.com/mattermost/mattermost/pull/38573"
 MOBILE_RELEASES = "docs/main/product-overview/mattermost-mobile-releases.mdx"
-# The playbook item's accessibility filter (Jira filter 15011), with this release's dates.
-ACCESSIBILITY_JQL = ('project = MM AND status IN (Resolved, Closed) AND parent = MM-59517 '
-                     'AND updated >= "{since}" AND updated < "{before}"')
 PLAYBOOK_QUOTE = ("Draft a docs PR to update the UI & Accessibility changelog, Important Upgrade Notes, Open Source "
                   "Components, deploy-rhel.rst, deploy-tar.rst, Deprecated Features list, Release Lifecycle (add two "
                   "upcoming versions and mark one version as unsupported), Desktop compatibility, and ESR/PostgreSQL "
@@ -54,10 +55,12 @@ POSTGRES_REQUIREMENT = "server/public/model/config.go"
 POSTGRES_CONSTANT = re.compile(r"(?m)^\s*MinimumPostgresMajorVersion\s*=\s*(\d+)\b")
 PLACEHOLDER_MARKER = "release-agent placeholder"
 GANTT_NAME_WIDTH = 23
+# The PR check fails from T-2 while Important Upgrade Notes or Deprecated Features keep a placeholder.
+CHECK_FAILS_FROM_T = 2
 
 
 def _day(day: date | None, result: Result, what: str) -> str:
-    return day.isoformat() if day else result.todo(f"no {what}: the Release Dates calendar has no Release Day for it")
+    return day.isoformat() if day else result.todo(f"no {what}: its vX.Y.0 milestone has no due date")
 
 
 def postgres_minimum(config_go: str | None) -> int | None:
@@ -145,7 +148,8 @@ def update_esr_chart(content: str, version: Version, esr_versions: str, release_
     entries = _parse_gantt(lines, start + 1, end)
     esr = is_esr(version, esr_versions)
     if not release_day:
-        result.todo(f"no Release Day for {version.short} in the Release Dates calendar, so the ESR chart is not updated")
+        result.todo(f"no Release Day for {version.short} (no due date on its {version.tag} milestone), so the ESR chart "
+                    "is not updated")
         return content
     begin, finish = release_day.isoformat(), support_end(release_day, esr).isoformat()
     short = version.short
@@ -181,15 +185,15 @@ def update_esr_chart(content: str, version: Version, esr_versions: str, release_
     return content
 
 
-def upcoming_releases(version: Version, events: list | None) -> list[tuple[Version, date | None]]:
-    """The two server releases after ``version``, with their Release Day from the calendar.
+def upcoming_releases(version: Version, server_days: dict | None) -> list[tuple[Version, date | None]]:
+    """The two server releases after ``version``, with their Release Day (``server_days``: the
+    ``vX.Y.0`` milestones' due dates by ``(major, minor)``).
 
-    Each is the one right after the last: the next minor, or the next major's .0 when the
-    calendar has that instead. One the calendar doesn't have yet is the next minor with no
-    date, a TODO, never a guess, even when the calendar has the releases after it.
+    Each is the one right after the last: the next minor, or the next major's .0 when only that
+    has a due date. One with no due date yet is the next minor with no date, a TODO, never a
+    guess, even when the releases after it have one.
     """
-    from . import calendar
-    dated = {v.line: (v, ms["release_day"].start) for v, ms in calendar.next_releases(events or [], version, 6)}
+    dated = {line: (Version(*line), day) for line, day in (server_days or {}).items() if line > version.line}
     found, previous = [], version
     while len(found) < 2:
         following = ((previous.major, previous.minor + 1), (previous.major + 1, 0))
@@ -200,14 +204,14 @@ def upcoming_releases(version: Version, events: list | None) -> list[tuple[Versi
 
 
 def add_upcoming_lines(content: str, upcoming: list, esr_versions: str, result: Result) -> str:
-    """The Release Lifecycle chart gets a line for each of the next two releases, dated from the
-    calendar, as the last release docs PR made by hand did (``EXAMPLE_PR``). A line already
-    there is filled in (its dates follow the calendar), never added twice; a planned ESR line
+    """The Release Lifecycle chart gets a line for each of the next two releases, dated from their
+    milestones, as the last release docs PR made by hand did (``EXAMPLE_PR``). A line already
+    there is filled in (its dates follow the milestone), never added twice; a planned ESR line
     is left as it is. A release with no Release Day gets a TODO in the PR body, no line."""
     for version, day in upcoming:
         if day is None:
-            result.todo(f"no Release Day for {version.short} on the Release Dates calendar, so the Release Lifecycle "
-                        "chart has no line for it")
+            result.todo(f"no due date on the {version.tag} milestone in {SERVER_REPO}, so the Release Lifecycle chart "
+                        f"has no line for {version.short}")
             continue
         lines = content.splitlines(keepends=True)
         start = next((i for i, line in enumerate(lines) if line.strip() == "section Releases"), None)
@@ -223,7 +227,7 @@ def add_upcoming_lines(content: str, upcoming: list, esr_versions: str, result: 
         if existing:
             if (existing["start"], existing["end"]) != (begin, finish):
                 lines[existing["index"]] = _gantt_line(version.short, existing["label"], existing["tags"], begin, finish)
-                result.notes.append(f"The Release Lifecycle chart's {version.short} line now has the calendar's dates.")
+                result.notes.append(f"The Release Lifecycle chart's {version.short} line now has its milestone's dates.")
             content = "".join(lines)
             continue
         if esr:
@@ -378,19 +382,16 @@ SERVER_ENDS = re.compile(r"\| (\d{4}-\d{2}-\d{2}) \| (\d{4}-\d{2}-\d{2})")
 APP_ROW = re.compile(r"^\| v(\d+)\.(\d+) ")
 
 
-def companion_release_day(events: list | None, kind: str, short: str) -> date | None:
-    """The calendar's Release Day for "Mobile v2.46" or "Desktop v6.4" (any title naming it)."""
-    named = re.compile(rf"\b{kind}\s+{re.escape(short)}(?![\d.])", re.IGNORECASE)
-    days = [e.start for e in events or [] if named.search(e.summary) and "release day" in e.summary.lower()]
-    return max(days) if days else None
+APP_REPOS = {"Server": SERVER_REPO, "Desktop": DESKTOP_REPO, "Mobile": MOBILE_REPO}
 
 
-def extend_for_delay(content: str, path: str, kind: str, events: list | None, release_day: date | None,
+def extend_for_delay(content: str, path: str, kind: str, days: dict | None, release_day: date | None,
                      result: Result) -> str:
     """When the next release is late, the latest release on a releases page is supported until
     the day before it ships, as the pages already show (v2.45: Support Ends 2026-11-15, the day
     before v2.46). Only checked for a latest release whose end falls by this release's Release
-    Day; a next release the calendar has no date for is a TODO."""
+    Day. ``days`` are the due dates of ``kind``'s ``vX.Y.0`` milestones (in mattermost/mattermost,
+    mattermost/desktop or mattermost/mattermost-mobile); a next release with none is a TODO."""
     lines = content.splitlines(keepends=True)
     index = next((i for i, line in enumerate(lines) if APP_ROW.match(line)), None)
     if index is None or release_day is None:
@@ -402,16 +403,13 @@ def extend_for_delay(content: str, path: str, kind: str, events: list | None, re
     end = date.fromisoformat(found.group(found.lastindex))
     if end > release_day:
         return content
-    latest, following = f"v{match.group(1)}.{match.group(2)}", f"v{match.group(1)}.{int(match.group(2)) + 1}"
-    if kind == "Server":
-        from . import calendar
-        day = calendar.release_day(events or [], Version(int(match.group(1)), int(match.group(2)) + 1))
-    else:
-        day = companion_release_day(events, kind, following)
+    latest = f"v{match.group(1)}.{match.group(2)}"
+    following = Version(int(match.group(1)), int(match.group(2)) + 1)
+    day = (days or {}).get(following.line)
     name = latest if kind == "Server" else f"{kind} {latest}"
     if day is None:
-        result.todo(f"no Release Day on the Release Dates calendar for the release after {name}, so its end date on "
-                    f"{path.rsplit('/', 1)[-1]} isn't checked")
+        result.todo(f"no due date on the {following.tag} milestone in {APP_REPOS[kind]} (the release after {name}), so "
+                    f"its end date on {path.rsplit('/', 1)[-1]} isn't checked")
         return content
     new_end = day - timedelta(days=1)
     if new_end <= end:
@@ -473,6 +471,20 @@ PLACEHOLDERS = (
 
 # ── The PR ──────────────────────────────────────────────────────────────────────────
 
+def check_fails_from(release_day: date | None) -> date | None:
+    """T-2: from this day the PR check fails while the upgrade pages keep a placeholder."""
+    return schedule.t_minus(release_day, CHECK_FAILS_FROM_T) if release_day else None
+
+
+def waiting_lines(release_day: date | None) -> list[str]:
+    """The PR body's lines while the confirmed breaking changes are not known (no marker yet)."""
+    when = check_fails_from(release_day)
+    fails = (f"The PR check fails from T-{CHECK_FAILS_FROM_T} ({when.isoformat()}) while their placeholders are here."
+             if when else "The PR check fails while their placeholders are here: with no Release Day, T-2 is unknown.")
+    return ["- [ ] Important Upgrade Notes and Deprecated Features: waiting for the confirmed breaking changes (the "
+            "`release-automation:confirmed-breaking` marker in this description). " + fails]
+
+
 def upgrade_lines(upgrade) -> list[str]:
     """The PR body's lines for the two pages filled from confirmed breaking changes. Private PRs are
     only counted: the PR is public."""
@@ -493,14 +505,15 @@ def upgrade_lines(upgrade) -> list[str]:
 
 
 def build(version: Version, files: dict, esr_versions: str, release_day: date | None, code_minimum: int | None,
-          events: list | None = None, accessibility: tuple[int, bool] | None = None, upgrade=None) -> Result:
+          release_days: dict | None = None, upgrade=None, today: date | None = None) -> Result:
     """``files`` maps each path in ``FILES`` to its text on the base branch (None if absent).
-    ``events`` are the Release Dates calendar's. ``accessibility`` is (how many tickets the
-    accessibility filter found, whether they were listed on Hub), or None when Jira wasn't
-    read: Jira is private, so the tickets themselves are never in the PR or the run output.
-    ``upgrade`` (upgrade_docs.UpgradeDocs) fills Important Upgrade Notes and Deprecated Features
-    from confirmed breaking changes; without it they get placeholders."""
+    ``release_days`` maps "Server", "Desktop" and "Mobile" to their ``vX.Y.0`` milestones' due
+    dates by ``(major, minor)``. ``upgrade`` (upgrade_docs.UpgradeDocs) fills Important Upgrade
+    Notes and Deprecated Features from the confirmed breaking changes; without it (no marker in
+    the PR description yet) they get placeholders, a missing input from T-2 (``today`` on or
+    after it)."""
     result = Result(TASK, version.tag, repo="mattermost/mattermost")
+    release_days = release_days or {}
     result.upcoming, result.delayed = [], []
     updated = dict(files)
 
@@ -511,13 +524,14 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
         updated[path] = fn(updated[path])
 
     # The latest release on each page is checked for a late next release before this one is added.
-    apply(SERVER_RELEASES, lambda c: extend_for_delay(c, SERVER_RELEASES, "Server", events, release_day, result))
-    apply(DESKTOP_RELEASES, lambda c: extend_for_delay(c, DESKTOP_RELEASES, "Desktop", events, release_day, result))
-    if updated.get(MOBILE_RELEASES) is not None:
-        apply(MOBILE_RELEASES, lambda c: extend_for_delay(c, MOBILE_RELEASES, "Mobile", events, release_day, result))
+    for path, kind in ((SERVER_RELEASES, "Server"), (DESKTOP_RELEASES, "Desktop"), (MOBILE_RELEASES, "Mobile")):
+        if kind != "Mobile" or updated.get(path) is not None:
+            apply(path, lambda c, path=path, kind=kind: extend_for_delay(c, path, kind, release_days.get(kind),
+                                                                       release_day, result))
     apply(SERVER_RELEASES, lambda c: add_server_release(c, version, esr_versions, release_day, result))
     apply(RELEASE_POLICY, lambda c: update_esr_chart(c, version, esr_versions, release_day, result))
-    apply(RELEASE_POLICY, lambda c: add_upcoming_lines(c, upcoming_releases(version, events), esr_versions, result))
+    apply(RELEASE_POLICY, lambda c: add_upcoming_lines(c, upcoming_releases(version, release_days.get("Server")),
+                                                       esr_versions, result))
     apply(DESKTOP_RELEASES, lambda c: add_desktop_compatibility(c, version, esr_versions, release_day, result))
     apply(REQUIREMENTS, lambda c: add_postgres_row(c, version, esr_versions, release_day, code_minimum, result))
     for path in DEPLOY_PAGES:
@@ -539,6 +553,10 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
             placeholder(version, "Deprecated Features"), keep))
         for todo in upgrade.todos:
             result.todo(todo)
+    elif today and release_day and today >= check_fails_from(release_day):
+        result.todo(f"no confirmed breaking changes yet (no `release-automation:confirmed-breaking` marker in the PR "
+                    f"description) on or after T-{CHECK_FAILS_FROM_T}, so Important Upgrade Notes and Deprecated "
+                    "Features keep their placeholders")
 
     result.files = {path: text for path, text in updated.items() if text is not None and text != files.get(path)}
     esr_note = " (ESR)" if is_esr(version, esr_versions) else ""
@@ -548,16 +566,8 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
                 "their support end marked as unsupported (`:done`)" if result.upcoming else
                 "Release Lifecycle chart on the release policy page: the next two releases were already there (or "
                 "have a TODO), versions past their support end marked as unsupported (`:done`)")
-    if accessibility is None:
-        ada = "Accessibility tickets not checked: Jira isn't configured for this run."
-    elif accessibility[0] is None:
-        ada = "Accessibility tickets not checked: the Jira search failed (see the TODO)."
-    elif accessibility[1]:
-        ada = f"{accessibility[0]} accessibility tickets to review, listed on Hub."
-    else:
-        ada = f"{accessibility[0]} accessibility tickets to review; they couldn't be listed on Hub (no Hub token or review channel)."
     result.body = "\n".join([
-        f"Release docs for {version.short}{esr_note} that are calculated from the release calendar, "
+        f"Release docs for {version.short}{esr_note} that are calculated from the `vX.Y.0` milestones' due dates, "
         "`CHANGELOG_ESR_VERSIONS` and the release branch:",
         "",
         "- Server releases table: the new row, with its support end date",
@@ -569,12 +579,12 @@ def build(version: Version, files: dict, esr_versions: str, release_day: date | 
         "",
         f"The chart lines follow the format of the last release docs PR made by hand: {EXAMPLE_PR}.",
         "",
-        *(["Delayed releases (the next release's Release Day on the calendar is later than the end date shown):", "",
+        *(["Delayed releases (the next release's milestone is due later than the end date shown):", "",
            *[f"- {line}" for line in result.delayed], ""] if result.delayed else []),
         "Sections that need a person are marked with an MDX comment and are filled in a later PR:",
         "",
-        f"- [ ] UI & Accessibility changelog. {ada}",
-        *(upgrade_lines(upgrade) if upgrade is not None else ["- [ ] Important Upgrade Notes", "- [ ] Deprecated Features"]),
+        "- [ ] UI & Accessibility changelog. Accessibility tickets to review: see the release channel.",
+        *(upgrade_lines(upgrade) if upgrade is not None else waiting_lines(release_day)),
         "",
         f"Playbook (T-16): {PLAYBOOK_QUOTE}",
         "",
