@@ -99,6 +99,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     private _scrollByCorrection: number | null = null;
     private _keepScrollPosition = false;
     private _keepScrollToBottom = false;
+    private _scrollTopAfterResizeCorrection: number | null = null;
     private _mountingCorrections = 0;
     private _correctedInstances = 0;
 
@@ -617,16 +618,10 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
-        // When rows shrink while scrolled to the bottom, the browser has already clamped scrollTop to the new maximum.
-        // The committed scroll offset still holds the position from before the clamp.
-        const shrunk = newSize < oldSize;
-        const clampedToBottom = shrunk &&
-            element.scrollHeight - this.props.height - element.scrollTop <= 1 &&
-            this.props.height + this.state.scrollOffset >= this._listMetaData.totalMeasuredSize - atBottomMargin;
-        const wasAtBottom = clampedToBottom || (
-            this.props.height + element.scrollTop >=
-            this._listMetaData.totalMeasuredSize - atBottomMargin
-        );
+        const previousScrollTop = this._getScrollTopBeforeResize(element);
+        const wasAtBottom =
+            this.props.height + previousScrollTop >=
+            this._listMetaData.totalMeasuredSize - atBottomMargin;
 
         if (
             (wasAtBottom || this._keepScrollToBottom) &&
@@ -675,15 +670,33 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
-        const [, , visibleStartIndex] = this._getRangeToRender(element.scrollTop);
+        const [, , visibleStartIndex] = this._getRangeToRender(previousScrollTop);
         this._generateOffsetMeasurements();
 
         // Rows are in normal flow and overflow-anchor is disabled, so when an already measured row above
         // the viewport resizes (e.g. an image finishes loading), the visible rows have to be held in place.
         // Rows measured for the first time are skipped since prepended rows are compensated for separately.
-        if (oldSize && index > visibleStartIndex && !(shrunk && wasAtBottom)) {
-            element.scrollTop += newSize - oldSize;
+        if (oldSize && index > visibleStartIndex) {
+            const scrollTop = Math.max(0, previousScrollTop + (newSize - oldSize));
+            element.scrollTop = scrollTop;
+            this._scrollTopAfterResizeCorrection = scrollTop;
         }
+    };
+
+    // The browser clamps scrollTop when the content shrinks, before resizes are observed. In that case and when
+    // an earlier correction hasn't been reported by a scroll event yet, element.scrollTop is not the position the
+    // user was at before the resize.
+    _getScrollTopBeforeResize = (element: HTMLDivElement) => {
+        if (this._scrollTopAfterResizeCorrection !== null) {
+            return this._scrollTopAfterResizeCorrection;
+        }
+
+        const clampedToBottom = element.scrollHeight - this.props.height - element.scrollTop <= 1;
+        if (clampedToBottom && this.state.scrollOffset > element.scrollTop) {
+            return this.state.scrollOffset;
+        }
+
+        return element.scrollTop;
     };
 
     _onItemRowUnmount = (itemId: string, index: number) => {
@@ -719,6 +732,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
         const {scrollTop, scrollHeight} = event.currentTarget;
+        this._scrollTopAfterResizeCorrection = null;
         if (this._scrollCorrectionInProgress) {
             if (this.state.scrollUpdateWasRequested) {
                 this.setState(() => ({

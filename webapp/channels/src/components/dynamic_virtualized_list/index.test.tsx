@@ -322,7 +322,22 @@ describe('DynamicVirtualizedList', () => {
 
             resizeRow('item-8', 20);
 
-            expect(scroller.scrollTop).toBeLessThan(660);
+            expect(scroller.scrollTop).toBe(620);
+        });
+
+        test('keeps the position after a row above the viewport grows and shrinks before a scroll event', () => {
+            const {scroller} = renderList({correctScrollToBottom: false});
+
+            resizeRow('item-8', 180);
+            expect(scroller.scrollTop).toBe(820);
+
+            rowHeights['item-8'] = 140;
+            scroller.scrollTop = totalHeight() - LIST_HEIGHT;
+            expect(scroller.scrollTop).toBe(780);
+
+            resizeRow('item-8', 140);
+
+            expect(scroller.scrollTop).toBe(780);
         });
 
         test('does not compensate when several rows shrink before they are observed', () => {
