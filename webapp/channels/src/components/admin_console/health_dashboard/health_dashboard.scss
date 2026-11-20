@@ -37,8 +37,27 @@
         color: rgba(var(--sys-center-channel-color-rgb), 0.72);
     }
 
-    &__runError {
+    &__runError,
+    &__exportError {
         margin-bottom: 16px;
+    }
+
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    &__exportLabel {
+        display: inline-grid;
+
+        > span {
+            grid-area: 1 / 1;
+        }
+
+        > [aria-hidden='true'] {
+            visibility: hidden;
+        }
     }
 
     &__toolbar {

@@ -174,7 +174,7 @@ func markPropertyValuesUnavailable(posts []*model.Post) {
 //
 // Errors never name an attribute: which attributes a server defines is itself sensitive, and
 // the caller may not be allowed to see them.
-func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*model.PropertyValue, channel *model.Channel) ([]*model.PropertyValue, []*model.PropertyField, *model.AppError) {
+func (a *App) PreparePostPropertyValuesForCreate(rctx request.CTX, submitted []*model.PropertyValue, channel *model.Channel) ([]*model.PropertyValue, []*model.PropertyField, error) {
 	invalid := func(detail string) *model.AppError {
 		return model.NewAppError("PreparePostPropertyValuesForCreate", "api.post.create_post.invalid_attribute.app_error", nil, detail, http.StatusBadRequest)
 	}
@@ -296,7 +296,7 @@ func (a *App) CanSetPostPropertyValueOnCreate(rctx request.CTX, userID string, f
 //
 // The write runs before anything announces the post: no `posted` event, no notification and no
 // MessageHasBeenPosted hook has fired yet.
-func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) ([]*model.PropertyValue, *model.AppError) {
+func (a *App) setPostPropertyValuesOnCreate(rctx request.CTX, post *model.Post, values []*model.PropertyValue) ([]*model.PropertyValue, error) {
 	// The permission hook behind UpsertPropertyValues loads the post to resolve its channel
 	// and author. The post was saved a moment ago, so a replica may not have it yet.
 	rctx = RequestContextWithMaster(rctxWithSessionCallerID(rctx))

@@ -38,5 +38,6 @@ SEE ALSO
 
 * `mmctl <mmctl.rst>`_ 	 - Remote client for the Open Source, self-hosted Slack-alternative
 * `mmctl health check <mmctl_health_check.rst>`_ 	 - Report current health findings
+* `mmctl health export <mmctl_health_export.rst>`_ 	 - Export health findings as an HTML or Markdown report
 * `mmctl health run <mmctl_health_run.rst>`_ 	 - Run the health check now and report its findings
 
