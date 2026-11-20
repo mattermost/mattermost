@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 )
 
@@ -36,6 +37,8 @@ type Options struct {
 	// was collected, or 0 if that is unknown.
 	PointInTime bool
 
+	// SiteName goes into the report's file name.
+	SiteName string
 	// SiteURL also turns each finding's System Console path into a link; without it there is none.
 	SiteURL       string
 	ServerVersion string
@@ -48,7 +51,11 @@ type Options struct {
 }
 
 type Report struct {
-	Title       string
+	Title string
+	// FileName is the name, without an extension, to save the report under:
+	// site-health-<site name>-<date generated>. It also titles the HTML report, so a browser
+	// suggests it when printing to PDF.
+	FileName    string
 	Notes       []string
 	GeneratedAt Field
 	EvaluatedAt Field
@@ -133,8 +140,9 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 	formatTime := func(t time.Time) string { return t.In(location).Format(timeLayout) }
 
 	r := &Report{
-		Title: T("health.report.title"),
-		Notes: opts.Notes,
+		Title:    T("health.report.title"),
+		FileName: fileName(opts.SiteName, opts.GeneratedAt.In(location)),
+		Notes:    opts.Notes,
 		Labels: Labels{
 			Summary:       T("health.report.label.summary"),
 			Remediation:   T("health.report.label.remediation"),
@@ -206,6 +214,14 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 	}
 
 	return r
+}
+
+func fileName(siteName string, generatedAt time.Time) string {
+	date := generatedAt.Format(time.DateOnly)
+	if name := utils.SanitizeFileName(siteName); name != "" {
+		return "site-health-" + name + "-" + date
+	}
+	return "site-health-" + date
 }
 
 func sectionOf(finding *model.HealthFinding) SectionKind {

@@ -39,6 +39,7 @@ func testOptions() Options {
 		T:             i18n.T,
 		Location:      time.UTC,
 		GeneratedAt:   generatedAt,
+		SiteName:      "Example Chat",
 		SiteURL:       "https://chat.example.com",
 		ServerVersion: "12.3.0",
 		License:       "Enterprise",
@@ -267,6 +268,17 @@ func TestBuild(t *testing.T) {
 			r := Build(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: everySectionFindings()[6:7]}, opts)
 			assert.Equal(t, want, r.Sections[0].Findings[0].ConsoleURL, siteURL)
 		}
+	})
+
+	t.Run("names the file after the site and the day generated, in the report's time zone", func(t *testing.T) {
+		opts := testOptions()
+		assert.Equal(t, "site-health-Example_Chat-2026-11-18", Build(list, opts).FileName)
+
+		opts.Location = time.FixedZone("HST", -10*60*60)
+		assert.Equal(t, "site-health-Example_Chat-2026-11-17", Build(list, opts).FileName)
+
+		opts.SiteName = ""
+		assert.Equal(t, "site-health-2026-11-17", Build(list, opts).FileName)
 	})
 
 	t.Run("never exports who muted a finding", func(t *testing.T) {

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Health report</title>
+<title>site-health-Example_Chat-2026-11-18</title>
 <style>
 :root { --text: #3f4350; --text-72: rgba(63, 67, 80, 0.72); --text-64: rgba(63, 67, 80, 0.64); --border: rgba(63, 67, 80, 0.12); --button: #1c58d9; --critical: #d24b4e; --critical-bg: rgba(210, 75, 78, 0.1); --warning: #997113; --warning-bg: rgba(255, 188, 31, 0.16); --info: #1c58d9; --info-bg: rgba(28, 88, 217, 0.08); --resolved: #3db887; --resolved-bg: rgba(61, 184, 135, 0.12); --neutral: rgba(63, 67, 80, 0.64); --neutral-bg: rgba(63, 67, 80, 0.08); --elevation-1: 0 2px 3px 0 rgba(0, 0, 0, 0.08); }
 * { box-sizing: border-box; }
@@ -74,6 +74,11 @@ ul.findings .title { font-size: 14px; }
 .remediation { margin-top: 6px; overflow-wrap: anywhere; }
 .remediation .label { margin-right: 4px; }
 @media print {
+  @page {
+    margin: 14mm 12mm;
+    @top-right { content: ""; }
+    @bottom-right { content: counter(page) "/" counter(pages); font-family: "Open Sans", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 8pt; color: var(--text-64); }
+  }
   body { background: #fff; font-size: 10pt; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .banner { background: #fff; color: var(--text); border-bottom: 2px solid #1e325c; }
   .banner .logo { fill: #1e325c; }
