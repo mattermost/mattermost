@@ -48,6 +48,19 @@ describe('AttributeDetails', () => {
         jest.clearAllMocks();
         jest.restoreAllMocks();
 
+        // The Channels row's missing-values banner (MM-70717) fetches on
+        // every expand; stub it to zero so it never blocks the Required
+        // toggle in the tests below, none of which are about that fetch.
+        jest.spyOn(Client4, 'getChannelAttributeComplianceSummary').mockResolvedValue({
+            required: false,
+            missing_channel_count: 0,
+            shared_channel_count: 0,
+            unique_admin_count: 0,
+            channels_without_admin_count: 0,
+            message_preview: '',
+            notify_cooldown_ms: 0,
+        });
+
         // The page lists user fields and templates on mount to resolve name
         // conflicts, whatever else a test is about. Unmocked that reaches the
         // network, and every case here would log the rejection the page catches.
@@ -1498,6 +1511,22 @@ describe('AttributeDetails', () => {
             // so the inner rollback loop runs zero iterations) -- confirms
             // the template itself is still cleaned up in this zero-survivor case.
             expect(deletePropertyField).toHaveBeenCalledWith('access_control', 'template', 'template-id');
+        });
+
+        it("shows the server's own message when Required is refused for channels missing a value", async () => {
+            jest.spyOn(Client4, 'deletePropertyField').mockResolvedValue({status: 'OK'});
+            jest.spyOn(Client4, 'createPropertyField').
+                mockResolvedValueOnce({id: 'template-id'} as PropertyField).
+                mockRejectedValueOnce(makeClientError('api.property_field.required.channels_missing_values.app_error', 'Some active channels have no value yet.'));
+
+            renderComponent();
+            await userEvent.type(screen.getByTestId('attributeDisplayNameInput'), 'My Attribute');
+            await addResource('Channels', 'channel');
+            await userEvent.click(screen.getByTestId('saveSetting'));
+
+            const banner = await screen.findByTestId('attributeSaveError');
+            expect(banner).toHaveTextContent('Some active channels have no value yet.');
+            expect(banner).not.toHaveTextContent('Please try again');
         });
 
         it('renders the generic applies-to banner for a Channels-linked-field name conflict, not the CPA copy', async () => {

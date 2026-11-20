@@ -299,6 +299,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await adminClient.addToChannel(channelAdmin.id, channel.id);
             await adminClient.updateChannelMemberSchemeRoles(channel.id, channelAdmin.id, true, true);
             await adminClient.addToChannel(user.id, channel.id);
+            await adminClient.deleteChannel(channel.id);
 
             const undesignated = await createAttribute(adminClient, attributeName('nodisplay', suffix), {
                 options: ['FILLED'],
@@ -306,6 +307,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 required: true,
             });
             created.push(undesignated);
+            await adminClient.unarchiveChannel(channel.id);
 
             // # Look at the incomplete channel as an ordinary member
             const asMember = await pw.testBrowser.login(user);
@@ -618,10 +620,8 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
             await modal.fillDisplayName(`Attr Banner Multi ${suffix}`);
 
             // The menu closes on each pick, so the second value needs it reopened.
-            await page.getByTestId(`channelAttribute-${caveats.name}`).click();
-            await page.getByText('NOFORN', {exact: true}).click();
-            await page.getByTestId(`channelAttribute-${caveats.name}`).click();
-            await page.getByText('ORCON', {exact: true}).click();
+            await modal.selectAttributeOption(caveats.name, 'NOFORN');
+            await modal.selectAttributeOption(caveats.name, 'ORCON');
 
             await modal.create();
             await expect(modal.container).not.toBeVisible();

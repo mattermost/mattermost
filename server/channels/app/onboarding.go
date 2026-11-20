@@ -59,13 +59,13 @@ func (a *App) CompleteOnboarding(rctx request.CTX, request *model.CompleteOnboar
 			}
 			_, appErr := a.Channels().InstallMarketplacePlugin(installRequest)
 			if appErr != nil {
-				rctx.Logger().Error("Failed to install plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
+				rctx.Logger().Error("Failed to install plugin for onboarding", mlog.String("plugin_id", id), mlog.Err(appErr))
 				return
 			}
 
 			appErr = a.EnablePlugin(id)
 			if appErr != nil {
-				rctx.Logger().Error("Failed to enable plugin for onboarding", mlog.String("id", id), mlog.Err(appErr))
+				rctx.Logger().Error("Failed to enable plugin for onboarding", mlog.String("plugin_id", id), mlog.Err(appErr))
 				return
 			}
 
