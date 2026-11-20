@@ -14,6 +14,7 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/report"
@@ -131,11 +132,15 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	// c.AppContext.T translates into the request's locale.
+	_, locale := i18n.GetTranslationsAndLocaleFromRequest(r)
+
 	cfg := c.App.Config()
 	location := user.GetTimezoneLocation()
 	now := time.Now().In(location)
 	healthReport := report.Build(list, report.Options{
 		T:             c.AppContext.T,
+		Locale:        locale,
 		Location:      location,
 		GeneratedAt:   now,
 		SiteURL:       *cfg.ServiceSettings.SiteURL,

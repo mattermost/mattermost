@@ -491,6 +491,23 @@ func TestExportHealthFindings(t *testing.T) {
 		assert.Contains(t, report, "\n## Resolved\n\n- PushNotificationServer does not use https:// `PUSH_BAD_SCHEME`\n")
 	})
 
+	t.Run("html declares the request's language", func(t *testing.T) {
+		for acceptLanguage, lang := range map[string]string{
+			"":               "en",
+			"fr":             "fr",
+			"pt-BR,pt;q=0.9": "pt-BR",
+			"sw":             "en",
+		} {
+			client := th.CreateClient()
+			client.SetToken(th.SystemAdminClient.AuthToken)
+			client.HTTPHeader = map[string]string{"Accept-Language": acceptLanguage}
+			data, _, resp, err := client.ExportHealthFindings(context.Background(), "html")
+			require.NoError(t, err)
+			CheckOKStatus(t, resp)
+			assert.Contains(t, string(data), `<html lang="`+lang+`">`, "Accept-Language: %q", acceptLanguage)
+		}
+	})
+
 	t.Run("invalid format", func(t *testing.T) {
 		for _, format := range []string{"", "pdf"} {
 			_, _, resp, err := th.SystemAdminClient.ExportHealthFindings(context.Background(), format)

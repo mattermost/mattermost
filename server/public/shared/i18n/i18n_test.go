@@ -5,6 +5,8 @@ package i18n
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -157,6 +159,33 @@ func TestInitTranslationsWithDir(t *testing.T) {
 		_, found = locales["es"]
 		require.False(t, found, "should not have found unloaded es locale")
 	})
+}
+
+func TestGetTranslationsAndLocaleFromRequest(t *testing.T) {
+	i18nDir, found := utils.FindDir("server/i18n")
+	require.True(t, found, "unable to find i18n dir")
+	require.NoError(t, initTranslationsWithDir(i18nDir))
+
+	previous := defaultClientLocale
+	defaultClientLocale = "en"
+	t.Cleanup(func() { defaultClientLocale = previous })
+
+	for acceptLanguage, expected := range map[string]string{
+		"":               "en",
+		"fr":             "fr",
+		"fr-CA,fr;q=0.9": "fr",
+		"pt-BR,pt;q=0.9": "pt-BR",
+		"sw":             "en",
+		"sw-KE":          "en",
+	} {
+		t.Run(acceptLanguage, func(t *testing.T) {
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
+			r.Header.Set("Accept-Language", acceptLanguage)
+
+			_, locale := GetTranslationsAndLocaleFromRequest(r)
+			assert.Equal(t, expected, locale)
+		})
+	}
 }
 
 func TestGetTranslationFuncForDir(t *testing.T) {
