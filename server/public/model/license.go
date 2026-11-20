@@ -49,7 +49,8 @@ var LicenseToLicenseTier = map[string]int{
 }
 
 // LicenseSkuDisplayName returns the product name of a license SKU as the webapp shows it, with
-// " Gov" appended for a government license. An unknown SKU is returned as it is.
+// " Gov" appended for a government license. An unknown SKU is returned as it is, and an empty
+// one stays empty.
 func LicenseSkuDisplayName(skuShortName string, isGovSku bool) string {
 	name := skuShortName
 	switch skuShortName {
@@ -68,7 +69,7 @@ func LicenseSkuDisplayName(skuShortName string, isGovSku bool) string {
 	case LicenseShortSkuEnterpriseAdvanced:
 		name = "Enterprise Advanced"
 	}
-	if isGovSku {
+	if isGovSku && name != "" {
 		name += " Gov"
 	}
 	return name

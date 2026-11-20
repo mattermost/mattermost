@@ -30,6 +30,7 @@ func TestLicenseSkuDisplayName(t *testing.T) {
 		{"unknown", false, "unknown"},
 		{"unknown", true, "unknown Gov"},
 		{"", false, ""},
+		{"", true, ""},
 	} {
 		assert.Equal(t, tc.want, LicenseSkuDisplayName(tc.sku, tc.gov), "%s gov=%t", tc.sku, tc.gov)
 	}
