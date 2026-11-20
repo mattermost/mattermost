@@ -3383,10 +3383,16 @@ func (a *App) UpdateThreadReadForUserByPost(rctx request.CTX, currentSessionId, 
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user_by_post.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	return a.UpdateThreadReadForUser(rctx, currentSessionId, userID, teamID, threadID, post.CreateAt-1)
+	return a.updateThreadReadForUser(rctx, currentSessionId, userID, teamID, threadID, post.CreateAt-1, false)
 }
 
 func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64) (*model.ThreadResponse, *model.AppError) {
+	return a.updateThreadReadForUser(rctx, currentSessionId, userID, teamID, threadID, timestamp, true)
+}
+
+// updateThreadReadForUser moves the user's read position in the thread to timestamp. viewed reports
+// whether the user viewed the thread, rather than marking part of it as unread.
+func (a *App) updateThreadReadForUser(rctx request.CTX, currentSessionId, userID, teamID, threadID string, timestamp int64, viewed bool) (*model.ThreadResponse, *model.AppError) {
 	user, err := a.GetUser(rctx, userID)
 	if err != nil {
 		return nil, err
@@ -3417,11 +3423,19 @@ func (a *App) UpdateThreadReadForUser(rctx request.CTX, currentSessionId, userID
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
+	previousLastViewed := membership.LastViewed
 	membership.LastViewed = timestamp
 
 	nErr = a.Srv().Store().Thread().MarkAsRead(userID, threadID, timestamp)
 	if nErr != nil {
 		return nil, model.NewAppError("UpdateThreadReadForUser", "app.user.update_thread_read_for_user.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	if viewed {
+		// The client picks timestamp, so never report a view of replies that can't exist yet.
+		if viewedAt := min(timestamp, model.GetMillis()); viewedAt > previousLastViewed {
+			a.runThreadHasBeenViewedHook(rctx, userID, post.ChannelId, threadID, viewedAt)
+		}
 	}
 	thread, err := a.GetThreadForUser(rctx, membership, false)
 	if err != nil {

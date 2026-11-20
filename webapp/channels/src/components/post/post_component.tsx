@@ -953,6 +953,13 @@ function PostComponent(props: Props) {
                                     />
                                 )}
                                 {showReactions && <ReactionList post={post}/>}
+                                {post.state !== Posts.POST_DELETED && (
+                                    <Pluggable
+                                        pluggableName='PostFooter'
+                                        post={post}
+                                        location={props.location}
+                                    />
+                                )}
                             </div>
                             {threadFooter}
                         </div>

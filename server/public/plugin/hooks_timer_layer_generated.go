@@ -383,6 +383,18 @@ func (hooks *hooksTimerLayer) PropertyValuesHaveBeenUpdated(c *Context, userID, 
 	hooks.recordTime(startTime, "PropertyValuesHaveBeenUpdated", true)
 }
 
+func (hooks *hooksTimerLayer) ChannelHasBeenViewed(c *Context, userID, channelID string, viewedAt int64, collapsedThreads bool) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ChannelHasBeenViewed(c, userID, channelID, viewedAt, collapsedThreads)
+	hooks.recordTime(startTime, "ChannelHasBeenViewed", true)
+}
+
+func (hooks *hooksTimerLayer) ThreadHasBeenViewed(c *Context, userID, channelID, threadID string, viewedAt int64) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ThreadHasBeenViewed(c, userID, channelID, threadID, viewedAt)
+	hooks.recordTime(startTime, "ThreadHasBeenViewed", true)
+}
+
 func (hooks *hooksTimerLayer) OnDeactivateWithRPCErr() (error, error) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsRPCErr := hooks.hooksWithRPCErrImpl.OnDeactivateWithRPCErr()
@@ -681,5 +693,19 @@ func (hooks *hooksTimerLayer) PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context
 	startTime := timePkg.Now()
 	_returnsRPCErr := hooks.hooksWithRPCErrImpl.PropertyValuesHaveBeenUpdatedWithRPCErr(c, userID, groupID, targetType, targetID, values, previousValues)
 	hooks.recordTime(startTime, "PropertyValuesHaveBeenUpdatedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ChannelHasBeenViewedWithRPCErr(c *Context, userID, channelID string, viewedAt int64, collapsedThreads bool) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.ChannelHasBeenViewedWithRPCErr(c, userID, channelID, viewedAt, collapsedThreads)
+	hooks.recordTime(startTime, "ChannelHasBeenViewedWithRPCErr", _returnsRPCErr == nil)
+	return _returnsRPCErr
+}
+
+func (hooks *hooksTimerLayer) ThreadHasBeenViewedWithRPCErr(c *Context, userID, channelID, threadID string, viewedAt int64) error {
+	startTime := timePkg.Now()
+	_returnsRPCErr := hooks.hooksWithRPCErrImpl.ThreadHasBeenViewedWithRPCErr(c, userID, channelID, threadID, viewedAt)
+	hooks.recordTime(startTime, "ThreadHasBeenViewedWithRPCErr", _returnsRPCErr == nil)
 	return _returnsRPCErr
 }

@@ -1750,6 +1750,23 @@ export default class PluginRegistry {
     });
 
     /**
+     * Register a React component rendered at the foot of every post, in the row holding the post's
+     * acknowledgements and reactions. Unlike a post-header component, it is rendered on consecutive
+     * posts from the same user too, so it suits status that belongs to each post individually.
+     *
+     * The component receives the post and the location it is rendered in (such as CENTER or
+     * RHS_COMMENT) as props, and should return null for posts it has nothing to show for. It is not
+     * rendered for deleted posts.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration.
+     */
+    registerPostFooterComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
+        return this.dispatchPluginComponentAction('PostFooter', component);
+    });
+
+    /**
      * Register a transform applied to the composer placeholder for the current channel.
      *
      * `transform` receives (placeholder, channel, state, intl) and returns the placeholder to show —

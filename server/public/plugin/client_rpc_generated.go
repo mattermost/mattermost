@@ -2297,6 +2297,116 @@ func (s *hooksRPCServer) PropertyValuesHaveBeenUpdated(args *Z_PropertyValuesHav
 	return nil
 }
 
+func init() {
+	hookNameToId["ChannelHasBeenViewed"] = ChannelHasBeenViewedID
+}
+
+type Z_ChannelHasBeenViewedArgs struct {
+	A *Context
+	B string
+	C string
+	D int64
+	E bool
+}
+
+type Z_ChannelHasBeenViewedReturns struct {
+}
+
+func (g *hooksRPCClient) ChannelHasBeenViewed(c *Context, userID, channelID string, viewedAt int64, collapsedThreads bool) {
+	_args := &Z_ChannelHasBeenViewedArgs{c, userID, channelID, viewedAt, collapsedThreads}
+	_returns := &Z_ChannelHasBeenViewedReturns{}
+	if g.implemented[ChannelHasBeenViewedID] {
+		if err := g.client.Call("Plugin.ChannelHasBeenViewed", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelHasBeenViewed to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// ChannelHasBeenViewedWithRPCErr returns the same values as ChannelHasBeenViewed, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) ChannelHasBeenViewedWithRPCErr(c *Context, userID, channelID string, viewedAt int64, collapsedThreads bool) error {
+	_args := &Z_ChannelHasBeenViewedArgs{c, userID, channelID, viewedAt, collapsedThreads}
+	_returns := &Z_ChannelHasBeenViewedReturns{}
+	var _err error
+	if g.implemented[ChannelHasBeenViewedID] {
+		_err = g.client.Call("Plugin.ChannelHasBeenViewed", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_ChannelHasBeenViewedReturns{}
+			g.log.Debug("RPC call ChannelHasBeenViewed to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) ChannelHasBeenViewed(args *Z_ChannelHasBeenViewedArgs, returns *Z_ChannelHasBeenViewedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelHasBeenViewed(c *Context, userID, channelID string, viewedAt int64, collapsedThreads bool)
+	}); ok {
+		hook.ChannelHasBeenViewed(args.A, args.B, args.C, args.D, args.E)
+	} else {
+		return encodableError(fmt.Errorf("Hook ChannelHasBeenViewed called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["ThreadHasBeenViewed"] = ThreadHasBeenViewedID
+}
+
+type Z_ThreadHasBeenViewedArgs struct {
+	A *Context
+	B string
+	C string
+	D string
+	E int64
+}
+
+type Z_ThreadHasBeenViewedReturns struct {
+}
+
+func (g *hooksRPCClient) ThreadHasBeenViewed(c *Context, userID, channelID, threadID string, viewedAt int64) {
+	_args := &Z_ThreadHasBeenViewedArgs{c, userID, channelID, threadID, viewedAt}
+	_returns := &Z_ThreadHasBeenViewedReturns{}
+	if g.implemented[ThreadHasBeenViewedID] {
+		if err := g.client.Call("Plugin.ThreadHasBeenViewed", _args, _returns); err != nil {
+			g.log.Error("RPC call ThreadHasBeenViewed to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+// ThreadHasBeenViewedWithRPCErr returns the same values as ThreadHasBeenViewed, with an additional trailing error
+// for the RPC transport — always the LAST return slot.
+func (g *hooksRPCClient) ThreadHasBeenViewedWithRPCErr(c *Context, userID, channelID, threadID string, viewedAt int64) error {
+	_args := &Z_ThreadHasBeenViewedArgs{c, userID, channelID, threadID, viewedAt}
+	_returns := &Z_ThreadHasBeenViewedReturns{}
+	var _err error
+	if g.implemented[ThreadHasBeenViewedID] {
+		_err = g.client.Call("Plugin.ThreadHasBeenViewed", _args, _returns)
+		if _err != nil {
+			// Reset _returns so partial gob decoding can't leak non-zero
+			// values past a transport failure (HooksWithRPCErrGenerated contract).
+			_returns = &Z_ThreadHasBeenViewedReturns{}
+			g.log.Debug("RPC call ThreadHasBeenViewed to plugin failed.", mlog.Err(_err))
+		}
+	}
+	return _err
+}
+
+func (s *hooksRPCServer) ThreadHasBeenViewed(args *Z_ThreadHasBeenViewedArgs, returns *Z_ThreadHasBeenViewedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ThreadHasBeenViewed(c *Context, userID, channelID, threadID string, viewedAt int64)
+	}); ok {
+		hook.ThreadHasBeenViewed(args.A, args.B, args.C, args.D, args.E)
+	} else {
+		return encodableError(fmt.Errorf("Hook ThreadHasBeenViewed called but not implemented."))
+	}
+	return nil
+}
+
 // HooksWithRPCErrGenerated provides a WithRPCErr variant for every generated hook. The last error return
 // is always the RPC transport error — if non-nil, the plugin's other return values are zero. For
 // hooks whose base signature already returns error, the tuple is (originalReturns..., rpcErr)
@@ -2393,6 +2503,10 @@ type HooksWithRPCErrGenerated interface {
 	DraftWillBeUpsertedWithRPCErr(c *Context, draft *model.Draft) (*model.Draft, string, error)
 
 	PropertyValuesHaveBeenUpdatedWithRPCErr(c *Context, userID, groupID, targetType, targetID string, values, previousValues []*model.PropertyValue) error
+
+	ChannelHasBeenViewedWithRPCErr(c *Context, userID, channelID string, viewedAt int64, collapsedThreads bool) error
+
+	ThreadHasBeenViewedWithRPCErr(c *Context, userID, channelID, threadID string, viewedAt int64) error
 }
 
 type Z_RegisterCommandArgs struct {

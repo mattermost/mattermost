@@ -27,6 +27,11 @@ func (_m *Hooks) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel
 	_m.Called(c, channel)
 }
 
+// ChannelHasBeenViewed provides a mock function with given fields: c, userID, channelID, viewedAt, collapsedThreads
+func (_m *Hooks) ChannelHasBeenViewed(c *plugin.Context, userID string, channelID string, viewedAt int64, collapsedThreads bool) {
+	_m.Called(c, userID, channelID, viewedAt, collapsedThreads)
+}
+
 // ChannelMemberWillBeAdded provides a mock function with given fields: c, channelMember
 func (_m *Hooks) ChannelMemberWillBeAdded(c *plugin.Context, channelMember *model.ChannelMember) (*model.ChannelMember, string) {
 	ret := _m.Called(c, channelMember)
@@ -816,6 +821,11 @@ func (_m *Hooks) TeamMemberWillBeAdded(c *plugin.Context, teamMember *model.Team
 	}
 
 	return r0, r1
+}
+
+// ThreadHasBeenViewed provides a mock function with given fields: c, userID, channelID, threadID, viewedAt
+func (_m *Hooks) ThreadHasBeenViewed(c *plugin.Context, userID string, channelID string, threadID string, viewedAt int64) {
+	_m.Called(c, userID, channelID, threadID, viewedAt)
 }
 
 // UserHasBeenCreated provides a mock function with given fields: c, user
