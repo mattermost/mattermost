@@ -12,7 +12,6 @@
     "run": "node scripts/run.mjs",
     "dev-server": "node scripts/dev-server.mjs",
     "test": "npm run test --workspaces --if-present",
-    "test:updatesnapshot": "npm run test:updatesnapshot --workspaces --if-present",
     "test-ci": "npm run test-ci --workspaces --if-present",
     "check": "npm run check --workspaces --if-present",
     "fix": "npm run fix --workspaces --if-present",

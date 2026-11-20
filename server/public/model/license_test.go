@@ -13,6 +13,29 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestLicenseSkuDisplayName(t *testing.T) {
+	for _, tc := range []struct {
+		sku  string
+		gov  bool
+		want string
+	}{
+		{LicenseShortSkuE20, false, "Enterprise E20"},
+		{LicenseShortSkuE10, false, "Enterprise E10"},
+		{LicenseShortSkuProfessional, false, "Professional"},
+		{"starter", false, "Starter"},
+		{LicenseShortSkuEnterprise, false, "Enterprise"},
+		{LicenseShortSkuMattermostEntry, false, "Entry"},
+		{LicenseShortSkuEnterpriseAdvanced, false, "Enterprise Advanced"},
+		{LicenseShortSkuEnterpriseAdvanced, true, "Enterprise Advanced Gov"},
+		{"unknown", false, "unknown"},
+		{"unknown", true, "unknown Gov"},
+		{"", false, ""},
+		{"", true, ""},
+	} {
+		assert.Equal(t, tc.want, LicenseSkuDisplayName(tc.sku, tc.gov), "%s gov=%t", tc.sku, tc.gov)
+	}
+}
+
 func TestLicenseFeaturesToMap(t *testing.T) {
 	f := Features{}
 	f.SetDefaults()

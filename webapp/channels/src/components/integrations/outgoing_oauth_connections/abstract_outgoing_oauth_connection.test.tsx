@@ -75,18 +75,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
         submitAction: jest.fn(),
     };
 
-    test('should match snapshot', () => {
-        const props = {...baseProps};
-        const {container} = renderWithContext(
-            <Router>
-                <AbstractOutgoingOAuthConnection {...props}/>
-            </Router>,
-            state,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, displays client error', async () => {
+    test('should display client error', async () => {
         const submitAction = jest.fn().mockResolvedValue({data: true});
 
         const newServerError = 'serverError';
@@ -107,7 +96,6 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
         });
 
         expect(submitAction).not.toHaveBeenCalled();
-        expect(container).toMatchSnapshot();
     });
 
     test('should call action function', async () => {

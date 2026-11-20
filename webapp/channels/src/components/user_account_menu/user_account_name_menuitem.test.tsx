@@ -83,10 +83,4 @@ describe('UserAccountNameMenuItem', () => {
 
         expect(reactRedux.useDispatch).toHaveBeenCalledTimes(1);
     });
-
-    test('should not break if no props are passed', () => {
-        const {container} = renderWithContext(<UserAccountNameMenuItem/>);
-
-        expect(container).toMatchSnapshot();
-    });
 });

@@ -541,6 +541,28 @@ describe('components/edit_scheduled_post/edit_post', () => {
             expect(getTextbox().value).toBe(hotkeyText);
         });
 
+        test('should restore text added by a markdown hotkey through the browser edit history when the editor is closed without cancelling', () => {
+            const execCommand = jest.spyOn(document, 'execCommand').mockImplementation((command, _showUI, text = '') => {
+                const target = document.activeElement as HTMLTextAreaElement;
+                target.setRangeText(command === 'delete' ? '' : text, target.selectionStart, target.selectionEnd, 'end');
+                target.dispatchEvent(new Event('input', {bubbles: true}));
+                return true;
+            });
+
+            try {
+                const {remount} = renderEditor();
+
+                fireEvent.keyDown(getTextbox(), {key: 'b', keyCode: 66, ctrlKey: true});
+                expect(execCommand).toHaveBeenCalledWith('insertText', false, '****');
+                expect(getTextbox().value).toBe('Original scheduled message****');
+                remount();
+
+                expect(getTextbox().value).toBe('Original scheduled message****');
+            } finally {
+                execCommand.mockRestore();
+            }
+        });
+
         test('should restore text added by a line break key combo when the editor is closed without cancelling', () => {
             const {remount} = renderEditor();
 

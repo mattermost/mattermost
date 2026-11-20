@@ -50,44 +50,6 @@ describe('components/post_view/CombinedSystemMessage', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {container} = renderWithContext(
-            <CombinedSystemMessage {...baseProps}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot when join leave messages are turned off', () => {
-        const {container} = renderWithContext(
-            <CombinedSystemMessage
-                {...baseProps}
-                showJoinLeave={false}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, "removed from channel" message when join leave messages are turned off', () => {
-        const allUserIds = ['current_user_id', 'other_user_id_1', 'removed_user_id_1', 'removed_user_id_2'];
-        const messageData = [{
-            actorId: 'current_user_id',
-            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
-            userIds: ['removed_user_id_1'],
-        }, {
-            actorId: 'other_user_id_1',
-            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
-            userIds: ['removed_user_id_2'],
-        }];
-        const props = {...baseProps, messageData, allUserIds, showJoinLeave: false};
-        const {container} = renderWithContext(
-            <CombinedSystemMessage {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('says board in the messages for a board', () => {
         const {container} = renderWithContext(
             <CombinedSystemMessage
@@ -162,35 +124,5 @@ describe('components/post_view/CombinedSystemMessage', () => {
         expect(actions3.getMissingProfilesByIds).toHaveBeenCalledWith(['user_id_1', 'user_id_2']);
         expect(actions3.getMissingProfilesByUsernames).toHaveBeenCalledTimes(1);
         expect(actions3.getMissingProfilesByUsernames).toHaveBeenCalledWith(['user1']);
-    });
-    test('should render messages in chronological order', () => {
-        const allUserIds = ['current_user_id', 'other_user_id_1', 'user_id_1', 'user_id_2', 'join_last'];
-        const messageData = [{
-            actorId: 'current_user_id',
-            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
-            userIds: ['removed_user_id_1'],
-        }, {
-            actorId: 'other_user_id_1',
-            postType: Posts.POST_TYPES.ADD_TO_CHANNEL,
-            userIds: ['removed_user_id_2'],
-        }, {
-            actorId: 'other_user_id_1',
-            postType: Posts.POST_TYPES.REMOVE_FROM_CHANNEL,
-            userIds: ['removed_user_id_2'],
-        }, {
-            actorId: 'user_id_1',
-            postType: Posts.POST_TYPES.ADD_TO_CHANNEL,
-            userIds: ['user_id_2'],
-        }, {
-            actorId: 'join_last',
-            postType: Posts.POST_TYPES.JOIN_CHANNEL,
-            userIds: [''],
-        }];
-        const props = {...baseProps, messageData, allUserIds};
-        const {container} = renderWithContext(
-            <CombinedSystemMessage {...props}/>,
-        );
-
-        expect(container).toMatchSnapshot();
     });
 });

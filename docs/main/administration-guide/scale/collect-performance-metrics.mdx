@@ -34,7 +34,7 @@ For a self-hosted Mattermost deployment, a Mattermost system admin must perform 
 
 <Note>
 
-For Mattermost deployments prior to v10.1, you must download the latest version of [the plugin binary release](https://github.com/mattermost/mattermost-plugin-metrics/releases), compatible with Mattermost v8.0.1 and later. Go to **System Console \> Plugins \> Plugin Management \> Upload Plugin**, and upload the plugin binary you downloaded.
+From Mattermost v12.2, the Metrics plugin is enabled automatically when Performance Monitoring is enabled, including on upgrade, unless a system admin has already enabled or disabled the plugin. If you enable Performance Monitoring while the server is running and **Mattermost Metrics Plugin** isn't listed under **Installed Plugins**, install it from the App Marketplace or restart Mattermost. Enabling Performance Monitoring only through the `MM_METRICSSETTINGS_ENABLE` environment variable doesn't enable the plugin. In that case, install it if needed and enable it in **System Console \> Plugins \> Plugin Management**.
 
 </Note>
 
