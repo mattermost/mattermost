@@ -66,14 +66,13 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
         expect(screen.queryByTestId('healthDashboardExportButton')).not.toBeInTheDocument();
     });
 
-    test('lists the three export options and says the export includes every finding', async () => {
+    test('lists the three export options', async () => {
         await renderDashboard(systemAdmin);
         await openMenu();
 
         expect(screen.getByRole('menuitem', {name: 'Download HTML'})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: 'Download Markdown'})).toBeInTheDocument();
         expect(screen.getByRole('menuitem', {name: 'Print / Save as PDF'})).toBeInTheDocument();
-        expect(screen.getByText('Includes all findings, including muted and resolved ones.')).toBeInTheDocument();
     });
 
     test.each([

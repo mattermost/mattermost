@@ -19,7 +19,6 @@ const msg = defineMessages({
     button: {id: 'admin.health_dashboard.export.button', defaultMessage: 'Export'},
     exporting: {id: 'admin.health_dashboard.export.exporting', defaultMessage: 'Exporting…'},
     menuLabel: {id: 'admin.health_dashboard.export.menu_label', defaultMessage: 'Export health findings'},
-    help: {id: 'admin.health_dashboard.export.help', defaultMessage: 'Includes all findings, including muted and resolved ones.'},
     html: {id: 'admin.health_dashboard.export.html', defaultMessage: 'Download HTML'},
     markdown: {id: 'admin.health_dashboard.export.markdown', defaultMessage: 'Download Markdown'},
     print: {id: 'admin.health_dashboard.export.print', defaultMessage: 'Print / Save as PDF'},
@@ -107,11 +106,6 @@ const ExportMenu = ({onError}: Props) => {
                 id: menuId,
                 'aria-label': formatMessage(msg.menuLabel),
             }}
-            menuHeader={
-                <p className='HealthDashboard__exportHelp'>
-                    <FormattedMessage {...msg.help}/>
-                </p>
-            }
         >
             <Menu.Item
                 id={`${menuId}-html`}
