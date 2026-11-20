@@ -19,6 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/healthchecktest"
 )
 
 // mmctl health check --packet on a server's Support Packet prints the findings mmctl health check
@@ -58,12 +59,6 @@ func (s *MmctlE2ETestSuite) TestHealthCheckPacketMatchesLiveFindings() {
 		cfg.EmailSettings.EnableSignInWithEmail = model.NewPointer(false)
 		cfg.EmailSettings.EnableSignInWithUsername = model.NewPointer(false)
 		cfg.ServiceSettings.EnableEmailInvitations = model.NewPointer(false)
-		// Turning security fix alerts off clears the process-wide latest-release cache an earlier
-		// test may have filled; they are turned back on below.
-		cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false)
-	})
-	s.th.App.UpdateConfig(func(cfg *model.Config) {
-		cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true)
 	})
 
 	s.Require().NoError(s.th.App.RunHealthCheck(s.th.Context))
@@ -112,7 +107,7 @@ func comparableHealthFindings(findings []*model.HealthFinding) []model.HealthFin
 		if len(f.Details) == 0 {
 			f.Details = nil
 		}
-		if slices.Contains(healthcheck.SampledCodes, f.Code) {
+		if slices.Contains(healthchecktest.SampledCodes, f.Code) {
 			f.Details, f.Message = nil, ""
 		}
 		result = append(result, f)

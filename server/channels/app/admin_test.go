@@ -56,34 +56,34 @@ func TestGetLatestVersion(t *testing.T) {
 	t.Run("get latest mm version from cache", func(t *testing.T) {
 		err := th.App.clearLatestVersionCache()
 		require.NoError(t, err)
-		originalResult, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
-		require.Nil(t, appErr)
 
-		// Call same function but mock the GET request to return a different result.
-		// We are hoping the function will use the cache instead of making the GET request
-		v := &model.GithubReleaseInfo{
-			Id:          57117096,
-			TagName:     "v6.3.1",
-			Name:        "v6.3.1",
-			CreatedAt:   "2022-01-13T14:19:44Z",
-			PublishedAt: "2022-01-14T13:45:09Z",
-			Body:        "Mattermost Platform Release v6.3.0",
-			Url:         "https://github.com/mattermost/mattermost-server/releases/tag/v6.3.0",
-		}
-
-		updatedJSON, jsonErr := json.Marshal(v)
+		updatedJSON, jsonErr := json.Marshal(&model.GithubReleaseInfo{Id: 57117096, TagName: "v6.3.1"})
 		require.NoError(t, jsonErr)
+		var served atomic.Bool
+		changingServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			body := validJSON
+			if served.Swap(true) {
+				body = updatedJSON
+			}
+			_, err := w.Write(body)
+			require.NoError(t, err)
+		}))
+		defer changingServer.Close()
 
-		updatedServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		originalResult, appErr := th.App.GetLatestVersion(th.Context, changingServer.URL)
+		require.Nil(t, appErr)
+		cachedResult, appErr := th.App.GetLatestVersion(th.Context, changingServer.URL)
+		require.Nil(t, appErr)
+		require.Equal(t, originalResult.TagName, cachedResult.TagName, "did not get cached result")
+
+		otherServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			_, err := w.Write(updatedJSON)
 			require.NoError(t, err)
 		}))
-		defer updatedServer.Close()
-
-		cachedResult, appErr := th.App.GetLatestVersion(th.Context, updatedServer.URL)
+		defer otherServer.Close()
+		otherResult, appErr := th.App.GetLatestVersion(th.Context, otherServer.URL)
 		require.Nil(t, appErr)
-
-		require.Equal(t, originalResult.TagName, cachedResult.TagName, "did not get cached result")
+		require.Equal(t, "v6.3.1", otherResult.TagName, "another URL is looked up on its own")
 	})
 
 	t.Run("get latest mm version error from external", func(t *testing.T) {
@@ -130,24 +130,34 @@ func TestGetLatestVersion(t *testing.T) {
 		assert.Equal(t, int32(1), requests.Load())
 
 		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
-		require.NotNil(t, appErr, "the cached failure is returned until it expires")
-		assert.Nil(t, release)
+		require.Nil(t, appErr, "a failure is cached only for the URL that failed")
+		assert.Equal(t, version.TagName, release.TagName)
 	})
 
 	t.Run("toggling security alerts clears a cached failure", func(t *testing.T) {
 		require.NoError(t, th.App.clearLatestVersionCache())
-		badGateway := countingServer(t, http.StatusBadGateway)
-		_, appErr := th.App.GetLatestVersion(th.Context, badGateway.URL)
+		var recovered atomic.Bool
+		flaky := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if !recovered.Load() {
+				w.WriteHeader(http.StatusBadGateway)
+				return
+			}
+			_, err := w.Write(validJSON)
+			assert.NoError(t, err)
+		}))
+		t.Cleanup(flaky.Close)
+		_, appErr := th.App.GetLatestVersion(th.Context, flaky.URL)
 		require.NotNil(t, appErr)
+		recovered.Store(true)
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.SiteURL = model.NewPointer("http://other.example.com") })
-		_, appErr = th.App.GetLatestVersion(th.Context, ts.URL)
+		_, appErr = th.App.GetLatestVersion(th.Context, flaky.URL)
 		require.NotNil(t, appErr, "an unrelated config change keeps the cached failure")
 
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(false) })
 		th.App.UpdateConfig(func(cfg *model.Config) { cfg.ServiceSettings.EnableSecurityFixAlert = model.NewPointer(true) })
 
-		release, appErr := th.App.GetLatestVersion(th.Context, ts.URL)
+		release, appErr := th.App.GetLatestVersion(th.Context, flaky.URL)
 		require.Nil(t, appErr)
 		assert.Equal(t, version.TagName, release.TagName)
 	})

@@ -59,8 +59,7 @@ func setupHealthCheck(t *testing.T, flagEnabled bool) (*TestHelper, *HealthCheck
 	t.Cleanup(func() {
 		assert.NoError(t, th.App.clearLatestVersionCache())
 	})
-	_, appErr := th.App.GetLatestVersion(th.Context, latestVersionServer(t).URL)
-	require.Nil(t, appErr)
+	th.App.Srv().latestVersionURLOverride = latestVersionServer(t).URL
 
 	return th, svc
 }
