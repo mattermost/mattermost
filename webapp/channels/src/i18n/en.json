@@ -19263,6 +19263,18 @@
     "defaultMessage": "It looks like your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
     "description": "Warning text on the Cloud billing/subscription admin page when the last payment failed due to an expired card; <link> wraps the clickable 'update your payment information' text."
   },
+  "boards_empty_state.create": {
+    "defaultMessage": "Create a board",
+    "description": ""
+  },
+  "boards_empty_state.description": {
+    "defaultMessage": "Boards organize work as cards that you can group, filter and assign. Each board has its own members, and every card has a thread for discussing it.",
+    "description": ""
+  },
+  "boards_empty_state.title": {
+    "defaultMessage": "Plan and track work with boards",
+    "description": ""
+  },
   "bot.add.default_token.expiry": {
     "defaultMessage": "Default token expires",
     "description": "Label for the expiry picker in the 'Default access token' section of the Add Bot Account page (Integrations > Bot Accounts). It sets when the bot's first token expires. 'Expires' is a verb."
@@ -24419,9 +24431,17 @@
     "defaultMessage": "Search channels",
     "description": "Placeholder and accessibility label of the search input above a filterable channel list (browse channels and sync-job results)."
   },
+  "filtered_channels_list.search.board": {
+    "defaultMessage": "Search boards",
+    "description": ""
+  },
   "filtered_channels_list.search.label": {
     "defaultMessage": "Search Channels",
     "description": "Accessibility label for the channel search input in the Browse Channels dialog."
+  },
+  "filtered_channels_list.search.label.board": {
+    "defaultMessage": "Search Boards",
+    "description": ""
   },
   "filtered_user_list.countTotal": {
     "defaultMessage": "{count, number} {count, plural, one {member} other {members}} of {total, number} total",
@@ -27711,9 +27731,17 @@
     "defaultMessage": "Channel type filter",
     "description": "Accessibility label for the channel-type filter dropdown in the Browse Channels modal."
   },
+  "more_channels.channel_type_filter.board": {
+    "defaultMessage": "Board type filter",
+    "description": ""
+  },
   "more_channels.channel_type_filter.filter_type_set": {
     "defaultMessage": "Channel type filter set to {filterType}",
     "description": "Screen-reader-only announcement in the Browse Channels dialog when the channel type filter changes; {filterType} is the selected filter's name."
+  },
+  "more_channels.channel_type_filter.filter_type_set.board": {
+    "defaultMessage": "Board type filter set to {filterType}",
+    "description": ""
   },
   "more_channels.count": {
     "defaultMessage": "{count} Results",
@@ -27730,6 +27758,10 @@
   "more_channels.create": {
     "defaultMessage": "Create New Channel",
     "description": "Button label (and aria-label) in the Browse Channels modal; opens the create-channel flow. Also shown in the empty search results state."
+  },
+  "more_channels.create.board": {
+    "defaultMessage": "Create New Board",
+    "description": ""
   },
   "more_channels.discoverable": {
     "defaultMessage": "Discoverable",
@@ -27783,9 +27815,17 @@
     "defaultMessage": "No archived channels",
     "description": "Empty-state text in the Browse Channels modal when there are no archived channels to show."
   },
+  "more_channels.noArchived.board": {
+    "defaultMessage": "No archived boards",
+    "description": ""
+  },
   "more_channels.noChannels": {
     "defaultMessage": "No channels",
     "description": "Empty-state text in the Browse Channels modal when no channels are available."
+  },
+  "more_channels.noChannels.board": {
+    "defaultMessage": "No boards",
+    "description": ""
   },
   "more_channels.noDiscoverable": {
     "defaultMessage": "No discoverable private channels",
@@ -27803,9 +27843,17 @@
     "defaultMessage": "No private channels",
     "description": "Empty-state text in the Browse Channels modal when there are no private channels to show."
   },
+  "more_channels.noPrivate.board": {
+    "defaultMessage": "No private boards",
+    "description": ""
+  },
   "more_channels.noPublic": {
     "defaultMessage": "No public channels",
     "description": "Empty-state text in the Browse Channels modal when there are no public channels to show."
+  },
+  "more_channels.noPublic.board": {
+    "defaultMessage": "No public boards",
+    "description": ""
   },
   "more_channels.noRecommended": {
     "defaultMessage": "No recommended channels",
@@ -27835,9 +27883,17 @@
     "defaultMessage": "Channel Type: All",
     "description": "Selected-filter label in the Browse Channels modal's channel-type dropdown showing all channel types."
   },
+  "more_channels.show_all_channels.board": {
+    "defaultMessage": "Board Type: All",
+    "description": ""
+  },
   "more_channels.show_archived_channels": {
     "defaultMessage": "Channel Type: Archived",
     "description": "Selected-filter label in the Browse Channels modal's channel-type dropdown for archived channels."
+  },
+  "more_channels.show_archived_channels.board": {
+    "defaultMessage": "Board Type: Archived",
+    "description": ""
   },
   "more_channels.show_discoverable_channels": {
     "defaultMessage": "Discoverable private channels",
@@ -27851,9 +27907,17 @@
     "defaultMessage": "Channel Type: Private",
     "description": "Selected-filter label in the Browse Channels modal's channel-type dropdown for private channels."
   },
+  "more_channels.show_private_channels.board": {
+    "defaultMessage": "Board Type: Private",
+    "description": ""
+  },
   "more_channels.show_public_channels": {
     "defaultMessage": "Channel Type: Public",
     "description": "Selected-filter label in the Browse Channels modal's channel-type dropdown for public channels."
+  },
+  "more_channels.show_public_channels.board": {
+    "defaultMessage": "Board Type: Public",
+    "description": ""
   },
   "more_channels.show_recommended_channels": {
     "defaultMessage": "Recommended channels",
@@ -27862,6 +27926,10 @@
   "more_channels.title": {
     "defaultMessage": "Browse Channels",
     "description": "Title of the Browse Channels modal, which lists channels the user can join."
+  },
+  "more_channels.title.board": {
+    "defaultMessage": "Browse Boards",
+    "description": ""
   },
   "more_channels.view": {
     "defaultMessage": "View",
@@ -31867,6 +31935,10 @@
     "defaultMessage": "Browse channels",
     "description": "Menu item in the Add Channels dropdown that opens the channel browser."
   },
+  "sidebar_left.add_channel_dropdown.browseChannels.board": {
+    "defaultMessage": "Browse boards",
+    "description": ""
+  },
   "sidebar_left.add_channel_dropdown.createNewChannel": {
     "defaultMessage": "Create new channel",
     "description": "Menu item in the Add Channels dropdown that opens the create channel dialog."
@@ -32231,6 +32303,10 @@
     "defaultMessage": "Browse channels",
     "description": "Menu item in the sidebar's + (browse or create channels) menu that opens the channel browser."
   },
+  "sidebarLeft.browserOrCreateChannelMenu.browseChannelsMenuItem.primaryLabel.board": {
+    "defaultMessage": "Browse boards",
+    "description": ""
+  },
   "sidebarLeft.browserOrCreateChannelMenu.createCategoryMenuItem.primaryLabel": {
     "defaultMessage": "Create new category",
     "description": "Menu item in the sidebar's + menu that opens the create sidebar category dialog."
@@ -32535,9 +32611,17 @@
     "defaultMessage": "All channel types",
     "description": "Option in the Browse Channels channel-type filter dropdown that shows every channel type."
   },
+  "suggestion.all.board": {
+    "defaultMessage": "All board types",
+    "description": ""
+  },
   "suggestion.archive": {
     "defaultMessage": "Archived channels",
     "description": "Section heading and filter option in the Browse Channels modal for archived channels."
+  },
+  "suggestion.archive.board": {
+    "defaultMessage": "Archived boards",
+    "description": ""
   },
   "suggestion.archived_channel": {
     "defaultMessage": "Archived channel",
@@ -32627,6 +32711,10 @@
     "defaultMessage": "Private channel",
     "description": "Accessibility label for the private channel (lock) icon next to entries in autocomplete suggestion lists."
   },
+  "suggestion.private.board": {
+    "defaultMessage": "Private boards",
+    "description": ""
+  },
   "suggestion.public": {
     "defaultMessage": "Public channels",
     "description": "Section heading and filter option in the Browse Channels modal for public channels."
@@ -32634,6 +32722,10 @@
   "suggestion.public_channel": {
     "defaultMessage": "Public channel",
     "description": "Accessibility label for the public channel (globe) icon next to entries in autocomplete suggestion lists."
+  },
+  "suggestion.public.board": {
+    "defaultMessage": "Public boards",
+    "description": ""
   },
   "suggestion.recommended": {
     "defaultMessage": "Recommended channels",

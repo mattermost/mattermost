@@ -13,11 +13,13 @@ import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
 import {getPreviousTeamId} from 'selectors/local_storage';
+import {getSidebarBrowseOrAddChannelMenuPluginComponents} from 'selectors/plugins';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
+import type {SidebarBrowseOrAddChannelMenuAction} from 'types/store/plugins';
 import type {ProductRailSection, ProductRailTab} from 'types/store/views';
 
 /**
@@ -65,6 +67,18 @@ export const getBoardPluginIds: (state: GlobalState) => string[] = createSelecto
     'getBoardPluginIds',
     getChannelKindRegistrations,
     (registrations) => registrations.filter((registration) => registration.kind === 'board').map((registration) => registration.pluginId),
+);
+
+/**
+ * The board plugin's own "Create new board" items, which create boards from core. Their placement
+ * only says where they sit in the add channels menu, so an item is a board action when the plugin
+ * that registered it is the one that registered the board kind.
+ */
+export const getBoardCreateMenuItems: (state: GlobalState) => SidebarBrowseOrAddChannelMenuAction[] = createSelector(
+    'getBoardCreateMenuItems',
+    getSidebarBrowseOrAddChannelMenuPluginComponents,
+    getBoardPluginIds,
+    (items: SidebarBrowseOrAddChannelMenuAction[] | undefined, boardPluginIds) => (items ?? []).filter((item) => item.placement === 'afterCreateChannel' && boardPluginIds.includes(item.pluginId)),
 );
 
 /**
