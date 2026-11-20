@@ -54,6 +54,67 @@
             application/json:
               schema:
                 $ref: "#/components/schemas/AppError"
+  /api/v4/health/findings/export:
+    get:
+      tags:
+        - health
+      summary: Export health findings
+      description: |
+        Export the findings returned by [Get health findings](#operation/GetHealthFindings), including
+        muted and resolved findings, as a shareable report file. The report is rendered in the locale of
+        the request's `Accept-Language` header, falling back to English, and shows times in the requesting
+        user's timezone, falling back to UTC. The export is recorded in the audit log.
+
+        __Minimum server version__: 12.3
+
+        ##### Permissions
+
+        Must have `manage_system` permission. Not available over local mode.
+
+        Requires the `HealthDashboard` feature flag and a Professional license or higher.
+      operationId: ExportHealthFindings
+      parameters:
+        - name: format
+          in: query
+          description: The report format, `html` for a self-contained HTML file or `md` for Markdown.
+          required: true
+          schema:
+            type: string
+            enum:
+              - html
+              - md
+      responses:
+        "200":
+          description: |
+            Health findings export successful. The response is sent as a download named
+            `mm_site_health_<company>_<YYYY-MM-DDTHH-MM>.<format>`, where `<company>` is the license's
+            customer name, and the timestamp is in the requesting user's timezone.
+          headers:
+            Content-Disposition:
+              description: '`attachment` with the suggested filename.'
+              schema:
+                type: string
+          content:
+            text/html:
+              schema:
+                type: string
+            text/markdown:
+              schema:
+                type: string
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          description: The `HealthDashboard` feature flag is off, or the server does not have a Professional license or higher.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AppError"
   "/api/v4/health/findings/{fingerprint}/mute":
     post:
       tags:
