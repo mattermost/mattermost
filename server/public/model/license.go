@@ -199,6 +199,7 @@ type Features struct {
 	RemoteClusterService      *bool `json:"remote_cluster_service" yaml:"remote_cluster_service,omitempty"`
 	OutgoingOAuthConnections  *bool `json:"outgoing_oauth_connections" yaml:"outgoing_oauth_connections,omitempty"`
 	AutoTranslation           *bool `json:"auto_translation" yaml:"auto_translation,omitempty"`
+	Entities                  *bool `json:"entities" yaml:"entities,omitempty"`
 
 	// after we enabled more features we'll need to control them with this
 	FutureFeatures *bool `json:"future_features" yaml:"future_features,omitempty"`
@@ -233,6 +234,7 @@ func (f *Features) ToMap() map[string]any {
 		"remote_cluster_service":      *f.RemoteClusterService,
 		"future":                      *f.FutureFeatures,
 		"outgoing_oauth_connections":  *f.OutgoingOAuthConnections,
+		"entities":                    *f.Entities,
 	}
 }
 
@@ -359,6 +361,10 @@ func (f *Features) SetDefaults() {
 
 	if f.OutgoingOAuthConnections == nil {
 		f.OutgoingOAuthConnections = new(*f.FutureFeatures)
+	}
+
+	if f.Entities == nil {
+		f.Entities = new(*f.FutureFeatures)
 	}
 }
 

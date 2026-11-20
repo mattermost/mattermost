@@ -699,6 +699,17 @@ func (c *Client4) propertyFieldsSearchRoute(groupName string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, "fields", "search")
 }
 
+// channelAttributeMissingValuesRoute builds the route for the required-channel-
+// attribute compliance endpoints. An empty fieldID targets the field-less
+// "create mode" form, used before the attribute has been saved and thus has no
+// ID yet.
+func (c *Client4) channelAttributeMissingValuesRoute(groupName, fieldID string) clientRoute {
+	if fieldID == "" {
+		return c.propertyFieldsRoute(groupName, PropertyFieldObjectTypeChannel).Join("missing_values")
+	}
+	return c.propertyFieldRoute(groupName, PropertyFieldObjectTypeChannel, fieldID).Join("missing_values")
+}
+
 func (c *Client4) propertyValuesRoute(groupName, objectType, targetID string) clientRoute {
 	return newClientRoute("properties").Join("groups", groupName, objectType, "values", targetID)
 }
@@ -4599,6 +4610,47 @@ func (c *Client4) GetConfigWithOptions(ctx context.Context, options GetConfigOpt
 	return DecodeJSONFromResponse[map[string]any](r)
 }
 
+// GetConfigHistory returns a page of the configurations saved by a database-backed
+// config store, newest first, each with the settings changed from the one before it.
+func (c *Client4) GetConfigHistory(ctx context.Context, page, perPage int) ([]*ConfigHistoryEntry, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.configRoute().Join("history"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigHistoryEntry](r)
+}
+
+// GetHistoricalConfig returns a configuration saved by a database-backed config store,
+// with the same items sanitized as GetConfig.
+func (c *Client4) GetHistoricalConfig(ctx context.Context, configID string) (*Config, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.configRoute().Join("history", configID), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*Config](r)
+}
+
+// RestoreHistoricalConfig replaces the server configuration with one saved by a database-backed
+// config store, and returns the settings it changed. With dryRun, it returns the settings it
+// would change without saving anything.
+func (c *Client4) RestoreHistoricalConfig(ctx context.Context, configID string, dryRun bool) ([]*ConfigChange, *Response, error) {
+	values := url.Values{}
+	if dryRun {
+		values.Set("dry_run", "true")
+	}
+	r, err := c.doAPIPostWithQuery(ctx, c.configRoute().Join("history", configID, "restore"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[[]*ConfigChange](r)
+}
+
 // ReloadConfig will reload the server configuration.
 func (c *Client4) ReloadConfig(ctx context.Context) (*Response, error) {
 	r, err := c.doAPIPost(ctx, c.configRoute().Join("reload"), "")
@@ -8388,6 +8440,43 @@ func (c *Client4) DeletePropertyFieldOptions(ctx context.Context, groupName, obj
 	}
 	defer closeBody(r)
 	return BuildResponse(r), nil
+}
+
+// GetChannelsMissingAttributeValue returns a paginated list of active, local
+// channels that lack a value for the given channel attribute field.
+func (c *Client4) GetChannelsMissingAttributeValue(ctx context.Context, groupName, fieldID string, page, perPage int) (*ChannelsMissingAttributeValueList, *Response, error) {
+	values := url.Values{}
+	values.Set("page", strconv.Itoa(page))
+	values.Set("per_page", strconv.Itoa(perPage))
+	r, err := c.doAPIGetWithQuery(ctx, c.propertyFieldRoute(groupName, PropertyFieldObjectTypeChannel, fieldID).Join("missing_values"), values, "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelsMissingAttributeValueList](r)
+}
+
+// GetChannelAttributeComplianceSummary returns the compliance counts used by
+// the Required toggle's banner. An empty fieldID reports the count for every
+// active, local channel (create mode).
+func (c *Client4) GetChannelAttributeComplianceSummary(ctx context.Context, groupName, fieldID string) (*ChannelAttributeComplianceSummary, *Response, error) {
+	r, err := c.doAPIGet(ctx, c.channelAttributeMissingValuesRoute(groupName, fieldID).Join("summary"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelAttributeComplianceSummary](r)
+}
+
+// NotifyChannelAdminsOfMissingAttributeValue sends a batched system-bot DM to
+// every unique channel admin of a channel missing a value for fieldID.
+func (c *Client4) NotifyChannelAdminsOfMissingAttributeValue(ctx context.Context, groupName, fieldID string) (*ChannelAttributeNotifyResult, *Response, error) {
+	r, err := c.doAPIPost(ctx, c.channelAttributeMissingValuesRoute(groupName, fieldID).Join("notify"), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return DecodeJSONFromResponse[*ChannelAttributeNotifyResult](r)
 }
 
 func (c *Client4) GetPropertyValues(ctx context.Context, groupName, objectType, targetID string, search PropertyValueSearch) ([]*PropertyValue, *Response, error) {

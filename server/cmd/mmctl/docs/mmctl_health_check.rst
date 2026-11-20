@@ -34,7 +34,7 @@ Options
   -h, --help               help for check
       --include-muted      Include muted findings
       --include-resolved   Include resolved findings
-      --packet string      Path to a Support Packet zip to evaluate offline, without a server
+      --packet string      Path to a Support Packet zip to evaluate without a server
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

@@ -6,6 +6,7 @@ import {isValidElementType} from 'react-is';
 import type {Reducer} from 'redux';
 
 import type {WebSocketMessages} from '@mattermost/client';
+import type {EntityCard} from '@mattermost/types/posts';
 
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
@@ -1989,6 +1990,27 @@ export default class PluginRegistry {
      */
     registerSystemConsoleGroupTable = reArg(['component'], ({component}: DPluginComponentProp) => {
         return this.dispatchPluginComponentAction('SystemConsoleGroupTable', component);
+    });
+
+    /**
+     * Register a drawing for one part of an entity card.
+     *
+     * `map` replaces the coordinate fallback where the card carries a map payload.
+     * Any other part name is rendered after the card body, so a later kind can
+     * arrive without a new registry method. The component receives the whole card.
+     */
+    registerEntityCardPart = reArg(['part', 'component'], ({part, component}: {
+        part: string;
+        component: React.ComponentType<{card: EntityCard; reload?: () => void}>;
+    }) => {
+        const id = generateId();
+        this.dispatchPluginComponentWithData('EntityCardPart', {
+            id,
+            pluginId: this.id,
+            part,
+            component,
+        });
+        return id;
     });
 
     registerRHSPluginPopoutListener = reArg(['pluginId', 'onPopoutOpened'], ({pluginId, onPopoutOpened}: {pluginId: string; onPopoutOpened: (teamName: string, channelName: string | undefined, listeners: Partial<PopoutListeners>) => void}) => {

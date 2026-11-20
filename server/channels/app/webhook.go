@@ -316,7 +316,7 @@ func distributeWebhookJSONArrayProp(splits []*model.Post, base *model.Post, prop
 	return splits, nil
 }
 
-func validateWebhookPostInteractiveActions(post *model.Post) *model.AppError {
+func validateWebhookPostInteractiveActions(post *model.Post) error {
 	if err := model.ValidateInteractiveActionsForWebhook(post); err != nil {
 		return model.NewAppError("CreateWebhookPost", "api.context.invalid_body.app_error", nil, err.Error(), http.StatusBadRequest)
 	}
@@ -504,7 +504,7 @@ func (a *App) CreateWebhookPost(rctx request.CTX, userID string, channel *model.
 
 	if mmBlocksEnabled {
 		if err := validateWebhookPostInteractiveActions(post); err != nil {
-			return nil, err
+			return nil, model.AsAppError(err)
 		}
 	}
 

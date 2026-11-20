@@ -36,6 +36,7 @@ describe('Reducers.RHS', () => {
         editChannelMembers: false,
         shouldFocusRHS: false,
         searchTeam: null,
+        selectedEntity: null,
         mentionFilters: defaultMentionFilters,
     };
 
@@ -715,6 +716,7 @@ describe('Reducers.RHS', () => {
             editChannelMembers: false,
             shouldFocusRHS: false,
             searchTeam: null,
+            selectedEntity: null,
             mentionFilters: defaultMentionFilters,
         };
 

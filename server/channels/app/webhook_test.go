@@ -1130,7 +1130,7 @@ func TestValidateWebhookPostInteractiveActions(t *testing.T) {
 			},
 		}
 		err := validateWebhookPostInteractiveActions(post)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("button without mm_blocks_actions", func(t *testing.T) {
@@ -1143,7 +1143,7 @@ func TestValidateWebhookPostInteractiveActions(t *testing.T) {
 			},
 		}
 		err := validateWebhookPostInteractiveActions(post)
-		require.NotNil(t, err)
+		require.Error(t, err)
 	})
 
 	t.Run("disabled button without mm_blocks_actions", func(t *testing.T) {
@@ -1161,7 +1161,7 @@ func TestValidateWebhookPostInteractiveActions(t *testing.T) {
 			},
 		}
 		err := validateWebhookPostInteractiveActions(post)
-		require.Nil(t, err)
+		require.NoError(t, err)
 	})
 }
 

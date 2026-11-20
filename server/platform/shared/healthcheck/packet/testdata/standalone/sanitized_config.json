@@ -14,7 +14,8 @@
         "ExtendSessionLengthWithActivity": false
     },
     "TeamSettings": {
-        "MaxNotificationsPerChannel": 1000
+        "MaxNotificationsPerChannel": 1000,
+        "EnableOpenServer": false
     },
     "SqlSettings": {
         "DriverName": "postgres",
