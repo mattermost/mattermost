@@ -3083,18 +3083,29 @@ func findPersistedGroupSyncable(t *testing.T, th *TestHelper, groupID, syncableI
 	return nil
 }
 
+// grantTeamUserManageTeam lets a team member pass the team link permission
+// check without manage_team_roles, so the scheme_admin check is what is exercised.
+func grantTeamUserManageTeam(t *testing.T, th *TestHelper) {
+	t.Helper()
+	th.AddPermissionToRole(t, model.PermissionManageTeam.Id, model.TeamUserRoleId)
+	t.Cleanup(func() {
+		th.RemovePermissionFromRole(t, model.PermissionManageTeam.Id, model.TeamUserRoleId)
+	})
+}
+
 func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	grantTeamUserManageTeam(t, th)
 
 	schemeAdminTrue := &model.GroupSyncablePatch{
 		AutoAdd:     model.NewPointer(true),
 		SchemeAdmin: model.NewPointer(true),
 	}
 
-	t.Run("regular team user with invite_user must NOT be able to set scheme_admin: true", func(t *testing.T) {
+	t.Run("team user with manage_team must NOT be able to set scheme_admin: true", func(t *testing.T) {
 		g := newSchemeAdminTestLdapGroup(t, th)
 
 		groupSyncable, response, err := th.Client.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminTrue)
@@ -3120,7 +3131,7 @@ func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		assert.True(t, persisted.SchemeAdmin)
 	})
 
-	t.Run("regular team user can still link with scheme_admin omitted", func(t *testing.T) {
+	t.Run("team user with manage_team can still link with scheme_admin omitted", func(t *testing.T) {
 		g := newSchemeAdminTestLdapGroup(t, th)
 
 		patch := &model.GroupSyncablePatch{
@@ -3136,7 +3147,7 @@ func TestLinkGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		assert.False(t, persisted.SchemeAdmin)
 	})
 
-	t.Run("regular team user must NOT be able to link with scheme_admin: false explicitly", func(t *testing.T) {
+	t.Run("team user with manage_team must NOT be able to link with scheme_admin: false explicitly", func(t *testing.T) {
 		g := newSchemeAdminTestLdapGroup(t, th)
 
 		patch := &model.GroupSyncablePatch{
@@ -3245,6 +3256,7 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	grantTeamUserManageTeam(t, th)
 
 	// schemeAdmin controls the seeded SchemeAdmin value on the team syncable.
 	setupLinkedGroup := func(t *testing.T, schemeAdmin bool) *model.Group {
@@ -3267,7 +3279,7 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		SchemeAdmin: model.NewPointer(false),
 	}
 
-	t.Run("regular team user with invite_user must NOT be able to patch scheme_admin: true", func(t *testing.T) {
+	t.Run("team user with manage_team must NOT be able to patch scheme_admin: true", func(t *testing.T) {
 		g := setupLinkedGroup(t, false)
 
 		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminTrue)
@@ -3291,7 +3303,7 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		assert.True(t, persisted.SchemeAdmin)
 	})
 
-	t.Run("regular team user can still patch other fields with scheme_admin omitted", func(t *testing.T) {
+	t.Run("team user with manage_team can still patch other fields with scheme_admin omitted", func(t *testing.T) {
 		g := setupLinkedGroup(t, true)
 
 		patch := &model.GroupSyncablePatch{
@@ -3307,7 +3319,7 @@ func TestPatchGroupTeam_SchemeAdminRequiresElevatedPermission(t *testing.T) {
 		assert.True(t, persisted.SchemeAdmin)
 	})
 
-	t.Run("regular team user must NOT be able to patch scheme_admin: false", func(t *testing.T) {
+	t.Run("team user with manage_team must NOT be able to patch scheme_admin: false", func(t *testing.T) {
 		g := setupLinkedGroup(t, true)
 
 		_, response, err := th.Client.PatchGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, schemeAdminFalse)
@@ -3584,8 +3596,9 @@ func TestLinkGroupTeam_LinkOnSoftDeletedDoesNotPreserveSchemeAdmin(t *testing.T)
 	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	grantTeamUserManageTeam(t, th)
 
-	t.Run("regular team user re-linking a soft-deleted syncable with scheme_admin omitted must persist scheme_admin: false", func(t *testing.T) {
+	t.Run("team user with manage_team re-linking a soft-deleted syncable with scheme_admin omitted must persist scheme_admin: false", func(t *testing.T) {
 		g := newSchemeAdminTestLdapGroup(t, th)
 
 		_, response, err := th.SystemAdminClient.LinkGroupSyncable(context.Background(), g.Id, th.BasicTeam.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
@@ -3617,6 +3630,7 @@ func TestPatchGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T)
 	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	grantTeamUserManageTeam(t, th)
 
 	g := newSchemeAdminTestLdapGroup(t, th)
 
@@ -3683,6 +3697,7 @@ func TestLinkGroupTeam_OmittedSchemeAdminDoesNotDemoteDirectAdmin(t *testing.T) 
 	th := Setup(t).InitBasic(t)
 
 	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+	grantTeamUserManageTeam(t, th)
 
 	g := newSchemeAdminTestLdapGroup(t, th)
 
@@ -3783,4 +3798,512 @@ func TestLinkGroupTeam_AutoAddOnlyAddsGroupMembers(t *testing.T) {
 	tm, appErr := th.App.GetTeamMember(th.Context, th.BasicTeam.Id, newUser.Id)
 	require.Nil(t, appErr)
 	assert.Equal(t, newUser.Id, tm.UserId)
+}
+
+// TestGroupConstrainedSyncableLink asserts link, patch, and unlink results
+// for a referenceable LDAP group on teams and channels.
+func TestGroupConstrainedSyncableLink(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	const (
+		actionLink   = "link"
+		actionPatch  = "patch"
+		actionUnlink = "unlink"
+	)
+
+	cases := []struct {
+		name                 string
+		syncableType         model.GroupSyncableType
+		channelType          model.ChannelType
+		groupConstrained     bool
+		action               string
+		asSystemAdmin        bool
+		asTeamSchemeAdmin    bool
+		asChannelSchemeAdmin bool
+		expectAllowed        bool
+	}{
+		{
+			name:             "team member link on a group-constrained team is rejected",
+			syncableType:     model.GroupSyncableTypeTeam,
+			groupConstrained: true,
+			action:           actionLink,
+			expectAllowed:    false,
+		},
+		{
+			name:             "team member patch on a group-constrained team is rejected",
+			syncableType:     model.GroupSyncableTypeTeam,
+			groupConstrained: true,
+			action:           actionPatch,
+			expectAllowed:    false,
+		},
+		{
+			name:             "team member unlink on a group-constrained team is rejected",
+			syncableType:     model.GroupSyncableTypeTeam,
+			groupConstrained: true,
+			action:           actionUnlink,
+			expectAllowed:    false,
+		},
+		{
+			name:             "system admin link on a group-constrained team is stored",
+			syncableType:     model.GroupSyncableTypeTeam,
+			groupConstrained: true,
+			action:           actionLink,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:             "system admin patch on a group-constrained team is stored",
+			syncableType:     model.GroupSyncableTypeTeam,
+			groupConstrained: true,
+			action:           actionPatch,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:             "system admin unlink on a group-constrained team removes the syncable",
+			syncableType:     model.GroupSyncableTypeTeam,
+			groupConstrained: true,
+			action:           actionUnlink,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:              "team scheme admin link on a group-constrained team is stored",
+			syncableType:      model.GroupSyncableTypeTeam,
+			groupConstrained:  true,
+			action:            actionLink,
+			asTeamSchemeAdmin: true,
+			expectAllowed:     true,
+		},
+		{
+			name:              "team scheme admin patch on a group-constrained team is stored",
+			syncableType:      model.GroupSyncableTypeTeam,
+			groupConstrained:  true,
+			action:            actionPatch,
+			asTeamSchemeAdmin: true,
+			expectAllowed:     true,
+		},
+		{
+			name:              "team scheme admin unlink on a group-constrained team removes the syncable",
+			syncableType:      model.GroupSyncableTypeTeam,
+			groupConstrained:  true,
+			action:            actionUnlink,
+			asTeamSchemeAdmin: true,
+			expectAllowed:     true,
+		},
+		{
+			name:             "team member link on a team that is not group-constrained is rejected",
+			syncableType:     model.GroupSyncableTypeTeam,
+			groupConstrained: false,
+			action:           actionLink,
+			expectAllowed:    false,
+		},
+		{
+			name:             "team member unlink on a team that is not group-constrained is rejected",
+			syncableType:     model.GroupSyncableTypeTeam,
+			groupConstrained: false,
+			action:           actionUnlink,
+			expectAllowed:    false,
+		},
+		{
+			name:              "team scheme admin link on a team that is not group-constrained is stored",
+			syncableType:      model.GroupSyncableTypeTeam,
+			groupConstrained:  false,
+			action:            actionLink,
+			asTeamSchemeAdmin: true,
+			expectAllowed:     true,
+		},
+		{
+			name:              "team scheme admin unlink on a team that is not group-constrained removes the syncable",
+			syncableType:      model.GroupSyncableTypeTeam,
+			groupConstrained:  false,
+			action:            actionUnlink,
+			asTeamSchemeAdmin: true,
+			expectAllowed:     true,
+		},
+		{
+			name:             "channel member link on a group-constrained public channel is rejected",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypeOpen,
+			groupConstrained: true,
+			action:           actionLink,
+			expectAllowed:    false,
+		},
+		{
+			name:             "channel member patch on a group-constrained public channel is rejected",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypeOpen,
+			groupConstrained: true,
+			action:           actionPatch,
+			expectAllowed:    false,
+		},
+		{
+			name:             "channel member unlink on a group-constrained public channel is rejected",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypeOpen,
+			groupConstrained: true,
+			action:           actionUnlink,
+			expectAllowed:    false,
+		},
+		{
+			name:             "system admin link on a group-constrained public channel is stored",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypeOpen,
+			groupConstrained: true,
+			action:           actionLink,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:             "system admin patch on a group-constrained public channel is stored",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypeOpen,
+			groupConstrained: true,
+			action:           actionPatch,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:             "system admin unlink on a group-constrained public channel removes the syncable",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypeOpen,
+			groupConstrained: true,
+			action:           actionUnlink,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:                 "channel scheme admin link on a group-constrained public channel is stored",
+			syncableType:         model.GroupSyncableTypeChannel,
+			channelType:          model.ChannelTypeOpen,
+			groupConstrained:     true,
+			action:               actionLink,
+			asChannelSchemeAdmin: true,
+			expectAllowed:        true,
+		},
+		{
+			name:                 "channel scheme admin patch on a group-constrained public channel is stored",
+			syncableType:         model.GroupSyncableTypeChannel,
+			channelType:          model.ChannelTypeOpen,
+			groupConstrained:     true,
+			action:               actionPatch,
+			asChannelSchemeAdmin: true,
+			expectAllowed:        true,
+		},
+		{
+			name:                 "channel scheme admin unlink on a group-constrained public channel removes the syncable",
+			syncableType:         model.GroupSyncableTypeChannel,
+			channelType:          model.ChannelTypeOpen,
+			groupConstrained:     true,
+			action:               actionUnlink,
+			asChannelSchemeAdmin: true,
+			expectAllowed:        true,
+		},
+		{
+			name:             "channel member link on a group-constrained private channel is rejected",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypePrivate,
+			groupConstrained: true,
+			action:           actionLink,
+			expectAllowed:    false,
+		},
+		{
+			name:             "channel member patch on a group-constrained private channel is rejected",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypePrivate,
+			groupConstrained: true,
+			action:           actionPatch,
+			expectAllowed:    false,
+		},
+		{
+			name:             "channel member unlink on a group-constrained private channel is rejected",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypePrivate,
+			groupConstrained: true,
+			action:           actionUnlink,
+			expectAllowed:    false,
+		},
+		{
+			name:             "system admin link on a group-constrained private channel is stored",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypePrivate,
+			groupConstrained: true,
+			action:           actionLink,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:             "system admin patch on a group-constrained private channel is stored",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypePrivate,
+			groupConstrained: true,
+			action:           actionPatch,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:             "system admin unlink on a group-constrained private channel removes the syncable",
+			syncableType:     model.GroupSyncableTypeChannel,
+			channelType:      model.ChannelTypePrivate,
+			groupConstrained: true,
+			action:           actionUnlink,
+			asSystemAdmin:    true,
+			expectAllowed:    true,
+		},
+		{
+			name:                 "channel scheme admin link on a group-constrained private channel is stored",
+			syncableType:         model.GroupSyncableTypeChannel,
+			channelType:          model.ChannelTypePrivate,
+			groupConstrained:     true,
+			action:               actionLink,
+			asChannelSchemeAdmin: true,
+			expectAllowed:        true,
+		},
+		{
+			name:                 "channel scheme admin patch on a group-constrained private channel is stored",
+			syncableType:         model.GroupSyncableTypeChannel,
+			channelType:          model.ChannelTypePrivate,
+			groupConstrained:     true,
+			action:               actionPatch,
+			asChannelSchemeAdmin: true,
+			expectAllowed:        true,
+		},
+		{
+			name:                 "channel scheme admin unlink on a group-constrained private channel removes the syncable",
+			syncableType:         model.GroupSyncableTypeChannel,
+			channelType:          model.ChannelTypePrivate,
+			groupConstrained:     true,
+			action:               actionUnlink,
+			asChannelSchemeAdmin: true,
+			expectAllowed:        true,
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			// Each row gets its own team so one call cannot change membership used by another row.
+			team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+			th.LinkUserToTeam(t, th.BasicUser, team)
+
+			teamConstrained := tc.groupConstrained && tc.syncableType == model.GroupSyncableTypeTeam
+			team, appErr := th.App.GetTeam(team.Id)
+			require.Nil(t, appErr)
+			team.GroupConstrained = model.NewPointer(teamConstrained)
+			team, appErr = th.App.UpdateTeam(team)
+			require.Nil(t, appErr)
+			require.NotNil(t, team.GroupConstrained)
+			require.Equal(t, teamConstrained, *team.GroupConstrained)
+
+			syncableID := team.Id
+			if tc.syncableType == model.GroupSyncableTypeChannel {
+				channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, tc.channelType, team.Id)
+				th.AddUserToChannel(t, th.BasicUser, channel)
+
+				channel, appErr = th.App.GetChannel(th.Context, channel.Id)
+				require.Nil(t, appErr)
+				channel.GroupConstrained = model.NewPointer(tc.groupConstrained)
+				channel, appErr = th.App.UpdateChannel(th.Context, channel)
+				require.Nil(t, appErr)
+				require.NotNil(t, channel.GroupConstrained)
+				require.Equal(t, tc.groupConstrained, *channel.GroupConstrained)
+				require.Equal(t, team.Id, channel.TeamId)
+				syncableID = channel.Id
+
+				channelMember, memberErr := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
+				require.Nil(t, memberErr)
+				require.True(t, channelMember.SchemeUser)
+				require.False(t, channelMember.SchemeAdmin)
+				if tc.asChannelSchemeAdmin {
+					channelMember, memberErr = th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, th.BasicUser.Id, false, true, true)
+					require.Nil(t, memberErr)
+					require.True(t, channelMember.SchemeAdmin)
+				}
+			}
+
+			teamMember, memberErr := th.App.GetTeamMember(th.Context, team.Id, th.BasicUser.Id)
+			require.Nil(t, memberErr)
+			require.True(t, teamMember.SchemeUser)
+			require.False(t, teamMember.SchemeAdmin)
+			if tc.asTeamSchemeAdmin || tc.asChannelSchemeAdmin {
+				require.NotContains(t, strings.Fields(th.BasicUser.Roles), model.SystemAdminRoleId)
+			}
+			if tc.asTeamSchemeAdmin {
+				teamMember, memberErr = th.App.UpdateTeamMemberSchemeRoles(th.Context, team.Id, th.BasicUser.Id, false, true, true)
+				require.Nil(t, memberErr)
+				require.True(t, teamMember.SchemeAdmin)
+			}
+
+			if !tc.asSystemAdmin && tc.syncableType == model.GroupSyncableTypeTeam {
+				// Log in after the team role is stored so the caller session includes it.
+				th.LoginBasic(t)
+			}
+
+			g := newSchemeAdminTestLdapGroup(t, th)
+			require.Equal(t, model.GroupSourceLdap, g.Source)
+			require.True(t, g.AllowReference)
+
+			ctx := context.Background()
+			if tc.syncableType == model.GroupSyncableTypeChannel {
+				_, response, err := th.SystemAdminClient.LinkGroupSyncable(ctx, g.Id, team.Id, model.GroupSyncableTypeTeam, &model.GroupSyncablePatch{
+					AutoAdd: model.NewPointer(true),
+				})
+				require.NoError(t, err)
+				CheckCreatedStatus(t, response)
+			}
+
+			if tc.action != actionLink {
+				_, response, err := th.SystemAdminClient.LinkGroupSyncable(ctx, g.Id, syncableID, tc.syncableType, &model.GroupSyncablePatch{
+					AutoAdd: model.NewPointer(true),
+				})
+				require.NoError(t, err)
+				CheckCreatedStatus(t, response)
+			}
+
+			client := th.Client
+			if tc.asSystemAdmin {
+				client = th.SystemAdminClient
+			}
+
+			var response *model.Response
+			var err error
+			switch tc.action {
+			case actionLink:
+				_, response, err = client.LinkGroupSyncable(ctx, g.Id, syncableID, tc.syncableType, &model.GroupSyncablePatch{
+					AutoAdd: model.NewPointer(true),
+				})
+			case actionPatch:
+				_, response, err = client.PatchGroupSyncable(ctx, g.Id, syncableID, tc.syncableType, &model.GroupSyncablePatch{
+					AutoAdd: model.NewPointer(false),
+				})
+			case actionUnlink:
+				response, err = client.UnlinkGroupSyncable(ctx, g.Id, syncableID, tc.syncableType)
+			default:
+				t.Fatalf("unknown action %s", tc.action)
+			}
+
+			persisted := findPersistedGroupSyncable(t, th, g.Id, syncableID, tc.syncableType)
+			if tc.expectAllowed {
+				require.NoError(t, err)
+				switch tc.action {
+				case actionLink:
+					CheckCreatedStatus(t, response)
+					require.NotNil(t, persisted)
+					assert.True(t, persisted.AutoAdd)
+					assert.False(t, persisted.SchemeAdmin)
+				case actionPatch:
+					CheckOKStatus(t, response)
+					require.NotNil(t, persisted)
+					assert.False(t, persisted.AutoAdd)
+					assert.False(t, persisted.SchemeAdmin)
+				case actionUnlink:
+					CheckOKStatus(t, response)
+					assert.Nil(t, persisted)
+				}
+				return
+			}
+
+			require.Error(t, err)
+			CheckForbiddenStatus(t, response)
+			switch tc.action {
+			case actionLink:
+				assert.Nil(t, persisted)
+			case actionPatch, actionUnlink:
+				require.NotNil(t, persisted)
+				assert.True(t, persisted.AutoAdd)
+				assert.False(t, persisted.SchemeAdmin)
+				assert.Zero(t, persisted.DeleteAt)
+			}
+		})
+	}
+}
+
+// TestLinkGroupChannel_FirstLinkTeamPermission asserts the parent team check
+// applied when a channel link has no active team link for the group.
+func TestLinkGroupChannel_FirstLinkTeamPermission(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicense("ldap"))
+
+	ctx := context.Background()
+	patch := &model.GroupSyncablePatch{
+		AutoAdd: model.NewPointer(true),
+	}
+
+	// setupChannel returns a public channel on a new team where BasicUser is a channel admin.
+	setupChannel := func(t *testing.T, asTeamSchemeAdmin bool) *model.Channel {
+		t.Helper()
+		team := th.CreateTeamWithClient(t, th.SystemAdminClient)
+		th.LinkUserToTeam(t, th.BasicUser, team)
+		channel := th.CreateChannelWithClientAndTeam(t, th.SystemAdminClient, model.ChannelTypeOpen, team.Id)
+		th.AddUserToChannel(t, th.BasicUser, channel)
+
+		_, appErr := th.App.UpdateChannelMemberSchemeRoles(th.Context, channel.Id, th.BasicUser.Id, false, true, true)
+		require.Nil(t, appErr)
+		if asTeamSchemeAdmin {
+			_, appErr = th.App.UpdateTeamMemberSchemeRoles(th.Context, team.Id, th.BasicUser.Id, false, true, true)
+			require.Nil(t, appErr)
+		}
+
+		// Log in after the team role is stored so the caller session includes it.
+		th.LoginBasic(t)
+		return channel
+	}
+
+	t.Run("channel admin cannot make the first link without team permission", func(t *testing.T) {
+		channel := setupChannel(t, false)
+		g := newSchemeAdminTestLdapGroup(t, th)
+
+		_, response, err := th.Client.LinkGroupSyncable(ctx, g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, findPersistedGroupSyncable(t, th, g.Id, channel.Id, model.GroupSyncableTypeChannel))
+		assert.Nil(t, findPersistedGroupSyncable(t, th, g.Id, channel.TeamId, model.GroupSyncableTypeTeam))
+	})
+
+	t.Run("team admin can make the first link", func(t *testing.T) {
+		channel := setupChannel(t, true)
+		g := newSchemeAdminTestLdapGroup(t, th)
+
+		_, response, err := th.Client.LinkGroupSyncable(ctx, g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		assert.NotNil(t, findPersistedGroupSyncable(t, th, g.Id, channel.Id, model.GroupSyncableTypeChannel))
+		assert.NotNil(t, findPersistedGroupSyncable(t, th, g.Id, channel.TeamId, model.GroupSyncableTypeTeam))
+	})
+
+	t.Run("channel admin cannot link when the team link was removed", func(t *testing.T) {
+		channel := setupChannel(t, false)
+		g := newSchemeAdminTestLdapGroup(t, th)
+
+		_, response, err := th.SystemAdminClient.LinkGroupSyncable(ctx, g.Id, channel.TeamId, model.GroupSyncableTypeTeam, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		response, err = th.SystemAdminClient.UnlinkGroupSyncable(ctx, g.Id, channel.TeamId, model.GroupSyncableTypeTeam)
+		require.NoError(t, err)
+		CheckOKStatus(t, response)
+
+		_, response, err = th.Client.LinkGroupSyncable(ctx, g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, response)
+		assert.Nil(t, findPersistedGroupSyncable(t, th, g.Id, channel.Id, model.GroupSyncableTypeChannel))
+		assert.Nil(t, findPersistedGroupSyncable(t, th, g.Id, channel.TeamId, model.GroupSyncableTypeTeam))
+	})
+
+	t.Run("channel admin can link when the team link is active", func(t *testing.T) {
+		channel := setupChannel(t, false)
+		g := newSchemeAdminTestLdapGroup(t, th)
+
+		_, response, err := th.SystemAdminClient.LinkGroupSyncable(ctx, g.Id, channel.TeamId, model.GroupSyncableTypeTeam, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+
+		_, response, err = th.Client.LinkGroupSyncable(ctx, g.Id, channel.Id, model.GroupSyncableTypeChannel, patch)
+		require.NoError(t, err)
+		CheckCreatedStatus(t, response)
+		assert.NotNil(t, findPersistedGroupSyncable(t, th, g.Id, channel.Id, model.GroupSyncableTypeChannel))
+	})
 }
