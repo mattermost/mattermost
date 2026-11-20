@@ -504,7 +504,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 		t.Run("system admin saves it", func(t *testing.T) {
 			policy := newTeamPolicy()
-			mockACS := &mocks.AccessControlServiceInterface{}
+			mockACS := newMockAccessControlService()
 			th.App.Srv().Channels().AccessControl = mockACS
 			mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.MatchedBy(func(p *model.AccessControlPolicy) bool {
 				return p.Type == model.AccessControlPolicyTypeTeam &&
@@ -521,7 +521,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 		})
 
 		t.Run("PAP rejection is returned unchanged", func(t *testing.T) {
-			mockACS := &mocks.AccessControlServiceInterface{}
+			mockACS := newMockAccessControlService()
 			th.App.Srv().Channels().AccessControl = mockACS
 			mockACS.On("SavePolicy", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.AccessControlPolicy")).
 				Return(nil, model.NewAppError("SavePolicy", "app.pap.save_policy.team_resource_attributes", nil, "", http.StatusBadRequest)).Once()
@@ -534,7 +534,7 @@ func TestCreateAccessControlPolicy(t *testing.T) {
 
 		t.Run("regular user cannot save it", func(t *testing.T) {
 			th.LoginBasic(t)
-			mockACS := &mocks.AccessControlServiceInterface{}
+			mockACS := newMockAccessControlService()
 			th.App.Srv().Channels().AccessControl = mockACS
 
 			_, resp, err := th.Client.CreateAccessControlPolicy(context.Background(), newTeamPolicy())
