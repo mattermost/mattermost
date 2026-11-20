@@ -220,7 +220,10 @@ const ChannelAttributesSettings = ({channelId, isDisabled, onChange, onMissingRe
                     const reachableOptions = options.filter((option) => option.id === currentOptionId || canMoveToOption(field, savedRaw, option.id));
                     const stuck = field.type !== 'text' && hasValue && !clearable && reachableOptions.every((option) => option.id === currentOptionId);
                     const locked = !canSet(field) || (hasValue && (policy === 'never' || stuck));
-                    const disabled = Boolean(isDisabled) || locked || !valuesLoaded;
+
+                    // Without the saved values an edit can't be merged with them, so a
+                    // multiselect change would drop the options already stored.
+                    const disabled = Boolean(isDisabled) || locked || !valuesLoaded || valuesFailed;
                     const showRequiredError = Boolean(showRequiredErrors) && missingRequiredIds.has(field.id);
 
                     const rawValue = field.id in pending ? pending[field.id] : (savedRaw ?? null);
