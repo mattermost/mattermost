@@ -163,7 +163,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	// Channel/team UI GET masks values the caller cannot see, so mergeFromStore
 	// re-injects those hidden literals before persist.
 	var appErr *model.AppError
-	policy, appErr = a.enforceAccessControlPolicyWriteGuards(rctx, policy, callerID, true)
+	policy, appErr = a.enforceAccessControlPolicyWriteGuards(rctx, policy, callerID, true, false)
 	if appErr != nil {
 		return nil, appErr
 	}
@@ -522,6 +522,9 @@ func saveForbiddenError(rctx request.CTX, where, internalReason string) *model.A
 // callerID skip self-inclusion. System admins are exempt from self-inclusion but
 // remain subject to value-holding validation when masking is on.
 //
+// skipSelfInclusion (plugin-asserted) bypasses only the self-inclusion check;
+// masking validation and the membership-rule check still run for callerID.
+//
 // Masking with an empty callerID is rejected (session required), matching the
 // historical CreateOrUpdateAccessControlPolicy contract.
 func (a *App) enforceAccessControlPolicyWriteGuards(
@@ -529,6 +532,7 @@ func (a *App) enforceAccessControlPolicyWriteGuards(
 	policy *model.AccessControlPolicy,
 	callerID string,
 	mergeFromStore bool,
+	skipSelfInclusion bool,
 ) (*model.AccessControlPolicy, *model.AppError) {
 	mergedHidden := false
 
@@ -568,8 +572,10 @@ func (a *App) enforceAccessControlPolicyWriteGuards(
 				return nil, appErr
 			}
 		}
-		if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
-			return nil, appErr
+		if !skipSelfInclusion {
+			if appErr := a.checkSelfInclusion(rctx, policy, callerID, mergedHidden); appErr != nil {
+				return nil, appErr
+			}
 		}
 	}
 

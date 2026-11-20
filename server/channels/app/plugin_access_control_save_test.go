@@ -33,7 +33,7 @@ func TestSavePluginAccessControlPolicyWriteGuards(t *testing.T) {
 		mockACS.On("QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything).
 			Return([]*model.User{}, int64(0), nil).Once()
 
-		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p, model.PluginAccessControlSaveOptions{})
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		assert.Equal(t, "app.pap.save_policy.self_exclusion", appErr.Id)
@@ -56,7 +56,7 @@ func TestSavePluginAccessControlPolicyWriteGuards(t *testing.T) {
 			return c.Session() != nil && c.Session().UserId == adminID
 		}), mock.Anything).Return(p, nil).Once()
 
-		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, adminID, p)
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, adminID, p, model.PluginAccessControlSaveOptions{})
 		require.Nil(t, appErr)
 		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
@@ -77,7 +77,7 @@ func TestSavePluginAccessControlPolicyWriteGuards(t *testing.T) {
 		mockACS.On("ValidateExpressionValuesForCaller", mock.Anything, p.Rules[0].Expression, mock.Anything).
 			Return(valueErr).Once()
 
-		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p, model.PluginAccessControlSaveOptions{})
 		require.NotNil(t, appErr)
 		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
 		assert.Equal(t, "app.pap.save_policy.forbidden", appErr.Id)
@@ -104,9 +104,74 @@ func TestSavePluginAccessControlPolicyWriteGuards(t *testing.T) {
 			Return([]*model.User{{Id: actingUserID}}, int64(1), nil).Once()
 		mockACS.On("SavePolicy", mock.Anything, mock.Anything).Return(p, nil).Once()
 
-		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p)
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p, model.PluginAccessControlSaveOptions{})
 		require.Nil(t, appErr)
 		mockACS.AssertNotCalled(t, "MergeExpressionWithMaskedValuesCanonical", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
 		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("skip self-inclusion: non-sysadmin saves self-excluding expression", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeValueMasking = false
+		}).InitBasic(t)
+		actingUserID := th.BasicUser.Id
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		p := validPluginPolicy(model.NewId())
+		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(nil, notFoundErr).Once()
+		mockACS.On("SavePolicy", mock.MatchedBy(func(c request.CTX) bool {
+			return c.Session() != nil && c.Session().UserId == actingUserID
+		}), mock.Anything).Return(p, nil).Once()
+
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p, model.PluginAccessControlSaveOptions{SkipSelfInclusion: true})
+		require.Nil(t, appErr)
+		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("skip self-inclusion: masking validation still runs for the acting user", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeValueMasking = true
+		}).InitBasic(t)
+		actingUserID := th.BasicUser.Id
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+
+		p := validPluginPolicy(model.NewId())
+		valueErr := model.NewAppError("ValidateExpressionValuesForCaller", "app.pap.save_policy.forbidden", nil, "", http.StatusForbidden)
+		mockACS.On("GetPolicy", mock.Anything, p.ID).Return(nil, notFoundErr).Once()
+		mockACS.On("ValidateExpressionValuesForCaller", mock.Anything, p.Rules[0].Expression, mock.MatchedBy(func(r *appMaskingResolver) bool {
+			return r.callerID == actingUserID
+		})).
+			Return(valueErr).Once()
+
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, actingUserID, p, model.PluginAccessControlSaveOptions{SkipSelfInclusion: true})
+		require.NotNil(t, appErr)
+		assert.Equal(t, "app.pap.save_policy.forbidden", appErr.Id)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
+		mockACS.AssertNotCalled(t, "QueryUsersForExpression", mock.Anything, mock.Anything, mock.Anything)
+		mockACS.AssertExpectations(t)
+	})
+
+	t.Run("skip self-inclusion: ownership and acting user checks still apply", func(t *testing.T) {
+		th := SetupConfig(t, func(cfg *model.Config) {
+			cfg.FeatureFlags.AttributeValueMasking = false
+		}).InitBasic(t)
+
+		mockACS := &mocks.AccessControlServiceInterface{}
+		th.App.Srv().ch.AccessControl = mockACS
+		opts := model.PluginAccessControlSaveOptions{SkipSelfInclusion: true}
+
+		_, appErr := th.App.SavePluginAccessControlPolicy(th.Context, "other-plugin", th.BasicUser.Id, validPluginPolicy(model.NewId()), opts)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusForbidden, appErr.StatusCode)
+
+		_, appErr = th.App.SavePluginAccessControlPolicy(th.Context, testAgentsPluginID, model.NewId(), validPluginPolicy(model.NewId()), opts)
+		require.NotNil(t, appErr)
+		assert.Equal(t, http.StatusBadRequest, appErr.StatusCode)
+		mockACS.AssertNotCalled(t, "SavePolicy", mock.Anything, mock.Anything)
 	})
 }

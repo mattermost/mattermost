@@ -187,6 +187,16 @@ func PluginOwnsAccessControlPolicyType(pluginID, policyType string) bool {
 	return ok && owner == pluginID
 }
 
+// PluginAccessControlSaveOptions tunes how a plugin-owned access control policy
+// is saved.
+type PluginAccessControlSaveOptions struct {
+	// SkipSelfInclusion skips only the check that a non-system-admin acting
+	// user satisfies every rule of the saved policy. Value-holding validation
+	// against the acting user still runs. The plugin asserts that the acting
+	// user cannot be locked out by the policy.
+	SkipSelfInclusion bool
+}
+
 // IsValidPolicyAction reports whether action is a well-formed action name.
 // Plugin policies choose their own action names, so core validates only the
 // format.

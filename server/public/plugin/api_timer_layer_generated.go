@@ -1875,6 +1875,13 @@ func (api *apiTimerLayer) SaveAccessControlPolicy(actingUserID string, policy *m
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) SaveAccessControlPolicyWithOptions(actingUserID string, policy *model.AccessControlPolicy, opts model.PluginAccessControlSaveOptions) (*model.AccessControlPolicy, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.SaveAccessControlPolicyWithOptions(actingUserID, policy, opts)
+	api.recordTime(startTime, "SaveAccessControlPolicyWithOptions", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetAccessControlPolicy(id string) (*model.AccessControlPolicy, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetAccessControlPolicy(id)

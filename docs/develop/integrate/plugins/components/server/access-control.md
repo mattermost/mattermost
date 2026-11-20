@@ -67,9 +67,26 @@ Things to know about saving:
 
 - `actingUserID` must be an existing user. The change is validated and recorded in the audit log as that user.
 - **Mattermost doesn't check that the acting user may change the policy.** Your plugin decides who can, for example by checking `p.API.HasPermissionTo(actingUserID, model.PermissionManageSystem)`, or by its own rules about who manages the resource.
-- If the acting user isn't a system admin, they must match every rule of the policy they save. This stops users from locking themselves out.
+- If the acting user isn't a system admin, they must match every rule of the policy they save. This stops users from locking themselves out. To take over this check, see [Skip the self-inclusion check](#skip-the-self-inclusion-check).
 - The policy's type can't be changed after the policy is created.
 - Mattermost checks each expression when you save, and refuses a policy with an invalid one.
+
+### Skip the self-inclusion check
+
+From Mattermost v12.3, `SaveAccessControlPolicyWithOptions` saves a policy like `SaveAccessControlPolicy`, with options. Set `SkipSelfInclusion` to skip the check that a non-admin acting user matches every rule of the policy:
+
+```go
+_, appErr := p.API.SaveAccessControlPolicyWithOptions(actingUserID, policy, model.PluginAccessControlSaveOptions{
+	SkipSelfInclusion: true,
+})
+```
+
+Use it when your plugin already guarantees the acting user can't lock themselves out, for example because every rule lists that user by ID. Your plugin is responsible for that guarantee; Mattermost no longer enforces it for this save.
+
+- Only the self-inclusion check is skipped. The policy type must still belong to your plugin, `actingUserID` must still exist, and attribute values in the expressions are still validated against `actingUserID`.
+- `actingUserID` stays the user recorded in the audit log, which also notes that your plugin asserted self-inclusion.
+- Pass the real user who made the change. Don't pass another user, such as an admin, to avoid the checks.
+- Without the option, or with `SaveAccessControlPolicy`, the check runs as before.
 
 `GetAccessControlPolicy(id)` reads a policy back, and `DeleteAccessControlPolicy(actingUserID, resourceType, id)` deletes it. Both return a not-found error for a policy that doesn't exist or belongs to another plugin. Delete a resource's policy when you delete the resource.
 

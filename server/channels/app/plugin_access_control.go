@@ -337,12 +337,19 @@ func (a *App) resolvePluginPolicyExistenceBatch(rctx request.CTX, where, pluginI
 // satisfy the saved expression (self-inclusion), including when
 // AttributeValueMasking is off. System admins may author policies they do not
 // match, but remain subject to value-holding validation when masking is on.
-func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
+//
+// opts.SkipSelfInclusion lets the plugin assert self-inclusion itself: only
+// that check is skipped, masking validation still runs against actingUserID,
+// and the audit record is marked self_inclusion=plugin_asserted.
+func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUserID string, policy *model.AccessControlPolicy, opts model.PluginAccessControlSaveOptions) (*model.AccessControlPolicy, *model.AppError) {
 	// Audit every attempt, including precondition failures.
 	auditRec := a.MakeAuditRecord(rctx, model.AuditEventSavePluginAccessControlPolicy, model.AuditStatusFail)
 	defer a.LogAuditRec(rctx, auditRec, nil)
 	model.AddEventParameterToAuditRec(auditRec, "actor", actingUserID)
 	model.AddEventParameterToAuditRec(auditRec, "plugin_id", pluginID)
+	if opts.SkipSelfInclusion {
+		model.AddEventParameterToAuditRec(auditRec, "self_inclusion", "plugin_asserted")
+	}
 	// Refined to create/update once the existence probe resolves.
 	model.AddEventParameterToAuditRec(auditRec, "operation", "create_or_update")
 	if policy != nil {
@@ -392,7 +399,7 @@ func (a *App) SavePluginAccessControlPolicy(rctx request.CTX, pluginID, actingUs
 		return nil, appErr
 	}
 
-	if _, appErr := a.enforceAccessControlPolicyWriteGuards(rctx, policy, actingUserID, false); appErr != nil {
+	if _, appErr := a.enforceAccessControlPolicyWriteGuards(rctx, policy, actingUserID, false, opts.SkipSelfInclusion); appErr != nil {
 		return nil, appErr
 	}
 
