@@ -332,10 +332,15 @@ export default function ProductRail() {
             icon = Icon ? <Icon size={20}/> : null;
         }
 
-        const itemId = productItemIds.get(product) ?? product.id;
+        // The order and pinned preferences name a product by its plugin and base URL: its id changes
+        // with every page load, and this stays the same as the plugin's other products come and go.
+        // A bare plugin id, as earlier builds saved, still names all of that plugin's products.
+        const pluginId = product.pluginId || product.id;
+        const itemId = `${pluginId}:${product.baseURL}`;
         return {
             itemId,
-            elementId: `product-rail-item-${itemId}`,
+            aliases: [pluginId],
+            elementId: `product-rail-item-${productsPerPlugin.get(pluginId)! > 1 ? itemId : pluginId}`,
             to: lastPaths[productTab(product)]?.[currentTeam.id] ?? link,
             icon,
             label: product.switcherText,
@@ -344,18 +349,11 @@ export default function ProductRail() {
         };
     };
 
-    // What the order and pinned preferences name each product by. A product's id changes with every
-    // page load, so it goes by its plugin's id, and when a plugin has several products, each adds its
-    // base URL, whatever order they registered in.
+    // How many products each plugin has, so a plugin's only product keeps its plugin id in the DOM.
     const productsPerPlugin = new Map<string, number>();
     for (const product of products) {
         const pluginId = product.pluginId || product.id;
         productsPerPlugin.set(pluginId, (productsPerPlugin.get(pluginId) ?? 0) + 1);
-    }
-    const productItemIds = new Map<ProductComponent, string>();
-    for (const product of products) {
-        const pluginId = product.pluginId || product.id;
-        productItemIds.set(product, productsPerPlugin.get(pluginId)! > 1 ? `${pluginId}:${product.baseURL}` : pluginId);
     }
 
     // A stable sort, so products with no rank keep their registration order after the ranked ones.
@@ -449,14 +447,15 @@ export default function ProductRail() {
     // follow in their default order.
     const orderIndex = new Map(itemOrder.map((itemId, index) => [itemId, index]));
     const orderedEntries = entries.
-        map((entry, defaultIndex) => ({entry, rank: orderIndex.get(entry.itemId) ?? itemOrder.length + defaultIndex})).
+        map((entry, defaultIndex) => ({entry, rank: [entry.itemId, ...entry.aliases ?? []].map((id) => orderIndex.get(id)).find((index) => index !== undefined) ?? itemOrder.length + defaultIndex})).
         sort((a, b) => a.rank - b.rank).
         map(({entry}) => entry);
 
     // Boards and products can be unpinned; an unpinned one stays in the rail while it's open, so the
     // user can see where they are, and is otherwise listed in the More menu at the end.
     const hiddenItemIds = new Set(hiddenItems);
-    const isInMore = (entry: RailEntry) => entry.hideable === true && hiddenItemIds.has(entry.itemId) && !entry.active;
+    const isUnpinned = (entry: RailEntry) => [entry.itemId, ...entry.aliases ?? []].some((id) => hiddenItemIds.has(id));
+    const isInMore = (entry: RailEntry) => entry.hideable === true && isUnpinned(entry) && !entry.active;
     const railItems = orderedEntries.filter((entry) => !isInMore(entry));
     const moreItems = orderedEntries.filter(isInMore);
 
@@ -494,7 +493,7 @@ export default function ProductRail() {
                                     key={entry.itemId}
                                     entry={entry}
                                     index={index}
-                                    hidden={hiddenItemIds.has(entry.itemId)}
+                                    hidden={isUnpinned(entry)}
                                 />
                             ))}
                             {droppableProvided.placeholder}
@@ -564,7 +563,7 @@ export default function ProductRail() {
                                             if (row?.contains(document.activeElement)) {
                                                 ((row.nextElementSibling ?? row.previousElementSibling) as HTMLElement | null)?.focus();
                                             }
-                                            dispatch(setProductRailItemHidden(entry.itemId, false));
+                                            dispatch(setProductRailItemHidden(entry.itemId, false, entry.aliases));
                                         }}
                                         onKeyDown={(event) => {
                                             const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
@@ -603,8 +602,11 @@ export default function ProductRail() {
 type RailEntry = {
 
     // What the user's order and hidden items preferences name it by: 'threads', 'channels',
-    // 'boards', or the product's plugin id.
+    // 'boards', or a product's plugin id and base URL.
     itemId: string;
+
+    // Other names the preferences may use for it: a product's bare plugin id, from earlier builds.
+    aliases?: string[];
     elementId: string;
     to: string;
     onClick?: () => void;
@@ -698,7 +700,7 @@ function RailItemContainer({entry, index, hidden}: RailItemContainerProps) {
                                 id={`productRailItemMenu-${itemId}-${hidden ? 'pin' : 'unpin'}`}
                                 leadingElement={<PinOutlineIcon size={18}/>}
                                 labels={<span>{formatMessage(hidden ? messages.pin : messages.unpin)}</span>}
-                                onClick={() => dispatch(setProductRailItemHidden(itemId, !hidden))}
+                                onClick={() => dispatch(setProductRailItemHidden(itemId, !hidden, entry.aliases))}
                             />
                         </Menu.Container>
                     )}

@@ -61,12 +61,13 @@ export function setBoardsShownInChannels(shown: boolean): ActionFuncAsync {
     };
 }
 
-// Moves a rail item into the rail's More menu, or brings it back to the rail.
-export function setProductRailItemHidden(itemId: string, hidden: boolean): ActionFuncAsync {
+// Unpins a rail item into the rail's More menu, or pins it back on the rail. Aliases are other
+// names the preference may hold for the item, which go along with it.
+export function setProductRailItemHidden(itemId: string, hidden: boolean, aliases: string[] = []): ActionFuncAsync {
     return (dispatch, getState) => {
         const state = getState();
         const userId = getCurrentUserId(state);
-        const others = getProductRailHiddenItems(state).filter((id) => id !== itemId);
+        const others = getProductRailHiddenItems(state).filter((id) => id !== itemId && !aliases.includes(id));
         return dispatch(savePreferences(userId, [{
             category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
             name: Preferences.PRODUCT_RAIL_HIDDEN_ITEMS,

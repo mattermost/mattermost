@@ -566,7 +566,7 @@ describe('ProductRail', () => {
                 expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
                     category: 'sidebar_settings',
                     name: 'product_rail_hidden_items',
-                    value: JSON.stringify(['boards', 'mattermost-ai']),
+                    value: JSON.stringify(['boards', 'mattermost-ai:/mattermost-ai']),
                 })]);
             });
         });
@@ -730,6 +730,37 @@ describe('ProductRail', () => {
             });
 
             expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai']);
+        });
+
+        test('should keep a product unpinned when its plugin adds another product', () => {
+            // Agents One was unpinned while it was the plugin's only product.
+            const state = getOrderState({hidden: ['mattermost-ai:/agents-one']});
+            const agentsOne = {...railProduct('Agents One', 'mattermost-ai'), baseURL: '/agents-one', switcherLinkURL: '/agents-one'};
+            const agentsTwo = {...railProduct('Agents Two', 'mattermost-ai'), baseURL: '/agents-two', switcherLinkURL: '/agents-two'};
+            renderAt('/team-one/channels/town-square', {
+                ...state,
+                plugins: {components: {...state.plugins!.components, Product: [agentsOne, agentsTwo]}},
+            });
+
+            expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai:/agents-two', 'more']);
+        });
+
+        test('should keep a product\'s place when its plugin adds another product', () => {
+            const state = getOrderState({order: ['mattermost-ai:/agents-one', 'threads']});
+            const agentsOne = {...railProduct('Agents One', 'mattermost-ai'), baseURL: '/agents-one', switcherLinkURL: '/agents-one'};
+            const agentsTwo = {...railProduct('Agents Two', 'mattermost-ai'), baseURL: '/agents-two', switcherLinkURL: '/agents-two'};
+            renderAt('/team-one/channels/town-square', {
+                ...state,
+                plugins: {components: {...state.plugins!.components, Product: [agentsTwo, agentsOne]}},
+            });
+
+            expect(railItemIds()).toEqual(['mattermost-ai:/agents-one', 'threads', 'channels', 'boards', 'mattermost-ai:/agents-two']);
+        });
+
+        test('should still honour a bare plugin id saved by earlier builds', () => {
+            renderAt('/team-one/channels/town-square', getOrderState({order: ['playbooks', 'threads'], hidden: ['mattermost-ai']}));
+
+            expect(railItemIds()).toEqual(['playbooks', 'threads', 'channels', 'boards', 'more']);
         });
 
         test('should not move an item dropped where it was', () => {

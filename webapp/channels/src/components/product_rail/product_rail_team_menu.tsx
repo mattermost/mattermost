@@ -65,8 +65,12 @@ export default function ProductRailTeamMenu() {
 
     const teams = filterAndSortTeamsByDisplayName(myTeams, locale, teamsOrder);
 
-    // Other teams' activity shows on the button, since their own icons are tucked away in the menu.
-    const otherTeamsUnread = teams.some((team) => team.id !== currentTeam.id && unreadTeamsSet.has(team.id));
+    // Other teams' activity shows on the button, since their own icons are tucked away in the menu:
+    // their mentions as a count, or else a dot for unread messages.
+    const otherTeams = teams.filter((team) => team.id !== currentTeam.id);
+    const otherTeamsMentions = otherTeams.reduce((total, team) => total + (mentionsInTeamMap.get(team.id) ?? 0), 0);
+    const otherTeamsUrgent = otherTeams.some((team) => teamHasUrgentMap.get(team.id));
+    const otherTeamsUnread = otherTeams.some((team) => unreadTeamsSet.has(team.id));
 
     // As in the team sidebar: team-scoped products and Channels carry the team in the URL, while
     // global products switch the team without navigating.
@@ -90,7 +94,13 @@ export default function ProductRailTeamMenu() {
                             team={currentTeam}
                             size='lg'
                         />
-                        {otherTeamsUnread && <span className='ProductRail__dot'/>}
+                        <TeamIndicator
+                            className='ProductRail__badge'
+                            dotClassName='ProductRail__dot'
+                            mentions={otherTeamsMentions}
+                            hasUrgent={otherTeamsUrgent}
+                            unread={otherTeamsUnread}
+                        />
                     </span>
                 ),
             }}
@@ -105,44 +115,37 @@ export default function ProductRailTeamMenu() {
             anchorOrigin={{vertical: 'top', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'left'}}
         >
-            {teams.map((team) => {
-                const mentions = mentionsInTeamMap.get(team.id) ?? 0;
-
-                let trailingElement;
-                if (team.id === currentTeam.id) {
-                    trailingElement = (
+            {teams.map((team) => (
+                <Menu.Item
+                    key={team.id}
+                    id={`productRailTeamMenu-${team.name}`}
+                    leadingElement={(
+                        <TeamAvatar
+                            team={team}
+                            size='md'
+                        >
+                            {team.id !== currentTeam.id && (
+                                <TeamIndicator
+                                    className='ProductRail__menuBadge'
+                                    dotClassName='ProductRail__menuDot'
+                                    mentions={mentionsInTeamMap.get(team.id) ?? 0}
+                                    hasUrgent={teamHasUrgentMap.get(team.id) ?? false}
+                                    unread={unreadTeamsSet.has(team.id)}
+                                />
+                            )}
+                        </TeamAvatar>
+                    )}
+                    className='ProductRail__teamMenuItem'
+                    labels={<span className='ProductRail__teamMenuLabel'>{team.display_name}</span>}
+                    trailingElements={team.id === currentTeam.id ? (
                         <CheckIcon
                             size={18}
                             aria-hidden='true'
                         />
-                    );
-                } else if (mentions > 0) {
-                    trailingElement = (
-                        <span className={classNames('ProductRail__menuBadge', {'ProductRail__menuBadge--urgent': teamHasUrgentMap.get(team.id)})}>
-                            {mentions > 99 ? '99+' : String(mentions)}
-                        </span>
-                    );
-                } else if (unreadTeamsSet.has(team.id)) {
-                    trailingElement = <span className='ProductRail__menuDot'/>;
-                }
-
-                return (
-                    <Menu.Item
-                        key={team.id}
-                        id={`productRailTeamMenu-${team.name}`}
-                        leadingElement={(
-                            <TeamAvatar
-                                team={team}
-                                size='md'
-                            />
-                        )}
-                        className='ProductRail__teamMenuItem'
-                        labels={<span className='ProductRail__teamMenuLabel'>{team.display_name}</span>}
-                        trailingElements={trailingElement}
-                        onClick={() => switchTo(team)}
-                    />
-                );
-            })}
+                    ) : undefined}
+                    onClick={() => switchTo(team)}
+                />
+            ))}
             <Menu.Separator/>
             <Menu.Item
                 id='productRailTeamMenu-showTeamSidebar'
@@ -159,8 +162,26 @@ export default function ProductRailTeamMenu() {
     );
 }
 
-// A team's image, or its initials, in a rounded square: 'lg' for the rail, 'md' for menu rows.
-function TeamAvatar({team, size}: {team: Team; size: 'md' | 'lg'}) {
+const formatMentionCount = (mentions: number) => (mentions > 99 ? '99+' : String(mentions));
+
+// A team's mention count as a badge, or else a dot for unread messages, on its avatar.
+function TeamIndicator({className, dotClassName, mentions, hasUrgent, unread}: {className: string; dotClassName: string; mentions: number; hasUrgent: boolean; unread: boolean}) {
+    if (mentions > 0) {
+        return (
+            <span className={classNames(className, {[`${className}--urgent`]: hasUrgent})}>
+                {formatMentionCount(mentions)}
+            </span>
+        );
+    }
+    if (unread) {
+        return <span className={dotClassName}/>;
+    }
+    return null;
+}
+
+// A team's image, or its initials, in a rounded square: 'lg' for the rail, 'md' for menu rows. Its
+// children (an activity indicator) sit on its corner.
+function TeamAvatar({team, size, children}: {team: Team; size: 'md' | 'lg'; children?: React.ReactNode}) {
     const imageURL = imageURLForTeam(team);
     const className = classNames('ProductRail__teamAvatar', `ProductRail__teamAvatar--${size}`);
 
@@ -169,17 +190,16 @@ function TeamAvatar({team, size}: {team: Team; size: 'md' | 'lg'}) {
             <span
                 className={className}
                 style={{backgroundImage: `url('${imageURL}')`}}
-                aria-hidden='true'
-            />
+            >
+                {children}
+            </span>
         );
     }
 
     return (
-        <span
-            className={className}
-            aria-hidden='true'
-        >
-            {team.display_name.replace(/\s/g, '').substring(0, 2)}
+        <span className={className}>
+            <span aria-hidden='true'>{team.display_name.replace(/\s/g, '').substring(0, 2)}</span>
+            {children}
         </span>
     );
 }

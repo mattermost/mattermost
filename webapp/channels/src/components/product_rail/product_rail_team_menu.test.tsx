@@ -12,6 +12,13 @@ import type {GlobalState} from 'types/store';
 
 import ProductRailTeamMenu from './product_rail_team_menu';
 
+// Which teams have unread messages and mentions, as [unread team ids, mentions by team, urgent by team].
+let mockTeamsUnreadStatuses: [Set<string>, Map<string, number>, Map<string, boolean>] = [new Set(), new Map(), new Map()];
+jest.mock('mattermost-redux/selectors/entities/channels', () => ({
+    ...jest.requireActual('mattermost-redux/selectors/entities/channels'),
+    getTeamsUnreadStatuses: () => mockTeamsUnreadStatuses,
+}));
+
 const mockSavePreferences = jest.fn((...args: unknown[]) => ({type: 'MOCK_SAVE_PREFERENCES', args}));
 jest.mock('mattermost-redux/actions/preferences', () => ({
     savePreferences: (...args: unknown[]) => mockSavePreferences(...args),
@@ -82,6 +89,34 @@ describe('ProductRailTeamMenu', () => {
                 name: 'hide_team_sidebar',
                 value: 'false',
             })]);
+        });
+    });
+
+    describe('team activity', () => {
+        afterEach(() => {
+            mockTeamsUnreadStatuses = [new Set(), new Map(), new Map()];
+        });
+
+        test('should count other teams\' mentions on the button, and mark each team\'s in the menu', async () => {
+            mockTeamsUnreadStatuses = [new Set(['teamA', 'teamB', 'teamC']), new Map([['teamA', 7], ['teamB', 3], ['teamC', 2]]), new Map()];
+            renderWithContext(<ProductRailTeamMenu/>, getState());
+
+            // The current team's own mentions are left out.
+            expect(screen.getByRole('button', {name: 'Switch teams'})).toHaveTextContent('5');
+
+            await userEvent.click(screen.getByRole('button', {name: 'Switch teams'}));
+
+            expect(screen.getByRole('menuitem', {name: /Bravo/})).toHaveTextContent('3');
+            expect(screen.getByRole('menuitem', {name: /Charlie/})).toHaveTextContent('2');
+            expect(screen.getByRole('menuitem', {name: /Alpha/})).not.toHaveTextContent('7');
+        });
+
+        test('should show a dot for other teams\' unread messages without mentions', () => {
+            mockTeamsUnreadStatuses = [new Set(['teamB']), new Map(), new Map()];
+            const {container} = renderWithContext(<ProductRailTeamMenu/>, getState());
+
+            expect(container.querySelector('.ProductRail__teamStack .ProductRail__dot')).toBeInTheDocument();
+            expect(container.querySelector('.ProductRail__teamStack .ProductRail__badge')).not.toBeInTheDocument();
         });
     });
 });

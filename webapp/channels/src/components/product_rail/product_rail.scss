@@ -159,6 +159,12 @@
             top: -3px;
             right: -3px;
         }
+
+        .ProductRail__badge {
+            z-index: 2;
+            top: -6px;
+            right: -8px;
+        }
     }
 
     &__teamStackCard {
@@ -231,8 +237,11 @@
     height: 18px;
     padding: 0 5px;
     border-radius: 9px;
-    background: var(--mention-bg);
-    color: var(--mention-color);
+
+    // Menus sit on the center channel's colors, where the sidebar's mention colors can vanish (white
+    // on white in dark sidebar themes), so their badges take the theme's primary button colors.
+    background: var(--button-bg);
+    color: var(--button-color);
     font-size: 11px;
     font-weight: 700;
     line-height: 18px;
@@ -274,7 +283,30 @@
     width: 8px;
     height: 8px;
     border-radius: 50%;
-    background: var(--center-channel-color);
+    background: var(--button-bg);
+}
+
+// A team's activity sits on its avatar's corner in the team menu, ringed in the menu's color.
+.ProductRail__teamAvatar > .ProductRail__menuBadge,
+.ProductRail__teamAvatar > .ProductRail__menuDot {
+    position: absolute;
+    box-shadow: 0 0 0 2px var(--center-channel-bg);
+    text-transform: none;
+}
+
+.ProductRail__teamAvatar > .ProductRail__menuBadge {
+    top: -6px;
+    right: -10px;
+    min-width: 18px;
+    height: 16px;
+    padding: 0 4px;
+    font-size: 10px;
+    line-height: 16px;
+}
+
+.ProductRail__teamAvatar > .ProductRail__menuDot {
+    top: -2px;
+    right: -2px;
 }
 
 .ProductRail__teamAvatar {
