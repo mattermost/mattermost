@@ -3,7 +3,7 @@
 
 import type {ReactNode, JSX} from 'react';
 import React, {useCallback} from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {defineMessage, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {GlobeIcon, PlusIcon} from '@mattermost/compass-icons/components';
@@ -23,6 +23,7 @@ import * as Menu from 'components/menu';
 import NewChannelModal from 'components/new_channel_modal/new_channel_modal';
 
 import {useProductRailKind} from 'hooks/useProductRailKind';
+import type {KindMessages} from 'utils/channel_kind';
 import {channelKindMessages} from 'utils/channel_kind_messages';
 import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 
@@ -31,6 +32,13 @@ import type {GlobalState} from 'types/store';
 // Left-align the menu with the icon in the LHS
 const anchorOrigin = {vertical: 'bottom', horizontal: 'left'} as const;
 const transformOrigin = {vertical: 'top', horizontal: -20} as const;
+
+/* eslint-disable formatjs/enforce-placeholders -- no placeholders */
+const browseMessages: KindMessages = {
+    channel: defineMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels', defaultMessage: 'Browse channels'}),
+    board: defineMessage({id: 'sidebar_left.add_channel_dropdown.browseChannels.board', defaultMessage: 'Browse boards'}),
+};
+/* eslint-enable formatjs/enforce-placeholders */
 
 const AddChannelsCtaButton = (): JSX.Element | null => {
     const dispatch = useDispatch();
@@ -58,10 +66,12 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
         buttonClass += ' SidebarChannelNavigator__addChannelsCtaLhsButton--untouched';
     }
 
+    // On the Boards item, browsing lists boards.
     const showMoreChannelsModal = () => {
         dispatch(openModal({
             modalId: ModalIdentifiers.MORE_CHANNELS,
             dialogType: BrowseChannels,
+            dialogProps: {kind: productRailKind},
         }));
     };
 
@@ -81,12 +91,7 @@ const AddChannelsCtaButton = (): JSX.Element | null => {
                     id='showMoreChannels'
                     onClick={showMoreChannelsModal}
                     leadingElement={<GlobeIcon size={18}/>}
-                    labels={
-                        <FormattedMessage
-                            id='sidebar_left.add_channel_dropdown.browseChannels'
-                            defaultMessage='Browse channels'
-                        />
-                    }
+                    labels={<FormattedMessage {...browseMessages[productRailKind]}/>}
                 />,
             );
         }

@@ -30,6 +30,7 @@ import {closeRightHandSide} from 'actions/views/rhs';
 import {isChannelAccessControlEnabled} from 'selectors/general';
 import {getIsRhsOpen, getRhsState} from 'selectors/rhs';
 import {makeGetGlobalItem} from 'selectors/storage';
+import {getBoardChannelIds, getBoardCreateMenuItems} from 'selectors/views/product_rail';
 
 import Constants, {StoragePrefixes} from 'utils/constants';
 
@@ -80,6 +81,8 @@ function mapStateToProps(state: GlobalState) {
         rhsOpen: getIsRhsOpen(state),
         channelsMemberCount: getChannelsMemberCountSelector(state),
         accessControlEnabled: isChannelAccessControlEnabled(state),
+        boardChannelIds: getBoardChannelIds(state),
+        boardCreateItem: getBoardCreateMenuItems(state)[0],
 
         // Discoverable Private Channels — feed the per-row state machine.
         discoverableFeatureEnabled: isDiscoverableChannelsEnabled(state),
