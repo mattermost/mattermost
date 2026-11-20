@@ -14,6 +14,9 @@ PILOT_NETWORK=explorer-pilot_pilot_internal
 PG_IMAGE='postgres:15.20@sha256:10f9e886f772e9d6484350b043bcf990ead67ae5d9988ddce265d72a299055d5'
 FORWARDER_PID="$RUN_DIR/forwarder.pid"
 FORWARDER_LOG="$RUN_DIR/forwarder.log"
+SEED_MANIFEST="$RUN_DIR/seed-manifest.json"
+CANARY_NET=explorer-pilot-canary-net
+CANARY=explorer-pilot-canary
 
 # Checks the variable is exported (visible to child processes such as docker compose) without reading it out.
 license_present() { node -e 'process.exit(process.env.MM_LICENSE ? 0 : 1)'; }
@@ -71,7 +74,13 @@ stack_up() {
     wait_until 240 mm_ready_direct || return 1
 }
 
+canary_down() {
+    docker rm -f -v "$CANARY" >/dev/null 2>&1 || true
+    docker network rm "$CANARY_NET" >/dev/null 2>&1 || true
+}
+
 stack_down() {
     stop_forwarder
     "${COMPOSE[@]}" down -v --remove-orphans >/dev/null 2>&1
+    rm -f "$SEED_MANIFEST"
 }

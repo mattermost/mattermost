@@ -7,16 +7,9 @@
 set -uo pipefail
 source "$(dirname "$0")/lib.sh"
 
-CANARY_NET=explorer-pilot-canary-net
-CANARY=explorer-pilot-canary
 REPO_ROOT="$(cd "$INFRA_DIR/../.." && pwd)"
 GATE_LOG="$RUN_DIR/gate-output.txt"
 FAILURES=0
-
-canary_down() {
-    docker rm -f -v "$CANARY" >/dev/null 2>&1 || true
-    docker network rm "$CANARY_NET" >/dev/null 2>&1 || true
-}
 
 teardown() {
     canary_down

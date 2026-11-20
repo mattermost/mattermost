@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Stop the forwarder and remove the pilot stack including its anonymous volumes.
+# Idempotent teardown: forwarder, stack containers + network + anonymous volumes, gate canary, seed manifest.
 set -euo pipefail
 source "$(dirname "$0")/lib.sh"
 
+canary_down
 stack_down
 echo "down"
