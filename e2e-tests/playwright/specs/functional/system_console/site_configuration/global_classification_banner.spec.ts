@@ -86,7 +86,7 @@ test.describe('Global Classification Banner', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
+            await expect(page.locator('input[name="classificationEnabled"][value="true"]')).toBeVisible();
 
             // Enable classification markings and select a preset to have levels
             await page.locator('input[name="classificationEnabled"][value="true"]').click();
@@ -191,7 +191,6 @@ test.describe('Global Classification Banner', () => {
 
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             await systemConsolePage.goto();
-            await systemConsolePage.page.waitForLoadState('networkidle');
 
             const topBanner = systemConsolePage.page.locator(TOP_BANNER_SELECTOR);
             await expect(topBanner).toBeVisible();
@@ -219,7 +218,6 @@ test.describe('Global Classification Banner', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             // Banner should be visible initially
             await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
@@ -259,7 +257,6 @@ test.describe('Global Classification Banner', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             // Initially only top banner
             await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
@@ -298,7 +295,6 @@ test.describe('Global Classification Banner', () => {
             const {systemConsolePage} = await pw.testBrowser.login(adminUser);
             const {page} = systemConsolePage;
             await page.goto(CLASSIFICATION_MARKINGS_ADMIN_PATH);
-            await page.waitForLoadState('networkidle');
 
             // Both banners should be visible
             await expect(page.locator(TOP_BANNER_SELECTOR)).toBeVisible();
