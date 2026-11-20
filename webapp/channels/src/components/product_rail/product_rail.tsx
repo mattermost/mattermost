@@ -121,6 +121,10 @@ const threadsRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/threads`;
 
 const productTab = (product: ProductComponent): ProductRailTab => `product:${product.id}`;
 
+// Channels and Boards never return to Threads (see where paths are recorded), but a build that did
+// may have saved a Threads path for them; that's set aside.
+const leavingThreads = (path: string | undefined) => (path && matchPath(path, {path: threadsRoutePath}) ? undefined : path);
+
 // The products that follow Channels and Boards in the rail, in this order, by plugin id.
 // Any other product a plugin registers comes right after them, in the order it registered.
 const DEFAULT_PRODUCT_PLUGIN_IDS = ['mattermost-ai', 'playbooks'];
@@ -199,8 +203,8 @@ export default function ProductRail() {
     const currentTeamId = currentTeam?.id ?? '';
     const lastPaths = useSelector(getProductRailLastPaths);
     const lastPathsLoaded = useSelector(areProductRailLastPathsLoaded);
-    const lastChannelPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'channels', currentTeamId));
-    const lastBoardPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'boards', currentTeamId));
+    const lastChannelPath = leavingThreads(useSelector((state: GlobalState) => getProductRailLastPath(state, 'channels', currentTeamId)));
+    const lastBoardPath = leavingThreads(useSelector((state: GlobalState) => getProductRailLastPath(state, 'boards', currentTeamId)));
     const defaultChannelName = useSelector((state: GlobalState) => (currentTeamId ? getRedirectChannelNameForTeam(state, currentTeamId) : ''));
 
     const channelMatch = matchPath<{team: string; path: string; identifier: string}>(pathname, {path: channelRoutePath});
@@ -226,7 +230,7 @@ export default function ProductRail() {
         }
     } else if (inThreads) {
         // Threads is part of the channels product, and both Channels and Boards list it in their
-        // sidebar: it stays under whichever the user opened it from, and is remembered there.
+        // sidebar: it stays under whichever the user opened it from (see the effect below).
         viewedTab = section ?? 'channels';
     } else if (currentProduct) {
         viewedTab = productTab(currentProduct);
@@ -279,14 +283,17 @@ export default function ProductRail() {
             return;
         }
 
-        if (enabled && viewedTab && currentTeamId) {
+        // Threads keeps the item it was opened from active, but isn't where that item returns: from
+        // Threads, Channels and Boards always lead out of it, to a channel or board. (Leading back to
+        // Threads would make them look stuck there.)
+        if (enabled && viewedTab && currentTeamId && !inThreads) {
             const keepBoards = viewedTab === 'channels' && keepBoardsSectionAt.current === viewedPath;
             if (viewedTab === 'channels' || viewedTab === 'boards') {
                 keepBoardsSectionAt.current = null;
             }
 
-            // A channel or board moves the sidebar to its section; Threads, in both, leaves it be.
-            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels && !keepBoards && !inThreads;
+            // A channel or board moves the sidebar to its section.
+            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels && !keepBoards;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
     }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels, inThreads]);
@@ -429,7 +436,10 @@ export default function ProductRail() {
         entries.push({
             itemId: 'channels',
             elementId: 'product-rail-item-channels',
-            to: lastChannelPath ?? `/${currentTeam.name}`,
+
+            // Not the team's root, which can redirect to Threads if that's where the user last was in
+            // the team, making Channels lead back into Threads.
+            to: lastChannelPath ?? `/${currentTeam.name}/channels/${defaultChannelName}`,
             icon: <ProductChannelsIcon size={20}/>,
             label: formatMessage(messages.channels),
             active: inChannelsProduct,

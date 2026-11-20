@@ -166,10 +166,11 @@ describe('ProductRail', () => {
         expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
     });
 
-    test('should link Channels to the current team, leaving Threads to the channel sidebar', () => {
+    test('should link Channels to the team\'s default channel, leaving Threads to the channel sidebar', () => {
         renderAt('/team-one/channels/town-square', getState());
 
-        expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one');
+        // Not the team's root, which can redirect into Threads.
+        expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
         expect(screen.queryByRole('link', {name: /Threads/})).not.toBeInTheDocument();
     });
 
@@ -313,11 +314,11 @@ describe('ProductRail', () => {
     });
 
     describe('Threads in Channels and Boards', () => {
-        test('should stay in Boards when Threads is opened from the Boards sidebar, and remember it there', () => {
+        test('should stay in Boards when Threads is opened from the Boards sidebar, with Boards leading out to a board', () => {
             const {store} = renderAt('/team-one/threads', getBoardsState(townSquare.id, 'boards'));
 
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
-            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/threads');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
             expect(screen.getByRole('link', {name: /Channels/})).not.toHaveAttribute('aria-current');
             expect(store.getState().views.productRail.section).toBe('boards');
         });
@@ -326,7 +327,7 @@ describe('ProductRail', () => {
             const {store} = renderAt('/team-one/threads', getBoardsState(townSquare.id, 'channels'));
 
             expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
-            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/threads');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
             expect(store.getState().views.productRail.section).toBe('channels');
         });
@@ -415,10 +416,23 @@ describe('ProductRail', () => {
             expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
         });
 
-        test('should point Channels at the open thread, as Threads is part of it', () => {
+        test('should lead Channels out of Threads, to a channel', () => {
             renderAt('/team-one/threads/thread1', getState());
 
-            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/threads/thread1');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
+        });
+
+        test('should set aside a Threads path an earlier build saved for Channels or Boards', () => {
+            localStorage.setItem(`product_rail_last_paths_${user.id}`, JSON.stringify({
+                channels: {[team.id]: '/team-one/threads/thread2'},
+                boards: {[team.id]: '/team-one/threads'},
+            }));
+
+            renderAt('/mattermost-ai', {...getBoardsState(townSquare.id), plugins: {components: {Product: [agents], ChannelKind: [boardKind]} as unknown as GlobalState['plugins']['components']}});
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
         });
 
         test('should leave a permalinked post out of the remembered channel', () => {
