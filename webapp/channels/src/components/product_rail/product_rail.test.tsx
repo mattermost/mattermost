@@ -281,6 +281,26 @@ describe('ProductRail', () => {
         });
     });
 
+    describe('Threads in Channels and Boards', () => {
+        test('should stay in Boards when Threads is opened from the Boards sidebar, and remember it there', () => {
+            const {store} = renderAt('/team-one/threads', getBoardsState(townSquare.id, 'boards'));
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/threads');
+            expect(screen.getByRole('link', {name: /Channels/})).not.toHaveAttribute('aria-current');
+            expect(store.getState().views.productRail.section).toBe('boards');
+        });
+
+        test('should stay in Channels when Threads is opened from the Channels sidebar', () => {
+            const {store} = renderAt('/team-one/threads', getBoardsState(townSquare.id, 'channels'));
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/threads');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
+            expect(store.getState().views.productRail.section).toBe('channels');
+        });
+    });
+
     describe('order and boards in Channels', () => {
         test('should list Channels and Boards with no dividers', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));

@@ -212,8 +212,9 @@ export default function ProductRail() {
             viewedPath = `/${team}/${path}/${identifier}`;
         }
     } else if (inThreads) {
-        // Threads is part of the channels product, so it's remembered under Channels.
-        viewedTab = 'channels';
+        // Threads is part of the channels product, and both Channels and Boards list it in their
+        // sidebar: it stays under whichever the user opened it from, and is remembered there.
+        viewedTab = section ?? 'channels';
     } else if (currentProduct) {
         viewedTab = productTab(currentProduct);
     }
@@ -271,10 +272,11 @@ export default function ProductRail() {
                 keepBoardsSectionAt.current = null;
             }
 
-            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels && !keepBoards;
+            // A channel or board moves the sidebar to its section; Threads, in both, leaves it be.
+            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels && !keepBoards && !inThreads;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
-    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels]);
+    }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels, inThreads]);
 
     useEffect(() => {
         const awaitedPath = awaitingBoardAt.current;
