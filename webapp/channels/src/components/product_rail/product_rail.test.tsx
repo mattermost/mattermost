@@ -166,36 +166,22 @@ describe('ProductRail', () => {
         expect(screen.queryByRole('navigation')).not.toBeInTheDocument();
     });
 
-    test('should link Channels and Threads to the current team', () => {
+    test('should link Channels to the current team, leaving Threads to the channel sidebar', () => {
         renderAt('/team-one/channels/town-square', getState());
 
         expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one');
-        expect(screen.getByRole('link', {name: /Threads/})).toHaveAttribute('href', '/team-one/threads');
-    });
-
-    test('should hide Threads when collapsed reply threads are off', () => {
-        renderAt('/team-one/channels/town-square', getState({collapsedThreads: false}));
-
         expect(screen.queryByRole('link', {name: /Threads/})).not.toBeInTheDocument();
     });
 
-    test('should mark Channels active in a channel and Threads active in threads', () => {
+    test('should mark Channels active in a channel and in Threads, which is part of it', () => {
         const {unmount} = renderAt('/team-one/channels/town-square', getState());
 
         expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
-        expect(screen.getByRole('link', {name: /Threads/})).not.toHaveAttribute('aria-current');
 
         unmount();
         renderAt('/team-one/threads', getState());
 
-        expect(screen.getByRole('link', {name: /Channels/})).not.toHaveAttribute('aria-current');
-        expect(screen.getByRole('link', {name: /Threads/})).toHaveAttribute('aria-current', 'page');
-    });
-
-    test('should show the unread thread mention count on Threads', () => {
-        renderAt('/team-one/channels/town-square', getState());
-
-        expect(screen.getByRole('link', {name: /Threads/})).toHaveTextContent('2');
+        expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
     });
 
     test('should render one item per product and mark the current product active', () => {
@@ -296,12 +282,11 @@ describe('ProductRail', () => {
     });
 
     describe('order and boards in Channels', () => {
-        test('should list Threads, Channels and Boards with no dividers', () => {
+        test('should list Channels and Boards with no dividers', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
 
             const items = [...document.querySelectorAll('.ProductRail .ProductRail__item')].map((item) => item.id);
             expect(items).toEqual([
-                'product-rail-item-threads',
                 'product-rail-item-channels',
                 'product-rail-item-boards',
             ]);
@@ -322,7 +307,6 @@ describe('ProductRail', () => {
 
             const items = [...document.querySelectorAll('.ProductRail .ProductRail__item')].map((item) => item.id);
             expect(items).toEqual([
-                'product-rail-item-threads',
                 'product-rail-item-channels',
                 'product-rail-item-boards',
                 'product-rail-item-mattermost-ai',
@@ -380,10 +364,10 @@ describe('ProductRail', () => {
             expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
         });
 
-        test('should point Threads at the open thread', () => {
+        test('should point Channels at the open thread, as Threads is part of it', () => {
             renderAt('/team-one/threads/thread1', getState());
 
-            expect(screen.getByRole('link', {name: /Threads/})).toHaveAttribute('href', '/team-one/threads/thread1');
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/threads/thread1');
         });
 
         test('should leave a permalinked post out of the remembered channel', () => {
@@ -402,13 +386,12 @@ describe('ProductRail', () => {
         test('should restore where each item was from an earlier session', () => {
             localStorage.setItem(`product_rail_last_paths_${user.id}`, JSON.stringify({
                 boards: {[team.id]: '/team-one/channels/bugs'},
-                threads: {[team.id]: '/team-one/threads/thread2'},
+                product: {[team.id]: '/team-one/somewhere'},
             }));
 
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
 
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
-            expect(screen.getByRole('link', {name: /Threads/})).toHaveAttribute('href', '/team-one/threads/thread2');
         });
 
         test('should ignore saved paths of the wrong shape', () => {
@@ -424,7 +407,8 @@ describe('ProductRail', () => {
                 channels: {[team.id]: '/team-one/channels/town-square'},
             }));
 
-            renderAt('/team-one/threads', getBoardsState(townSquare.id));
+            // On a board, so Boards is filed under and Channels keeps its saved path.
+            renderAt('/team-one/channels/bugs', getBoardsState(bugs.id));
 
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
             expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('href', '/team-one/channels/town-square');
@@ -626,7 +610,6 @@ describe('ProductRail', () => {
             renderAt('/team-one/channels/town-square', getHiddenState(['boards', 'mattermost-ai']));
 
             expect(railItemIds()).toEqual([
-                'product-rail-item-threads',
                 'product-rail-item-channels',
                 'product-rail-item-playbooks',
                 'product-rail-item-more',
@@ -763,10 +746,10 @@ describe('ProductRail', () => {
             expect(document.getElementById(descriptionId!)).toHaveTextContent(/space/i);
         });
 
-        test('should offer no right-click menu on Threads or Channels', () => {
+        test('should offer no right-click menu on Channels', () => {
             renderAt('/team-one/channels/town-square', getHiddenState([]));
 
-            expect(fireEvent.contextMenu(screen.getByRole('link', {name: /Threads/}))).toBe(true);
+            expect(fireEvent.contextMenu(screen.getByRole('link', {name: /Channels/}))).toBe(true);
             expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
         });
 
@@ -821,7 +804,8 @@ describe('ProductRail', () => {
         test('should list items in the saved order, then any it does not name in their default order', () => {
             renderAt('/team-one/channels/town-square', getOrderState({order: ['playbooks', 'boards', 'threads']}));
 
-            expect(railItemIds()).toEqual(['playbooks', 'boards', 'threads', 'channels', 'mattermost-ai']);
+            // An item the rail no longer has, such as Threads from an earlier build, is skipped.
+            expect(railItemIds()).toEqual(['playbooks', 'boards', 'channels', 'mattermost-ai']);
         });
 
         test.each([
@@ -852,7 +836,7 @@ describe('ProductRail', () => {
                 },
             });
 
-            expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai:/agents-one', 'more']);
+            expect(railItemIds()).toEqual(['channels', 'boards', 'mattermost-ai:/agents-one', 'more']);
         });
 
         test('should not let a plugin\'s remaining product take on another\'s preferences', () => {
@@ -868,7 +852,7 @@ describe('ProductRail', () => {
                 },
             });
 
-            expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai']);
+            expect(railItemIds()).toEqual(['channels', 'boards', 'mattermost-ai']);
         });
 
         test('should keep a product unpinned when its plugin adds another product', () => {
@@ -881,7 +865,7 @@ describe('ProductRail', () => {
                 plugins: {components: {...state.plugins!.components, Product: [agentsOne, agentsTwo]}},
             });
 
-            expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai:/agents-two', 'more']);
+            expect(railItemIds()).toEqual(['channels', 'boards', 'mattermost-ai:/agents-two', 'more']);
         });
 
         test('should keep a product\'s place when its plugin adds another product', () => {
@@ -893,13 +877,13 @@ describe('ProductRail', () => {
                 plugins: {components: {...state.plugins!.components, Product: [agentsTwo, agentsOne]}},
             });
 
-            expect(railItemIds()).toEqual(['mattermost-ai:/agents-one', 'threads', 'channels', 'boards', 'mattermost-ai:/agents-two']);
+            expect(railItemIds()).toEqual(['mattermost-ai:/agents-one', 'channels', 'boards', 'mattermost-ai:/agents-two']);
         });
 
         test('should still honour a bare plugin id saved by earlier builds', () => {
             renderAt('/team-one/channels/town-square', getOrderState({order: ['playbooks', 'threads'], hidden: ['mattermost-ai']}));
 
-            expect(railItemIds()).toEqual(['playbooks', 'threads', 'channels', 'boards', 'more']);
+            expect(railItemIds()).toEqual(['playbooks', 'channels', 'boards', 'more']);
         });
 
         test('should not move an item dropped where it was', () => {

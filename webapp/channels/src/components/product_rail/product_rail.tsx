@@ -9,19 +9,16 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, matchPath, useHistory, useLocation} from 'react-router-dom';
 
-import glyphMap, {DockLeftIcon, DotsHorizontalIcon, MessageTextOutlineIcon, PinOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {DockLeftIcon, DotsHorizontalIcon, PinOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {selectTeam} from 'mattermost-redux/actions/teams';
-import {getThreadCounts} from 'mattermost-redux/actions/threads';
 import {getCurrentChannel, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {productRailPathsLoaded, productRailPathViewed, setProductRailItemHidden, setProductRailOrder, setProductRailSection, setTeamSidebarHidden} from 'actions/views/product_rail';
@@ -60,7 +57,7 @@ const messages = defineMessages({
     ariaLabel: {
         id: 'product_rail.ariaLabel',
         defaultMessage: 'Product navigation',
-        description: 'Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards.',
+        description: 'Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels and products such as Boards and Playbooks.',
     },
     channels: {
         id: 'product_rail.channels',
@@ -71,11 +68,6 @@ const messages = defineMessages({
         id: 'product_rail.boards',
         defaultMessage: 'Boards',
         description: 'Label under the Boards icon in the product navigation rail. Clicking it shows only boards in the left sidebar.',
-    },
-    threads: {
-        id: 'product_rail.threads',
-        defaultMessage: 'Threads',
-        description: 'Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads.',
     },
     more: {
         id: 'product_rail.more',
@@ -119,7 +111,7 @@ const threadsRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/threads`;
 
 const productTab = (product: ProductComponent): ProductRailTab => `product:${product.id}`;
 
-// The products that follow Threads, Channels and Boards in the rail, in this order, by plugin id.
+// The products that follow Channels and Boards in the rail, in this order, by plugin id.
 // Any other product a plugin registers comes right after them, in the order it registered.
 const DEFAULT_PRODUCT_PLUGIN_IDS = ['mattermost-ai', 'playbooks'];
 const defaultProductRank = (product: ProductComponent) => {
@@ -165,8 +157,8 @@ function saveLastPaths(userId: string, lastPaths: Record<string, Record<string, 
 // The vertical navigation rail shown between the team sidebar and the LHS when the ProductRail
 // feature flag is on. Each item swaps what the LHS and center show. Channels and Boards both live
 // in the channels product, so they split the channel sidebar in two: boards (channels a plugin
-// registers with registerChannelKind) in Boards, everything else in Channels. Threads opens the
-// threads view, and each registered product (Playbooks, ...) brings its own LHS.
+// registers with registerChannelKind) in Boards, everything else in Channels, where Threads is too
+// (from the channel sidebar). Each registered product (Playbooks, ...) brings its own LHS.
 export default function ProductRail() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -179,8 +171,6 @@ export default function ProductRail() {
     const currentChannel = useSelector(getCurrentChannel);
     const currentChannelId = currentChannel?.id ?? '';
     const currentProduct = useCurrentProduct();
-    const threadsEnabled = useSelector(isCollapsedThreadsEnabled);
-    const threadCounts = useSelector(getThreadCountsInCurrentTeam);
 
     // Set while a plugin registers boards, which splits Channels from Boards.
     const section = useSelector(getProductRailSection);
@@ -198,7 +188,6 @@ export default function ProductRail() {
     const lastPathsLoaded = useSelector(areProductRailLastPathsLoaded);
     const lastChannelPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'channels', currentTeamId));
     const lastBoardPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'boards', currentTeamId));
-    const lastThreadsPath = useSelector((state: GlobalState) => getProductRailLastPath(state, 'threads', currentTeamId));
     const defaultChannelName = useSelector((state: GlobalState) => (currentTeamId ? getRedirectChannelNameForTeam(state, currentTeamId) : ''));
 
     const channelMatch = matchPath<{team: string; path: string; identifier: string}>(pathname, {path: channelRoutePath});
@@ -223,18 +212,11 @@ export default function ProductRail() {
             viewedPath = `/${team}/${path}/${identifier}`;
         }
     } else if (inThreads) {
-        viewedTab = 'threads';
+        // Threads is part of the channels product, so it's remembered under Channels.
+        viewedTab = 'channels';
     } else if (currentProduct) {
         viewedTab = productTab(currentProduct);
     }
-
-    // The channel sidebar's Threads link is hidden while the rail is on, so the rail owns
-    // loading the counts it used to fetch.
-    useEffect(() => {
-        if (enabled && threadsEnabled && currentUserId && currentTeamId) {
-            dispatch(getThreadCounts(currentUserId, currentTeamId));
-        }
-    }, [dispatch, enabled, threadsEnabled, currentUserId, currentTeamId]);
 
     // A global product's page names no team, so loading one leaves none selected; pick the user's
     // last, so the rail, the team sidebar and the team menu all have one.
@@ -336,7 +318,7 @@ export default function ProductRail() {
         return null;
     }
 
-    const inChannelsProduct = !currentProduct && !inThreads;
+    const inChannelsProduct = !currentProduct;
 
     const productEntry = (product: ProductComponent): RailEntry | null => {
         const link = getProductSwitcherLinkURL(product, currentTeam.name);
@@ -379,19 +361,6 @@ export default function ProductRail() {
     const sortedProducts = [...products].sort((a, b) => defaultProductRank(a) - defaultProductRank(b));
 
     const entries: RailEntry[] = [];
-    if (threadsEnabled) {
-        entries.push({
-            itemId: 'threads',
-            elementId: 'product-rail-item-threads',
-            to: lastThreadsPath ?? `/${currentTeam.name}/threads`,
-            icon: <MessageTextOutlineIcon size={20}/>,
-            label: formatMessage(messages.threads),
-            active: inThreads,
-            mentions: threadCounts?.total_unread_mentions ?? 0,
-            hasUrgent: Boolean(threadCounts?.total_unread_urgent_mentions),
-            unread: Boolean(threadCounts?.total_unread_threads),
-        });
-    }
 
     // With boards split off, Channels shows the rest of the sidebar; without, it's all of it.
     if (section) {
@@ -652,11 +621,11 @@ export default function ProductRail() {
     );
 }
 
-// An item in the rail: Threads, Channels, Boards, or a product.
+// An item in the rail: Channels, Boards, or a product.
 type RailEntry = {
 
-    // What the user's order and hidden items preferences name it by: 'threads', 'channels',
-    // 'boards', or a product's plugin id and base URL.
+    // What the user's order and hidden items preferences name it by: 'channels', 'boards', or a
+    // product's plugin id and base URL.
     itemId: string;
 
     // Other names the preferences may use for it: a product's bare plugin id, from earlier builds,
@@ -670,7 +639,7 @@ type RailEntry = {
     label: React.ReactNode;
     active: boolean;
 
-    // Boards and products can be unpinned into the More menu; Threads and Channels always show.
+    // Boards and products can be unpinned into the More menu; Channels always shows.
     hideable?: boolean;
     mentions?: number;
     hasUrgent?: boolean;

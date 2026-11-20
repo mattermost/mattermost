@@ -145,7 +145,7 @@ export const getProductRailHiddenItems: (state: GlobalState) => string[] = creat
 );
 
 /**
- * The order the user has dragged the rail items into: 'threads', 'channels', 'boards', or a
+ * The order the user has dragged the rail items into: 'channels', 'boards', or a
  * product's plugin id. Items it doesn't name follow in their default order.
  */
 export const getProductRailItemOrder: (state: GlobalState) => string[] = createSelector(

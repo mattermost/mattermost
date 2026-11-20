@@ -29557,7 +29557,7 @@
   },
   "product_rail.ariaLabel": {
     "defaultMessage": "Product navigation",
-    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels, Threads and products such as Playbooks and Boards."
+    "description": "Accessible name for the vertical navigation rail beside the team sidebar that switches between Channels and products such as Boards and Playbooks."
   },
   "product_rail.boards": {
     "defaultMessage": "Boards",
@@ -29614,10 +29614,6 @@
   "product_rail.teamMenu.showTeamSidebar": {
     "defaultMessage": "Show team sidebar",
     "description": "Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid."
-  },
-  "product_rail.threads": {
-    "defaultMessage": "Threads",
-    "description": "Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads."
   },
   "profile_popover.aria_label.with_username": {
     "defaultMessage": "{userName}'s profile popover",

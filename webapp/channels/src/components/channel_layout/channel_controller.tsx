@@ -76,9 +76,6 @@ export default function ChannelController(props: Props) {
         <>
             <CRTPostsChannelResetWatcher/>
             <QueryParamActionController/>
-            {/* With the product rail, Threads has a place of its own and the channel sidebar is hidden
-                there (see product_rail.scss), but stays mounted: its keyboard shortcuts, such as
-                Ctrl/Cmd+K, work from everywhere. */}
             <Sidebar/>
             <div
                 id='channel_view'
