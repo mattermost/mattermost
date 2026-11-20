@@ -45,6 +45,16 @@ running server, so a restart is the only way to flip one.
 
 This is enforced by review, not tooling.
 
+## Server config between tests
+
+Before every test, the `resetConfigAndRoles` auto fixture
+(`lib/src/test_fixture.ts`) re-applies the on-prem config patch from
+`getOnPremServerConfigPatch()` (`lib/src/server/default_config.ts`) and resets
+roles, and `ensure*()` helpers re-apply their own baseline. Settings covered by
+these need no `afterEach` restore. If a test changes any other setting, restore
+the value it found, not a hardcoded default. For settings that can lock out the
+admin, call the `restore()` returned by `patchConfig()` in a `finally` block.
+
 ## `ensurePhase2MigrationCompleted`: only for specs that use schemes
 
 The server is ready once `/api/v4/system/ping` answers; the permissions migration
@@ -58,3 +68,17 @@ scheduler.
 
 Use `await pw.skipIfNoLicense()` to skip a test when the server has no
 license.
+
+When a test needs a license, call `await pw.ensureLicense()` and then
+`await pw.skipIfNoLicense()`. Change shared licensing behaviour in
+`ensureLicense()` itself, not in individual specs.
+
+## Helpers and tooling
+
+- Call `setupFileServer()` at describe scope and capture its URL in
+  `.then((url) => { ... })`. It registers its own
+  `test.beforeAll`/`test.afterAll` and resolves before any test runs.
+- When bumping `@playwright/test`, set the `mcr.microsoft.com/playwright` image
+  tags in `e2e-tests/.ci/server.generate.sh` and
+  `e2e-tests/playwright/README.md` to the latest published image for the same
+  minor version. They need not match the npm patch version.
