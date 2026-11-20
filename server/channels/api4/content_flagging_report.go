@@ -129,8 +129,8 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 
 	// Must run before http.ServeContent (which writes the response and may block). A failure
 	// does not block the download; the checksum stays on the audit record and in the log.
-	if appErr := c.App.NotifyReviewersOfFlaggedPostReportGeneration(c.AppContext, postId, userId, filename, checksum); appErr != nil {
-		logReportChecksumNotPosted(c, postId, filename, checksum, appErr)
+	if err := c.App.NotifyReviewersOfFlaggedPostReportGeneration(c.AppContext, postId, userId, filename, checksum); err != nil {
+		logReportChecksumNotPosted(c, postId, filename, checksum, err)
 	}
 	if omittedAttachments > 0 {
 		c.App.NotifyRequestingReviewerOfSkippedAttachments(c.AppContext, postId, userId)
@@ -207,8 +207,8 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 	model.AddEventParameterToAuditRec(auditRec, "filename", filename)
 	model.AddEventParameterToAuditRec(auditRec, "sha256", checksum)
 
-	if appErr := c.App.NotifyReviewersOfPostExposureReportGeneration(c.AppContext, postId, userId, filename, checksum); appErr != nil {
-		logReportChecksumNotPosted(c, postId, filename, checksum, appErr)
+	if err := c.App.NotifyReviewersOfPostExposureReportGeneration(c.AppContext, postId, userId, filename, checksum); err != nil {
+		logReportChecksumNotPosted(c, postId, filename, checksum, err)
 	}
 
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
@@ -222,11 +222,11 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 	auditRec.Success()
 }
 
-func logReportChecksumNotPosted(c *Context, flaggedPostID, filename, checksum string, appErr *model.AppError) {
+func logReportChecksumNotPosted(c *Context, flaggedPostID, filename, checksum string, err error) {
 	c.Logger.Error("Failed to post report checksum to reviewers; serving the report without a reviewer-visible checksum",
 		mlog.String("flagged_post_id", flaggedPostID),
 		mlog.String("filename", filename),
 		mlog.String("sha256", checksum),
-		mlog.Err(appErr),
+		mlog.Err(err),
 	)
 }

@@ -485,17 +485,17 @@ func decodePropertyInt64(rctx request.CTX, byName map[string]json.RawMessage, fi
 // reviewer's own DM with the content review bot, so the generating reviewer
 // cannot alter the checksum seen by other reviewers, letting them verify any
 // copy of the report shared with them.
-func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) *model.AppError {
+func (a *App) NotifyReviewersOfFlaggedPostReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) error {
 	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "app.data_spillage.report.checksum_notification", fileName, sha256Hex)
 }
 
 // NotifyReviewersOfPostExposureReportGeneration is the exposure report counterpart of
 // NotifyReviewersOfFlaggedPostReportGeneration.
-func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) *model.AppError {
+func (a *App) NotifyReviewersOfPostExposureReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, fileName, sha256Hex string) error {
 	return a.notifyReviewersOfReportGeneration(rctx, flaggedPostID, generatedByUserID, "app.data_spillage.exposure.checksum_notification", fileName, sha256Hex)
 }
 
-func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, messageID, fileName, sha256Hex string) *model.AppError {
+func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID, generatedByUserID, messageID, fileName, sha256Hex string) error {
 	groupID, appErr := a.ContentFlaggingGroupId()
 	if appErr != nil {
 		return appErr
@@ -514,8 +514,11 @@ func (a *App) notifyReviewersOfReportGeneration(rctx request.CTX, flaggedPostID,
 		})
 	}
 
-	_, appErr = a.postReviewerMessage(rctx, renderMessage, groupID, flaggedPostID, nil, "", "")
-	return appErr
+	// Return a literal nil on success: a nil *model.AppError returned as error is non-nil.
+	if _, appErr := a.postReviewerMessage(rctx, renderMessage, groupID, flaggedPostID, nil, "", ""); appErr != nil {
+		return appErr
+	}
+	return nil
 }
 
 func (a *App) NotifyRequestingReviewerOfSkippedAttachments(rctx request.CTX, flaggedPostID, requestingUserID string) {

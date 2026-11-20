@@ -724,8 +724,8 @@ func TestNotifyReviewersOfReportGeneration(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		appErr = th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, th.BasicUser.Id, fileName, checksum)
-		require.Nil(t, appErr)
+		err := th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, th.BasicUser.Id, fileName, checksum)
+		require.NoError(t, err)
 
 		messages := reviewerMessages(t, post.Id)
 		require.Contains(t, messages, expectedMessage("@"+th.BasicUser.Username+" generated a report for the quarantined message."))
@@ -737,8 +737,8 @@ func TestNotifyReviewersOfReportGeneration(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		appErr = th.App.NotifyReviewersOfPostExposureReportGeneration(th.Context, post.Id, th.BasicUser.Id, fileName, checksum)
-		require.Nil(t, appErr)
+		err := th.App.NotifyReviewersOfPostExposureReportGeneration(th.Context, post.Id, th.BasicUser.Id, fileName, checksum)
+		require.NoError(t, err)
 
 		messages := reviewerMessages(t, post.Id)
 		require.Contains(t, messages, expectedMessage("@"+th.BasicUser.Username+" downloaded an exposure report for the quarantined message."))
@@ -750,7 +750,7 @@ func TestNotifyReviewersOfReportGeneration(t *testing.T) {
 
 		post := setupFlaggedPost(t, th)
 
-		appErr = th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, model.NewId(), fileName, checksum)
-		require.NotNil(t, appErr)
+		err := th.App.NotifyReviewersOfFlaggedPostReportGeneration(th.Context, post.Id, model.NewId(), fileName, checksum)
+		require.Error(t, err)
 	})
 }
