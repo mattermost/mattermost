@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "qa-result.v1",
+  "type": "object",
+  "required": ["schema_version", "pr_number", "head_sha", "overall"],
+  "properties": {
+    "schema_version": { "type": "string", "const": "1.0" },
+    "pr_number": { "type": "integer" },
+    "head_sha": { "type": "string" },
+    "overall": { "type": "string" },
+    "verified_at_pr": { "type": "boolean" },
+    "coderabbit": { "type": "object" },
+    "mapped_specs": { "type": "array", "items": { "type": "string" } },
+    "scenario_results": { "type": "array" }
+  }
+}
