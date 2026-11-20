@@ -16,6 +16,7 @@ import (
 	"path"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"syscall"
 	"time"
 
@@ -25,6 +26,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/rs/cors"
 	"golang.org/x/crypto/acme/autocert"
+	"golang.org/x/net/idna"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/httpservice"
@@ -51,6 +53,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/health_check"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_process"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/last_accessible_post"
@@ -137,6 +140,8 @@ type Server struct {
 	propertyService  *properties.PropertyService
 	// propertyAccessControlHook is kept so tests can observe it.
 	propertyAccessControlHook *properties.AccessControlHook
+
+	sessionAttributeSchema atomic.Pointer[sessionAttributeSchema]
 
 	serviceMux           sync.RWMutex
 	remoteClusterService remotecluster.RemoteClusterServiceIFace
@@ -327,6 +332,7 @@ func NewServer(options ...Option) (*Server, error) {
 	app := New(ServerConnector(channels))
 
 	s.platform.SetPostDeliveryRecorder(app.RecordBroadcastDelivery)
+	s.platform.SetPrePublishHook(app.attachChannelReadAccessHook)
 
 	// Register property-service hooks AFTER s.ch is populated. The
 	// access-control and attribute-validation hooks capture s and use
@@ -585,7 +591,7 @@ func NewServer(options ...Option) (*Server, error) {
 	if _, err = url.ParseRequestURI(*s.platform.Config().ServiceSettings.SiteURL); err != nil {
 		// Don't spam the logs when in CI or local testing mode
 		if !(os.Getenv("IS_CI") == "true" || os.Getenv("IS_LOCAL_TESTING") == "true") {
-			mlog.Error("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
+			mlog.Warn("SiteURL must be set. Some features will operate incorrectly if the SiteURL is not set. See documentation for details: https://mattermost.com/pl/configure-site-url")
 		}
 	}
 
@@ -911,6 +917,9 @@ func (s *Server) Shutdown() {
 		s.Log().Warn("Failed to shut down config store", mlog.Err(err))
 	}
 
+	// Before the cluster stops, so a run never collects without the other nodes.
+	s.Channels().stopHealthCheckWorkers()
+
 	if s.platform.Cluster() != nil {
 		s.platform.Cluster().StopInterNodeCommunication()
 	}
@@ -1044,6 +1053,33 @@ func stripPort(hostport string) string {
 	return net.JoinHostPort(host, "443")
 }
 
+func (s *Server) newLetsEncryptManager() *autocert.Manager {
+	return &autocert.Manager{
+		Cache:      autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
+		Prompt:     autocert.AcceptTOS,
+		HostPolicy: s.letsEncryptHostPolicy,
+	}
+}
+
+// letsEncryptHostPolicy only allows certificates for the Site URL hostname, so clients
+// presenting arbitrary hostnames (e.g. internet scanners) cannot trigger issuance.
+func (s *Server) letsEncryptHostPolicy(ctx context.Context, host string) error {
+	siteURL, err := url.Parse(*s.platform.Config().ServiceSettings.SiteURL)
+	if err != nil {
+		return errors.Wrap(err, "failed to parse Site URL")
+	}
+	if siteURL.Hostname() == "" {
+		return errors.New("the Site URL must include a hostname to obtain a Let's Encrypt certificate")
+	}
+	// HostWhitelist normalizes its entries but not the requested host, which the
+	// HTTP-01 handler passes through exactly as the client sent it.
+	normalizedHost, err := idna.Lookup.ToASCII(host)
+	if err != nil {
+		return errors.Wrapf(err, "invalid hostname %q", host)
+	}
+	return autocert.HostWhitelist(siteURL.Hostname())(ctx, normalizedHost)
+}
+
 func (s *Server) Start() error {
 	// Start inter-cluster services first so shared channels APIs are
 	// available when plugins activate during channels startup.
@@ -1060,6 +1096,11 @@ func (s *Server) Start() error {
 	if s.joinCluster && s.platform.Cluster() != nil {
 		s.registerClusterHandlers()
 		s.platform.Cluster().StartInterNodeCommunication()
+	}
+
+	// After the cluster join, so a run can always reach the other nodes.
+	if s.runEssentialJobs {
+		s.Channels().startHealthCheckWorkers()
 	}
 
 	if err := s.ensureInstallationDate(); err != nil {
@@ -1200,10 +1241,7 @@ func (s *Server) Start() error {
 	logListeningPort := fmt.Sprintf("Server is listening on %v", listener.Addr().String())
 	mlog.Info(logListeningPort, mlog.String("address", listener.Addr().String()))
 
-	m := &autocert.Manager{
-		Cache:  autocert.DirCache(*s.platform.Config().ServiceSettings.LetsEncryptCertificateCacheFile),
-		Prompt: autocert.AcceptTOS,
-	}
+	m := s.newLetsEncryptManager()
 
 	if *s.platform.Config().ServiceSettings.Forward80To443 {
 		if host, port, err := net.SplitHostPort(addr); err != nil {
@@ -1852,6 +1890,10 @@ func (s *Server) initJobs() {
 		notify_admin.MakeInstallPluginScheduler(s.Jobs, s.License(), model.JobTypeInstallPluginNotifyAdmin),
 	)
 
+	// No framework worker: app servers run health_check in their own worker set because
+	// job servers don't join the cluster, see Channels.startHealthCheckWorkers.
+	s.Jobs.RegisterJobType(model.JobTypeHealthCheck, nil, health_check.MakeScheduler(s.Jobs, s.License))
+
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupDesktopTokens,
 		cleanup_desktop_tokens.MakeWorker(s.Jobs),
@@ -1964,6 +2006,10 @@ func (s *Server) GetMetrics() einterfaces.MetricsInterface {
 		return nil
 	}
 	return s.platform.Metrics()
+}
+
+func (s *Server) GetCluster() einterfaces.ClusterInterface {
+	return s.platform.Cluster()
 }
 
 // setSharedChannelSyncService sets the `SharedChannelSyncService` to be used by the server.
@@ -2095,15 +2141,6 @@ func runLeaderTasks(a *App) {
 		}
 		fn := func() { a.ProcessScheduledPosts(rctx) }
 		return model.CreateRecurringTaskFromNextIntervalTime("Process Scheduled Posts", fn, jobInterval)
-	})
-
-	a.ch.healthCheckTask.runOnLeader(a, "Health Check", func() *model.ScheduledTask {
-		fn := func() {
-			if err := a.RunHealthCheck(rctx); err != nil {
-				a.Log().Error("Health check failed", mlog.Err(err))
-			}
-		}
-		return model.CreateRecurringTask("Health Check", fn, healthCheckInterval)
 	})
 }
 

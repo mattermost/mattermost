@@ -31,11 +31,6 @@ const defaultProps: Props = {
 };
 
 describe('EmojiPickerCategory', () => {
-    test('should match snapshot', () => {
-        const {asFragment} = renderWithContext(<EmojiPickerCategory {...defaultProps}/>);
-        expect(asFragment()).toMatchSnapshot();
-    });
-
     test('should be disabled when prop is passed disabled', () => {
         const props = {
             ...defaultProps,

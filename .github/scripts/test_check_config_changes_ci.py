@@ -63,8 +63,9 @@ class UniqueCommitFilterTest(unittest.TestCase):
         _git(self.tmpdir, "commit", "-m", message)
         return _git(self.tmpdir, "rev-parse", "HEAD")
 
-    def _point_checker(self, base: str, head: str) -> None:
+    def _point_checker(self, base: str, head: str, base_ref: str = "") -> None:
         checker.BASE_SHA = base
+        checker.BASE_REF = base_ref
         checker.HEAD_SHA = head
         checker.DEFAULT_BRANCH = "master"
         checker.reset_git_caches()
@@ -213,8 +214,151 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self.assertEqual(result.additions, ["`POST /api/v4/bar` (`getBar`)"])
         self.assertEqual(result.removals, [])
 
+    def test_endpoints_master_already_has_are_not_reported_again(self):
+        """A stacked PR carries the first PR's raw commits; master has them squashed."""
+        _write(self.tmpdir, "server/channels/api4/api.go", _API_ROUTES)
+        _write(self.tmpdir, "server/channels/api4/properties.go", "package api4\n")
+        self._commit("root")
+
+        _git(self.tmpdir, "checkout", "-b", "stack")
+        _write(self.tmpdir, "server/channels/api4/properties.go", _OPTIONS_ROUTES)
+        self._commit("first PR, before it was squashed")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/properties.go", _OPTIONS_ROUTES)
+        self._commit("first PR, squashed into master")
+        master = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        _git(self.tmpdir, "checkout", "stack")
+        _git(self.tmpdir, "merge", "master", "-m", "merge master")
+        _write(self.tmpdir, "server/channels/api4/properties.go",
+               _OPTIONS_ROUTES.replace("}\n", '\tapi.BaseRoutes.Properties.Handle("/new", api.APISessionRequired(newOne)).Methods(http.MethodPost)\n}\n'))
+        head = self._commit("second PR")
+
+        self._point_checker(master, head)
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.additions, ["`POST /properties/new` (`newOne`)"])
+        self.assertEqual(result.removals, [])
+
+    def test_a_route_on_a_subrouter_is_reported_with_its_prefix(self):
+        _write(self.tmpdir, "server/channels/api4/api.go", _API_ROUTES)
+        _write(self.tmpdir, "server/channels/api4/properties.go", "package api4\n")
+        base = self._commit("root")
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _write(self.tmpdir, "server/channels/api4/properties.go", _OPTIONS_ROUTES)
+        head = self._commit("add routes")
+
+        self._point_checker(base, head)
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertIn(
+            "`DELETE /properties/groups/{group_name}/{object_type}/fields/{field_id}/options` (`deletePropertyFieldOptions`)",
+            result.additions,
+        )
+        self.assertFalse(any(item.startswith("`DELETE /`") for item in result.additions))
+
+    def test_stack_that_never_took_master_in_adds_nothing_master_already_has(self):
+        """The #37851 case: its raw commits are in the stack, master has them squashed."""
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        self._commit("root")
+
+        _git(self.tmpdir, "checkout", "-b", "stack")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        self._commit("first PR, before it was squashed")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        self._commit("first PR, squashed into master")
+        master = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        _git(self.tmpdir, "checkout", "stack")  # never merged master
+        _write(self.tmpdir, "server/channels/api4/bar.go", _HANDLE_BAR)
+        head = self._commit("second PR")
+
+        self._point_checker(master, head, "master")
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.additions, ["`POST /api/v4/bar` (`getBar`)"])
+        self.assertEqual(result.removals, [])
+
+    def test_cherry_pick_to_a_release_branch_is_compared_with_that_branch(self):
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        _write(self.tmpdir, "README", "start\n")
+        self._commit("root")
+        _git(self.tmpdir, "checkout", "-b", "release-12.0")
+        _write(self.tmpdir, "RELEASE", "12.0\n")
+        self._commit("release-only commit")
+        release_tip = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        master_api = self._commit("add GET /foo on master")
+
+        _git(self.tmpdir, "checkout", "-b", "pick", "release-12.0")
+        _git(self.tmpdir, "cherry-pick", master_api)
+        head = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        self._point_checker(release_tip, head, "release-12.0")
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.additions, ["`GET /api/v4/foo` (`getFoo`)"])
+
+    def test_a_release_branch_pr_is_compared_with_the_release_line_not_master(self):
+        # The release line added /foo and a new file after it was cut from master; a PR to the
+        # release branch that removes /foo and edits that file is judged against the release line.
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        self._commit("root")
+        _git(self.tmpdir, "checkout", "-b", "release-12.0")
+        _write(self.tmpdir, "server/channels/api4/post.go", _HANDLE)
+        _write(self.tmpdir, "server/channels/api4/extra.go", "package api4\n")
+        release_tip = self._commit("release-only: GET /foo and extra.go")
+
+        _git(self.tmpdir, "checkout", "-b", "fix", "release-12.0")
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        _write(self.tmpdir, "server/channels/api4/extra.go", "package api4\n\n// a comment\n")
+        head = self._commit("remove GET /foo and touch extra.go on the release branch")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "README", "master moves on\n")
+        self._commit("master moves on")
+
+        self._point_checker(release_tip, head, "release-12.0")
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.removals, ["`GET /api/v4/foo` (`getFoo`)"])
+        self.assertNotIn("🆕 New API file: `extra.go`", result.changes)
+
+    def test_a_route_master_already_removed_is_not_this_prs_removal(self):
+        both = _HANDLE.replace("}\n", '\tr.Handle("/api/v4/baz", r.APIHandler(getBaz)).Methods("GET")\n}\n')
+        _write(self.tmpdir, "server/channels/api4/post.go", both)
+        self._commit("root")
+
+        _git(self.tmpdir, "checkout", "-b", "stack")
+        _write(self.tmpdir, "server/channels/api4/post.go", "package api4\n")
+        head = self._commit("the stack removes both routes")
+
+        _git(self.tmpdir, "checkout", "master")
+        _write(self.tmpdir, "server/channels/api4/post.go",
+               'package api4\n\nfunc Init() {\n\tr.Handle("/api/v4/baz", r.APIHandler(getBaz)).Methods("GET")\n}\n')
+        self._commit("another PR removes /foo on master")
+        master = _git(self.tmpdir, "rev-parse", "HEAD")
+
+        self._point_checker(master, head, "master")
+        result = checker.check_api(checker.split_patch_by_file(checker.get_full_patch()))
+        self.assertEqual(result.removals, ["`GET /api/v4/baz` (`getBaz`)"], "/foo went with the other PR")
+        self.assertEqual(result.additions, [])
+
+    def test_net_changes_without_a_known_tip_uses_the_merge_base_and_head_alone(self):
+        self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, None), ({"c"}, {"a"}))
+        self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, {"c"}), (set(), set()))
+        self.assertEqual(checker.net_changes({"a", "b"}, {"b", "c"}, {"a"}), ({"c"}, {"a"}))
+
 
 class ApiNoticeTest(unittest.TestCase):
+    def _check(self, path: str, patch_text: str, base_src: str, head_src: str):
+        files = {("base", path): base_src, ("head", path): head_src}
+        with patch.object(checker, "_comparison_base", return_value="base"), \
+                patch.object(checker, "HEAD_SHA", "head"), \
+                patch.object(checker, "file_at_base_tip", return_value=None), \
+                patch.object(checker, "file_at", side_effect=lambda ref, p: files.get((ref, p), "")):
+            return checker.check_api({path: patch_text})
+
     def test_new_file_notices_for_unparsed_routes(self):
         path = "server/channels/api4/new.go"
         for source, expected_endpoints, expected_notice in [
@@ -223,19 +367,16 @@ class ApiNoticeTest(unittest.TestCase):
             (_HANDLE.replace('r.APIHandler(getFoo)', 'customHandler'), False, True),
             ('package api4', False, False),
         ]:
-            with self.subTest(source=source), patch.object(checker, "_comparison_base", return_value="base"), patch.object(
-                checker, "file_at", side_effect=["", source],
-            ):
-                result = checker.check_api({path: "new file mode 100644"})
+            with self.subTest(source=source):
+                result = self._check(path, "new file mode 100644", "", source)
                 self.assertEqual(bool(result.additions), expected_endpoints)
                 self.assertEqual(bool(result.changes), expected_notice)
 
     def test_deleted_file_notice_still_requires_parsed_endpoint(self):
+        path = "server/channels/api4/old.go"
         for source, expected in [(_HANDLE, True), (_HANDLE.replace('"/api/v4/foo"', '`/api/v4/foo`'), False)]:
-            with self.subTest(source=source), patch.object(checker, "_comparison_base", return_value="base"), patch.object(
-                checker, "file_at", side_effect=[source, ""],
-            ):
-                result = checker.check_api({"server/channels/api4/old.go": "deleted file mode 100644"})
+            with self.subTest(source=source):
+                result = self._check(path, "deleted file mode 100644", source, "")
                 self.assertEqual(bool(result.changes), expected)
 
 
@@ -270,6 +411,78 @@ class NoteCleanupTest(unittest.TestCase):
                 "import sys; sys.path.insert(0, sys.argv[1]); import check_config_changes_ci",
                 os.path.dirname(script),
             ], cwd=cwd, env=env, check=True, capture_output=True)
+
+
+_API_ROUTES = (
+    'package api4\n\n'
+    'func Init(api *API) {\n'
+    '\tapi.BaseRoutes.Properties = api.BaseRoutes.APIRoot.PathPrefix("/properties").Subrouter()\n'
+    '\tapi.BaseRoutes.PropertyFields = api.BaseRoutes.Properties.PathPrefix("/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields").Subrouter()\n'
+    '\tapi.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{field_id:[A-Za-z0-9]+}").Subrouter()\n'
+    '\tapi.BaseRoutes.PropertyFieldOptions = api.BaseRoutes.PropertyField.PathPrefix("/options").Subrouter()\n'
+    '}\n'
+)
+
+_OPTIONS_ROUTES = (
+    'package api4\n\n'
+    'func (api *API) InitProperties() {\n'
+    '\tapi.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(getPropertyFieldOptions)).Methods(http.MethodGet)\n'
+    '\tapi.BaseRoutes.PropertyFieldOptions.Handle("", api.APISessionRequired(deletePropertyFieldOptions)).Methods(http.MethodDelete)\n'
+    '\tapi.BaseRoutes.Properties.Handle("/ping", api.APISessionRequired(pingProperties)).Methods(http.MethodGet)\n'
+    '}\n'
+)
+
+
+class RoutePrefixTest(unittest.TestCase):
+    def test_subrouter_prefixes_chain_from_their_parents(self):
+        prefixes = checker._route_prefixes(_API_ROUTES)
+        self.assertEqual(prefixes["Properties"], "/properties")
+        self.assertEqual(
+            prefixes["PropertyFieldOptions"],
+            "/properties/groups/{group_name:[a-z][a-z0-9_]*}/{object_type:[a-z]+}/fields/{field_id:[A-Za-z0-9]+}/options",
+        )
+
+    def test_a_route_on_a_subrouter_keeps_its_prefix(self):
+        endpoints = checker._parse_endpoints(_OPTIONS_ROUTES, checker._route_prefixes(_API_ROUTES))
+        options = "/properties/groups/{group_name}/{object_type}/fields/{field_id}/options"
+        self.assertEqual(endpoints, {
+            (options, "getPropertyFieldOptions", "GET"),
+            (options, "deletePropertyFieldOptions", "DELETE"),
+            ("/properties/ping", "pingProperties", "GET"),
+        })
+
+    def test_a_path_variable_whose_pattern_has_braces_is_shortened_whole(self):
+        # api4/health_dashboard.go: the pattern's own {32} must not leave a stray brace.
+        src = ('\tapi.BaseRoutes.HealthFindings.Handle("/{fingerprint:[a-f0-9]{32}}/mute", '
+               'api.APISessionRequired(muteHealthFinding)).Methods(http.MethodPost)\n')
+        self.assertEqual(checker._parse_endpoints(src, {"HealthFindings": "/health/findings"}),
+                         {("/health/findings/{fingerprint}/mute", "muteHealthFinding", "POST")})
+        self.assertEqual(checker._shorten_path_vars("/{a:[0-9]{2,3}}/{b}/{c:x}"), "/{a}/{b}/{c}")
+
+    def test_routes_chain_back_to_the_api_root(self):
+        # #39527 and #39528 wrote "GET /posts" and "GET /signup_available": the root and the
+        # subrouter prefix were lost.
+        api = ('\tapi.BaseRoutes.APIRoot = srv.Router.PathPrefix(model.APIURLSuffix).Subrouter()\n'
+               '\tapi.BaseRoutes.APIRoot5 = srv.Router.PathPrefix(model.APIURLSuffixV5).Subrouter()\n'
+               '\tapi.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()\n'
+               '\tapi.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()\n')
+        usage = ('\tapi.BaseRoutes.Usage.Handle("/posts", api.APISessionRequired(getPostsUsage)).Methods(http.MethodGet)\n'
+                 '\tapi.BaseRoutes.HostedCustomer.Handle("/signup_available", '
+                 'api.APISessionRequired(handleSignupAvailable)).Methods(http.MethodGet)\n'
+                 '\tsomeOtherRouter.Handle("/loose", api.APISessionRequired(loose)).Methods(http.MethodGet)\n')
+        self.assertEqual(checker._route_prefixes(api)["APIRoot5"], "/api/v5")
+        self.assertEqual(checker._parse_endpoints(usage, checker._route_prefixes(api)) - {("/loose", "loose", "GET")}, {
+            ("/api/v4/usage/posts", "getPostsUsage", "GET"),
+            ("/api/v4/hosted_customer/signup_available", "handleSignupAvailable", "GET"),
+        })
+        # The changelog reads the router as a whole and leaves out a route on an unknown receiver.
+        self.assertEqual(checker.router_endpoints([usage], api), {
+            ("/api/v4/usage/posts", "getPostsUsage", "GET"),
+            ("/api/v4/hosted_customer/signup_available", "handleSignupAvailable", "GET"),
+        })
+
+    def test_a_route_on_an_unknown_router_keeps_its_own_path(self):
+        self.assertEqual(checker._parse_endpoints(_HANDLE), {("/api/v4/foo", "getFoo", "GET")})
 
 
 if __name__ == "__main__":

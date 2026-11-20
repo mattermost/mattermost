@@ -105,13 +105,13 @@ func (a *App) writeFlaggedPostReport(rctx request.CTX, zw *zip.Writer, postID, g
 		return 0, nil
 	}
 
-	if appErr := writeAttachmentsOmittedEntry(zw, rctx.GetT()); appErr != nil {
-		return 0, appErr
+	if err := writeAttachmentsOmittedEntry(zw, rctx.GetT()); err != nil {
+		return 0, model.AsAppError(err)
 	}
 	return len(seenFiles), nil
 }
 
-func writeAttachmentsOmittedEntry(zw *zip.Writer, T i18n.TranslateFunc) *model.AppError {
+func writeAttachmentsOmittedEntry(zw *zip.Writer, T i18n.TranslateFunc) error {
 	w, err := zw.Create(flaggedPostReportAttachmentsOmittedFile)
 	if err != nil {
 		return model.NewAppError("GenerateFlaggedPostReport", "app.data_spillage.report.zip_create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

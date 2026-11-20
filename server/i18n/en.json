@@ -70,6 +70,11 @@
     "description": "API error when a render-time access control decision is requested for a resource type that has no decision support."
   },
   {
+    "id": "api.access_control_policy.channel_permission_actions.feature_disabled",
+    "translation": "Channel permission actions feature is not enabled.",
+    "description": "API error for admins saving an access control policy that uses a channel permission action (such as channel read access) while that feature is not enabled on the server."
+  },
+  {
     "id": "api.access_control_policy.channel_permission_policies.feature_disabled",
     "translation": "Channel-level permission policies feature is not enabled.",
     "description": "API error for admins when channel-level permission policies (attribute-based access control) are not enabled on the server."
@@ -203,6 +208,21 @@
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
     "translation": "Could not save certificate file.",
     "description": "Admin console error when the SAML Identity Provider certificate obtained from metadata cannot be written to disk."
+  },
+  {
+    "id": "api.admin.saml.invalid_idp_certificate_file.app_error",
+    "translation": "The uploaded Identity Provider certificate is not a valid PEM-encoded X.509 certificate.",
+    "description": "Admin console error when an uploaded SAML Identity Provider certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
+  },
+  {
+    "id": "api.admin.saml.invalid_private_key_file.app_error",
+    "translation": "The uploaded Service Provider private key is not a valid PEM-encoded private key.",
+    "description": "Admin console error when an uploaded SAML Service Provider private key file cannot be parsed; 'PEM' is a key format name."
+  },
+  {
+    "id": "api.admin.saml.invalid_public_certificate_file.app_error",
+    "translation": "The uploaded Service Provider public certificate is not a valid PEM-encoded X.509 certificate.",
+    "description": "Admin console error when an uploaded SAML Service Provider public certificate file cannot be parsed; 'PEM' and 'X.509' are certificate format names."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
@@ -475,9 +495,24 @@
     "description": "System message posted in a channel when it is converted from public to private."
   },
   {
+    "id": "api.channel.channel_management_access.abac_denied.app_error",
+    "translation": "You do not currently have permission to manage this channel.",
+    "description": "Error shown when an attribute-based channel policy currently denies the user permission to manage the channel (change its settings, members or policies). Also returned as the response text of slash commands such as /header, /purpose, /rename, /kick and /share. 'currently' signals the denial may lift when the user's attributes or session change."
+  },
+  {
     "id": "api.channel.channel_member_counts_by_group.license.error",
     "translation": "Your license does not support groups",
     "description": "API error when requesting member counts by group without a license that includes user groups; 'groups' are user groups."
+  },
+  {
+    "id": "api.channel.channel_read_access.abac_denied.app_error",
+    "translation": "You do not currently have access to this channel.",
+    "description": "Error shown when an attribute-based channel policy currently denies the user access to read the channel, for example when opening, joining or loading posts from it. 'currently' signals the denial may lift when the user's attributes or session (such as network or device) change."
+  },
+  {
+    "id": "api.channel.channel_write_access.abac_denied.app_error",
+    "translation": "You do not currently have permission to write in this channel.",
+    "description": "Error shown when an attribute-based channel policy currently denies the user permission to post, react, edit, upload files or run commands in the channel. 'currently' signals the denial may lift when the user's attributes or session change."
   },
   {
     "id": "api.channel.create_channel.attribute_no_permission.app_error",
@@ -2441,6 +2476,11 @@
     "description": "Admin API error when merging the stored configuration with restricted defaults fails while reading the config; 'config' is the server configuration."
   },
   {
+    "id": "api.config.get_config_history.diff.app_error",
+    "translation": "Failed to compare the saved configurations.",
+    "description": "Admin API error when listing saved server configurations fails while working out which settings changed between two of them."
+  },
+  {
     "id": "api.config.migrate_config.app_error",
     "translation": "Failed to migrate config store.",
     "description": "Error from the config migration command (moving configuration between file and database storage); admin/CLI audience."
@@ -2459,6 +2499,11 @@
     "id": "api.config.reload_config.app_error",
     "translation": "Failed to reload config.",
     "description": "Admin API error when reloading the server configuration from disk fails; 'config' is the server configuration."
+  },
+  {
+    "id": "api.config.restore_historical_config.diff.app_error",
+    "translation": "Failed to compare the saved configuration with the current one.",
+    "description": "Admin API error when restoring a saved server configuration fails while working out which settings it changes."
   },
   {
     "id": "api.config.update.elasticsearch.autocomplete_cannot_be_enabled_error",
@@ -2521,9 +2566,9 @@
     "description": "Generic API validation error for a bad request parameter; {{.Name}} is the parameter's name."
   },
   {
-    "id": "api.context.invalid_token.error",
-    "translation": "Invalid session token={{.Token}}, err={{.Error}}",
-    "description": "API authentication error for an invalid or expired session token; {{.Token}} is the token value and {{.Error}} is the underlying error detail. Mostly seen by developers/admins."
+    "id": "api.context.invalid_session.error",
+    "translation": "Invalid or expired session.",
+    "description": "API authentication error returned when a session or access token cannot be validated (unknown, expired, idle, or revoked). Mostly seen by developers/admins."
   },
   {
     "id": "api.context.invalid_url_param.app_error",
@@ -3285,8 +3330,8 @@
   },
   {
     "id": "api.health_finding.license.app_error",
-    "translation": "The health dashboard requires an Enterprise license.",
-    "description": "API error when a health dashboard endpoint is called on a server without an Enterprise license."
+    "translation": "The health dashboard requires a Professional license or higher.",
+    "description": "API error when a health dashboard endpoint is called on a server without at least a Professional license."
   },
   {
     "id": "api.image.get.app_error",
@@ -3322,6 +3367,11 @@
     "id": "api.io_error",
     "translation": "input/output error",
     "description": "Generic lowercase API error for a low-level input/output failure; developer/log audience."
+  },
+  {
+    "id": "api.job.cancel.not_supported",
+    "translation": "Jobs of this type can't be canceled.",
+    "description": "Admin API error when a request tries to cancel a background job whose type does not support cancellation, such as a health check run."
   },
   {
     "id": "api.job.retrieve.nopermissions",
@@ -3814,6 +3864,21 @@
     "description": "Ephemeral system message to the poster when an @-mentioned user is not a team member; {{.Username}} is that user's username, rendered after a literal @."
   },
   {
+    "id": "api.post.create_post.attribute_no_permission.app_error",
+    "translation": "You do not have permission to set one or more of the requested post attribute values.",
+    "description": "API error when a post is created with a value for a post attribute the author is not allowed to set; the attribute is deliberately not named. 'Post attributes' are custom fields admins define for posts."
+  },
+  {
+    "id": "api.post.create_post.attributes_burn_on_read.app_error",
+    "translation": "Burn-on-read posts can't have post attributes.",
+    "description": "API error when a burn-on-read post is created with post attribute values. 'Burn-on-read' is the self-destructing message feature name; 'post attributes' are custom fields admins define for posts."
+  },
+  {
+    "id": "api.post.create_post.attributes_feature_disabled.app_error",
+    "translation": "Post attributes are not enabled on this server.",
+    "description": "API error when a post is created with post attribute values while the post attributes feature is turned off on the server. 'Post attributes' are custom fields admins define for posts."
+  },
+  {
     "id": "api.post.create_post.burn_on_read.abac_denied.app_error",
     "translation": "You do not have permission to send burn-on-read messages in this channel.",
     "description": "API error when a user does not have permission to send a burn-on-read message in a channel due to an attribute-based-access-control (ABAC) permission policy."
@@ -3842,6 +3907,11 @@
     "id": "api.post.create_post.channel_root_id.app_error",
     "translation": "Invalid ChannelId for RootId parameter.",
     "description": "API error when a reply's root post belongs to a different channel than the one being posted to; 'ChannelId'/'RootId' are API parameter names."
+  },
+  {
+    "id": "api.post.create_post.invalid_attribute.app_error",
+    "translation": "One or more post attribute values could not be applied.",
+    "description": "API error when a post is created with post attribute values that are unknown, repeated, not available in the post's channel, or that set fields the server assigns itself; the attribute is deliberately not named."
   },
   {
     "id": "api.post.create_post.root_id.app_error",
@@ -6855,6 +6925,11 @@
     "description": "API error when the caller lacks permission to manage an attribute-based access control policy; admin-facing."
   },
   {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Too many resources in one access control evaluation; the limit is {{.Max}}.",
+    "description": "API error (400) returned to a plugin when a batch access control evaluation asks for decisions on more distinct resource IDs than the server allows in one call. {{.Max}} is the maximum number of resource IDs."
+  },
+  {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
     "translation": "Access control could not be evaluated for this resource.",
     "description": "API error (503) returned to a plugin when the Access Control / Policy Enforcement Point is not available to decide whether the requested resource may be accessed. The underlying reason is carried in the untranslated error detail."
@@ -6938,6 +7013,11 @@
     "id": "app.acknowledgement.save.save.app_error",
     "translation": "Unable to save acknowledgement for post.",
     "description": "API error when saving a user's acknowledgement of a post fails."
+  },
+  {
+    "id": "app.admin.get_latest_version.disabled.app_error",
+    "translation": "Checking for the latest Mattermost release is disabled. Turn on Enable Security Alerts to allow it.",
+    "description": "API error returned when an administrator asks for the latest Mattermost release while the 'Enable Security Alerts' System Console setting is off; that setting also stops the server fetching the latest release. Admin-facing."
   },
   {
     "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
@@ -7848,6 +7928,21 @@
     "id": "app.compliance.save.saving.app_error",
     "translation": "We encountered an error saving the compliance report.",
     "description": "Admin-facing API error when saving a compliance report job fails."
+  },
+  {
+    "id": "app.config.history.app_error",
+    "translation": "Unable to get the saved configurations.",
+    "description": "Admin API and mmctl error when reading the history of saved server configurations from the database fails."
+  },
+  {
+    "id": "app.config.history.not_found.app_error",
+    "translation": "No saved configuration has this ID.",
+    "description": "Admin API and mmctl error when the ID given for a saved server configuration doesn't match any configuration in the history."
+  },
+  {
+    "id": "app.config.history.not_supported.app_error",
+    "translation": "Configuration history is only available when the configuration is stored in the database.",
+    "description": "Admin API and mmctl error when the configuration history is requested but the server reads its configuration from a file, which keeps no history; 'database' is the database the server's configuration is stored in."
   },
   {
     "id": "app.create_basic_user.save_member.app_error",
@@ -8846,6 +8941,16 @@
     "description": "API error returned when a group operation conflicts with an existing account; {{.Username}} is the already-taken username."
   },
   {
+    "id": "app.health_check.start_run.app_error",
+    "translation": "Unable to start a health check run.",
+    "description": "Server error when a system admin asked to run the health check now and the server could neither create a run nor find the one already running."
+  },
+  {
+    "id": "app.health_check.start_run.conflict.app_error",
+    "translation": "A health check run is already starting. Try again in a moment.",
+    "description": "Error when a system admin asked to run the health check now and the run already in the way finished at that moment, so the server could neither start a run nor return the active one."
+  },
+  {
     "id": "app.health_finding.get.app_error",
     "translation": "Unable to get health finding.",
     "description": "Server error when a single health dashboard finding could not be loaded from the database."
@@ -9161,11 +9266,6 @@
     "description": "Bulk import error shown to admins when saving imported team membership records fails."
   },
   {
-    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
-    "translation": "Unable to import team membership because no more members are allowed in that team",
-    "description": "Bulk import error shown to admins when a team has reached its maximum user limit so the membership cannot be added."
-  },
-  {
     "id": "app.import.import_user_teams.save_preferences.error",
     "translation": "Unable to save the team theme preferences",
     "description": "Bulk import error shown to admins when saving a user's per-team theme preference during import fails."
@@ -9184,6 +9284,16 @@
     "id": "app.import.preflight.auth_provider_not_configured.error",
     "translation": "The {{.Service}} auth provider is not configured on this server: {{.Detail}}",
     "description": "Bulk import pre-check error when the export contains users of a sign-in method that is not set up on this server. {{.Service}} is the internal auth service ID (e.g. ldap, saml, gitlab, google, office365, openid); {{.Detail}} is an untranslated English explanation."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_exceeded.error",
+    "translation": "This file adds {{.Adding}} users to team {{.Team}}, giving it {{.Total}} members, but TeamSettings.MaxUsersPerTeam is {{.Limit}}. Raise the limit or set it to 0 (no limit) before importing.",
+    "description": "Bulk import pre-check error shown before anything is imported when the import would take a team past its member limit. {{.Adding}} is the number of users the file adds to the team, {{.Team}} the team name, {{.Total}} the resulting member count and {{.Limit}} the configured limit. TeamSettings.MaxUsersPerTeam is a configuration setting name and must not be translated."
+  },
+  {
+    "id": "app.import.preflight.team_member_limit_read.error",
+    "translation": "Unable to read the import file to check TeamSettings.MaxUsersPerTeam.",
+    "description": "Bulk import pre-check error shown when the data file inside the import archive cannot be found or opened, so the team member limit cannot be checked before importing. TeamSettings.MaxUsersPerTeam is a configuration setting name and must not be translated."
   },
   {
     "id": "app.import.process_import_data_file_version_line.invalid_version.error",
@@ -10494,6 +10604,16 @@
     "id": "app.pdp.access_evaluation.permission_policy.app_error",
     "translation": "Failed to evaluate permission policy.",
     "description": "Error when the server fails to evaluate a permission policy while checking a user's access."
+  },
+  {
+    "id": "app.pdp.action_has_permission_policy.app_error",
+    "translation": "Failed to determine if action has a permission policy",
+    "description": "Internal server error when the server cannot look up whether any permission policy governs a given action. Shown to administrators and in logs."
+  },
+  {
+    "id": "app.pdp.resource_policy_governs_action.app_error",
+    "translation": "Failed to determine if the resource's access policy governs the action.",
+    "description": "Internal error when the server cannot tell whether a channel's attribute-based access policy, or a policy it imports, declares a given action; the server then evaluates the policy anyway. Logged for admins, not shown to end users."
   },
   {
     "id": "app.plugin.add_public_key.file_exists.app_error",
@@ -14342,6 +14462,11 @@
     "description": "SAML login error when the Service Provider private key file is missing; 'Service Provider' is a SAML term for the Mattermost side."
   },
   {
+    "id": "ent.saml.configure.not_configured.app_error",
+    "translation": "SAML is not configured correctly. Please contact your System Administrator.",
+    "description": "SAML error when the Service Provider could not be configured, e.g. because a stored certificate or key failed to load; 'Service Provider' is a SAML term for the Mattermost side."
+  },
+  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator.",
     "description": "SAML login error when the Identity Provider sent an unencrypted response but encryption is required."
@@ -14708,8 +14833,8 @@
   },
   {
     "id": "health.rule.db_postgres_unsupported.message",
-    "translation": "PostgreSQL {{.version}} is below the minimum supported version. Mattermost requires PostgreSQL {{.minimum}} or later.",
-    "description": "Health dashboard finding detail when the database runs an unsupported PostgreSQL version; {{.version}} is the reported server version and {{.minimum}} is the minimum major version. 'PostgreSQL' is a product name and should not be translated."
+    "translation": "PostgreSQL {{.version}} is below the minimum supported version, {{.minimum}}. Mattermost still starts on it, but unsupported versions may lead to unexpected behavior. Upgrade to PostgreSQL {{.minimum}} or later.",
+    "description": "Health dashboard finding detail when the database runs an unsupported PostgreSQL version. Mattermost keeps running on it, so the text explains the risk rather than saying the version is required; {{.version}} is the reported server version and {{.minimum}} is the minimum major version. 'PostgreSQL' is a product name and should not be translated."
   },
   {
     "id": "health.rule.db_postgres_unsupported.remediation",
@@ -14720,6 +14845,36 @@
     "id": "health.rule.db_postgres_unsupported.title",
     "translation": "PostgreSQL version is below the minimum supported",
     "description": "Health dashboard finding title when the database runs a PostgreSQL version older than Mattermost supports. 'PostgreSQL' is a product name and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.in_progress",
+    "translation": "PostgreSQL is currently vacuuming the Posts table. Let that vacuum finish before evaluating whether another vacuum is needed.",
+    "description": "Health dashboard status when the PostgreSQL Posts table has many dead tuples but a vacuum is already running. 'PostgreSQL', 'Posts' and 'vacuum' are technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.blocked",
+    "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of an estimated {{.estimated_rows}} rows), even though it was last vacuumed at {{.last_vacuum}}. Vacuum is running but most likely cannot remove them because something is holding back cleanup, such as a long-running or idle-in-transaction session, an inactive replication slot, or an abandoned prepared transaction. Table and index bloat can degrade query performance and increase disk use.",
+    "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples although it was vacuumed recently; {{.dead_tuples}}, {{.dead_percent}} and {{.estimated_rows}} are numbers, and {{.last_vacuum}} is an RFC 3339 timestamp. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated. 'idle-in-transaction', 'replication slot' and 'prepared transaction' are PostgreSQL technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.never",
+    "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of an estimated {{.estimated_rows}} rows), and PostgreSQL has no record of it being vacuumed since its statistics were last reset. Autovacuum does not appear to be keeping up with this table. Table and index bloat can degrade query performance and increase disk use.",
+    "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples and has no recorded vacuum; {{.dead_tuples}}, {{.dead_percent}} and {{.estimated_rows}} are numbers. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated. 'Autovacuum' is a PostgreSQL technical term and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.message.stale",
+    "translation": "The Posts table has {{.dead_tuples}} estimated dead tuples ({{.dead_percent}}% of an estimated {{.estimated_rows}} rows), and its most recent vacuum was {{.age_days}} days ago at {{.last_vacuum}}. Autovacuum does not appear to be keeping up with this table. Table and index bloat can degrade query performance and increase disk use.",
+    "description": "Health dashboard finding detail when the PostgreSQL Posts table has many dead tuples and has not been vacuumed recently; {{.dead_tuples}}, {{.dead_percent}}, {{.estimated_rows}} and {{.age_days}} are numbers, and {{.last_vacuum}} is an RFC 3339 timestamp. 'Posts', 'vacuum' and 'dead tuples' are PostgreSQL technical terms and should not be translated. 'Autovacuum' is a PostgreSQL technical term and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.remediation",
+    "translation": "If pg_stat_progress_vacuum shows a vacuum running on Posts, let it finish, since starting a manual VACUUM cancels it. If Posts was vacuumed recently, find what is holding back cleanup and end or remove it: long-running or idle-in-transaction sessions in pg_stat_activity, inactive replication slots in pg_replication_slots, and old prepared transactions in pg_prepared_xacts. The next vacuum can then remove the dead tuples. If Posts has not been vacuumed recently, verify autovacuum is enabled globally and for Posts, and check PostgreSQL logs for canceled autovacuum jobs. If autovacuum cannot keep up, lower autovacuum_vacuum_scale_factor for Posts and raise autovacuum_vacuum_cost_limit and autovacuum_work_mem as capacity allows, then schedule a targeted VACUUM (ANALYZE) on Posts during low traffic. Avoid VACUUM FULL unless you plan for its exclusive lock and extra disk space; if available, pg_repack is a lower-lock alternative.",
+    "description": "Health dashboard fix-it step when the PostgreSQL Posts table has many dead tuples, covering both a vacuum that cannot remove them and a vacuum that has not run recently. 'pg_stat_progress_vacuum', 'pg_stat_activity', 'pg_replication_slots', 'pg_prepared_xacts', 'Posts', 'PostgreSQL', 'VACUUM', 'idle-in-transaction', 'autovacuum', 'autovacuum_vacuum_scale_factor', 'autovacuum_vacuum_cost_limit', 'autovacuum_work_mem', 'VACUUM (ANALYZE)', 'VACUUM FULL' and 'pg_repack' are technical terms and should not be translated."
+  },
+  {
+    "id": "health.rule.db_posts_dead_tuples.title",
+    "translation": "Posts table has many dead tuples",
+    "description": "Health dashboard finding title when the PostgreSQL Posts table has many dead tuples that vacuum has not removed. 'Posts' and 'dead tuples' are PostgreSQL technical terms and should not be translated."
   },
   {
     "id": "health.rule.db_query_timeout_high.message",
@@ -15052,6 +15207,11 @@
     "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.hours}} is a whole number of hours."
   },
   {
+    "id": "health.rule.job_stuck.message.days",
+    "translation": "The {{.job_type}} job {{.job_id}} is in progress but has recorded no activity for {{.days}} days. This usually means the worker died mid-run or the scheduler is wedged.",
+    "description": "Health dashboard finding detail for a background job that is still marked in progress but has stopped reporting activity for two days or more; {{.job_type}} is the job type identifier (such as ldap_sync) and {{.job_id}} is the job's ID, neither should be translated; {{.days}} is a whole number of days, at least 2."
+  },
+  {
     "id": "health.rule.job_stuck.remediation",
     "translation": "Cancel the stuck job from its System Console page, with mmctl job cancel, or through the API. Check the server logs around the job's last activity, then run it again.",
     "description": "Health dashboard fix-it step for a background job stuck in progress; 'mmctl job cancel' is a command and should not be translated."
@@ -15292,6 +15452,21 @@
     "description": "Health dashboard finding title when the server does not write a log file."
   },
   {
+    "id": "health.rule.log_webhook_payloads.message",
+    "translation": "LogSettings.EnableWebhookDebugging is true, so failed incoming webhook requests are logged with their payload, which can contain message text.",
+    "description": "Health dashboard finding detail when webhook debugging logs incoming webhook payloads; 'LogSettings.EnableWebhookDebugging' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.remediation",
+    "translation": "Set LogSettings.EnableWebhookDebugging to false unless you are troubleshooting a webhook.",
+    "description": "Health dashboard fix-it step for webhook payload logging; 'LogSettings.EnableWebhookDebugging' is a config setting path and 'false' is a setting value; do not translate them."
+  },
+  {
+    "id": "health.rule.log_webhook_payloads.title",
+    "translation": "Webhook payloads are logged",
+    "description": "Health dashboard finding title when failed incoming webhook requests are logged with their payload, which can include message content."
+  },
+  {
     "id": "health.rule.max_notifications_per_channel.message",
     "translation": "TeamSettings.MaxNotificationsPerChannel is {{.limit}}, so @channel, @all and @here still work in channels with thousands of members. A single channel-wide mention there fans out thousands of notifications at once, which causes latency spikes.",
     "description": "Health dashboard finding detail when the per-channel notification limit is above 5000; {{.limit}} is the configured limit, 'TeamSettings.MaxNotificationsPerChannel' is the config setting path and '@channel', '@all' and '@here' are Mattermost mentions, none should be translated."
@@ -15308,18 +15483,18 @@
   },
   {
     "id": "health.rule.metrics_off.message",
-    "translation": "MetricsSettings.Enable is false. Metrics are optional, and many deployments do not run Prometheus. If you want runtime visibility into database connections, HTTP latency and goroutine counts, enabling metrics provides it.",
-    "description": "Health dashboard finding detail when Prometheus metrics are turned off, which is a valid choice; 'MetricsSettings.Enable' is a config setting path and 'Prometheus' is a product name; do not translate them."
+    "translation": "Mattermost isn't recording performance metrics, such as database connections, request latency and server load. Without them, there's no history to look back on when users report slowness, and nothing to share with Mattermost Support.",
+    "description": "Health dashboard finding detail when performance monitoring (MetricsSettings.Enable) is turned off, so no performance history is available for troubleshooting or for Mattermost Support; 'Mattermost Support' is a team name."
   },
   {
     "id": "health.rule.metrics_off.remediation",
-    "translation": "If you use Prometheus, set MetricsSettings.Enable to true and scrape the metrics listener (port 8067 by default).",
-    "description": "Health dashboard fix-it step for disabled Prometheus metrics; 'MetricsSettings.Enable' is a config setting path and 'scrape' is the Prometheus term for collecting metrics."
+    "translation": "Turn on Performance Monitoring in the System Console, and check that the Metrics plugin is enabled under Plugins > Plugin Management. The plugin keeps 15 days of metrics on the server, with no Prometheus needed. If you run Prometheus, point it at the metrics listener (port 8067 by default).",
+    "description": "Health dashboard fix-it step for disabled performance monitoring; 'Performance Monitoring' is the System Console setting name, 'Metrics plugin' is a Mattermost plugin and 'Prometheus' is a product name; do not translate them."
   },
   {
     "id": "health.rule.metrics_off.title",
-    "translation": "Prometheus metrics disabled (optional)",
-    "description": "Health dashboard finding title when Prometheus performance metrics are turned off; the finding is informational because metrics are optional."
+    "translation": "Performance monitoring is turned off",
+    "description": "Health dashboard finding title when performance monitoring (MetricsSettings.Enable) is turned off, so Mattermost records no performance metrics."
   },
   {
     "id": "health.rule.node_container_memory_pressure.message",
@@ -15917,6 +16092,11 @@
     "description": "Health dashboard reason shown when a version check could not run because the latest Mattermost release could not be fetched from GitHub or is not recorded in the Support Packet being evaluated, so the check's status is unknown."
   },
   {
+    "id": "health.rule.version.unknown.latest_disabled",
+    "translation": "Latest release not checked: Enable Security Alerts is off, so the server does not fetch it.",
+    "description": "Health dashboard reason shown when a version check could not run because the administrator turned off the 'Enable Security Alerts' setting, which also stops the server fetching the latest Mattermost release, so the check's status is unknown. 'Enable Security Alerts' is the name of a System Console setting."
+  },
+  {
     "id": "health.rule.version.unknown.line",
     "translation": "This version is not in this build's release table. To evaluate a Support Packet from a newer server, use a newer mmctl.",
     "description": "Health dashboard reason shown when a version check could not run because the server version is newer than the release lifecycle table compiled into this build, so the check's status is unknown. 'mmctl' is the Mattermost command line tool and should not be translated."
@@ -16220,6 +16400,31 @@
     "id": "model.access_policy.is_valid.actions.app_error",
     "translation": "Action(s) is not valid.",
     "description": "Validation error for an access control policy rule whose action list is invalid; 'action' is what the rule allows (e.g. join, view)."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_policy_role.app_error",
+    "translation": "Channel access actions on a permission policy can only apply to the System User, System Guest or System Admin role.",
+    "description": "Validation error when saving a system permission policy whose rules use the Channel Read Access, Channel Write Access or Manage Channel action, but whose role is a custom role. Such a policy would never apply, because channel access is evaluated against the user's built-in system role."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_access_rule_role.app_error",
+    "translation": "A channel access rule on a permission policy can't specify its own role. The policy's role applies.",
+    "description": "Validation error when saving a system permission policy with a Channel Read Access, Channel Write Access or Manage Channel rule that sets its own role, as channel policy rules do. The role of a permission policy is set on the policy, not on each rule."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_management_access_type.app_error",
+    "translation": "The Manage Channel action is only allowed on permission and channel policies.",
+    "description": "Validation error when saving an access policy that uses the Manage Channel action on a policy type other than a permission policy or a channel policy. 'Manage Channel' is the name of the action in the System Console."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_read_access_type.app_error",
+    "translation": "The Channel Read Access action is only allowed on permission and channel policies.",
+    "description": "Validation error when saving an access policy that uses the Channel Read Access action on a policy type other than a permission policy or a channel policy. 'Channel Read Access' is the name of the action in the System Console."
+  },
+  {
+    "id": "model.access_policy.is_valid.actions.channel_write_access_type.app_error",
+    "translation": "The Channel Write Access action is only allowed on permission and channel policies.",
+    "description": "Validation error when saving an access policy that uses the Channel Write Access action on a policy type other than a permission policy or a channel policy. 'Channel Write Access' is the name of the action in the System Console."
   },
   {
     "id": "model.access_policy.is_valid.actions.membership_combined.app_error",
@@ -18430,6 +18635,26 @@
     "id": "model.log_filter.is_valid.date_to.app_error",
     "translation": "Invalid date_to filter. Expected the format \"{{.Layout}}\".",
     "description": "API error (400) returned to a system admin filtering server logs in the System Console when the end-date filter is unparseable. {{.Layout}} is the expected date format pattern (a Go time layout string) and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_name.app_error",
+    "translation": "Invalid field filter. A field name must be at most {{.MaxLength}} characters, and can't be empty, \"level\" or \"timestamp\".",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when the field name is not allowed. {{.MaxLength}} is the maximum number of characters. \"level\" and \"timestamp\" are log field names and must not be translated."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_value.app_error",
+    "translation": "Invalid field filter. A field value must be at most {{.MaxLength}} characters.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when a value is too long. {{.MaxLength}} is the maximum number of characters."
+  },
+  {
+    "id": "model.log_filter.is_valid.field_values.app_error",
+    "translation": "Invalid field filter. Each field must have between 1 and {{.MaxValues}} values.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by a log field, such as a plugin ID, when a field has no values or too many. {{.MaxValues}} is the maximum number of values."
+  },
+  {
+    "id": "model.log_filter.is_valid.fields.app_error",
+    "translation": "Invalid field filter. At most {{.MaxKeys}} fields can be filtered on.",
+    "description": "API error (400) returned to a system admin filtering server logs in the System Console by log fields, such as a plugin ID, when too many fields are given. {{.MaxKeys}} is the maximum number of fields."
   },
   {
     "id": "model.log_filter.is_valid.search.app_error",

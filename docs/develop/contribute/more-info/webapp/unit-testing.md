@@ -5,7 +5,7 @@ sidebar_position: 5
 
 ### Unit Tests for Component and Utility Files
 
-The last required step in building a web app component is to test it. [Jest](https://jestjs.io/en/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) are the main frameworks/testing utilities used in unit testing components and utility files in our web app. Please visit their respective documentation for detailed information on how to get started, best practices, and updates. React Testing Library is used to render and interact with React components in a way that closely mirrors how users interact with them in the browser, while Jest is used to perform snapshot testing against these components.
+The last required step in building a web app component is to test it. [Jest](https://jestjs.io/en/) and [React Testing Library](https://testing-library.com/docs/react-testing-library/intro/) are the main frameworks/testing utilities used in unit testing components and utility files in our web app. Please visit their respective documentation for detailed information on how to get started, best practices, and updates. React Testing Library is used to render and interact with React components in a way that closely mirrors how users interact with them in the browser, while Jest is used to run the tests and make assertions.
 
 With React Testing Library, you can focus on testing the behavior of your components, rather than their implementation details. This means that your tests will be more resilient to changes in your codebase, and will give you more confidence that your application is working as expected.
 If you need to unit test something related to Redux, please check out [Redux Unit and E2E Testing](/developers/contribute/more-info/webapp/redux/testing).
@@ -13,7 +13,7 @@ If you need to unit test something related to Redux, please check out [Redux Uni
 #### Writing unit tests
 Below is a brief guide on how to do component testing:
 
-1. Use our [testing library helpers](https://github.com/mattermost/mattermost/blob/master/webapp/channels/src/tests/react_testing_utils.tsx) to render a component and its child components. Use `screen` to interact with the rendered component and assert on the expected results. Match snapshots using default or expected props. Note that while using snapshots is convenient, do not rely solely on this for every test case, as changes can be easily overlooked when using the command `jest --updateSnapshot` to update multiple snapshots at once. For example:
+1. Use our [testing library helpers](https://github.com/mattermost/mattermost/blob/master/webapp/channels/src/tests/react_testing_utils.tsx) to render a component and its child components. Use `screen` to interact with the rendered component and assert on the expected results. Don't use snapshot tests; assert explicitly on what the user should see instead. For example:
     ```javascript
     import {render, screen, userEvent} from 'tests/react_testing_utils';
     const baseProps = {
@@ -21,11 +21,9 @@ Below is a brief guide on how to do component testing:
         onSubmit: jest.fn(),
     };
 
-    test('should match snapshot, not send email notifications', () => {
+    test('should render the submit button', () => {
         // For components that use Redux, React Intl, or Reach Router, you can also use the renderWithFullContext helper
-        const {container} = render(<EmailNotificationSetting {...baseProps}/>);
-
-        expect(container.firstChild).toMatchSnapshot();
+        render(<EmailNotificationSetting {...baseProps}/>);
 
         // Assert on a specific element rendered by the component
         const submitButton = screen.getByRole('button', { name: 'Submit' });
@@ -149,7 +147,6 @@ Below is a brief guide on how to do component testing:
     ```
 #### Running unit tests
 10. To run all tests that have been modified or added since the last commit, run [Jest](https://jestjs.io/en/) in `watch` mode with the command: `npm run test:watch`.
-    * If there are new tests in the first run, test snapshots will be generated and placed in the `__snapshots__` directory in the folder where the test suite is located.
     * In watch mode, you can also run specific sets of tests:
 
         ```

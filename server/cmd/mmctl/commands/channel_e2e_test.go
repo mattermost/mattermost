@@ -356,6 +356,23 @@ func (s *MmctlE2ETestSuite) TestDeleteChannelsCmd() {
 		s.CheckErrorID(err, "app.channel.get.existing.app_error")
 	})
 
+	s.RunForSystemAdminAndLocal("Delete channel prints display name and ID", func(c client.Client) {
+		printer.SetFormat(printer.FormatPlain)
+		defer printer.SetFormat(printer.FormatJSON)
+
+		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: model.NewId(), DisplayName: "Project Alpha", CreatorId: user.Id}, true)
+		s.Require().Nil(appErr)
+
+		cmd := newTestCmd(s.T(), DeleteChannelsCmd)
+		s.Require().NoError(cmd.Flags().Set("confirm", "true"))
+
+		err := deleteChannelsCmdF(c, cmd, []string{team.Id + ":" + channel.Id})
+
+		s.Require().NoError(err)
+		s.Require().Equal([]any{"Deleted channel 'Project Alpha' (ID: " + channel.Id + ")"}, printer.GetLines())
+		s.Require().Empty(printer.GetErrorLines())
+	})
+
 	s.Run("Delete channel with disabled config as system admin", func() {
 		channel, appErr := s.th.App.CreateChannel(s.th.Context, &model.Channel{Type: model.ChannelTypeOpen, Name: "channel_name_you_cannot_delete", CreatorId: user.Id}, true)
 		s.Require().Nil(appErr)

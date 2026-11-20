@@ -9,6 +9,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"image/png"
 	"io"
@@ -18,10 +19,11 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
-	"github.com/dgryski/dgoogauth"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -30,6 +32,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -4147,6 +4151,18 @@ func TestGetUsersNotInChannelAbacMatchOnly(t *testing.T) {
 		mock.Anything,
 	).Return([]*model.User{user1}, int64(1), nil).Maybe()
 
+	// Reading the target channel is now gated on channel_read_access, and these
+	// channels carry a policy, so the gate asks whether that policy declares the
+	// action before the dispatcher is reached. A membership-only policy does not.
+	// That gate has its own coverage; answer it permissively here so a denial
+	// cannot be mistaken for the unfiltered branch.
+	mockACS.On("ActionHasPermissionPolicy", mock.Anything, mock.Anything).
+		Return(false, nil).Maybe()
+	mockACS.On("ResourcePolicyGovernsAction", mock.Anything, mock.Anything, mock.Anything).
+		Return(false, nil).Maybe()
+	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
+		Return(model.AccessDecision{Decision: true}, nil).Maybe()
+
 	listUsers := func(t *testing.T, channelID string, abacMatchOnly bool) []string {
 		t.Helper()
 		query := url.Values{}
@@ -4431,7 +4447,7 @@ func TestUserLoginMFAFlow(t *testing.T) {
 		err = th.Server.Store().User().UpdateMfaSecret(th.BasicUser.Id, secret.Secret)
 		require.NoError(t, err)
 
-		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+		code := mfa.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 
 		user, _, err := th.Client.LoginWithMFA(context.Background(), th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))
 		require.NoError(t, err)
@@ -6187,6 +6203,78 @@ func TestLoginCookies(t *testing.T) {
 					}
 				}
 				assert.Equal(t, tc.expectSession, hasSession)
+			})
+		}
+	})
+
+	t.Run("cws login redirect for cloud previews", func(t *testing.T) {
+		siteURL := "https://testchips.cloud.mattermost.com"
+		th := SetupAndApplyConfigBeforeLogin(t, func(cfg *model.Config) {
+			*cfg.ServiceSettings.SiteURL = siteURL
+		}).InitBasic(t)
+		th.Client.HTTPClient.CheckRedirect = func(req *http.Request, via []*http.Request) error {
+			return http.ErrUseLastResponse
+		}
+
+		testCases := []struct {
+			name             string
+			preview          bool
+			useCase          string
+			campaign         string
+			landing          string
+			expectedLocation string
+		}{
+			{name: "use case wins over the landing path", preview: true, useCase: "mission-ops", landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/mission-ops-hq"},
+			{name: "landing path without a use case", preview: true, landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/nato/channels/daily-briefing"},
+			{name: "landing path with an unknown use case", preview: true, useCase: "nato-dir", landing: "/nato", expectedLocation: siteURL + "/nato"},
+			{name: "relative landing path is ignored", preview: true, landing: "nato", expectedLocation: siteURL},
+			{name: "landing path applies with a non-trial license", landing: "/nato/channels/daily-briefing", expectedLocation: siteURL + "/nato/channels/daily-briefing"},
+			{name: "use case is ignored with a non-trial license", useCase: "mission-ops", landing: "/nato", expectedLocation: siteURL + "/nato"},
+			{name: "relative landing path is ignored with a non-trial license", landing: "nato", expectedLocation: siteURL},
+			{name: "no landing path with a non-trial license", expectedLocation: siteURL},
+			{name: "campaign wins over the landing path", campaign: "focalboard", landing: "/nato", expectedLocation: siteURL + "/boards"},
+		}
+
+		for _, tc := range testCases {
+			t.Run(tc.name, func(t *testing.T) {
+				license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced)
+				if tc.preview {
+					license = model.NewTestLicense("cloud")
+					license.IsTrial = true
+					license.StartsAt = model.GetMillis()
+					license.ExpiresAt = license.StartsAt + time.Hour.Milliseconds()
+				}
+				th.App.Srv().SetLicense(license)
+				th.App.UpdateConfig(func(cfg *model.Config) {
+					*cfg.CloudSettings.PreviewLandingPath = tc.landing
+				})
+				token := model.NewRandomString(64)
+				user := th.CreateUser(t)
+				th.App.Srv().SetCWSTokenOverride(token)
+				th.App.Srv().SetCWSLoginIDOverride(user.Username)
+				t.Cleanup(func() {
+					th.App.Srv().SetCWSTokenOverride("")
+					th.App.Srv().SetCWSLoginIDOverride("")
+				})
+
+				form := url.Values{}
+				form.Add("login_id", user.Username)
+				form.Add("cws_token", token)
+				form.Add("use_case", tc.useCase)
+				form.Add("utm_campaign", tc.campaign)
+				r, _ := th.Client.DoAPIRequestWithHeaders(context.Background(),
+					http.MethodPost,
+					"/users/login/cws",
+					form.Encode(),
+					map[string]string{
+						"Content-Type": "application/x-www-form-urlencoded",
+					},
+				)
+				require.NotNil(t, r)
+				defer closeBody(r)
+
+				assert.Equal(t, http.StatusFound, r.StatusCode)
+				assert.Equal(t, tc.expectedLocation, r.Header.Get("Location"))
 			})
 		}
 	})
@@ -8641,6 +8729,141 @@ func TestLoginLockout(t *testing.T) {
 	// Check if lock is active
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser2.Email, th.BasicUser2.Password)
 	CheckErrorID(t, err, "api.user.check_user_login_attempts.too_many.app_error")
+}
+
+// countingCompareHasher counts CompareHashAndPassword calls for one password
+// that actually ran the inner hasher's key derivation, so that parallel tests
+// sharing the global test hasher do not affect the count.
+type countingCompareHasher struct {
+	inner    hashers.PasswordHasher
+	password string
+	compares atomic.Int64
+}
+
+func (h *countingCompareHasher) Hash(password string) (string, error) {
+	return h.inner.Hash(password)
+}
+
+func (h *countingCompareHasher) IsPHCValid(phc phcparser.PHC) bool {
+	return h.inner.IsPHCValid(phc)
+}
+
+func (h *countingCompareHasher) CompareHashAndPassword(phc phcparser.PHC, password string) error {
+	err := h.inner.CompareHashAndPassword(phc, password)
+	if password == h.password && (err == nil || errors.Is(err, hashers.ErrMismatchedHashAndPassword)) {
+		h.compares.Add(1)
+	}
+	return err
+}
+
+func TestLoginUnknownAccountHashesPassword(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		*cfg.EmailSettings.EnableSignInWithUsername = true
+		*cfg.ServiceSettings.MaximumLoginAttempts = 10
+	})
+
+	wrongPassword := "wrong-password-" + model.NewId()
+	previous := hashers.GetLatestHasher()
+	counter := &countingCompareHasher{inner: hashers.FastTestHasher(), password: wrongPassword}
+	hashers.SetTestHasher(counter)
+	t.Cleanup(func() { hashers.SetTestHasher(previous) })
+
+	user := th.CreateUser(t)
+
+	testCases := []struct {
+		name        string
+		loginID     string
+		wantCompare bool
+	}{
+		{
+			name:        "unknown username",
+			loginID:     "doesnotexist" + model.NewId(),
+			wantCompare: true,
+		},
+		{
+			name:        "unknown email",
+			loginID:     "doesnotexist-" + model.NewId() + "@example.com",
+			wantCompare: true,
+		},
+		{
+			// checkUserPassword resolves the hasher from the stored PHC string and never
+			// returns the installed test hasher, so the counter cannot observe this path.
+			name:    "existing user with wrong password",
+			loginID: user.Email,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			before := counter.compares.Load()
+
+			_, resp, err := th.Client.Login(context.Background(), tc.loginID, wrongPassword)
+			CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
+			CheckUnauthorizedStatus(t, resp)
+
+			if tc.wantCompare {
+				assert.GreaterOrEqual(t, counter.compares.Load()-before, int64(1), "expected a password hash comparison for an unknown account")
+			}
+		})
+	}
+}
+
+func TestLoginNonPasswordAccountHashesPassword(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	_, err := th.Client.Logout(context.Background())
+	require.NoError(t, err)
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		*cfg.EmailSettings.EnableSignInWithUsername = true
+		*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		*cfg.LdapSettings.Enable = false
+	})
+
+	wrongPassword := "wrong-password-" + model.NewId()
+	previous := hashers.GetLatestHasher()
+	counter := &countingCompareHasher{inner: hashers.FastTestHasher(), password: wrongPassword}
+	hashers.SetTestHasher(counter)
+	t.Cleanup(func() { hashers.SetTestHasher(previous) })
+
+	testCases := []struct {
+		name        string
+		authService string
+	}{
+		{name: "gitlab account", authService: model.UserAuthServiceGitlab},
+		{name: "saml account", authService: model.UserAuthServiceSaml},
+		{name: "openid account", authService: model.ServiceOpenid},
+		{name: "ldap account with ldap unavailable", authService: model.UserAuthServiceLdap},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			authData := model.NewId()
+			user, appErr := th.App.CreateUser(th.Context, &model.User{
+				Email:         "success+" + model.NewId() + "@simulator.amazonses.com",
+				Username:      "un_" + model.NewId(),
+				EmailVerified: true,
+				AuthService:   tc.authService,
+				AuthData:      &authData,
+			})
+			require.Nil(t, appErr)
+
+			before := counter.compares.Load()
+
+			_, resp, err := th.Client.Login(context.Background(), user.Email, wrongPassword)
+			CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
+			CheckUnauthorizedStatus(t, resp)
+
+			assert.GreaterOrEqual(t, counter.compares.Load()-before, int64(1), "expected a password hash comparison for an account whose login response is indistinguishable from an unknown account")
+		})
+	}
 }
 
 func TestDemoteUserToGuest(t *testing.T) {
@@ -11254,6 +11477,35 @@ func TestLoginWithDesktopToken(t *testing.T) {
 
 		assert.Len(t, sessions, 0)
 	})
+
+	t.Run("respects user DeleteAt", func(t *testing.T) {
+		for _, tc := range []struct {
+			name        string
+			authService string
+		}{
+			{name: "SAML", authService: model.UserAuthServiceSaml},
+			{name: "OAuth", authService: model.UserAuthServiceGitlab},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				authUser := th.CreateUserWithAuth(t, tc.authService)
+
+				token, appErr := th.App.GenerateAndSaveDesktopToken(time.Now().Unix(), authUser)
+				assert.Nil(t, appErr)
+
+				th.UpdateActiveUser(t, authUser, false)
+
+				// Checks that desktop token login consults user DeleteAt before creating a session.
+				_, resp, err := th.Client.LoginWithDesktopToken(context.Background(), *token, "")
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.user.login.inactive.app_error")
+				CheckUnauthorizedStatus(t, resp)
+
+				sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), authUser.Id, "")
+				require.NoError(t, sessErr)
+				assert.Len(t, sessions, 0)
+			})
+		}
+	})
 }
 
 func TestLoginSSOCodeExchangeDeprecated(t *testing.T) {
@@ -11346,6 +11598,95 @@ func TestLoginSSOCodeExchange(t *testing.T) {
 		assert.Equal(t, samlUser.Id, user.Id)
 		assert.Equal(t, samlUser.Email, user.Email)
 		assert.Equal(t, samlUser.Username, user.Username)
+	})
+
+	t.Run("respects user DeleteAt", func(t *testing.T) {
+		for _, tc := range []struct {
+			name        string
+			authService string
+		}{
+			{name: "SAML", authService: model.UserAuthServiceSaml},
+			{name: "OAuth", authService: model.UserAuthServiceGitlab},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				authUser := th.CreateUserWithAuth(t, tc.authService)
+
+				codeVerifier := "test_code_verifier_delete_at_" + tc.name
+				state := "test_state_delete_at_" + tc.name
+
+				sum := sha256.Sum256([]byte(codeVerifier))
+				codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+				extra := map[string]string{
+					"user_id":               authUser.Id,
+					"code_challenge":        codeChallenge,
+					"code_challenge_method": "S256",
+					"state":                 state,
+				}
+
+				token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+				require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+				th.UpdateActiveUser(t, authUser, false)
+
+				props := map[string]string{
+					"login_code":    token.Token,
+					"code_verifier": codeVerifier,
+					"state":         state,
+				}
+
+				// Checks that SSO code exchange consults user DeleteAt before creating a session.
+				resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+				require.Error(t, err)
+				CheckErrorID(t, err, "api.user.login.inactive.app_error")
+				CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+				require.Empty(t, resp.Header.Get(model.HeaderToken))
+
+				sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), authUser.Id, "")
+				require.NoError(t, sessErr)
+				assert.Len(t, sessions, 0)
+			})
+		}
+	})
+
+	t.Run("rejects user converted to bot", func(t *testing.T) {
+		samlUser := th.CreateUserWithAuth(t, model.UserAuthServiceSaml)
+
+		codeVerifier := "test_code_verifier_convert_to_bot"
+		state := "test_state_convert_to_bot"
+
+		sum := sha256.Sum256([]byte(codeVerifier))
+		codeChallenge := base64.RawURLEncoding.EncodeToString(sum[:])
+
+		extra := map[string]string{
+			"user_id":               samlUser.Id,
+			"code_challenge":        codeChallenge,
+			"code_challenge_method": "S256",
+			"state":                 state,
+		}
+
+		token := model.NewToken(model.TokenTypeSSOCodeExchange, model.MapToJSON(extra))
+		require.NoError(t, th.App.Srv().Store().Token().Save(token))
+
+		_, appErr := th.App.ConvertUserToBot(th.Context, samlUser)
+		require.Nil(t, appErr)
+
+		props := map[string]string{
+			"login_code":    token.Token,
+			"code_verifier": codeVerifier,
+			"state":         state,
+		}
+
+		// Checks that a code minted before ConvertUserToBot can't create a session for the bot.
+		resp, err := th.Client.DoAPIPost(context.Background(), "/users/login/sso/code-exchange", model.MapToJSON(props))
+		require.Error(t, err)
+		CheckErrorID(t, err, "api.user.login.bot_login_forbidden.app_error")
+		CheckUnauthorizedStatus(t, model.BuildResponse(resp))
+		require.Empty(t, resp.Header.Get(model.HeaderToken))
+
+		sessions, _, sessErr := th.SystemAdminClient.GetSessions(context.Background(), samlUser.Id, "")
+		require.NoError(t, sessErr)
+		assert.Len(t, sessions, 0)
 	})
 }
 
@@ -12224,7 +12565,7 @@ func TestSearchUsersWithMfaEnforced(t *testing.T) {
 		err = th.Server.Store().User().UpdateMfaSecret(userWithMFAOK.Id, secret.Secret)
 		require.NoError(t, err)
 
-		code := dgoogauth.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
+		code := mfa.ComputeCode(secret.Secret, time.Now().UTC().Unix()/30)
 
 		client := th.CreateClient()
 		user, _, err := client.LoginWithMFA(context.Background(), th.BasicUser.Email, th.BasicUser.Password, fmt.Sprintf("%06d", code))

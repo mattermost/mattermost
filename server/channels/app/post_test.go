@@ -6158,6 +6158,44 @@ func TestCleanUpAfterPostDeletion(t *testing.T) {
 		assert.Equal(t, post.Id, memberPost.Id)
 		assert.Nil(t, memberPost.GetProp(model.PostPropsMmBlocksActions))
 	})
+
+	t.Run("burn-on-read post deletion is still broadcast when the temporary post is gone", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.EnableBurnOnRead = new(true)
+		})
+
+		post := &model.Post{
+			Message:       "burn on read message #tag",
+			ChannelId:     th.BasicChannel.Id,
+			PendingPostId: model.NewId() + ":" + fmt.Sprint(model.GetMillis()),
+			UserId:        th.BasicUser.Id,
+			Type:          model.PostTypeBurnOnRead,
+		}
+		post.AddProp(model.PostPropsExpireAt, model.GetMillis()+int64(model.DefaultExpirySeconds*1000))
+
+		post, _, appErr := th.App.CreatePost(th.Context, post, th.BasicChannel, model.CreatePostFlags{SetOnline: true})
+		require.Nil(t, appErr)
+		require.Equal(t, model.PostTypeBurnOnRead, post.Type)
+
+		require.NoError(t, th.App.Srv().Store().TemporaryPost().Delete(th.Context, post.Id))
+
+		memberMessages, closeMemberWS := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", []model.WebsocketEventType{model.WebsocketEventPostDeleted})
+		defer closeMemberWS()
+
+		appErr = th.App.CleanUpAfterPostDeletion(th.Context, post, th.BasicUser.Id)
+		require.Nil(t, appErr)
+
+		memberEvent := waitForPostDeleted(t, memberMessages)
+		memberPostJSON, ok := memberEvent.GetData()["post"].(string)
+		require.True(t, ok)
+
+		var memberPost model.Post
+		require.NoError(t, json.Unmarshal([]byte(memberPostJSON), &memberPost))
+		assert.Equal(t, post.Id, memberPost.Id)
+		assert.Empty(t, memberPost.Message)
+		assert.Empty(t, memberPost.Hashtags)
+	})
 }
 
 func TestSendTestMessage(t *testing.T) {
@@ -7617,4 +7655,18 @@ func TestPostMutationsReadFromMaster(t *testing.T) {
 		_, appErr := th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
 		require.Nil(t, appErr, "DeletePost must not depend on its caller having pinned the context")
 	})
+}
+
+func TestCheckPostRemindersWithoutSystemAdmin(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
+
+	th.App.CheckPostReminders(th.Context)
+
+	require.NoError(t, th.TestLogger.Flush())
+	logs := th.LogBuffer.String()
+	testlib.AssertNoLog(t, strings.NewReader(logs), mlog.LvlError.Name, "Failed to get system bot")
+	testlib.AssertLog(t, strings.NewReader(logs), mlog.LvlDebug.Name, "Skipping post reminders because there is no system admin to own the system bot")
 }

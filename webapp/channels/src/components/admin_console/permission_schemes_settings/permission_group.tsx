@@ -323,7 +323,9 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                     </div>}
                 {!combined &&
                     <div className={'permission-group-permissions ' + (this.state.expanded ? 'open' : '')}>
-                        {permissionsRows}
+                        <div className='permission-group-permissions-content'>
+                            {permissionsRows}
+                        </div>
                     </div>}
             </div>
         );

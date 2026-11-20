@@ -38,14 +38,6 @@ describe('components/emoji_picker/EmojiPicker', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {asFragment} = renderWithContext(
-            <EmojiPicker {...baseProps}/>,
-        );
-
-        expect(asFragment()).toMatchSnapshot();
-    });
-
     test('Recent category should not exist if there are no recent emojis', () => {
         renderWithContext(
             <EmojiPicker {...baseProps}/>,

@@ -1,0 +1,64 @@
+---
+title: "Run the desktop app on VDI"
+---
+<PlanAvailability slug="all-commercial" />
+
+This page covers what's specific to running the Mattermost desktop app on Windows virtual desktops, such as Citrix Virtual Apps and Desktops, Omnissa Horizon, or Azure Virtual Desktop. The desktop app is built on Electron, so guidance for running Chrome or Edge on your platform generally applies to it as well.
+
+## Prepare the base image
+
+The MSI installs per-machine, so if you install it in the base image, every user on the virtual desktop gets the same version. See [Deploy the desktop app on Windows](/deployment-guide/desktop/windows-desktop-install).
+
+You can also configure the [desktop app policies](/deployment-guide/desktop/desktop-app-policies) in the base image. If users can't install software on the virtual desktop, disabling `EnableAutoUpdater` stops them being prompted for updates they can't install.
+
+Application layering and virtualization products, such as Citrix App Layering, Omnissa App Volumes, App-V, and MSIX app attach, aren't tested with the desktop app. Installing it in the base image is the most reliable option.
+
+## Profile management
+
+The desktop app stores each user's data in `%APPDATA%\Mattermost`. Roaming this folder keeps users signed in and keeps their settings between sessions.
+
+Keep the folder on a local disk or in a profile container, such as FSLogix or Citrix Profile Management. Folder redirection of `AppData\Roaming` to a network share isn't supported because of file locking on network shares.
+
+The following folders are caches. You can optionally exclude them from your profile solution to keep profiles smaller. The app rebuilds excluded caches in each new session.
+
+- `AppData\Roaming\Mattermost\Cache`
+- `AppData\Roaming\Mattermost\Code Cache`
+- `AppData\Roaming\Mattermost\GPUCache`
+- `AppData\Roaming\Mattermost\DawnGraphiteCache`
+- `AppData\Roaming\Mattermost\DawnWebGPUCache`
+
+Everything else in the folder needs to roam, or users are signed out and their settings reset.
+
+## Hardware acceleration
+
+If your virtual desktops don't have a GPU, you can turn off hardware acceleration. Users can clear **Settings \> Advanced \> Use GPU hardware acceleration**, or you can set `"enableHardwareAcceleration": false` by [seeding config.json](/deployment-guide/desktop/desktop-troubleshooting#seed-configjson). The change takes effect the next time the app starts.
+
+## Multi-session hosts
+
+The desktop app runs on multi-session hosts, such as Remote Desktop Session Host and Azure Virtual Desktop with Windows 10 or 11 Enterprise multi-session. Each user gets their own instance, data folder, and `mattermost://` link handler.
+
+For sizing, treat each user's Mattermost as a browser with one tab per connected server. Users on [calls](#calls) need noticeably more CPU than users who only message.
+
+## Calls
+
+On a virtual desktop, call audio and video are processed on the session host and sent to the user's device through the display protocol. Calls use session host CPU, their quality depends on the display protocol's audio and camera redirection, and screen sharing shares the virtual desktop rather than the user's local screen. The media optimizations that Citrix HDX and Azure Virtual Desktop provide for Microsoft Teams don't apply to Mattermost Calls.
+
+## Session attributes
+
+On a virtual desktop, the [session attributes](/administration-guide/manage/admin/session-attributes) that the desktop app reports describe the virtual machine, not the user's physical device:
+
+- `hardware_id` is the virtual machine's SMBIOS UUID, and `client_fqdn` is the virtual machine's name. Whether these stay the same between sessions depends on how your VDI platform provisions machines.
+- `client_ip_address`, `network_interface_type`, `vpn_active`, and `ssid` describe the virtual machine's network.
+- `mdm_enrolled` reports whether the virtual machine is enrolled in MDM.
+
+On multi-session hosts, every user on the same host reports the same values. Take this into account when writing [permission policies](/administration-guide/manage/admin/abac-system-wide-policies#permission-policies) that apply to VDI users.
+
+## Frequently asked questions
+
+### Why isn't the app responsive in Citrix?
+
+Citrix API hooks can make Chromium-based apps, including Mattermost, hang or show a blank window. Adding `Mattermost.exe;` to the registry value `HKLM\SYSTEM\CurrentControlSet\Services\CtxUvi\UviProcessExcludes`, then restarting the machine, fixes this. Omnissa Horizon and Azure Virtual Desktop don't need an equivalent.
+
+### Why won't the app start on Omnissa Horizon, with an EEXIST error?
+
+Omnissa App Volumes versions earlier than 2506 have a known issue on Windows 11 24H2 where apps built on Electron, including Mattermost, fail to start (Omnissa issue AVA-26299). Updating App Volumes to version 2506 or later fixes this.

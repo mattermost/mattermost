@@ -16,6 +16,7 @@ All inputs come from environment variables set by the GitHub Actions workflow:
   GITHUB_TOKEN  — built-in Actions token  (pull-requests: write scope)
   PR_NUMBER     — pull request number
   BASE_SHA      — base commit SHA
+  BASE_REF      — the PR's base branch name (e.g. master or release-12.0)
   HEAD_SHA      — head commit SHA
   DEFAULT_BRANCH — repository default branch (defaults to master)
   REPO          — owner/repo  (e.g. mattermost/mattermost)
@@ -27,6 +28,7 @@ import sys
 import subprocess
 import requests
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import Optional
  
 # ── Environment ────────────────────────────────────────────────────────────────
@@ -35,6 +37,7 @@ from typing import Optional
 GITHUB_TOKEN = ""
 PR_NUMBER = 0
 BASE_SHA = ""
+BASE_REF = ""  # the PR's own base branch, e.g. master or release-12.0
 HEAD_SHA = ""
 REPO = "mattermost/mattermost"
 DEFAULT_BRANCH = "master"
@@ -82,7 +85,8 @@ class CheckResult:
 # ── Diff helpers ───────────────────────────────────────────────────────────────
 
 def reset_git_caches() -> None:
-    """Compatibility hook; comparison refs are resolved afresh on each run."""
+    """Clear cached git lookups. Tests call this after pointing at a new repo."""
+    base_tip_ref.cache_clear()
 
 
 def _git_output(*args: str) -> str:
@@ -118,6 +122,45 @@ def files_changed_in_unique_commits() -> list[str]:
     return _git_output(
         "diff", "--name-only", _comparison_base(), HEAD_SHA, "--", *WATCHED_PATHS,
     ).splitlines()
+
+
+@lru_cache(maxsize=1)
+def base_tip_ref() -> str:
+    """Current tip of the PR's own base branch (BASE_REF), or BASE_SHA when it is not in this clone.
+
+    For a cherry-pick to release-12.0 that is the release branch, not master, so a
+    change master already has still counts as added there. "" if neither is known.
+    """
+    if BASE_REF:
+        for ref in (f"origin/{BASE_REF}", BASE_REF):
+            try:
+                if sha := _git_output("rev-parse", "--verify", ref):
+                    return sha
+            except subprocess.CalledProcessError:
+                continue
+    return BASE_SHA
+
+
+def file_at_base_tip(path: str) -> Optional[str]:
+    """Contents of `path` on the base branch's tip, or None when the tip is unknown."""
+    tip = base_tip_ref()
+    return file_at(tip, path) if tip else None
+
+
+def net_changes(before: set, head: set, tip: Optional[set]) -> tuple[set, set]:
+    """What this PR adds and removes, given the sets at its comparison base, its head and the base branch's tip.
+
+    Added: in the head, not in the comparison base, and not on the base branch's tip (already
+    there by another route, such as the first PR of a stack that was squash-merged).
+    Removed: in the comparison base, not in the head, and still on the tip (otherwise the base
+    branch removed it already). With no tip (``None``) the head and comparison base decide alone.
+    """
+    added = head - before
+    removed = before - head
+    if tip is not None:
+        added -= tip
+        removed &= tip
+    return added, removed
 
 
 def get_full_patch() -> str:
@@ -236,9 +279,10 @@ def check_config(patches: dict[str, str]) -> CheckResult:
  
     base_fields = _scan_struct_fields(file_at(_comparison_base(), _CONFIG_PATH))
     head_fields = _scan_struct_fields(file_at(HEAD_SHA, _CONFIG_PATH))
- 
-    added   = head_fields - base_fields
-    removed = base_fields - head_fields
+    tip_src = file_at_base_tip(_CONFIG_PATH)
+
+    added, removed = net_changes(
+        base_fields, head_fields, None if tip_src is None else _scan_struct_fields(tip_src))
  
     result.additions = sorted(f"``{s}.{f}``" for s, f in added)
     result.removals  = sorted(f"``{s}.{f}``" for s, f in removed)
@@ -255,15 +299,52 @@ def check_config(patches: dict[str, str]) -> CheckResult:
 # (e.g. r.APIHandler(...), r.ApiSessionRequired(..., isLocal=true), etc.)
 # without having to enumerate every possible wrapper signature.
 _HANDLE_RE = re.compile(
-    r'\.Handle\("([^"]*)"'          # path
+    r'([\w.]*)\.Handle\("([^"]*)"'   # receiver and path
     r',\s*[^)]*\((\w+)\)\)'        # wrapper(...handlerFunc))
     r'\.Methods\(([^)]+)\)',        # .Methods(one or more methods)
 )
- 
+
+# api.BaseRoutes.PropertyField = api.BaseRoutes.PropertyFields.PathPrefix("/{id}").Subrouter()
+_SUBROUTER_RE = re.compile(
+    r'BaseRoutes\.(\w+)\s*=\s*(?:api\.)?BaseRoutes\.(\w+)\.PathPrefix\("([^"]*)"\)\.Subrouter\(\)'
+)
+_API_ROUTES_PATH = "server/channels/api4/api.go"
+
+# api.BaseRoutes.APIRoot = srv.Router.PathPrefix(model.APIURLSuffix).Subrouter()
+_ROOT_RE = re.compile(r'BaseRoutes\.(\w+)\s*=\s*[\w.]*Router\.PathPrefix\(model\.(APIURLSuffix\w*)\)')
+# The model constants the roots are built from (server/public/model/client4.go).
+_ROOT_SUFFIXES = {"APIURLSuffix": "/api/v4", "APIURLSuffixV4": "/api/v4", "APIURLSuffixV5": "/api/v5"}
+
 _METHOD_RE    = re.compile(r'(?:http\.Method)?(\w+)')
 _HTTP_METHODS = {"GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"}
- 
- 
+
+
+def _route_prefixes(api_src: str) -> dict[str, str]:
+    """Each api4 subrouter's path prefix, from the PathPrefix(...).Subrouter() lines of api.go.
+
+    A subrouter hangs off another one, so its prefix is the parent's plus its own, back to
+    a root (APIRoot is ``/api/v4``, APIRoot5 ``/api/v5``). A chain that doesn't reach a
+    known root starts from an empty prefix.
+    """
+    parents = {name: (parent, path) for name, parent, path in _SUBROUTER_RE.findall(api_src)}
+    roots = {name: _ROOT_SUFFIXES[suffix] for name, suffix in _ROOT_RE.findall(api_src) if suffix in _ROOT_SUFFIXES}
+    prefixes: dict[str, str] = dict(roots)
+
+    def prefix(name: str, seen: tuple = ()) -> str:
+        if name in roots:
+            return roots[name]
+        if name not in parents or name in seen:
+            return ""
+        if name not in prefixes:
+            parent, path = parents[name]
+            prefixes[name] = prefix(parent, seen + (name,)) + path
+        return prefixes[name]
+
+    for name in parents:
+        prefix(name)
+    return prefixes
+
+
 def _parse_methods(raw: str) -> list[str]:
     """Split raw Methods(...) content into individual uppercase HTTP verbs.
  
@@ -277,29 +358,76 @@ def _parse_methods(raw: str) -> list[str]:
         if (m := _METHOD_RE.search(token.strip()))
         and (verb := m.group(1).upper()) in _HTTP_METHODS
     ]
- 
- 
+
+
 def _format_endpoint(path: str, handler: str, method: str) -> str:
     return f"`{method.upper()} {path or '/'}` (`{handler}`)"
- 
- 
-def _parse_endpoints(src: str) -> set[tuple[str, str, str]]:
+
+
+def _shorten_path_vars(path: str) -> str:
+    """``{name:regexp}`` path variables as ``{name}``. The pattern may hold braces of its own,
+    as in ``/{fingerprint:[a-f0-9]{32}}/mute``, so the variable ends at its matching brace."""
+    out, i = [], 0
+    while i < len(path):
+        if path[i] != "{":
+            out.append(path[i])
+            i += 1
+            continue
+        depth, j = 0, i
+        while j < len(path):
+            depth += {"{": 1, "}": -1}.get(path[j], 0)
+            if depth == 0:
+                break
+            j += 1
+        name = path[i + 1:j].split(":", 1)[0]
+        out.append(f"{{{name}}}")
+        i = j + 1
+    return "".join(out)
+
+
+def _parse_endpoints(src: str, prefixes: Optional[dict] = None) -> set[tuple[str, str, str]]:
     """
     Parse Handle() registrations from a Go source file.
  
     Whitespace-collapses the entire file first so multi-line declarations
     (e.g. the 18 in group.go) are matched as a single token sequence.
+    A registration on a subrouter, such as ``api.BaseRoutes.PropertyFieldOptions.Handle("", ...)``,
+    gets that subrouter's prefix from ``prefixes`` (see ``_route_prefixes``), and a
+    ``{name:regexp}`` path variable is shortened to ``{name}``.
     Returns {(path, handler, method)} tuples.
     """
     blob = " ".join(src.split())
     endpoints: set[tuple[str, str, str]] = set()
     for m in _HANDLE_RE.finditer(blob):
-        path, handler, methods_raw = m.group(1), m.group(2), m.group(3)
+        receiver, path, handler, methods_raw = m.group(1), m.group(2), m.group(3), m.group(4)
+        full = (prefixes or {}).get(receiver.rsplit(".", 1)[-1], "") + path
+        full = _shorten_path_vars(full)
         for method in _parse_methods(methods_raw):
-            endpoints.add((path or "/", handler, method))
+            endpoints.add((full or "/", handler, method))
     return endpoints
- 
- 
+
+
+def router_endpoints(sources: list[str], api_src: str) -> set[tuple[str, str, str]]:
+    """Every endpoint registered in ``sources`` (api4 files), with its full path.
+
+    Only routes on a known subrouter or root are returned: a route on any other receiver
+    has no prefix that can be worked out, so its path would be partial.
+    """
+    prefixes = _route_prefixes(api_src)
+    known = {name for name in prefixes}
+    endpoints: set[tuple[str, str, str]] = set()
+    for src in sources:
+        blob = " ".join(src.split())
+        for m in _HANDLE_RE.finditer(blob):
+            receiver = m.group(1).rsplit(".", 1)[-1]
+            if receiver not in known:
+                continue
+            full = _shorten_path_vars(prefixes[receiver] + m.group(2))
+            for method in _parse_methods(m.group(4)):
+                endpoints.add((full or "/", m.group(3), method))
+    return endpoints
+
+
 def check_api(patches: dict[str, str]) -> CheckResult:
     """
     Detect API endpoint additions/removals in the api4/ directory.
@@ -326,11 +454,16 @@ def check_api(patches: dict[str, str]) -> CheckResult:
     for fname, patch in api4_patches.items():
         rename = re.search(r"^rename from (.+)$", patch, re.MULTILINE)
         source = rename.group(1) if rename else fname
-        base_eps = _parse_endpoints(file_at(_comparison_base(), source))
+        base = _comparison_base()
+        base_eps = _parse_endpoints(file_at(base, source), _route_prefixes(file_at(base, _API_ROUTES_PATH)))
         head_src = file_at(HEAD_SHA, fname)
-        head_eps = _parse_endpoints(head_src)
-        added_eps   |= head_eps - base_eps
-        removed_eps |= base_eps - head_eps
+        head_eps = _parse_endpoints(head_src, _route_prefixes(file_at(HEAD_SHA, _API_ROUTES_PATH)))
+        tip_src = file_at_base_tip(fname)
+        tip_eps = None if tip_src is None else _parse_endpoints(
+            tip_src, _route_prefixes(file_at_base_tip(_API_ROUTES_PATH) or ""))
+        added, removed = net_changes(base_eps, head_eps, tip_eps)
+        added_eps   |= added
+        removed_eps |= removed
  
         # Only report a new/deleted file when it actually registers endpoints;
         # helper files with no Handle() calls are not release-note worthy.
@@ -369,8 +502,12 @@ def check_audit_events(patches: dict[str, str]) -> CheckResult:
     base_events = _parse_audit_events(file_at(_comparison_base(), _AUDIT_EVENT_PATH))
     head_events = _parse_audit_events(file_at(HEAD_SHA, _AUDIT_EVENT_PATH))
  
-    result.additions = sorted(f"``{e}``" for e in head_events - base_events)
-    result.removals  = sorted(f"``{e}``" for e in base_events - head_events)
+    tip_src = file_at_base_tip(_AUDIT_EVENT_PATH)
+    added, removed = net_changes(
+        base_events, head_events, None if tip_src is None else _parse_audit_events(tip_src))
+
+    result.additions = sorted(f"``{e}``" for e in added)
+    result.removals  = sorted(f"``{e}``" for e in removed)
     return result
  
  
@@ -568,10 +705,11 @@ def update_pr_body(new_body: str) -> None:
 # ── Main ───────────────────────────────────────────────────────────────────────
  
 def main():
-    global GITHUB_TOKEN, PR_NUMBER, BASE_SHA, HEAD_SHA, REPO, DEFAULT_BRANCH, HEADERS
+    global GITHUB_TOKEN, PR_NUMBER, BASE_SHA, BASE_REF, HEAD_SHA, REPO, DEFAULT_BRANCH, HEADERS
     GITHUB_TOKEN = os.environ["GITHUB_TOKEN"]
     PR_NUMBER = int(os.environ["PR_NUMBER"])
     BASE_SHA = os.environ["BASE_SHA"]
+    BASE_REF = os.environ.get("BASE_REF", "")
     HEAD_SHA = os.environ["HEAD_SHA"]
     REPO = os.environ.get("REPO", "mattermost/mattermost")
     DEFAULT_BRANCH = os.environ.get("DEFAULT_BRANCH", "master")

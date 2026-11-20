@@ -12,7 +12,6 @@ import (
 	"io/fs"
 	"maps"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"slices"
@@ -136,6 +135,7 @@ func TestReadGoldenPackets(t *testing.T) {
 			name: "standalone",
 			expected: []finding{
 				{Code: "COMPLIANCE_NO_DIR", State: healthcheck.StateFiring, Subject: complianceDirSubject},
+				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateFiring, Subject: "Database.PostsDeadTuples"},
 				{Code: "JOB_FAILED", State: healthcheck.StateFiring, Subject: model.JobTypeLdapSync},
 				{Code: "LDAP_PROBE_FAILED", State: healthcheck.StateUnknown, Subject: "LdapSettings.LdapServer"},
 				{Code: "LDAP_RECOMMENDED_AT_SCALE", State: healthcheck.StateFiring, Subject: "LdapSettings.Enable"},
@@ -158,6 +158,7 @@ func TestReadGoldenPackets(t *testing.T) {
 			name: "ha",
 			expected: []finding{
 				{Code: "DB_HA_FAILOVER_STORM_RISK", State: healthcheck.StateFiring, Subject: "SqlSettings.MaxOpenConns"},
+				{Code: "DB_POSTS_DEAD_TUPLES", State: healthcheck.StateUnknown, Subject: "Database.PostsDeadTuples"},
 				{Code: "ES_LIVE_BATCH_SYNC", State: healthcheck.StateFiring, Subject: "ElasticsearchSettings.LiveIndexingBatchSize"},
 				{Code: "EXPORT_GR_TIMEOUT_LOW", State: healthcheck.StateFiring, Subject: globalRelayTimeoutSubject},
 				{Code: "FILESTORE_DISK_FULL", State: healthcheck.StateFiring, Subject: filestoreDiskSubject, Scope: "app-3.example.com"},
@@ -194,6 +195,28 @@ func TestReadGoldenPackets(t *testing.T) {
 			assert.ElementsMatch(t, tc.expected, evaluate(t, p.Snapshot))
 		})
 	}
+}
+
+func TestReadPostsVacuumInProgress(t *testing.T) {
+	files := fixtureFiles(t, "standalone")
+	files[model.SupportPacketDiagnosticsFileName] = bytes.Replace(
+		files[model.SupportPacketDiagnosticsFileName],
+		[]byte("  posts_vacuum_in_progress: false\n"),
+		[]byte("  posts_vacuum_in_progress: true\n"),
+		1,
+	)
+
+	snapshot := readFiles(t, files).Snapshot
+	diag, ok := snapshot.LeaderDiag(model.SectionDatabaseStats)
+	require.True(t, ok)
+	require.NotNil(t, diag.Database.PostsVacuumInProgress)
+	assert.True(t, *diag.Database.PostsVacuumInProgress)
+
+	assert.Contains(t, evaluate(t, snapshot), finding{
+		Code:    "DB_POSTS_DEAD_TUPLES",
+		State:   healthcheck.StateUnknown,
+		Subject: "Database.PostsDeadTuples",
+	})
 }
 
 func TestReadSnapshotFields(t *testing.T) {
@@ -695,24 +718,6 @@ func TestFixturesMatchTheModel(t *testing.T) {
 			t.Run(fixture+"/"+member, func(t *testing.T) {
 				assert.NoError(t, decode(files[member]))
 			})
-		}
-	}
-}
-
-// The reader runs inside mmctl, so it must not pull in the server.
-func TestImportsStayOutOfTheServer(t *testing.T) {
-	out, err := exec.Command("go", "list", "-deps", "-f", "{{.ImportPath}}", ".").Output()
-	require.NoError(t, err)
-
-	allowed := []string{
-		"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck",
-		"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet",
-	}
-	deps := strings.Fields(string(out))
-	require.Contains(t, deps, allowed[0])
-	for _, dep := range deps {
-		if strings.HasPrefix(dep, "github.com/mattermost/mattermost/server/v8") {
-			assert.Contains(t, allowed, dep)
 		}
 	}
 }

@@ -14,6 +14,10 @@
         flex-direction: column;
         padding-bottom: 8px;
         scrollbar-color: var(--center-channel-color-32) #fff0;
+
+        // Reserve the scrollbar's width so a scrollbar appearing cannot narrow
+        // posts across the media gallery's container query breakpoint.
+        scrollbar-gutter: stable;
         scrollbar-width: thin;
 
         & > div[role="list"]:nth-child(1) {
