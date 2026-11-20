@@ -25,6 +25,7 @@ func newTestAccessDecisionCache(t *testing.T, size int, maxAge time.Duration) (*
 	clock := &fakeAccessClock{now: time.Unix(1_700_000_000, 0).UnixNano()}
 	c := newAccessDecisionCache(size, maxAge)
 	c.now = clock.get
+	c.wallNow = clock.get
 	return c, clock
 }
 
@@ -431,6 +432,25 @@ func TestAccessDecisionCacheDeadline(t *testing.T) {
 		clock.advance(time.Second)
 		_, hit = cached(c, l)
 		require.False(t, hit, "max age still applies")
+	})
+
+	t.Run("a deadline counts from the wall clock, not the cache clock", func(t *testing.T) {
+		c, clock := newTestAccessDecisionCache(t, 10_000, time.Minute)
+		// The wall clock stepped forward since the cache clock started.
+		wall := &fakeAccessClock{now: clock.now + int64(2*time.Minute)}
+		c.wallNow = wall.get
+		l := readLookup(t, c, accessSubjectSession, sessionID, userID, model.NewId())
+		_, hit := c.get(&l)
+		require.False(t, hit)
+		c.put(&l, true, wall.now+int64(5*time.Second), true)
+
+		clock.advance(4 * time.Second)
+		_, hit = cached(c, l)
+		require.True(t, hit)
+
+		clock.advance(time.Second)
+		_, hit = cached(c, l)
+		require.False(t, hit, "the entry ends 5s on, not at max age")
 	})
 
 	t.Run("a deadline already past is not stored", func(t *testing.T) {

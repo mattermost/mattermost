@@ -16,6 +16,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
 )
 
@@ -702,6 +703,26 @@ func TestRevokeAllSessionsInvalidatesSessionAttributes(t *testing.T) {
 
 	assert.Empty(t, sessionAttributeRawValues(t, th, session1.Id))
 	assert.Empty(t, sessionAttributeRawValues(t, th, session2.Id))
+}
+
+func TestBroadcastSessionAttributesSendType(t *testing.T) {
+	th := Setup(t)
+	cluster := &testlib.FakeClusterInterface{}
+	th.Server.Platform().SetCluster(cluster)
+
+	sendType := func(visiblyChanged bool) string {
+		t.Helper()
+		cluster.ClearMessages()
+		th.App.broadcastSessionAttributes(th.Context, model.NewId(), map[string]any{model.SessionAttributesPropertyFieldIPAddress: "192.0.2.10"}, model.GetMillis(), visiblyChanged)
+		msgs := cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventUpdateSessionAttributes
+		})
+		require.Len(t, msgs, 1)
+		return msgs[0].SendType
+	}
+
+	assert.Equal(t, model.ClusterSendReliable, sendType(true), "a visible change must reach every node")
+	assert.Equal(t, model.ClusterSendBestEffort, sendType(false), "a routine refresh can be lost")
 }
 
 func TestClusterUpdateSessionAttributesHandler(t *testing.T) {

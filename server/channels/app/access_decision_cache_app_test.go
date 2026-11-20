@@ -445,6 +445,7 @@ func TestEvaluateAccessCachedSessionAttributeExpiry(t *testing.T) {
 
 		clock := &fakeAccessClock{now: time.Unix(1_700_000_000, 0).UnixNano()}
 		h.th.App.Srv().Channels().accessDecisions.now = clock.get
+		h.th.App.Srv().Channels().accessDecisions.wallNow = clock.get
 		expiresAt := clock.now/int64(time.Millisecond) + 5_000
 
 		var rctx request.CTX = h.th.Context.WithSession(h.session)

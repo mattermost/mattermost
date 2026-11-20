@@ -305,8 +305,9 @@ type accessDecisionStats struct {
 }
 
 type accessDecisionCache struct {
-	maxAge atomic.Int64 // nanoseconds
-	now    func() int64
+	maxAge  atomic.Int64 // nanoseconds
+	now     func() int64
+	wallNow func() int64 // the wall clock that session-attribute deadlines are read against
 
 	shards [accessDecisionLRUShards]accessDecisionShard
 
@@ -331,6 +332,7 @@ func newAccessDecisionCache(size int, maxAge time.Duration) *accessDecisionCache
 
 	c := &accessDecisionCache{
 		now:           newAccessDecisionClock(),
+		wallNow:       func() int64 { return time.Now().UnixNano() },
 		users:         newAccessVersionTable[accessID](),
 		sessions:      newAccessVersionTable[accessID](),
 		resources:     newAccessVersionTable[accessID](),
@@ -459,8 +461,11 @@ func (c *accessDecisionCache) lookup(l *accessDecisionLookup, countMiss bool) (a
 // readsSession false keeps the entry across session-version bumps; pass true when unsure.
 func (c *accessDecisionCache) put(l *accessDecisionLookup, allowed bool, deadline int64, readsSession bool) {
 	expiresAt := l.capturedAt + c.maxAge.Load()
-	if deadline > 0 && deadline < expiresAt {
-		expiresAt = deadline
+	if deadline > 0 {
+		// The deadline is wall-clock time; moved onto the cache clock, a wall clock step can't
+		// stretch it.
+		deadline += c.now() - c.wallNow()
+		expiresAt = min(expiresAt, deadline)
 	}
 	if expiresAt <= l.capturedAt {
 		// Already stale: it could never hit, and storing it could evict an entry that can.

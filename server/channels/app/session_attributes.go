@@ -281,9 +281,16 @@ func (a *App) broadcastSessionAttributes(rctx request.CTX, sessionID string, att
 		return
 	}
 
+	// A visible change must reach every node, or a node that missed it would keep decisions
+	// built from the old values; a later refresh of the same values doesn't invalidate them.
+	// Routine refreshes stay best-effort: the rest of the TTL covers a lost one.
+	sendType := model.ClusterSendBestEffort
+	if visiblyChanged {
+		sendType = model.ClusterSendReliable
+	}
 	cluster.SendClusterMessage(&model.ClusterMessage{
 		Event:    model.ClusterEventUpdateSessionAttributes,
-		SendType: model.ClusterSendBestEffort,
+		SendType: sendType,
 		Data:     data,
 	})
 }
