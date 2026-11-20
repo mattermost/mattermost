@@ -5235,14 +5235,6 @@
     "defaultMessage": "Test Connection",
     "description": "Button label on the System Console SMTP page that sends a test email to verify the connection."
   },
-  "admin.environment.smtp.enableSecurityFixAlert.description": {
-    "defaultMessage": "When true, System Administrators are notified by email if a relevant security fix alert has been announced in the last 12 hours. Requires email to be enabled.",
-    "description": "Help text for the Enable Security Alerts setting on the System Console SMTP page."
-  },
-  "admin.environment.smtp.enableSecurityFixAlert.title": {
-    "defaultMessage": "Enable Security Alerts:",
-    "description": "Setting label (ends with a colon) for the Enable Security Alerts toggle on the System Console SMTP page."
-  },
   "admin.environment.smtp.skipServerCertificateVerification.description": {
     "defaultMessage": "When true, Mattermost will not verify the email server certificate.",
     "description": "Help text for the Skip Server Certificate Verification setting on the System Console SMTP page."
@@ -10442,6 +10434,14 @@
   "admin.notices.enableEndUserNoticesTitle": {
     "defaultMessage": "Enable End User Notices: ",
     "description": "Setting label (toggle) on the Notices admin page controlling announcement notices shown to all users; ends with a colon and trailing space."
+  },
+  "admin.notices.enableSecurityFixAlertDescription": {
+    "defaultMessage": "When enabled, the server checks securityupdatecheck.mattermost.com daily for security bulletins, sending its server ID, version, build, operating system, database type, and user and team counts. System Admins are emailed relevant bulletins when SMTP is configured. The server also requests the latest Mattermost release from GitHub to report whether it is out of date. When disabled, the server makes neither request.",
+    "description": "Help text for the Check for Security and Release Updates setting on the System Console Notices page; securityupdatecheck.mattermost.com and GitHub are names and stay untranslated."
+  },
+  "admin.notices.enableSecurityFixAlertTitle": {
+    "defaultMessage": "Check for Security and Release Updates: ",
+    "description": "Setting label (toggle) on the Notices admin page controlling whether the server checks Mattermost for security bulletins and the latest release; ends with a colon and trailing space."
   },
   "admin.oauth.dcrDescription": {
     "defaultMessage": "When true, external applications can dynamically register as OAuth 2.0 clients with Mattermost. Only enable this if you need third-party applications to register OAuth clients programmatically.",
