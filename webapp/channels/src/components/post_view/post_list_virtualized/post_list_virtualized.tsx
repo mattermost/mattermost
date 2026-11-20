@@ -31,6 +31,9 @@ const OVERSCAN_COUNT_FORWARD = 80;
 const HEIGHT_TRIGGER_FOR_MORE_POSTS = 1000;
 const BUFFER_TO_BE_CONSIDERED_BOTTOM = 100;
 
+// Must match atBottomMargin in DynamicVirtualizedList, which only keeps the list at the bottom within this distance
+const BUFFER_TO_BE_KEPT_AT_BOTTOM = 10;
+
 const MAXIMUM_POSTS_FOR_SLICING = {
     channel: 50,
     permalink: 100,
@@ -211,15 +214,21 @@ export default class PostList extends React.PureComponent<Props, State> {
         if (this.postListRef && this.postListRef.current) {
             const postsAddedAtTop = this.props.postListIds && this.props.postListIds.length !== (prevProps.postListIds || []).length && this.props.postListIds[0] === (prevProps.postListIds || [])[0];
             const channelHeaderAdded = this.props.atOldestPost !== prevProps.atOldestPost;
-            if ((postsAddedAtTop || channelHeaderAdded) && this.state.atBottom === false) {
+            if ((postsAddedAtTop || channelHeaderAdded) && this.state.atBottom !== null) {
                 const postListNode = this.postListRef.current;
                 const previousScrollTop = postListNode.parentElement?.scrollTop;
                 const previousScrollHeight = postListNode.scrollHeight;
 
-                return {
-                    previousScrollTop,
-                    previousScrollHeight,
-                };
+                // The list only keeps itself at the bottom when it's within BUFFER_TO_BE_KEPT_AT_BOTTOM of it, otherwise
+                // the visible posts have to be held in place even though the user is considered to be at the bottom
+                const keptAtBottom = this.state.atBottom && this.props.atLatestPost &&
+                    this.getOffsetFromBottom(previousScrollTop ?? 0, previousScrollHeight, postListNode.parentElement?.clientHeight ?? 0) <= BUFFER_TO_BE_KEPT_AT_BOTTOM;
+                if (!keptAtBottom) {
+                    return {
+                        previousScrollTop,
+                        previousScrollHeight,
+                    };
+                }
             }
         }
         return null;
@@ -260,7 +269,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             const postlistScrollHeight = this.postListRef.current.scrollHeight;
             const postsAddedAtTop = presentPostsCount !== prevPostsCount && (this.props.postListIds || [])[0] === (prevProps.postListIds || [])[0];
             const channelHeaderAdded = this.props.atOldestPost !== prevProps.atOldestPost;
-            if ((postsAddedAtTop || channelHeaderAdded) && !this.state.atBottom && snapshot) {
+            if (postsAddedAtTop || channelHeaderAdded) {
                 const scrollValue = snapshot.previousScrollTop + (postlistScrollHeight - snapshot.previousScrollHeight);
                 if (scrollValue !== 0 && (scrollValue - snapshot.previousScrollTop) !== 0) {
                     //true as third param so chrome can use animationFrame when correcting scroll
