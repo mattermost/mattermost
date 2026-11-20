@@ -669,6 +669,12 @@ func TestChannelStoreChannelMemberRolesCache(t *testing.T) {
 		"a cluster purge": func(t *testing.T, cachedStore LocalCacheStore) {
 			cachedStore.channel.handleClusterInvalidateChannelMemberRoles(&model.ClusterMessage{Data: clearCacheMessageData})
 		},
+		"a local removal of the membership": func(t *testing.T, cachedStore LocalCacheStore) {
+			cachedStore.RemoveChannelMemberRolesLocal([]UserChannel{{"user1", "channel1"}})
+		},
+		"a local purge": func(t *testing.T, cachedStore LocalCacheStore) {
+			cachedStore.PurgeChannelMemberRolesLocal()
+		},
 	}
 	for name, invalidate := range invalidations {
 		t.Run(name+" drops the cached roles", func(t *testing.T) {
@@ -750,6 +756,9 @@ func TestChannelStoreChannelMemberRolesCache(t *testing.T) {
 		},
 		"a cluster invalidation for another membership": func(t *testing.T, cachedStore LocalCacheStore) {
 			cachedStore.channel.handleClusterInvalidateChannelMemberRoles(&model.ClusterMessage{Data: []byte(channelMemberRolesKey("user2", "channel1"))})
+		},
+		"a local removal of another membership": func(t *testing.T, cachedStore LocalCacheStore) {
+			cachedStore.RemoveChannelMemberRolesLocal([]UserChannel{{"user2", "channel1"}})
 		},
 	}
 	for name, keep := range kept {

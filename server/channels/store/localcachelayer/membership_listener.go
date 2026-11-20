@@ -3,7 +3,11 @@
 
 package localcachelayer
 
-import "sync/atomic"
+import (
+	"sync/atomic"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+)
 
 // UserChannel is a {userID, channelID} membership.
 type UserChannel = [2]string
@@ -68,5 +72,27 @@ func (s *LocalCacheStore) notifyChannelMembersChanged(channelID string) {
 func (s *LocalCacheStore) notifyAllChannelMembershipsChanged() {
 	if l := s.membershipListener(); l != nil {
 		l.AllChannelMembershipsChanged()
+	}
+}
+
+// RemoveChannelMemberRolesLocal drops the cached roles of the given memberships on this node
+// only, for a peer's membership change whose own best-effort eviction may not arrive.
+func (s LocalCacheStore) RemoveChannelMemberRolesLocal(memberships []UserChannel) {
+	if len(memberships) == 0 {
+		return
+	}
+	keys := make([]string, len(memberships))
+	for i, m := range memberships {
+		keys[i] = channelMemberRolesKey(m[0], m[1])
+	}
+	if err := s.channelMemberRolesCache.RemoveMulti(keys); err != nil {
+		s.logger.Warn("Error while removing cache entry", mlog.Err(err), mlog.String("cache_name", s.channelMemberRolesCache.Name()))
+	}
+}
+
+// PurgeChannelMemberRolesLocal is RemoveChannelMemberRolesLocal for every membership.
+func (s LocalCacheStore) PurgeChannelMemberRolesLocal() {
+	if err := s.channelMemberRolesCache.Purge(); err != nil {
+		s.logger.Warn("Error while purging cache", mlog.Err(err), mlog.String("cache_name", s.channelMemberRolesCache.Name()))
 	}
 }

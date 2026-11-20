@@ -16,6 +16,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	eMocks "github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -251,6 +252,61 @@ func TestAccessDecisionCacheInvalidationSources(t *testing.T) {
 
 			require.True(t, h.check(t))
 			require.Equal(t, 2, h.evaluations(), "asked again after the change")
+		})
+	}
+}
+
+// A peer's role eviction is best-effort, so its decision invalidation also drops this node's
+// cached roles for the memberships it changed. Otherwise the next check could read the old role
+// and cache a decision built from it under the new versions.
+func TestAccessDecisionCachePeerInvalidationEvictsMembershipRoles(t *testing.T) {
+	cases := []struct {
+		name    string
+		inv     func(userID, channelID string) accessDecisionInvalidation
+		evicted bool
+	}{
+		{"a changed membership", func(userID, channelID string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{UserResources: [][2]string{{userID, channelID}}}
+		}, true},
+		{"a change to any of the user's memberships", func(userID, _ string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{Users: []string{userID}, PurgeRoles: true}
+		}, true},
+		{"a change to every membership", func(_, _ string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{Global: true, PurgeRoles: true}
+		}, true},
+		{"a user change unrelated to memberships", func(userID, _ string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{Users: []string{userID}}
+		}, false},
+		{"another membership", func(userID, _ string) accessDecisionInvalidation {
+			return accessDecisionInvalidation{UserResources: [][2]string{{userID, model.NewId()}}}
+		}, false},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			h := setupAccessDecisionCacheTest(t)
+			userID, channelID := h.th.BasicUser.Id, h.th.BasicChannel.Id
+			cachedRoles := func() store.ChannelMemberRoles {
+				t.Helper()
+				roles, err := h.th.App.Srv().Store().Channel().GetChannelMemberRoles(h.th.Context, userID, []string{channelID}, true)
+				require.NoError(t, err)
+				return roles[channelID]
+			}
+			wasAdmin := cachedRoles().SchemeAdmin
+
+			// The peer's write reaches the database, but not its eviction of this node's cache.
+			member, err := h.th.GetSqlStore().Channel().GetMember(h.th.Context, channelID, userID)
+			require.NoError(t, err)
+			member.SchemeAdmin = !wasAdmin
+			_, err = h.th.GetSqlStore().Channel().UpdateMember(h.th.Context, member)
+			require.NoError(t, err)
+			require.Equal(t, wasAdmin, cachedRoles().SchemeAdmin, "the old role is still cached")
+
+			data, err := json.Marshal(tc.inv(userID, channelID))
+			require.NoError(t, err)
+			h.th.App.Srv().Channels().clusterInvalidateAccessDecisionsHandler(&model.ClusterMessage{Data: data})
+
+			assert.Equal(t, tc.evicted, cachedRoles().SchemeAdmin != wasAdmin)
 		})
 	}
 }

@@ -59,3 +59,31 @@ func TestAccessDecisionBroadcasterBatches(t *testing.T) {
 	default:
 	}
 }
+
+// A role purge queued with other invalidations reaches peers, and so do the roles of memberships
+// a global invalidation absorbs.
+func TestAccessDecisionBroadcasterCarriesRoleEvictions(t *testing.T) {
+	sent := make(chan *accessDecisionInvalidation, 10)
+	b := newAccessDecisionBroadcaster(func(inv *accessDecisionInvalidation) { sent <- inv })
+	b.delay = time.Hour
+	userID, channelID := model.NewId(), model.NewId()
+
+	b.enqueue(&accessDecisionInvalidation{Users: []string{userID}, PurgeRoles: true})
+	b.enqueue(&accessDecisionInvalidation{Resources: []string{channelID}})
+	b.flush()
+	inv := <-sent
+	assert.True(t, inv.PurgeRoles)
+
+	b.enqueue(&accessDecisionInvalidation{Users: []string{userID}})
+	b.flush()
+	inv = <-sent
+	assert.False(t, inv.PurgeRoles, "reset after each batch")
+
+	b.enqueue(&accessDecisionInvalidation{UserResources: [][2]string{{userID, channelID}}})
+	b.enqueue(&accessDecisionInvalidation{Global: true})
+	b.flush()
+	inv = <-sent
+	assert.True(t, inv.Global)
+	assert.Empty(t, inv.UserResources)
+	assert.True(t, inv.PurgeRoles)
+}

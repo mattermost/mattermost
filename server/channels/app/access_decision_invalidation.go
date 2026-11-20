@@ -34,6 +34,9 @@ type accessDecisionInvalidation struct {
 	Sessions      []string    `json:"s,omitempty"`
 	Resources     []string    `json:"r,omitempty"`
 	UserResources [][2]string `json:"ur,omitempty"`
+	// PurgeRoles tells peers to drop every cached channel member role, as the originating store
+	// did. Without it a peer drops only the roles of UserResources.
+	PurgeRoles bool `json:"pr,omitempty"`
 }
 
 func (inv *accessDecisionInvalidation) empty() bool {
@@ -101,9 +104,31 @@ func (ch *Channels) clusterInvalidateAccessDecisionsHandler(msg *model.ClusterMe
 	var inv accessDecisionInvalidation
 	if err := json.Unmarshal(msg.Data, &inv); err != nil {
 		ch.srv.Log().Warn("Failed to decode access decision invalidation; invalidating every decision", mlog.Err(err))
-		inv = accessDecisionInvalidation{Global: true}
+		inv = accessDecisionInvalidation{Global: true, PurgeRoles: true}
 	}
+	ch.evictMembershipRoles(&inv)
 	ch.applyAccessDecisionInvalidation(&inv)
+}
+
+// evictMembershipRoles drops this node's cached channel member roles that a peer's membership
+// change made stale, before the decisions are invalidated. The peer's own role eviction is
+// best-effort, so a missed one would otherwise let the old role be cached under the new versions.
+func (ch *Channels) evictMembershipRoles(inv *accessDecisionInvalidation) {
+	if !inv.PurgeRoles && len(inv.UserResources) == 0 {
+		return
+	}
+	roles, ok := ch.srv.Store().(interface {
+		RemoveChannelMemberRolesLocal([]localcachelayer.UserChannel)
+		PurgeChannelMemberRolesLocal()
+	})
+	if !ok {
+		return
+	}
+	if inv.PurgeRoles {
+		roles.PurgeChannelMemberRolesLocal()
+		return
+	}
+	roles.RemoveChannelMemberRolesLocal(inv.UserResources)
 }
 
 // InvalidateAccessDecisionsForUser implements platform.AccessDecisionInvalidator.
@@ -128,17 +153,17 @@ func (ch *Channels) ChannelMembershipsChanged(memberships []localcachelayer.User
 
 // UserChannelMembershipsChanged implements localcachelayer.MembershipChangeListener.
 func (ch *Channels) UserChannelMembershipsChanged(userID string) {
-	ch.invalidateAccessDecisions(accessDecisionInvalidation{Users: []string{userID}}, true)
+	ch.invalidateAccessDecisions(accessDecisionInvalidation{Users: []string{userID}, PurgeRoles: true}, true)
 }
 
 // ChannelMembersChanged implements localcachelayer.MembershipChangeListener.
 func (ch *Channels) ChannelMembersChanged(channelID string) {
-	ch.invalidateAccessDecisions(accessDecisionInvalidation{Resources: []string{channelID}}, true)
+	ch.invalidateAccessDecisions(accessDecisionInvalidation{Resources: []string{channelID}, PurgeRoles: true}, true)
 }
 
 // AllChannelMembershipsChanged implements localcachelayer.MembershipChangeListener.
 func (ch *Channels) AllChannelMembershipsChanged() {
-	ch.invalidateAccessDecisions(accessDecisionInvalidation{Global: true}, true)
+	ch.invalidateAccessDecisions(accessDecisionInvalidation{Global: true, PurgeRoles: true}, true)
 }
 
 // InvalidateAccessDecisionsForPolicyChange drops every decision on this node only. The access
@@ -344,6 +369,7 @@ func (ch *Channels) flushAccessDecisionMetrics(last accessDecisionStats) accessD
 type accessDecisionBroadcaster struct {
 	mu            sync.Mutex
 	global        bool
+	purgeRoles    bool
 	users         map[string]struct{}
 	sessions      map[string]struct{}
 	resources     map[string]struct{}
@@ -368,6 +394,7 @@ func newAccessDecisionBroadcaster(send func(*accessDecisionInvalidation)) *acces
 
 func (b *accessDecisionBroadcaster) reset() {
 	b.global = false
+	b.purgeRoles = false
 	b.users = map[string]struct{}{}
 	b.sessions = map[string]struct{}{}
 	b.resources = map[string]struct{}{}
@@ -379,6 +406,9 @@ func (b *accessDecisionBroadcaster) enqueue(inv *accessDecisionInvalidation) {
 	b.mu.Lock()
 	if inv.Global {
 		b.global = true
+	}
+	if inv.PurgeRoles {
+		b.purgeRoles = true
 	}
 	add := func(set map[string]struct{}, ids []string) {
 		for _, id := range ids {
@@ -428,8 +458,8 @@ func (b *accessDecisionBroadcaster) takeLocked() *accessDecisionInvalidation {
 		return nil
 	}
 
-	// Global covers every ID.
-	batch := &accessDecisionInvalidation{Global: b.global}
+	// Global covers every ID, so the roles of any memberships queued with it are purged instead.
+	batch := &accessDecisionInvalidation{Global: b.global, PurgeRoles: b.purgeRoles || (b.global && len(b.userResources) > 0)}
 	if !b.global {
 		for id := range b.users {
 			batch.Users = append(batch.Users, id)
