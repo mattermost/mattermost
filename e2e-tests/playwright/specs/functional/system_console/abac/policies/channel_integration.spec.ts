@@ -125,8 +125,14 @@ test.describe('ABAC Policies - Channel Integration', () => {
         const policyOption = modal.locator('.DataGrid_row').filter({hasText: policyName}).first();
         await policyOption.click();
 
-        // Save
+        // Save, and wait until the channel update is stored before leaving the page.
+        const saved = systemConsolePage.page.waitForResponse(
+            (resp) =>
+                /\/api\/v4\/channels\/[a-z0-9]+/.test(resp.url()) &&
+                ['PUT', 'POST', 'PATCH'].includes(resp.request().method()),
+        );
         await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
+        await saved;
 
         // ============================================================
         // Run sync to apply policy
@@ -269,11 +275,10 @@ test.describe('ABAC Policies - Channel Integration', () => {
             group_constrained: false,
         } as any);
 
-        // Reload page to see updated UI
+        // Reload page to see updated UI. The channel detail request is the ready signal.
         await page.reload();
-
-        // Verify ABAC toggle is now available
-        const abacVisibleAfterDisable = await abacToggle.isVisible({timeout: 5000}).catch(() => false);
+        await expect(abacToggle).toBeVisible();
+        const abacVisibleAfterDisable = true;
 
         expect(abacVisibleAfterDisable).toBe(true);
 
