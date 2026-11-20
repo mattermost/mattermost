@@ -78,3 +78,8 @@ func TestLatestVersion(t *testing.T) {
 		assert.Empty(t, version)
 	})
 }
+
+func TestVersion(t *testing.T) {
+	assert.Equal(t, "12.1.0", Version("v12.1.0"))
+	assert.Equal(t, "12.1.0", Version("12.1.0"))
+}
