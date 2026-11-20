@@ -225,6 +225,7 @@ const useMetricsData = (
     }), [isLicensed, isEnterprise, trialOrEnterpriseCtaConfig, isStarterLicense, isCloud, analytics, installedVersion]);
 
     useEffect(() => {
+        let isStale = false;
         setLoading(true);
         const refreshData = async () => {
             const data = {
@@ -240,9 +241,16 @@ const useMetricsData = (
         };
 
         refreshData().then((data) => {
+            if (isStale) {
+                return;
+            }
             setData(data);
             setLoading(false);
         });
+
+        return () => {
+            isStale = true;
+        };
     }, [config, formatMessage, options]);
 
     return {

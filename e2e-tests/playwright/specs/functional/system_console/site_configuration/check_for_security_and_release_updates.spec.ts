@@ -55,6 +55,7 @@ test(
     'is read-only for a delegated admin with read access to Notices',
     {tag: ['@system_console', '@notices']},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         const {adminClient, user} = await pw.initSetup();
         await adminClient.updateUserRoles(user.id, 'system_user system_read_only_admin');
 
@@ -77,6 +78,7 @@ test(
     'is writable for a delegated admin with write access to Notices',
     {tag: ['@system_console', '@notices']},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         const {adminClient, user} = await pw.initSetup();
         await adminClient.updateUserRoles(user.id, 'system_user system_manager');
 
@@ -103,6 +105,7 @@ test(
     'is not available to a delegated admin with only SMTP access',
     {tag: ['@system_console', '@notices']},
     async ({pw}) => {
+        await pw.skipIfNoLicense();
         const {adminClient, user} = await pw.initSetup();
 
         // # Grant the user manager role read and write access to SMTP, but not to Notices

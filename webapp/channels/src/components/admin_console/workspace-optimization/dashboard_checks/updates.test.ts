@@ -3,7 +3,7 @@
 
 import type {AdminConfig} from '@mattermost/types/config';
 
-import {fetchAndCompareVersion, runUpdateChecks} from './updates';
+import {fetchAndCompareVersion, isLatestVersionCheckDisabled, runUpdateChecks} from './updates';
 
 import {ItemStatus} from '../dashboard.type';
 import type {Options} from '../dashboard.type';
@@ -140,12 +140,16 @@ describe('runUpdateChecks', () => {
         expect(results[0].status).toBe(ItemStatus.WARNING);
     });
 
-    it('should report the latest release when EnableSecurityFixAlert is not readable', async () => {
+    it('should skip the latest release check when EnableSecurityFixAlert is not readable', async () => {
         const formatMessage = jest.fn(({defaultMessage}) => defaultMessage);
+
+        expect(isLatestVersionCheckDisabled({})).toBe(true);
+        expect(isLatestVersionCheckDisabled({ServiceSettings: {}} as Partial<AdminConfig>)).toBe(true);
+
         const results = await runUpdateChecks({}, formatMessage, options);
 
-        expect(global.fetch).toHaveBeenCalledWith(expect.stringMatching(/\/latest_version$/));
-        expect(results).toHaveLength(1);
+        expect(global.fetch).not.toHaveBeenCalled();
+        expect(results).toEqual([]);
     });
 
     it('should skip the latest release check when EnableSecurityFixAlert is off', async () => {
