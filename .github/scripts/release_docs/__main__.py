@@ -179,9 +179,13 @@ def released_together(gh, trigger: Version, now: datetime) -> list[Version]:
 
 
 def today_utc(env: dict) -> date:
-    """Today in UTC, or ``NOW`` (an ISO date or time) when set, for tests and reruns."""
+    """Today in UTC, or ``NOW`` (an ISO date or time) when set, for tests and reruns. A time with
+    an offset is converted to UTC first; a date, or a time without an offset, is taken as UTC."""
     raw = (env.get("NOW") or "").strip()
-    return datetime.fromisoformat(raw).date() if raw else datetime.now(timezone.utc).date()
+    if not raw:
+        return datetime.now(timezone.utc).date()
+    now = datetime.fromisoformat(raw)
+    return (now.astimezone(timezone.utc) if now.tzinfo else now).date()
 
 
 def release_days(gh, result: Result) -> dict:
@@ -398,9 +402,15 @@ def mobile_changes_text(built: Result, target, base_files: dict) -> str:
     """The mobile ESR PR's exact changes, for a person to make when the workflow can't open the PR."""
     changes = "".join("".join(difflib.unified_diff((base_files.get(p) or "").splitlines(True), text.splitlines(True),
                                                    f"a/{p}", f"b/{p}")) for p, text in built.files.items())
+    diff = f"````diff\n{changes.rstrip()}\n````"
+    if target.pr:
+        # The PR is already open: the diff is against its branch as it is now, not the base.
+        return (f"#### The mobile ESR PR, to update by hand: {esr.MOBILE_REPO}#{target.pr['number']}\n\n"
+                f"Apply this to its current branch `{target.branch}`:\n\n{diff}\n\nPR description:\n\n{built.body}")
+    where = (f"On the existing branch `{target.branch}`" if target.ref == target.branch
+             else f"On a branch `{target.branch}` from `{target.base}`")
     return (f"#### The mobile ESR PR, to open by hand in {esr.MOBILE_REPO}\n\n"
-            f"On a branch `{target.branch}` from `{target.base}`, as a draft PR titled \"{built.title}\":\n\n"
-            f"````diff\n{changes.rstrip()}\n````\n\nPR description:\n\n{built.body}")
+            f"{where}, as a draft PR titled \"{built.title}\":\n\n{diff}\n\nPR description:\n\n{built.body}")
 
 
 def mobile_esr_pr(item, env: dict, gh, mobile_gh, live: bool, result: Result) -> tuple[str, str]:

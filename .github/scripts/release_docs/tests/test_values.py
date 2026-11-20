@@ -4,6 +4,7 @@ import json
 import unittest
 from datetime import date
 
+from release_docs import __main__ as cli
 from release_docs import changelog, milestones, templates
 from release_docs.changelog import Highlight
 from release_docs.versions import (
@@ -69,6 +70,13 @@ class VersionsTest(unittest.TestCase):
         self.assertTrue(changelog_url(Version.parse("v12.0.1"), ESR).endswith("mattermost-v12-changelog.html#release-v12-0-major-release"))
         self.assertTrue(changelog_url(Version.parse("v11.7.14"), ESR).endswith("#release-v11-7-extended-support-release"))
         self.assertTrue(changelog_url(Version.parse("v11.11.3"), ESR).endswith("#release-v11-11-feature-release"))
+
+
+class TodayTest(unittest.TestCase):
+    def test_now_with_an_offset_is_converted_to_utc_before_taking_the_date(self):
+        self.assertEqual(cli.today_utc({"NOW": "2026-12-13T20:00:00-05:00"}), date(2026, 12, 14))
+        self.assertEqual(cli.today_utc({"NOW": "2026-12-14T00:30:00+02:00"}), date(2026, 12, 13))
+        self.assertEqual(cli.today_utc({"NOW": "2026-12-13"}), date(2026, 12, 13))
 
 
 class TemplatesTest(unittest.TestCase):

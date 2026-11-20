@@ -155,8 +155,14 @@ def update_esr_chart(content: str, version: Version, esr_versions: str, release_
     short = version.short
     existing = next((e for e in entries if e["version"] == version.line), None)
     if existing and not existing["planned"]:
-        result.notes.append(f"The ESR chart already has {short}; left as is.")
+        # Already there (a rerun, or added by hand): its dates follow the milestone; label and tags stay.
         new_line = None
+        if (existing["start"], existing["end"]) == (begin, finish):
+            result.notes.append(f"The ESR chart already has {short}; left as is.")
+        else:
+            lines[existing["index"]] = _gantt_line(short, existing["label"], existing["tags"], begin, finish)
+            result.notes.append(f"The ESR chart already has {short}; its dates now follow the milestone ({begin} to "
+                                f"{finish}).")
     elif esr:
         desktop = DESKTOP_IN_LABEL.search(existing["label"]).group(1) if existing and DESKTOP_IN_LABEL.search(existing["label"]) \
             else result.todo(f"the Desktop App ESR paired with {short} (the chart has no planned line for it)", bare=True)
@@ -193,14 +199,21 @@ def upcoming_releases(version: Version, server_days: dict | None) -> list[tuple[
     has a due date. One with no due date yet is the next minor with no date, a TODO, never a
     guess, even when the releases after it have one.
     """
-    dated = {line: (Version(*line), day) for line, day in (server_days or {}).items() if line > version.line}
     found, previous = [], version
     while len(found) < 2:
-        following = ((previous.major, previous.minor + 1), (previous.major + 1, 0))
-        found.append(next((dated[line] for line in following if line in dated),
-                          (Version(previous.major, previous.minor + 1), None)))
+        found.append(next_release(previous, server_days))
         previous = found[-1][0]
     return found
+
+
+def next_release(version: Version, days: dict | None) -> tuple[Version, date | None]:
+    """The release after ``version`` and its Release Day (``days``: the ``vX.Y.0`` milestones' due
+    dates by ``(major, minor)``): the next minor if it has a due date, else the next major's .0 if
+    that has one, else the next minor with none."""
+    for line in ((version.major, version.minor + 1), (version.major + 1, 0)):
+        if (days or {}).get(line) is not None:
+            return Version(*line), days[line]
+    return Version(version.major, version.minor + 1), None
 
 
 def add_upcoming_lines(content: str, upcoming: list, esr_versions: str, result: Result) -> str:
@@ -404,8 +417,7 @@ def extend_for_delay(content: str, path: str, kind: str, days: dict | None, rele
     if end > release_day:
         return content
     latest = f"v{match.group(1)}.{match.group(2)}"
-    following = Version(int(match.group(1)), int(match.group(2)) + 1)
-    day = (days or {}).get(following.line)
+    following, day = next_release(Version(int(match.group(1)), int(match.group(2))), days)
     name = latest if kind == "Server" else f"{kind} {latest}"
     if day is None:
         result.todo(f"no due date on the {following.tag} milestone in {APP_REPOS[kind]} (the release after {name}), so "

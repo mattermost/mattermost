@@ -178,6 +178,22 @@ class MobileEsrPrTest(unittest.TestCase):
         self.assertIn("### Output", summary)
         self.assertIn("+export const FULL_VERSION = '11.7.0';", summary)
 
+    def test_without_a_mobile_token_an_open_pr_is_named_and_its_branch_gets_the_diff(self):
+        gh = esr_github()
+        env = {"ESR_VERSIONS": "v8.1," + ESR, "DESKTOP_ESR_VERSIONS": DESKTOP, "ESR_STAGE": "before"}
+        cli.run_esr_comms("v10.11", env, gh, date(2026, 5, 15), True, gh)
+        [pr] = gh.pulls[esr.MOBILE_REPO]
+        writes = len(gh.writes)
+        result = cli.run_esr_comms("v10.11", {**env, "ESR_VERSIONS": "v9.11," + ESR}, gh, date(2026, 5, 15), True, None)
+        self.assertFalse([w for w in gh.writes[writes:] if w[1] == esr.MOBILE_REPO])
+        self.assertIn(f"#### The mobile ESR PR, to update by hand: mattermost/mattermost-mobile#{pr['number']}\n\n"
+                      "Apply this to its current branch `release-agent/v11.7.0-before/mobile-esr`:", result.text)
+        # Against the PR's branch as it is now (v8.1 there), not the base (v10.11's files).
+        self.assertIn("-export const MIN_REQUIRED_VERSION = '8.1.0';\n+export const MIN_REQUIRED_VERSION = '9.11.0';\n",
+                      result.text)
+        self.assertNotIn("to open by hand", result.text)
+        self.assertNotIn("as a draft PR titled", result.text)
+
 
 if __name__ == "__main__":
     unittest.main()

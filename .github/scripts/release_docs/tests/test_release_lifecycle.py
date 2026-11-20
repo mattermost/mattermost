@@ -5,7 +5,7 @@ from datetime import date
 
 from release_docs import __main__ as cli
 from release_docs import release_docs_pr
-from release_docs.result import TODO_MARKER
+from release_docs.result import TODO_MARKER, Result
 from release_docs.versions import Version
 
 from .fakes import FakeGitHub
@@ -70,6 +70,17 @@ class ReleaseLifecycleTest(unittest.TestCase):
         self.assertIn("    v12.4 & Desktop App v6.5 Extended Support (planned) :crit, 2027-02-16, 2028-02-15", lines)
         self.assertEqual(sum(1 for line in lines if line.split()[0] == "v12.4"), 1)
 
+    def test_the_releases_own_line_follows_its_milestone_and_keeps_its_label_and_tags(self):
+        moved = Result(release_docs_pr.TASK, V12_1.tag)
+        text = release_docs_pr.update_esr_chart(CHART, V12_1, ESR, date(2026, 11, 13), moved)
+        self.assertIn("    v12.0                  :active, 2026-10-16, 2027-01-15\n"
+                      "    v12.1                  :active, 2026-11-13, 2027-02-15\n", text)
+        self.assertEqual(text.count("    v12.1 "), 1)
+        same = Result(release_docs_pr.TASK, V12_1.tag)
+        text = release_docs_pr.update_esr_chart(CHART, V12_1, ESR, date(2026, 11, 16), same)
+        self.assertIn("    v12.1                  :active, 2026-11-16, 2027-02-15\n", text)
+        self.assertIn("The ESR chart already has v12.1; left as is.", same.notes)
+
     def test_the_version_out_of_support_is_marked_unsupported(self):
         lines = chart_lines(build())
         self.assertIn("    v11.10                 :done, 2026-08-14, 2026-11-15", lines)  # ended the day before v12.1
@@ -113,6 +124,21 @@ class DelayedReleaseTest(unittest.TestCase):
                       "the day before the next release's Release Day (2026-11-20)", result.body)
         self.assertIn("the next release's milestone is due later than the end date shown", result.body)
 
+    def test_the_next_release_is_chosen_as_on_the_release_lifecycle_chart(self):
+        desktop = MOBILE.replace("v2.45", "v5.15").replace("v2.44", "v5.14")
+
+        def v5_15_row(days):
+            files = {**real_docs(), release_docs_pr.RELEASE_POLICY: CHART, release_docs_pr.DESKTOP_RELEASES: desktop}
+            result = release_docs_pr.build(V12_1, files, ESR, date(2026, 11, 16), 15, {"Server": dict(NEXT_TWO), "Desktop": days})
+            page = result.files.get(release_docs_pr.DESKTOP_RELEASES, desktop)
+            return next(line for line in page.splitlines() if line.startswith("| v5.15 ")), result
+
+        row, result = v5_15_row({(6, 0): date(2026, 11, 20)})  # no due date on v5.16.0: the next release is v6.0.0
+        self.assertIn("Support Ends: 2026-11-19", row)
+        self.assertFalse([t for t in result.todos if "v5.16.0" in t])
+        row, _ = v5_15_row({(5, 16): date(2026, 11, 16), (6, 0): date(2026, 11, 20)})  # the next minor when it has one
+        self.assertIn("Support Ends: 2026-11-15", row)
+
     def test_on_time_changes_nothing(self):
         result = build(mobile={(2, 46): date(2026, 11, 16)}, **{release_docs_pr.MOBILE_RELEASES: MOBILE})
         self.assertNotIn(release_docs_pr.MOBILE_RELEASES, result.files)
@@ -141,6 +167,9 @@ class ReleaseDocsTaskTest(unittest.TestCase):
                                      {"title": "v12.3.0", "due_on": "2027-01-15T00:00:00Z"}])
         self.assertEqual(run.result.todos, [])
         self.assertIn("| 2026-11-13 | 2027-02-15 |", run.result.files[release_docs_pr.SERVER_RELEASES])
+        # The fixture's chart has v12.1 on 2026-11-16; the milestone moved it to 2026-11-13.
+        self.assertIn("    v12.1                  :active, 2026-11-13, 2027-02-15",
+                      run.result.files[release_docs_pr.RELEASE_POLICY])
         self.assertIn("    v12.2                  :active, 2026-12-16, 2027-03-15",
                       run.result.files[release_docs_pr.RELEASE_POLICY])
         self.assertIn("calculated from the `vX.Y.0` milestones' due dates", run.result.body)
