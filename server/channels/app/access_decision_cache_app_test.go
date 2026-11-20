@@ -308,6 +308,13 @@ func TestAccessDecisionCacheAppliesSettingChanges(t *testing.T) {
 
 func TestAccessDecisionCacheBroadcastsInvalidations(t *testing.T) {
 	h := setupAccessDecisionCacheTest(t)
+	// Only the explicit flushes below send, so both invalidations land in one batch however
+	// slowly the test runs.
+	broadcaster := h.th.App.Srv().Channels().accessDecisionBroadcaster
+	broadcaster.mu.Lock()
+	broadcaster.delay = time.Hour
+	broadcaster.mu.Unlock()
+	broadcaster.flush()
 	cluster := &testlib.FakeClusterInterface{}
 	h.th.Server.Platform().SetCluster(cluster)
 

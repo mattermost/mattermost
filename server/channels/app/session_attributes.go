@@ -237,7 +237,7 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		if err := a.Srv().Store().SessionAttribute().Refresh(rctx.Session().Id, attrsToMerge, refreshAt); err != nil {
 			rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 		} else {
-			visiblyChanged := sessionAttributesVisiblyChanged(attrsToMerge, cached, timestamps, fieldsByName, now)
+			visiblyChanged := sessionAttributesVisiblyChanged(attrsToMerge, cached, timestamps, fieldsByName, model.GetMillis())
 			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt, visiblyChanged)
 			if visiblyChanged {
 				a.invalidateAccessDecisionsForSession(rctx.Session().Id)
