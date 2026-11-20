@@ -53,20 +53,34 @@ function download(content: string, filename: string) {
     setTimeout(() => URL.revokeObjectURL(href), REVOKE_OBJECT_URL_DELAY_MS);
 }
 
-// The frame of the last print, removed on the next one in case afterprint never fired.
+// The frame and the page title of the last print, cleaned up on the next one in case afterprint
+// never fired.
 let printFrame: HTMLIFrameElement | undefined;
+let pageTitle: string | undefined;
+
+function endPrint() {
+    printFrame?.remove();
+    if (pageTitle !== undefined) {
+        document.title = pageTitle;
+        pageTitle = undefined;
+    }
+}
 
 // The report is static HTML with no scripts, so the iframe gets only what print() needs: same
 // origin so this page can call print() on it, and modals so the print dialog may open.
-function print(html: string) {
-    printFrame?.remove();
+// Chrome suggests the PDF file name from the page title, so the title is the export file name
+// while printing.
+function print(html: string, filename: string) {
+    endPrint();
     const frame = document.createElement('iframe');
     printFrame = frame;
     frame.setAttribute('sandbox', 'allow-modals allow-same-origin');
     frame.setAttribute('aria-hidden', 'true');
     frame.style.cssText = 'position: fixed; right: 0; bottom: 0; width: 0; height: 0; border: 0;';
     frame.addEventListener('load', () => {
-        frame.contentWindow?.addEventListener('afterprint', () => frame.remove());
+        frame.contentWindow?.addEventListener('afterprint', endPrint);
+        pageTitle = document.title;
+        document.title = filename.replace(/\.[^.]*$/, '');
         frame.contentWindow?.print();
     }, {once: true});
     frame.srcdoc = html;

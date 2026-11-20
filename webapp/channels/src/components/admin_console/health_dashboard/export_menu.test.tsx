@@ -92,20 +92,40 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
         expect(document.querySelector('iframe')).toBeNull();
     });
 
-    test('Print / Save as PDF loads the HTML export into a sandboxed hidden iframe', async () => {
-        const exportHealthFindings = jest.spyOn(Client4, 'exportHealthFindings').mockResolvedValue({content: '<h1>Report</h1>', filename: 'site-health.html'});
+    test('Print / Save as PDF prints the HTML export from a sandboxed hidden iframe, titled after the export file', async () => {
+        const exportHealthFindings = jest.spyOn(Client4, 'exportHealthFindings').mockResolvedValue({content: '<h1>Report</h1>', filename: 'site-health-Mattermost-2026-11-20.html'});
         const click = jest.spyOn(HTMLAnchorElement.prototype, 'click');
+        document.title = 'System Console - Mattermost';
 
         await renderDashboard(systemAdmin);
         await openMenu();
+
+        // jsdom loads the frame on its own but doesn't implement print(), so mock it as soon as
+        // the frame is attached.
+        let titleWhilePrinting: string | undefined;
+        const appendChild = document.body.appendChild.bind(document.body);
+        jest.spyOn(document.body, 'appendChild').mockImplementation((node) => {
+            appendChild(node);
+            if (node instanceof HTMLIFrameElement) {
+                jest.spyOn(node.contentWindow!, 'print').mockImplementation(() => {
+                    titleWhilePrinting = document.title;
+                });
+            }
+            return node;
+        });
         await userEvent.click(screen.getByRole('menuitem', {name: 'Print / Save as PDF'}));
 
-        await waitFor(() => expect(document.querySelector('iframe')).not.toBeNull());
+        await waitFor(() => expect(titleWhilePrinting).toBe('site-health-Mattermost-2026-11-20'));
         const frame = document.querySelector('iframe')!;
         expect(exportHealthFindings).toHaveBeenCalledWith('html');
         expect(frame.getAttribute('sandbox')).toBe('allow-modals allow-same-origin');
         expect(frame.srcdoc).toBe('<h1>Report</h1>');
         expect(click).not.toHaveBeenCalled();
+
+        frame.contentWindow!.dispatchEvent(new Event('afterprint'));
+
+        expect(document.title).toBe('System Console - Mattermost');
+        expect(frame.isConnected).toBe(false);
     });
 
     test('shows a loading state while the export is fetched', async () => {
