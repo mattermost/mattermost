@@ -181,6 +181,17 @@
         }
     }
 
+    // Boards and products sit in a wrapper that anchors their right-click menu beside them.
+    &__itemWrapper {
+        position: relative;
+        display: flex;
+    }
+
+    &__itemMenuAnchor {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+    }
 
     @media screen and (max-width: 768px) {
         display: none;
@@ -210,6 +221,22 @@
     &--urgent {
         background: var(--dnd-indicator);
         color: var(--button-color);
+    }
+}
+
+.ProductRail__menuIcon {
+    display: flex;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+
+    svg {
+        width: 18px;
+        height: 18px;
+        fill: currentColor;
+    }
+
+    img {
+        width: 18px;
+        height: 18px;
     }
 }
 

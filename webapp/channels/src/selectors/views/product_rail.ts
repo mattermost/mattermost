@@ -7,7 +7,7 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getAllChannels, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {get as getPreference, getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMySortedTeamIds} from 'mattermost-redux/selectors/entities/teams';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
@@ -124,6 +124,25 @@ export function getProductRailSection(state: GlobalState): ProductRailSection | 
 }
 
 export type ProductRailFilter = ProductRailSection | null;
+
+const noHiddenItems: string[] = [];
+
+/**
+ * The rail items the user has moved into the rail's More menu: 'boards', or a product's plugin id.
+ * A preference that isn't a JSON array of strings hides nothing.
+ */
+export const getProductRailHiddenItems: (state: GlobalState) => string[] = createSelector(
+    'getProductRailHiddenItems',
+    (state: GlobalState) => getPreference(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.PRODUCT_RAIL_HIDDEN_ITEMS, ''),
+    (value) => {
+        try {
+            const parsed: unknown = JSON.parse(value || '[]');
+            return Array.isArray(parsed) ? parsed.filter((itemId): itemId is string => typeof itemId === 'string') : noHiddenItems;
+        } catch {
+            return noHiddenItems;
+        }
+    },
+);
 
 /** Whether the user has chosen to list boards in the Channels view too. */
 export function areBoardsShownInChannels(state: GlobalState): boolean {

@@ -4,6 +4,8 @@
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
+import {getProductRailHiddenItems} from 'selectors/views/product_rail';
+
 import {ActionTypes, Preferences} from 'utils/constants';
 
 import type {ActionFuncAsync} from 'types/store';
@@ -55,6 +57,21 @@ export function setBoardsShownInChannels(shown: boolean): ActionFuncAsync {
             name: Preferences.SHOW_BOARDS_IN_CHANNELS,
             user_id: userId,
             value: String(shown),
+        }]));
+    };
+}
+
+// Moves a rail item into the rail's More menu, or brings it back to the rail.
+export function setProductRailItemHidden(itemId: string, hidden: boolean): ActionFuncAsync {
+    return (dispatch, getState) => {
+        const state = getState();
+        const userId = getCurrentUserId(state);
+        const others = getProductRailHiddenItems(state).filter((id) => id !== itemId);
+        return dispatch(savePreferences(userId, [{
+            category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
+            name: Preferences.PRODUCT_RAIL_HIDDEN_ITEMS,
+            user_id: userId,
+            value: JSON.stringify(hidden ? [...others, itemId] : others),
         }]));
     };
 }

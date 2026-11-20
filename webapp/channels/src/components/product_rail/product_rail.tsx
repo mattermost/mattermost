@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useEffect, useRef} from 'react';
+import React, {forwardRef, useEffect, useRef, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {Link, matchPath, useLocation} from 'react-router-dom';
+import {Link, matchPath, useHistory, useLocation} from 'react-router-dom';
 
-import glyphMap, {MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {DotsHorizontalIcon, EyeOffOutlineIcon, EyeOutlineIcon, MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {selectTeam} from 'mattermost-redux/actions/teams';
@@ -19,11 +19,12 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {productRailPathsLoaded, productRailPathViewed, setProductRailSection} from 'actions/views/product_rail';
+import {productRailPathsLoaded, productRailPathViewed, setProductRailItemHidden, setProductRailSection} from 'actions/views/product_rail';
 import {selectProducts} from 'selectors/products';
 import {
     getBoardChannelIds,
     getFirstBoardInCurrentTeam,
+    getProductRailHiddenItems,
     getProductRailLastPath,
     getProductRailLastPaths,
     getProductRailSection,
@@ -33,6 +34,9 @@ import {
     areProductRailLastPathsLoaded,
     isTeamSidebarHidden,
 } from 'selectors/views/product_rail';
+
+import * as Menu from 'components/menu';
+import type {MenuButtonComponentProps} from 'components/menu';
 
 import {isBackstagePath, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getProductSwitcherLinkURL, useCurrentProduct} from 'utils/products';
@@ -65,6 +69,31 @@ const messages = defineMessages({
         id: 'product_rail.threads',
         defaultMessage: 'Threads',
         description: 'Label under the Threads icon in the product navigation rail. Clicking it opens the list of followed threads.',
+    },
+    more: {
+        id: 'product_rail.more',
+        defaultMessage: 'More',
+        description: 'Label under the three-dots item at the end of the product navigation rail. It opens a menu of the products the user hid from the rail.',
+    },
+    moreMenuLabel: {
+        id: 'product_rail.moreMenu.label',
+        defaultMessage: 'More products',
+        description: 'Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user hid from the rail.',
+    },
+    itemMenuLabel: {
+        id: 'product_rail.itemMenu.label',
+        defaultMessage: 'Product options',
+        description: 'Accessible name of the menu opened by right-clicking a product, such as Boards or Playbooks, in the product navigation rail.',
+    },
+    hide: {
+        id: 'product_rail.itemMenu.hide',
+        defaultMessage: 'Hide',
+        description: 'Item in the right-click menu of a product in the product navigation rail. It moves the product into the More menu at the end of the rail.',
+    },
+    alwaysShow: {
+        id: 'product_rail.itemMenu.alwaysShow',
+        defaultMessage: 'Always show',
+        description: 'Item in the right-click menu of a hidden product, shown in the product navigation rail only while it is open. It puts the product back in the rail for good, out of the More menu.',
     },
 });
 
@@ -144,6 +173,8 @@ export default function ProductRail() {
     const firstBoard = useSelector(getFirstBoardInCurrentTeam);
     const teamSidebarHidden = useSelector(isTeamSidebarHidden);
     const boardsShownInChannels = useSelector(areBoardsShownInChannels);
+    const hiddenItems = useSelector(getProductRailHiddenItems);
+    const history = useHistory();
 
     const currentTeamId = currentTeam?.id ?? '';
     const lastPaths = useSelector(getProductRailLastPaths);
@@ -208,6 +239,11 @@ export default function ProductRail() {
     // section. Turning Show boards on or off only changes what Channels lists: it doesn't move the
     // user, even when the open channel is a board.
     const lastBoardsShownInChannels = useRef(boardsShownInChannels);
+
+    // Boards with no board to open, clicked from outside the channels product, lands in the channel
+    // Channels would open, to show the empty Boards sidebar. Opening that channel mustn't move the
+    // sidebar back to Channels, as opening a channel otherwise does.
+    const keepBoardsSectionAt = useRef<string | null>(null);
     useEffect(() => {
         const boardsShownChanged = lastBoardsShownInChannels.current !== boardsShownInChannels;
         lastBoardsShownInChannels.current = boardsShownInChannels;
@@ -216,7 +252,12 @@ export default function ProductRail() {
         }
 
         if (enabled && viewedTab && currentTeamId) {
-            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels;
+            const keepBoards = viewedTab === 'channels' && keepBoardsSectionAt.current === viewedPath;
+            if (viewedTab === 'channels' || viewedTab === 'boards') {
+                keepBoardsSectionAt.current = null;
+            }
+
+            const followsKind = (viewedTab === 'boards' || viewedTab === 'channels') && !boardViewedInChannels && !keepBoards;
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
     }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels]);
@@ -235,7 +276,11 @@ export default function ProductRail() {
 
     const inChannelsProduct = !currentProduct && !inThreads;
 
-    const renderProduct = (product: ProductComponent) => {
+    // Boards and products can be hidden; a hidden one stays in the rail while it's open, so the
+    // user can see where they are, and is otherwise listed in the More menu at the end.
+    const hideableItems: RailEntry[] = [];
+
+    const productEntry = (product: ProductComponent): RailEntry | null => {
         const link = getProductSwitcherLinkURL(product, currentTeam.name);
         if (link === null) {
             return null;
@@ -248,16 +293,15 @@ export default function ProductRail() {
             icon = Icon ? <Icon size={20}/> : null;
         }
 
-        return (
-            <ProductRailItem
-                key={product.id}
-                id={`product-rail-item-${product.pluginId || product.id}`}
-                to={lastPaths[productTab(product)]?.[currentTeam.id] ?? link}
-                icon={icon}
-                label={product.switcherText}
-                active={currentProduct?.id === product.id}
-            />
-        );
+        const itemId = product.pluginId || product.id;
+        return {
+            itemId,
+            elementId: `product-rail-item-${itemId}`,
+            to: lastPaths[productTab(product)]?.[currentTeam.id] ?? link,
+            icon,
+            label: product.switcherText,
+            active: currentProduct?.id === product.id,
+        };
     };
 
     // A stable sort, so products with no rank keep their registration order after the ranked ones.
@@ -278,7 +322,6 @@ export default function ProductRail() {
 
     // With boards split off, Channels shows the rest of the sidebar; without, it's all of it.
     let channelsItem;
-    let boardsItem;
     if (section) {
         // While Channels lists boards too, its badge counts them as well.
         const channelsUnreads = boardsShownInChannels ? {
@@ -286,18 +329,25 @@ export default function ProductRail() {
             hasUrgent: sectionUnreads.channels.hasUrgent || sectionUnreads.boards.hasUrgent,
             unread: sectionUnreads.channels.unread || sectionUnreads.boards.unread,
         } : sectionUnreads.channels;
+        const channelsPath = lastChannelPath ?? `/${currentTeam.name}/channels/${defaultChannelName}`;
 
         // Return to the last board, else open the first one. With none to open, Boards still
-        // switches the sidebar so it can say there are none.
+        // switches the sidebar so it can say there are none: in place in the channels product,
+        // and from anywhere else in the channel Channels would open.
         let boardsPath = lastBoardPath;
         if (!boardsPath && firstBoard) {
             boardsPath = `/${currentTeam.name}/channels/${firstBoard.name}`;
         }
+        const opensChannelForNoBoards = !boardsPath && !inChannelsProduct;
+        if (!boardsPath) {
+            boardsPath = inChannelsProduct ? pathname : channelsPath;
+        }
+        const boardsTo = boardsPath;
 
         channelsItem = (
             <ProductRailItem
                 id='product-rail-item-channels'
-                to={lastChannelPath ?? `/${currentTeam.name}/channels/${defaultChannelName}`}
+                to={channelsPath}
                 onClick={() => dispatch(setProductRailSection('channels'))}
                 icon={<ProductChannelsIcon size={20}/>}
                 label={formatMessage(messages.channels)}
@@ -305,17 +355,19 @@ export default function ProductRail() {
                 {...channelsUnreads}
             />
         );
-        boardsItem = (
-            <ProductRailItem
-                id='product-rail-item-boards'
-                to={boardsPath ?? pathname}
-                onClick={() => dispatch(setProductRailSection('boards'))}
-                icon={<ProductBoardsIcon size={20}/>}
-                label={formatMessage(messages.boards)}
-                active={inChannelsProduct && section === 'boards'}
-                {...sectionUnreads.boards}
-            />
-        );
+        hideableItems.push({
+            itemId: 'boards',
+            elementId: 'product-rail-item-boards',
+            to: boardsTo,
+            onClick: () => {
+                keepBoardsSectionAt.current = opensChannelForNoBoards ? boardsTo : null;
+                dispatch(setProductRailSection('boards'));
+            },
+            icon: <ProductBoardsIcon size={20}/>,
+            label: formatMessage(messages.boards),
+            active: inChannelsProduct && section === 'boards',
+            ...sectionUnreads.boards,
+        });
     } else {
         channelsItem = (
             <ProductRailItem
@@ -331,6 +383,17 @@ export default function ProductRail() {
         );
     }
 
+    for (const product of sortedProducts) {
+        const entry = productEntry(product);
+        if (entry) {
+            hideableItems.push(entry);
+        }
+    }
+
+    const hiddenItemIds = new Set(hiddenItems);
+    const railItems = hideableItems.filter((entry) => !hiddenItemIds.has(entry.itemId) || entry.active);
+    const moreItems = hideableItems.filter((entry) => hiddenItemIds.has(entry.itemId) && !entry.active);
+
     return (
         <nav
             className='ProductRail'
@@ -339,10 +402,172 @@ export default function ProductRail() {
             {teamSidebarHidden && <ProductRailTeamMenu/>}
             {threadsItem}
             {channelsItem}
-            {boardsItem}
-            {sortedProducts.map(renderProduct)}
+            {railItems.map((entry) => (
+                <HideableRailItem
+                    key={entry.itemId}
+                    itemId={entry.itemId}
+                    hidden={hiddenItemIds.has(entry.itemId)}
+                >
+                    <ProductRailItem
+                        id={entry.elementId}
+                        to={entry.to}
+                        onClick={entry.onClick}
+                        icon={entry.icon}
+                        label={entry.label}
+                        active={entry.active}
+                        mentions={entry.mentions}
+                        hasUrgent={entry.hasUrgent}
+                        unread={entry.unread}
+                    />
+                </HideableRailItem>
+            ))}
+            {moreItems.length > 0 && (
+                <Menu.Container
+                    menuButton={{
+                        id: 'product-rail-item-more',
+                        class: 'ProductRail__item',
+                        'aria-label': formatMessage(messages.moreMenuLabel),
+                        children: (
+                            <>
+                                <span className='ProductRail__icon'>
+                                    <DotsHorizontalIcon size={20}/>
+                                    {renderIndicator(
+                                        moreItems.reduce((total, entry) => total + (entry.mentions ?? 0), 0),
+                                        moreItems.some((entry) => entry.hasUrgent),
+                                        moreItems.some((entry) => entry.unread),
+                                    )}
+                                </span>
+                                <span className='ProductRail__label'>{formatMessage(messages.more)}</span>
+                            </>
+                        ),
+                    }}
+                    menu={{
+                        id: 'productRailMoreMenu',
+                        'aria-label': formatMessage(messages.moreMenuLabel),
+                    }}
+                    anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+                    transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                >
+                    {moreItems.map((entry) => (
+                        <Menu.Item
+                            key={entry.itemId}
+                            id={`productRailMoreMenu-${entry.itemId}`}
+                            leadingElement={<span className='ProductRail__menuIcon'>{entry.icon}</span>}
+                            labels={<span>{entry.label}</span>}
+                            trailingElements={renderMenuIndicator(entry)}
+                            onClick={() => {
+                                entry.onClick?.();
+                                history.push(entry.to);
+                            }}
+                        />
+                    ))}
+                </Menu.Container>
+            )}
         </nav>
     );
+}
+
+// A rail item that can be hidden: Boards, or a product.
+type RailEntry = {
+
+    // What the user's hidden items preference names it by: 'boards', or the product's plugin id.
+    itemId: string;
+    elementId: string;
+    to: string;
+    onClick?: () => void;
+    icon: React.ReactNode;
+    label: React.ReactNode;
+    active: boolean;
+    mentions?: number;
+    hasUrgent?: boolean;
+    unread?: boolean;
+};
+
+// The right-click menu has no button of its own: it opens on the item, from this stand-in.
+const ItemMenuAnchor = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((_props, ref) => (
+    <span
+        ref={ref as unknown as React.Ref<HTMLSpanElement>}
+        className='ProductRail__itemMenuAnchor'
+        aria-hidden='true'
+    />
+));
+ItemMenuAnchor.displayName = 'ItemMenuAnchor';
+
+// Wraps a hideable rail item with a right-click (or context menu key) menu to hide it, or, for a
+// hidden one shown while open, to put it back in the rail for good.
+function HideableRailItem({itemId, hidden, children}: {itemId: string; hidden: boolean; children: React.ReactNode}) {
+    const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
+    const [open, setOpen] = useState(false);
+
+    return (
+        <div
+            className='ProductRail__itemWrapper'
+            onContextMenu={(event) => {
+                event.preventDefault();
+                setOpen(true);
+            }}
+        >
+            {children}
+            <Menu.Container
+                menuButton={{
+                    id: `product-rail-item-menu-anchor-${itemId}`,
+                    as: ItemMenuAnchor,
+                }}
+                menu={{
+                    id: `productRailItemMenu-${itemId}`,
+                    'aria-label': formatMessage(messages.itemMenuLabel),
+                    isMenuOpen: open,
+                    onToggle: (isOpen) => {
+                        if (!isOpen) {
+                            setOpen(false);
+                        }
+                    },
+                }}
+                anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+                transformOrigin={{vertical: 'top', horizontal: 'left'}}
+            >
+                <Menu.Item
+                    id={`productRailItemMenu-${itemId}-${hidden ? 'show' : 'hide'}`}
+                    leadingElement={hidden ? <EyeOutlineIcon size={18}/> : <EyeOffOutlineIcon size={18}/>}
+                    labels={<span>{formatMessage(hidden ? messages.alwaysShow : messages.hide)}</span>}
+                    onClick={() => dispatch(setProductRailItemHidden(itemId, !hidden))}
+                />
+            </Menu.Container>
+        </div>
+    );
+}
+
+const formatMentionCount = (mentions: number) => (mentions > 99 ? '99+' : String(mentions));
+
+// A mention count badge, or else a dot for unread activity, on a rail item's icon.
+function renderIndicator(mentions: number, hasUrgent: boolean, unread: boolean) {
+    if (mentions > 0) {
+        return (
+            <span className={classNames('ProductRail__badge', {'ProductRail__badge--urgent': hasUrgent})}>
+                {formatMentionCount(mentions)}
+            </span>
+        );
+    }
+    if (unread) {
+        return <span className='ProductRail__dot'/>;
+    }
+    return null;
+}
+
+// The same, at the end of a row in the More menu.
+function renderMenuIndicator({mentions = 0, hasUrgent = false, unread = false}: RailEntry) {
+    if (mentions > 0) {
+        return (
+            <span className={classNames('ProductRail__menuBadge', {'ProductRail__menuBadge--urgent': hasUrgent})}>
+                {formatMentionCount(mentions)}
+            </span>
+        );
+    }
+    if (unread) {
+        return <span className='ProductRail__menuDot'/>;
+    }
+    return undefined;
 }
 
 type ProductRailItemProps = {
@@ -360,17 +585,7 @@ type ProductRailItemProps = {
 };
 
 function ProductRailItem({id, to, onClick, icon, label, active, mentions = 0, hasUrgent = false, unread = false}: ProductRailItemProps) {
-    let indicator = null;
-    if (mentions > 0) {
-        const mentionCount = mentions > 99 ? '99+' : String(mentions);
-        indicator = (
-            <span className={classNames('ProductRail__badge', {'ProductRail__badge--urgent': hasUrgent})}>
-                {mentionCount}
-            </span>
-        );
-    } else if (unread) {
-        indicator = <span className='ProductRail__dot'/>;
-    }
+    const indicator = renderIndicator(mentions, hasUrgent, unread);
 
     const className = classNames('ProductRail__item', {
         'ProductRail__item--active': active,

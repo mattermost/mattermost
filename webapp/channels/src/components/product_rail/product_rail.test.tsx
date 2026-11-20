@@ -11,7 +11,7 @@ import {PreferenceTypes} from 'mattermost-redux/action_types';
 
 import type {ChannelKindRegistration} from 'selectors/views/product_rail';
 
-import {act, renderWithContext, screen} from 'tests/react_testing_utils';
+import {act, fireEvent, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -22,6 +22,11 @@ import ProductRail from './product_rail';
 
 jest.mock('mattermost-redux/actions/threads', () => ({
     getThreadCounts: () => ({type: 'MOCK_GET_THREAD_COUNTS'}),
+}));
+
+const mockSavePreferences = jest.fn((...args: unknown[]) => ({type: 'MOCK_SAVE_PREFERENCES', args}));
+jest.mock('mattermost-redux/actions/preferences', () => ({
+    savePreferences: (...args: unknown[]) => mockSavePreferences(...args),
 }));
 
 const team = TestHelper.getTeamMock({id: 'team1', name: 'team-one'});
@@ -80,6 +85,10 @@ const boardKind: ChannelKindRegistration = {
     matcher: (_state, channel) => channel.id === roadmap.id || channel.id === bugs.id,
 };
 
+const railProduct = (name: string, pluginId: string): ProductComponent => ({...TestHelper.makeProduct(name), pluginId, baseURL: `/${pluginId}`, switcherLinkURL: `/${pluginId}`});
+const agents = railProduct('Agents', 'mattermost-ai');
+const playbooks = railProduct('Playbooks', 'playbooks');
+
 function getBoardsState(currentChannelId: string, section: ProductRailSection = 'channels'): DeepPartial<GlobalState> {
     const channels = [townSquare, roadmap, bugs];
     const member = (channelId: string, mentions: number) => TestHelper.getChannelMembershipMock({
@@ -131,6 +140,7 @@ describe('ProductRail', () => {
     // Where each item was is saved to localStorage, which would otherwise carry between tests.
     beforeEach(() => {
         localStorage.clear();
+        mockSavePreferences.mockClear();
     });
 
     test('should render nothing when the feature flag is off', () => {
@@ -241,7 +251,7 @@ describe('ProductRail', () => {
         test('should list Threads, Channels and Boards with no dividers', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
 
-            const items = [...document.querySelectorAll('.ProductRail > *')].map((item) => item.id);
+            const items = [...document.querySelectorAll('.ProductRail .ProductRail__item')].map((item) => item.id);
             expect(items).toEqual([
                 'product-rail-item-threads',
                 'product-rail-item-channels',
@@ -262,7 +272,7 @@ describe('ProductRail', () => {
                 },
             });
 
-            const items = [...document.querySelectorAll('.ProductRail > *')].map((item) => item.id || item.className);
+            const items = [...document.querySelectorAll('.ProductRail .ProductRail__item')].map((item) => item.id);
             expect(items).toEqual([
                 'product-rail-item-threads',
                 'product-rail-item-channels',
@@ -377,6 +387,155 @@ describe('ProductRail', () => {
 
             const saved = JSON.parse(localStorage.getItem(`product_rail_last_paths_${user.id}`) ?? '{}');
             expect(saved.boards).toEqual({[team.id]: '/team-one/channels/roadmap'});
+        });
+    });
+
+    describe('Boards with no board to open', () => {
+        // A board kind is registered, but no channel in the team is a board.
+        function getNoBoardsState(): DeepPartial<GlobalState> {
+            const state = getBoardsState(townSquare.id, 'channels');
+            return {
+                ...state,
+                plugins: {
+                    components: {
+                        Product: [agents],
+                        ChannelKind: [{...boardKind, matcher: () => false}],
+                    } as unknown as GlobalState['plugins']['components'],
+                },
+            };
+        }
+
+        test('should stay in place in a channel, just switching the sidebar', () => {
+            renderAt('/team-one/channels/town-square', getNoBoardsState());
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/town-square');
+        });
+
+        test('should open the channel Channels would from another product, keeping the Boards sidebar', async () => {
+            const {store} = renderAt('/mattermost-ai', getNoBoardsState());
+
+            const boardsLink = screen.getByRole('link', {name: /Boards/});
+            expect(boardsLink).toHaveAttribute('href', '/team-one/channels/town-square');
+
+            await userEvent.click(boardsLink);
+
+            expect(store.getState().views.productRail.section).toBe('boards');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
+        });
+    });
+
+    describe('hiding items', () => {
+        function getHiddenState(hidden: string[], currentChannelId = townSquare.id): DeepPartial<GlobalState> {
+            const state = getBoardsState(currentChannelId);
+            return {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    preferences: {
+                        myPreferences: {
+                            'sidebar_settings--product_rail_hidden_items': {category: 'sidebar_settings', name: 'product_rail_hidden_items', user_id: user.id, value: JSON.stringify(hidden)},
+                        },
+                    },
+                },
+                plugins: {
+                    components: {
+                        ...state.plugins!.components,
+                        Product: [agents, playbooks],
+                    },
+                },
+            };
+        }
+
+        const railItemIds = () => [...document.querySelectorAll('.ProductRail .ProductRail__item')].map((item) => item.id);
+
+        test('should list hidden items in the More menu at the end of the rail', async () => {
+            renderAt('/team-one/channels/town-square', getHiddenState(['boards', 'mattermost-ai']));
+
+            expect(railItemIds()).toEqual([
+                'product-rail-item-threads',
+                'product-rail-item-channels',
+                'product-rail-item-playbooks',
+                'product-rail-item-more',
+            ]);
+
+            await userEvent.click(screen.getByRole('button', {name: 'More products'}));
+
+            expect(screen.getByRole('menuitem', {name: /Boards/})).toBeInTheDocument();
+            expect(screen.getByRole('menuitem', {name: /Agents/})).toBeInTheDocument();
+        });
+
+        test('should show no More item while nothing is hidden', () => {
+            renderAt('/team-one/channels/town-square', getHiddenState([]));
+
+            expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
+        });
+
+        test('should keep a hidden item in the rail while it is open', () => {
+            renderAt('/mattermost-ai', getHiddenState(['mattermost-ai']));
+
+            expect(screen.getByRole('link', {name: /Agents/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
+        });
+
+        test('should open a hidden item from the More menu', async () => {
+            const historyPush = (global as unknown as {historyMock: {push: jest.Mock}}).historyMock.push;
+            historyPush.mockClear();
+            renderAt('/team-one/channels/town-square', getHiddenState(['mattermost-ai']));
+
+            await userEvent.click(screen.getByRole('button', {name: 'More products'}));
+            await userEvent.click(screen.getByRole('menuitem', {name: /Agents/}));
+
+            // Menu items run their click handler once the menu has finished closing.
+            await waitFor(() => {
+                expect(historyPush).toHaveBeenCalledWith('/mattermost-ai');
+            });
+        });
+
+        test('should hide an item from its right-click menu', async () => {
+            renderAt('/team-one/channels/town-square', getHiddenState(['boards']));
+
+            fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
+            await userEvent.click(await screen.findByRole('menuitem', {name: 'Hide'}));
+
+            await waitFor(() => {
+                expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
+                    category: 'sidebar_settings',
+                    name: 'product_rail_hidden_items',
+                    value: JSON.stringify(['boards', 'mattermost-ai']),
+                })]);
+            });
+        });
+
+        test('should put an open hidden item back in the rail for good', async () => {
+            renderAt('/mattermost-ai', getHiddenState(['boards', 'mattermost-ai']));
+
+            fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
+            await userEvent.click(await screen.findByRole('menuitem', {name: 'Always show'}));
+
+            await waitFor(() => {
+                expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
+                    name: 'product_rail_hidden_items',
+                    value: JSON.stringify(['boards']),
+                })]);
+            });
+        });
+
+        test('should hide nothing when the preference is not a list', () => {
+            const state = getHiddenState([]);
+            renderAt('/team-one/channels/town-square', {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    preferences: {
+                        myPreferences: {
+                            'sidebar_settings--product_rail_hidden_items': {category: 'sidebar_settings', name: 'product_rail_hidden_items', user_id: user.id, value: '{"boards": true'},
+                        },
+                    },
+                },
+            });
+
+            expect(screen.getByRole('link', {name: /Boards/})).toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
         });
     });
 });
