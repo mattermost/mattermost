@@ -7,7 +7,7 @@ import React from 'react';
 import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {PreferenceTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PreferenceTypes} from 'mattermost-redux/action_types';
 
 import type {ChannelKindRegistration} from 'selectors/views/product_rail';
 
@@ -421,6 +421,36 @@ describe('ProductRail', () => {
 
             expect(store.getState().views.productRail.section).toBe('boards');
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
+        });
+    });
+
+    describe('Boards before the team\'s boards are known', () => {
+        test('should open the first board once the boards load', async () => {
+            const historyReplace = (global as unknown as {historyMock: {replace: jest.Mock}}).historyMock.replace;
+            historyReplace.mockClear();
+
+            // The boards plugin can't tell boards apart until its own state has loaded.
+            let boardsKnown = false;
+            const state = getBoardsState(townSquare.id);
+            const {store} = renderAt('/mattermost-ai', {
+                ...state,
+                plugins: {
+                    components: {
+                        Product: [agents],
+                        ChannelKind: [{...boardKind, matcher: (_state: GlobalState, channel: {id: string}) => boardsKnown && channel.id === roadmap.id}],
+                    } as unknown as GlobalState['plugins']['components'],
+                },
+            });
+
+            await userEvent.click(screen.getByRole('link', {name: /Boards/}));
+            expect(historyReplace).not.toHaveBeenCalled();
+
+            boardsKnown = true;
+            act(() => {
+                store.dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: {...roadmap}});
+            });
+
+            expect(historyReplace).toHaveBeenCalledWith('/team-one/channels/roadmap');
         });
     });
 

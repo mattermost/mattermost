@@ -244,6 +244,10 @@ export default function ProductRail() {
     // Channels would open, to show the empty Boards sidebar. Opening that channel mustn't move the
     // sidebar back to Channels, as opening a channel otherwise does.
     const keepBoardsSectionAt = useRef<string | null>(null);
+
+    // The team's boards may not be known yet on landing there (they load with the channels, and a
+    // product page loaded directly doesn't have them). Once they are, open the first one instead.
+    const awaitingBoardAt = useRef<string | null>(null);
     useEffect(() => {
         const boardsShownChanged = lastBoardsShownInChannels.current !== boardsShownInChannels;
         lastBoardsShownInChannels.current = boardsShownInChannels;
@@ -261,6 +265,24 @@ export default function ProductRail() {
             dispatch(productRailPathViewed(viewedTab, currentTeamId, viewedPath, section && followsKind ? viewedTab as ProductRailSection : undefined));
         }
     }, [dispatch, enabled, viewedTab, currentTeamId, viewedPath, section !== null, boardViewedInChannels, boardsShownInChannels]);
+
+    useEffect(() => {
+        const awaitedPath = awaitingBoardAt.current;
+        if (!awaitedPath || !viewedTab) {
+            return;
+        }
+
+        // Leaving the channel, or the Boards sidebar, stops waiting.
+        if (viewedPath !== awaitedPath || section !== 'boards' || currentChannelIsBoard) {
+            awaitingBoardAt.current = null;
+            return;
+        }
+
+        if (firstBoard && currentTeam) {
+            awaitingBoardAt.current = null;
+            history.replace(`/${currentTeam.name}/channels/${firstBoard.name}`);
+        }
+    }, [viewedTab, viewedPath, section, currentChannelIsBoard, firstBoard, currentTeam, history]);
 
     // Saved only once the earlier paths are restored, so they're never overwritten unseen.
     useEffect(() => {
@@ -361,6 +383,7 @@ export default function ProductRail() {
             to: boardsTo,
             onClick: () => {
                 keepBoardsSectionAt.current = opensChannelForNoBoards ? boardsTo : null;
+                awaitingBoardAt.current = opensChannelForNoBoards ? boardsTo : null;
                 dispatch(setProductRailSection('boards'));
             },
             icon: <ProductBoardsIcon size={20}/>,
