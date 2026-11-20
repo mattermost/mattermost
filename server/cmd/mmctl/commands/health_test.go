@@ -1025,3 +1025,192 @@ Could not evaluate
 		s.Empty(printer.GetLines())
 	})
 }
+
+func (s *MmctlUnitTestSuite) healthTestCommand(command *cobra.Command, flags ...string) *cobra.Command {
+	cmd := newTestCmd(s.T(), command)
+	cmd.SetContext(context.Background())
+	for i := 0; i < len(flags); i += 2 {
+		s.Require().NoError(cmd.Flags().Set(flags[i], flags[i+1]))
+	}
+	return cmd
+}
+
+func (s *MmctlUnitTestSuite) TestHealthExport() {
+	s.serveLatestRelease(healthTestRelease("v12.4.0"))
+	lastSeen := time.Now().Add(-5 * time.Minute)
+	exportList := func() *model.HealthFindingList {
+		list := healthTestList(lastSeen)
+		list.Findings = append(list.Findings, &model.HealthFinding{Severity: "warning", State: "firing", Area: model.AreaPlatform, Title: "Muted finding", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()})
+		return list
+	}
+	expectFindings := func() {
+		s.client.
+			EXPECT().
+			GetHealthFindings(context.TODO(), model.HealthFindingFilter{Muted: model.MutedIncluded}).
+			Return(exportList(), &model.Response{}, nil).
+			Times(1)
+	}
+	expectSite := func() {
+		s.client.
+			EXPECT().
+			GetClientConfig(context.TODO(), "").
+			Return(map[string]string{"SiteURL": "https://chat.example.com", "Version": "12.2.0"}, &model.Response{}, nil).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(map[string]string{"IsLicensed": "true", "SkuShortName": "advanced", "IsGovSku": "true", "Company": "Acme Corp"}, &model.Response{}, nil).
+			Times(1)
+	}
+
+	for _, tc := range []struct {
+		format string
+		want   []string
+	}{
+		{"html", []string{"<!DOCTYPE html>", "<title>mm_site_health_Acme_Corp_", "<dt>Site URL</dt>", "<dt>Licensed to</dt>"}},
+		{"md", []string{"# Health report\n", "- **Site URL:** https://chat.example.com\n", "- **License:** Enterprise Advanced Gov\n", "- **Licensed to:** Acme Corp\n"}},
+	} {
+		s.Run("online "+tc.format+" export includes resolved and muted findings", func() {
+			printer.Clean()
+			printer.SetFormat(printer.FormatPlain)
+			expectFindings()
+			expectSite()
+
+			err := healthExportCmdF(s.client, s.healthTestCommand(HealthExportCmd), []string{tc.format})
+			s.Require().NoError(err)
+
+			output := s.printedHealthFindings()
+			for _, want := range append(tc.want, "https://chat.example.com", "12.2.0", "Enterprise Advanced Gov", "Acme Corp",
+				"Push notification server is not HTTPS", "Site URL is not HTTPS", "Site URL is empty", "Muted finding") {
+				s.Contains(output, want)
+			}
+		})
+	}
+
+	s.Run("online export to a file", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		path := filepath.Join(s.T().TempDir(), "report.md")
+		expectFindings()
+		expectSite()
+
+		err := healthExportCmdF(s.client, s.healthTestCommand(HealthExportCmd, "output", path), []string{"md"})
+		s.Require().NoError(err)
+
+		s.Equal([]any{"Wrote the health report to " + path}, printer.GetLines())
+		b, err := os.ReadFile(path)
+		s.Require().NoError(err)
+		s.Contains(string(b), "- **Licensed to:** Acme Corp\n")
+		s.Contains(string(b), "Push notification server is not HTTPS")
+	})
+
+	s.Run("online export leaves out site facts mmctl can't read", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		expectFindings()
+		s.client.
+			EXPECT().
+			GetClientConfig(context.TODO(), "").
+			Return(nil, &model.Response{}, errors.New("forbidden")).
+			Times(1)
+		s.client.
+			EXPECT().
+			GetOldClientLicense(context.TODO(), "").
+			Return(map[string]string{"IsLicensed": "false"}, &model.Response{}, nil).
+			Times(1)
+
+		err := healthExportCmdF(s.client, s.healthTestCommand(HealthExportCmd), []string{"md"})
+		s.Require().NoError(err)
+
+		output := s.printedHealthFindings()
+		s.Contains(output, "Push notification server is not HTTPS")
+		for _, label := range []string{"Site URL", "Server version", "License", "Licensed to"} {
+			s.NotContains(output, "**"+label+":**")
+		}
+	})
+
+	s.Run("unwritable output file is an error", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		path := filepath.Join(s.T().TempDir(), "missing", "report.html")
+		expectFindings()
+		expectSite()
+
+		err := healthExportCmdF(s.client, s.healthTestCommand(HealthExportCmd, "output", path), []string{"html"})
+		s.Require().ErrorContains(err, "failed to write the health report")
+		s.Empty(printer.GetLines())
+	})
+
+	packetFiles := healthTestPacketFiles()
+	var cfg model.Config
+	s.Require().NoError(json.Unmarshal([]byte(packetFiles[model.SupportPacketConfigFileName]), &cfg))
+	cfg.LogSettings.FileLevel = model.NewPointer("DEBUG")
+	cfgJSON, err := json.Marshal(cfg)
+	s.Require().NoError(err)
+	packetFiles[model.SupportPacketConfigFileName] = string(cfgJSON)
+	packetFiles[model.SupportPacketDiagnosticsFileName] = strings.Replace(packetFiles[model.SupportPacketDiagnosticsFileName], "license:\n", "license:\n  company: Acme Corp\n  is_gov_sku: true\n", 1)
+	packetPath := s.writeHealthTestPacket(packetFiles)
+	internalTitle := "File logging at debug or trace level"
+
+	s.Run("health check of the packet includes internal findings", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+
+		s.Require().NoError(healthCheckRunE(s.healthTestCommand(HealthCheckCmd, "packet", packetPath), []string{}))
+		s.Contains(s.printedHealthFindings(), internalTitle)
+	})
+
+	for _, tc := range []struct {
+		format string
+		want   []string
+	}{
+		{"html", []string{"<!DOCTYPE html>", "<title>mm_site_health_Acme_Corp_", "<dt>Site URL</dt>"}},
+		{"md", []string{
+			"# Health report\n", "> " + healthPacketDisclaimer + "\n",
+			"- **Data collected:** " + time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04 MST") + "\n",
+			"- **Site URL:** https://chat.example.com\n", "- **Server version:** 11.0.4\n", "- **License:** Enterprise Gov\n", "- **Licensed to:** Acme Corp\n",
+		}},
+	} {
+		s.Run("packet "+tc.format+" export leaves out internal findings", func() {
+			printer.Clean()
+			printer.SetFormat(printer.FormatPlain)
+
+			s.Require().NoError(healthExportRunE(s.healthTestCommand(HealthExportCmd, "packet", packetPath), []string{tc.format}))
+
+			output := s.printedHealthFindings()
+			for _, want := range append(tc.want, "https://chat.example.com", "11.0.4", "Enterprise Gov", "Acme Corp",
+				"Evaluated locally from a Support Packet", "PushNotificationServer does not use https://") {
+				s.Contains(output, want)
+			}
+			s.NotContains(output, internalTitle)
+			s.NotContains(output, "Muted")
+		})
+	}
+
+	s.Run("packet export with no collection time says it is unknown", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		files := healthTestPacketFiles()
+		delete(files, model.PacketMetadataFileName)
+
+		s.Require().NoError(healthExportRunE(s.healthTestCommand(HealthExportCmd, "packet", s.writeHealthTestPacket(files)), []string{"md"}))
+		s.Contains(s.printedHealthFindings(), "- **Data collected:** Unknown\n")
+	})
+}
+
+func (s *MmctlUnitTestSuite) TestHealthExportRejectedInput() {
+	s.Run("--json", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatJSON)
+
+		err := healthExportRunE(s.healthTestCommand(HealthExportCmd), []string{"html"})
+		s.Require().EqualError(err, "--json cannot be used with health export")
+		s.Empty(printer.GetLines())
+	})
+
+	for _, args := range [][]string{{}, {"pdf"}, {"html", "md"}} {
+		s.Run(fmt.Sprintf("args %q", args), func() {
+			s.Require().Error(HealthExportCmd.Args(HealthExportCmd, args))
+		})
+	}
+}

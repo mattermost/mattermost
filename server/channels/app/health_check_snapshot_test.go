@@ -254,7 +254,6 @@ func TestBuildHealthSnapshotSkipsLatestVersionWithSecurityAlertsOff(t *testing.T
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
-	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-72153")
 	th := Setup(t).InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
@@ -342,7 +341,8 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 				require.NotNil(t, evaluations[i].Result.Value)
 				evaluations[i].Result.Value = nil
 				evaluations[i].Result.Details = nil
-			case "NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED":
+			case "NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED",
+				"DB_POSTS_DEAD_TUPLES", "DB_POOL_SATURATED":
 				// These set a value only when they have the numbers to compare, so none is required.
 				evaluations[i].Result.Value = nil
 				evaluations[i].Result.Details = nil
