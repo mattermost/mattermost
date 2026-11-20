@@ -125,15 +125,23 @@ test.describe('ABAC Policies - Channel Integration', () => {
         const policyOption = modal.locator('.DataGrid_row').filter({hasText: policyName}).first();
         await policyOption.click();
 
-        // Save, and wait until the channel update is stored before leaving the page.
-        const saved = systemConsolePage.page.waitForResponse(
+        // Save patches the channel, then writes the channel access policy. Wait for both
+        // before leaving the page, or the sync job runs without the linked policy.
+        const channelSaved = systemConsolePage.page.waitForResponse(
             (resp) =>
                 resp.url().includes(`/api/v4/channels/${channel.id}`) &&
                 !resp.url().includes('/search') &&
                 resp.request().method() !== 'GET',
         );
+        const policySaved = systemConsolePage.page.waitForResponse(
+            (resp) =>
+                resp.url().includes('/api/v4/access_control_policies') &&
+                !resp.url().includes('/search') &&
+                resp.request().method() === 'PUT',
+        );
         await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
-        await saved;
+        await channelSaved;
+        await policySaved;
 
         // ============================================================
         // Run sync to apply policy
