@@ -4,6 +4,11 @@ Replaces the dot-release-docs skill. For each version, from the commits on relea
 vX.Y.(Z-1), it edits five files under docs/main: the download links on the two deploy pages,
 the server releases row, the changelog entry and both version archive entries.
 
+A PR that the ``release-automation:security`` marker in the PR description lists (written by
+mattermost/release-automation, from what only it can see) is a security fix, as if it had a
+``Security`` label: kept with a vague bullet even with an opt-out label. A marker written after a
+version's entry left such a PR out adds that bullet on the next run.
+
 Never guessed: a checksum that is not published yet is written as TBD, a severity that was
 not given as <SEVERITY>, and a bullet Claude could not write as a TODO marker. Each keeps
 the run (and the PR's dot release check) failing until a person fills it in.
@@ -26,7 +31,7 @@ from changelog_release import (
 from check_config_changes_ci import _AUTO_LINE_RE as CHECKER_LINE
 from check_config_changes_ci import _scan_struct_fields
 
-from . import release_docs_pr, templates, version_archive
+from . import markers, release_docs_pr, templates, version_archive
 from .breaking_signals import signals as breaking_signals
 from .publish import TRAILER, Target, run_url, skipped_label_note, write
 from .result import Result
@@ -46,6 +51,10 @@ GO_VERSION_FILE = "server/.go-version"
 # Labels that mark a PR as a security fix. GitHub's "3: Security Review"
 # and "Security/Review code" are review steps, not fixes, so they are not listed.
 SECURITY_LABELS = {"security", "security fix", "security-fix", "securityfix", "kind/security", "type/security"}
+# The PRs mattermost/release-automation knows to be security fixes, in the PR description:
+# <!-- release-automation:security: 38479,38048 -->. Each counts as a Security label.
+SECURITY_MARKER = "release-automation:security"
+OPT_OUT_REASON = re.compile(r"^has the (.+) label, so it is left out$")
 # MDX reads a bare <SEVERITY> as a component and fails the build; escaped, it renders as is.
 SEVERITY_PLACEHOLDER = "\\<SEVERITY>"
 SEVERITY_MARK = re.compile(r"\\?<SEVERITY>")
@@ -333,8 +342,10 @@ def _config_changed(gh, commit: dict) -> bool:
     return before != after
 
 
-def gather(gh, release: Release, changelogs: list[str], claude, fetch, result: Result) -> None:
-    """Fill ``release`` from the tags: Go and plugin lines, bullets, and what was left out."""
+def gather(gh, release: Release, changelogs: list[str], claude, fetch, result: Result,
+           marked: frozenset = frozenset()) -> None:
+    """Fill ``release`` from the tags: Go and plugin lines, bullets, and what was left out. A PR
+    numbered in ``marked`` (the security marker) is a security fix, as with a Security label."""
     version, previous = release.version, release.previous
     tag, previous_tag = version.tag, previous.tag
     tag_commit = gh.commit(REPO, tag)
@@ -406,7 +417,7 @@ def gather(gh, release: Release, changelogs: list[str], claude, fetch, result: R
         # The opt-out is read from the PR whose release note is used: the original, not its backport,
         # since a backport carries Changelog/Not Needed and release-note-none whatever the original says.
         opted_out = sorted({l["name"] for l in original.get("labels", [])} & _changelog_module().NO_NOTE_LABELS)
-        security = _security(labels)
+        security = _security(labels) or bool({pr["number"], original["number"]} & marked)
         if opted_out and not security:
             # As in the changelog generator, an opt-out label settles it, even next to a release-note block.
             release.skipped.append((source, _core_title(original.get("title", "")),
@@ -650,6 +661,20 @@ def set_severity(content: str, version: Version, severity: str) -> str:
             else:
                 del lines[i]
             break
+    return "\n".join(lines)
+
+
+def add_bullet(content: str, version: Version, text: str, result: Result) -> str:
+    """``text`` as one more bullet of ``version``'s entry, before its closing line."""
+    lines = content.split("\n")
+    start = next((i for i, line in enumerate(lines) if line.startswith(f"- **{version.plain}, released ")), None)
+    if start is None:
+        result.todo(f"{changelog_path(version)} has no {version.plain} entry to add a security fix bullet to")
+        return content
+    end = next((i for i in range(start + 1, len(lines)) if not lines[i].startswith(" ")), len(lines))
+    closing = (f"  - Mattermost v{version.plain} {CLOSING_NONE}", f"  - Mattermost v{version.plain} contains the following ")
+    at = next((i for i in range(start + 1, end) if lines[i].startswith(closing)), end)
+    lines[at:at] = [f"  - {text}"]
     return "\n".join(lines)
 
 
@@ -1009,6 +1034,44 @@ def locate(gh, base: str) -> tuple[Target | None, str]:
     return Target(REPO, branch, base, branch, gh.branch_sha(REPO, branch), pr=pr), note
 
 
+def security_marked(body: str | None, result: Result) -> frozenset:
+    """The PR numbers the security marker in the PR description lists; none without one. A
+    malformed marker lists none and is a missing input."""
+    listed, problem = markers.parse(body, SECURITY_MARKER)
+    if problem:
+        result.todo(f"{problem}, so it marks no PR as a security fix")
+    if not listed:
+        return frozenset()
+    result.notes.append(f"Security fixes from the `{SECURITY_MARKER}` marker: {', '.join(s.split('/', 1)[1] for s in listed)}.")
+    return frozenset(int(s.rsplit("#", 1)[1]) for s in listed)
+
+
+def mark_security(gh, version: Version, info: dict, marked: frozenset, claude, files: dict, current,
+                  result: Result) -> None:
+    """A PR the security marker lists that ``version``'s entry left out for its opt-out label (the
+    marker came after the entry): Claude's vague bullet in the entry, as ``gather`` writes it. A PR
+    the entry already has keeps its bullet, and one the marker no longer lists keeps the bullet it
+    got; the PR lists each such bullet for a person to check or delete."""
+    kept = []
+    for source, title, reason in info["skipped"]:
+        opt_out = OPT_OUT_REASON.match(reason)
+        if not opt_out or not source.startswith("#") or int(source[1:]) not in marked:
+            kept.append([source, title, reason])
+            continue
+        pr = gh.pull(REPO, int(source[1:])) or {"title": title}
+        bullet, problem = write_bullet(claude, pr, True)
+        if problem:
+            bullet = result.todo(f"{version}: no bullet for {source} ({title}): {problem}")
+        path = changelog_path(version)
+        files[path] = add_bullet(current(path) or "", version, bullet, result)
+        url = pr.get("html_url", "")
+        info["security"].append([bullet, source, url])
+        if not problem:
+            info.setdefault("opted_out_security", []).append([bullet, source, url, opt_out.group(1)])
+        result.notes.append(f"{version}: {source} is in the `{SECURITY_MARKER}` marker, so it is no longer left out.")
+    info["skipped"] = kept
+
+
 def new_target(gh, base: str, first: Version) -> Target:
     branch = BRANCH_PREFIX + first.tag
     target = Target(REPO, branch, base, base, gh.branch_sha(REPO, base))
@@ -1064,8 +1127,10 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
     if note:
         result.notes.append(note)
     state = read_state(target.pr.get("body")) if target else read_state("")
+    marked = security_marked(target.pr.get("body") if target else None, result)
     if target and not state["order"]:
         state["order"] = versions_in_title(target.pr.get("title"))
+    in_pr = [t for t in state["order"] if t in state["versions"]]
     master = {path: gh.file(REPO, path, base) for path in (SERVER_RELEASES, ARCHIVE)}
     severities = parse_severities(env.get("SEVERITY", ""), versions, result)
     attempts, interval = int(env.get("WAIT_ATTEMPTS") or 12), float(env.get("WAIT_SECONDS") or 300)
@@ -1109,7 +1174,7 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
         release = Release(v, tabs=item[2], severity=severities.get(v.tag))
         if env.get("RELEASE_DATE", "").strip():
             release.date, release.date_source = env["RELEASE_DATE"].strip(), "from the release_date input"
-        gather(gh, release, changelogs, claude, fetch, result)
+        gather(gh, release, changelogs, claude, fetch, result, marked)
         release.checksums = checksums_for(v, fetch, attempts, interval, sleep)
         for page in DEPLOY_PAGES:
             files[page] = update_deploy(current(page) or "", v, release.tabs, page, result)
@@ -1119,6 +1184,9 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
         releases.append(release)
         state["order"].append(v.tag)
         state["versions"][v.tag] = release_state(release)
+    if marked:
+        for tag in in_pr:
+            mark_security(gh, Version.parse(tag), state["versions"][tag], marked, claude, files, current, result)
 
     for path in [SERVER_RELEASES, ARCHIVE, *DEPLOY_PAGES]:
         current(path)

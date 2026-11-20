@@ -17,12 +17,11 @@ import re
 from dataclasses import dataclass, field
 from datetime import date
 
+from . import markers
 from .result import Result
 
-PUBLIC_REPO = "mattermost/mattermost"
+PUBLIC_REPO = markers.PUBLIC_REPO
 MARKER_NAME = "release-automation:confirmed-breaking"
-MARKER = re.compile(r"<!--\s*" + re.escape(MARKER_NAME) + r"\s*:(.*?)-->", re.DOTALL)
-MARKER_ITEM = re.compile(r"^(?:(?:mattermost/mattermost)?#)?(\d+)$")
 WORDING_PLACES = {("Upgrade Impact", "Compatibility"), ("Upgrade Impact", "Database Schema Changes"),
                   ("Upgrade Impact", "config.json"), ("API Changes", None)}
 REMOVAL = re.compile(r"(?i)^(?:removed|deprecated)\b|\b(?:is|are|was|were|has been|have been) (?:removed|deprecated)\b"
@@ -51,27 +50,9 @@ class UpgradeDocs:
 
 
 def parse_marker(body: str | None) -> tuple[list[str] | None, str | None]:
-    """(the confirmed PRs as ``mattermost/mattermost#N``, a problem) from a PR description.
-
-    No marker: ``(None, None)``. An empty list or ``none``: ``([], None)``. Entries are PR
-    numbers (``39012``, ``#39012`` or ``mattermost/mattermost#39012``), separated by commas or
-    spaces. Anything else, or two markers that disagree, is a problem and confirms nothing; the
-    entries themselves are never repeated, since they may not be public."""
-    found = [" ".join(m.split()) for m in MARKER.findall(body or "")]
-    if not found:
-        return None, None
-    if len(set(found)) > 1:
-        return None, f"the description has {len(found)} `{MARKER_NAME}` markers that disagree"
-    raw = found[0]
-    if raw.lower() in ("", "none"):
-        return [], None
-    items = [part for part in re.split(r"[\s,]+", raw) if part]
-    numbers = [MARKER_ITEM.match(part) for part in items]
-    bad = sum(1 for n in numbers if n is None)
-    if bad:
-        return None, (f"the `{MARKER_NAME}` marker has {bad} entr{'y' if bad == 1 else 'ies'} that "
-                      f"{'is' if bad == 1 else 'are'} not a {PUBLIC_REPO} PR number")
-    return list(dict.fromkeys(f"{PUBLIC_REPO}#{n.group(1)}" for n in numbers)), None
+    """(the confirmed PRs as ``mattermost/mattermost#N``, a problem) from a PR description; see
+    markers.parse."""
+    return markers.parse(body, MARKER_NAME)
 
 
 def _wording(bullets: list[dict]) -> list[str]:

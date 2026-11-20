@@ -9,6 +9,7 @@ for name, value in {"GITHUB_TOKEN": "test", "REPOS": "mattermost/mattermost", "M
 
 from release_docs import __main__ as cli  # noqa: E402
 from release_docs import dot_release as dr  # noqa: E402
+from release_docs import markers  # noqa: E402
 from release_docs.result import LABEL, TODO_MARKER, Result  # noqa: E402
 from release_docs.versions import Version  # noqa: E402
 
@@ -18,6 +19,7 @@ from .fakes import FakeGitHub  # noqa: E402
 V = Version.parse
 OCT22 = "2026-10-22"
 OCT19 = "2026-10-19"
+SECURITY_MARKER = "<!-- release-automation:security: 38479, mattermost/mattermost#38048 -->"
 SECURITY_TEXT = ("Upgrading](https://docs.mattermost.com/upgrade/upgrading-mattermost-server.html) to this release is "
                  "recommended.")
 
@@ -648,6 +650,10 @@ class ConsistencyTest(unittest.TestCase):
                                   "version archive (Team Edition) 11.10.2, changelog 11.10.3"])
 
 
+def left_out(body: str) -> str:
+    return body.split("**Left out**")[1].split("**Source**")[0]
+
+
 def replay_run(day=OCT22, versions=None, severity=None, fetch=None, gh=None, live=False):
     config = dot_replay.DAYS[day]
     versions = versions or dot_replay.day_versions(day)
@@ -753,8 +759,8 @@ class DotGitHub(FakeGitHub):
 
 
 class AutomationTest(unittest.TestCase):
-    def run_day(self, gh, versions, live=True, severity=None):
-        return replay_run(versions=[V(v) for v in versions], gh=gh, live=live, severity=severity)
+    def run_day(self, gh, versions, live=True, severity=None, day=OCT22):
+        return replay_run(day, versions=[V(v) for v in versions], gh=gh, live=live, severity=severity)
 
     def test_dry_run_changes_nothing(self):
         gh = DotGitHub()
@@ -818,6 +824,41 @@ class AutomationTest(unittest.TestCase):
         self.assertNotIn(dr.SEVERITY_PLACEHOLDER, head)
         self.assertIn("Mattermost v11.11.3 contains Medium severity level security fixes.", head)
         self.assertEqual(result.todos, [])
+
+    def test_a_security_marker_written_after_the_pr_opened_keeps_those_fixes(self):
+        gh = DotGitHub(OCT19)
+        branch = "release-agent/dot-release-docs/v11.11.2"
+        self.run_day(gh, ["v11.11.2", "v11.10.3", "v11.7.13"], day=OCT19)
+        pr = gh.pulls[dr.REPO][0]
+        self.assertIn("v11.10.3: #38479 ", left_out(pr["body"]))
+        path = dr.changelog_path(V("v11.10.3"))
+        before = dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"]
+
+        edited = pr["body"] + "\n" + SECURITY_MARKER + "\n"
+        pr["body"] = edited
+        result, outcome, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)  # a marker edit passes the branch's version
+        self.assertTrue(outcome.startswith(f"Updated PR mattermost/mattermost#{pr['number']}"), outcome)
+        self.assertEqual(result.todos, [])
+        self.assertEqual(dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"], before + 2)
+        for source in ("#38479", "#38048"):
+            self.assertIn(f"**v11.10.3 security fix with the Changelog/Not Needed label**, from [{source}]", pr["body"])
+            self.assertNotIn(f"v11.10.3: {source} ", left_out(pr["body"]))
+        self.assertIn("v11.10.3: #38781 ", left_out(pr["body"]))
+        # The task's own rewrite keeps the marker, so its edit never reruns it.
+        self.assertIn(SECURITY_MARKER, pr["body"])
+        self.assertFalse(markers.changed(edited, pr["body"], dr.SECURITY_MARKER))
+
+        writes = len(gh.writes)
+        _, outcome, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
+        self.assertEqual(gh.writes[writes:], [])
+        self.assertIn("is already up to date", outcome)
+
+    def test_a_malformed_security_marker_marks_nothing(self):
+        result = Result(dr.TASK, "v12.1.1")
+        self.assertEqual(dr.security_marked("<!-- release-automation:security: 38479, MM-70601 -->", result), frozenset())
+        self.assertEqual(result.todos, ["the `release-automation:security` marker has 1 entry that is not a "
+                                        "mattermost/mattermost PR number, so it marks no PR as a security fix"])
+        self.assertEqual(dr.security_marked("No marker.", result), frozenset())
 
     def test_already_published_and_untagged_versions(self):
         result, outcome, _ = replay_run(versions=[V("v11.11.2")], gh=dot_replay.ReplayGitHub({"tag_sha v11.11.2": "x"}, before_docs()))
@@ -927,6 +968,7 @@ class ReplayTest(unittest.TestCase):
         self.assertIn("v11.10.3: #38781 Bump mattermost/pdf for content-stream array parsing fix: has the Changelog/Not Needed label, "
                       "so it is left out", result.body)
         self.assertNotIn("security fix with the Changelog/Not Needed label", result.body)
+        self.assertFalse(any(dr.SECURITY_MARKER in n for n in result.notes))  # no marker: as before it existed
         self.assertEqual(got_entries["11.7.13"]["fixed"][:2], want_entries["11.7.13"]["fixed"][:2])
         entry = dr._entry_text(got, V("v11.7.13")).split("\n")
         self.assertEqual(dot_replay.closing_kind([line.removeprefix("  - ") for line in entry[-2:]]),
@@ -936,6 +978,31 @@ class ReplayTest(unittest.TestCase):
         self.assertIn("node discovery", want)
         self.assertEqual(got_entries["11.7.13"]["fixes"], want_entries["11.7.13"]["fixes"] - 1)
         self.assertEqual(dr._entry_text(got, V("v11.7.12")), dr._entry_text(before[path], V("v11.7.12")))
+
+    def test_2026_10_19_with_the_security_marker(self):
+        """#38479 and #38048 are security fixes that no GitHub label marks; release-automation lists
+        them in the PR description's security marker, so they are kept with a vague bullet to confirm."""
+        class MarkedPR(dot_replay.ReplayGitHub):
+            def branches_with_prefix(self, repo, prefix):
+                return [prefix + "v11.11.2"]
+
+            def pulls_for_branch(self, repo, branch):
+                return [{"number": 39004, "state": "open", "title": "Dot release docs", "body": SECURITY_MARKER}]
+
+        versions = dot_replay.day_versions(OCT19)
+        gh = MarkedPR(dot_replay.load(OCT19), before_docs(OCT19))
+        result, _, _ = replay_run(OCT19, gh=gh)
+        self.assertEqual(result.todos, [])
+        after = dot_replay.read_docs(OCT19, "after", versions)
+        path = dr.changelog_path(V("v11.10.3"))
+        got = dot_replay.trim(path, result.files[path], versions)
+        got_entries, want_entries = dot_replay.entries(got)[1], dot_replay.entries(after[path])[1]
+        self.assertEqual(got_entries["11.10.3"]["fixes"], want_entries["11.10.3"]["fixes"] - 1)  # only #38781
+        for source in ("#38479", "#38048"):
+            self.assertIn(f"**v11.10.3 security fix with the Changelog/Not Needed label**, from [{source}]", result.body)
+        self.assertNotIn("#38479", left_out(result.body))
+        self.assertNotIn("#38048", left_out(result.body))
+        self.assertIn("v11.10.3: #38781 ", left_out(result.body))
 
 
 if __name__ == "__main__":
