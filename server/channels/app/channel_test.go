@@ -654,17 +654,36 @@ func TestCreateChannelMarksPropertyValueWrite(t *testing.T) {
 	}})
 	require.Nil(t, appErr)
 
-	var fieldCalls []recordedUpsert
-	for _, c := range hook.recorded() {
-		if slices.Contains(c.fields, field.ID) {
-			fieldCalls = append(fieldCalls, c)
+	callsForField := func() (fieldCalls []recordedUpsert) {
+		for _, c := range hook.recorded() {
+			if slices.Contains(c.fields, field.ID) {
+				fieldCalls = append(fieldCalls, c)
+			}
 		}
+		return fieldCalls
 	}
+	fieldCalls := callsForField()
 	require.Len(t, fieldCalls, 1)
 	assert.Equal(t, properties.WriteMarker{Kind: properties.WriteCreate, ObjectID: channel.Id}, fieldCalls[0].marker)
 	for _, target := range fieldCalls[0].targets {
 		assert.Equal(t, channel.Id, target)
 	}
+
+	// Set-on-create will trust this marker, so an ordinary write to an existing
+	// channel must stay a standard write; otherwise moving the marking into a
+	// shared write path would let edits pass as creates.
+	_, appErr = th.App.UpsertPropertyValues(th.Context, []*model.PropertyValue{{
+		GroupID:    group.ID,
+		FieldID:    field.ID,
+		TargetID:   channel.Id,
+		TargetType: model.PropertyValueTargetTypeChannel,
+		Value:      json.RawMessage(`"second"`),
+	}}, model.PropertyFieldObjectTypeChannel, channel.Id, "")
+	require.Nil(t, appErr)
+
+	fieldCalls = callsForField()
+	require.Len(t, fieldCalls, 2)
+	assert.Equal(t, properties.WriteMarker{}, fieldCalls[1].marker)
 }
 
 func TestCreateChannelSpaceRequiresEnableDocs(t *testing.T) {
