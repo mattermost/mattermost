@@ -39,7 +39,6 @@ func testOptions() Options {
 		T:             i18n.T,
 		Location:      time.UTC,
 		GeneratedAt:   generatedAt,
-		SiteName:      "Example Chat",
 		SiteURL:       "https://chat.example.com",
 		ServerVersion: "12.3.0",
 		License:       "Enterprise",
@@ -270,15 +269,21 @@ func TestBuild(t *testing.T) {
 		}
 	})
 
-	t.Run("names the file after the site and the day generated, in the report's time zone", func(t *testing.T) {
-		opts := testOptions()
-		assert.Equal(t, "site-health-Example_Chat-2026-11-18", Build(list, opts).FileName)
-
-		opts.Location = time.FixedZone("HST", -10*60*60)
-		assert.Equal(t, "site-health-Example_Chat-2026-11-17", Build(list, opts).FileName)
-
-		opts.SiteName = ""
-		assert.Equal(t, "site-health-2026-11-17", Build(list, opts).FileName)
+	t.Run("names the file after the license customer and the time generated, in Location", func(t *testing.T) {
+		for _, tc := range []struct {
+			company  string
+			location *time.Location
+			want     string
+		}{
+			{"Acme Corp.", time.UTC, "mm_site_health_Acme_Corp_2026-11-18T09-50"},
+			{"Acme Corp.", time.FixedZone("HST", -10*60*60), "mm_site_health_Acme_Corp_2026-11-17T23-50"},
+			{"", time.UTC, "mm_site_health_mattermost_2026-11-18T09-50"},
+			{"...", time.UTC, "mm_site_health_mattermost_2026-11-18T09-50"},
+		} {
+			opts := testOptions()
+			opts.Company, opts.Location = tc.company, tc.location
+			assert.Equal(t, tc.want, Build(list, opts).FileName, tc.company)
+		}
 	})
 
 	t.Run("never exports who muted a finding", func(t *testing.T) {

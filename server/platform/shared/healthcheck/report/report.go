@@ -37,13 +37,11 @@ type Options struct {
 	// was collected, or 0 if that is unknown.
 	PointInTime bool
 
-	// SiteName goes into the report's file name.
-	SiteName string
 	// SiteURL also turns each finding's System Console path into a link; without it there is none.
 	SiteURL       string
 	ServerVersion string
 	License       string
-	// Company is who the license is issued to.
+	// Company is who the license is issued to. It also names the report's file.
 	Company string
 
 	// Notes open the report, such as the Support Packet disclaimer.
@@ -52,9 +50,9 @@ type Options struct {
 
 type Report struct {
 	Title string
-	// FileName is the name, without an extension, to save the report under:
-	// site-health-<site name>-<date generated>. It also titles the HTML report, so a browser
-	// suggests it when printing to PDF.
+	// FileName is the name, without an extension, to save the report under, like the Support
+	// Packet's: mm_site_health_<company>_<YYYY-MM-DDTHH-MM>, generated in Location. It also titles
+	// the HTML report, so a browser suggests it when printing to PDF.
 	FileName    string
 	Notes       []string
 	GeneratedAt Field
@@ -141,7 +139,7 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 
 	r := &Report{
 		Title:    T("health.report.title"),
-		FileName: fileName(opts.SiteName, opts.GeneratedAt.In(location)),
+		FileName: fileName(opts.Company, opts.GeneratedAt.In(location)),
 		Notes:    opts.Notes,
 		Labels: Labels{
 			Summary:       T("health.report.label.summary"),
@@ -216,12 +214,9 @@ func Build(list *model.HealthFindingList, opts Options) *Report {
 	return r
 }
 
-func fileName(siteName string, generatedAt time.Time) string {
-	date := generatedAt.Format(time.DateOnly)
-	if name := utils.SanitizeFileName(siteName); name != "" {
-		return "site-health-" + name + "-" + date
-	}
-	return "site-health-" + date
+func fileName(company string, generatedAt time.Time) string {
+	name := cmp.Or(utils.SanitizeFileName(company), "mattermost")
+	return "mm_site_health_" + name + "_" + generatedAt.Format("2006-01-02T15-04")
 }
 
 func sectionOf(finding *model.HealthFinding) SectionKind {
