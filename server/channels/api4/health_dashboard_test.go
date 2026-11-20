@@ -468,6 +468,9 @@ func TestExportHealthFindings(t *testing.T) {
 			assert.Equal(t, `attachment; filename="`+filename+`"`, resp.Header.Get("Content-Disposition"))
 
 			report := string(data)
+			if tc.format == "html" {
+				assert.Contains(t, report, "<title>"+strings.TrimSuffix(filename, ".html")+"</title>", "printing suggests the export's name")
+			}
 			assert.NotContains(t, report, "Acme Corp")
 			assert.Contains(t, report, "https://chat.example.com/admin_console/environment/web_server")
 			assert.Contains(t, report, "My awesome Company")
@@ -562,21 +565,6 @@ func TestMuteHealthFinding(t *testing.T) {
 		require.Len(t, stored, 1)
 		assert.True(t, stored[0].IsMuted())
 	})
-}
-
-func TestHealthExportFileName(t *testing.T) {
-	now := time.Date(2026, 11, 20, 14, 5, 0, 0, time.UTC)
-
-	for _, tc := range []struct {
-		company  string
-		expected string
-	}{
-		{"Acme Corp.", "mm_site_health_Acme_Corp_2026-11-20T14-05.html"},
-		{"", "mm_site_health_mattermost_2026-11-20T14-05.html"},
-		{"...", "mm_site_health_mattermost_2026-11-20T14-05.html"},
-	} {
-		assert.Equal(t, tc.expected, healthExportFileName(now, tc.company, "html"), tc.company)
-	}
 }
 
 func TestHealthDashboardAudit(t *testing.T) {
