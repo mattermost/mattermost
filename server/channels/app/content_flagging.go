@@ -1239,8 +1239,13 @@ func (a *App) postAssignReviewerMessage(rctx request.CTX, contentFlaggingGroupId
 		}
 	}
 
-	message := fmt.Sprintf("@%s was assigned as a reviewer by @%s", reviewerUser.Username, assignedByUser.Username)
-	return a.postReviewerMessage(rctx, untranslatedMessage(message), contentFlaggingGroupId, flaggedPostId, nil, "", "")
+	renderMessage := func(T i18n.TranslateFunc) string {
+		return T("app.data_spillage.reviewer_message.assigned", map[string]any{
+			"ReviewerUsername":   reviewerUser.Username,
+			"AssignedByUsername": assignedByUser.Username,
+		})
+	}
+	return a.postReviewerMessage(rctx, renderMessage, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1249,12 +1254,8 @@ func (a *App) postDeletePostReviewerMessage(rctx request.CTX, flaggedPostId, act
 		return nil, appErr
 	}
 
-	message := fmt.Sprintf("The quarantined message was removed by @%s", actorUser.Username)
-	if comment != "" {
-		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
-	}
-
-	return a.postReviewerMessage(rctx, untranslatedMessage(message), contentFlaggingGroupId, flaggedPostId, nil, "", "")
+	renderMessage := actorDecisionMessage("app.data_spillage.reviewer_message.removed", actorUser.Username, comment)
+	return a.postReviewerMessage(rctx, renderMessage, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actorUserId, comment, contentFlaggingGroupId string) ([]*model.Post, *model.AppError) {
@@ -1263,12 +1264,8 @@ func (a *App) postKeepPostReviewerMessage(rctx request.CTX, flaggedPostId, actor
 		return nil, appErr
 	}
 
-	message := fmt.Sprintf("The quarantined message was retained by @%s", actorUser.Username)
-	if comment != "" {
-		message = fmt.Sprintf("%s\n\nWith comment:\n\n> %s", message, comment)
-	}
-
-	return a.postReviewerMessage(rctx, untranslatedMessage(message), contentFlaggingGroupId, flaggedPostId, nil, "", "")
+	renderMessage := actorDecisionMessage("app.data_spillage.reviewer_message.retained", actorUser.Username, comment)
+	return a.postReviewerMessage(rctx, renderMessage, contentFlaggingGroupId, flaggedPostId, nil, "", "")
 }
 
 func (a *App) getReporterUserId(rctx request.CTX, flaggedPostId, contentFlaggingGroupId string) (string, *model.AppError) {
@@ -1595,7 +1592,15 @@ func (a *App) sendKeepFlaggedPostNotification(rctx request.CTX, flaggedPost *mod
 	return createdPosts
 }
 
-// untranslatedMessage adapts a message that is not localized to postReviewerMessage.
-func untranslatedMessage(message string) func(i18n.TranslateFunc) string {
-	return func(i18n.TranslateFunc) string { return message }
+// actorDecisionMessage renders a reviewer's keep or remove decision, followed by their
+// comment when one was given. The comment is passed as template data, which text/template
+// inserts verbatim.
+func actorDecisionMessage(messageID, actorUsername, comment string) func(i18n.TranslateFunc) string {
+	return func(T i18n.TranslateFunc) string {
+		message := T(messageID, map[string]any{"Username": actorUsername})
+		if comment == "" {
+			return message
+		}
+		return message + "\n\n" + T("app.data_spillage.reviewer_message.with_comment", map[string]any{"Comment": comment})
+	}
 }

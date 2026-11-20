@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	goi18n "github.com/mattermost/go-i18n/i18n"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/stretchr/testify/assert"
@@ -1750,7 +1751,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test reviewer message"
-		_, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(testMessage), groupId, post.Id, nil, "", "")
+		_, appErr := th.App.postReviewerMessage(th.Context, staticMessage(testMessage), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted to the reviewer thread
@@ -1807,7 +1808,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message for multiple reviewers"
-		_, appErr = th.App.postReviewerMessage(th.Context, untranslatedMessage(testMessage), groupId, post.Id, nil, "", "")
+		_, appErr = th.App.postReviewerMessage(th.Context, staticMessage(testMessage), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted to both reviewer threads
@@ -1899,7 +1900,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message for non-flagged post"
-		_, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(testMessage), groupId, post.Id, nil, "", "")
+		_, appErr := th.App.postReviewerMessage(th.Context, staticMessage(testMessage), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 	})
 
@@ -1912,7 +1913,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
-		_, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(testMessage), groupId, post.Id, nil, "", "")
+		_, appErr := th.App.postReviewerMessage(th.Context, staticMessage(testMessage), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted correctly with special characters preserved
@@ -3397,6 +3398,11 @@ func setTwoReviewerConfig(th *TestHelper) *model.AppError {
 	return th.App.SaveContentFlaggingConfig(config)
 }
 
+// staticMessage renders the same message for every reviewer, regardless of locale.
+func staticMessage(message string) func(i18n.TranslateFunc) string {
+	return func(i18n.TranslateFunc) string { return message }
+}
+
 func countReviewerThreadReplies(t *testing.T, th *TestHelper, reviewerID, message string) int {
 	t.Helper()
 
@@ -3437,7 +3443,7 @@ func TestPostReviewerMessageTargeting(t *testing.T) {
 	t.Run("empty target posts to every reviewer thread", func(t *testing.T) {
 		message := "fan out to everyone " + model.NewId()
 
-		created, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(message), groupId, post.Id, nil, "", "")
+		created, appErr := th.App.postReviewerMessage(th.Context, staticMessage(message), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 		require.Len(t, created, 2)
 
@@ -3448,7 +3454,7 @@ func TestPostReviewerMessageTargeting(t *testing.T) {
 	t.Run("non-empty target posts only to that reviewer's thread", func(t *testing.T) {
 		message := "for the second reviewer only " + model.NewId()
 
-		created, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(message), groupId, post.Id, nil, "", th.BasicUser2.Id)
+		created, appErr := th.App.postReviewerMessage(th.Context, staticMessage(message), groupId, post.Id, nil, "", th.BasicUser2.Id)
 		require.Nil(t, appErr)
 		require.Len(t, created, 1)
 
@@ -3482,7 +3488,7 @@ func TestPostReviewerMessageTargeting(t *testing.T) {
 	t.Run("target without a review thread posts nothing", func(t *testing.T) {
 		message := "nobody should see this " + model.NewId()
 
-		created, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(message), groupId, post.Id, nil, "", th.SystemAdminUser.Id)
+		created, appErr := th.App.postReviewerMessage(th.Context, staticMessage(message), groupId, post.Id, nil, "", th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 		require.Empty(t, created)
 
@@ -3514,5 +3520,62 @@ func TestNotifyRequestingReviewerOfSkippedAttachments(t *testing.T) {
 		th.App.NotifyRequestingReviewerOfSkippedAttachments(th.Context, post.Id, th.SystemAdminUser.Id)
 
 		require.Equal(t, 0, countReviewerThreadReplies(t, th, th.SystemAdminUser.Id, message))
+	})
+}
+
+func TestReviewerActionMessagesAreLocalized(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t).InitBasic(t)
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+	require.Nil(t, setTwoReviewerConfig(th))
+
+	// de.json has no translations for these ids until translators add them, so register
+	// test-only ones to tell a de rendering apart from the English fallback.
+	require.NoError(t, goi18n.ParseTranslationFileBytes("de.json", []byte(`[
+		{"id": "app.data_spillage.reviewer_message.assigned", "translation": "[test-de] {{.ReviewerUsername}} assigned by {{.AssignedByUsername}}"},
+		{"id": "app.data_spillage.reviewer_message.removed", "translation": "[test-de] removed by {{.Username}}"},
+		{"id": "app.data_spillage.reviewer_message.retained", "translation": "[test-de] retained by {{.Username}}"},
+		{"id": "app.data_spillage.reviewer_message.with_comment", "translation": "[test-de] comment: {{.Comment}}"}
+	]`)))
+
+	_, appErr := th.App.PatchUser(th.Context, th.BasicUser2.Id, &model.UserPatch{Locale: model.NewPointer("de")}, false)
+	require.Nil(t, appErr)
+
+	post := setupFlaggedPost(t, th)
+	groupID, appErr := th.App.ContentFlaggingGroupId()
+	require.Nil(t, appErr)
+
+	// The comment carries template syntax and HTML to show it is inserted verbatim.
+	comment := "{{.Username}} <b>looked</b> & \"done\""
+
+	t.Run("assigned", func(t *testing.T) {
+		_, appErr := th.App.postAssignReviewerMessage(th.Context, groupID, post.Id, th.BasicUser.Id, th.BasicUser2.Id)
+		require.Nil(t, appErr)
+
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser.Id,
+			fmt.Sprintf("@%s was assigned as a reviewer by @%s", th.BasicUser.Username, th.BasicUser2.Username)))
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser2.Id,
+			fmt.Sprintf("[test-de] %s assigned by %s", th.BasicUser.Username, th.BasicUser2.Username)))
+	})
+
+	t.Run("retained with comment", func(t *testing.T) {
+		_, appErr := th.App.postKeepPostReviewerMessage(th.Context, post.Id, th.BasicUser.Id, comment, groupID)
+		require.Nil(t, appErr)
+
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser.Id,
+			fmt.Sprintf("The quarantined message was retained by @%s\n\nWith comment:\n\n> %s", th.BasicUser.Username, comment)))
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser2.Id,
+			fmt.Sprintf("[test-de] retained by %s\n\n[test-de] comment: %s", th.BasicUser.Username, comment)))
+	})
+
+	t.Run("removed without comment", func(t *testing.T) {
+		_, appErr := th.App.postDeletePostReviewerMessage(th.Context, post.Id, th.BasicUser.Id, "", groupID)
+		require.Nil(t, appErr)
+
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser.Id,
+			fmt.Sprintf("The quarantined message was removed by @%s", th.BasicUser.Username)))
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser2.Id,
+			fmt.Sprintf("[test-de] removed by %s", th.BasicUser.Username)))
 	})
 }
