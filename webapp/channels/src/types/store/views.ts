@@ -236,8 +236,8 @@ export type ViewsState = {
 // Channels shows channels and DMs, Boards only boards.
 export type ProductRailSection = 'channels' | 'boards';
 
-// A rail item that remembers where the user was: a section, Threads, or a product as `product:<id>`.
-export type ProductRailTab = ProductRailSection | 'threads' | `product:${string}`;
+// A rail item that remembers where the user was: a section, or a product as `product:<id>`.
+export type ProductRailTab = ProductRailSection | `product:${string}`;
 
 export type PendingQuote = {
     channelId: string;
