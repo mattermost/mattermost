@@ -34,6 +34,29 @@ describe('BurnOnReadTourTip', () => {
         expect(screen.getByText('Burn-on-read messages')).toBeInTheDocument();
     });
 
+    it('keeps the Compass title font under the host heading rule', () => {
+        document.body.classList.add('app__body');
+        const hostHeadings = document.createElement('style');
+        hostHeadings.textContent = '.app__body h1, .app__body h2, .app__body h3 { font-family: Metropolis, sans-serif; }';
+        document.head.appendChild(hostHeadings);
+
+        try {
+            renderWithContext(
+                <>
+                    <button id='burnOnReadButton'>{'Burn-on-read'}</button>
+                    <BurnOnReadTourTip onTryItOut={onTryItOut}/>
+                </>,
+            );
+
+            expect(screen.getByRole('heading', {name: /Burn-on-read messages/})).toHaveStyle({
+                fontFamily: 'var(--font-family-body)',
+            });
+        } finally {
+            hostHeadings.remove();
+            document.body.classList.remove('app__body');
+        }
+    });
+
     it('enables burn-on-read from Try it out', async () => {
         renderWithContext(
             <>

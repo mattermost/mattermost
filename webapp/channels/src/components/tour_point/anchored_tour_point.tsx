@@ -26,6 +26,11 @@ const passThroughStyles = `
 .anchored-tour-point button * {
     pointer-events: auto;
 }
+
+/* .app__body h2 sets Metropolis and beats the title class. */
+.app__body .anchored-tour-point h2 {
+    font-family: var(--font-family-body);
+}
 `;
 
 // The pointer hangs 9px past the card. Its tip is --spacing-xl (20px) in from
