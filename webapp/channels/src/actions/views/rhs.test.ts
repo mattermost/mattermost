@@ -25,6 +25,7 @@ import {
     showFlaggedPosts,
     showPinnedPosts,
     showMentions,
+    showEntity,
     closeRightHandSide,
     showRHSPlugin,
     hideRHSPlugin,
@@ -50,7 +51,7 @@ import {TestHelper} from 'utils/test_helper';
 import {getUtcOffsetForTimeZone} from 'utils/timezone';
 
 import type {GlobalState} from 'types/store';
-import type {MentionFilters, RhsState} from 'types/store/rhs';
+import type {EntitySelection, MentionFilters, RhsState} from 'types/store/rhs';
 import type {ViewsState} from 'types/store/views';
 
 const currentChannelId = '123';
@@ -1142,6 +1143,25 @@ describe('rhs view actions', () => {
             store.dispatch(unsuppressRHS);
             expect(store.getActions()).toEqual([{
                 type: ActionTypes.UNSUPPRESS_RHS,
+            }]);
+        });
+    });
+
+    describe('showEntity', () => {
+        it('opens the entity sidebar with the selection', () => {
+            const entity: EntitySelection = {
+                typeId: 'mm:time',
+                value: '16:30',
+                label: 'Time',
+                postId: 'post1',
+                occurrence: '0:5',
+            };
+            store.dispatch(showEntity(entity));
+
+            expect(store.getActions()).toEqual([{
+                type: ActionTypes.UPDATE_RHS_STATE,
+                state: RHSStates.ENTITY,
+                entity,
             }]);
         });
     });
