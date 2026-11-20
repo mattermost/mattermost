@@ -60,7 +60,6 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
         content = (
             <img
                 alt={`${emoji.name.toLocaleLowerCase()} emoji`}
-                data-testid={emoji.short_names}
                 src={imgTrans}
                 className={`emojisprite emoji-category-${emoji.category} emoji-${emojiUnified}`}
                 id={`emoji-${emojiUnified}`}
@@ -70,11 +69,17 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
         content = (
             <img
                 alt={'custom emoji'}
-                data-testid={emoji.name}
                 src={getEmojiImageUrl(emoji)}
                 className={'emoji-category--custom'}
             />
         );
+    }
+
+    let emojiTestId;
+    if (isSystemEmoji(emoji)) {
+        emojiTestId = `emoji_picker.system_emoji:${emoji.short_name}--button`;
+    } else {
+        emojiTestId = `emoji_picker.custom_emoji:${emoji.name}--button`;
     }
 
     return (
@@ -82,7 +87,7 @@ function EmojiPickerItem({emoji, rowIndex, isSelected, onClick, onMouseOver}: Pr
             className={itemClassName}
             onClick={handleClick}
             onMouseOver={throttledMouseOver}
-            data-testid='emojiItem'
+            data-testid={emojiTestId}
             tabIndex={-1}
             type='button'
             id={emoji.name.toLocaleLowerCase().replaceAll(' ', '_')}

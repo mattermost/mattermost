@@ -23,65 +23,65 @@ describe('TextFormatting.Hashtags with default setting', () => {
 
     it('Hashtags', () => {
         expect(TextFormatting.formatText('#test', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test'>#test</a></p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a></p>",
         );
 
         expect(TextFormatting.formatText('#test123', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test123'>#test123</a></p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test123'>#test123</a></p>",
         );
 
         expect(TextFormatting.formatText('#test-test', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test-test'>#test-test</a></p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test-test'>#test-test</a></p>",
         );
 
         expect(TextFormatting.formatText('#test_test', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test_test'>#test_test</a></p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test_test'>#test_test</a></p>",
         );
 
         expect(TextFormatting.formatText('#test.test', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test.test'>#test.test</a></p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test.test'>#test.test</a></p>",
         );
 
         expect(TextFormatting.formatText('#test1/#test2', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test1'>#test1</a>/<a class='mention-link' href='#' data-hashtag='#test2'>#test2</a></p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test1'>#test1</a>/<a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test2'>#test2</a></p>",
         );
 
         expect(TextFormatting.formatText('(#test)', {}, emojiMap).trim()).toBe(
-            "<p>(<a class='mention-link' href='#' data-hashtag='#test'>#test</a>)</p>",
+            "<p>(<a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a>)</p>",
         );
 
         expect(TextFormatting.formatText('#test-', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test'>#test</a>-</p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a>-</p>",
         );
 
         expect(TextFormatting.formatText('#test.', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test'>#test</a>.</p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a>.</p>",
         );
 
         expect(TextFormatting.formatText('This is a sentence #test containing a hashtag', {}, emojiMap).trim()).toBe(
-            "<p>This is a sentence <a class='mention-link' href='#' data-hashtag='#test'>#test</a> containing a hashtag</p>",
+            "<p>This is a sentence <a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a> containing a hashtag</p>",
         );
     });
 
     it('Formatted hashtags', () => {
         expect(TextFormatting.formatText('*#test*', {}, emojiMap).trim()).toBe(
-            "<p><em><a class='mention-link' href='#' data-hashtag='#test'>#test</a></em></p>",
+            "<p><em><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a></em></p>",
         );
 
         expect(TextFormatting.formatText('_#test_', {}, emojiMap).trim()).toBe(
-            "<p><em><a class='mention-link' href='#' data-hashtag='#test'>#test</a></em></p>",
+            "<p><em><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a></em></p>",
         );
 
         expect(TextFormatting.formatText('**#test**', {}, emojiMap).trim()).toBe(
-            "<p><strong><a class='mention-link' href='#' data-hashtag='#test'>#test</a></strong></p>",
+            "<p><strong><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a></strong></p>",
         );
 
         expect(TextFormatting.formatText('__#test__', {}, emojiMap).trim()).toBe(
-            "<p><strong><a class='mention-link' href='#' data-hashtag='#test'>#test</a></strong></p>",
+            "<p><strong><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a></strong></p>",
         );
 
         expect(TextFormatting.formatText('~~#test~~', {}, emojiMap).trim()).toBe(
-            "<p><del><a class='mention-link' href='#' data-hashtag='#test'>#test</a></del></p>",
+            "<p><del><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test'>#test</a></del></p>",
         );
 
         expect(TextFormatting.formatText('`#test`', {}, emojiMap).trim()).toBe(
@@ -95,25 +95,25 @@ describe('TextFormatting.Hashtags with default setting', () => {
         );
 
         expect(TextFormatting.formatText('[this is a link #test](example.com)', {}, emojiMap).trim()).toBe(
-            '<p><a class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">this is a link #test</a></p>',
+            '<p><a data-testid="markdown.link--link" class="theme markdown__link" href="http://example.com" rel="noreferrer" target="_blank">this is a link #test</a></p>',
         );
     });
 
     it('Searching for hashtags', () => {
         expect(TextFormatting.formatText('#test', {searchTerm: 'test'}, emojiMap).trim()).toBe(
-            '<p><span class="search-highlight" data-testid="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#test\'>#test</a></span></p>',
+            '<p><span class="search-highlight" data-testid="markdown.search_highlight--text"><a data-testid=\'markdown.hashtag--link\' class=\'mention-link\' href=\'#\' data-hashtag=\'#test\'>#test</a></span></p>',
         );
 
         expect(TextFormatting.formatText('#test', {searchTerm: '#test'}, emojiMap).trim()).toBe(
-            '<p><span class="search-highlight" data-testid="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#test\'>#test</a></span></p>',
+            '<p><span class="search-highlight" data-testid="markdown.search_highlight--text"><a data-testid=\'markdown.hashtag--link\' class=\'mention-link\' href=\'#\' data-hashtag=\'#test\'>#test</a></span></p>',
         );
 
         expect(TextFormatting.formatText('#foo/#bar', {searchTerm: '#foo'}, emojiMap).trim()).toBe(
-            '<p><span class="search-highlight" data-testid="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#foo\'>#foo</a></span>/<a class=\'mention-link\' href=\'#\' data-hashtag=\'#bar\'>#bar</a></p>',
+            '<p><span class="search-highlight" data-testid="markdown.search_highlight--text"><a data-testid=\'markdown.hashtag--link\' class=\'mention-link\' href=\'#\' data-hashtag=\'#foo\'>#foo</a></span>/<a data-testid=\'markdown.hashtag--link\' class=\'mention-link\' href=\'#\' data-hashtag=\'#bar\'>#bar</a></p>',
         );
 
         expect(TextFormatting.formatText('#foo/#bar', {searchTerm: 'bar'}, emojiMap).trim()).toBe(
-            '<p><a class=\'mention-link\' href=\'#\' data-hashtag=\'#foo\'>#foo</a>/<span class="search-highlight" data-testid="search-highlight"><a class=\'mention-link\' href=\'#\' data-hashtag=\'#bar\'>#bar</a></span></p>',
+            '<p><a data-testid=\'markdown.hashtag--link\' class=\'mention-link\' href=\'#\' data-hashtag=\'#foo\'>#foo</a>/<span class="search-highlight" data-testid="markdown.search_highlight--text"><a data-testid=\'markdown.hashtag--link\' class=\'mention-link\' href=\'#\' data-hashtag=\'#bar\'>#bar</a></span></p>',
         );
 
         expect(TextFormatting.formatText('not#test', {searchTerm: '#test'}, emojiMap).trim()).toBe(
@@ -144,7 +144,7 @@ describe('TextFormatting.Hashtags with default setting', () => {
             team: {id: 'abcd', name: 'abcd', display_name: 'Alphabet'},
         };
         expect(TextFormatting.formatText('#~test', options, emojiMap).trim()).toBe(
-            '<p>#<a class="mention-link" href="/abcd/channels/test" data-channel-mention="test">~Test Channel</a></p>',
+            '<p>#<a data-testid="markdown.channel_mention--link" class="mention-link" href="/abcd/channels/test" data-channel-mention="test">~Test Channel</a></p>',
         );
 
         expect(TextFormatting.formatText('#:mattermost:', {}, emojiMap).trim()).toBe(
@@ -152,7 +152,7 @@ describe('TextFormatting.Hashtags with default setting', () => {
         );
 
         expect(TextFormatting.formatText('#test@example.com', {}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#test@example.com'>#test@example.com</a></p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#test@example.com'>#test@example.com</a></p>",
         );
     });
 });
@@ -160,10 +160,10 @@ describe('TextFormatting.Hashtags with default setting', () => {
 describe('TextFormatting.Hashtags with various settings', () => {
     it('Boundary of MinimumHashtagLength', () => {
         expect(TextFormatting.formatText('#疑問', {minimumHashtagLength: 2}, emojiMap).trim()).toBe(
-            "<p><a class='mention-link' href='#' data-hashtag='#疑問'>#疑問</a></p>",
+            "<p><a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#疑問'>#疑問</a></p>",
         );
         expect(TextFormatting.formatText('This is a sentence #疑問 containing a hashtag', {minimumHashtagLength: 2}, emojiMap).trim()).toBe(
-            "<p>This is a sentence <a class='mention-link' href='#' data-hashtag='#疑問'>#疑問</a> containing a hashtag</p>",
+            "<p>This is a sentence <a data-testid='markdown.hashtag--link' class='mention-link' href='#' data-hashtag='#疑問'>#疑問</a> containing a hashtag</p>",
         );
 
         expect(TextFormatting.formatText('#疑', {minimumHashtagLength: 2}, emojiMap).trim()).toBe(

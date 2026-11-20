@@ -38,6 +38,9 @@ import './channel_move_to_sub_menu.scss';
 type Props = {
     channel: Channel;
     inHeaderDropdown?: boolean;
+
+    /** The menu it is in: renders `${testIdScope}.move_to--menuitem`, its items `${testIdScope}.move_to_menu.category:<id>--menuitem` and `.new_category--menuitem`. */
+    testIdScope?: string;
 };
 
 const ChannelMoveToSubMenu = (props: Props) => {
@@ -115,6 +118,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
                 <Menu.Item
                     id={`moveToCategory-${props.channel.id}-${category.id}`}
                     key={`moveToCategory-${props.channel.id}-${category.id}`}
+                    data-testid={props.testIdScope ? `${props.testIdScope}.move_to_menu.category:${category.id}--menuitem` : undefined}
                     leadingElement={category.type === CategoryTypes.FAVORITES ? (<StarOutlineIcon size={18}/>) : (<FolderOutlineIcon size={18}/>)}
                     labels={text}
                     trailingElements={selectedCategory}
@@ -128,6 +132,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
             <Menu.Item
                 id={`moveToNewCategory-${props.channel.id}`}
                 key={`moveToNewCategory-${props.channel.id}`}
+                data-testid={props.testIdScope ? `${props.testIdScope}.move_to_menu.new_category--menuitem` : undefined}
                 aria-haspopup={true}
                 leadingElement={<FolderMoveOutlineIcon size={18}/>}
                 labels={
@@ -195,6 +200,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
                 <div className='ChannelMoveToSubMenu__disabledContainer'>
                     <Menu.Item
                         id={`moveTo-${props.channel.id}`}
+                        data-testid={props.testIdScope ? `${props.testIdScope}.move_to--menuitem` : undefined}
                         labels={
                             <FormattedMessage
                                 id='sidebar_left.sidebar_channel_menu.moveTo'
@@ -213,6 +219,7 @@ const ChannelMoveToSubMenu = (props: Props) => {
     return (
         <Menu.SubMenu
             id={`moveTo-${props.channel.id}`}
+            data-testid={props.testIdScope ? `${props.testIdScope}.move_to--menuitem` : undefined}
             labels={
                 <FormattedMessage
                     id='sidebar_left.sidebar_channel_menu.moveTo'

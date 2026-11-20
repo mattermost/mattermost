@@ -1,7 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Locator} from '@playwright/test';
+
 import {expect, test} from '@mattermost/playwright-lib';
+
+/** Waits until the element stops moving (a sliding menu has finished its entrance animation). */
+async function toBeStill(element: Locator) {
+    let previous = '';
+    await expect
+        .poll(async () => {
+            const box = await element.boundingBox();
+            const current = JSON.stringify(box);
+            const still = Boolean(box) && current === previous;
+            previous = current;
+            return still;
+        })
+        .toBe(true);
+}
 
 test.describe('Mobile view RHS auto-focus', () => {
     // Shrink the window's width to trigger mobile view
@@ -14,36 +30,38 @@ test.describe('Mobile view RHS auto-focus', () => {
         'opens thread in mobile view without ever focusing the mobile search input',
         {tag: '@search'},
         async ({pw, isMobile}) => {
-            const {user} = await pw.initSetup();
+            const {user, team, userClient, townSquare} = await pw.initSetup();
+            // # Make a post, then log in and go to its channel
+            const root = await userClient.createPost({
+                channel_id: townSquare.id,
+                message: 'Root message for mobile thread focus test',
+            });
+            const {app, page} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: townSquare});
+            const rootPost = app.center.postList.post(root);
+            await expect(rootPost.message.container).toBeVisible();
 
-            // # Log in
-            const {channelsPage, page} = await pw.testBrowser.login(user);
-
-            // # Go to a channel
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
-
-            // # Make a post
-            await channelsPage.centerView.postCreate.postMessage('Root message for mobile thread focus test');
-
-            // # Set up a listener to track if the search box ever gets focus
-            await page.evaluate(() => {
+            // # Set up a listener to track if the mobile search input ever gets focus
+            const searchInputTestId = 'search.mobile_bar.input--textbox';
+            await page.evaluate((testId) => {
                 (window as any).sbrSearchBoxFocusCount = 0;
                 document.addEventListener('focusin', (e) => {
-                    if (e.target && 'id' in e.target && e.target.id === 'sbrSearchBox') {
+                    if (e.target instanceof HTMLElement && e.target.dataset.testid === testId) {
                         (window as any).sbrSearchBoxFocusCount += 1;
                     }
                 });
-            });
+            }, searchInputTestId);
 
             // # Open the thread
-            const lastPost = await channelsPage.getLastPost();
-            await lastPost.openAThread();
-            await channelsPage.sidebarRight.toBeVisible();
+            await rootPost.container.hover();
+            await rootPost.menu.replyButton.click();
+            await expect(app.rhs.postCreate.message.container).toBeVisible();
+            const rhsInput = app.rhs.postCreate.message.container;
+            await expect(rhsInput).toBeVisible();
 
             // * Verify that the textbox is automatically focused on non-mobile devices
             if (!isMobile) {
-                await expect(channelsPage.sidebarRight.postCreate.input).toBeFocused();
+                await expect(rhsInput).toBeFocused();
             }
 
             // * Verify the mobile RHS search input never received focus
@@ -56,59 +74,45 @@ test.describe('Mobile view RHS auto-focus', () => {
      * @objective Opening the search RHS auto-focuses the search input in the RHS
      */
     test('opens search RHS in mobile view and focuses the mobile search input', {tag: '@search'}, async ({pw}) => {
-        const {user} = await pw.initSetup();
-
-        // # Log in as the test user
-        const {channelsPage} = await pw.testBrowser.login(user);
-
-        // # Visit a default channel page
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        const {user, team, townSquare} = await pw.initSetup();
+        // # Log in as the test user and visit a default channel page
+        const {app} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
 
         // # Click the mobile channel header search button to open the search RHS
-        await channelsPage.mobileNavbar.openSearch();
-        await channelsPage.sidebarRight.toBeVisible();
+        await app.mobileHeader.searchButton.click();
 
         // * Verify the mobile RHS search input is focused
-        await expect(channelsPage.sidebarRight.mobileSearchInput).toBeFocused();
+        await expect(app.search.mobileBar.inputTextbox).toBeFocused();
     });
 
     /**
      * @objective Tapping the mobile menu backdrop should dismiss/close the modal
      */
     test('closes mobile menu when clicking the backdrop layer', {tag: '@mobile'}, async ({pw}) => {
-        const {user} = await pw.initSetup();
-
+        const {user, team, townSquare} = await pw.initSetup();
         // # Log in as the test user and navigate to channels page
-        const {channelsPage, page} = await pw.testBrowser.login(user);
-        await channelsPage.goto();
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(user);
+        await app.channelsPage.goto({team, channel: townSquare});
 
-        // # Wait for the mobile navbar's channel menu button to render. Right after page load
-        // the app can still be settling into mobile layout; opening the menu before that
-        // settles races the header page object's one-shot visibility check, which then falls
-        // back to the desktop header's copy of the button -- permanently hidden at this
-        // viewport width -- and times out.
-        await expect(page.locator('#navbar #channelHeaderDropdownButton')).toBeVisible();
+        // # Open the mobile channel header menu (on mobile it opens as a modal)
+        await app.mobileHeader.openMenuButton.click();
+        const menu = app.channelHeader.menu;
 
-        // # Open the mobile channel header menu
-        await channelsPage.centerView.header.openChannelMenu();
-
-        // # Define the mobile menu modal locator
-        const menuModal = page.locator('.modal-dialog.menuModal');
-
-        // * Verify the menu modal is visible after the click
-        await expect(menuModal).toBeVisible();
+        // * Verify the menu is open
+        const item = menu.toggleFavoriteMenuItem;
+        await expect(item).toBeVisible();
 
         // # Wait for the modal's entrance animation to finish. Until it does, the menu is still
         // # sliding down through the top-left corner, so the click below would land on a menu item
-        await expect(menuModal.locator('..')).toHaveCSS('opacity', '1');
+        // The animation check compares bounding boxes, which requires a Locator.
+        await toBeStill(item.locator);
 
         // # Click the modal's backdrop layer outside the menu content
         await page.mouse.click(5, 5);
 
         // * Verify the mobile menu modal is now successfully dismissed/hidden
-        await expect(menuModal).toBeHidden();
+        await expect(item).toBeHidden();
     });
 
     /**
@@ -120,39 +124,35 @@ test.describe('Mobile view RHS auto-focus', () => {
         'MM-T349 MM-T369 search icon in narrow view opens search, searches, and closes back to icon',
         {tag: '@search'},
         async ({pw}) => {
-            const {user} = await pw.initSetup();
-
-            // # Log in as the test user
-            const {channelsPage} = await pw.testBrowser.login(user);
-
-            // # Visit a default channel page and post a message to search for
-            await channelsPage.goto();
-            await channelsPage.toBeVisible();
+            const {user, team, userClient, townSquare} = await pw.initSetup();
+            // # Post a message to search for, then log in and visit a default channel page
             const message = `test message for narrow view search ${pw.random.id()}`;
-            await channelsPage.centerView.postCreate.postMessage(message);
+            const post = await userClient.createPost({channel_id: townSquare.id, message});
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: townSquare});
 
             // * Verify the icon-only Search button is shown in the narrow-width header
-            await expect(channelsPage.mobileNavbar.searchButton).toBeVisible();
+            const searchButton = app.mobileHeader.searchButton;
+            await expect(searchButton).toBeVisible();
 
             // # Click it to open the RHS search panel
-            await channelsPage.mobileNavbar.openSearch();
-            await channelsPage.sidebarRight.toBeVisible();
-            const {mobileSearchInput} = channelsPage.sidebarRight;
-            await expect(mobileSearchInput).toBeFocused();
+            await app.mobileHeader.searchButton.click();
+            const input = app.search.mobileBar.inputTextbox;
+            await expect(input).toBeFocused();
 
             // # Perform a search
-            await mobileSearchInput.fill(message);
-            await mobileSearchInput.press('Enter');
+            await input.fill(message);
+            await input.press('Enter');
 
             // * Verify search results appear
-            await channelsPage.searchResultsPanel.toContainText(message);
+            await expect(app.search.results.post(post).message.container).toHaveText(message);
 
             // # Close the search panel
-            await channelsPage.sidebarRight.closeMobile();
+            await app.search.mobileBar.backButton.click();
 
             // * Verify it collapses back to the icon-only Search button
-            await expect(channelsPage.sidebarRight.container).not.toBeVisible();
-            await expect(channelsPage.mobileNavbar.searchButton).toBeVisible();
+            await expect(input).not.toBeVisible();
+            await expect(searchButton).toBeVisible();
         },
     );
 });

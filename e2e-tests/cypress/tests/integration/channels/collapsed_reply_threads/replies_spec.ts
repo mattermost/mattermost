@@ -206,7 +206,7 @@ describe('Collapsed Reply Threads', () => {
             cy.wait(TIMEOUTS.ONE_SEC);
 
             // * RHS should open and the editor's actions should be visible.
-            cy.get('#rhsContainer').findByTestId('SendMessageButton').should('be.visible');
+            cy.get('#rhsContainer').findByTestId('rhs.post_create.send--button').should('be.visible');
 
             // # Close RHS
             cy.uiCloseRHS();
@@ -216,10 +216,10 @@ describe('Collapsed Reply Threads', () => {
 
             // # Paste a multiline string in the RHS textbox.
             const text = 'word '.repeat(2000);
-            cy.get('#rhsContainer').findByTestId('reply_textbox').clear().invoke('val', text).trigger('input');
+            cy.get('#rhsContainer').findByTestId('rhs.post_create.message--textbox').clear().invoke('val', text).trigger('input');
 
             // * RHS should open and the editor should be visible and focused
-            cy.get('#rhsContainer').findByTestId('SendMessageButton').scrollIntoView().should('be.visible');
+            cy.get('#rhsContainer').findByTestId('rhs.post_create.send--button').scrollIntoView().should('be.visible');
         });
     });
 });

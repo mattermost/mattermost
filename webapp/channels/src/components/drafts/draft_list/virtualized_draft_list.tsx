@@ -202,6 +202,7 @@ function RowComponent({index, style, data: {drafts, userDisplayName, draftRemote
                     user={currentUser}
                     status={userStatus}
                     isRemote={draftRemotes?.[draft.key]}
+                    position={index}
                 />
             </div>
         </div>

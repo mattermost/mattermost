@@ -216,7 +216,7 @@ describe('PostComponent', () => {
                 state,
             );
 
-            expect(screen.getByTestId('post-attributes-chips')).toBeInTheDocument();
+            expect(screen.getByTestId('center.post_list.post.attributes')).toBeInTheDocument();
             expect(screen.getByText('SECRET')).toBeInTheDocument();
         });
 
@@ -229,7 +229,7 @@ describe('PostComponent', () => {
                 state,
             );
 
-            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
             expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
         });
 
@@ -243,7 +243,7 @@ describe('PostComponent', () => {
                 state,
             );
 
-            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes')).not.toBeInTheDocument();
             expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
         });
 
@@ -261,7 +261,7 @@ describe('PostComponent', () => {
                 state,
             );
 
-            expect(screen.queryByTestId('post-attributes-chips-unavailable')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attributes_unavailable')).not.toBeInTheDocument();
         });
     });
 
@@ -560,8 +560,8 @@ describe('PostComponent', () => {
             };
 
             const {container} = renderWithContext(<PostComponent {...props}/>, state);
-            expect(screen.getByTestId('fileAttachmentList')).toBeInTheDocument();
-            const tiles = container.querySelectorAll('[data-testid="media-gallery-tile"]');
+            expect(screen.getByTestId('center.post_list.post.attachments')).toBeInTheDocument();
+            const tiles = container.querySelectorAll('[data-testid*=".attachments.file:"]');
             expect(tiles).toHaveLength(3);
             expect(tiles[0]?.getAttribute('data-file-name')).toBe(fileInfo1.name);
             expect(tiles[1]?.getAttribute('data-file-name')).toBe(fileInfo2.name);
@@ -658,7 +658,7 @@ describe('PostComponent', () => {
             expect(container.querySelectorAll('.post-image__column')[2]).toHaveTextContent(fileInfo3.name);
 
             // additionally, files should not be visible outside the advanced text editor
-            expect(screen.queryByTestId('fileAttachmentList')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.attachments')).not.toBeInTheDocument();
         });
     });
 
@@ -678,7 +678,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+            expect(screen.getByTestId('center.post_list.post.priority_label')).toBeInTheDocument();
         });
 
         test('should show priority label for non-deleted post with important priority metadata', () => {
@@ -696,7 +696,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
+            expect(screen.getByTestId('center.post_list.post.priority_label')).toBeInTheDocument();
         });
 
         test('should not show priority label for deleted post with priority metadata', () => {
@@ -715,7 +715,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.priority_label')).not.toBeInTheDocument();
         });
 
         test('should not show priority label for deleted post with important priority metadata', () => {
@@ -734,7 +734,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.priority_label')).not.toBeInTheDocument();
         });
 
         test('should not show priority label for post without priority metadata', () => {
@@ -746,7 +746,7 @@ describe('PostComponent', () => {
             };
             renderWithContext(<PostComponent {...props}/>);
 
-            expect(screen.queryByTestId('post-priority-label')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('center.post_list.post.priority_label')).not.toBeInTheDocument();
         });
     });
 

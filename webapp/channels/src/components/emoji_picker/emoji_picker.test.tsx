@@ -82,7 +82,7 @@ describe('components/emoji_picker/EmojiPicker', () => {
             <EmojiPicker {...props}/>,
         );
 
-        expect(screen.queryByTestId('emojiPickerCategories')).toBeNull();
+        expect(screen.queryAllByTestId(/^emoji_picker\.categories\.category:/)).toHaveLength(0);
     });
 
     test('Categories should be visible when filter is empty', () => {
@@ -95,6 +95,6 @@ describe('components/emoji_picker/EmojiPicker', () => {
             <EmojiPicker {...props}/>,
         );
 
-        expect(screen.queryByTestId('emojiPickerCategories')).not.toBeNull();
+        expect(screen.queryAllByTestId(/^emoji_picker\.categories\.category:/).length).toBeGreaterThan(0);
     });
 });

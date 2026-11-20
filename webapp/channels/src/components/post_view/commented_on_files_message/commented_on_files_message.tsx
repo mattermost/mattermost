@@ -12,10 +12,13 @@ type Props = {
      * An array of file metadata for the parent post
      */
     fileInfos?: FileInfo[];
+
+    testId?: string;
 };
 
 const CommentedOnFilesMessage = ({
     fileInfos,
+    testId,
 }: Props) => {
     if (!fileInfos?.length) {
         return null;
@@ -35,7 +38,7 @@ const CommentedOnFilesMessage = ({
     }
 
     return (
-        <span data-testid='fileInfo'>
+        <span data-testid={testId ? `${testId}--text` : undefined}>
             {fileInfos[0].name}
             {plusMore}
         </span>

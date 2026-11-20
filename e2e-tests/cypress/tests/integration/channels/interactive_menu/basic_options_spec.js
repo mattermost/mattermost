@@ -86,7 +86,7 @@ describe('Interactive Menu', () => {
         cy.get('@postMmBlocks').scrollIntoView().within(() => {
             cy.contains('.mm-blocks-text', payload.attachments[0].pretext).should('be.visible');
             cy.contains('.mm-blocks-text', payload.attachments[0].text).should('be.visible');
-            cy.findByTestId('autoCompleteSelector').should('be.visible');
+            cy.get('[data-testid^="center.post_list.post.action_select:"]').should('be.visible');
             cy.get('.select-suggestion-container').should('be.visible');
 
             // * Suggestion list should not be visible before dropdown is clicked
@@ -583,7 +583,7 @@ const MM_BLOCKS_SELECT_WIDTH = '220px';
 const MM_BLOCKS_SELECT_PADDING_RIGHT = '24px';
 
 function verifyMessageAttachmentListContent(isRhs, text) {
-    cy.findByTestId('autoCompleteSelector').should('be.visible');
+    cy.get(isRhs ? '[data-testid^="rhs.thread.post.action_select:"]' : '[data-testid^="center.post_list.post.action_select:"]').should('be.visible');
 
     if (isRhs) {
         // * Verify that the selected option from center view matches the one in RHS

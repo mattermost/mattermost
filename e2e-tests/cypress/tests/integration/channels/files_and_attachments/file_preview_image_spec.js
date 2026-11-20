@@ -142,7 +142,7 @@ describe('Upload Files - Image', () => {
         // * Image is scaled up — match only scale values strictly greater than 1
         //   (e.g. scale(1.25), scale(2)), so a transform of scale(1) or no
         //   scale at all would fail this assertion.
-        cy.get('@filePreviewModal').find('[data-testid="imagePreview"]').
+        cy.get('@filePreviewModal').find('[data-testid="file_preview_modal.image--img"]').
             should('have.attr', 'style').
             and('match', /scale\((?:1\.\d+|[2-9]\d*(?:\.\d+)?)\)/);
 
@@ -150,7 +150,7 @@ describe('Upload Files - Image', () => {
         cy.get('body').type('0');
 
         // * Image transform clears (no scale applied at default 1.0)
-        cy.get('@filePreviewModal').find('[data-testid="imagePreview"]').then(($img) => {
+        cy.get('@filePreviewModal').find('[data-testid="file_preview_modal.image--img"]').then(($img) => {
             const style = $img.attr('style') || '';
             expect(style).to.not.match(/scale\([0-9.]+\)/);
         });

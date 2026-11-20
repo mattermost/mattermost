@@ -116,8 +116,10 @@ const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
             {!dmUser.user.is_bot && (
                 <ChannelHeader>
                     <EditableArea
+                        testId='rhs.channel_info.about.header'
                         content={channel.header && (
                             <LineLimiter
+                                testId='rhs.channel_info.about.header'
                                 maxLines={4}
                                 lineHeight={20}
                                 moreText={formatMessage({id: 'channel_info_rhs.about_area.channel_header.line_limiter.more', defaultMessage: 'more'})}
@@ -134,7 +136,7 @@ const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
                 </ChannelHeader>
             )}
 
-            <ChannelId>
+            <ChannelId data-testid='rhs.channel_info.about.dm_id'>
                 {formatMessage({id: 'channel_info_rhs.about_area_id', defaultMessage: 'ID:'})} {channel.id}
             </ChannelId>
         </>

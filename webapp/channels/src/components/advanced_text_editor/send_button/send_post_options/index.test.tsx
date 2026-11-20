@@ -142,16 +142,16 @@ describe('SendPostOptions', () => {
 
             openMenu();
             expectMenuOpenedAsModal(rendersAsModal);
-            expect(screen.getByTestId('scheduling_time_tomorrow_9_am')).toBeVisible();
+            expect(screen.getByTestId('send_post_options.menu.tomorrow_9_am--menuitem')).toBeVisible();
 
-            fireEvent.click(screen.getByTestId('scheduling_time_tomorrow_9_am'));
+            fireEvent.click(screen.getByTestId('send_post_options.menu.tomorrow_9_am--menuitem'));
             runPendingTimers();
 
             expect(onSelect).toHaveBeenCalledTimes(1);
             expect(onSelect).toHaveBeenCalledWith({scheduled_at: tomorrowAt9am});
 
             // A menu left open lets the same draft be scheduled repeatedly
-            expect(screen.queryByTestId('scheduling_time_tomorrow_9_am')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('send_post_options.menu.tomorrow_9_am--menuitem')).not.toBeInTheDocument();
         });
 
         it('schedules the message once and closes the menu when the recently used custom time is selected', () => {
@@ -169,12 +169,12 @@ describe('SendPostOptions', () => {
             openMenu();
             expectMenuOpenedAsModal(rendersAsModal);
 
-            fireEvent.click(screen.getByTestId('recently_used_custom_time'));
+            fireEvent.click(screen.getByTestId('send_post_options.menu.recently_used_custom_time--menuitem'));
             runPendingTimers();
 
             expect(onSelect).toHaveBeenCalledTimes(1);
             expect(onSelect).toHaveBeenCalledWith({scheduled_at: recentlyUsedCustomTime});
-            expect(screen.queryByTestId('recently_used_custom_time')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('send_post_options.menu.recently_used_custom_time--menuitem')).not.toBeInTheDocument();
         });
 
         it('closes the menu and opens the custom time modal when choosing a custom time', () => {
@@ -231,14 +231,14 @@ describe('SendPostOptions', () => {
         renderComponent(stateForView(WindowSizes.MOBILE_VIEW));
 
         openMenu();
-        fireEvent.click(screen.getByTestId('scheduling_time_tomorrow_9_am'));
+        fireEvent.click(screen.getByTestId('send_post_options.menu.tomorrow_9_am--menuitem'));
         runPendingTimers();
         expect(onSelect).toHaveBeenCalledTimes(1);
         expect(menuModal()).toBeNull();
 
         openMenu();
 
-        expect(screen.getByTestId('scheduling_time_tomorrow_9_am')).toBeVisible();
+        expect(screen.getByTestId('send_post_options.menu.tomorrow_9_am--menuitem')).toBeVisible();
     });
 
     it('does not open the menu while the send button is disabled', () => {

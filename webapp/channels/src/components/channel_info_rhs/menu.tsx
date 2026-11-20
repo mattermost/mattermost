@@ -83,10 +83,16 @@ interface MenuItemProps {
     badge?: React.ReactNode;
     onClick: () => void;
     id?: string;
+
+    /** The item is `<testId>--button`. */
+    testId?: string;
+
+    /** The item's whole testid, for a plugin's item (``rhs.channel_info.menu.plugin:${pluginId}--button``). */
+    slotTestId?: string;
 }
 
 function MenuItem(props: MenuItemProps) {
-    const {icon, text, opensSubpanel, badge, onClick, id} = props;
+    const {icon, text, opensSubpanel, badge, onClick, id, testId, slotTestId} = props;
     const hasBadge = badge != null;
     const hasRightSide = hasBadge || opensSubpanel;
 
@@ -96,6 +102,7 @@ function MenuItem(props: MenuItemProps) {
             aria-label={typeof text === 'string' ? text : undefined}
             type='button'
             id={id || ''}
+            data-testid={slotTestId ?? (testId ? `${testId}--button` : undefined)}
         >
             <Icon>{icon}</Icon>
             <MenuItemText>{text}</MenuItemText>
@@ -190,11 +197,12 @@ export default function Menu(props: MenuProps) {
     return (
         <MenuContainer
             className={className}
-            data-testid='channel_info_rhs-menu'
+            data-testid='rhs.channel_info.menu'
             aria-label={formatMessage(messages.title[channelKind])}
         >
             {showChannelSettings && canAccessSettings && (
                 <MenuItem
+                    testId='rhs.channel_info.menu.settings'
                     id='channelInfoRHSChannelSettings'
                     icon={<i className='icon icon-cog-outline'/>}
                     text={formatMessage(channelKindMessages.channelSettings[channelKind])}
@@ -203,6 +211,7 @@ export default function Menu(props: MenuProps) {
             )}
             {showNotificationPreferences && (
                 <MenuItem
+                    testId='rhs.channel_info.menu.notification_preferences'
                     id='channelInfoRHSNotificationSettings'
                     icon={<i className='icon icon-bell-outline'/>}
                     text={formatMessage({
@@ -214,6 +223,7 @@ export default function Menu(props: MenuProps) {
             )}
             {showMembers && (
                 <MenuItem
+                    testId='rhs.channel_info.menu.members'
                     icon={<i className='icon icon-account-outline'/>}
                     text={formatMessage({
                         id: 'channel_info_rhs.menu.members',
@@ -225,6 +235,7 @@ export default function Menu(props: MenuProps) {
                 />
             )}
             <MenuItem
+                testId='rhs.channel_info.menu.pinned_messages'
                 icon={<i className='icon icon-pin-outline'/>}
                 text={formatMessage({
                     id: 'channel_info_rhs.menu.pinned',
@@ -236,6 +247,7 @@ export default function Menu(props: MenuProps) {
             />
             {showFiles && (
                 <MenuItem
+                    testId='rhs.channel_info.menu.files'
                     icon={<i className='icon icon-file-text-outline'/>}
                     text={formatMessage({
                         id: 'channel_info_rhs.menu.files',
@@ -250,6 +262,7 @@ export default function Menu(props: MenuProps) {
                 <MenuItem
                     key={item.id}
                     id={`channelInfoRHSPlugin_${item.id}`}
+                    slotTestId={`rhs.channel_info.menu.plugin:${item.pluginId}--button`}
                     icon={item.icon}
                     text={item.text}
                     opensSubpanel={item.opensSubpanel}

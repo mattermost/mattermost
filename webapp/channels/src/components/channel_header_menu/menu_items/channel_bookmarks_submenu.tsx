@@ -65,6 +65,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
 
     return (
         <Menu.SubMenu
+            data-testid='channel_header.menu.bookmarks--menuitem'
             id={`channel-menu-${channelId}-bookmarks`}
             leadingElement={<BookmarkOutlineIcon size={18}/>}
             labels={(
@@ -80,6 +81,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
             menuAriaLabel={formatMessage({id: 'channel_menu.bookmarks', defaultMessage: 'Bookmarks Bar'})}
         >
             <Menu.Item
+                data-testid='channel_header.menu.bookmarks.add_link--menuitem'
                 id={`channel-menu-${channelId}-bookmarks-link`}
                 leadingElement={<LinkVariantIcon size={18}/>}
                 aria-disabled={limitReached}
@@ -97,6 +99,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
             />
             {canUploadFiles && (
                 <Menu.Item
+                    data-testid='channel_header.menu.bookmarks.attach_file--menuitem'
                     id={`channel-menu-${channelId}-bookmarks-file`}
                     leadingElement={<PaperclipIcon size={18}/>}
                     aria-disabled={limitReached}
@@ -117,6 +120,7 @@ const ChannelBookmarksSubmenu = (props: Props) => {
                 <Menu.Item
                     key={item.id}
                     id={`channel-menu-${channelId}-bookmarks-plugin-${item.id}`}
+                    data-testid={`channel_header.menu.bookmarks.plugin:${item.pluginId}--menuitem`}
                     leadingElement={item.icon}
                     aria-disabled={limitReached}
                     labels={addItemLabels(<>{item.text}</>)}

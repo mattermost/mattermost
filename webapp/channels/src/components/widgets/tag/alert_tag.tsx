@@ -23,6 +23,9 @@ export type AlertTagProps = {
 
     testId?: string;
 
+    /** Keys the tag when the same scope repeats: `<testId>:<testKey>`. */
+    testKey?: number;
+
     tooltipTitle?: string | ReactNode;
 };
 
@@ -37,6 +40,7 @@ const AlertTag: React.FC<AlertTagProps> = ({
     variant = 'default',
     size = 'medium',
     testId,
+    testKey,
     tooltipTitle,
 }) => {
     // Determine which element to use based on whether onClick is provided
@@ -54,7 +58,7 @@ const AlertTag: React.FC<AlertTagProps> = ({
                 className,
             )}
             onClick={onClick}
-            data-testid={testId}
+            data-testid={testId && testKey !== undefined ? `${testId}:${testKey}` : testId}
 
             // Add type="button" to prevent form submission if used within a form
             {...(onClick && {type: 'button'})}

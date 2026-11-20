@@ -157,6 +157,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                 onHide={this.onHide}
                 onExited={this.props.onExited}
                 id='deletePostModal'
+                data-testid='delete_post_modal'
                 role='none'
                 aria-labelledby='deletePostModalLabel'
             >
@@ -178,6 +179,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                         type='button'
                         emphasis='tertiary'
                         onClick={this.onHide}
+                        data-testid='delete_post_modal.cancel--button'
                     >
                         <FormattedMessage
                             id='delete_post.cancel'
@@ -189,6 +191,7 @@ export default class DeletePostModal extends React.PureComponent<Props, State> {
                         autoFocus={true}
                         onClick={this.handleDelete}
                         id='deletePostModalButton'
+                        data-testid='delete_post_modal.delete--button'
                         destructive={true}
                     >
                         <FormattedMessage

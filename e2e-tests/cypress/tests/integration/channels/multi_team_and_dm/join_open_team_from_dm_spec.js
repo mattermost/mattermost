@@ -84,7 +84,7 @@ describe('Join an open team from a direct message link', () => {
                 and('contain.text', `${testUserInOpenTeam.username}`);
 
             // # Click on URL sent by the user in the open team
-            cy.findByTestId('postContent').
+            cy.findByTestId('center.post_list.post.content').
                 first().
                 find('a.theme.markdown__link').
                 should('have.attr', 'href', publicChannelUrl);

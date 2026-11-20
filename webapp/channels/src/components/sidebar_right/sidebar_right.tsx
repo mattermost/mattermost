@@ -344,6 +344,7 @@ export default class SidebarRight extends React.PureComponent<Props, State> {
                 <ResizableRhs
                     className={containerClassName}
                     id='sidebar-right'
+                    testId='rhs'
                     role='region'
                     rightWidthHolderRef={this.sidebarRightWidthHolder}
                     ariaLabel={this.props.ariaLabel}

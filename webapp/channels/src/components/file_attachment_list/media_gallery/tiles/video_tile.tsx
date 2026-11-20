@@ -20,6 +20,8 @@ type Props = {
     total: number;
     enablePublicLink: boolean;
     onClick: (index: number) => void;
+
+    testIdScope?: string;
 };
 
 const POSTER_SEEK_SECONDS = 0.1;
@@ -154,7 +156,7 @@ function formatDuration(seconds: number): string {
     return h > 0 ? `${h}:${pad(m)}:${pad(s)}` : `${m}:${pad(s)}`;
 }
 
-const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) => {
+const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick, testIdScope}: Props) => {
     const {formatMessage} = useIntl();
     const fileUrl = getFileUrl(fileInfo.id);
     const tileRef = useRef<HTMLDivElement>(null);
@@ -194,7 +196,7 @@ const VideoTile = ({fileInfo, index, total, enablePublicLink, onClick}: Props) =
             role='button'
             tabIndex={0}
             aria-label={label}
-            data-testid='media-gallery-tile'
+            data-testid={testIdScope ? `${testIdScope}.file:${fileInfo.id}--button` : undefined}
             data-file-name={fileInfo.name || ''}
             style={tileSizeVars(fileInfo)}
             onClick={handleActivate}

@@ -13,9 +13,11 @@ interface LineLimiterProps {
     lessText: string;
     className?: string;
     errorMargin?: number;
+
+    testId?: string;
 }
 
-const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, errorMargin = 0.1, className}: LineLimiterProps) => {
+const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, errorMargin = 0.1, className, testId}: LineLimiterProps) => {
     const maxLineHeight = maxLines * lineHeight;
 
     const [needLimiter, setNeedLimiter] = useState(false);
@@ -65,6 +67,7 @@ const LineLimiterBase = ({children, maxLines, lineHeight, moreText, lessText, er
                 {needLimiter && (
                     <ToggleButton
                         className='LineLimiter__toggler'
+                        data-testid={testId ? `${testId}.toggle--button` : undefined}
                         onClick={() => setOpen(!open)}
                     >
                         {open ? lessText : moreText}

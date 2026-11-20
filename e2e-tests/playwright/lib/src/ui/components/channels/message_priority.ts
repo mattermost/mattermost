@@ -116,17 +116,17 @@ export default class MessagePriority {
         const post = this.container.getByText(postText);
         await expect(post).toBeVisible();
 
-        const priorityLabel = post.locator('[data-testid="post-priority-label"]');
+        const priorityLabel = post.locator('[data-testid="post_priority.label--text"]');
         await expect(priorityLabel).toHaveCount(0);
     }
 
     async verifyPriorityLabel(scope: Locator, priority: Exclude<PriorityOption, 'Standard'>) {
-        const label = scope.getByTestId('post-priority-label');
+        const label = scope.getByTestId('post_priority.label--text');
         await expect(label).toBeVisible();
         await expect(label).toHaveText(new RegExp(priority, 'i'));
     }
 
     async verifyNoPriorityLabelIn(scope: Locator) {
-        await expect(scope.getByTestId('post-priority-label')).toHaveCount(0);
+        await expect(scope.getByTestId('post_priority.label--text')).toHaveCount(0);
     }
 }

@@ -4,88 +4,58 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 test('Search box suggestion must be case insensitive', async ({pw}) => {
-    const {user} = await pw.initSetup();
-
-    // # Log in a user in new browser context
-    const {channelsPage} = await pw.testBrowser.login(user);
-
-    // # Visit a default channel page
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-
-    // # Open the search UI
-    await channelsPage.globalHeader.openSearch();
+    const {user, team, offTopic, townSquare} = await pw.initSetup();
+    // # Log in a user in new browser context and visit a default channel page
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: townSquare});
 
     const searchWord = 'off';
-    const searchOutput = 'In:off-topic';
-    const channelName = 'Off-Topic';
+    const searchOutput = `In:${offTopic.name}`;
+    const input = app.searchBox.inputSearchbox;
+    const suggestion = app.searchBox.suggestions.suggestion(offTopic.name);
 
-    // Should work as expected when using lowercase
-    // # Type in lowercase "off" to search for the "Off-Topic" channel
-    const {searchInput} = channelsPage.searchBox;
-    await searchInput.pressSequentially(`In:${searchWord}`);
+    for (const typed of [searchWord, searchWord.toUpperCase()]) {
+        // # Open the search box, clear it, and type the channel filter (lowercase, then uppercase)
+        await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+        await input.fill('');
+        await input.type(`In:${typed}`);
 
-    // * The suggestion should be visible
-    await expect(channelsPage.searchBox.selectedSuggestion).toBeVisible();
-    await expect(channelsPage.searchBox.selectedSuggestion).toHaveText(channelName);
+        // * The suggestion should be visible and highlighted
+        await expect(suggestion.locator).toHaveClass(/suggestion--selected/); // the list marks the selected row with this class only (no ARIA state)
+        await expect(suggestion).toBeVisible();
+        await expect(suggestion).toHaveText(offTopic.display_name);
 
-    // # Press Enter to select the suggestion and another Enter to search
-    await searchInput.press('Enter');
-    await searchInput.press('Enter');
+        // # Press Enter to select the suggestion and another Enter to search
+        await input.press('Enter', 'Enter');
 
-    // * The search box should contain the selected suggestion
-    await expect(channelsPage.globalHeader.searchBox.getByText(searchOutput, {exact: true})).toBeVisible();
-
-    // Should work as expected when using uppercase
-    // # Open the search bar
-    await channelsPage.globalHeader.openSearch();
-
-    // # Clear its content
-    await channelsPage.searchBox.clearIfPossible();
-
-    // # Type in uppercase "OFF" to search for the "Off-Topic" channel
-    await searchInput.type(`In:${searchWord.toUpperCase()}`);
-
-    // * The suggestion should be visible
-    await expect(channelsPage.searchBox.selectedSuggestion).toBeVisible();
-    await expect(channelsPage.searchBox.selectedSuggestion).toHaveText(channelName);
-
-    // # Press Enter to select the suggestion and another Enter to search
-    await searchInput.press('Enter');
-    await searchInput.press('Enter');
-
-    // * The search box should contain the selected suggestion
-    await expect(channelsPage.globalHeader.searchBox.getByText(searchOutput, {exact: true})).toBeVisible();
+        // * The search bar should contain the selected suggestion
+        await expect(app.globalHeader.search.openButton).toContainText(searchOutput);
+    }
 });
 
 test('remove extra whitespace when selecting a user', async ({pw}) => {
     // # Set up test with two users
-    const {user, adminUser: admin} = await pw.initSetup();
+    const {user, adminUser: admin, team, townSquare} = await pw.initSetup();
+    // # Log in as the test user and visit a default channel page
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: townSquare});
 
-    // # Log in as the test user
-    const {channelsPage} = await pw.testBrowser.login(user);
+    // # Open the search UI and type "from:" followed by multiple spaces
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    const input = app.searchBox.inputSearchbox;
+    await input.type(`from:    ${admin.username}`);
 
-    // # Visit a default channel page
-    await channelsPage.goto();
-    await channelsPage.toBeVisible();
-
-    // # Open the search UI
-    await channelsPage.globalHeader.openSearch();
-
-    // # Type "from:" followed by multiple spaces
-    const {searchInput} = channelsPage.searchBox;
-    await searchInput.pressSequentially(`from:    ${admin.username}`);
-
-    // * The suggestion should be visible
-    await expect(channelsPage.searchBox.selectedSuggestion).toBeVisible();
-    await expect(channelsPage.searchBox.selectedSuggestion).toHaveText('@' + admin.username);
+    // * The suggestion should be visible and highlighted
+    const suggestion = app.searchBox.suggestions.suggestion(admin.username);
+    await expect(suggestion.locator).toHaveClass(/suggestion--selected/); // the list marks the selected row with this class only (no ARIA state)
+    await expect(suggestion).toBeVisible();
+    await expect(suggestion).toHaveText('@' + admin.username);
 
     // # Press enter to validate the selection
-    await searchInput.press('Enter');
+    await input.press('Enter');
 
     // * Verify the search box shows "from:username" without extra spaces
-    const expectedText = `from:${admin.username} `;
-    await expect(searchInput).toHaveValue(expectedText);
+    await expect(input).toHaveValue(`from:${admin.username} `);
 });
 
 /**
@@ -93,7 +63,7 @@ test('remove extra whitespace when selecting a user', async ({pw}) => {
  * term/item pairing.
  */
 test('limits grouped channel suggestions and preserves the selected channel', {tag: '@search'}, async ({pw}) => {
-    const {team, user, adminClient} = await pw.initSetup();
+    const {team, user, adminClient, townSquare} = await pw.initSetup();
     const prefix = `search-trim-${pw.random.id()}`;
     const channels = [];
 
@@ -103,26 +73,22 @@ test('limits grouped channel suggestions and preserves the selected channel', {t
         await adminClient.addToChannel(user.id, channel.id);
         channels.push(channel);
     }
-
-    const {channelsPage} = await pw.testBrowser.login(user);
-    await channelsPage.goto(team.name, 'town-square');
-    await channelsPage.toBeVisible();
-
-    await channelsPage.globalHeader.openSearch();
-    await channelsPage.searchBox.toBeVisible();
-    const {searchInput, container} = channelsPage.searchBox;
-    await searchInput.fill(`In:${prefix}`);
+    const {app} = await pw.testBrowser.login(user);
+    await app.channelsPage.goto({team, channel: townSquare});
+    await app.globalHeader.search.openButton.clickTo(app.searchBox.inputSearchbox);
+    const input = app.searchBox.inputSearchbox;
+    await input.fill(`In:${prefix}`);
 
     // * Verify trimResults applies across the grouped channel results
-    const suggestions = container.getByRole('option');
-    await expect(suggestions).toHaveCount(10);
+    const {suggestions} = app.searchBox;
+    await expect(suggestions.suggestionList).toHaveKeyCount(10);
 
     // # Select a result that survived trimming and verify the term/item pairing updates the query correctly
-    const renderedText = (await suggestions.allInnerTexts()).join('\n');
-    const selectedChannel = channels.find((channel) => renderedText.includes(channel.display_name));
+    const keys = await suggestions.suggestionList.keys();
+    const selectedChannel = channels.find((channel) => keys.includes(channel.name));
     if (!selectedChannel) {
         throw new Error('Expected at least one created channel to remain in the trimmed suggestions');
     }
-    await suggestions.filter({hasText: selectedChannel.display_name}).first().click();
-    await expect(searchInput).toHaveValue(new RegExp(`In:${selectedChannel.name}\\s`));
+    await suggestions.suggestion(selectedChannel.name).select();
+    await expect(input).toHaveValue(new RegExp(`In:${selectedChannel.name}\\s`));
 });

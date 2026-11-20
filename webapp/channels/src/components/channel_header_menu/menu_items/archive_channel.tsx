@@ -43,6 +43,7 @@ const ArchiveChannel = ({
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.archive_channel--menuitem'
             id='channelArchiveChannel'
             leadingElement={<ArchiveIcon size={18}/>}
             onClick={handleArchiveChannel}

@@ -22,9 +22,11 @@ type Props = {
 
     // The configured duration in minutes for BoR messages
     durationMinutes: number;
+
+    testIdScope?: string;
 };
 
-const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props) => {
+const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes, testIdScope}: Props) => {
     const {formatMessage} = useIntl();
 
     const handleClick = () => {
@@ -55,6 +57,7 @@ const BurnOnReadButton = ({enabled, onToggle, disabled, durationMinutes}: Props)
         >
             <IconButton
                 id='burnOnReadButton'
+                data-testid={testIdScope ? `${testIdScope}.burn_on_read--button` : undefined}
                 className='control'
                 size='small'
                 disabled={disabled}

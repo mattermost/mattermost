@@ -71,7 +71,7 @@ describe('Search', () => {
             cy.uiGetSearchBox().clear().type(`${message}{enter}`);
 
             // * Should return exactly one result from the group channel and matches the message
-            cy.findAllByTestId('search-item-container').should('be.visible').and('have.length', 1).within(() => {
+            cy.findAllByTestId(/^search\.results\.(post|file):[^.]+$/).should('be.visible').and('have.length', 1).within(() => {
                 cy.get('.search-channel__name').should('be.visible').and('have.text', sortedUsernames.filter((username) => username !== testUser.username).join(', '));
                 cy.get('.search-highlight').should('be.visible').and('have.text', message);
             });
@@ -107,7 +107,7 @@ describe('Search', () => {
             cy.get('.files-tab').should('be.visible').click();
 
             // * Should return exactly one result from the group channel and matches the message
-            cy.findAllByTestId('search-item-container').should('be.visible').and('have.length', 1).within(() => {
+            cy.findAllByTestId(/^search\.results\.(post|file):[^.]+$/).should('be.visible').and('have.length', 1).within(() => {
                 cy.get('.Tag').should('be.visible').and('have.text', 'Group Message');
                 cy.get('.fileDataName').should('be.visible').and('have.text', 'word-file.doc');
             });

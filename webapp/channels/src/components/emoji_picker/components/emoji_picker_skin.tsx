@@ -156,7 +156,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
                 aria-expanded={pickerExtended}
                 aria-label={pickerExtended ? closeButtonLabel : expandButtonLabel}
                 aria-controls='skin-tones-icons'
-                data-testid={pickerExtended === false ? `skin-picked-${this.props.userSkinTone}` : undefined}
+                data-testid='emoji_picker.skin.open--button'
             >
                 {pickerExtended ? (
                     <CloseIcon
@@ -187,7 +187,7 @@ export class EmojiPickerSkin extends React.PureComponent<Props, State> {
             return (
                 <button
                     className='style--none skin-tones__icon'
-                    data-testid={`skin-pick-${skin}`}
+                    data-testid={`emoji_picker.skin.tone:${skin}--button`}
                     aria-label={this.ariaLabel(skinTone)}
                     key={skin}
                     onClick={() => this.hideSkinTonePicker(skin)}

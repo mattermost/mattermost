@@ -31,6 +31,8 @@ export const scheduledPostTimeFormat: ComponentProps<typeof Timestamp>['useTime'
 
 type Props = {
     kind: 'draft' | 'scheduledPost';
+
+    testIdScope?: string;
     actions: React.ReactNode;
     timestamp: number;
     remote: boolean;
@@ -47,13 +49,14 @@ function PanelHeader({
     title,
     error,
     repeatsWeekly,
+    testIdScope,
 }: Props) {
     const timestampDateObject = useMemo(() => new Date(timestamp), [timestamp]);
 
     return (
         <div
             className='PanelHeader'
-            data-testid='draft-panel-header'
+            data-testid={testIdScope ? `${testIdScope}.header` : undefined}
         >
             <div className='PanelHeader__left'>{title}</div>
             <div className='PanelHeader__right'>
@@ -75,7 +78,10 @@ function PanelHeader({
                             </WithTooltip>
                         </div>
                     )}
-                    <div className='PanelHeader__timestamp'>
+                    <div
+                        className='PanelHeader__timestamp'
+                        data-testid={testIdScope ? `${testIdScope}.header.time--text` : undefined}
+                    >
                         {
                             Boolean(timestamp) && kind === 'draft' && (
                                 <Timestamp
@@ -108,6 +114,7 @@ function PanelHeader({
 
                     {kind === 'scheduledPost' && repeatsWeekly && !error && (
                         <Tag
+                            data-testid={testIdScope ? `${testIdScope}.header.repeats_weekly--text` : undefined}
                             variant={'info'}
                             uppercase={false}
                             text={(

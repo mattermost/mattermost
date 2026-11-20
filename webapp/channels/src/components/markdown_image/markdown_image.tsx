@@ -220,6 +220,7 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                             hideUtilities={hideUtilities}
                             onImageLoadFail={this.handleLoadFail}
                             onImageLoaded={this.handleImageLoaded}
+                            testId='markdown.image'
                         />
                     );
 

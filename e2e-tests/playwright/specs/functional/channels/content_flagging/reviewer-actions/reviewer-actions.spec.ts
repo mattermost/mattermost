@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {test} from '@mattermost/playwright-lib';
+import type {Client4} from '@mattermost/client';
 
-import {setupContentFlagging, createPost, verifyAuthorNotification} from './../support';
+import {expect, test} from '@mattermost/playwright-lib';
+
+import {setupContentFlagging, createPost} from './../support';
 
 /** @objective Verify Removed Flagged posts show appropriate status and do not show the post message
  * @testcase
@@ -54,28 +56,39 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
         return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
     });
 
-    const {channelsPage: secondChannelsPage, contentReviewPage: secondContentReviewPage} =
-        await pw.testBrowser.login(secondUser);
-    await verifyAuthorNotification(post.id, secondChannelsPage, secondContentReviewPage, team.name, message, 'Pending');
+    const {app: secondApp, contentReviewPage: secondContentReviewPage} = await pw.testBrowser.login(secondUser);
+    const {client: secondClient} = await pw.makeClient(secondUser);
+    const reportId = await reviewReportId(secondClient, post.id);
+    await secondApp.channelsPage.goto({team, path: 'messages', channel: '@content-review'});
+    const centerReport = secondApp.center.postList.post({id: reportId});
+    await expect(centerReport.spillageReport.card.field({name: 'status'}).value.selectText).toHaveText('Pending');
+    await expect(centerReport.spillageReport.card.field({name: 'reporting_reason'}).value.selectText).toHaveText(
+        'Classification mismatch',
+    );
+    await expect(
+        centerReport.spillageReport.card.field({name: 'post_preview'}).value.postPreview.post.message.container,
+    ).toHaveText(message);
 
     const commentRemove = 'Removing this message as it violates the guidelines.';
     const contentModerationMessage = 'Content deleted as part of Content Flagging review process';
-    await secondContentReviewPage.setReportCardByPostID(post.id);
-    await secondContentReviewPage.openViewDetails();
-    await secondContentReviewPage.waitForRHSVisible();
-
-    await secondContentReviewPage.openViewDetails();
+    await centerReport.spillageReport.footer.viewDetailsButton.click();
+    const rhsReport = secondApp.rhs.thread.post({id: reportId});
+    await expect(rhsReport.spillageReport.card).toBeVisible();
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
     await pw.waitUntil(async () => {
         const cfg = await adminClient.getConfig();
         return cfg.ContentFlaggingSettings?.EnableContentFlagging === true;
     });
-    await secondContentReviewPage.clickRemoveMessage();
+    await rhsReport.spillageReport.actions.removeButton.click();
+    await expect(secondContentReviewPage.postActionConformationModal).toBeVisible();
     await secondContentReviewPage.enterConfirmationComment(commentRemove);
+    await expect(secondContentReviewPage.confirmationModalComment).toHaveValue(commentRemove);
 
     // New multi-step flow: Continue → wait for report to generate → Remove permanently
     await secondContentReviewPage.submitFormAndWaitForReport();
+    await expect(secondContentReviewPage.generatedSection).toBeVisible();
     await secondContentReviewPage.confirmRemovePermanently();
+    await expect(secondContentReviewPage.postActionConformationModal).not.toBeVisible();
     await setupContentFlagging(adminClient, [adminUser.id, secondUserID, thirdUserID]);
 
     // After the remove action succeeds, the reviewer's own view of the flagged
@@ -84,17 +97,37 @@ test('Verify Removed Flagged posts show appropriate status and do not show the p
     // The placeholder appears both in the RHS detail view and in the report
     // card shown in the @content-review center channel — assert each scope
     // separately so a regression in either location is caught.
-    await secondContentReviewPage.verifyFlaggedPostMessageInRHS(contentModerationMessage);
-    await secondContentReviewPage.verifyFlaggedPostMessageInCenter(post.id, contentModerationMessage);
+    await expect(
+        rhsReport.spillageReport.card.field({name: 'post_preview'}).value.postPreview.post.message.container,
+    ).toHaveText(contentModerationMessage);
+    await expect(
+        centerReport.spillageReport.card.field({name: 'post_preview'}).value.postPreview.post.message.container,
+    ).toHaveText(contentModerationMessage);
 
-    const {channelsPage: channelsPageThird, contentReviewPage: contentReviewPageThird} =
-        await pw.testBrowser.login(thirdUser);
-    await verifyAuthorNotification(
-        post.id,
-        channelsPageThird,
-        contentReviewPageThird,
-        team.name,
+    const {app: thirdApp} = await pw.testBrowser.login(thirdUser);
+    const {client: thirdClient} = await pw.makeClient(thirdUser);
+    const thirdReportId = await reviewReportId(thirdClient, post.id);
+    await thirdApp.channelsPage.goto({team, path: 'messages', channel: '@content-review'});
+    const thirdCard = thirdApp.center.postList.post({id: thirdReportId}).spillageReport.card;
+    await expect(thirdCard.field({name: 'status'}).value.selectText).toHaveText('Removed');
+    await expect(thirdCard.field({name: 'reporting_reason'}).value.selectText).toHaveText('Classification mismatch');
+    await expect(thirdCard.field({name: 'post_preview'}).value.postPreview.post.message.container).toHaveText(
         contentModerationMessage,
-        'Removed',
     );
 });
+
+// Match the review bot's host post through its reported-post identity; keep the native confirmation-modal helpers.
+async function reviewReportId(client: Client4, flaggedPostId: string) {
+    const me = await client.getMe();
+    const bot = await client.getUserByUsername('content-review');
+    const dm = await client.createDirectChannel([me.id, bot.id]);
+    let id = '';
+    await expect
+        .poll(async () => {
+            const {posts} = await client.getPosts(dm.id, 0, 60);
+            id = Object.values(posts).find((post) => post.props?.reported_post_id === flaggedPostId)?.id ?? '';
+            return id;
+        })
+        .not.toBe('');
+    return id;
+}

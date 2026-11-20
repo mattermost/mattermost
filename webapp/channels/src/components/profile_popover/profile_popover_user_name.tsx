@@ -15,6 +15,7 @@ const ProfilePopoverUserName = ({
     return (
         <p
             id='userPopoverUsername'
+            data-testid='profile_popover.username--text'
             className={
                 hasFullName ? 'user-profile-popover__non-heading' : 'user-profile-popover__heading'
             }

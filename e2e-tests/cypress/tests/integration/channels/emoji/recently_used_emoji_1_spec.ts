@@ -69,7 +69,7 @@ describe('Recent Emoji', () => {
         cy.findByText(/Recently Used/i).should('exist').and('be.visible');
 
         // * Assert both emojis appear in the recently used section (grin most recent, joy before it)
-        cy.findAllByTestId('emojiItem').then((items) => {
+        cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).then((items) => {
             const labels = [...items].map((el) => el.getAttribute('aria-label'));
             const grinIdx = labels.indexOf('grin emoji');
             const joyIdx = labels.indexOf('joy emoji');
@@ -132,10 +132,10 @@ describe('Recent Emoji', () => {
         cy.findByText('Recently Used').should('exist').and('be.visible');
 
         // * Verify most recent one is the custom emoji in emoji picker
-        cy.findAllByTestId('emojiItem').eq(0).find('img').should('have.attr', 'class', 'emoji-category--custom');
+        cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).eq(0).find('img').should('have.attr', 'class', 'emoji-category--custom');
 
         // * Verify second most recent one is the system emoji in emoji picker
-        cy.findAllByTestId('emojiItem').eq(1).should('have.attr', 'aria-label', 'lemon emoji');
+        cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).eq(1).should('have.attr', 'aria-label', 'lemon emoji');
 
         // # Go to custom emoji page
         cy.findByText('Custom Emoji').should('be.visible').click();
@@ -177,6 +177,6 @@ describe('Recent Emoji', () => {
         cy.findByText('Recently Used').should('exist').and('be.visible');
 
         // * Verify most recent one is the system emoji in emoji picker and not the custom emoji
-        cy.findAllByTestId('emojiItem').eq(0).should('have.attr', 'aria-label', 'lemon emoji');
+        cy.findAllByTestId(/^emoji_picker\.(system|custom)_emoji:.+--button$/).eq(0).should('have.attr', 'aria-label', 'lemon emoji');
     });
 });

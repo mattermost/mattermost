@@ -27,7 +27,7 @@ Cypress.Commands.add('isExpanded', {prevSubject: true}, (subject) => {
 });
 
 Cypress.Commands.add('uiGetReply', () => {
-    return cy.get('#sidebar-right').findByTestId('SendMessageButton');
+    return cy.get('#sidebar-right').findByTestId('rhs.post_create.send--button');
 });
 
 Cypress.Commands.add('uiReply', () => {

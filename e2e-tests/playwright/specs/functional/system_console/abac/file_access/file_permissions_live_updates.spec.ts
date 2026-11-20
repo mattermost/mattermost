@@ -3,7 +3,18 @@
 
 import type {Client4} from '@mattermost/client';
 
-import {expect, test, enableABAC, getAdminClient, getRandomId, TestBrowser} from '@mattermost/playwright-lib';
+import {
+    Api,
+    assetPath,
+    settle,
+    type App,
+    expect,
+    test,
+    enableABAC,
+    getAdminClient,
+    getRandomId,
+    TestBrowser,
+} from '@mattermost/playwright-lib';
 
 import type {CustomProfileAttribute} from '../../../channels/custom_profile_attributes/helpers';
 import {
@@ -85,10 +96,10 @@ test.describe('ABAC file permissions - live updates', () => {
             AccessControlSettings: {EnableAttributeBasedAccessControl: false},
         } as any);
 
-        const {channelsPage: adminChannelsPage} = await sharedBrowser.login(adminUser);
-        await adminChannelsPage.goto(team.name, channelName);
-        await adminChannelsPage.toBeVisible();
-        await adminChannelsPage.centerView.postCreate.postMessage(FIXTURE_MESSAGE, ['sample_text_file.txt']);
+        const {app: adminApp} = await sharedBrowser.login(adminUser);
+        await adminApp.channelsPage.goto({team, channel: {name: channelName}});
+        await expect(adminApp.center.postCreate.message.container).toBeVisible();
+        await postWithFile(adminApp, FIXTURE_MESSAGE);
 
         const {systemConsolePage} = await sharedBrowser.login(adminUser);
         await enableABAC(systemConsolePage.page);
@@ -154,12 +165,12 @@ test.describe('ABAC file permissions - live updates', () => {
 
             // # A user who currently matches the policy opens the channel
             const user = await createAllowedMember();
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
             // * Verify upload starts out available
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({
+            await expect(app.center.postCreate.attachButton).toBeEnabled({
                 timeout: pw.duration.half_min,
             });
 
@@ -167,7 +178,7 @@ test.describe('ABAC file permissions - live updates', () => {
             await revokeByAttribute(user.id);
 
             // * Verify the control becomes unavailable without the page being reloaded
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({
+            await expect(app.center.postCreate.attachButton).toBeDisabled({
                 timeout: pw.duration.half_min,
             });
         },
@@ -188,19 +199,19 @@ test.describe('ABAC file permissions - live updates', () => {
 
             // # A user who currently matches the policy opens the channel
             const user = await createAllowedMember();
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
             // * Verify the file starts out visible
-            const post = await channelsPage.centerView.getPostByText(FIXTURE_MESSAGE);
-            await post.toHaveFilesVisible();
+            const {post} = await postNamed(app, FIXTURE_MESSAGE);
+            await expectFilesVisible(post);
 
             // # Admin moves the user out of the granted department
             await revokeByAttribute(user.id);
 
             // * Verify the already-loaded post is re-rendered as redacted, with no reload
-            await post.toHaveFilesRedacted();
+            await expectFilesRedacted(post);
         },
     );
 
@@ -219,28 +230,28 @@ test.describe('ABAC file permissions - live updates', () => {
 
             // # A user who currently matches the policy opens the channel
             const user = await createAllowedMember();
-            const {channelsPage, page} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+            const {app, page} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
             // * Verify access starts out granted
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({
+            await expect(app.center.postCreate.attachButton).toBeEnabled({
                 timeout: pw.duration.half_min,
             });
-            const post = await channelsPage.centerView.getPostByText(FIXTURE_MESSAGE);
-            await post.toHaveFilesVisible();
+            const {post} = await postNamed(app, FIXTURE_MESSAGE);
+            await expectFilesVisible(post);
 
             // # Admin revokes access, then the user reloads
             await revokeByAttribute(user.id);
             await page.reload();
-            await channelsPage.toBeVisible();
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
             // * Verify the fresh fetch is sanitized rather than served from the stale cache
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({
+            await expect(app.center.postCreate.attachButton).toBeDisabled({
                 timeout: pw.duration.half_min,
             });
-            const reloadedPost = await channelsPage.centerView.getPostByText(FIXTURE_MESSAGE);
-            await reloadedPost.toHaveFilesRedacted();
+            const {post: reloadedPost} = await postNamed(app, FIXTURE_MESSAGE);
+            await expectFilesRedacted(reloadedPost);
         },
     );
 
@@ -265,12 +276,12 @@ test.describe('ABAC file permissions - live updates', () => {
 
             // # A user who matches the policy opens the channel
             const user = await createAllowedMember();
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, channelName);
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: {name: channelName}});
+            await expect(app.center.postCreate.message.container).toBeVisible();
 
             // * Verify upload starts out available
-            await expect(channelsPage.centerView.postCreate.attachmentButton).toBeEnabled({
+            await expect(app.center.postCreate.attachButton).toBeEnabled({
                 timeout: pw.duration.half_min,
             });
 
@@ -282,7 +293,7 @@ test.describe('ABAC file permissions - live updates', () => {
                 await updatePermissionPolicyExpression(sharedAdminClient, policyName, REVOKING_EXPRESSION);
 
                 // * Verify the upload affordance is withdrawn without the page being reloaded
-                await expect(channelsPage.centerView.postCreate.attachmentButton).toBeDisabled({
+                await expect(app.center.postCreate.attachButton).toBeDisabled({
                     timeout: pw.duration.half_min,
                 });
             } finally {
@@ -291,3 +302,51 @@ test.describe('ABAC file permissions - live updates', () => {
         },
     );
 });
+
+// Uploads a file and waits for its keyed post to render.
+async function postWithFile(app: App, message: string) {
+    await expect(app.center.postCreate.attachButton).toBeVisible();
+    await settle(app.center.postCreate.uploadInput, {wait: Api.UploadFile}).chooseFiles(
+        `${assetPath}/sample_text_file.txt`,
+    );
+    await expect(app.center.postCreate.filePreviews.fileList).toHaveKeyCount(1);
+    const [fileId] = await app.center.postCreate.filePreviews.fileList.keys();
+    await expect(app.center.postCreate.filePreviews.file({id: fileId}).details).toBeVisible();
+    await expect(app.center.postCreate.filePreviews).toContainText('sample_text_file.txt');
+    await app.center.postCreate.message.container.fill(message);
+    await expect(app.center.postCreate.message.container).toHaveValue(message);
+    await expect(app.center.postCreate.sendButton).toBeVisible();
+    await expect(app.center.postCreate.sendButton).toBeEnabled();
+    const sent = await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    await expect(app.center.postList.post({id: sent.id})).toContainText(message);
+    return sent;
+}
+
+async function postNamed(app: App, message: string) {
+    let id = '';
+    await expect
+        .poll(async () => {
+            for (const key of await app.center.postList.postList.keys()) {
+                const post = app.center.postList.post({id: key});
+                if ((await post.message.container.text()).includes(message)) {
+                    id = key;
+                    return true;
+                }
+            }
+            return false;
+        })
+        .toBe(true);
+    const post = app.center.postList.post({id});
+    await expect(post).toContainText(message);
+    return {post, id};
+}
+
+type WithFiles = Pick<ReturnType<App['center']['postList']['post']>, 'attachments' | 'redactedFiles'>;
+async function expectFilesVisible(post: WithFiles) {
+    await expect(post.attachments).toBeVisible();
+    await expect(post.redactedFiles).toHaveCount(0);
+}
+async function expectFilesRedacted(post: WithFiles) {
+    await expect(post.redactedFiles).toBeVisible();
+    await expect(post.attachments).toHaveCount(0);
+}

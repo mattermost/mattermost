@@ -325,8 +325,8 @@ describe('Data Retention - Custom Policy Only', () => {
 
             // * Verify 12 days older post in ChannelA is deleted
             cy.visit(`/${newTeam.name}/channels/${channelA.name}`);
-            cy.findAllByTestId('postView').should('have.length', 1);
-            cy.findAllByTestId('postView').should('not.contain', postText);
+            cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('have.length', 1);
+            cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('not.contain', postText);
 
             // * Verify 3 days older post in channelB is not deleted
             verifyPostNotDeleted(newTeam, channelB, postText);

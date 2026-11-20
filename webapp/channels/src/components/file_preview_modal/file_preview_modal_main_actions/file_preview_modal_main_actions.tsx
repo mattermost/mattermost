@@ -47,6 +47,8 @@ interface Props {
     handleModalClose: () => void;
     content: string;
     showMarkdownToggle?: boolean;
+
+    testIdScope?: string;
 }
 
 const FilePreviewModalMainActions: React.FC<Props> = ({
@@ -61,6 +63,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
     canCopyContent,
     handleModalClose,
     content,
+    testIdScope,
     showMarkdownToggle = false,
 }: Props) => {
     const intl = useIntl();
@@ -104,6 +107,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
                 icon={<Icon glyph={<CloseIcon/>}/>}
                 onClick={handleModalClose}
                 aria-label={closeMessage}
+                data-testid={testIdScope ? `${testIdScope}.close--button` : undefined}
             />
         </WithTooltip>
     );
@@ -131,6 +135,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
                 icon={<Icon glyph={<LinkVariantIcon/>}/>}
                 onClick={copyPublicLink}
                 aria-label={publicTooltipMessage}
+                data-testid={testIdScope ? `${testIdScope}.public_link--button` : undefined}
             />
         </WithTooltip>
     );
@@ -152,6 +157,7 @@ const FilePreviewModalMainActions: React.FC<Props> = ({
                 aria-label={downloadMessage}
             >
                 <ExternalLink
+                    data-testid={testIdScope ? `${testIdScope}.download--link` : undefined}
                     href={fileURL}
                     location='file_preview_modal_main_actions'
                     download={filename}

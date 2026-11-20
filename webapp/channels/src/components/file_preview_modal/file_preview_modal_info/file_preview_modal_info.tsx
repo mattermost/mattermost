@@ -26,6 +26,8 @@ interface Props {
     showFileName: boolean;
     filename: string;
     post?: Post;
+
+    testIdScope?: string;
 }
 
 const displayNameGetter = makeGetDisplayName();
@@ -55,7 +57,10 @@ const FilePreviewModalInfo: React.FC<Props> = (props: Props) => {
                 </h5>
                 <span className='file-preview-modal__file-details'>
                     <span className='file-preview-modal__file-details-user-name'>{name}</span>
-                    <span className='file-preview-modal__channel'>{channelName}</span>
+                    <span
+                        className='file-preview-modal__channel'
+                        data-testid={`${props.testIdScope}.channel--text`}
+                    >{channelName}</span>
                 </span>
             </>
         );
@@ -64,7 +69,10 @@ const FilePreviewModalInfo: React.FC<Props> = (props: Props) => {
             <>
                 <h5 className='file-preview-modal__user-name'>{name}
                 </h5>
-                <span className='file-preview-modal__channel'>{channelName}
+                <span
+                    className='file-preview-modal__channel'
+                    data-testid={`${props.testIdScope}.channel--text`}
+                >{channelName}
                 </span>
             </>
         );

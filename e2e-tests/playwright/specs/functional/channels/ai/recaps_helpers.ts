@@ -81,7 +81,6 @@ export async function createUnreadChannelFixture(
     await adminClient.addToChannel(userId, channel.id);
     await adminClient.createPost({
         channel_id: channel.id,
-        user_id: adminUserId,
         message: sourceMessage,
     });
 
@@ -122,7 +121,6 @@ export async function createChannelWithManyPosts(
         const message = `${marker} ${padding}`;
         const post = await adminClient.createPost({
             channel_id: channel.id,
-            user_id: adminUserId,
             message,
         });
         posts.push(post);

@@ -11,7 +11,7 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 import PropertyTypes from 'mattermost-redux/action_types/properties';
 import {Client4} from 'mattermost-redux/client';
 
-import {act, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, waitFor, within} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -185,8 +185,19 @@ function renderModal(fields: PropertyField[], values: Array<PropertyValue<unknow
     );
 }
 
-async function openMenu(fieldName: string) {
-    await userEvent.click(screen.getByTestId(`post-attribute-trigger-${fieldName}`));
+// A row is `post_attributes_modal.attribute:<field id>`; its parts are unkeyed, so they're found inside it (a part of
+// a row that isn't there is absent too).
+const ROW = 'post_attributes_modal.attribute';
+const getRow = (fieldId: string) => screen.getByTestId(`${ROW}:${fieldId}`);
+const queryRow = (fieldId: string) => screen.queryByTestId(`${ROW}:${fieldId}`);
+const getPart = (fieldId: string, part: string) => within(getRow(fieldId)).getByTestId(`${ROW}.${part}`);
+const queryPart = (fieldId: string, part: string) => {
+    const row = queryRow(fieldId);
+    return row ? within(row).queryByTestId(`${ROW}.${part}`) : null;
+};
+
+async function openMenu(fieldId: string) {
+    await userEvent.click(getPart(fieldId, 'value--button'));
 }
 
 /*
@@ -199,13 +210,13 @@ function spareField(): PropertyField {
     return makeField({id: 'f_spare', name: 'spare', attrs: {options: OPTIONS, display_name: 'Spare'}});
 }
 
-async function addAttribute(fieldName: string) {
-    await userEvent.click(screen.getByTestId('post-attributes-add'));
-    await userEvent.click(screen.getByTestId(`post-attribute-add-${fieldName}`));
+async function addAttribute(fieldId: string) {
+    await userEvent.click(screen.getByTestId('post_attributes_modal.add--button'));
+    await userEvent.click(screen.getByTestId(`post_attributes_modal.add_menu.field:${fieldId}--menuitem`));
 
     // The picker's items defer their `onClick` until the menu has finished
     // closing, so the row is not there yet when the click returns.
-    await waitFor(() => expect(screen.getByTestId(`post-attribute-row-${fieldName}`)).toBeInTheDocument());
+    await waitFor(() => expect(getRow(fieldId)).toBeInTheDocument());
 }
 
 describe('PostAttributesModal', () => {
@@ -223,9 +234,9 @@ describe('PostAttributesModal', () => {
         patchSpy.mockResolvedValue([]);
         renderModal([makeField(), spareField()], [makeValue()]);
 
-        expect(screen.getByTestId('post-attributes-reprise')).toHaveTextContent('the post being marked');
+        expect(screen.getByTestId('post_attributes_modal.reprise')).toHaveTextContent('the post being marked');
 
-        const add = screen.getByTestId('post-attributes-add');
+        const add = screen.getByTestId('post_attributes_modal.add--button');
 
         /*
          * Both of these come from the menu rather than from this component, and
@@ -241,7 +252,7 @@ describe('PostAttributesModal', () => {
         patchSpy.mockResolvedValue([]);
         renderModal([makeField(), spareField()], [makeValue()]);
 
-        const add = screen.getByTestId('post-attributes-add');
+        const add = screen.getByTestId('post_attributes_modal.add--button');
 
         // Native `disabled` would make this unreachable: jsdom skips disabled
         // controls when tabbing, exactly as a browser and a screen reader do.
@@ -267,12 +278,12 @@ describe('PostAttributesModal', () => {
 
         renderModal(fields, values);
 
-        const labels = screen.getAllByTestId(/^post-attribute-row-/).map((row) => row.getAttribute('data-testid'));
+        const labels = screen.getAllByTestId(/^post_attributes_modal\.attribute:/).map((row) => row.getAttribute('data-testid'));
 
         expect(labels).toEqual([
-            'post-attribute-row-alpha',
-            'post-attribute-row-beta',
-            'post-attribute-row-caveats',
+            'post_attributes_modal.attribute:f_a',
+            'post_attributes_modal.attribute:f_b',
+            'post_attributes_modal.attribute:f_c',
         ]);
     });
 
@@ -287,9 +298,9 @@ describe('PostAttributesModal', () => {
 
         renderModal(fields, []);
 
-        expect(screen.getByTestId('post-attribute-row-always_field')).toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-row-when_set_field')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-row-hidden_field')).not.toBeInTheDocument();
+        expect(getRow('f_always')).toBeInTheDocument();
+        expect(queryRow('f_when_set')).not.toBeInTheDocument();
+        expect(queryRow('f_hidden')).not.toBeInTheDocument();
     });
 
     /*
@@ -314,8 +325,8 @@ describe('PostAttributesModal', () => {
 
         renderModal(fields, values);
 
-        expect(screen.getByTestId('post-attribute-row-hidden_field')).toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-row-when_set_field')).toBeInTheDocument();
+        expect(getRow('f_hidden')).toBeInTheDocument();
+        expect(getRow('f_when_set')).toBeInTheDocument();
     });
 
     test('opening on a post with no values shows the channel\'s `always` fields and no empty state', () => {
@@ -331,13 +342,13 @@ describe('PostAttributesModal', () => {
 
         renderModal(fields, []);
 
-        expect(screen.getByTestId('post-attribute-row-always_field')).toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-trigger-always_field')).toBeInTheDocument();
+        expect(getRow('f_always')).toBeInTheDocument();
+        expect(getPart('f_always', 'value--button')).toBeInTheDocument();
 
         // Nothing to clear yet, and no "no attributes" placeholder.
-        expect(screen.queryByTestId('post-attribute-clear-always_field')).not.toBeInTheDocument();
-        expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
-        expect(screen.queryByTestId('post-attributes-empty')).not.toBeInTheDocument();
+        expect(queryPart('f_always', 'clear--button')).not.toBeInTheDocument();
+        expect(screen.getByTestId('post_attributes_modal.add--button')).toBeInTheDocument();
+        expect(screen.queryByTestId('post_attributes_modal.empty--text')).not.toBeInTheDocument();
     });
 
     describe('the empty state', () => {
@@ -349,10 +360,10 @@ describe('PostAttributesModal', () => {
 
             renderModal(fields, []);
 
-            expect(screen.getByTestId('post-attributes-empty')).toBeInTheDocument();
-            expect(screen.queryByTestId('post-attribute-row-admin_a')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-attribute-row-admin_b')).not.toBeInTheDocument();
-            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            expect(screen.getByTestId('post_attributes_modal.empty--text')).toBeInTheDocument();
+            expect(queryRow('f_a')).not.toBeInTheDocument();
+            expect(queryRow('f_b')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_modal.add--button')).not.toBeInTheDocument();
         });
 
         test('does not show when a value is set, even on a field the user cannot edit', () => {
@@ -360,8 +371,8 @@ describe('PostAttributesModal', () => {
 
             renderModal(fields, [makeValue()]);
 
-            expect(screen.getByTestId('post-attribute-row-classification')).toBeInTheDocument();
-            expect(screen.queryByTestId('post-attributes-empty')).not.toBeInTheDocument();
+            expect(getRow('field_1')).toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_modal.empty--text')).not.toBeInTheDocument();
         });
 
         test('counts a set value that names a deleted option as nothing to show', () => {
@@ -369,8 +380,8 @@ describe('PostAttributesModal', () => {
 
             renderModal(fields, [makeValue({value: 'opt_withdrawn'})]);
 
-            expect(screen.getByTestId('post-attributes-empty')).toBeInTheDocument();
-            expect(screen.queryByTestId('post-attribute-row-classification')).not.toBeInTheDocument();
+            expect(screen.getByTestId('post_attributes_modal.empty--text')).toBeInTheDocument();
+            expect(queryRow('field_1')).not.toBeInTheDocument();
         });
 
         test('appears when the last value is deleted while the modal is open', async () => {
@@ -378,8 +389,8 @@ describe('PostAttributesModal', () => {
 
             const {store} = renderModal(fields, [makeValue()]);
 
-            expect(screen.getByTestId('post-attribute-row-classification')).toBeInTheDocument();
-            expect(screen.queryByTestId('post-attributes-empty')).not.toBeInTheDocument();
+            expect(getRow('field_1')).toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_modal.empty--text')).not.toBeInTheDocument();
 
             act(() => {
                 store.dispatch({
@@ -388,8 +399,8 @@ describe('PostAttributesModal', () => {
                 });
             });
 
-            await waitFor(() => expect(screen.getByTestId('post-attributes-empty')).toBeInTheDocument());
-            expect(screen.queryByTestId('post-attribute-row-classification')).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByTestId('post_attributes_modal.empty--text')).toBeInTheDocument());
+            expect(queryRow('field_1')).not.toBeInTheDocument();
         });
 
         test('shows, with nothing editable, when the post\'s channel is not loaded', () => {
@@ -410,10 +421,10 @@ describe('PostAttributesModal', () => {
                 state,
             );
 
-            expect(screen.queryAllByTestId(/^post-attribute-trigger-/)).toHaveLength(0);
-            expect(screen.queryAllByTestId(/^post-attribute-clear-/)).toHaveLength(0);
-            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
-            expect(screen.getByTestId('post-attributes-empty')).toBeInTheDocument();
+            expect(screen.queryAllByTestId('post_attributes_modal.attribute.value--button')).toHaveLength(0);
+            expect(screen.queryAllByTestId('post_attributes_modal.attribute.clear--button')).toHaveLength(0);
+            expect(screen.queryByTestId('post_attributes_modal.add--button')).not.toBeInTheDocument();
+            expect(screen.getByTestId('post_attributes_modal.empty--text')).toBeInTheDocument();
         });
 
         test('does not appear when the user adds the only field they can set', async () => {
@@ -421,9 +432,9 @@ describe('PostAttributesModal', () => {
 
             renderModal(fields, []);
 
-            await addAttribute('spare');
+            await addAttribute('f_spare');
 
-            expect(screen.queryByTestId('post-attributes-empty')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_modal.empty--text')).not.toBeInTheDocument();
         });
     });
 
@@ -434,8 +445,8 @@ describe('PostAttributesModal', () => {
 
         renderModal([field], [makeValue()]);
 
-        expect(screen.queryByTestId('post-attribute-trigger-classification')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('post-attribute-clear-classification')).not.toBeInTheDocument();
+        expect(queryPart('field_1', 'value--button')).not.toBeInTheDocument();
+        expect(queryPart('field_1', 'clear--button')).not.toBeInTheDocument();
         expect(screen.getByRole('img', {name: "You don't have permission to modify this attribute."})).toBeInTheDocument();
     });
 
@@ -444,7 +455,7 @@ describe('PostAttributesModal', () => {
 
         renderModal([makeField()], [makeValue()]);
 
-        await openMenu('classification');
+        await openMenu('field_1');
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
 
         await waitFor(() => expect(patchSpy).toHaveBeenCalledTimes(1));
@@ -465,19 +476,19 @@ describe('PostAttributesModal', () => {
 
         renderModal([makeField()], [makeValue()]);
 
-        await openMenu('classification');
+        await openMenu('field_1');
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
 
-        await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toBeDisabled());
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
-        expect(screen.getByTestId('post-attribute-clear-classification')).toBeDisabled();
+        await waitFor(() => expect(getPart('field_1', 'value--button')).toBeDisabled());
+        expect(getPart('field_1', 'value--button')).toHaveTextContent('SECRET');
+        expect(getPart('field_1', 'clear--button')).toBeDisabled();
 
         await act(async () => {
             resolveWrite([makeValue({value: 'opt_unclassified', update_at: 2})]);
         });
 
-        await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('UNCLASSIFIED'));
-        expect(screen.getByTestId('post-attribute-trigger-classification')).not.toBeDisabled();
+        await waitFor(() => expect(getPart('field_1', 'value--button')).toHaveTextContent('UNCLASSIFIED'));
+        expect(getPart('field_1', 'value--button')).not.toBeDisabled();
     });
 
     test('a write to one row leaves another row\'s in-flight state alone', async () => {
@@ -491,31 +502,31 @@ describe('PostAttributesModal', () => {
             [makeValue(), makeValue({id: 'value_2', field_id: 'field_2'})],
         );
 
-        await openMenu('classification');
+        await openMenu('field_1');
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
-        await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toBeDisabled());
+        await waitFor(() => expect(getPart('field_1', 'value--button')).toBeDisabled());
 
         // Second row, while the first is still in flight.
-        await openMenu('caveat');
+        await openMenu('field_2');
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
-        await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-caveat')).toBeDisabled());
+        await waitFor(() => expect(getPart('field_2', 'value--button')).toBeDisabled());
 
         // The first row must still read as pending.
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toBeDisabled();
+        expect(getPart('field_1', 'value--button')).toBeDisabled();
 
         // Resolving the first must not re-enable the second.
         await act(async () => {
             resolvers[0]([makeValue({value: 'opt_unclassified', update_at: 2})]);
         });
 
-        await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).not.toBeDisabled());
-        expect(screen.getByTestId('post-attribute-trigger-caveat')).toBeDisabled();
+        await waitFor(() => expect(getPart('field_1', 'value--button')).not.toBeDisabled());
+        expect(getPart('field_2', 'value--button')).toBeDisabled();
 
         await act(async () => {
             resolvers[1]([makeValue({id: 'value_2', field_id: 'field_2', value: 'opt_unclassified', update_at: 2})]);
         });
 
-        await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-caveat')).not.toBeDisabled());
+        await waitFor(() => expect(getPart('field_2', 'value--button')).not.toBeDisabled());
     });
 
     test('an error on one row survives a write starting on another', async () => {
@@ -526,26 +537,26 @@ describe('PostAttributesModal', () => {
             [makeValue(), makeValue({id: 'value_2', field_id: 'field_2'})],
         );
 
-        await openMenu('classification');
+        await openMenu('field_1');
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
-        await screen.findByTestId('post-attribute-error-classification');
+        await screen.findByTestId('post_attributes_modal.error:field_1--alert');
 
         let resolveSecond: (values: Array<PropertyValue<unknown>>) => void = () => {};
         patchSpy.mockReturnValue(new Promise((resolve) => {
             resolveSecond = resolve;
         }));
 
-        await openMenu('caveat');
+        await openMenu('field_2');
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
 
         // The other row's failure is still on screen and still needs answering.
-        expect(screen.getByTestId('post-attribute-error-classification')).toBeInTheDocument();
+        expect(screen.getByTestId('post_attributes_modal.error:field_1--alert')).toBeInTheDocument();
 
         await act(async () => {
             resolveSecond([makeValue({id: 'value_2', field_id: 'field_2', value: 'opt_unclassified', update_at: 2})]);
         });
 
-        expect(screen.getByTestId('post-attribute-error-classification')).toBeInTheDocument();
+        expect(screen.getByTestId('post_attributes_modal.error:field_1--alert')).toBeInTheDocument();
     });
 
     test('a rejected write leaves the displayed value alone and surfaces the message', async () => {
@@ -553,12 +564,12 @@ describe('PostAttributesModal', () => {
 
         renderModal([makeField()], [makeValue()]);
 
-        await openMenu('classification');
+        await openMenu('field_1');
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
 
         expect(await screen.findByRole('alert')).toHaveTextContent('Could not update this attribute. Please try again.');
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
-        expect(screen.getByTestId('post-attribute-trigger-classification')).not.toBeDisabled();
+        expect(getPart('field_1', 'value--button')).toHaveTextContent('SECRET');
+        expect(getPart('field_1', 'value--button')).not.toBeDisabled();
     });
 
     test('a 403 on one row shows the permission message and leaves the other rows enabled', async () => {
@@ -572,15 +583,15 @@ describe('PostAttributesModal', () => {
 
         renderModal(fields, values);
 
-        await openMenu('classification');
+        await openMenu('field_1');
         await userEvent.click(screen.getByRole('menuitemradio', {name: /UNCLASSIFIED/}));
 
-        expect(await screen.findByTestId('post-attribute-error-classification')).
+        expect(await screen.findByTestId('post_attributes_modal.error:field_1--alert')).
             toHaveTextContent('You do not have permission to change this attribute');
 
-        expect(screen.queryByTestId('post-attribute-error-caveats')).not.toBeInTheDocument();
-        expect(screen.getByTestId('post-attribute-trigger-caveats')).not.toBeDisabled();
-        expect(screen.getByTestId('post-attribute-clear-caveats')).not.toBeDisabled();
+        expect(screen.queryByTestId('post_attributes_modal.error:field_2--alert')).not.toBeInTheDocument();
+        expect(getPart('field_2', 'value--button')).not.toBeDisabled();
+        expect(getPart('field_2', 'clear--button')).not.toBeDisabled();
     });
 
     test('the trash button writes an empty value, and the row loses its trash button', async () => {
@@ -588,7 +599,7 @@ describe('PostAttributesModal', () => {
 
         renderModal([makeField()], [makeValue()]);
 
-        await userEvent.click(screen.getByTestId('post-attribute-clear-classification'));
+        await userEvent.click(getPart('field_1', 'clear--button'));
 
         await waitFor(() => expect(patchSpy).toHaveBeenCalledWith(
             'post_attributes',
@@ -603,7 +614,7 @@ describe('PostAttributesModal', () => {
          * On a `when_set` field the whole row goes too, only `always` earns a
          * row with nothing in it.
          */
-        await waitFor(() => expect(screen.queryByTestId('post-attribute-row-classification')).not.toBeInTheDocument());
+        await waitFor(() => expect(queryRow('field_1')).not.toBeInTheDocument());
     });
 
     test('clearing an `always` field keeps its row, with an empty trigger and no trash button', async () => {
@@ -613,11 +624,11 @@ describe('PostAttributesModal', () => {
 
         renderModal([field], [makeValue()]);
 
-        await userEvent.click(screen.getByTestId('post-attribute-clear-classification'));
+        await userEvent.click(getPart('field_1', 'clear--button'));
 
-        await waitFor(() => expect(screen.queryByTestId('post-attribute-clear-classification')).not.toBeInTheDocument());
+        await waitFor(() => expect(queryPart('field_1', 'clear--button')).not.toBeInTheDocument());
 
-        const trigger = screen.getByTestId('post-attribute-trigger-classification');
+        const trigger = getPart('field_1', 'value--button');
         expect(trigger).toBeInTheDocument();
         expect(trigger).toHaveTextContent('');
     });
@@ -627,7 +638,7 @@ describe('PostAttributesModal', () => {
 
         const {store} = renderModal([makeField()], [makeValue()]);
 
-        expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('SECRET');
+        expect(getPart('field_1', 'value--button')).toHaveTextContent('SECRET');
 
         // Somebody else's edit, delivered by the socket handler's dispatch. The
         // row has to follow it, which it can only do by reading the slice rather
@@ -639,7 +650,7 @@ describe('PostAttributesModal', () => {
             });
         });
 
-        await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-classification')).toHaveTextContent('UNCLASSIFIED'));
+        await waitFor(() => expect(getPart('field_1', 'value--button')).toHaveTextContent('UNCLASSIFIED'));
     });
 
     describe('adding an attribute', () => {
@@ -648,12 +659,12 @@ describe('PostAttributesModal', () => {
 
             renderModal([spareField()], []);
 
-            expect(screen.queryByTestId('post-attribute-row-spare')).not.toBeInTheDocument();
+            expect(queryRow('f_spare')).not.toBeInTheDocument();
 
-            await addAttribute('spare');
+            await addAttribute('f_spare');
 
-            expect(screen.getByTestId('post-attribute-trigger-spare')).toHaveTextContent('');
-            expect(screen.queryByTestId('post-attribute-clear-spare')).not.toBeInTheDocument();
+            expect(getPart('f_spare', 'value--button')).toHaveTextContent('');
+            expect(queryPart('f_spare', 'clear--button')).not.toBeInTheDocument();
 
             // Nothing is written.
             expect(patchSpy).not.toHaveBeenCalled();
@@ -664,7 +675,7 @@ describe('PostAttributesModal', () => {
 
             const {store} = renderModal([spareField()], []);
 
-            await addAttribute('spare');
+            await addAttribute('f_spare');
 
             /*
              * This is the assertion that says the added set holds visibility and
@@ -679,7 +690,7 @@ describe('PostAttributesModal', () => {
                 });
             });
 
-            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-spare')).toHaveTextContent('UNCLASSIFIED'));
+            await waitFor(() => expect(getPart('f_spare', 'value--button')).toHaveTextContent('UNCLASSIFIED'));
         });
 
         test('the last candidate takes the button with it', async () => {
@@ -692,14 +703,14 @@ describe('PostAttributesModal', () => {
 
             renderModal(fields, []);
 
-            await addAttribute('alpha');
+            await addAttribute('f_a');
 
             // One candidate left, so the button is still worth drawing.
-            expect(screen.getByTestId('post-attributes-add')).toBeInTheDocument();
+            expect(screen.getByTestId('post_attributes_modal.add--button')).toBeInTheDocument();
 
-            await addAttribute('beta');
+            await addAttribute('f_b');
 
-            await waitFor(() => expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument());
+            await waitFor(() => expect(screen.queryByTestId('post_attributes_modal.add--button')).not.toBeInTheDocument());
         });
 
         test('a channel whose fields are all `always` never draws the button', async () => {
@@ -712,8 +723,8 @@ describe('PostAttributesModal', () => {
 
             renderModal(fields, []);
 
-            expect(screen.getByTestId('post-attribute-row-alpha')).toBeInTheDocument();
-            expect(screen.getByTestId('post-attribute-row-beta')).toBeInTheDocument();
+            expect(getRow('f_a')).toBeInTheDocument();
+            expect(getRow('f_b')).toBeInTheDocument();
 
             /*
              * Absent, not disabled. Such a channel shows every field it has from
@@ -721,7 +732,7 @@ describe('PostAttributesModal', () => {
              * disabled control would be the only `+ Add attribute` those users
              * ever saw.
              */
-            expect(screen.queryByTestId('post-attributes-add')).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_attributes_modal.add--button')).not.toBeInTheDocument();
         });
 
         test('clearing an added row leaves it; clearing a row that was never added removes it', async () => {
@@ -729,18 +740,18 @@ describe('PostAttributesModal', () => {
 
             renderModal([makeField(), spareField()], [makeValue()]);
 
-            await addAttribute('spare');
+            await addAttribute('f_spare');
 
             patchSpy.mockResolvedValue([makeValue({id: 'value_spare', field_id: 'f_spare', value: 'opt_secret', update_at: 2})]);
-            await openMenu('spare');
+            await openMenu('f_spare');
             await userEvent.click(screen.getByRole('menuitemradio', {name: /SECRET/}));
 
-            await waitFor(() => expect(screen.getByTestId('post-attribute-clear-spare')).toBeInTheDocument());
+            await waitFor(() => expect(getPart('f_spare', 'clear--button')).toBeInTheDocument());
 
             patchSpy.mockResolvedValue([makeValue({id: 'value_spare', field_id: 'f_spare', value: '', update_at: 3})]);
-            await userEvent.click(screen.getByTestId('post-attribute-clear-spare'));
+            await userEvent.click(getPart('f_spare', 'clear--button'));
 
-            await waitFor(() => expect(screen.queryByTestId('post-attribute-clear-spare')).not.toBeInTheDocument());
+            await waitFor(() => expect(queryPart('f_spare', 'clear--button')).not.toBeInTheDocument());
 
             /*
              * The two rules meet here and neither predicts it alone: clearing a
@@ -748,12 +759,12 @@ describe('PostAttributesModal', () => {
              * during this opening keeps its row until the modal closes. Emptying
              * a row you just added is an edit, not an undo of the add.
              */
-            expect(screen.getByTestId('post-attribute-row-spare')).toBeInTheDocument();
+            expect(getRow('f_spare')).toBeInTheDocument();
 
             patchSpy.mockResolvedValue([makeValue({value: '', update_at: 4})]);
-            await userEvent.click(screen.getByTestId('post-attribute-clear-classification'));
+            await userEvent.click(getPart('field_1', 'clear--button'));
 
-            await waitFor(() => expect(screen.queryByTestId('post-attribute-row-classification')).not.toBeInTheDocument());
+            await waitFor(() => expect(queryRow('field_1')).not.toBeInTheDocument());
         });
 
         test('reopening drops an added row left empty and keeps one that was given a value', async () => {
@@ -767,14 +778,14 @@ describe('PostAttributesModal', () => {
 
             const {unmount} = renderModal(fields, []);
 
-            await addAttribute('empty_field');
-            await addAttribute('kept_field');
+            await addAttribute('f_empty');
+            await addAttribute('f_kept');
 
             patchSpy.mockResolvedValue([kept]);
-            await openMenu('kept_field');
+            await openMenu('f_kept');
             await userEvent.click(screen.getByRole('menuitemradio', {name: /SECRET/}));
 
-            await waitFor(() => expect(screen.getByTestId('post-attribute-trigger-kept_field')).toHaveTextContent('SECRET'));
+            await waitFor(() => expect(getPart('f_kept', 'value--button')).toHaveTextContent('SECRET'));
 
             unmount();
 
@@ -784,8 +795,8 @@ describe('PostAttributesModal', () => {
             // which is the only thing that tells "added" from "set" apart.
             renderModal(fields, [kept]);
 
-            expect(screen.getByTestId('post-attribute-row-kept_field')).toBeInTheDocument();
-            expect(screen.queryByTestId('post-attribute-row-empty_field')).not.toBeInTheDocument();
+            expect(getRow('f_kept')).toBeInTheDocument();
+            expect(queryRow('f_empty')).not.toBeInTheDocument();
         });
     });
 
@@ -856,7 +867,7 @@ describe('PostAttributesModal', () => {
 
             await waitFor(() => expect(screen.getByTestId('postAttributeValueUser-field_user-pick')).toBeDisabled());
             expect(screen.getByTestId('postAttributeValueUser-field_user-value')).toHaveTextContent('user_alice');
-            expect(screen.getByTestId('post-attribute-clear-reviewer')).toBeDisabled();
+            expect(getPart('field_user', 'clear--button')).toBeDisabled();
 
             await act(async () => {
                 resolveWrite([makeValue({id: 'value_user', field_id: 'field_user', value: 'user_carol', update_at: 2})]);
@@ -879,7 +890,7 @@ describe('PostAttributesModal', () => {
             renderModal([field], [makeValue({field_id: fieldId, value: stored})]);
 
             expect(screen.queryByTestId(`user-selector-postAttributeValueUser-${fieldId}`)).not.toBeInTheDocument();
-            expect(screen.queryByTestId(`post-attribute-clear-${name}`)).not.toBeInTheDocument();
+            expect(queryPart(fieldId, 'clear--button')).not.toBeInTheDocument();
             expect(screen.getByRole('img', {name: "You don't have permission to modify this attribute."})).toBeInTheDocument();
         });
     });
@@ -891,7 +902,7 @@ describe('PostAttributesModal', () => {
 
         renderModal([field], [makeValue({field_id: 'field_multi', value: ['opt_secret']})]);
 
-        await openMenu('caveats');
+        await openMenu('field_multi');
 
         expect(screen.getByRole('menuitemcheckbox', {name: /SECRET/})).toHaveAttribute('aria-checked', 'true');
 

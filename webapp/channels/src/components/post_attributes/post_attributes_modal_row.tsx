@@ -56,13 +56,14 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
     return (
         <div
             className='PostAttributesModalRow'
-            data-testid={`post-attribute-row-${field.name}`}
+            data-testid={`post_attributes_modal.attribute:${field.id}`}
         >
             <span className='PostAttributesModalRow__label'>
                 <span className='PostAttributesModalRow__labelText'>{label}</span>
                 {!canEdit && (
                     <span
                         className='PostAttributesModalRow__lock'
+                        data-testid='post_attributes_modal.attribute.locked--img'
                         role='img'
                         aria-label={lockedTitle}
                         title={lockedTitle}
@@ -97,7 +98,7 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
                     <button
                         type='button'
                         className='PostAttributesModalRow__clear'
-                        data-testid={`post-attribute-clear-${field.name}`}
+                        data-testid='post_attributes_modal.attribute.clear--button'
                         disabled={writing}
 
                         // Named after the attribute, so a modal with five rows does

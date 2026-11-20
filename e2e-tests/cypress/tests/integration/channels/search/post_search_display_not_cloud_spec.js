@@ -45,6 +45,6 @@ describe('Search', () => {
         cy.get('#search-items-container').should('be.visible');
 
         // * Assert search results are present and correct
-        cy.get('[data-testid="search-item-container"]').should('be.visible').should('contain.text', '#hello');
+        cy.get('[data-testid^="search.results.post:"], [data-testid^="search.results.file:"]').should('be.visible').should('contain.text', '#hello');
     });
 });

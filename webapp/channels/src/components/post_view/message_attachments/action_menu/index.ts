@@ -20,6 +20,8 @@ export type OwnProps = {
     postId: string;
     action: PostAction;
     disabled?: boolean;
+
+    testIdScope?: string;
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {

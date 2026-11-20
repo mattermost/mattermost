@@ -5,7 +5,7 @@ Cypress.Commands.add('uiGetFileThumbnail', (filename) => {
     // Gallery tiles preserve original filename casing on data-file-name,
     // while the legacy thumbnail aria-label is always lowercased
     // (see file_preview.tsx). Match each accordingly.
-    const tileMatches = Cypress.$('[data-testid="media-gallery-tile"]').filter((_, el) => {
+    const tileMatches = Cypress.$('[data-testid^="center.post_list.post.attachments.file:"][data-testid$="--button"]').filter((_, el) => {
         return el.getAttribute('data-file-name')?.toLowerCase() === filename.toLowerCase();
     });
     if (tileMatches.length) {
@@ -48,10 +48,10 @@ Cypress.Commands.add('uiOpenFilePreviewModal', (filename) => {
         cy.uiGetFileThumbnail(filename).click();
         return;
     }
-    if (Cypress.$('[data-testid="media-gallery-tile"]').length) {
-        cy.get('[data-testid="media-gallery-tile"]').first().click();
+    if (Cypress.$('[data-testid^="center.post_list.post.attachments.file:"][data-testid$="--button"]').length) {
+        cy.get('[data-testid^="center.post_list.post.attachments.file:"][data-testid$="--button"]').first().click();
     } else {
-        cy.findByTestId('fileAttachmentList').children().first().click();
+        cy.findByTestId('center.post_list.post.attachments').children().first().click();
     }
 });
 

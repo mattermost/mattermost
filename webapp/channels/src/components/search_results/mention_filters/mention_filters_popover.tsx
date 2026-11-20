@@ -28,6 +28,7 @@ import {dateRangeLabels, mentionTypeLabels} from './labels';
 import useFilterableChannels, {useTeamNames} from './use_filterable_channels';
 
 type Props = {
+    testIdScope: string;
     filters: MentionFilters;
     teamId: string | null;
     showTeamSelector: boolean;
@@ -45,7 +46,7 @@ function areGroupMentionsAvailable(state: GlobalState) {
 // Combobox rejects empty option values, so All teams needs a sentinel mapped to null.
 const ALL_TEAMS_VALUE = 'all_teams';
 
-export default function MentionFiltersPopover({filters, teamId, showTeamSelector, onApply, onClose}: Props) {
+export default function MentionFiltersPopover({testIdScope, filters, teamId, showTeamSelector, onApply, onClose}: Props) {
     const {formatMessage} = useIntl();
     const [portalContainer, setPortalContainer] = useState<HTMLDivElement | null>(null);
 
@@ -70,15 +71,16 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
     const noChannelsLabel = formatMessage({id: 'search_results.mention_filters.no_channels', defaultMessage: 'No channels found'});
 
     const teamOptions = useMemo<ComboboxOption[]>(() => [
-        {value: ALL_TEAMS_VALUE, label: allTeamsLabel},
-        ...teams.map((team) => ({value: team.id, label: team.display_name})),
-    ], [allTeamsLabel, teams]);
+        {value: ALL_TEAMS_VALUE, label: allTeamsLabel, menuItemProps: {'data-testid': `${testIdScope}.all_teams--option`}},
+        ...teams.map((team) => ({value: team.id, label: team.display_name, menuItemProps: {'data-testid': `${testIdScope}.team_option:${team.id}--option`}})),
+    ], [allTeamsLabel, teams, testIdScope]);
 
     const channelOptions = useMemo<ComboboxOption[]>(() => channels.map((channel) => ({
         value: channel.id,
         label: channel.display_name,
         secondaryLabel: draftTeamId === null && channel.team_id ? teamNames[channel.team_id] : undefined,
-    })), [channels, draftTeamId, teamNames]);
+        menuItemProps: {'data-testid': `${testIdScope}.channel_option:${channel.id}--option`},
+    })), [channels, draftTeamId, teamNames, testIdScope]);
 
     const filterChannels = (option: ComboboxOption, query: string) => {
         const channel = channels.find((c) => c.id === option.value);
@@ -141,11 +143,9 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
         >
             <div className='MentionFilters__selectors'>
                 {showTeamSelector && (
-                    <div
-                        className='MentionFilters__field'
-                        data-testid='mentionFiltersTeamSelector'
-                    >
+                    <div className='MentionFilters__field'>
                         <Combobox
+                            data-testid={`${testIdScope}.team--combobox`}
                             label={teamLabel}
                             options={teamOptions}
                             value={draftTeamId ?? ALL_TEAMS_VALUE}
@@ -156,11 +156,9 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                     </div>
                 )}
 
-                <div
-                    className='MentionFilters__field'
-                    data-testid='mentionFiltersChannelSelector'
-                >
+                <div className='MentionFilters__field'>
                     <Combobox
+                        data-testid={`${testIdScope}.channels--combobox`}
                         multiple={true}
                         label={channelsLabel}
                         placeholder={channelsLabel}
@@ -187,6 +185,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                     {mentionTypeOrder.filter((type) => type !== 'group' || groupMentionsAvailable).map((type) => (
                         <Checkbox
                             key={type}
+                            data-testid={`${testIdScope}.mention_type:${type}--checkbox`}
                             className='MentionFilters__choice'
                             checked={draft.mentionTypes.includes(type)}
                             onChange={() => toggleMentionType(type)}
@@ -208,6 +207,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                     {dateRangeOrder.map((range) => (
                         <Radio
                             key={range}
+                            data-testid={`${testIdScope}.date:${range}--radio`}
                             className='MentionFilters__choice'
                             name='mentionFiltersDate'
                             checked={draft.date === range}
@@ -221,6 +221,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
 
             <div className='MentionFilters__footer'>
                 <Button
+                    data-testid={`${testIdScope}.reset--button`}
                     emphasis='tertiary'
                     disabled={isReset}
                     onClick={reset}
@@ -231,6 +232,7 @@ export default function MentionFiltersPopover({filters, teamId, showTeamSelector
                     />
                 </Button>
                 <Button
+                    data-testid={`${testIdScope}.apply--button`}
                     emphasis='primary'
                     onClick={apply}
                 >

@@ -14,6 +14,8 @@ type Props = {
     option: RadioSettingOption;
     selectedValue: string;
     onSelected: (value: string) => void;
+
+    testIdScope?: string;
 };
 
 const markdownOptions = {mentionHighlight: false};
@@ -23,6 +25,7 @@ const RadioOption = ({
     option,
     selectedValue,
     onSelected,
+    testIdScope,
 }: Props) => {
     const onChange = useCallback(() => onSelected(option.value), [onSelected, option.value]);
 
@@ -33,6 +36,7 @@ const RadioOption = ({
                 value={option.value}
                 checked={selectedValue === option.value}
                 onChange={onChange}
+                data-testid={testIdScope ? `${testIdScope}.option:${option.value}--radio` : undefined}
             >
                 {option.text}
             </Radio>

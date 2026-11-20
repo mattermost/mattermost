@@ -218,7 +218,7 @@ describe('Verify Accessibility Support in different input fields', () => {
         });
 
         // * Verify if the focus is on the help link
-        cy.findByTestId('SendMessageButton').should('be.focused');
+        cy.findByTestId('center.post_create.send--button').should('be.focused');
     });
 
     it('MM-T1490 Verify Accessibility Support in RHS Input', () => {
@@ -271,7 +271,7 @@ describe('Verify Accessibility Support in different input fields', () => {
             cy.get('#emojiPickerButton').should('be.focused').and('have.attr', 'aria-label', 'select an emoji').tab();
 
             // * Verify if the focus is on the Reply button
-            cy.findByTestId('SendMessageButton').should('be.focused');
+            cy.findByTestId('center.post_create.send--button').should('be.focused');
         });
     });
 });

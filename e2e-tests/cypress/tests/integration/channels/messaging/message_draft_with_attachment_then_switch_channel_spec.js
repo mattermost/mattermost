@@ -34,7 +34,7 @@ describe('Message Draft with attachment and Switch Channels', () => {
         cy.url().should('include', '/channels/' + testChannel1.name);
 
         // # Validate if the draft icon is not visible on the sidebar before making a draft
-        cy.get(`#sidebarItem_${testChannel1.name}`).findByTestId('draftIcon').should('not.exist');
+        cy.get(`#sidebarItem_${testChannel1.name}`).findByTestId('lhs.channel_list.channel.draft--text').should('not.exist');
 
         // # Upload a file on center view
         cy.get('#fileUploadInput').attachFile('mattermost-icon.png');
@@ -46,6 +46,6 @@ describe('Message Draft with attachment and Switch Channels', () => {
         cy.url().should('include', '/channels/' + testChannel2.name);
 
         // # Validate if the draft icon is visible in side bar for the previous channel
-        cy.get(`#sidebarItem_${testChannel1.name}`).findByTestId('draftIcon').should('be.visible');
+        cy.get(`#sidebarItem_${testChannel1.name}`).findByTestId('lhs.channel_list.channel.draft--text').should('be.visible');
     });
 });

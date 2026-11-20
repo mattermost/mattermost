@@ -269,6 +269,7 @@ const NewSearch = (): JSX.Element => {
             <NewSearchContainer
                 tabIndex={0}
                 id='searchFormContainer'
+                data-testid='global_header.search.open--button'
                 role='button'
                 className='a11y__region'
                 ref={refs.setReference}
@@ -279,7 +280,7 @@ const NewSearch = (): JSX.Element => {
             >
                 <i className='icon icon-magnify'/>
                 {(searchType === 'messages' || searchType === 'files') && (
-                    <SearchTypeBadge data-testid='searchTypeBadge'>
+                    <SearchTypeBadge data-testid='global_header.search.type_badge--text'>
                         {searchType === 'messages' && (
                             <FormattedMessage
                                 id='search_bar.search_types.messages'
@@ -301,7 +302,7 @@ const NewSearch = (): JSX.Element => {
                 {searchTerms && <NewSearchTerms tabIndex={0}>{searchTerms}</NewSearchTerms>}
                 {searchTerms && (
                     <CloseIcon
-                        data-testid='input-clear'
+                        data-testid='global_header.search.clear--button'
                         role='button'
                         onClick={onClose}
                     >

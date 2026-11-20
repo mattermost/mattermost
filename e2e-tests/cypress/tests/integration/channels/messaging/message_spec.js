@@ -186,14 +186,14 @@ function shouldHavePostProfileImageVisible(isVisible = true) {
                 should('contain', 'current--user').
                 and('contain', 'other--root');
 
-            cy.get(`${target} > div[data-testid='postContent'] > .post__img`).should('be.visible');
+            cy.get(`${target} > div[data-testid='center.post_list.post.content'] > .post__img`).should('be.visible');
         } else {
             cy.get(target).invoke('attr', 'class').
                 should('contain', 'current--user').
                 and('contain', 'same--user').
                 and('contain', 'same--root');
 
-            cy.get(`${target} > div[data-testid='postContent'] > .post__img`).
+            cy.get(`${target} > div[data-testid='center.post_list.post.content'] > .post__img`).
                 should('be.visible').
                 and('be.empty');
         }

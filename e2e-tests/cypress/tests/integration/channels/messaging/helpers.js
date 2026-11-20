@@ -4,6 +4,6 @@
 export function verifyDraftIcon(name, isVisible) {
     cy.uiGetLhsSection('CHANNELS').find(`#sidebarItem_${name}`).
         should('be.visible').
-        findByTestId('draftIcon').
+        findByTestId('lhs.channel_list.channel.draft--text').
         should(isVisible ? 'be.visible' : 'not.exist');
 }

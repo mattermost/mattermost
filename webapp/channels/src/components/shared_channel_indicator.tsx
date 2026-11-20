@@ -15,7 +15,7 @@ type Props = {
 const SharedChannelIndicator: React.FC<Props> = (props: Props): JSX.Element => {
     const sharedIcon = (
         <i
-            data-testid='SharedChannelIcon'
+            data-testid='shared_channel_icon'
             className={`${props.className || ''} icon-circle-multiple-outline`}
         />
     );

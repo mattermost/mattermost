@@ -28,7 +28,7 @@ const ProfilePopoverUrl = ({attribute, userProfile}: Props) => {
             <i
                 className='icon icon-url-outline'
                 aria-hidden='true'
-                data-testid='url-icon'
+                data-testid='profile_popover.url_icon'
             />
             <ExternalLink
                 location='profile_popover_url'

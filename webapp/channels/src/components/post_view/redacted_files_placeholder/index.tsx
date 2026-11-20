@@ -9,9 +9,12 @@ import './redacted_files_placeholder.scss';
 type Props = {
     count?: number;
     compactDisplay?: boolean;
+
+    // The post's scope; without it, no testid.
+    testIdScope?: string;
 };
 
-function RedactedFilesPlaceholder({compactDisplay}: Props) {
+function RedactedFilesPlaceholder({compactDisplay, testIdScope}: Props) {
     const {formatMessage} = useIntl();
 
     const title = formatMessage({
@@ -27,7 +30,7 @@ function RedactedFilesPlaceholder({compactDisplay}: Props) {
         return (
             <div
                 className='post-image__column post-image__column--redacted post-image__column--redacted-compact'
-                data-testid='redactedFilesPlaceholder'
+                data-testid={testIdScope ? `${testIdScope}.redacted_files` : undefined}
                 title={`${title} — ${subtitle}`}
             >
                 <div className='post-image__redacted-icon'>
@@ -53,7 +56,7 @@ function RedactedFilesPlaceholder({compactDisplay}: Props) {
         <div className='post-image__columns clearfix'>
             <div
                 className='post-image__column post-image__column--redacted'
-                data-testid='redactedFilesPlaceholder'
+                data-testid={testIdScope ? `${testIdScope}.redacted_files` : undefined}
             >
                 <div className='post-image__redacted-icon'>
                     <svg

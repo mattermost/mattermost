@@ -107,6 +107,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                 <DateSeparator
                     key={date}
                     date={date}
+                    testId='center.post_list.date_separator'
                 />
             );
         }
@@ -114,6 +115,7 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
         if (PostListUtils.isStartOfNewMessages(listId)) {
             return (
                 <NewMessageSeparator
+                    testId='center.post_list.new_messages'
                     separatorId={listId}
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                     channelId={this.props.channelId}

@@ -61,6 +61,7 @@ describe('FileAttachment', () => {
         actions: {
             openModal: jest.fn(),
         },
+        testIdScope: 'center.post_list.post.attachments' as const,
     };
 
     test('should blur file attachment link after click', async () => {
@@ -71,5 +72,17 @@ describe('FileAttachment', () => {
         const blur = jest.spyOn(link, 'blur');
         await userEvent.click(link);
         expect(blur).toHaveBeenCalled();
+    });
+
+    test('the actions menu and its public link item have testids under the file card', async () => {
+        renderWithContext(
+            <FileAttachment
+                {...baseProps}
+                enablePublicLink={true}
+            />,
+        );
+        await userEvent.click(screen.getByTestId('center.post_list.post.attachments.file_card.more_actions--button'));
+        expect(screen.getByTestId('center.post_list.post.attachments.file_card.menu')).toBeInTheDocument();
+        expect(screen.getByTestId('center.post_list.post.attachments.file_card.menu.public_link--menuitem')).toHaveTextContent('Get a public link');
     });
 });

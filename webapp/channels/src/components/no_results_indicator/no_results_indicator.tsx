@@ -172,7 +172,7 @@ const NoResultsIndicator = ({
     let content = (
         <div
             className={classNames('no-results__wrapper', {'horizontal-layout': layout === NoResultsLayout.Horizontal})}
-            data-testid='no-results-wrapper'
+            data-testid='no_results'
             style={style}
         >
             {iconGraphic}
@@ -183,7 +183,7 @@ const NoResultsIndicator = ({
                 {title && (
                     <h3
                         className={classNames('no-results__title', {'only-title': !subtitle}, titleClassName)}
-                        data-testid='no-results-title'
+                        data-testid='no_results.title--text'
                     >
                         {title}
                     </h3>

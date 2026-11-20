@@ -21,11 +21,13 @@ describe('components/Toast', () => {
             />
         ),
         width: 1000,
+        testIdScope: 'center.post_list.toast',
+        testKey: 'unread',
     };
 
     test('should render for showing toast', () => {
         renderWithContext(<Toast {...defaultProps}><span>{'child'}</span></Toast>);
-        expect(screen.getByTestId('dismissToast')).toBeInTheDocument();
+        expect(screen.getByTestId('center.post_list.toast.dismiss--button')).toBeInTheDocument();
     });
 
     test('should dismiss', () => {
@@ -37,7 +39,7 @@ describe('components/Toast', () => {
             </Toast>,
         );
 
-        screen.getByTestId('dismissToast').click();
+        screen.getByTestId('center.post_list.toast.dismiss--button').click();
 
         expect(defaultProps.onDismiss).toHaveBeenCalledTimes(1);
     });

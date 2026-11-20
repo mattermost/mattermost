@@ -88,6 +88,7 @@ const ChannelHeaderDirectMenu = ({channel, user, isMuted, isMobile, isFavorite, 
             )}
             <ChannelMoveToSubMenu
                 channel={channel}
+                testIdScope='channel_header.menu'
             />
             {!isMobile && (
                 <MenuItemPluginItems pluginItems={pluginItems}/>

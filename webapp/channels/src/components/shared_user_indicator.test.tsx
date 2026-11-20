@@ -37,7 +37,7 @@ describe('components/SharedUserIndicator', () => {
             <SharedUserIndicator withTooltip={false}/>,
         );
 
-        const icon = screen.getByTestId('SharedUserIcon');
+        const icon = screen.getByTestId('shared_user.icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
     });
 
@@ -51,7 +51,7 @@ describe('components/SharedUserIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedUserIcon');
+        const icon = screen.getByTestId('shared_user.icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -68,7 +68,7 @@ describe('components/SharedUserIndicator', () => {
             <SharedUserIndicator withTooltip={true}/>,
         );
 
-        const icon = screen.getByTestId('SharedUserIcon');
+        const icon = screen.getByTestId('shared_user.icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -89,7 +89,7 @@ describe('components/SharedUserIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedUserIcon');
+        const icon = screen.getByTestId('shared_user.icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -110,7 +110,7 @@ describe('components/SharedUserIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedUserIcon');
+        const icon = screen.getByTestId('shared_user.icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -131,7 +131,7 @@ describe('components/SharedUserIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedUserIcon');
+        const icon = screen.getByTestId('shared_user.icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});
@@ -161,7 +161,7 @@ describe('components/SharedUserIndicator', () => {
             />,
         );
 
-        const icon = screen.getByTestId('SharedUserIcon');
+        const icon = screen.getByTestId('shared_user.icon');
         expect(icon).toHaveClass('icon-circle-multiple-outline');
 
         await userEvent.hover(icon, {advanceTimers: jest.advanceTimersByTime});

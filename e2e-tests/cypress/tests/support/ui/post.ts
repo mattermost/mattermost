@@ -56,7 +56,7 @@ Cypress.Commands.add('uiGetPostEmbedContainer', uiGetPostEmbedContainer);
 
 function getCenterPostById(postId: string): ChainableT<JQuery> {
     // Prefer postView rows: virtualized lists may detach #post_<id> from a bare cy.get() query.
-    return cy.findAllByTestId('postView', {timeout: 20000}).
+    return cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/, {timeout: 20000}).
         filter(`#post_${postId}`).
         should('have.length.at.least', 1).
         first().
@@ -79,7 +79,7 @@ function getPostMmBlocks(postId: string): ChainableT<JQuery> {
 Cypress.Commands.add('getPostMmBlocks', getPostMmBlocks);
 
 function getRhsPostMmBlocks(postId: string): ChainableT<JQuery> {
-    return cy.findAllByTestId('rhsPostView', {timeout: 20000}).
+    return cy.findAllByTestId(/^rhs\.thread\.post:[^.]+$/, {timeout: 20000}).
         filter(`#rhsPost_${postId}`).
         should('have.length.at.least', 1).
         first().
@@ -111,7 +111,7 @@ export function verifySavedPost(postId: string, message: string) {
     cy.clickPostDotMenu(postId, 'CENTER');
 
     // * Check that the dotmenu item is changed accordingly
-    cy.findAllByTestId(`post-menu-${postId}`).eq(0).should('be.visible');
+    cy.findAllByTestId('center.post_list.post.menu').eq(0).should('be.visible');
     cy.findByText('Remove from Saved').scrollIntoView().should('be.visible');
     cy.get('body').type('{esc}');
 
@@ -172,7 +172,7 @@ export function verifyUnsavedPost(postId: string) {
     cy.clickPostDotMenu(postId, 'CENTER');
 
     // * Check that the dotmenu item is changed accordingly
-    cy.findAllByTestId(`post-menu-${postId}`).eq(0).should('be.visible');
+    cy.findAllByTestId('center.post_list.post.menu').eq(0).should('be.visible');
     cy.findByText('Save Message').scrollIntoView().should('be.visible');
     cy.get('body').type('{esc}');
 

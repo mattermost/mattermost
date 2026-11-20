@@ -149,6 +149,7 @@ export default function ScheduledPostCustomTimeModal({
             <div className='ScheduledPostCustomTimeModal__repeat'>
                 <input
                     id='scheduled_post_repeat_weekly'
+                    data-testid='date_time_picker_modal.repeat_weekly--checkbox'
                     type='checkbox'
                     checked={repeatWeekly}
                     disabled={!allowRecurring}

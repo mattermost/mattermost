@@ -26,3 +26,9 @@ export const LicenseSkus = {
 // Remote users hour limit taken from webapp/channels/src/utils/constants.ts
 export const REMOTE_USERS_HOUR_LIMIT_END_OF_THE_DAY = 22;
 export const REMOTE_USERS_HOUR_LIMIT_BEGINNING_OF_THE_DAY = 6;
+
+/** The channels every team starts with, by name: `app.channelsPage.goto({team, channel: DefaultChannel.TownSquare})`. */
+export const DefaultChannel = {
+    TownSquare: 'town-square',
+    OffTopic: 'off-topic',
+} as const;

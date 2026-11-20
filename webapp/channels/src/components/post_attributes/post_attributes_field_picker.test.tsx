@@ -71,7 +71,7 @@ function renderPicker(fields: PropertyField[], onSelect: (fieldId: string) => vo
 }
 
 async function openPicker() {
-    await userEvent.click(screen.getByTestId('post-attributes-add'));
+    await userEvent.click(screen.getByTestId('post_attributes_modal.add--button'));
 }
 
 describe('PostAttributesFieldPicker', () => {
@@ -92,9 +92,9 @@ describe('PostAttributesFieldPicker', () => {
         // the candidate list orders it, and the menu has to read the same way
         // the rows above it do.
         expect(screen.getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'))).toEqual([
-            'post-attribute-add-caveats',
-            'post-attribute-add-alpha',
-            'post-attribute-add-beta',
+            'post_attributes_modal.add_menu.field:f_c--menuitem',
+            'post_attributes_modal.add_menu.field:f_a--menuitem',
+            'post_attributes_modal.add_menu.field:f_b--menuitem',
         ]);
     });
 
@@ -120,7 +120,7 @@ describe('PostAttributesFieldPicker', () => {
         await openPicker();
 
         expected.forEach(([type], index) => {
-            const icon = iconIn(screen.getByTestId(`post-attribute-add-${type}`));
+            const icon = iconIn(screen.getByTestId(`post_attributes_modal.add_menu.field:f_${type}--menuitem`));
 
             expect(icon?.querySelector('path')?.getAttribute('d')).toBe(paths[index]);
             expect(icon).toHaveAttribute('height', '16');
@@ -132,7 +132,7 @@ describe('PostAttributesFieldPicker', () => {
          * `date` control ever lands, the field becomes a candidate and this
          * assertion is what says the icon table has to grow with it.
          */
-        expect(iconIn(screen.getByTestId('post-attribute-add-date'))).toBeNull();
+        expect(iconIn(screen.getByTestId('post_attributes_modal.add_menu.field:f_date--menuitem'))).toBeNull();
     });
 
     test('calls onSelect once with the field id of the item clicked', async () => {
@@ -141,7 +141,7 @@ describe('PostAttributesFieldPicker', () => {
         renderPicker([makeField({id: 'f_a', name: 'alpha'}), makeField({id: 'f_b', name: 'beta'})], onSelect);
 
         await openPicker();
-        await userEvent.click(screen.getByTestId('post-attribute-add-beta'));
+        await userEvent.click(screen.getByTestId('post_attributes_modal.add_menu.field:f_b--menuitem'));
 
         // A plain `menuitem` defers its `onClick` until the close animation has
         // run, so the call has not happened yet at the point the click returns.

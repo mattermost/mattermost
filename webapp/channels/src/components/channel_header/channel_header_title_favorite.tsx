@@ -94,6 +94,7 @@ const ChannelHeaderTitleFavorite = () => {
         >
             <IconButton
                 id='toggleFavorite'
+                data-testid='channel_header.favorite--button'
                 size='small'
                 className={classNames('channel-header__favorites', {active: isFavorite, inactive: !isFavorite})}
                 icon={<Icon glyph={isFavorite ? <StarIcon/> : <StarOutlineIcon/>}/>}

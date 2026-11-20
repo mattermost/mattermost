@@ -66,6 +66,7 @@ export default function FileAttachmentList(props: Props) {
         if ((isMulti || isSingleVideo) && allMedia) {
             return (
                 <MediaGallery
+                    testIdScope={props.testIdScope}
                     fileInfos={sortedFileInfos}
                     postId={props.post.id}
                     compactDisplay={compactDisplay}
@@ -91,6 +92,7 @@ export default function FileAttachmentList(props: Props) {
                     compactDisplay={compactDisplay}
                     isInPermalink={isInPermalink}
                     disableActions={props.disableActions}
+                    testIdScope={props.testIdScope}
                 />
             );
         }
@@ -118,6 +120,7 @@ export default function FileAttachmentList(props: Props) {
                     disableThumbnail={isDeleted}
                     disablePreview={isDeleted}
                     overrideGenerateFileDownloadUrl={props.overrideGenerateFileDownloadUrl}
+                    testIdScope={props.testIdScope}
                 />,
             );
         }
@@ -135,7 +138,7 @@ export default function FileAttachmentList(props: Props) {
 
     return (
         <div
-            data-testid='fileAttachmentList'
+            data-testid={props.testIdScope}
             className='post-image__columns clearfix'
         >
             {postFiles}

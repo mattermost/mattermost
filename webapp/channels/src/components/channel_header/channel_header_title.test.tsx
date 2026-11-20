@@ -202,8 +202,8 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
 
             renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>, stateWithOverride);
 
-            // Override branch passes data-testid='channel-header-archive-icon' to the stub
-            const overrideIcon = screen.getByTestId('channel-header-archive-icon');
+            // Override branch passes data-testid='channel_header.archived_icon--text' to the stub
+            const overrideIcon = screen.getByTestId('channel_header.archived_icon--text');
             expect(overrideIcon).toBeInTheDocument();
 
             // Override icon gets svg-text-color (greyed to signal archived) but not the built-in archive icon classes
@@ -245,7 +245,7 @@ describe('components/channel_header/ChannelHeaderTitle', () => {
             renderWithContext(<ChannelHeaderTitle dmUser={botUser}/>, stateWithNoMatch);
 
             // Default archive icon rendered with full archive chrome (spread props include className + data-testid)
-            const archiveIcon = screen.getByTestId('channel-header-archive-icon');
+            const archiveIcon = screen.getByTestId('channel_header.archived_icon--text');
             expect(archiveIcon).toBeInTheDocument();
             expect(archiveIcon).toHaveAttribute('data-is-default-archive', 'true');
             expect(archiveIcon).toHaveClass('channel-header-archived-icon', 'svg-text-color');

@@ -184,9 +184,9 @@ describe('Team Permissions', () => {
             cy.uiGetButton('Manage').click();
 
             // # Click on `Member`
-            cy.uiGetRHS().findByTestId(`memberline-${otherUser.id}`).within(() => {
-                cy.findByTestId('rolechooser').should('be.visible').and('contain.text', 'Member').click().wait(TIMEOUTS.HALF_SEC);
-                cy.findByTestId('rolechooser').within(() => {
+            cy.uiGetRHS().findByTestId(`rhs.channel_members.member:${otherUser.id}`).within(() => {
+                cy.findByTestId('rhs.channel_members.member.role_chooser').should('be.visible').and('contain.text', 'Member').click().wait(TIMEOUTS.HALF_SEC);
+                cy.findByTestId('rhs.channel_members.member.role_chooser').within(() => {
                     // * Verify the user can be removed
                     cy.get('.Menu__content.dropdown-menu .MenuItem').eq(1).should('be.visible').and('contain.text', 'Remove from Channel').click();
                 });

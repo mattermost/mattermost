@@ -67,7 +67,7 @@ function createAndVerifyMessage(message, isCode) {
         aliases.forEach((alias) => {
             const emoticonText = message.trim() === ':D' ? ':smile:' : ':taco:';
             cy.get('@' + alias).
-                find(`span[data-testid="postEmoji.${emoticonText}"]`).
+                find(`span[data-testid="markdown.emoji:${emoticonText.slice(1, -1)}--text"]`).
                 and('have.attr', 'alt', emoticonText).
                 and('have.text', message.trim());
         });

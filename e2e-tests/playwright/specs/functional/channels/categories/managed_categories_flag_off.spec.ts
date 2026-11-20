@@ -49,11 +49,14 @@ test.describe('Managed Channel Categories (flag off)', () => {
             await adminClient.addToTeam(team.id, adminUser.id);
 
             // # Log in and open channel settings
-            const {channelsPage} = await pw.testBrowser.login(adminUser);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            await app.channelsPage.goto({team, channel: 'town-square'});
+            await expect(app.center.postCreate).toBeVisible();
 
-            const channelSettingsModal = await channelsPage.openChannelSettings();
+            const settingsItem = await app.channelHeader.openMenuButton.clickTo(
+                app.channelHeader.menu.channelSettingsMenuItem,
+            );
+            const channelSettingsModal = await settingsItem.clickTo(app.channelSettingsModal);
             const info = await openChannelSettingsInfoTab(channelSettingsModal);
 
             // * Verify managed category selector is not visible

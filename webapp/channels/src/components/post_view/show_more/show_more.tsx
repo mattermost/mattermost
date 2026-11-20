@@ -19,6 +19,8 @@ type Props = {
     compactDisplay: boolean;
     overflowType?: AttachmentTextOverflowType;
     maxHeight?: number;
+
+    testId?: string;
 };
 
 type State = {
@@ -156,6 +158,7 @@ export default class ShowMore extends React.PureComponent<Props, State> {
                     <button
                         id='showMoreButton'
                         className='post-preview-collapse__show-more-button color--link'
+                        data-testid={this.props.testId ? `${this.props.testId}.show_more--button` : undefined}
                         onClick={this.toggleCollapse}
                     >
                         {showText}
@@ -172,6 +175,7 @@ export default class ShowMore extends React.PureComponent<Props, State> {
                             <button
                                 id='showMoreButton'
                                 className='post-collapse__show-more-button'
+                                data-testid={this.props.testId ? `${this.props.testId}.show_more--button` : undefined}
                                 onClick={this.toggleCollapse}
                             >
                                 <span className={showIcon}/>

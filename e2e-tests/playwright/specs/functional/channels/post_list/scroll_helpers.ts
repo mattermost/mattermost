@@ -1,7 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, type Page} from '@playwright/test';
+import type {Page} from '@playwright/test';
+
+import {Api, expect, settle, type App} from '@mattermost/playwright-lib';
+
+type Post = ReturnType<App['center']['postList']['post']>;
+
+/** The center channel's most recent post, once the list has one. */
+export async function lastPost(app: App): Promise<Post> {
+    const {postList} = app.center;
+    await expect.poll(async () => (await postList.postList.keys()).length).toBeGreaterThan(0);
+    return postList.post({id: (await postList.postList.keys()).at(-1)!});
+}
+
+/** Sends a message from the center composer, and returns the new post once it shows. */
+export async function sendMessage(app: App, message: string): Promise<Post> {
+    const {postList} = app.center;
+    const before = (await postList.postList.keys()).length;
+    await app.center.postCreate.message.container.fill(message);
+    await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    await expect.poll(async () => (await postList.postList.keys()).length).toBeGreaterThan(before);
+    return postList.post({id: (await postList.postList.keys()).at(-1)!});
+}
+
+/** The link (`markdown.link--link`) a post's message holds, once it shows with target `href`. */
+export async function linkIn(app: App, post: ReturnType<App['center']['postList']['post']>, href: string) {
+    const link = post.markdown.linkLink;
+    await expect(link).toHaveAttribute('href', href);
+    return link;
+}
 
 export type ScrollObservation = {
     distanceFromBottom: number | null;
@@ -35,15 +63,16 @@ export async function watchPostListScroll(page: Page, channelId: string): Promis
             (window as unknown as Record<string, WatcherState>)[key] = state;
 
             const sample = () => {
+                // the center post list's scroller (`center.post_list.scroller`), for this channel's list only
                 const container = document.querySelector(
-                    `#postListContent[data-channel-id="${channelId}"] #postListScrollContainer`,
+                    `[data-channel-id="${channelId}"] [data-testid="center.post_list.scroller"]`,
                 );
 
                 if (container) {
                     const containerRect = container.getBoundingClientRect();
                     const distanceFromBottom = container.scrollHeight - container.clientHeight - container.scrollTop;
 
-                    const separator = document.querySelector('.NotificationSeparator');
+                    const separator = document.querySelector('[data-testid="center.post_list.new_messages"]');
                     const separatorViewportTop = separator ? separator.getBoundingClientRect().top : null;
                     const separatorTop =
                         separator && separatorViewportTop !== null ? separatorViewportTop - containerRect.top : null;
@@ -110,7 +139,7 @@ export async function watchPostListScroll(page: Page, channelId: string): Promis
                     const now = await page.evaluate(() => Math.round(performance.now()));
                     return now - observations[observations.length - 1].at >= quietMs;
                 },
-                {timeout: 5000, intervals: [100, 200, 300]},
+                {intervals: [100, 200, 300]},
             )
             .toBe(true);
 

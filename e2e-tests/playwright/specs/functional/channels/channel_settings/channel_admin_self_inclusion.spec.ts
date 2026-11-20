@@ -12,7 +12,7 @@ import type {Page} from '@playwright/test';
 import type {UserPropertyField} from '@mattermost/types/properties_user';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {ChannelsPage, expect, newTestPassword, test, closeChannelSettings} from '@mattermost/playwright-lib';
+import {type App, expect, newTestPassword, test, closeChannelSettings} from '@mattermost/playwright-lib';
 
 const PROGRAM_OPTIONS = [
     {name: 'Artemis', color: '#FF8800'},
@@ -130,8 +130,9 @@ async function createChannelAccessRule(
     });
 }
 
-async function openAccessControlSettings(channelsPage: ChannelsPage) {
-    const channelSettings = await channelsPage.openChannelSettings();
+async function openAccessControlSettings(app: App) {
+    await app.channelHeader.openMenuButton.clickTo(app.channelHeader.menu.channelSettingsMenuItem);
+    const channelSettings = await app.channelHeader.menu.channelSettingsMenuItem.clickTo(app.channelSettingsModal);
     const accessControlTab = channelSettings.tabs.tab('access_rules').locator;
     await expect(accessControlTab).toBeVisible({timeout: 10000});
     await accessControlTab.click();
@@ -208,18 +209,17 @@ test.describe('Channel Settings → Membership Policy', () => {
 
         // Alice can open Channel Settings → Membership Policy as channel admin
         // and test the existing rule through the same UI users exercise.
-        const {page} = await pw.testBrowser.login(alice);
-        const channelsPage = new ChannelsPage(page);
-        await channelsPage.goto(team.name, channel.name);
-        await channelsPage.toBeVisible();
+        const {app, page} = await pw.testBrowser.login(alice);
+        await app.channelsPage.goto({team, channel: channel.name});
+        await expect(app.center.postCreate).toBeVisible();
 
-        const excludingRuleSettings = await openAccessControlSettings(channelsPage);
+        const excludingRuleSettings = await openAccessControlSettings(app);
         await verifyTestAccessRuleDisabled(page);
         await closeChannelSettings(excludingRuleSettings);
 
         await createChannelAccessRule(adminClient, channel, twoValueOrExpression);
 
-        const includingRuleSettings = await openAccessControlSettings(channelsPage);
+        const includingRuleSettings = await openAccessControlSettings(app);
         await testAccessRuleAndVerifyUser(page, alice.username);
 
         await closeChannelSettings(includingRuleSettings);

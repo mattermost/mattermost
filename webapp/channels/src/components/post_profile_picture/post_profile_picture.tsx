@@ -25,6 +25,9 @@ type Props = {
     user: UserProfile;
     isBot?: boolean;
     overwriteIcon?: string;
+
+    // Passed to the ProfilePicture wrapper.
+    testId?: string;
 };
 
 export default class PostProfilePicture extends React.PureComponent<Props> {
@@ -113,6 +116,7 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
                 isBot={user?.is_bot}
                 fromAutoResponder={fromAutoResponder}
                 fromWebhook={fromWebhook}
+                testId={this.props.testId}
             />
         );
     }

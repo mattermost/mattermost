@@ -37,6 +37,7 @@ const Notification = ({channel, user, ...rest}: Props): JSX.Element => {
 
     return (
         <Menu.Item
+            data-testid='channel_header.menu.notification_preferences--menuitem'
             leadingElement={<BellOutlineIcon size='18px'/>}
             id='channelNotificationPreferences'
             onClick={handleNotificationPreferences}

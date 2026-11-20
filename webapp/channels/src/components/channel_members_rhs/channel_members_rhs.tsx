@@ -155,18 +155,18 @@ export default function ChannelMembersRHS({
         }
         return (
             <TagGroup>
-                {structuredAttributes.flatMap((attribute) =>
-                    attribute.values.map((value) => {
-                        const attributeLabel = formatAttributeName(attribute.name);
-                        return (
-                            <AlertTag
-                                key={`${attribute.name}-${value}`}
-                                tooltipTitle={attributeLabel}
-                                text={`${attributeLabel}: ${value}`}
-                            />
-                        );
-                    }),
-                )}
+                {structuredAttributes.flatMap((attribute) => attribute.values.map((value) => ({attribute, value}))).map(({attribute, value}, position) => {
+                    const attributeLabel = formatAttributeName(attribute.name);
+                    return (
+                        <AlertTag
+                            key={`${attribute.name}-${value}`}
+                            testId='rhs.channel_members.policy.tag'
+                            testKey={position}
+                            tooltipTitle={attributeLabel}
+                            text={`${attributeLabel}: ${value}`}
+                        />
+                    );
+                })}
             </TagGroup>
         );
     }, [structuredAttributes]);
@@ -311,6 +311,7 @@ export default function ChannelMembersRHS({
         <div
             id='rhsContainer'
             className='sidebar-right__body channel-members-rhs'
+            data-testid='rhs.channel_members'
         >
 
             <Header
@@ -321,7 +322,10 @@ export default function ChannelMembersRHS({
             />
             {/* Show banner only for channels whose policy gates membership. */}
             {isMembershipPolicy && (
-                <div className='channel-members-rhs__alert-container policy-enforced'>
+                <div
+                    className='channel-members-rhs__alert-container policy-enforced'
+                    data-testid='rhs.channel_members.policy'
+                >
                     <AlertBanner
                         mode='info'
                         variant='app'

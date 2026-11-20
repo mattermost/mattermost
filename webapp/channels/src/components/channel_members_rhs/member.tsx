@@ -52,7 +52,7 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
         <div
             className='channel-members-rhs__member'
             style={{height: '48px'}}
-            data-testid={`memberline-${member.user.id}`}
+            data-testid={`rhs.channel_members.member:${member.user.id}`}
         >
             <span className='ProfileSpan'>
                 <div className='channel-members-rhs__avatar'>
@@ -67,6 +67,7 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
                 </div>
                 <ProfilePopover
                     triggerComponentClass='profileSpan_userInfo'
+                    triggerTestId='rhs.channel_members.member.profile'
                     userId={member.user.id}
                     src={userProfileSrc}
                     hideStatus={member.user.is_bot}
@@ -106,10 +107,11 @@ const Member = ({channel, member, index, totalUsers, editing, actions}: Props) =
 
             <div
                 className={classNames('channel-members-rhs__role-chooser', {editing})}
-                data-testid='rolechooser'
+                data-testid='rhs.channel_members.member.role_chooser'
             >
                 {member.membership && (
                     <ChannelMembersDropdown
+                        testIdScope='rhs.channel_members.member'
                         channel={channel}
                         user={member.user}
                         channelMember={member.membership}

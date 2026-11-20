@@ -19,6 +19,9 @@ type Props = {
     commentCount?: number;
     postId?: string;
     extraClass: string;
+
+    /** Renders `${testId}--button`. */
+    testId?: string;
 };
 
 const CommentIcon = ({
@@ -28,6 +31,7 @@ const CommentIcon = ({
     extraClass = '',
     handleCommentClick,
     postId,
+    testId,
 }: Props) => {
     const intl = useIntl();
 
@@ -55,6 +59,7 @@ const CommentIcon = ({
                 )}
                 icon={<Icon glyph={<ReplyOutlineIcon/>}/>}
                 count={commentCount > 0 ? commentCount : undefined}
+                data-testid={testId ? `${testId}--button` : undefined}
                 aria-label={replyTitle.toLowerCase()}
                 onClick={handleCommentClick}
             />

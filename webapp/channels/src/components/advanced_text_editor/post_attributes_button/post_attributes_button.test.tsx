@@ -13,7 +13,7 @@ describe('PostAttributesButton', () => {
     });
 
     test('renders a plus button labelled for the composer', () => {
-        renderWithContext(<PostAttributesButton/>);
+        renderWithContext(<PostAttributesButton testIdScope='center.post_create'/>);
 
         const button = screen.getByRole('button', {name: 'Add attributes'});
 
@@ -22,7 +22,7 @@ describe('PostAttributesButton', () => {
     });
 
     test('looks disabled but stays focusable and shows its tooltip', async () => {
-        renderWithContext(<PostAttributesButton/>);
+        renderWithContext(<PostAttributesButton testIdScope='center.post_create'/>);
 
         const button = screen.getByRole('button', {name: 'Add attributes'});
 

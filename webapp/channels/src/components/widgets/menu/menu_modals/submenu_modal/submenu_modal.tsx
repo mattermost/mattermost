@@ -56,7 +56,7 @@ const SubMenuModal = ({
             role='none'
         >
             <Modal.Body
-                data-testid={'SubMenuModalBody'}
+                data-testid='submenu_modal'
                 onClick={onHide}
             >
                 <MenuWrapper>

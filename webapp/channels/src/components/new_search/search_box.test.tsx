@@ -95,7 +95,7 @@ describe('components/new_search/SearchBox', () => {
         renderWithContext(<SearchBox {...props}/>);
 
         // The select team dropdown should be visible
-        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        const teamSelector = document.querySelector('div[data-testid="search_box.team_selector"]');
         expect(teamSelector).toBeInTheDocument();
     });
 
@@ -104,7 +104,7 @@ describe('components/new_search/SearchBox', () => {
         renderWithContext(<SearchBox {...baseProps}/>);
 
         // The select team dropdown should not be visible
-        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        const teamSelector = document.querySelector('div[data-testid="search_box.team_selector"]');
         expect(teamSelector).not.toBeInTheDocument();
     });
 
@@ -120,7 +120,7 @@ describe('components/new_search/SearchBox', () => {
         renderWithContext(<SearchBox {...props}/>);
 
         // The select team dropdown should not be visible
-        const teamSelector = document.querySelector('div[data-testid="searchTeamSelector"]');
+        const teamSelector = document.querySelector('div[data-testid="search_box.team_selector"]');
         expect(teamSelector).not.toBeInTheDocument();
     });
 

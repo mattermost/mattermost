@@ -20,9 +20,10 @@ import {ModalIdentifiers} from 'utils/constants';
 type Props = {
     flaggedPost: Post;
     reportingUser: UserProfile;
+    testIdScope?: string;
 };
 
-export default function DataSpillageAction({flaggedPost, reportingUser}: Props) {
+export default function DataSpillageAction({flaggedPost, reportingUser, testIdScope}: Props) {
     const dispatch = useDispatch();
 
     const handleRemoveMessage = useCallback(() => {
@@ -58,12 +59,12 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
     return (
         <div
             className='DataSpillageAction'
-            data-testid='data-spillage-action'
+            data-testid={testIdScope}
         >
             <Button
                 size='small'
                 destructive={true}
-                data-testid='data-spillage-action-remove-message'
+                data-testid={testIdScope ? `${testIdScope}.remove--button` : undefined}
                 onClick={handleRemoveMessage}
             >
                 <FormattedMessage
@@ -75,7 +76,7 @@ export default function DataSpillageAction({flaggedPost, reportingUser}: Props) 
             <Button
                 emphasis='tertiary'
                 size='small'
-                data-testid='data-spillage-action-keep-message'
+                data-testid={testIdScope ? `${testIdScope}.keep--button` : undefined}
                 onClick={handleKeepMessage}
             >
                 <FormattedMessage

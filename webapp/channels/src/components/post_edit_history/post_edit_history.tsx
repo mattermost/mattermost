@@ -121,6 +121,7 @@ const PostEditHistory = ({
         <div
             id='rhsContainer'
             className='sidebar-right__body sidebar-right__edit-post-history'
+            data-testid='rhs.edit_history'
         >
             <Scrollbars ref={scrollbars}>
                 <SearchResultsHeader>

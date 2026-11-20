@@ -150,7 +150,7 @@ describe('toasts', () => {
         cy.get('div.toast').should('be.visible');
 
         // # Click on toast dismiss button to close the toast
-        cy.findByTestId('dismissToast').should('be.visible').click();
+        cy.findByTestId('center.post_list.toast.dismiss--button').should('be.visible').click();
 
         // * Verify the toast is not visible
         cy.get('div.toast').should('not.exist');
@@ -180,7 +180,7 @@ describe('toasts', () => {
         cy.get('div.toast').should('be.visible');
 
         // # Click on toast dismiss button to close the toast
-        cy.findByTestId('dismissToast').should('be.visible').click();
+        cy.findByTestId('center.post_list.toast.dismiss--button').should('be.visible').click();
 
         // * Verify the toast is not visible
         cy.get('div.toast').should('not.exist');
@@ -205,7 +205,7 @@ describe('toasts', () => {
         cy.get('div.toast').should('be.visible').contains('1 new message');
 
         // # Click on toast dismiss button to close the toast
-        cy.findByTestId('dismissToast').should('be.visible').click();
+        cy.findByTestId('center.post_list.toast.dismiss--button').should('be.visible').click();
 
         // * Verify the toast is not visible
         cy.get('div.toast').should('not.exist');
@@ -268,7 +268,7 @@ describe('toasts', () => {
 
             // # Visit permalink
             cy.visit(`/${testTeam.name}/pl/${id}`);
-            cy.findAllByTestId('postView').should('be.visible');
+            cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('be.visible');
 
             // * Verify toast is not visible
             cy.get('div.toast').should('not.exist');
@@ -292,7 +292,7 @@ describe('toasts', () => {
 
                 // # Visit permalink
                 cy.visit(`/${testTeam.name}/pl/${id}`);
-                cy.findAllByTestId('postView').should('be.visible');
+                cy.findAllByTestId(/^center\.post_list\.post:[^.]+$/).should('be.visible');
 
                 // * Verify toast is visible with correct message
                 cy.get('div.toast').should('be.visible').contains('Viewing message history');

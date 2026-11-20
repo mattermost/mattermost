@@ -222,6 +222,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
             <GenericModal
                 className='a11y__modal channel-switcher'
                 id='quickSwitchModal'
+                testId='quick_switch_modal'
                 show={true}
                 bodyPadding={false}
                 enforceFocus={false}
@@ -245,6 +246,8 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         value={this.state.text}
                         onItemSelected={this.handleSubmit}
                         listComponent={SuggestionList}
+                        testIdScope='quick_switch_modal.suggestions'
+                        data-testid='quick_switch_modal.search--textbox'
                         listPosition='bottom'
                         maxLength={64}
                         providers={providers}

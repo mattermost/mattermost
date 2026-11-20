@@ -241,8 +241,8 @@ describe('PostAttributesHoverCard', () => {
         ]);
 
         // `PropertyValueRenderer` draws chips; the card must not reach for it.
-        expect(screen.queryAllByTestId('select-property')).toHaveLength(0);
-        expect(screen.queryAllByTestId('text-property')).toHaveLength(0);
+        expect(screen.queryAllByTestId('post_attributes.value.select--text')).toHaveLength(0);
+        expect(screen.queryAllByTestId('post_attributes.value.text--text')).toHaveLength(0);
     });
 
     test('calls onEdit exactly once', () => {

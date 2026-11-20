@@ -48,6 +48,9 @@ interface Props {
     channelId: string;
     rootId?: string;
     onSubmit?: () => void;
+
+    // The list's scope (`<host>.message.suggestions`), as the plain composer's.
+    testId?: string;
 }
 
 type AppsModalProvider = {
@@ -130,7 +133,7 @@ function getTypedPretext(textBeforeCursor: string, matchedPretext: string, term:
     return typed && term.toLowerCase().startsWith(typed) ? typed : undefined;
 }
 
-const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => {
+const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit, testId}: Props) => {
     const dispatch = useDispatch();
 
     const [results, setResults] = useState<SuggestionResults>(EMPTY_RESULTS);
@@ -394,6 +397,7 @@ const WysiwygSuggestionList = ({editor, channelId, rootId, onSubmit}: Props) => 
             onCompleteWord={handleCompleteWord}
             onItemHover={handleItemHover}
             position='top'
+            testId={testId}
         />
     );
 };

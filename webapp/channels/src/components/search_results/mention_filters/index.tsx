@@ -49,7 +49,11 @@ function isKeyboardEvent(event?: Event) {
     return event instanceof KeyboardEvent || (event instanceof MouseEvent && event.detail === 0);
 }
 
-export default function MentionFiltersButton() {
+type Props = {
+    testIdScope: string;
+};
+
+export default function MentionFiltersButton({testIdScope}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
@@ -129,7 +133,7 @@ export default function MentionFiltersButton() {
         <>
             <Button
                 id='mentionFiltersButton'
-                data-testid='mentionFiltersButton'
+                data-testid={`${testIdScope}.trigger--button`}
                 ref={refs.setReference}
                 className='MentionFilters__trigger'
                 emphasis='quaternary'
@@ -166,7 +170,8 @@ export default function MentionFiltersButton() {
                             ref={refs.setFloating}
                             style={floatingStyles}
                             className='MentionFilters__floating'
-                            data-testid='mentionFiltersPopover'
+                            role='dialog'
+                            data-testid={`${testIdScope}.popover`}
                             aria-label={formatMessage({id: 'search_results.mention_filters.button', defaultMessage: 'Filters'})}
                             {...getFloatingProps()}
                         >
@@ -176,6 +181,7 @@ export default function MentionFiltersButton() {
                             >
                                 <MentionFiltersPopover
                                     key={openCount}
+                                    testIdScope={`${testIdScope}.popover`}
                                     filters={filters}
                                     teamId={teamId}
                                     showTeamSelector={showTeamSelector}

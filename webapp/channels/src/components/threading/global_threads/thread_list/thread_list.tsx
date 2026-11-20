@@ -209,6 +209,7 @@ const ThreadList = ({
                             <Button
                                 className={'Button___large Margined'}
                                 isActive={currentFilter === ThreadFilter.none}
+                                data-testid='threads.tabs.followed--button'
                                 {...tabProps[0]}
                             >
                                 <FormattedMessage
@@ -225,6 +226,7 @@ const ThreadList = ({
                                 className={'Button___large Margined'}
                                 isActive={currentFilter === ThreadFilter.unread}
                                 hasDot={someUnread}
+                                data-testid='threads.tabs.unreads--button'
                                 {...tabProps[1]}
                             >
                                 <FormattedMessage
@@ -245,6 +247,7 @@ const ThreadList = ({
                         >
                             <IconButton
                                 id={'threads-list__mark-all-as-read'}
+                                data-testid='threads.mark_all_read--button'
                                 size='small'
                                 aria-label={formatMessage({
                                     id: 'threading.threadList.markRead',
@@ -261,7 +264,7 @@ const ThreadList = ({
                 id='threads-list'
                 role='tabpanel'
                 className='threads'
-                data-testid={'threads_list'}
+                data-testid='threads.feed'
             >
                 <VirtualizedThreadList
                     key={`threads_list_${currentFilter}`}

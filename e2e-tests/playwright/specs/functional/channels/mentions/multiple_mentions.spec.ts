@@ -6,6 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 /**
  * @objective Verify that multiple user mentions are displayed properly in the Recent Mentions section.
  *
+ *
  * @precondition
  * Two users must be members of the same team
  */
@@ -14,7 +15,7 @@ test('displays multiple mentions correctly in Recent Mentions panel', {tag: ['@s
     const MENTION_COUNT = 20;
 
     // # Initialize the first user who will create the mentions
-    const {team, user: mentioningUser, userClient} = await pw.initSetup({userOptions: {prefix: 'mentioner'}});
+    const {team, userClient} = await pw.initSetup({userOptions: {prefix: 'mentioner'}});
 
     // # Create a second user to be mentioned
     const {adminClient} = await pw.getAdminClient();
@@ -38,31 +39,23 @@ test('displays multiple mentions correctly in Recent Mentions panel', {tag: ['@s
         await userClient.createPost({
             channel_id: townSquare.id,
             message,
-            user_id: mentioningUser.id,
         });
     }
 
     // # Login as the mentioned user to check mentions in the UI
-    const {page: mentionedPage, channelsPage: mentionedChannelsPage} = await pw.testBrowser.login(mentionedUser);
-    await mentionedChannelsPage.goto(team.name, 'town-square');
-    await mentionedChannelsPage.toBeVisible();
+    const {app} = await pw.testBrowser.login(mentionedUser);
+    await app.channelsPage.goto({team, channel: townSquare});
 
-    // # Click on the Recent Mentions button in the channel header
-    await mentionedPage.getByRole('button', {name: 'Recent mentions'}).click();
+    // # Open Recent mentions
+    await app.globalHeader.recentMentionsButton.click();
 
-    // * Verify the right sidebar opens and is visible
-    await mentionedChannelsPage.sidebarRight.toBeVisible();
-
-    // # Get all the mention posts in the right sidebar
-    const mentionPosts = mentionedChannelsPage.sidebarRight.container.locator('.post');
-
-    // * Verify the correct number of mention posts are displayed
-    await expect(mentionPosts).toHaveCount(MENTION_COUNT);
-
-    // * Verify the content of each mention displays correctly with the right mention text
+    // * Verify every mention is listed, newest first
+    const results = app.search.results;
+    await expect.poll(async () => (await results.postList.keys()).length).toBe(MENTION_COUNT);
+    const keys = await results.postList.keys();
     for (let i = 0; i < MENTION_COUNT; i++) {
         const mentionNumber = MENTION_COUNT - i;
         const expectedText = `Hey @${mentionedUser.username}, this is mention #${mentionNumber}`;
-        await expect(mentionPosts.nth(i)).toContainText(expectedText);
+        await expect(results.post({id: keys[i]}).message.container).toHaveText(expectedText);
     }
 });

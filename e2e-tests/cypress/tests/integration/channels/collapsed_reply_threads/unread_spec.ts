@@ -76,7 +76,7 @@ describe('Collapsed Reply Threads', () => {
             cy.wait(TIMEOUTS.ONE_SEC);
 
             // * RHS should open and new messages line should be visible
-            cy.get('#rhsContainer').findByTestId('NotificationSeparator').scrollIntoView().should('be.visible');
+            cy.get('#rhsContainer').findByTestId('rhs.thread.new_messages').scrollIntoView().should('be.visible');
 
             // # Close RHS
             cy.uiCloseRHS();
@@ -90,7 +90,7 @@ describe('Collapsed Reply Threads', () => {
             cy.get(`#post_${rootId}`).click();
 
             // * RHS should open and new messages line should NOT be visible
-            cy.get('#rhsContainer').findByTestId('NotificationSeparator').should('not.exist');
+            cy.get('#rhsContainer').findByTestId('rhs.thread.new_messages').should('not.exist');
 
             // # Close RHS
             cy.uiCloseRHS();

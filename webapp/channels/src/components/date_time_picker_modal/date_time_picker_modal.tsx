@@ -103,6 +103,7 @@ export default function DateTimePickerModal({
     return (
         <GenericModal
             id='DateTimePickerModal'
+            testId='date_time_picker_modal'
             ariaLabel={ariaLabel}
             onExited={onExited}
             modalHeaderText={header}
@@ -124,6 +125,7 @@ export default function DateTimePickerModal({
             {bodyPrefix}
 
             <DateTimeInput
+                testIdScope='date_time_picker_modal.when'
                 time={dateTime}
                 handleChange={handleChange}
                 timezone={userTimezone}

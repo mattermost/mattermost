@@ -127,10 +127,13 @@ describe('components/channel_banner', () => {
         };
 
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_1'}/>,
+            <ChannelBanner
+                channelId={'channel_id_1'}
+                testIdScope='center.channel_banner'
+            />,
             nonEnterpriseLicenseState,
         );
-        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.channel_banner')).not.toBeInTheDocument();
     });
 
     test('should not render when license is enterprise', () => {
@@ -148,10 +151,13 @@ describe('components/channel_banner', () => {
         };
 
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_1'}/>,
+            <ChannelBanner
+                channelId={'channel_id_1'}
+                testIdScope='center.channel_banner'
+            />,
             nonEnterpriseLicenseState,
         );
-        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.channel_banner')).not.toBeInTheDocument();
     });
 
     test('should not render when there is no license', () => {
@@ -164,18 +170,24 @@ describe('components/channel_banner', () => {
         };
 
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_1'}/>,
+            <ChannelBanner
+                channelId={'channel_id_1'}
+                testIdScope='center.channel_banner'
+            />,
             noLicenseState,
         );
-        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.channel_banner')).not.toBeInTheDocument();
     });
 
     test('should not render when banner is disabled', () => {
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_2'}/>,
+            <ChannelBanner
+                channelId={'channel_id_2'}
+                testIdScope='center.channel_banner'
+            />,
             baseState,
         );
-        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.channel_banner')).not.toBeInTheDocument();
     });
 
     test('uses resolved classification banner text without rendering it a second time', () => {
@@ -189,10 +201,13 @@ describe('components/channel_banner', () => {
 
         try {
             renderWithContext(
-                <ChannelBanner channelId='channel_id_1'/>,
+                <ChannelBanner
+                    channelId={'channel_id_1'}
+                    testIdScope='center.channel_banner'
+                />,
                 baseState,
             );
-            expect(screen.getByTestId('channel_banner_text')).toHaveTextContent('{{missing}}');
+            expect(screen.getByTestId('center.channel_banner.text--text')).toHaveTextContent('{{missing}}');
         } finally {
             classificationHook.mockRestore();
         }
@@ -200,10 +215,13 @@ describe('components/channel_banner', () => {
 
     test('should not render when channel has no banner', () => {
         renderWithContext(
-            <ChannelBanner channelId={'non-existent-channel-id'}/>,
+            <ChannelBanner
+                channelId={'non-existent-channel-id'}
+                testIdScope='center.channel_banner'
+            />,
             baseState,
         );
-        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.channel_banner')).not.toBeInTheDocument();
     });
 
     test('should not render when banner info is incomplete', () => {
@@ -235,10 +253,13 @@ describe('components/channel_banner', () => {
         };
 
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_1'}/>,
+            <ChannelBanner
+                channelId={'channel_id_1'}
+                testIdScope='center.channel_banner'
+            />,
             incompleteBannerInfoState,
         );
-        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.channel_banner')).not.toBeInTheDocument();
     });
 
     test('should not render when banner text is empty', () => {
@@ -270,38 +291,47 @@ describe('components/channel_banner', () => {
         };
 
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_1'}/>,
+            <ChannelBanner
+                channelId={'channel_id_1'}
+                testIdScope='center.channel_banner'
+            />,
             emptyTextState,
         );
-        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.channel_banner')).not.toBeInTheDocument();
     });
 
     test('should render banner with correct text and styling', () => {
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_1'}/>,
+            <ChannelBanner
+                channelId={'channel_id_1'}
+                testIdScope='center.channel_banner'
+            />,
             baseState,
         );
 
-        const bannerContainer = screen.getByTestId('channel_banner_container');
+        const bannerContainer = screen.getByTestId('center.channel_banner');
         expect(bannerContainer).toBeInTheDocument();
         expect(bannerContainer).toHaveStyle('background-color: #FF0000');
 
-        const bannerText = screen.getByTestId('channel_banner_text');
+        const bannerText = screen.getByTestId('center.channel_banner.text--text');
         expect(bannerText).toBeInTheDocument();
         expect(bannerText.textContent).toBe('Test banner message');
     });
 
     test('should render markdown in banner text', () => {
         renderWithContext(
-            <ChannelBanner channelId={'channel_id_3'}/>,
+            <ChannelBanner
+                channelId={'channel_id_3'}
+                testIdScope='center.channel_banner'
+            />,
             baseState,
         );
 
-        const bannerContainer = screen.getByTestId('channel_banner_container');
+        const bannerContainer = screen.getByTestId('center.channel_banner');
         expect(bannerContainer).toBeInTheDocument();
         expect(bannerContainer).toHaveStyle('background-color: #0000FF');
 
-        const bannerText = screen.getByTestId('channel_banner_text');
+        const bannerText = screen.getByTestId('center.channel_banner.text--text');
         expect(bannerText).toBeInTheDocument();
 
         // Check that markdown was rendered (bold text)
@@ -312,26 +342,32 @@ describe('components/channel_banner', () => {
 
     test('should render for private channels', () => {
         renderWithContext(
-            <ChannelBanner channelId={'private_channel_id'}/>,
+            <ChannelBanner
+                channelId={'private_channel_id'}
+                testIdScope='center.channel_banner'
+            />,
             baseState,
         );
 
-        const bannerContainer = screen.getByTestId('channel_banner_container');
+        const bannerContainer = screen.getByTestId('center.channel_banner');
         expect(bannerContainer).toBeInTheDocument();
         expect(bannerContainer).toHaveStyle('background-color: #FFFF00');
 
-        const bannerText = screen.getByTestId('channel_banner_text');
+        const bannerText = screen.getByTestId('center.channel_banner.text--text');
         expect(bannerText).toBeInTheDocument();
         expect(bannerText.textContent).toBe('Private Channel Banner');
     });
 
     test('should not render for DM channels', () => {
         renderWithContext(
-            <ChannelBanner channelId={'dm_channel_id'}/>,
+            <ChannelBanner
+                channelId={'dm_channel_id'}
+                testIdScope='center.channel_banner'
+            />,
             baseState,
         );
 
-        expect(screen.queryByTestId('channel_banner_container')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('center.channel_banner')).not.toBeInTheDocument();
     });
 
     test('should apply contrasting text color based on dark background color', () => {
@@ -364,13 +400,16 @@ describe('components/channel_banner', () => {
         };
 
         renderWithContext(
-            <ChannelBanner channelId={'light_bg_channel'}/>,
+            <ChannelBanner
+                channelId={'light_bg_channel'}
+                testIdScope='center.channel_banner'
+            />,
             stateWithLightBgChannel,
         );
 
         // This test might be flaky depending on how getContrastingSimpleColor is implemented
         // We're expecting dark text on light background
-        const darkBgBannerText = screen.getByTestId('channel_banner_text');
+        const darkBgBannerText = screen.getByTestId('center.channel_banner.text--text');
         expect(darkBgBannerText).toBeInTheDocument();
         expect(darkBgBannerText).toHaveStyle('color: rgb(255, 255, 255)');
         expect(darkBgBannerText).toHaveStyle('--channel-banner-text-color: #FFFFFF');
@@ -406,13 +445,16 @@ describe('components/channel_banner', () => {
         };
 
         renderWithContext(
-            <ChannelBanner channelId={'light_bg_channel'}/>,
+            <ChannelBanner
+                channelId={'light_bg_channel'}
+                testIdScope='center.channel_banner'
+            />,
             stateWithLightBgChannel,
         );
 
         // This test might be flaky depending on how getContrastingSimpleColor is implemented
         // We're expecting dark text on light background
-        const lightBgBannerText = screen.getByTestId('channel_banner_text');
+        const lightBgBannerText = screen.getByTestId('center.channel_banner.text--text');
         expect(lightBgBannerText).toBeInTheDocument();
         expect(lightBgBannerText).toHaveStyle('color: rgb(0, 0, 0)');
         expect(lightBgBannerText).toHaveStyle('--channel-banner-text-color: #000000');

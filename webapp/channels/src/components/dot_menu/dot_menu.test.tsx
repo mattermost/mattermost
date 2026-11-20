@@ -170,6 +170,7 @@ describe('components/dot_menu/DotMenu', () => {
         },
     };
     const baseProps = {
+        testId: 'center.post_list.post.menu.dot_menu' as const,
         post: TestHelper.getPostMock({id: 'post_id_1', is_pinned: false, type: '' as PostType}),
         isLicensed: false,
         postEditTimeLimit: '-1',
@@ -230,14 +231,14 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         expect(button).toBeInTheDocument();
         expect(button).toHaveAttribute('aria-label', 'more');
 
         await userEvent.click(button);
 
         // Check that edit menu item is present when canEdit is true
-        expect(screen.getByTestId(`edit_post_${baseProps.post.id}`)).toBeInTheDocument();
+        expect(screen.getByTestId('post_dot_menu.edit--menuitem')).toBeInTheDocument();
     });
 
     test('should show delete menu, canDelete', async () => {
@@ -251,11 +252,11 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
         // Check that delete menu item is present when canDelete is true
-        expect(screen.getByTestId(`delete_post_${baseProps.post.id}`)).toBeInTheDocument();
+        expect(screen.getByTestId('post_dot_menu.delete--menuitem')).toBeInTheDocument();
     });
 
     test('should show move thread menu, can move', async () => {
@@ -268,7 +269,7 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
         // Check that move thread menu item is present when canMove is true
@@ -285,7 +286,7 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
         // Check that move thread menu item is not present when canMove is false
@@ -304,13 +305,13 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`));
+        await userEvent.click(screen.getByTestId(`${baseProps.testId}--button`));
 
         // canPin carries the channel write denial, so the item must follow it like the P shortcut does.
         if (shown) {
-            expect(screen.getByTestId(`pin_post_${baseProps.post.id}`)).toBeInTheDocument();
+            expect(screen.getByTestId('post_dot_menu.pin--menuitem')).toBeInTheDocument();
         } else {
-            expect(screen.queryByTestId(`pin_post_${baseProps.post.id}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_dot_menu.pin--menuitem')).not.toBeInTheDocument();
         }
     });
 
@@ -331,7 +332,7 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
         // Check that move thread menu item is not present for BoR posts
@@ -353,7 +354,7 @@ describe('components/dot_menu/DotMenu', () => {
 
         renderWithContext(<DotMenuRoot {...props}/>, initialState);
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
         // Simulate pressing 'W' key while menu is open
@@ -375,9 +376,9 @@ describe('components/dot_menu/DotMenu', () => {
             <DotMenu {...props}/>,
             initialState,
         );
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
-        const menuItem = screen.getByTestId(`unread_post_${baseProps.post.id}`);
+        const menuItem = screen.getByTestId('post_dot_menu.mark_as_unread--menuitem');
         expect(menuItem).toBeVisible();
     });
 
@@ -390,9 +391,9 @@ describe('components/dot_menu/DotMenu', () => {
             <DotMenu {...props}/>,
             initialState,
         );
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
-        const menuItem = screen.queryByTestId(`unread_post_${baseProps.post.id}`);
+        const menuItem = screen.queryByTestId('post_dot_menu.mark_as_unread--menuitem');
         expect(menuItem).toBeNull();
     });
 
@@ -405,9 +406,9 @@ describe('components/dot_menu/DotMenu', () => {
             <DotMenu {...props}/>,
             initialState,
         );
-        const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
-        const menuItem = screen.queryByTestId(`unread_post_${baseProps.post.id}`);
+        const menuItem = screen.queryByTestId('post_dot_menu.mark_as_unread--menuitem');
         expect(menuItem).toBeNull();
     });
 
@@ -425,9 +426,9 @@ describe('components/dot_menu/DotMenu', () => {
                 <DotMenu {...props}/>,
                 initialState,
             );
-            const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+            const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
             await userEvent.click(button);
-            const menuItem = screen.getByTestId(`follow_post_thread_${baseProps.post.id}`);
+            const menuItem = screen.getByTestId('post_dot_menu.follow_thread--menuitem');
             expect(menuItem).toBeVisible();
         });
 
@@ -449,9 +450,9 @@ describe('components/dot_menu/DotMenu', () => {
                 <DotMenu {...props}/>,
                 initialState,
             );
-            const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+            const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
             await userEvent.click(button);
-            const menuItem = screen.queryByTestId(`follow_post_thread_${baseProps.post.id}`);
+            const menuItem = screen.queryByTestId('post_dot_menu.follow_thread--menuitem');
             expect(menuItem).toBeNull();
         });
 
@@ -470,9 +471,9 @@ describe('components/dot_menu/DotMenu', () => {
                 <DotMenu {...props}/>,
                 initialState,
             );
-            const button = screen.getByTestId(`PostDotMenu-Button-${baseProps.post.id}`);
+            const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
             await userEvent.click(button);
-            const menuItem = screen.getByTestId(`follow_post_thread_${baseProps.post.id}`);
+            const menuItem = screen.getByTestId('post_dot_menu.follow_thread--menuitem');
             expect(menuItem).toBeVisible();
             expect(menuItem).toHaveTextContent(text);
         });
@@ -488,10 +489,10 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${post1.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
-        const flagPostOption = screen.getByTestId(`flag_post_${post1.id}`);
+        const flagPostOption = screen.getByTestId('post_dot_menu.flag--menuitem');
         expect(flagPostOption).toBeVisible();
     });
 
@@ -505,10 +506,10 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${dmPost.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
-        const flagPostOption = screen.queryByTestId(`flag_post_${dmPost.id}`);
+        const flagPostOption = screen.queryByTestId('post_dot_menu.flag--menuitem');
         expect(flagPostOption).toBeNull();
     });
 
@@ -522,10 +523,10 @@ describe('components/dot_menu/DotMenu', () => {
             initialState,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${gmPost.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
-        const flagPostOption = screen.queryByTestId(`flag_post_${gmPost.id}`);
+        const flagPostOption = screen.queryByTestId('post_dot_menu.flag--menuitem');
         expect(flagPostOption).toBeNull();
     });
 
@@ -540,10 +541,10 @@ describe('components/dot_menu/DotMenu', () => {
         };
         renderWithContext(<DotMenuRoot {...props}/>, initialState);
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${post1.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
-        const flagPostOption = screen.queryByTestId(`flag_post_${post1.id}`);
+        const flagPostOption = screen.queryByTestId('post_dot_menu.flag--menuitem');
         expect(flagPostOption).toBeNull();
     });
 
@@ -575,10 +576,10 @@ describe('components/dot_menu/DotMenu', () => {
             stateWithBorPost,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
-        const copyLinkOption = screen.queryByTestId(`permalink_${borPost.id}`);
+        const copyLinkOption = screen.queryByTestId('post_dot_menu.copy_link--menuitem');
         expect(copyLinkOption).not.toBeNull();
     });
 
@@ -610,10 +611,10 @@ describe('components/dot_menu/DotMenu', () => {
             stateWithBorPost,
         );
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
-        const copyLinkOption = screen.queryByTestId(`permalink_${borPost.id}`);
+        const copyLinkOption = screen.queryByTestId('post_dot_menu.copy_link--menuitem');
         expect(copyLinkOption).toBeNull();
     });
 
@@ -644,11 +645,11 @@ describe('components/dot_menu/DotMenu', () => {
 
         renderWithContext(<DotMenuRoot {...props}/>, stateWithBorPost);
 
-        const button = screen.getByTestId(`PostDotMenu-Button-${borPost.id}`);
+        const button = screen.getByTestId('center.post_list.post.menu.dot_menu--button');
         await userEvent.click(button);
 
         // Reply option should not be visible for BoR posts
-        const replyOption = screen.queryByTestId(`reply_to_post_${borPost.id}`);
+        const replyOption = screen.queryByTestId('post_dot_menu.reply--menuitem');
         expect(replyOption).toBeNull();
 
         // Simulate pressing 'R' key while menu is open - should do nothing
@@ -752,43 +753,43 @@ describe('components/dot_menu/DotMenu', () => {
 
             renderWithContext(<DotMenuRoot {...props}/>, state);
 
-            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
+            await userEvent.click(screen.getByTestId('center.post_list.post.menu.dot_menu--button'));
         }
 
         test('is shown when the flag is on and the user can set a field, on a post with no values', async () => {
             await openDotMenu(stateWith({flag: true, fields: true}));
 
-            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+            expect(screen.getByTestId('post_dot_menu.post_attributes--menuitem')).toBeInTheDocument();
         });
 
         test('is hidden when the feature flag is off', async () => {
             await openDotMenu(stateWith({flag: false, fields: true}));
 
-            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_dot_menu.post_attributes--menuitem')).not.toBeInTheDocument();
         });
 
         test('is hidden when the channel declares no fields', async () => {
             await openDotMenu(stateWith({flag: true, fields: false}));
 
-            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_dot_menu.post_attributes--menuitem')).not.toBeInTheDocument();
         });
 
         test('is hidden for a member when the fields are admin-only and unset', async () => {
             await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin'}));
 
-            expect(screen.queryByTestId(`post_attributes_${post1.id}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_dot_menu.post_attributes--menuitem')).not.toBeInTheDocument();
         });
 
         test('is shown for a member when an admin-only field has a value', async () => {
             await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin', hasValue: true}));
 
-            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+            expect(screen.getByTestId('post_dot_menu.post_attributes--menuitem')).toBeInTheDocument();
         });
 
         test('is shown for a channel admin when the fields are admin-only and unset', async () => {
             await openDotMenu(stateWith({flag: true, fields: true, permission: 'admin', channelAdmin: true}));
 
-            expect(screen.getByTestId(`post_attributes_${post1.id}`)).toBeInTheDocument();
+            expect(screen.getByTestId('post_dot_menu.post_attributes--menuitem')).toBeInTheDocument();
         });
 
         describe('on a burn-on-read post', () => {
@@ -804,21 +805,21 @@ describe('components/dot_menu/DotMenu', () => {
                 await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
 
                 expect(screen.getByRole('menu')).toBeInTheDocument();
-                expect(screen.queryByTestId(`post_attributes_${post.id}`)).not.toBeInTheDocument();
+                expect(screen.queryByTestId('post_dot_menu.post_attributes--menuitem')).not.toBeInTheDocument();
             });
 
             test('is shown to a recipient once revealed', async () => {
                 const post = {...borPost, metadata: {expire_at: Date.now() + 60000}} as Post;
                 await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
 
-                expect(screen.getByTestId(`post_attributes_${post.id}`)).toBeInTheDocument();
+                expect(screen.getByTestId('post_dot_menu.post_attributes--menuitem')).toBeInTheDocument();
             });
 
             test('is shown to the sender', async () => {
                 const post = {...borPost, user_id: 'current_user_id', metadata: {}} as Post;
                 await openDotMenu(stateWith({flag: true, fields: true, hasValue: true, post}), post);
 
-                expect(screen.getByTestId(`post_attributes_${post.id}`)).toBeInTheDocument();
+                expect(screen.getByTestId('post_dot_menu.post_attributes--menuitem')).toBeInTheDocument();
             });
         });
     });
@@ -841,8 +842,8 @@ describe('components/dot_menu/DotMenu', () => {
                 initialState,
             );
 
-            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
-            await userEvent.click(screen.getByTestId(`quote_post_${quotedPost.id}`));
+            await userEvent.click(screen.getByTestId('center.post_list.post.menu.dot_menu--button'));
+            await userEvent.click(screen.getByTestId('post_dot_menu.quote--menuitem'));
 
             await waitFor(() => expect(quoteTextFromPost).toHaveBeenCalledWith(quotedPost.id, isRHS, 'line one\n\nline two'));
         });
@@ -859,7 +860,7 @@ describe('components/dot_menu/DotMenu', () => {
                 initialState,
             );
 
-            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+            await userEvent.click(screen.getByTestId('center.post_list.post.menu.dot_menu--button'));
             screen.getByRole('menu').focus();
             await userEvent.keyboard('q');
 
@@ -890,12 +891,12 @@ describe('components/dot_menu/DotMenu', () => {
                 state,
             );
 
-            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post1.id}`));
+            await userEvent.click(screen.getByTestId('center.post_list.post.menu.dot_menu--button'));
 
             if (expected === 'show') {
-                expect(screen.getByTestId(`quote_post_${post1.id}`)).toBeInTheDocument();
+                expect(screen.getByTestId('post_dot_menu.quote--menuitem')).toBeInTheDocument();
             } else {
-                expect(screen.queryByTestId(`quote_post_${post1.id}`)).not.toBeInTheDocument();
+                expect(screen.queryByTestId('post_dot_menu.quote--menuitem')).not.toBeInTheDocument();
             }
         });
 
@@ -909,9 +910,9 @@ describe('components/dot_menu/DotMenu', () => {
                 initialState,
             );
 
-            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${quotedPost.id}`));
+            await userEvent.click(screen.getByTestId('center.post_list.post.menu.dot_menu--button'));
 
-            expect(screen.queryByTestId(`quote_post_${quotedPost.id}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_dot_menu.quote--menuitem')).not.toBeInTheDocument();
         });
 
         test('should not show quote for a post without text', async () => {
@@ -924,9 +925,9 @@ describe('components/dot_menu/DotMenu', () => {
                 initialState,
             );
 
-            await userEvent.click(screen.getByTestId(`PostDotMenu-Button-${post.id}`));
+            await userEvent.click(screen.getByTestId('center.post_list.post.menu.dot_menu--button'));
 
-            expect(screen.queryByTestId(`quote_post_${post.id}`)).not.toBeInTheDocument();
+            expect(screen.queryByTestId('post_dot_menu.quote--menuitem')).not.toBeInTheDocument();
         });
     });
 });
