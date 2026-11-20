@@ -898,6 +898,36 @@ class EventsTest(unittest.TestCase):
         with self.assertRaises(ValueError):
             cli.resolve(dr.TASK, {"EVENT_NAME": "workflow_dispatch", "INPUT_VERSION": ""}, {})
 
+    def test_a_marker_edit_to_the_tasks_own_pr_reruns_it(self):
+        env = {"EVENT_NAME": "pull_request", "GITHUB_REPOSITORY": dr.REPO}
+
+        def edit(branch, old, new, repo=dr.REPO, base="master", action="edited", changes=True):
+            return {"action": action, "changes": {"body": {"from": old}} if changes else {"title": {"from": "x"}},
+                    "pull_request": {"state": "open", "body": new, "base": {"ref": base},
+                                     "head": {"ref": branch, "repo": {"full_name": repo}}}}
+
+        dot, docs = "release-agent/dot-release-docs/v11.11.2", "release-agent/v12.2.0/release-docs"
+        breaking = "<!-- release-automation:confirmed-breaking: 39012 -->"
+        self.assertEqual(cli.resolve(dr.TASK, env, edit(dot, "Body.", "Body.\n" + SECURITY_MARKER)),
+                         {"run": "true", "version": "v11.11.2", "mode": "dry_run",
+                          "reason": "the `release-automation:security` marker changed"})
+        self.assertEqual(cli.resolve("release-docs", env, edit(docs, "Body.", "Body.\n" + breaking))["version"], "v12.2.0")
+        skipped = [
+            (dr.TASK, edit(dot, SECURITY_MARKER, "New text.\n<!--release-automation:security: 38479 #38048-->")),
+            (dr.TASK, edit(dot, "Body.", "Body.\n" + breaking)),  # not this PR's marker
+            ("release-docs", edit(docs, "Body.", "Body.\n" + breaking, changes=False)),  # the title, not the body
+            ("release-docs", edit(docs, "Body.", "Body.\n" + breaking, repo="someone/mattermost")),
+            ("release-docs", edit(docs, "Body.", "Body.\n" + breaking, base="release-12.2")),
+            ("release-docs", edit(docs, "Body.", "Body.\n" + breaking, action="synchronize")),
+            ("release-docs", edit("release-agent/v12.2.1/release-docs", "Body.", "Body.\n" + breaking)),
+            ("release-docs", edit(docs + "\nx", "Body.", "Body.\n" + breaking)),
+            (dr.TASK, edit("release-agent/dot-release-docs/v12.2.0", "Body.", "Body.\n" + SECURITY_MARKER)),
+        ]
+        for task, event in skipped:
+            self.assertEqual(cli.resolve(task, env, event)["run"], "false", event)
+        with self.assertRaises(ValueError):
+            cli.resolve("version-archive", env, edit(docs, "Body.", breaking))
+
     def test_release_event_also_checks_the_others_published_with_it(self):
         class Releases:
             def recent_releases(self, repo, count=30):

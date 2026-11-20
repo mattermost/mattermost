@@ -23,6 +23,7 @@ from . import (
     esr,
     github_release,
     http,
+    markers,
     milestones,
     notice,
     publish,
@@ -51,6 +52,11 @@ DOT_RELEASE_HANDLED = "handled by the dot release docs PR"
 SWEEP_DAYS = 3
 RC1_TAG = re.compile(r"v(\d+)\.(\d+)\.0-rc1")
 RELEASE_DOCS_BRANCH = re.compile(r"^release-agent/(v\d+\.\d+\.0)/" + re.escape(release_docs_pr.TASK) + "$")
+DOT_RELEASE_BRANCH = re.compile(re.escape(dot_release.BRANCH_PREFIX) + r"(v\d+\.\d+\.[1-9]\d*)")
+# A description edit reruns the task of the PR it was made to when it changed the hidden marker
+# mattermost/release-automation writes there: (the PR's branch, the marker).
+MARKER_EDITS = {release_docs_pr.TASK: (RELEASE_DOCS_BRANCH, upgrade_docs.MARKER_NAME),
+                dot_release.TASK: (DOT_RELEASE_BRANCH, dot_release.SECURITY_MARKER)}
 
 
 # ── Resolve: does this event run the task, for which version, in which mode ─────────
@@ -114,7 +120,33 @@ def resolve(task: str, env: dict, event: dict, gh=None) -> dict:
         if not gh.branch_sha(SERVER_REPO, branch) or not sha or not gh.on_branch(SERVER_REPO, branch, sha):
             return {"run": "false", "reason": f"{tag} is not on {branch}"}
         return {"run": "true", "version": f"v{match.group(1)}.{match.group(2)}.0", "mode": mode, "reason": f"{tag} tagged"}
+    if name == "pull_request" and task in MARKER_EDITS:
+        return resolve_marker_edit(task, env, event, mode)
     raise ValueError(f"{task} does not run on {name or 'an unknown'} events")
+
+
+def resolve_marker_edit(task: str, env: dict, event: dict, mode: str) -> dict:
+    """An edit to the task's own PR (same repo, into master, on the task's branch) reruns the task
+    when it changed what the task's marker says. The version comes from the branch name. The
+    task's own rewrites of the description keep the marker (publish.kept_markers), so they never
+    rerun it. Nothing from the PR's title or description is ever written to the outputs."""
+    branch_rule, marker = MARKER_EDITS[task]
+    pr = event.get("pull_request") or {}
+    repo = env.get("GITHUB_REPOSITORY") or (event.get("repository") or {}).get("full_name", "")
+    match = branch_rule.fullmatch((pr.get("head") or {}).get("ref", ""))
+    if event.get("action") != "edited":
+        return {"run": "false", "reason": "not a PR description edit"}
+    if not repo or ((pr.get("head") or {}).get("repo") or {}).get("full_name") != repo:
+        return {"run": "false", "reason": "the PR's branch is not in this repo"}
+    if (pr.get("base") or {}).get("ref") != "master" or pr.get("state") != "open":
+        return {"run": "false", "reason": "not an open PR into master"}
+    if not match:
+        return {"run": "false", "reason": f"not the {task} PR's branch"}
+    body = (event.get("changes") or {}).get("body")
+    if not body or not markers.changed(body.get("from"), pr.get("body"), marker):
+        return {"run": "false", "reason": f"the edit did not change the `{marker}` marker"}
+    version = Version.parse(match.group(1))
+    return {"run": "true", "version": version.tag, "mode": mode, "reason": f"the `{marker}` marker changed"}
 
 
 # ── Shared inputs ───────────────────────────────────────────────────────────────────
