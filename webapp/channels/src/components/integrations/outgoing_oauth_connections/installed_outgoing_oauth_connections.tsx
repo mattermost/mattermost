@@ -17,6 +17,7 @@ import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {loadOutgoingOAuthConnectionsAndProfiles} from 'actions/integration_actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
+import OutgoingOauthConnectionsSvg from 'components/common/svg_images_components/outgoing_oauth_connections_svg';
 import ExternalLink from 'components/external_link';
 
 import {DeveloperLinks} from 'utils/constants';
@@ -122,6 +123,7 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
                     }}
                 />
             }
+            emptyIllustration={<OutgoingOauthConnectionsSvg/>}
             emptyText={
                 <FormattedMessage
                     id='installed_outgoing_oauth_connections.empty'

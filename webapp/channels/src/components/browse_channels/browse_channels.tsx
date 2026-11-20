@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Button} from '@mattermost/compass-ui/components/button';
-import type {ButtonEmphasis, ButtonSize} from '@mattermost/compass-ui/components/button';
+import type {ButtonEmphasis, ButtonProps, ButtonSize} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {GenericModal} from '@mattermost/components';
 import type {Channel, ChannelJoinRequest, ChannelMembership, ChannelSearchOpts, ChannelsWithTotalCount, GetChannelJoinRequestsOptions} from '@mattermost/types/channels';
@@ -87,6 +87,7 @@ export type Props = {
     currentUserId: string;
     teamId: string;
     teamName?: string;
+    canCreatePublicChannel: boolean;
     channelsRequestStarted?: boolean;
     myChannelMemberships: RelationOneToOne<Channel, ChannelMembership>;
     shouldHideJoinedChannels: boolean;
@@ -563,17 +564,27 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
             );
         };
 
-        const noResultsText = (
-            <>
-                <p className='secondary-message'>
-                    <FormattedMessage
-                        id='more_channels.searchError'
-                        defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
-                    />
-                </p>
-                {createNewChannelButton('primary', 'medium', true)}
-            </>
+        const noResultsDescription = (
+            <FormattedMessage
+                id='more_channels.searchError'
+                defaultMessage='Try searching different keywords, checking for typos or adjusting the filters.'
+            />
         );
+
+        const noResultsAction: ButtonProps | undefined = this.props.canCreatePublicChannel ? {
+            type: 'button',
+            id: 'createNewChannelButton',
+            emphasis: 'primary',
+            onClick: this.handleNewChannel,
+            'aria-label': localizeMessage({id: 'more_channels.create', defaultMessage: 'Create New Channel'}),
+            leadingIcon: <Icon glyph={<PlusIcon/>}/>,
+            children: (
+                <FormattedMessage
+                    id='more_channels.create'
+                    defaultMessage='Create New Channel'
+                />
+            ),
+        } : undefined;
 
         const body = this.state.loading ? <LoadingScreen/> : (
             <>
@@ -586,7 +597,8 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
                     handleJoin={this.handleJoin}
                     handleRequestToJoin={this.handleRequestToJoin}
                     handleWithdrawRequest={this.handleWithdrawRequest}
-                    noResultsText={noResultsText}
+                    noResultsDescription={noResultsDescription}
+                    noResultsAction={noResultsAction}
                     loading={search ? searching : channelsRequestStarted}
                     showRecommendedFilter={this.props.accessControlEnabled}
                     showDiscoverableFilters={this.props.discoverableFeatureEnabled}

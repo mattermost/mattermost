@@ -23,7 +23,7 @@ export default function BillingSummary({isFreeTrial, daysLeftOnTrial}: BillingSu
         body = FreeTrial({daysLeftOnTrial});
     }
     return (
-        <div className='BillingSummary'>
+        <div className={isFreeTrial ? 'BillingSummary' : 'BillingSummary BillingSummary--emptyState'}>
             {body}
         </div>
     );

@@ -5,30 +5,10 @@ import React from 'react';
 import {defineMessage, defineMessages, FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
+import SuccessIllustration from '@mattermost/compass-ui/illustrations/success';
 
 import type {HealthFindingTab} from 'mattermost-redux/utils/health_utils';
-
-type Props = {
-    title: React.ReactNode;
-    body: React.ReactNode;
-    icon?: boolean;
-};
-
-export const EmptyState = ({title, body, icon = false}: Props) => (
-    <div className='HealthDashboard__empty'>
-        {icon && (
-            <CheckCircleOutlineIcon
-                className='HealthDashboard__emptyIcon'
-                size={48}
-                color='currentColor'
-                aria-hidden={true}
-            />
-        )}
-        <p className='HealthDashboard__emptyTitle'>{title}</p>
-        <p>{body}</p>
-    </div>
-);
 
 const titles = defineMessages<HealthFindingTab>({
     open: {id: 'admin.health_dashboard.all_clear.title', defaultMessage: 'All clear'},
@@ -55,6 +35,7 @@ export const TabEmptyState = ({tab, muted}: {tab: HealthFindingTab; muted: numbe
     if (muted > 0) {
         return (
             <EmptyState
+                className='HealthDashboard__empty'
                 title={
                     <FormattedMessage
                         id='admin.health_dashboard.empty_tab.muted_title'
@@ -62,7 +43,7 @@ export const TabEmptyState = ({tab, muted}: {tab: HealthFindingTab; muted: numbe
                         values={{count: muted}}
                     />
                 }
-                body={
+                description={
                     <FormattedMessage
                         id='admin.health_dashboard.empty_tab.muted_body'
                         defaultMessage='Muted findings are still checked but hidden from this list. Open Muted to review or unmute them.'
@@ -74,9 +55,13 @@ export const TabEmptyState = ({tab, muted}: {tab: HealthFindingTab; muted: numbe
 
     return (
         <EmptyState
-            icon={true}
+            className='HealthDashboard__empty'
+            illustration={{
+                'aria-label': '',
+                children: <SuccessIllustration/>,
+            }}
             title={<FormattedMessage {...titles[tab]}/>}
-            body={<FormattedMessage {...bodies[tab]}/>}
+            description={<FormattedMessage {...bodies[tab]}/>}
         />
     );
 };

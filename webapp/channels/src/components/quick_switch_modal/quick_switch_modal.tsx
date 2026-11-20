@@ -261,7 +261,7 @@ export class QuickSwitchModal extends React.PureComponent<Props, State> {
                         this.state.text &&
                         (
                             <NoResultsIndicator
-                                variant={NoResultsVariant.Search}
+                                variant={NoResultsVariant.ChannelSearch}
                                 titleValues={{channelName: `${this.state.pretext}`}}
                             />
                         )
