@@ -210,11 +210,12 @@ export function Menu(props: Props) {
     const [openedByHover, setOpenedByHover] = useState(false);
     const openedByHoverRef = useRef(false);
 
-    // Set from a hover-open until the menu has closed, even if a click then takes it over: switching
-    // its container while open, or closing, would remount it. A menu a click took over restores focus itself, as the
-    // popover only reads whether to when it opens.
+    // Set from a hover-open until the menu has closed, or a click takes it over. Mounting in the hover
+    // container (see getHoverMenuContainer) is part of it, and switching that while the menu closes
+    // would remount it and drop the chosen item's click handler. A click takeover does switch it, as a
+    // fresh popover: the modal only hides the page, locks scrolling, takes focus and remembers what to
+    // refocus when it opens, so the menu then behaves exactly as if the click had opened it.
     const [hoverSession, setHoverSession] = useState(false);
-    const takenOverByClick = useRef(false);
     const hoverTimer = useRef<number | undefined>(undefined);
     const hoverEnabled = Boolean(props.menu.openOnHover) && !isMobileView;
 
@@ -270,12 +271,6 @@ export function Menu(props: Props) {
     useEffect(() => {
         if (!isMenuOpen) {
             setHoverOpened(false);
-            if (takenOverByClick.current) {
-                takenOverByClick.current = false;
-                if (!props.menu.disableRestoreFocus) {
-                    menuButton?.focus();
-                }
-            }
         }
     }, [isMenuOpen]);
 
@@ -380,10 +375,8 @@ export function Menu(props: Props) {
 
         // A click turns a menu opened by hovering into one opened as usual.
         window.clearTimeout(hoverTimer.current);
-        if (openedByHoverRef.current) {
-            takenOverByClick.current = true;
-        }
         setHoverOpened(false);
+        setHoverSession(false);
 
         if (isMobileView) {
             dispatch(
@@ -504,6 +497,9 @@ export function Menu(props: Props) {
                     open/close transitions still run. */}
                 {menuButton && (
                     <MuiPopover
+
+                        // A new popover when a click takes over a hover-opened menu (see hoverSession).
+                        key={hoverSession ? 'hover' : 'click'}
                         anchorEl={menuButton}
                         container={hoverSession ? getHoverMenuContainer : props.menu.container}
                         open={isMenuOpen}

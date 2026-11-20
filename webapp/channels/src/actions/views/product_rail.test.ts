@@ -102,6 +102,26 @@ describe('saveRailListPreference', () => {
         expect(savedValue()).toBe('["boards","playbooks"]');
     });
 
+    test('should not undo a newer change that returned to the same list when an earlier save fails', async () => {
+        const {savedValue, save} = setUp('[]');
+
+        // Unpin, pin again and unpin again: the newest list matches the first.
+        await save('["mattermost-ai"]');
+        await save('[]');
+        await save('["mattermost-ai"]');
+        await flush();
+        saves[0].reject();
+        await flush();
+
+        expect(savedValue()).toBe('["mattermost-ai"]');
+
+        saves[1].resolve();
+        await flush();
+        saves[2].resolve();
+        await flush();
+        expect(savedValue()).toBe('["mattermost-ai"]');
+    });
+
     test('should fall back to the last accepted list when the newest of several saves fails', async () => {
         const {savedValue, save} = setUp('[]');
 

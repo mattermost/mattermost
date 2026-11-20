@@ -89,13 +89,17 @@ export function setProductRailOrder(order: string[]): ActionFuncAsync {
 const pendingSaves = new Map<string, Promise<void>>();
 const acceptedValues = new Map<string, PreferenceType | undefined>();
 
+// Each rail list preference's most recent save, by a number that goes up with every save made.
+let lastSaveNumber = 0;
+const latestSaves = new Map<string, number>();
+
 /**
  * Saves one of the rail's list preferences (the unpinned items, or the order). Each save holds the
  * whole list, built on the one before, so unlike savePreferences:
  * - saves go to the server one after another, so an older list can't land after a newer one; and
  * - a failed save puts back the last list the server accepted, rather than deleting the
- *   preference (which would pin, or reorder, everything), unless a newer change has since been
- *   made, which its own save then settles.
+ *   preference (which would pin, or reorder, everything), unless a newer save has been made since
+ *   (even one back to the same list) or the list has changed otherwise, which then stands.
  */
 export function saveRailListPreference(name: string, value: string): ActionFuncAsync {
     return async (dispatch, getState) => {
@@ -104,6 +108,8 @@ export function saveRailListPreference(name: string, value: string): ActionFuncA
         const category = Preferences.CATEGORY_SIDEBAR_SETTINGS;
         const key = getPreferenceKey(category, name);
         const preference: PreferenceType = {category, name, user_id: userId, value};
+        const saveNumber = ++lastSaveNumber;
+        latestSaves.set(name, saveNumber);
 
         if (!pendingSaves.has(name)) {
             acceptedValues.set(name, state.entities.preferences.myPreferences[key]);
@@ -118,7 +124,8 @@ export function saveRailListPreference(name: string, value: string): ActionFuncA
                 await Client4.savePreferences(userId, [preference]);
                 acceptedValues.set(name, preference);
             } catch {
-                if (getState().entities.preferences.myPreferences[key]?.value !== value) {
+                const isLatestSave = latestSaves.get(name) === saveNumber;
+                if (!isLatestSave || getState().entities.preferences.myPreferences[key]?.value !== value) {
                     return;
                 }
                 const accepted = acceptedValues.get(name);
