@@ -41,18 +41,21 @@ export default function useFixableMissingRequiredAttributes(
 ): FixableMissingRequiredAttributes {
     const channel = useSelector((state: GlobalState) => getChannel(state, channelId));
     const isBoard = useChannelKind({id: channelId}) === 'board';
+    const isChannelAdmin = useIsChannelAttributeAdmin(channelId);
+
+    // Only admins can act on the result, so members never fetch the values.
     const eligible = !skip &&
+        isChannelAdmin &&
         Boolean(channel) &&
         (channel?.type === Constants.OPEN_CHANNEL || channel?.type === Constants.PRIVATE_CHANNEL) &&
         !channel?.delete_at &&
         !isBoard;
 
     const {missing} = useMissingRequiredChannelAttributes(channelId, {preferStore: true, skip: !eligible});
-    const isChannelAdmin = useIsChannelAttributeAdmin(channelId);
     const canSet = useCanSetChannelAttributes(channelId);
 
     return useMemo(() => {
-        if (!eligible || !isChannelAdmin || missing.length === 0) {
+        if (!eligible || missing.length === 0) {
             return NONE;
         }
         const fields = missing.filter((field) => hasEditor(field) && canSet(field, false));
@@ -60,5 +63,5 @@ export default function useFixableMissingRequiredAttributes(
             return NONE;
         }
         return {fields, firstFieldId: fields[0].id};
-    }, [eligible, isChannelAdmin, missing, canSet]);
+    }, [eligible, missing, canSet]);
 }
