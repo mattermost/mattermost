@@ -78,17 +78,24 @@ const SearchableSyncJobTeamList = (props: Props) => {
         const syncChangesDisplay = teamSyncData ? (
             <div className='changes-cell'>
                 <span className='changes-summary'>
-                    <span className='added'>
+                    <span
+                        className='added'
+                        data-testid='job_details_modal.teams.team.added--text'
+                    >
                         {'+' + (teamSyncData.MembersAdded?.length || 0)}
                     </span>
                     {' / '}
-                    <span className='removed'>
+                    <span
+                        className='removed'
+                        data-testid='job_details_modal.teams.team.removed--text'
+                    >
                         {'-' + (teamSyncData.MembersRemoved?.length || 0)}
                     </span>
                 </span>
                 {teamSyncData.MassRemovalWarning && (
                     <span
                         className='mass-removal-warning'
+                        data-testid='job_details_modal.teams.team.mass_removal_warning'
                         title={props.intl.formatMessage({
                             id: 'admin.jobTable.syncResults.teams.massRemovalWarning',
                             defaultMessage: 'More than 50% of members were removed from this team.',
@@ -105,8 +112,9 @@ const SearchableSyncJobTeamList = (props: Props) => {
                 className='more-modal__row job-sync-row'
                 key={team.id}
                 id={`TeamRow-${team.name}`}
-                data-testid={`TeamRow-${team.name}`}
+                data-testid={`job_details_modal.teams.team:${team.id}--button`}
                 aria-label={ariaLabel}
+                role='button'
                 onClick={() => handleRowClick(team)}
                 tabIndex={0}
             >
@@ -166,7 +174,7 @@ const SearchableSyncJobTeamList = (props: Props) => {
     let previousButton;
 
     if (props.loading && teams.length === 0) {
-        listContent = <LoadingScreen/>;
+        listContent = <LoadingScreen testId='job_details_modal.teams.loading'/>;
     } else if (teams.length === 0) {
         listContent = (
             <div
@@ -232,6 +240,7 @@ const SearchableSyncJobTeamList = (props: Props) => {
             </span>
             <QuickInput
                 id='searchTeamsTextbox'
+                clearTestId='job_details_modal.teams.search_clear'
                 className='form-control filter-textbox'
                 placeholder={props.intl.formatMessage({id: 'admin.jobTable.syncResults.teams.search', defaultMessage: 'Search teams'})}
                 onInput={handleChange}

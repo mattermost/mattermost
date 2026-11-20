@@ -33,11 +33,33 @@
         "keyFields": {
             "allow": [
                 {
+                    "entity": "ListingTableRow",
+                    "field": "id",
+                    "value": "attribute",
+                    "freeForm": true,
+                    "module": "components/admin_console/global_attributes/global_attributes_table",
+                    "reason": "An attribute listing row is identified by the id of the attribute it shows."
+                },
+                {
+                    "entity": "ClassificationLevel",
+                    "field": "id",
+                    "value": "classification_level",
+                    "freeForm": true,
+                    "module": "components/admin_console/classification_markings/utils/presets",
+                    "reason": "A classification level is identified by its own id."
+                },
+                {
                     "entity": "ChannelSettingsTabComponent",
                     "module": "types/store/plugins",
                     "field": "id",
                     "value": "plugin_tab",
                     "reason": "A plugin's settings tab is identified by the id its registration returned: the channel settings modal names the tab plugin_<id>."
+                },
+                {
+                    "entity": "MenuSection",
+                    "field": "key",
+                    "module": "components/admin_console/access_control/editors/table_editor/operator_selector_menu",
+                    "reason": "An operator menu section is identified by its key: the operator groups the menu lists, which a spec addresses by name."
                 },
                 {
                     "entity": "PluginComponent",

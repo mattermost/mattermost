@@ -108,6 +108,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled, testId}: Pro
                     control = (
                         <GraphAttributeControl
                             buttonTestId={testId ? `${testId}.attribute.value--button` : undefined}
+                            testIdScope={testId ? `${testId}.attribute.value_menu` : undefined}
                             field={field}
                             value={selected}
                             onChange={onChange}
@@ -138,7 +139,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled, testId}: Pro
                     control = (
                         <AttributeCombobox
                             id={comboboxId}
-                            testId={`channelAttribute-${field.name}`}
+                            testIdScope={testId ? `${testId}.attribute` : undefined}
                             type={comboboxType}
                             label={label}
                             options={getOptions(field)}
@@ -218,6 +219,7 @@ type GraphControlProps = {
 
     // The picker's button testid, whole; without it the button keeps its legacy id.
     buttonTestId?: string;
+    testIdScope?: string;
     field: PropertyField;
     value: string | string[] | undefined;
     onChange: (fieldId: string, value: string | string[] | undefined) => void;
@@ -228,7 +230,7 @@ type GraphControlProps = {
 
 // The ref is memoized on field identity because the picker keys its own memos
 // on it, and this form re-renders on every keystroke elsewhere in the modal.
-const GraphAttributeControl = ({field, value, onChange, placeholder, ariaLabel, disabled, buttonTestId}: GraphControlProps) => {
+const GraphAttributeControl = ({field, value, onChange, placeholder, ariaLabel, disabled, buttonTestId, testIdScope}: GraphControlProps) => {
     const graphField = useMemo(() => asGraphFieldRef(field), [field]);
 
     const handleIdsChange = useCallback((next: string[]) => {
@@ -243,6 +245,7 @@ const GraphAttributeControl = ({field, value, onChange, placeholder, ariaLabel, 
             menuId={`channelAttributeMenu-${field.name}`}
             buttonId={`channelAttribute-${field.name}`}
             buttonDataTestId={buttonTestId ?? `channelAttribute-${field.name}`}
+            testIdScope={testIdScope}
             placeholder={placeholder}
             ariaLabel={ariaLabel}
             disabled={disabled}

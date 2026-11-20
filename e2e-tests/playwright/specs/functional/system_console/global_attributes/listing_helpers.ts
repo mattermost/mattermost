@@ -4,6 +4,8 @@
 import type {Client4} from '@mattermost/client';
 import type {PropertyField} from '@mattermost/types/properties';
 
+import {Api, expect, settle, waitForApi, type App} from '@mattermost/playwright-lib';
+
 import type {ResourceObjectType} from './global_attributes_helpers';
 
 // Canonical values: webapp/channels/src/components/admin_console/global_attributes/constants.ts
@@ -43,6 +45,15 @@ export class ListingSeeder {
     readonly suffix: string;
     private readonly adminClient: Client4;
     private readonly created: SeededField[] = [];
+    private readonly labels = new Map<string, string>();
+
+    idForLabel(label: string): string {
+        const id = this.labels.get(label);
+        if (!id) {
+            throw new Error(`No seeded field has label ${label}`);
+        }
+        return id;
+    }
 
     constructor(adminClient: Client4, suffix: string) {
         this.adminClient = adminClient;
@@ -59,6 +70,8 @@ export class ListingSeeder {
     private async create(objectType: string, field: CreateFieldInput): Promise<PropertyField> {
         const created = await this.adminClient.createPropertyField(PROPERTY_GROUP, objectType, field);
         this.created.push({objectType, id: created.id});
+        const label = created.attrs?.display_name;
+        this.labels.set(typeof label === 'string' && label ? label : created.name, created.id);
         return created;
     }
 
@@ -160,4 +173,31 @@ export class ListingSeeder {
         }
         this.created.length = 0;
     }
+}
+
+/** Search is debounced; the named response proves the results reflect this term. */
+export async function searchListing(app: App, term: string) {
+    await settle(app.admin.attributes.search.container, {wait: Api.SearchGlobalAttributes}).fill(term);
+    await expect(app.admin.attributes.search.container).toHaveValue(term);
+}
+
+/** FilterMenu's library-rendered radio options have no generated parts. */
+export async function filterListing(app: App, kind: 'source' | 'resource', label: string) {
+    const attributes = app.admin.attributes;
+    const button = kind === 'source' ? attributes.sourceFilter.container : attributes.resourceTypeFilter.container;
+    // FilterMenu portals its untagged menu outside the trigger; its exact accessible name identifies the filter.
+    const menu = app.page.getByRole('menu', {
+        name: kind === 'source' ? 'Source menu' : 'Resource type menu',
+        exact: true,
+    });
+    await button.click();
+    await expect(menu).toBeVisible();
+    await Promise.all([
+        waitForApi(app.page, Api.SearchGlobalAttributes),
+        // The portalled filter menu has no generated option parts; select inside its named menu root.
+        menu.getByRole('menuitemradio', {name: label, exact: true}).click(),
+    ]);
+    await expect(menu).not.toBeVisible();
+    // The selected label is a read-only Input inside the generated filter trigger.
+    await expect(button.locator.getByRole('textbox')).toHaveValue(label);
 }

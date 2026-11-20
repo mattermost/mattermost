@@ -120,6 +120,7 @@ function RuleEditorCard({
             disabled={noUsableAttributes || complexInCEL}
             emphasis='primary'
             onClick={() => onEditorModeChange(editorMode === 'table' ? 'cel' : 'table')}
+            data-testid='admin.permission_policy.switch_mode--button'
         >
             <FormattedMessage {...(editorMode === 'table' ? modeMessages.advanced : modeMessages.simple)}/>
         </Button>
@@ -156,6 +157,7 @@ function RuleEditorCard({
         >
             {editorMode === 'cel' ? (
                 <CELEditor
+                    testId='admin.permission_policy.cel'
                     value={expression}
                     onChange={onExpressionChange}
                     disabled={editorDisabled}
@@ -165,6 +167,7 @@ function RuleEditorCard({
                 />
             ) : (
                 <TableEditor
+                    testId='admin.permission_policy.rules'
                     value={expression}
                     onChange={onExpressionChange}
                     disabled={editorDisabled}

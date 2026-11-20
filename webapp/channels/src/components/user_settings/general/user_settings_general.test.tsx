@@ -638,13 +638,13 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         const combobox = screen.getByRole('combobox', {name: 'Test Attribute'});
         expect(combobox).toHaveValue('Option 1');
 
-        const clearButton = screen.getByTestId('customProfileAttribute_field1-clear');
+        const clearButton = screen.getByTestId('settings.custom_attribute.clear--button');
         expect(clearButton).toHaveAccessibleName('Clear Test Attribute');
         await userEvent.click(clearButton);
 
         expect(combobox).toHaveValue('');
         expect(combobox).toHaveAttribute('placeholder', 'Select an option');
-        expect(screen.queryByTestId('customProfileAttribute_field1-clear')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('settings.custom_attribute.clear--button')).not.toBeInTheDocument();
 
         const saveButton = screen.getByRole('button', {name: 'Save'});
         await userEvent.click(saveButton);
@@ -765,7 +765,7 @@ describe('components/user_settings/general/UserSettingsGeneral', () => {
         // The raw id stands in for the deleted option, as in multiselect.
         const combobox = screen.getByRole('combobox', {name: 'Test Attribute'});
         expect(combobox).toHaveValue('opt2');
-        expect(screen.getByTestId('customProfileAttribute_field1-clear')).toBeInTheDocument();
+        expect(screen.getByTestId('settings.custom_attribute.clear--button')).toBeInTheDocument();
 
         // Select a valid option and save
         await userEvent.click(combobox);

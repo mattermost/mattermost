@@ -69,7 +69,7 @@ const GlobalAttributes = ({disabled = false}: Props) => {
     return (
         <div
             className='wrapper--fixed GlobalAttributes__root'
-            data-testid='globalAttributes'
+            data-testid='admin.attributes'
         >
             <AdminHeader>
                 <hgroup className='GlobalAttributes__headerGroup'>
@@ -77,10 +77,9 @@ const GlobalAttributes = ({disabled = false}: Props) => {
                         tagName='h1'
                         {...messages.title}
                     />
-                    <FormattedMessage
-                        tagName='p'
-                        {...messages.subtitle}
-                    />
+                    <p data-testid='admin.attributes.subtitle--text'>
+                        <FormattedMessage {...messages.subtitle}/>
+                    </p>
                 </hgroup>
                 <Button
                     className='GlobalAttributes__newAttribute'
@@ -89,7 +88,7 @@ const GlobalAttributes = ({disabled = false}: Props) => {
                     onClick={() => {
                         getHistory().push(ATTRIBUTE_DETAILS_ROUTE);
                     }}
-                    data-testid='newAttributeButton'
+                    data-testid='admin.attributes.new--button'
                     leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
                     <FormattedMessage {...messages.newAttribute}/>
@@ -115,7 +114,7 @@ const GlobalAttributes = ({disabled = false}: Props) => {
                                 maxLength={CPA_FIELD_NAME_MAX_RUNES}
                                 onChange={handleSearchChange}
                                 onClear={handleSearchClear}
-                                data-testid='global-attributes-search'
+                                testId='admin.attributes.search'
                             />
                             <SourceFilter
                                 value={source}

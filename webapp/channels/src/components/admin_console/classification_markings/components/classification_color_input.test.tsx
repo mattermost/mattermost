@@ -13,6 +13,7 @@ function makeProps(overrides = {}) {
         value: '#FF0000',
         onChange: jest.fn(),
         swatchAriaLabel: 'Open color picker',
+        testId: 'test.color' as const,
         ...overrides,
     };
 }
@@ -20,7 +21,7 @@ function makeProps(overrides = {}) {
 describe('ClassificationColorInput', () => {
     test('renders hex input with initial value', () => {
         render(<ClassificationColorInput {...makeProps()}/>);
-        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#FF0000');
+        expect(screen.getByTestId('test.color--textbox')).toHaveValue('#FF0000');
     });
 
     test('renders color swatch button with aria-label', () => {
@@ -35,14 +36,14 @@ describe('ClassificationColorInput', () => {
 
     test('hex input is disabled when isDisabled is true', () => {
         render(<ClassificationColorInput {...makeProps({isDisabled: true})}/>);
-        expect(screen.getByTestId('color-inputColorValue')).toBeDisabled();
+        expect(screen.getByTestId('test.color--textbox')).toBeDisabled();
     });
 
     test('calls onChange with normalized hex when valid color typed', () => {
         const onChange = jest.fn();
         render(<ClassificationColorInput {...makeProps({onChange})}/>);
 
-        fireEvent.change(screen.getByTestId('color-inputColorValue'), {target: {value: '#00FF00'}});
+        fireEvent.change(screen.getByTestId('test.color--textbox'), {target: {value: '#00FF00'}});
 
         expect(onChange).toHaveBeenCalledWith('#00ff00');
     });
@@ -51,14 +52,14 @@ describe('ClassificationColorInput', () => {
         const onChange = jest.fn();
         render(<ClassificationColorInput {...makeProps({onChange})}/>);
 
-        fireEvent.change(screen.getByTestId('color-inputColorValue'), {target: {value: '#GGGGGG'}});
+        fireEvent.change(screen.getByTestId('test.color--textbox'), {target: {value: '#GGGGGG'}});
 
         expect(onChange).not.toHaveBeenCalled();
     });
 
     test('local value reflects typing before blur', () => {
         render(<ClassificationColorInput {...makeProps()}/>);
-        const input = screen.getByTestId('color-inputColorValue');
+        const input = screen.getByTestId('test.color--textbox');
 
         fireEvent.change(input, {target: {value: '#1a2b3c'}});
 
@@ -68,7 +69,7 @@ describe('ClassificationColorInput', () => {
     test('normalizes and calls onChange on blur with valid color', () => {
         const onChange = jest.fn();
         render(<ClassificationColorInput {...makeProps({onChange})}/>);
-        const input = screen.getByTestId('color-inputColorValue');
+        const input = screen.getByTestId('test.color--textbox');
 
         fireEvent.focus(input);
         fireEvent.change(input, {target: {value: 'red'}});
@@ -79,7 +80,7 @@ describe('ClassificationColorInput', () => {
 
     test('reverts to original value on blur with invalid color', () => {
         render(<ClassificationColorInput {...makeProps({value: '#FF0000'})}/>);
-        const input = screen.getByTestId('color-inputColorValue');
+        const input = screen.getByTestId('test.color--textbox');
 
         fireEvent.focus(input);
         fireEvent.change(input, {target: {value: 'not-a-color'}});
@@ -90,7 +91,7 @@ describe('ClassificationColorInput', () => {
 
     test('opens color picker popover when input is focused', () => {
         render(<ClassificationColorInput {...makeProps()}/>);
-        const input = screen.getByTestId('color-inputColorValue');
+        const input = screen.getByTestId('test.color--textbox');
 
         act(() => {
             fireEvent.focus(input);
@@ -101,7 +102,7 @@ describe('ClassificationColorInput', () => {
 
     test('closes color picker popover on blur', () => {
         render(<ClassificationColorInput {...makeProps()}/>);
-        const input = screen.getByTestId('color-inputColorValue');
+        const input = screen.getByTestId('test.color--textbox');
 
         act(() => {
             fireEvent.focus(input);
@@ -119,12 +120,12 @@ describe('ClassificationColorInput', () => {
 
         rerender(<ClassificationColorInput {...makeProps({value: '#0000FF'})}/>);
 
-        expect(screen.getByTestId('color-inputColorValue')).toHaveValue('#0000FF');
+        expect(screen.getByTestId('test.color--textbox')).toHaveValue('#0000FF');
     });
 
     test('Enter key blurs the hex input', () => {
         render(<ClassificationColorInput {...makeProps()}/>);
-        const input = screen.getByTestId('color-inputColorValue');
+        const input = screen.getByTestId('test.color--textbox');
         const blurSpy = jest.spyOn(input, 'blur');
 
         fireEvent.keyDown(input, {key: 'Enter'});

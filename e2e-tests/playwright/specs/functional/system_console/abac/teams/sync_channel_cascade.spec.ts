@@ -21,7 +21,7 @@
  * @reference MM-69100
  */
 
-import {ChannelsPage, expect, newTestPassword, test, verifyUserInChannel} from '@mattermost/playwright-lib';
+import {expect, newTestPassword, test, verifyUserInChannel, duration, DefaultChannel} from '@mattermost/playwright-lib';
 
 import {
     createPrivateChannel,
@@ -37,7 +37,7 @@ import {
 import {enableTeamMembershipPolicies, triggerSyncJobAndPoll} from './helpers';
 
 test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_membership']}, () => {
-    test.setTimeout(240000);
+    test.setTimeout(duration.four_min);
 
     let createdTeamIds: string[] = [];
     let createdUserIds: string[] = [];
@@ -147,7 +147,11 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
                     const members: any[] = await adminClient.getTeamMembers(team.id);
                     return members.map((m: any) => m.user_id);
                 },
-                {timeout: 15000, intervals: [500, 1000, 2000], message: 'both users should be auto-added to team'},
+                {
+                    timeout: duration.half_min,
+                    intervals: [500, 1000, 2000],
+                    message: 'both users should be auto-added to team',
+                },
             )
             .toEqual(expect.arrayContaining([eng1.id, mkt1.id]));
 
@@ -176,14 +180,14 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
                     const members: any[] = await adminClient.getTeamMembers(team.id);
                     return members.map((m: any) => m.user_id);
                 },
-                {timeout: 15000, intervals: [500, 1000, 2000], message: 'mkt1 should be removed from team'},
+                {timeout: duration.half_min, intervals: [500, 1000, 2000], message: 'mkt1 should be removed from team'},
             )
             .not.toContain(mkt1.id);
 
         // * [API] mkt1 cascade-removed from private channel
         await expect
             .poll(() => verifyUserInChannel(adminClient, mkt1.id, privateChannel.id), {
-                timeout: 15000,
+                timeout: duration.half_min,
                 intervals: [500, 1000, 2000],
                 message: 'mkt1 should be cascade-removed from private channel',
             })
@@ -196,7 +200,7 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
                     const members: any[] = await adminClient.getTeamMembers(team.id);
                     return members.map((m: any) => m.user_id);
                 },
-                {timeout: 10000, intervals: [500, 1000], message: 'eng1 should remain in team'},
+                {intervals: [500, 1000], message: 'eng1 should remain in team'},
             )
             .toContain(eng1.id);
         expect(await verifyUserInChannel(adminClient, eng1.id, privateChannel.id)).toBe(true);
@@ -206,38 +210,33 @@ test.describe('ABAC - Team Sync Channel Cascade', {tag: ['@abac', '@team_members
         // =========================================================
 
         const mkt1WithPassword = {...mkt1, password: mkt1Password};
-        const {page: mkt1Page} = await pw.testBrowser.login(mkt1WithPassword);
-        const mkt1ChannelsPage = new ChannelsPage(mkt1Page);
+        const {app: mkt1App} = await pw.testBrowser.login(mkt1WithPassword);
 
         // Land on homeTeam so we have a valid context to inspect the sidebar from
-        await mkt1ChannelsPage.goto(homeTeam.name, 'town-square');
-        await mkt1ChannelsPage.toBeVisible();
+        await mkt1App.channelsPage.goto({team: homeTeam, channel: DefaultChannel.TownSquare});
+        await expect(mkt1App.channelHeader.openMenuButton).toContainText('Town Square');
 
-        // * Navigating to the governed team URL redirects mkt1 away (no membership)
-        await mkt1Page.goto(`/${team.name}/channels/town-square`);
-        await mkt1Page.waitForLoadState('networkidle');
-        await expect(mkt1Page).not.toHaveURL(new RegExp(`/${team.name}/`), {timeout: 10000});
+        // * Navigating to the governed team URL redirects mkt1 away (no membership). Not channelsPage.goto: it waits
+        // * for the channel to render, and mkt1 lands on "Team not found" instead
+        await mkt1App.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
+        await expect(mkt1App.page).not.toHaveURL(new RegExp(`/${team.name}/`));
 
         // =========================================================
         // UI — eng1: governed team and private channel still accessible
         // =========================================================
 
         const eng1WithPassword = {...eng1, password: eng1Password};
-        const {page: eng1Page} = await pw.testBrowser.login(eng1WithPassword);
-        const eng1ChannelsPage = new ChannelsPage(eng1Page);
+        const {app: eng1App} = await pw.testBrowser.login(eng1WithPassword);
 
         // * eng1 can access the governed team — URL confirms they are on it
         // (team sidebar icon only renders when the user belongs to multiple teams,
         // so we assert the route instead of the sidebar element)
-        await eng1ChannelsPage.goto(team.name, 'town-square');
-        await eng1ChannelsPage.toBeVisible();
-        await expect(eng1Page).toHaveURL(new RegExp(`/${team.name}/`), {timeout: 10000});
+        await eng1App.channelsPage.goto({team, channel: DefaultChannel.TownSquare});
+        await expect(eng1App.center.postCreate.message.container).toBeVisible();
+        await expect(eng1App.page).toHaveURL(new RegExp(`/${team.name}/`));
 
         // * Private channel is accessible to eng1
-        await eng1ChannelsPage.goto(team.name, privateChannel.name);
-        await eng1ChannelsPage.toBeVisible();
-        await expect(eng1Page.locator('#channelHeaderTitle', {hasText: privateChannel.display_name})).toBeVisible({
-            timeout: 10000,
-        });
+        await eng1App.channelsPage.goto({team, channel: privateChannel});
+        await expect(eng1App.channelHeader.openMenuButton).toContainText(privateChannel.display_name);
     });
 });

@@ -79,13 +79,13 @@ function renderMenu(field: SessionAttributeField, onStageChange = jest.fn()) {
 describe('SessionAttributesDotMenu', () => {
     it('renders the kebab button', () => {
         renderMenu(enabledField);
-        expect(screen.getByTestId(`session-attribute-dotmenu-${enabledField.id}`)).toBeInTheDocument();
+        expect(screen.getByTestId('admin.session_attributes.row.actions--button')).toBeInTheDocument();
     });
 
     it('shows the TTL and Grace submenus with their current values', async () => {
         renderMenu(enabledField);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${enabledField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.row.actions--button'));
 
         const ttl = screen.getByRole('menuitem', {name: /Time-to-live/});
         const grace = screen.getByRole('menuitem', {name: /Grace Period/});
@@ -96,10 +96,10 @@ describe('SessionAttributesDotMenu', () => {
     it('stages a TTL preset selection', async () => {
         const onStageChange = renderMenu(enabledField);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${enabledField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.row.actions--button'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
 
-        const option = await screen.findByTestId(`session-attribute-ttl-option-${enabledField.id}-3600`);
+        const option = await screen.findByTestId('admin.session_attributes.actions_menu.ttl:3600--menuitemradio');
         await userEvent.click(option);
 
         expect(onStageChange).toHaveBeenCalledTimes(1);
@@ -109,10 +109,10 @@ describe('SessionAttributesDotMenu', () => {
     it('stages a Grace preset selection', async () => {
         const onStageChange = renderMenu(enabledField);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${enabledField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.row.actions--button'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Grace Period/}));
 
-        const option = await screen.findByTestId(`session-attribute-grace-option-${enabledField.id}-300`);
+        const option = await screen.findByTestId('admin.session_attributes.actions_menu.grace:300--menuitemradio');
         await userEvent.click(option);
 
         expect(onStageChange).toHaveBeenCalledTimes(1);
@@ -122,30 +122,30 @@ describe('SessionAttributesDotMenu', () => {
     it('marks the currently selected TTL preset as checked', async () => {
         renderMenu(enabledField);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${enabledField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.row.actions--button'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
 
-        const selected = await screen.findByTestId(`session-attribute-ttl-option-${enabledField.id}-300`);
+        const selected = await screen.findByTestId('admin.session_attributes.actions_menu.ttl:300--menuitemradio');
         expect(selected).toHaveAttribute('aria-checked', 'true');
 
-        const unselected = screen.getByTestId(`session-attribute-ttl-option-${enabledField.id}-60`);
+        const unselected = screen.getByTestId('admin.session_attributes.actions_menu.ttl:60--menuitemradio');
         expect(unselected).toHaveAttribute('aria-checked', 'false');
     });
 
     it('does not offer a 30 second TTL preset', async () => {
         renderMenu(enabledField);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${enabledField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.row.actions--button'));
         await userEvent.hover(screen.getByRole('menuitem', {name: /Time-to-live/}));
 
-        await screen.findByTestId(`session-attribute-ttl-option-${enabledField.id}-60`);
-        expect(screen.queryByTestId(`session-attribute-ttl-option-${enabledField.id}-30`)).not.toBeInTheDocument();
+        await screen.findByTestId('admin.session_attributes.actions_menu.ttl:60--menuitemradio');
+        expect(screen.queryByTestId('admin.session_attributes.actions_menu.ttl:30--menuitemradio')).not.toBeInTheDocument();
     });
 
     it('hides the TTL and Grace submenus for server-sourced attributes', async () => {
         renderMenu(serverSourcedField);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${serverSourcedField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.row.actions--button'));
 
         expect(screen.queryByRole('menuitem', {name: /Time-to-live/})).not.toBeInTheDocument();
         expect(screen.queryByRole('menuitem', {name: /Grace Period/})).not.toBeInTheDocument();
@@ -154,8 +154,8 @@ describe('SessionAttributesDotMenu', () => {
     it('opens the confirmation modal for Disable without staging immediately', async () => {
         const onStageChange = renderMenu(enabledField);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${enabledField.id}`));
-        await userEvent.click(screen.getByTestId(`session-attribute-disable-${enabledField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.row.actions--button'));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.actions_menu.disable--menuitem'));
 
         await waitFor(() => {
             expect(screen.getByText('Disable attribute')).toBeInTheDocument();
@@ -171,11 +171,11 @@ describe('SessionAttributesDotMenu', () => {
     it('stages Enable in one click without a modal', async () => {
         const onStageChange = renderMenu(disabledField);
 
-        await userEvent.click(screen.getByTestId(`session-attribute-dotmenu-${disabledField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.row.actions--button'));
 
-        expect(screen.queryByTestId(`session-attribute-disable-${disabledField.id}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.session_attributes.actions_menu.disable--menuitem')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId(`session-attribute-enable-${disabledField.id}`));
+        await userEvent.click(screen.getByTestId('admin.session_attributes.actions_menu.enable--menuitem'));
 
         await waitFor(() => {
             expect(onStageChange).toHaveBeenCalledTimes(1);

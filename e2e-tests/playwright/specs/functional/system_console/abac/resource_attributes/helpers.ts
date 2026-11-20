@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, type Page} from '@playwright/test';
+import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
 import type {PlaywrightExtended} from '@mattermost/playwright-lib';
@@ -395,17 +395,6 @@ export async function setChannelMultiselectValue(
     await adminClient.patchPropertyValues(PROPERTY_GROUP, CHANNEL_OBJECT_TYPE, channelId, [
         {field_id: fieldId, value: optionIds},
     ]);
-}
-
-/**
- * Open an existing membership policy in the System Console editor by id. The
- * parent-policy editor page carries the rule table and the Test-access-rule
- * button, so UI specs provision the policy over the API and drive only the
- * feature under test here.
- */
-export async function openPolicyEditor(page: Page, policyId: string): Promise<void> {
-    await page.goto(`/admin_console/system_attributes/membership_policies/edit_policy/${policyId}`);
-    await page.waitForLoadState('networkidle');
 }
 
 type ApiError = {status_code?: number; server_error_id?: string};

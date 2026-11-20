@@ -26,6 +26,7 @@ export default function PolicySelectionModal(props: Props): JSX.Element {
     return (
         <GenericModal
             id='PolicySelectionModal'
+            testId='policy_selection_modal'
             compassDesign={true}
             show={show}
             onHide={onHide}
@@ -45,6 +46,7 @@ export default function PolicySelectionModal(props: Props): JSX.Element {
         >
             <PolicyList
                 simpleMode={true}
+                testIdScope='policy_selection_modal.policies'
                 onPolicySelected={onPolicySelected}
                 actions={{
                     searchPolicies: actions.searchPolicies,

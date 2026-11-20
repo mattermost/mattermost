@@ -16,8 +16,11 @@
  * scheduled has to still send.
  */
 
-import {expect, test, getRandomId, licenseTier} from '@mattermost/playwright-lib';
+import type {Client4} from '@mattermost/client';
 
+import {expect, getRandomId, licenseTier, openChannel, test, DefaultChannel} from '@mattermost/playwright-lib';
+
+import {lastPost} from '../../../channels/burn_on_read/support';
 import {createUserForABAC} from '../support';
 
 import {
@@ -31,7 +34,7 @@ import {
 } from './helpers';
 
 let systemPolicyId = '';
-let savedAdminClient: any;
+let savedAdminClient: Client4 | undefined;
 
 test.beforeEach(async ({pw}) => {
     await pw.ensureLicense();
@@ -85,7 +88,7 @@ test(
         // for a slow job.
         test.setTimeout(pw.duration.four_min);
 
-        const {adminClient, team} = await pw.initSetup();
+        const {adminClient, team, townSquare} = await pw.initSetup();
         savedAdminClient = adminClient;
         await ensureBurnOnReadEnabled(adminClient);
         await ensureABACEnabled(adminClient);
@@ -100,20 +103,18 @@ test(
         });
         await ensureABACEnabled(adminClient);
 
-        const {channelsPage} = await pw.testBrowser.login(user);
-        await channelsPage.goto(team.name, 'town-square');
-        await channelsPage.toBeVisible();
+        const app = await openChannel(pw, user, {team, channel: townSquare});
 
         // * Verify the composer agrees the user may create one, so a later failure points
         // at the send path rather than at the grant
-        await channelsPage.centerView.postCreate.toHaveBurnOnReadVisible();
+        await expect(app.center.postCreate.burnOnReadButton).toBeVisible();
 
         // # Schedule a burn-on-read post for a few seconds out. Through the API rather
         // than the schedule-message modal, whose slots are half-hourly; the server accepts
         // any time down to 5s in the past.
-        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const channel = await adminClient.getChannelByName(team.id, DefaultChannel.TownSquare);
         const message = `bor scheduled ${getRandomId()}`;
-        const scheduled = await scheduleBurnOnReadPostInPage(channelsPage.page, {
+        const scheduled = await scheduleBurnOnReadPostInPage(app.page, {
             channelId: channel.id,
             message,
             scheduledAt: Date.now() + pw.duration.four_sec,
@@ -124,22 +125,20 @@ test(
         expect(scheduled.status, `scheduling rejected: ${JSON.stringify(scheduled.body)}`).toBe(201);
         expect(scheduled.body.type).toBe('burn_on_read');
 
-        // # Wait for the send job to deliver it
-        await pw.waitUntil(
-            async () => {
-                await channelsPage.page.reload();
-                await channelsPage.toBeVisible();
-                const last = await channelsPage.getLastPost();
-                return (await last.container.textContent())?.includes(message);
-            },
-            // Deliberately shorter than the test timeout, so exhausting it fails here —
-            // "the job never delivered" — rather than as an unattributed test timeout.
-            {timeout: pw.duration.two_min, intervalBetweenAttempts: pw.duration.two_sec},
-        );
+        // # Wait for the send job to deliver it. A burn-on-read post shows its sender the
+        // message, so the text is there once it arrives.
+        // Deliberately shorter than the test timeout, so exhausting it fails here —
+        // "the job never delivered" — rather than as an unattributed test timeout.
+        // The post-body container has no text-reading driver; include the burn-on-read wrapper's content.
+        await expect
+            .poll(async () => (await lastPost(app)).post.body.locator.textContent(), {
+                timeout: pw.duration.two_min,
+                intervals: [pw.duration.two_sec],
+            })
+            .toContain(message);
 
         // * Verify it arrived as a burn-on-read post, not as a permanent one
-        const posted = await channelsPage.getLastPost();
-        await expect(posted.body).toContainText(message);
-        await expect(posted.burnOnReadBadge.container).toBeVisible();
+        const {post} = await lastPost(app);
+        await expect(post.burnOnReadButton).toBeVisible();
     },
 );

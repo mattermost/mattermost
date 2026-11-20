@@ -228,6 +228,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 menuId={`channelAttributeEdit-${field.name}`}
                 buttonId={`channelInfoAttributeEdit-${field.name}`}
                 buttonDataTestId={testId ? `${testId}.edit--button` : `channelInfoAttributeEdit-${field.name}`}
+                testIdScope={testId ? `${testId}.edit_menu` : undefined}
                 placeholder={formatMessage({
                     id: 'channel_attributes.info.not_set',
                     defaultMessage: 'Not set',

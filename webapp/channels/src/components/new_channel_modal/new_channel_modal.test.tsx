@@ -1487,7 +1487,7 @@ describe('components/new_channel_modal - channel attributes', () => {
     const getProgramCombobox = () => screen.getByRole('combobox', {name: 'Program'});
     const getChips = () => Array.from(document.querySelectorAll<HTMLElement>('[data-chip]'));
     const createButton = () => screen.getByRole('button', {name: 'Create channel'}).closest('button');
-    const alertIn = (name: string) => within(screen.getByTestId(`channelAttributeRow-${name}`)).queryByRole('alert');
+    const alertIn = (name: string) => within(screen.getByTestId(`new_channel_modal.attributes.attribute:f_${name}`)).queryByRole('alert');
 
     async function fillName() {
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
@@ -1530,7 +1530,7 @@ describe('components/new_channel_modal - channel attributes', () => {
     test('marks a required attribute in the form', () => {
         renderWithContext(<NewChannelModal/>, state);
 
-        expect(screen.getByTestId('channelAttributeRow-program')).toHaveTextContent('Program*');
+        expect(screen.getByTestId('new_channel_modal.attributes.attribute:f_program')).toHaveTextContent('Program*');
     });
 
     test('does not ask for optional attributes at creation', async () => {
@@ -1544,7 +1544,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         renderWithContext(<NewChannelModal/>, state);
 
         // Reachable from Channel Info instead, so creation stays short.
-        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute:f_program')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         await userEvent.click(screen.getByRole('button', {name: 'Create channel'}));
@@ -1573,7 +1573,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         renderWithContext(<NewChannelModal/>, state);
 
-        expect(screen.queryByTestId('channelAttributeRow-classification')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute:f_classification')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeEnabled();
@@ -1607,7 +1607,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
 
-        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute:f_program')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeEnabled();
@@ -1647,10 +1647,10 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
 
-        const row = screen.getByTestId('channelAttributeRow-classification');
+        const row = screen.getByTestId('new_channel_modal.attributes.attribute:f_classification');
         expect(row).toBeInTheDocument();
         expect(row).not.toHaveTextContent('Classification*');
-        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute:f_program')).not.toBeInTheDocument();
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
         expect(screen.getByRole('button', {name: 'Create channel'}).closest('button')).toBeEnabled();
@@ -1676,8 +1676,8 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
 
-        expect(screen.queryByTestId('channelAttributeRow-classification')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('channelAttributeRow-program')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute:f_classification')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute:f_program')).not.toBeInTheDocument();
     });
 
     test('does not offer classification unconditionally when ChannelAttributes itself is off, even with ChannelAttributesRequired off', async () => {
@@ -1697,7 +1697,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         renderWithContext(<NewChannelModal/>, stateWithRequiredEnforcementOff);
 
-        expect(screen.queryByTestId('channelAttributeRow-classification')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute:f_classification')).not.toBeInTheDocument();
     });
 
     test('a required classification field behaves like any other required field when enforcement is on', async () => {
@@ -1719,7 +1719,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
         renderWithContext(<NewChannelModal/>, state);
 
-        const row = screen.getByTestId('channelAttributeRow-classification');
+        const row = screen.getByTestId('new_channel_modal.attributes.attribute:f_classification');
         expect(row).toHaveTextContent('Classification*');
 
         await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
@@ -1865,7 +1865,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         await fillAndSelect();
         expect(createButton()).toBeEnabled();
 
-        await userEvent.click(screen.getByTestId('channelAttribute-program-clear'));
+        await userEvent.click(screen.getByTestId('new_channel_modal.attributes.attribute.clear--button'));
 
         expect(createButton()).toBeDisabled();
         expect(alertIn('program')).toHaveTextContent('This field is required');
@@ -1901,7 +1901,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
             const combobox = screen.getByRole('combobox', {name: 'Classification'});
             expect(combobox).toHaveAttribute('aria-required', 'true');
-            expect(screen.getByTestId('channelAttributeRow-classification')).toHaveTextContent('Classification*');
+            expect(screen.getByTestId('new_channel_modal.attributes.attribute:f_classification')).toHaveTextContent('Classification*');
             expect(createButton()).toBeDisabled();
 
             await userEvent.click(combobox);
@@ -1931,7 +1931,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
             const combobox = screen.getByRole('combobox', {name: 'Classification'});
             expect(combobox).not.toHaveAttribute('aria-required');
-            expect(screen.getByTestId('channelAttributeRow-classification')).not.toHaveTextContent('Classification*');
+            expect(screen.getByTestId('new_channel_modal.attributes.attribute:f_classification')).not.toHaveTextContent('Classification*');
 
             await fillName();
             expect(createButton()).toBeEnabled();
@@ -1944,7 +1944,7 @@ describe('components/new_channel_modal - channel attributes', () => {
 
             await user.click(combobox);
             await user.click(screen.getByRole('option', {name: 'SECRET, Rank 2'}));
-            await user.click(screen.getByTestId('channelAttribute-classification-clear'));
+            await user.click(screen.getByTestId('new_channel_modal.attributes.attribute.clear--button'));
 
             expect(alertIn('classification')).not.toBeInTheDocument();
             expect(createButton()).toBeEnabled();
@@ -1964,7 +1964,7 @@ describe('components/new_channel_modal - channel attributes', () => {
         test('offers a required graph attribute at creation', () => {
             renderWithContext(<NewChannelModal/>, state);
 
-            expect(screen.getByTestId('channelAttributeRow-program')).toBeInTheDocument();
+            expect(screen.getByTestId('new_channel_modal.attributes.attribute:f_program')).toBeInTheDocument();
         });
 
         test('blocks creation while a required graph attribute has no value', async () => {
@@ -1981,7 +1981,7 @@ describe('components/new_channel_modal - channel attributes', () => {
             renderWithContext(<NewChannelModal/>, state);
 
             await userEvent.type(screen.getByPlaceholderText('Enter a name for your new channel'), 'My Channel');
-            await userEvent.click(screen.getByTestId('channelAttribute-program'));
+            await userEvent.click(within(screen.getByTestId('new_channel_modal.attributes.attribute:f_program')).getByTestId('new_channel_modal.attributes.attribute.value--button'));
             await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'}));
 
             // Graph attribute menus stay open for multi-select; close so the confirm

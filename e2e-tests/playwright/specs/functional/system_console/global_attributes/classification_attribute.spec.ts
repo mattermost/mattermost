@@ -10,7 +10,18 @@
  * which is what these tests exercise.
  */
 
-import {expect, test, getAdminClient} from '@mattermost/playwright-lib';
+import {
+    Api,
+    expect,
+    getAdminClient,
+    labelChip,
+    openChannel,
+    openNewChannelModal,
+    settle,
+    test,
+    DefaultChannel,
+    Msg,
+} from '@mattermost/playwright-lib';
 
 import {
     deleteClassificationFieldsIfExist,
@@ -18,7 +29,7 @@ import {
 } from '../../channels/channel_classification/helpers';
 
 import {findChannelField} from './applies_to_helpers';
-import {requireGlobalAttributesEnabled} from './global_attributes_helpers';
+import {openClassificationAttribute, requireGlobalAttributesEnabled, saveInPlace} from './global_attributes_helpers';
 
 const FEATURE_FLAGS = {ChannelAttributes: true, ChannelAttributesRequired: true, ClassificationMarkings: true};
 
@@ -42,25 +53,22 @@ test.describe(
         test('shows the definition read-only and links to Classification Markings', async ({pw}) => {
             await pw.ensureFeatureFlag(FEATURE_FLAGS);
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
             const {levels} = await setupClassificationWithChannelField(adminClient);
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-
-            await globalAttributes.gotoClassificationAttribute();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const classification = await openClassificationAttribute(app);
 
             // * Every level is listed, and none of them is editable here
             for (const level of levels) {
-                await expect(globalAttributes.classificationLevels).toContainText(level.name);
+                await expect(classification.levels).toContainText(level.name);
             }
+
             // The display name is shown, but as a disabled field.
-            const displayName = systemConsolePage.page.getByTestId('classificationAttribute').getByRole('textbox');
-            await expect(displayName).toHaveCount(1);
-            await expect(displayName).not.toBeEditable();
+            await expect(classification.name.container).toBeVisible();
+            await expect(classification.name.container).not.toBeEditable();
 
             // * The one place levels can be changed is a link away
-            await expect(globalAttributes.classificationMarkingsLink).toHaveHrefPath(
+            await expect(classification.markings.container).toHaveHrefPath(
                 '/admin_console/site_config/classification_markings',
             );
         });
@@ -71,16 +79,14 @@ test.describe(
         test('applies a header chip to channels once Header is chosen', async ({pw}) => {
             await pw.ensureFeatureFlag(FEATURE_FLAGS);
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-
-            await globalAttributes.gotoClassificationAttribute();
-            await globalAttributes.appliesToChannels.setDisplayLocations(['display_label_header']);
-            await globalAttributes.saveInPlace();
+            const {app: admin} = await pw.testBrowser.login(adminUser);
+            const classification = await openClassificationAttribute(admin);
+            await classification.appliesTo.channel.settings.location('display_label_header').check();
+            await expect(classification.appliesTo.channel.settings.location('display_label_header')).toBeChecked();
+            await saveInPlace(admin);
 
             // * The choice landed on the linked channel field
             const channelField = await findChannelField(adminClient, 'classification');
@@ -98,11 +104,10 @@ test.describe(
                 {field_id: channelField!.id, value: levels[0].id},
             ] as Parameters<typeof adminClient.patchPropertyValues>[3]);
 
-            const {channelsPage, app} = await pw.testBrowser.login(user);
-            await app.channelsPage.goto({team, channel: channel.name});
+            const app = await openChannel(pw, user, {team, channel});
 
             // * The header carries the chip the console asked for
-            await expect(channelsPage.centerView.header.attributes.chip(levels[0].name)).toBeVisible();
+            await expect(await labelChip(app.channelHeader.attributes, levels[0].name)).toBeVisible();
         });
 
         /**
@@ -116,55 +121,46 @@ test.describe(
             // while this kill switch is on (model.IsChannelAttributesRequiredEnabled).
             await pw.ensureFeatureFlag(FEATURE_FLAGS);
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
-            const {levels} = await setupClassificationWithChannelField(adminClient);
+            const {levels, channelFieldId} = await setupClassificationWithChannelField(adminClient);
             const {team} = await pw.initSetup();
 
-            const {channelsPage, app, page} = await pw.testBrowser.login(adminUser);
-            await app.teamPage.goto({team});
-            await expect(app.center.composer.locator).toBeVisible();
+            let app = await openChannel(pw, adminUser, {team, channel: {name: DefaultChannel.TownSquare}});
 
             // * Optional attributes are not asked for at creation, so Create is free
-            let modal = await channelsPage.openNewChannelModal();
-            await modal.fillDisplayName(`Optional Classification ${pw.random.id()}`);
-            await expect(page.getByTestId('channelAttribute-classification')).toHaveCount(0);
-            await expect(modal.createButton).toBeEnabled();
-            await modal.cancel();
+            let modal = await openNewChannelModal(app);
+            await modal.name.container.fill(`Optional Classification ${pw.random.id()}`);
+            await expect(modal.attributes.attribute({id: channelFieldId})).toHaveCount(0);
+            await expect(modal.confirmButton).toBeEnabled();
+            await modal.cancelButton.click();
+            await expect(modal.name.container).not.toBeVisible();
 
             // # Mark it required on its attribute page
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            await systemConsolePage.globalAttributes.gotoClassificationAttribute();
-            await systemConsolePage.globalAttributes.appliesToChannels.setRequired(true);
-            await systemConsolePage.globalAttributes.saveInPlace();
+            const classification = await openClassificationAttribute(app);
+            const {settings} = classification.appliesTo.channel;
+            await settings.requiredSwitch.set(true);
+            await expect(settings.requiredSwitch).toBeOn();
+            await saveInPlace(app);
 
-            const asAdmin = await pw.testBrowser.login(adminUser);
-            await asAdmin.channelsPage.goto(team.name);
-            await asAdmin.channelsPage.toBeVisible();
-
-            modal = await asAdmin.channelsPage.openNewChannelModal();
-            await modal.fillDisplayName(`Required Classification ${pw.random.id()}`);
+            app = await openChannel(pw, adminUser, {team, channel: {name: DefaultChannel.TownSquare}});
+            modal = await openNewChannelModal(app);
+            await modal.name.container.fill(`Required Classification ${pw.random.id()}`);
 
             // * Now it is asked for, and holds up Create until a level is chosen
-            await expect(asAdmin.channelsPage.page.getByTestId('channelAttribute-classification')).toBeVisible();
-            await expect(modal.createButton).toBeDisabled();
+            const attribute = modal.attributes.attribute({id: channelFieldId});
+            await expect(attribute).toBeVisible();
+            await expect(modal.confirmButton).toBeDisabled();
+            await attribute.valueChoiceCombobox.press('ArrowDown');
 
-            // # Open the levels
-            const listbox = await modal.openAttributeCombobox('classification');
+            // * Highest rank first, with a coloured swatch on every level.
+            await expect(attribute.choiceList).toHaveKeys([...levels].reverse().map((level) => level.id));
+            for (const level of levels) {
+                await expect(attribute.choice(level).swatch).toBeVisible();
+            }
 
-            // * Highest rank first, each coloured level with a swatch
-            await modal.expectAttributeOptionOrder(
-                'classification',
-                [...levels].reverse().map((level) => level.id),
-            );
-            await expect(listbox.getByTestId('attribute-option-swatch')).toHaveCount(levels.length);
-
-            // # Pick the lowest level
-            await modal.selectAttributeOption('classification', levels[0].name);
-
-            // * The field shows the level with its swatch and Create is enabled
-            await expect(modal.getAttributeCombobox('classification')).toHaveValue(levels[0].name);
-            await expect(modal.getAttributeRow('classification').getByTestId('attribute-option-swatch')).toHaveCount(1);
-            await expect(modal.createButton).toBeEnabled();
+            await attribute.choice(levels[0]).container.select();
+            await expect(attribute.valueChoiceCombobox).toHaveValue(levels[0].name);
+            await expect(attribute.swatch).toHaveCount(1);
+            await expect(modal.confirmButton).toBeEnabled();
         });
 
         /**
@@ -177,7 +173,6 @@ test.describe(
         test('stops bannering when the display locations exclude the banner', async ({pw}) => {
             await pw.ensureFeatureFlag(FEATURE_FLAGS);
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
             const {levels} = await setupClassificationWithChannelField(adminClient);
             const {team, user} = await pw.initSetup();
 
@@ -194,19 +189,18 @@ test.describe(
             ] as Parameters<typeof adminClient.patchPropertyValues>[3]);
 
             // # Configure Header only — deliberately not the banner
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoClassificationAttribute();
-            await globalAttributes.appliesToChannels.setDisplayLocations(['display_label_header']);
-            await globalAttributes.saveInPlace();
+            const {app: admin} = await pw.testBrowser.login(adminUser);
+            const classification = await openClassificationAttribute(admin);
+            await classification.appliesTo.channel.settings.location('display_label_header').check();
+            await expect(classification.appliesTo.channel.settings.location('display_label_header')).toBeChecked();
+            await saveInPlace(admin);
 
-            const {page, channelsPage, app} = await pw.testBrowser.login(user);
-            await app.channelsPage.goto({team, channel: channel.name});
+            const app = await openChannel(pw, user, {team, channel});
 
             // * The Header location took effect, and there is no banner even though
             // * the channel has a classification
-            await expect(channelsPage.centerView.header.attributes.chip(levels[0].name)).toBeVisible();
-            await expect(page.getByTestId('center.channel_banner')).toHaveCount(0);
+            await expect(await labelChip(app.channelHeader.attributes, levels[0].name)).toBeVisible();
+            await expect(app.center.channelBanner).toHaveCount(0);
         });
 
         /**
@@ -215,44 +209,55 @@ test.describe(
         test('removes the Channels resource only after confirming, and keeps it removed', async ({pw}) => {
             await pw.ensureFeatureFlag(FEATURE_FLAGS);
             const {adminUser, adminClient} = await requireGlobalAttributesEnabled(pw);
-
             await setupClassificationWithChannelField(adminClient);
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            const page = systemConsolePage.page;
-
-            await globalAttributes.gotoClassificationAttribute();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const classification = await openClassificationAttribute(app);
+            const {channel} = classification.appliesTo;
 
             // # Ask to remove, then back out
-            await globalAttributes.appliesToChannels.removeResource();
-            await page.getByRole('button', {name: 'Cancel'}).click();
+            let confirm = await channel.removeButton.clickTo(classification.removeChannelModal);
+            await confirm.cancelButton.click();
 
             // * Nothing was deleted
-            await expect(globalAttributes.appliesToChannels.row).toBeVisible();
+            await expect(confirm).not.toBeVisible();
+            await expect(channel).toBeVisible();
             expect(await findChannelField(adminClient, 'classification')).toBeDefined();
 
             // # Ask again and confirm
-            await globalAttributes.appliesToChannels.removeResource();
-            await page.getByRole('button', {name: 'Remove and delete values'}).click();
+            confirm = await channel.removeButton.clickTo(classification.removeChannelModal);
+            await expect(confirm.confirmButton).toHaveMessage(
+                Msg.admin.global_attributes.classification.remove_channels.confirm,
+            );
+            await settle(confirm.confirmButton, {
+                wait: Api.DeletePropertyField,
+                params: {group_name: 'access_control', object_type: 'channel'},
+            }).click();
 
             // * The field is gone, and the card offers to add it back
-            await expect(globalAttributes.appliesToChannels.addResourceButton).toBeVisible();
+            await expect(classification.appliesTo.addButton).toBeVisible();
+            await expect(channel).toHaveCount(0);
             expect(await findChannelField(adminClient, 'classification')).toBeUndefined();
 
             // * Saving the Classification Markings page does not reinstate it: the field is
             // * created on the transition into enabled, not on every save
-            await page.goto('/admin_console/site_config/classification_markings');
+            await app.page.goto('/admin_console/site_config/classification_markings');
+            const {levels, savePanel} = app.admin.classification;
+            await expect(await levels.rowList.first()).toBeVisible();
 
             // Save only enables once something changes, so the save under test needs an
             // edit -- one with nothing to do with the Channels resource. The cell keeps the
             // typing local and only reports it on blur, so the edit has to be committed.
-            const levelName = page.getByRole('textbox', {name: 'Classification level name'}).first();
+            const levelName = levels.row((await levels.rowList.keys())[0]).nameTextbox.locator;
             await levelName.fill('UNCLASSIFIED EDITED');
             await levelName.blur();
 
-            await page.getByTestId('saveSetting').click();
-            await expect(page.getByTestId('saveSetting')).toBeDisabled();
+            await expect(savePanel.saveButton).toBeEnabled();
+            await settle(savePanel.saveButton, {
+                wait: Api.UpdatePropertyField,
+                params: {group_name: 'access_control', object_type: 'template'},
+            }).click();
+            await expect(savePanel.saveButton).toBeSaved();
 
             expect(await findChannelField(adminClient, 'classification')).toBeUndefined();
         });

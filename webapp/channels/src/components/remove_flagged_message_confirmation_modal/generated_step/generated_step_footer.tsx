@@ -39,7 +39,7 @@ export default function GeneratedStepFooter({
                     className='GenericModal__button'
                     emphasis='tertiary'
                     onClick={onDownloadAgain}
-                    data-testid='generated-download-again-button'
+                    data-testid='flagged_message_modal.generated.download_again--button'
                 >
                     {downloadAgainText}
                 </Button>
@@ -50,7 +50,7 @@ export default function GeneratedStepFooter({
                     className='GenericModal__button'
                     emphasis='tertiary'
                     onClick={onBack}
-                    data-testid='generated-back-button'
+                    data-testid='flagged_message_modal.generated.back--button'
                 >
                     {backText}
                 </Button>
@@ -61,7 +61,7 @@ export default function GeneratedStepFooter({
                     destructive={permanentDestructive}
                     onClick={onPermanent}
                     disabled={submitting}
-                    data-testid='generated-permanent-button'
+                    data-testid='flagged_message_modal.generated.permanent--button'
                 >
                     {permanentText}
                 </Button>

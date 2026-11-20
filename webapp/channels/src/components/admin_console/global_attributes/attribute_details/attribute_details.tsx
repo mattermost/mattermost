@@ -807,7 +807,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             document.getElementById(ATTRIBUTE_APPLIES_TO_ADD_HEADER_TRIGGER_ID)?.focus();
         } else if (appliesTo.length > prevLength && appliesTo.length === ALL_RESOURCE_TYPES.length) {
             const lastAddedType = appliesTo[appliesTo.length - 1];
-            document.querySelector<HTMLElement>(`[data-testid="attributeAppliesToRow-${lastAddedType}-toggle"]`)?.focus();
+            document.querySelector<HTMLElement>(`[data-testid="admin.attribute.applies_to.${lastAddedType}.toggle--button"]`)?.focus();
         }
         prevAppliesToLengthRef.current = appliesTo.length;
     }, [appliesTo, loading]);
@@ -1463,7 +1463,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     const typeMenu = (
         <AttributeSelect
             idPrefix='attribute-type'
-            dataTestId='attributeTypeMenuButton'
+            testId='admin.attribute.type'
             selected={{id: fieldType, icon: TypeIcon, label: getTypeLabel(fieldType)}}
             options={selectableTypes}
             ariaLabel={typeButtonAriaLabel}
@@ -1475,7 +1475,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     );
 
     if (loading) {
-        return <LoadingScreen/>;
+        return <LoadingScreen testId='admin.attribute.loading'/>;
     }
 
     const linkedSourceTitle = linkedExternalSource ? formatMessage(externalSourceMessages[linkedExternalSource].title) : '';
@@ -1499,7 +1499,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 />
                 <p
                     className='AttributeDetails__optionsHelp'
-                    data-testid='attributeOptionsSyncedHelp'
+                    data-testid='admin.attribute.options.synced_help--text'
                 >
                     <FormattedMessage
                         {...messages.optionsSyncedHelp}
@@ -1510,7 +1510,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     <div
                         className='AttributeDetails__uniqueNameError'
                         role='alert'
-                        data-testid='attributeOptionsNeedUsersError'
+                        data-testid='admin.attribute.options.need_users--alert'
                     >
                         <FormattedMessage
                             {...messages.optionsSyncedNeedUsers}
@@ -1546,7 +1546,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                     <div
                         className='AttributeDetails__uniqueNameError'
                         role='alert'
-                        data-testid='attributeOptionsRequiredError'
+                        data-testid='admin.attribute.options.required--alert'
                     >
                         <FormattedMessage {...(optionsIssue === 'required' ? messages.optionsRequired : messages.optionsInvalid)}/>
                     </div>
@@ -1557,7 +1557,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
         optionsEditor = (
             <p
                 className='AttributeDetails__optionsHelp'
-                data-testid='attributeOptionsHelp'
+                data-testid='admin.attribute.options.help--text'
             >
                 <FormattedMessage {...messages.optionsHelp}/>
             </p>
@@ -1593,7 +1593,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
     return (
         <div
             className='wrapper--fixed AttributeDetails'
-            data-testid='attributeDetails'
+            data-testid='admin.attribute'
         >
             <AdminHeader withBackButton={true}>
                 <div>
@@ -1602,7 +1602,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                             to={LIST_ROUTE}
                             className='AttributeDetails__backButton'
                             aria-label={formatMessage(messages.backLink)}
-                            data-testid='attributeDetailsBackLink'
+                            data-testid='admin.attribute.back--link'
                         >
                             <ChevronLeftIcon
                                 size={28}
@@ -1649,13 +1649,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                     autoFocus={true}
                                     disabled={saving || effectiveDisabled}
                                     maxLength={Constants.MAX_CUSTOM_ATTRIBUTE_NAME_LENGTH}
-                                    data-testid='attributeDisplayNameInput'
+                                    testId='admin.attribute.display_name'
                                 />
                                 <div className='AttributeDetails__uniqueName'>
                                     <span
                                         className='AttributeDetails__uniqueNameCaption'
                                         aria-live='polite'
-                                        data-testid='attributeUniqueNameCaption'
+                                        data-testid='admin.attribute.unique_name.caption--text'
                                     >
                                         <span
                                             className='AttributeDetails__uniqueNamePrefix'
@@ -1679,13 +1679,13 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                 aria-labelledby='attribute-unique-name-prefix'
                                                 aria-describedby={nameDescribedBy}
                                                 aria-invalid={Boolean(nameValidationError) || isServerNameError}
-                                                data-testid='attributeNameInput'
+                                                data-testid='admin.attribute.unique_name.input--textbox'
                                             />
                                         ) : (
                                             <span
                                                 className={classNames({'AttributeDetails__uniqueNameValue--error': Boolean(nameValidationError) || isServerNameError})}
                                                 aria-describedby={nameDescribedBy}
-                                                data-testid='attributeUniqueNameValue'
+                                                data-testid='admin.attribute.unique_name.value--text'
                                             >
                                                 {isNameManuallyEdited ? manualName : (autoSlugDisplay ?? '—')}
                                             </span>
@@ -1719,7 +1719,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     aria-disabled={isDoneBlocked || undefined}
                                                     aria-describedby={isDoneBlocked ? 'attribute-unique-name-error' : undefined}
                                                     aria-label={nameEditLinkAriaLabel}
-                                                    data-testid='attributeNameEditLink'
+                                                    data-testid='admin.attribute.unique_name.edit--button'
                                                 >
                                                     <FormattedMessage {...(isEditingName ? messages.doneLink : messages.editLink)}/>
                                                 </button>
@@ -1731,7 +1731,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                                     <span
                                                         // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled button inside is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                                                         tabIndex={0}
-                                                        data-testid='attributeNameEditLinkLockWrap'
+                                                        data-testid='admin.attribute.unique_name.edit_locked'
                                                     >
                                                         {editLinkButton}
                                                     </span>
@@ -1744,7 +1744,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             id='attribute-unique-name-error'
                                             className='AttributeDetails__uniqueNameError'
                                             role='alert'
-                                            data-testid='attributeUniqueNameError'
+                                            data-testid='admin.attribute.unique_name.error--alert'
                                         >
                                             {nameErrorMessage(nameValidationError, formatMessage)}
                                         </div>
@@ -1754,7 +1754,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             id='attribute-unique-name-empty-warning'
                                             className='AttributeDetails__uniqueNameError'
                                             role='alert'
-                                            data-testid='attributeUniqueNameEmptyWarning'
+                                            data-testid='admin.attribute.unique_name.empty--alert'
                                         >
                                             <FormattedMessage {...messages.couldNotGenerateName}/>
                                         </div>
@@ -1766,7 +1766,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             // Polite, not an alert: this updates on every
                                             // keystroke while the admin is still typing a name.
                                             role='status'
-                                            data-testid='attributeNameConflictWarning'
+                                            data-testid='admin.attribute.unique_name.conflict--status'
                                         >
                                             <SectionNotice
                                                 type={usersBlockedByNameConflict ? 'danger' : 'warning'}
@@ -1783,7 +1783,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         <div className='AttributeDetails__row'>
                             <span
                                 className='AttributeDetails__label'
-                                data-testid='attributeTypeLabel'
+                                data-testid='admin.attribute.type_label--text'
                             >
                                 <FormattedMessage {...messages.typeLabel}/>
                             </span>
@@ -1794,7 +1794,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                                             // eslint-disable-next-line jsx-a11y/no-noninteractive-tabindex -- WithTooltip's useFocus only fires on its cloned child; without this the disabled Type menu button is unreachable by keyboard, so the tooltip explaining the lock is mouse-only
                                             tabIndex={0}
                                             className='AttributeDetails__typeLockWrap'
-                                            data-testid='attributeTypeLockWrap'
+                                            data-testid='admin.attribute.type_locked'
                                         >
                                             {typeMenu}
                                         </span>
@@ -1805,7 +1805,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         <div className='AttributeDetails__row'>
                             <span
                                 className='AttributeDetails__label'
-                                data-testid='attributeOptionsLabel'
+                                data-testid='admin.attribute.options_label--text'
                             >
                                 <FormattedMessage {...messages.optionsLabel}/>
                             </span>
@@ -1863,6 +1863,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
             </div>
             <div className='admin-console-save'>
                 <SaveButton
+                    testId='admin.save'
                     disabled={!canSave}
                     saving={saving}
                     onClick={handleSave}
@@ -1871,9 +1872,11 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                 <Button
                     asChild={true}
                     emphasis='tertiary'
-                    data-testid='attributeCancelLink'
                 >
-                    <BlockableLink to={LIST_ROUTE}>
+                    <BlockableLink
+                        to={LIST_ROUTE}
+                        data-testid='admin.attribute.cancel--link'
+                    >
                         <FormattedMessage {...messages.cancel}/>
                     </BlockableLink>
                 </Button>
@@ -1882,7 +1885,7 @@ function AttributeDetails({disabled = false}: Props): JSX.Element {
                         id='attribute-save-error'
                         className='AttributeDetails__error'
                         role='alert'
-                        data-testid='attributeSaveError'
+                        data-testid='admin.attribute.save_error--alert'
                     >
                         <i className='icon icon-alert-outline'/>
                         {errorContent}

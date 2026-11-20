@@ -1,9 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import type {UserPropertyField} from '@mattermost/types/properties_user';
+
+import {expect, test, type App, Api, settle} from '@mattermost/playwright-lib';
 
 import {
+    type CpaFieldsMap,
     type CustomProfileAttribute,
     deleteCustomProfileAttributes,
     setupCustomProfileAttributeFields,
@@ -12,6 +15,29 @@ import {
 
 function matchingOrder(actual: string[], expected: string[]) {
     return actual.filter((value) => expected.includes(value));
+}
+
+/** The created fields' ids, in the attributes' configured order. */
+function orderedFieldIds(attributes: CustomProfileAttribute[], fields: CpaFieldsMap) {
+    const created = Object.values(fields).filter((field): field is UserPropertyField => !(field instanceof Set));
+    return attributes.map((attribute) => created.find((field) => field.name === attribute.name)!.id);
+}
+
+/** Posts a message and opens the author's profile popover from its avatar. */
+async function openOwnProfilePopover(app: App, message: string) {
+    await app.center.postCreate.message.container.fill(message);
+    await settle(app.center.postCreate.sendButton, {wait: Api.CreatePost}).click();
+    await expect
+        .poll(async () => {
+            const lastId = (await app.center.postList.postList.keys()).at(-1);
+            return lastId ? app.center.postList.post({id: lastId}).message.container.text() : '';
+        })
+        .toBe(message);
+    const lastId = (await app.center.postList.postList.keys()).at(-1)!;
+    // ProfilePicture exposes a role-free container, so the popover trigger has no click driver.
+    await app.center.postList.post({id: lastId}).avatar.container.click();
+    await expect(app.profilePopover).toBeVisible();
+    return app.profilePopover;
 }
 
 /**
@@ -23,7 +49,7 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        const {adminClient, team, user, userClient} = await pw.initSetup();
+        const {adminClient, team, user, userClient, townSquare} = await pw.initSetup();
         const suffix = pw.random.id();
         const labels = [`First ${suffix}`, `Second ${suffix}`, `Third ${suffix}`];
         const attributes: CustomProfileAttribute[] = labels.map((label, index) => ({
@@ -36,22 +62,27 @@ test(
         const fields = await setupCustomProfileAttributeFields(adminClient, attributes);
         try {
             await setupCustomProfileAttributeValues(userClient, attributes, fields);
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: townSquare});
+            const fieldIds = orderedFieldIds(attributes, fields);
 
             // * Verify the order in profile settings
-            const profileModal = await channelsPage.openProfileModal();
-            const settingsHeadings = await profileModal.sectionHeadings.allTextContents();
-            expect(matchingOrder(settingsHeadings, labels)).toEqual(labels);
-            await profileModal.closeModal();
+            await app.globalHeader.openAccountMenuButton.clickTo(app.globalHeader.accountMenu.profileMenuItem);
+            const settings = await app.globalHeader.accountMenu.profileMenuItem.clickTo(app.userSettingsModal);
+            const sectionKeys = fieldIds;
+            await expect
+                .poll(async () => matchingOrder(await app.settings.customAttributeList.keys(), sectionKeys))
+                .toEqual(sectionKeys);
+            await settings.closeButton.click();
+            await expect(settings).not.toBeVisible();
 
             // # Open the user's profile popover
-            await channelsPage.postMessage(`Attribute order ${suffix}`);
-            const post = await channelsPage.getLastPost();
-            const popover = await channelsPage.openProfilePopover(post);
+            const popover = await openOwnProfilePopover(app, `Attribute order ${suffix}`);
+
             // * Verify the same order in the profile popover
-            const popoverHeadings = await popover.attributeHeadings.allTextContents();
-            expect(matchingOrder(popoverHeadings, labels)).toEqual(labels);
+            await expect
+                .poll(async () => matchingOrder(await popover.attributeList.keys(), fieldIds))
+                .toEqual(fieldIds);
         } finally {
             await deleteCustomProfileAttributes(adminClient, fields);
         }
@@ -67,7 +98,7 @@ test(
     async ({pw}) => {
         await pw.ensureLicense();
         await pw.skipIfNoLicense();
-        const {adminClient, team, user, userClient} = await pw.initSetup();
+        const {adminClient, team, user, userClient, townSquare} = await pw.initSetup();
         const suffix = pw.random.id();
         const attributes: CustomProfileAttribute[] = Array.from({length: 10}, (_, index) => ({
             name: `scroll_${index}_${suffix}`,
@@ -80,31 +111,30 @@ test(
         try {
             // # Open a profile popover containing ten populated attributes
             await setupCustomProfileAttributeValues(userClient, attributes, fields);
-            const {channelsPage} = await pw.testBrowser.login(user);
-            await channelsPage.goto(team.name, 'town-square');
-            await channelsPage.postMessage(`Popover scroll ${suffix}`);
-            const post = await channelsPage.getLastPost();
-            const popover = await channelsPage.openProfilePopover(post);
+            const {app} = await pw.testBrowser.login(user);
+            await app.channelsPage.goto({team, channel: townSquare});
+            const popover = await openOwnProfilePopover(app, `Popover scroll ${suffix}`);
+            await expect(popover.attribute({id: orderedFieldIds(attributes, fields).at(-1)!})).toBeAttached();
+            const container = popover.locator;
+            const bottomRow = popover.actions.locator;
 
             // * Verify the popover is scrollable
             expect(
-                await popover.container.evaluate((element: HTMLElement) => element.scrollHeight > element.clientHeight),
+                await container.evaluate((element: HTMLElement) => element.scrollHeight > element.clientHeight),
             ).toBe(true);
-            const bottomBefore = await popover.bottomRow.boundingBox();
+            const bottomBefore = await bottomRow.boundingBox();
             if (!bottomBefore) {
                 throw new Error('Expected the profile popover bottom row to have a bounding box');
             }
 
             // # Scroll to the bottom of the popover
-            await popover.container.evaluate((element: HTMLElement) => {
+            await container.evaluate((element: HTMLElement) => {
                 element.scrollTop = element.scrollHeight;
             });
-            await expect
-                .poll(() => popover.container.evaluate((element: HTMLElement) => element.scrollTop))
-                .toBeGreaterThan(0);
+            await expect.poll(() => container.evaluate((element: HTMLElement) => element.scrollTop)).toBeGreaterThan(0);
             // * Verify the bottom action row remains visible and fixed
-            await expect(popover.bottomRow).toBeVisible();
-            const bottomAfter = await popover.bottomRow.boundingBox();
+            await expect(bottomRow).toBeVisible();
+            const bottomAfter = await bottomRow.boundingBox();
             if (!bottomAfter) {
                 throw new Error('Expected the profile popover bottom row to remain visible after scrolling');
             }

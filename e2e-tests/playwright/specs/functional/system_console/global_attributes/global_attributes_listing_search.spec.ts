@@ -11,8 +11,8 @@
 
 import {expect, test} from '@mattermost/playwright-lib';
 
-import {requireGlobalAttributesEnabled} from './global_attributes_helpers';
-import {ListingSeeder} from './listing_helpers';
+import {openAttributeManagement, requireGlobalAttributesEnabled} from './global_attributes_helpers';
+import {ListingSeeder, searchListing} from './listing_helpers';
 
 test.describe('System Console - Global Attributes listing search', {tag: '@system_console'}, () => {
     /**
@@ -30,16 +30,15 @@ test.describe('System Console - Global Attributes listing search', {tag: '@syste
             await seeder.template({key: 'internal_alpha', displayName});
             await seeder.template({key: 'internal_beta', displayName: `Other Thing ${suffix}`});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
 
             // # Search for the display name
-            await globalAttributes.search(`Clearance Tier ${suffix}`);
+            await searchListing(app, `Clearance Tier ${suffix}`);
 
             // * Only the matching row remains
-            await expect(globalAttributes.rowByLabel(displayName)).toBeVisible();
-            await expect(globalAttributes.rows).toHaveCount(1);
+            await expect(attributes.row(seeder.idForLabel(displayName))).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(1);
         } finally {
             await seeder.cleanup();
         }
@@ -59,16 +58,15 @@ test.describe('System Console - Global Attributes listing search', {tag: '@syste
             const displayName = `Shown Label ${suffix}`;
             const template = await seeder.template({key: 'hidden_handle', displayName});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
 
             // # Search for the internal name
-            await globalAttributes.search(template.name);
+            await searchListing(app, template.name);
 
             // * The row is found under its display name
-            await expect(globalAttributes.rowByLabel(displayName)).toBeVisible();
-            await expect(globalAttributes.rows).toHaveCount(1);
+            await expect(attributes.row(seeder.idForLabel(displayName))).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(1);
         } finally {
             await seeder.cleanup();
         }
@@ -87,23 +85,22 @@ test.describe('System Console - Global Attributes listing search', {tag: '@syste
             const displayName = `Department Cost Center ${suffix}`;
             await seeder.template({key: 'case_probe', displayName});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
 
             // # Search an upper-case fragment from the middle of the display name
-            await globalAttributes.search(`COST CENTER ${suffix.toUpperCase()}`);
+            await searchListing(app, `COST CENTER ${suffix.toUpperCase()}`);
 
             // * The row matches despite the case and the missing prefix
-            await expect(globalAttributes.rowByLabel(displayName)).toBeVisible();
-            await expect(globalAttributes.rows).toHaveCount(1);
+            await expect(attributes.row(seeder.idForLabel(displayName))).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(1);
 
             // # Search a lower-case fragment from the middle of the display name
-            await globalAttributes.search(`partment cost center ${suffix}`);
+            await searchListing(app, `partment cost center ${suffix}`);
 
             // * The row still matches
-            await expect(globalAttributes.rowByLabel(displayName)).toBeVisible();
-            await expect(globalAttributes.rows).toHaveCount(1);
+            await expect(attributes.row(seeder.idForLabel(displayName))).toBeVisible();
+            await expect(attributes.rowList).toHaveKeyCount(1);
         } finally {
             await seeder.cleanup();
         }
@@ -129,23 +126,22 @@ test.describe('System Console - Global Attributes listing search', {tag: '@syste
             await seeder.template({key: 'underscore_literal', displayName: underscoreLabel});
             await seeder.template({key: 'underscore_decoy', displayName: underscoreDecoy});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
 
             // # Search with a percent sign
-            await globalAttributes.search(`100% ${suffix}`);
+            await searchListing(app, `100% ${suffix}`);
 
             // * Only the literal percent label matches
-            await expect(globalAttributes.rowByLabel(percentLabel)).toBeVisible();
-            await expect(globalAttributes.rowByLabel(percentDecoy)).toHaveCount(0);
+            await expect(attributes.row(seeder.idForLabel(percentLabel))).toBeVisible();
+            await expect(attributes.row(seeder.idForLabel(percentDecoy))).toHaveCount(0);
 
             // # Search with an underscore
-            await globalAttributes.search(`Cost_Code ${suffix}`);
+            await searchListing(app, `Cost_Code ${suffix}`);
 
             // * Only the literal underscore label matches
-            await expect(globalAttributes.rowByLabel(underscoreLabel)).toBeVisible();
-            await expect(globalAttributes.rowByLabel(underscoreDecoy)).toHaveCount(0);
+            await expect(attributes.row(seeder.idForLabel(underscoreLabel))).toBeVisible();
+            await expect(attributes.row(seeder.idForLabel(underscoreDecoy))).toHaveCount(0);
         } finally {
             await seeder.cleanup();
         }
@@ -165,25 +161,24 @@ test.describe('System Console - Global Attributes listing search', {tag: '@syste
             const displayName = `Restorable ${suffix}`;
             await seeder.template({key: 'restorable', displayName});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
-            await expect(globalAttributes.rowByLabel(displayName)).toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
+            await expect(attributes.row(seeder.idForLabel(displayName))).toBeVisible();
 
             // # Search for something that exists nowhere
-            await globalAttributes.search(`nothing-matches-${suffix}`);
+            await searchListing(app, `nothing-matches-${suffix}`);
 
             // * The no-results state replaces the rows, and it is not the "no attributes" state
-            await expect(globalAttributes.emptySearchState).toBeVisible();
-            await expect(globalAttributes.emptyState).toHaveCount(0);
-            await expect(globalAttributes.rows).toHaveCount(0);
+            await expect(attributes.emptySearchText).toBeVisible();
+            await expect(attributes.emptyText).toHaveCount(0);
+            await expect(attributes.rowList).toHaveKeyCount(0);
 
             // # Clear the search
-            await globalAttributes.clearSearch();
+            await searchListing(app, '');
 
             // * The rows return
-            await expect(globalAttributes.emptySearchState).toHaveCount(0);
-            await expect(globalAttributes.rowByLabel(displayName)).toBeVisible();
+            await expect(attributes.emptySearchText).toHaveCount(0);
+            await expect(attributes.row(seeder.idForLabel(displayName))).toBeVisible();
         } finally {
             await seeder.cleanup();
         }
@@ -208,16 +203,15 @@ test.describe('System Console - Global Attributes listing search', {tag: '@syste
                 attrs: {options: [{id: '', name: 'Red'}]},
             });
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
-            await expect(globalAttributes.rowByLabel(displayName)).toBeVisible();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
+            await expect(attributes.row(seeder.idForLabel(displayName))).toBeVisible();
 
             // # Search for the type word
-            await globalAttributes.search('select');
+            await searchListing(app, 'select');
 
             // * The row is not matched through its type, though it renders the "Select" type label
-            await expect(globalAttributes.rowByLabel(displayName)).toHaveCount(0);
+            await expect(attributes.row(seeder.idForLabel(displayName))).toHaveCount(0);
         } finally {
             await seeder.cleanup();
         }
@@ -241,17 +235,16 @@ test.describe('System Console - Global Attributes listing search', {tag: '@syste
             await seeder.unlinkedField('user', {key: 'region_user', displayName: userFieldLabel});
             await seeder.template({key: 'unrelated', displayName: otherLabel});
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const {globalAttributes} = systemConsolePage;
-            await globalAttributes.gotoListing();
+            const {app} = await pw.testBrowser.login(adminUser);
+            const attributes = await openAttributeManagement(app);
 
             // # Search the shared term
-            await globalAttributes.search('Region');
+            await searchListing(app, 'Region');
 
             // * Both matching rows show and the other does not
-            await expect(globalAttributes.rowByLabel(templateLabel)).toBeVisible();
-            await expect(globalAttributes.rowByLabel(userFieldLabel)).toBeVisible();
-            await expect(globalAttributes.rowByLabel(otherLabel)).toHaveCount(0);
+            await expect(attributes.row(seeder.idForLabel(templateLabel))).toBeVisible();
+            await expect(attributes.row(seeder.idForLabel(userFieldLabel))).toBeVisible();
+            await expect(attributes.row(seeder.idForLabel(otherLabel))).toHaveCount(0);
         } finally {
             await seeder.cleanup();
         }

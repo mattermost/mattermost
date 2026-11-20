@@ -50,7 +50,7 @@ export default function BoardAttributes(props: Props) {
     return (
         <div
             className='wrapper--fixed'
-            data-testid='boardAttributes'
+            data-testid='admin.board_attributes'
         >
             <AdminHeader>
                 <FormattedMessage {...msg.pageTitle}/>
@@ -66,6 +66,7 @@ export default function BoardAttributes(props: Props) {
                 </AdminPanel>
             </AdminWrapper>
             <SaveChangesPanel
+                testId='admin.board_attributes.save_panel'
                 saving={saving}
                 saveNeeded={hasChanges}
                 onClick={handleSave}

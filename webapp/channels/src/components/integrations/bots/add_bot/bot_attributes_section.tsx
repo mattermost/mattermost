@@ -93,7 +93,7 @@ export default function BotAttributesSection({
             <Menu.Container
                 menuButton={{
                     id: BOT_ATTRIBUTES_ADD_BUTTON_ID,
-                    dataTestId: BOT_ATTRIBUTES_ADD_BUTTON_ID,
+                    dataTestId: 'integrations.bot_form.attributes.add--button',
                     class: buttonClassNames({emphasis: 'tertiary', size: 'sm'}, 'BotAttributesSection__add'),
                     disabled: triggerDisabled,
                     children: (
@@ -106,20 +106,21 @@ export default function BotAttributesSection({
                 menu={{
                     id: 'botAttributesAddMenu',
                     'aria-label': formatMessage(messages.add),
+                    testId: 'integrations.bot_form.attributes.add_menu',
                 }}
             >
                 {addableFields.length > 0 ? addableFields.map((field) => (
                     <Menu.Item
                         key={field.id}
                         id={`botAttributesAdd-${field.id}`}
-                        data-testid={`botAttributesAdd-${field.id}`}
+                        data-testid={`integrations.bot_form.attributes.add_menu.field:${field.id}--menuitem`}
                         onClick={() => onAdd(field.id)}
                         labels={<span>{getUserPropertyFieldLabel(field)}</span>}
                     />
                 )) : (
                     <Menu.Item
                         id='botAttributesNoneAvailable'
-                        data-testid='botAttributesNoneAvailable'
+                        data-testid='integrations.bot_form.attributes.add_menu.none--menuitem'
                         disabled={true}
                         labels={
                             <FormattedMessage
@@ -133,7 +134,7 @@ export default function BotAttributesSection({
                 {canEditAdminManaged && (
                     <Menu.LinkItem
                         id='botAttributesManage'
-                        data-testid='botAttributesManage'
+                        data-testid='integrations.bot_form.attributes.add_menu.manage--menuitem'
                         to={MANAGE_ATTRIBUTES_PATH}
                         labels={
                             <FormattedMessage
@@ -154,11 +155,11 @@ export default function BotAttributesSection({
         break;
     case 'error':
         body = (
-            <div
-                className='BotAttributesSection__error'
-                data-testid='botAttributesLoadError'
-            >
-                <span role='alert'>
+            <div className='BotAttributesSection__error'>
+                <span
+                    role='alert'
+                    data-testid='integrations.bot_form.attributes.load_error--alert'
+                >
                     <FormattedMessage
                         id='bots.attributes.load_failed'
                         defaultMessage='Attributes could not be loaded.'
@@ -169,7 +170,7 @@ export default function BotAttributesSection({
                     emphasis='tertiary'
                     size='sm'
                     ref={retryButtonRef}
-                    data-testid='botAttributesRetry'
+                    data-testid='integrations.bot_form.attributes.retry--button'
                     onClick={handleRetry}
                 >
                     <FormattedMessage
@@ -193,7 +194,7 @@ export default function BotAttributesSection({
                         canEditAdminManaged={canEditAdminManaged}
                         onRemove={handleRemove}
                         isRemovable={(field) => isRowRemovable(field, initialValues)}
-                        testIdPrefix='bot-attribute'
+                        testIdScope='integrations.bot_form.attributes.attribute'
                     />
                 )}
                 {renderAddMenu(disabled)}
@@ -211,7 +212,7 @@ export default function BotAttributesSection({
             className='form-group BotAttributesSection'
             role='group'
             aria-labelledby='botAttributesTitle'
-            data-testid='botAttributesSection'
+            data-testid='integrations.bot_form.attributes'
         >
             <span
                 id='botAttributesTitle'

@@ -67,7 +67,7 @@ const DotMenu = ({
                 id: `${menuId}-${field.id}`,
                 class: 'btn btn-transparent user-property-field-dotmenu-menu-button',
                 children: <DotsHorizontalIcon size={18}/>,
-                dataTestId: `${menuId}-${field.id}`,
+                dataTestId: 'admin.board_attributes.row.actions--button',
                 disabled: field.delete_at !== 0,
             }}
             menu={{
@@ -82,6 +82,7 @@ const DotMenu = ({
             {canCreate && (
                 <Menu.Item
                     id={`${menuId}_duplicate`}
+                    data-testid='board_attribute_actions_menu.duplicate--menuitem'
                     onClick={handleDuplicate}
                     disabled={isProtected}
                     leadingElement={<ContentCopyIcon size={18}/>}
@@ -95,6 +96,7 @@ const DotMenu = ({
             )}
             <Menu.Item
                 id={`${menuId}_delete`}
+                data-testid='board_attribute_actions_menu.delete--menuitem'
                 onClick={handleDelete}
                 isDestructive={!isProtected}
                 disabled={isProtected}

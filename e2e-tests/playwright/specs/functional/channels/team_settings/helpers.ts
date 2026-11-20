@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import type {Locator, Page} from '@playwright/test';
-import {expect} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
 
-import {newTestPassword} from '@mattermost/playwright-lib';
+import {App, expect, newTestPassword} from '@mattermost/playwright-lib';
 
 export async function enableABACConfig(client: Client4) {
     await client.patchConfig({
@@ -30,7 +29,7 @@ export async function enableAPIUserDeletion(client: Client4) {
     });
 }
 
-export async function ensureDepartmentAttribute(client: Client4) {
+export async function ensureDepartmentAttribute(client: Client4): Promise<{id: string; name: string}> {
     let fields: any[] = [];
     try {
         fields = await (client as any).doFetch(`${client.getBaseRoute()}/custom_profile_attributes/fields`, {
@@ -57,6 +56,32 @@ export async function ensureDepartmentAttribute(client: Client4) {
             }
         }
     }
+    const all: Array<{id: string; name: string}> = await (client as any).doFetch(
+        `${client.getBaseRoute()}/custom_profile_attributes/fields`,
+        {method: 'GET'},
+    );
+    const department = all.find((field) => field.name === 'Department');
+    if (!department) {
+        throw new Error('Department custom profile attribute field is missing');
+    }
+    return department;
+}
+
+/** Adds and commits a text attribute rule in either Team Settings policy editor. */
+export async function addRule(
+    rules:
+        App['teamSettingsModal']['membership']['rules'] | App['teamSettingsModal']['accessPolicies']['editor']['rules'],
+    field: {id: string},
+    value: string,
+) {
+    const row = rules.row((await rules.rowList.keys()).length);
+    await rules.addButton.click();
+    await expect(row.attributeMenu.attribute(field)).toBeVisible();
+    await row.attributeMenu.attribute(field).click();
+    await expect(row.valueInputTextbox).toBeVisible();
+    await row.valueInputTextbox.fill(value);
+    await row.valueInputTextbox.press('Tab');
+    await expect(row.valueInputTextbox).toHaveValue(value);
 }
 
 export async function createParentPolicy(client: Client4, name: string) {
@@ -296,24 +321,24 @@ export async function createTeamAdmin(adminClient: Client4, teamId: string) {
  * Handles the auto-opening attribute selector menu.
  */
 export async function addAttributeRule(container: Locator, page: Page, value: string, attributeName = 'Department') {
-    const addAttrBtn = container.getByRole('button', {name: /Add attribute/});
-    await expect(addAttrBtn).toBeEnabled({timeout: 10000});
-    await addAttrBtn.click();
-
-    // The attribute selector menu auto-opens — select by name, not by position.
-    // Clicking the first item is unreliable when multiple attributes exist (e.g. Location
-    // sorts before Department and gets picked instead, causing self-inclusion to fail).
-    const attributeMenu = page.locator('[id^="attribute-selector-menu"]');
-    await attributeMenu.waitFor({state: 'visible', timeout: 5000});
-    await attributeMenu.locator('li').filter({hasText: attributeName}).first().click();
-
-    // Fill value in the simple input (text-type attribute renders direct input)
-    const valueInput = container.locator('.values-editor__simple-input').first();
-    await valueInput.waitFor({state: 'visible', timeout: 10000});
-    await valueInput.fill(value);
-
-    // Blur the input so React commits the onChange before the caller proceeds
-    await valueInput.press('Tab');
+    await expect(container).toBeVisible();
+    const app = new App(page);
+    const channelRules = app.channelSettingsModal.accessRules.rules;
+    const teamRules = app.admin.team.accessRules.rules;
+    await expect(async () => {
+        expect((await channelRules.addButton.isVisible()) || (await teamRules.addButton.isVisible())).toBe(true);
+    }).toPass();
+    const rules = (await channelRules.addButton.isVisible()) ? channelRules : teamRules;
+    const row = rules.row((await rules.rowList.keys()).length);
+    await expect(rules.addButton).toBeEnabled();
+    await rules.addButton.click();
+    await expect(row.attributeMenu).toBeVisible();
+    const attribute = await row.attributeMenu.attributeList.itemWith({text: attributeName});
+    await attribute.click();
+    await expect(row.valueInputTextbox).toBeVisible();
+    await row.valueInputTextbox.fill(value);
+    await row.valueInputTextbox.press('Tab');
+    await expect(row.valueInputTextbox).toHaveValue(value);
 }
 
 export async function enableTeamMembershipABACConfig(client: Client4) {
@@ -390,21 +415,4 @@ export async function createPrivateTeam(client: Client4, suffix: string) {
         type: 'I',
         allow_open_invite: false,
     } as any);
-}
-
-/**
- * Adds a channel to the policy via the channel selector modal.
- */
-export async function addChannelToPolicy(container: Locator, page: Page, channelDisplayName: string) {
-    await container.getByRole('button', {name: /Add channels/}).click();
-    const channelModal = page.locator('.channel-selector-modal');
-    await channelModal.waitFor();
-    await expect(channelModal.locator('.more-modal__row').first()).toBeVisible({timeout: 10000});
-    await channelModal.locator('.more-modal__row').filter({hasText: channelDisplayName}).click();
-    await channelModal.getByRole('button', {name: 'Add'}).click();
-
-    // Wait for the modal to fully close before returning — callers must not proceed
-    // until the channel is committed to form state, otherwise a save click races
-    // against the React state update and the confirmation modal never appears.
-    await channelModal.waitFor({state: 'hidden', timeout: 20000});
 }

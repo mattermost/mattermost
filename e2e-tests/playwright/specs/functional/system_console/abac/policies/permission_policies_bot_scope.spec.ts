@@ -282,8 +282,8 @@ test.describe('Permission Policies - Bot accounts scope', () => {
             test.setTimeout(pw.duration.four_min);
 
             // # Log in as sysadmin and open Permission Policies
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
+            const {app} = await pw.testBrowser.login(adminUser);
+            const page = app.page;
             await enableABAC(page);
             await ensureABACEnabled(adminClient);
             await navigateToPermissionPoliciesPage(page);
@@ -314,47 +314,53 @@ test.describe('Permission Policies - Bot accounts scope', () => {
 
             // * Verify the list shows the policy as Bot accounts, not Members
             await navigateToPermissionPoliciesPage(page);
-            await page.getByPlaceholder('Search').fill(policyName);
-            const row = page.locator('.DataGrid_row').filter({hasText: policyName});
+            const list = app.admin.permissionPolicies;
+            await list.searchTextbox.fill(policyName);
+            await expect(list.searchTextbox).toHaveValue(policyName);
+            const row = list.row({id: policyId});
             await expect(row).toBeVisible({timeout: 15_000});
-            await expect(row.getByText('Bot accounts', {exact: true})).toBeVisible();
-            await expect(row.getByText('Members', {exact: true})).toHaveCount(0);
-            await expect(row.getByText('Upload Files')).toBeVisible();
+            await expect(row.cell('role')).toBeVisible();
+            await expect(row.cell('role')).toHaveText('Bot accounts');
+            await expect(row.cell('role')).not.toContainText('Members');
+            await expect(row.cell('policyActions')).toBeVisible();
+            await expect(row.cell('policyActions')).toHaveText('Upload Files');
 
             // # Reopen the policy
-            await row.locator('.policy-name').click();
+            // DataGrid navigates from the row's click handler; its generated name cell has no separate clickable part.
+            await row.cell('name').click();
             await expect(page).toHaveURL(new RegExp(`/permission_policies/edit_policy/${policyId}`));
-            await page.waitForLoadState('networkidle');
 
             // * Verify the details page shows the Bot accounts scope and the rule in table mode
-            await expect(page.locator('#pp-role-selector-btn')).toContainText('Bot accounts');
-            const table = page.getByTestId('table-editor');
+            const policy = app.admin.permissionPolicy;
+            await expect(policy.roleButton).toContainText('Bot accounts');
+            const table = policy.rules;
             await expect(table).toBeVisible({timeout: 15_000});
-            await expect(table.locator('.table-editor__row')).toHaveCount(1);
-            await expect(page.locator('#attribute-selector-button-0')).toContainText(fieldName);
-            await expect(
-                table.locator('.table-editor__row').first().locator('.values-editor__simple-input'),
-            ).toHaveValue('Secret');
+            await expect(table.rowList).toHaveKeyCount(1);
+            await expect(table.row(0).attributeButton).toContainText(fieldName);
+            await expect(table.row(0).valueInputTextbox).toHaveValue('Secret');
 
             // * Verify simulation is available for a Bot accounts policy
-            await expect(page.getByRole('button', {name: 'Simulate rules'})).toBeEnabled();
+            await expect(table.testButton).toBeEnabled();
 
-            // * Verify Bot accounts is the last role option
-            await page.locator('#pp-role-selector-btn').click();
-            const options = page.locator('[id^="pp-role-option-"]');
-            await expect(options.last()).toHaveAttribute('id', 'pp-role-option-system_bot');
+            // * Verify Bot accounts is the last role option (key order is the rendered menu order)
+            await policy.roleButton.click();
+            await expect(policy.roleMenu.role('system_bot')).toBeVisible();
+            await expect.poll(async () => (await policy.roleMenu.roleList.keys()).at(-1)).toBe('system_bot');
             await page.keyboard.press('Escape');
+            await expect(policy.roleMenu.role('system_bot')).not.toBeVisible();
 
             // # Switch to Advanced Mode
-            await page.getByRole('button', {name: 'Switch to Advanced Mode'}).click();
+            await policy.switchModeButton.click();
+            await expect(policy.cel.input).toBeVisible();
 
             // * Verify the CEL editor shows the stored rule
-            const editorLines = page.locator('.monaco-editor .view-lines').first();
+            // Monaco's rendered line text has no generated part; read the visible rule inside the generated CEL input scope.
+            const editorLines = policy.cel.input.locator.locator('.monaco-editor .view-lines').first();
             await expect(editorLines).toBeVisible({timeout: 10_000});
             await expect(editorLines).toContainText(fieldName);
 
             // # Leave without saving
-            await page.goto('/admin_console/system_attributes/permission_policies');
+            await navigateToPermissionPoliciesPage(page);
         },
     );
 

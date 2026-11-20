@@ -19,6 +19,8 @@ import {ZIndex} from 'utils/constants';
 import ChannelAttributesForm from './channel_attributes_form';
 import type {ChannelAttributeSelection} from './channel_attributes_form';
 
+const T = 'new_channel_modal.attributes';
+
 function field(overrides: Partial<PropertyField> & {id: string; name: string}): PropertyField {
     return {
         group_id: 'group1',
@@ -81,7 +83,7 @@ const colouredProgram = field({
 const optional = (f: PropertyField): PropertyField => ({...f, attrs: {...f.attrs, required: false}});
 
 const getChips = () => Array.from(document.querySelectorAll<HTMLElement>('[data-chip]'));
-const rowOf = (name: string) => screen.getByTestId(`channelAttributeRow-${name}`);
+const rowOf = (name: string) => screen.getByTestId(`${T}.attribute:f_${name}`);
 
 type HarnessProps = {
     fields: PropertyField[];
@@ -95,6 +97,7 @@ function Harness({fields, initial = {}, onChange, disabled}: HarnessProps) {
     const [values, setValues] = useState<ChannelAttributeSelection>(initial);
     return (
         <ChannelAttributesForm
+            testId={T}
             fields={fields}
             values={values}
             disabled={disabled}
@@ -118,6 +121,7 @@ describe('ChannelAttributesForm', () => {
     test('renders nothing when there is no field with a control', () => {
         const {container} = renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[field({id: 'f_when', name: 'when', type: 'date'})]}
                 values={{}}
                 onChange={jest.fn()}
@@ -130,6 +134,7 @@ describe('ChannelAttributesForm', () => {
     test('renders nothing at all when there are no fields', () => {
         const {container} = renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[]}
                 values={{}}
                 onChange={jest.fn()}
@@ -142,6 +147,7 @@ describe('ChannelAttributesForm', () => {
     test('prefers display_name over the machine name', () => {
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[program]}
                 values={{}}
                 onChange={jest.fn()}
@@ -156,6 +162,7 @@ describe('ChannelAttributesForm', () => {
         const onChange = jest.fn();
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[program]}
                 values={{}}
                 onChange={onChange}
@@ -179,6 +186,7 @@ describe('ChannelAttributesForm', () => {
 
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[caveats]}
                 values={{f_caveats: ['opt_a']}}
                 onChange={onChange}
@@ -198,6 +206,7 @@ describe('ChannelAttributesForm', () => {
 
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[note]}
                 values={{f_note: 'x'}}
                 onChange={onChange}
@@ -212,6 +221,7 @@ describe('ChannelAttributesForm', () => {
     test('names a select control with its field label, not the shared placeholder', () => {
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[program]}
                 values={{}}
                 onChange={jest.fn()}
@@ -226,6 +236,7 @@ describe('ChannelAttributesForm', () => {
 
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[note]}
                 values={{}}
                 onChange={jest.fn()}
@@ -238,6 +249,7 @@ describe('ChannelAttributesForm', () => {
     test('puts the id and test id on the input and links the label', async () => {
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[program]}
                 values={{}}
                 onChange={jest.fn()}
@@ -246,7 +258,7 @@ describe('ChannelAttributesForm', () => {
 
         const input = screen.getByRole('combobox', {name: 'Program'});
         expect(input).toHaveAttribute('id', 'channelAttribute-f_program');
-        expect(input).toHaveAttribute('data-testid', 'channelAttribute-program');
+        expect(input).toHaveAttribute('data-testid', `${T}.attribute.value_choice--combobox`);
 
         const label = screen.getByText('Program').closest('label');
         expect(label).not.toBeNull();
@@ -262,6 +274,7 @@ describe('ChannelAttributesForm', () => {
     test('keeps a span label for text fields', () => {
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[field({id: 'f_note', name: 'note', type: 'text'})]}
                 values={{}}
                 onChange={jest.fn()}
@@ -275,6 +288,7 @@ describe('ChannelAttributesForm', () => {
     test('portals the menu above the modal', async () => {
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[program]}
                 values={{}}
                 onChange={jest.fn()}
@@ -294,6 +308,7 @@ describe('ChannelAttributesForm', () => {
         const onChange = jest.fn();
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[level]}
                 values={{}}
                 onChange={onChange}
@@ -308,14 +323,14 @@ describe('ChannelAttributesForm', () => {
             'channelAttribute-f_rank-listbox-option-l1',
         ]);
 
-        const secret = within(screen.getByTestId('channelAttribute-rank-option-l3'));
-        expect(secret.getByTestId('attribute-option-swatch')).toBeInTheDocument();
-        expect(secret.queryByTestId('rank-badge')).not.toBeInTheDocument();
-        expect(within(screen.getByTestId('channelAttribute-rank-option-l2')).getByTestId('rank-badge')).toHaveTextContent('2');
+        const secret = within(screen.getByTestId('new_channel_modal.attributes.attribute.choice:l3--option'));
+        expect(secret.getByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?swatch$/)).toBeInTheDocument();
+        expect(secret.queryByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?badge--text$/)).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('new_channel_modal.attributes.attribute.choice:l2--option')).getByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?badge--text$/)).toHaveTextContent('2');
         for (const id of ['l3', 'l2', 'l1']) {
-            expect(screen.getByTestId(`channelAttribute-rank-option-${id}`)).not.toHaveTextContent(/Rank/);
+            expect(screen.getByTestId(`${T}.attribute.choice:${id}--option`)).not.toHaveTextContent(/Rank/);
         }
-        expect(screen.getByTestId('channelAttribute-rank-option-l3')).toHaveAccessibleName('SECRET, Rank 3');
+        expect(screen.getByTestId('new_channel_modal.attributes.attribute.choice:l3--option')).toHaveAccessibleName('SECRET, Rank 3');
 
         await userEvent.click(screen.getByRole('option', {name: 'SECRET, Rank 3'}));
         expect(onChange).toHaveBeenCalledWith('f_rank', 'l3');
@@ -324,18 +339,19 @@ describe('ChannelAttributesForm', () => {
     test('shows a swatch for a coloured select in rows and the closed field', async () => {
         const {container} = renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[colouredProgram]}
                 values={{f_color: 'opt_a'}}
                 onChange={jest.fn()}
             />,
         );
 
-        expect(within(container).getByTestId('attribute-option-swatch')).toHaveStyle({backgroundColor: 'rgb(30, 50, 92)'});
+        expect(within(container).getByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?swatch$/)).toHaveStyle({backgroundColor: 'rgb(30, 50, 92)'});
 
         await userEvent.click(screen.getByRole('combobox', {name: 'Colour'}));
 
-        expect(within(screen.getByTestId('channelAttribute-color-option-opt_a')).getByTestId('attribute-option-swatch')).toBeInTheDocument();
-        expect(within(screen.getByTestId('channelAttribute-color-option-opt_b')).getByTestId('attribute-option-visual-placeholder')).toBeInTheDocument();
+        expect(within(screen.getByTestId('new_channel_modal.attributes.attribute.choice:opt_a--option')).getByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?swatch$/)).toBeInTheDocument();
+        expect(within(screen.getByTestId('new_channel_modal.attributes.attribute.choice:opt_b--option')).getByTestId('new_channel_modal.attributes.attribute.choice.placeholder')).toBeInTheDocument();
     });
 
     test('shows a swatch for a coloured multiselect in its row and chip', async () => {
@@ -347,6 +363,7 @@ describe('ChannelAttributesForm', () => {
         });
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[tags]}
                 values={{f_tags: ['opt_a', 'opt_b']}}
                 onChange={jest.fn()}
@@ -355,20 +372,21 @@ describe('ChannelAttributesForm', () => {
 
         const chips = within(screen.getByRole('toolbar', {name: 'Tags selections'})).getAllByRole('button');
         expect(chips.map((c) => c.textContent)).toEqual(['NOFORN', 'ORCON']);
-        expect(within(chips[0]).getByTestId('attribute-option-swatch')).toHaveStyle({backgroundColor: 'rgb(30, 50, 92)'});
-        expect(within(chips[1]).queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
+        expect(within(chips[0]).getByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?swatch$/)).toHaveStyle({backgroundColor: 'rgb(30, 50, 92)'});
+        expect(within(chips[1]).queryByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?swatch$/)).not.toBeInTheDocument();
 
         await userEvent.click(screen.getByRole('combobox', {name: 'Tags'}));
 
-        expect(within(screen.getByTestId('channelAttribute-tags-option-opt_a')).getByTestId('attribute-option-swatch')).toBeInTheDocument();
-        expect(within(screen.getByTestId('channelAttribute-tags-option-opt_b')).queryByTestId('attribute-option-swatch')).not.toBeInTheDocument();
-        expect(screen.queryByTestId('attribute-option-visual-placeholder')).not.toBeInTheDocument();
+        expect(within(screen.getByTestId('new_channel_modal.attributes.attribute.choice:opt_a--option')).getByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?swatch$/)).toBeInTheDocument();
+        expect(within(screen.getByTestId('new_channel_modal.attributes.attribute.choice:opt_b--option')).queryByTestId(/^new_channel_modal\.attributes\.attribute\.(choice\.)?swatch$/)).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute.choice.placeholder')).not.toBeInTheDocument();
     });
 
     test('marks required comboboxes aria-required and leaves optional ones unmarked', () => {
         const requiredFields = [requiredProgram, caveats, requiredLevel];
         const {unmount} = renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={requiredFields}
                 values={{}}
                 onChange={jest.fn()}
@@ -382,6 +400,7 @@ describe('ChannelAttributesForm', () => {
 
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={requiredFields.map(optional)}
                 values={{}}
                 onChange={jest.fn()}
@@ -438,6 +457,7 @@ describe('ChannelAttributesForm', () => {
     test('hides the required marker from assistive technology', () => {
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[requiredProgram, field({id: 'f_note', name: 'note', type: 'text', attrs: {required: true}})]}
                 values={{}}
                 onChange={jest.fn()}
@@ -481,7 +501,7 @@ describe('ChannelAttributesForm', () => {
         await user.click(combobox);
         await user.tab();
 
-        expect(screen.getByTestId('channelAttribute-program-clear')).toHaveFocus();
+        expect(screen.getByTestId('new_channel_modal.attributes.attribute.clear--button')).toHaveFocus();
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
         await user.keyboard('{Enter}');
@@ -503,7 +523,7 @@ describe('ChannelAttributesForm', () => {
 
         expect(screen.queryByRole('alert')).not.toBeInTheDocument();
 
-        await userEvent.click(screen.getByTestId('channelAttribute-program-clear'));
+        await userEvent.click(screen.getByTestId('new_channel_modal.attributes.attribute.clear--button'));
 
         expect(onChange).toHaveBeenCalledWith('f_program', undefined);
         expect(within(rowOf('program')).getByRole('alert')).toBeInTheDocument();
@@ -547,6 +567,7 @@ describe('ChannelAttributesForm', () => {
     test('disables the combobox with the form', () => {
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[program]}
                 values={{f_program: 'opt_a'}}
                 onChange={jest.fn()}
@@ -555,7 +576,7 @@ describe('ChannelAttributesForm', () => {
         );
 
         expect(screen.getByRole('combobox', {name: 'Program'})).toBeDisabled();
-        expect(screen.queryByTestId('channelAttribute-program-clear')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('new_channel_modal.attributes.attribute.clear--button')).not.toBeInTheDocument();
     });
 
     describe('Enter on a chip', () => {
@@ -619,6 +640,7 @@ describe('ChannelAttributesForm', () => {
     test('renders a select with no options without crashing', async () => {
         renderWithContext(
             <ChannelAttributesForm
+                testId={T}
                 fields={[field({id: 'f_empty', name: 'empty', attrs: {display_name: 'Empty'}})]}
                 values={{}}
                 onChange={jest.fn()}
@@ -653,15 +675,17 @@ describe('ChannelAttributesForm', () => {
             const onChange = jest.fn();
             renderWithContext(
                 <ChannelAttributesForm
+                    testId={T}
                     fields={[graphProgram]}
                     values={{}}
                     onChange={onChange}
                 />,
             );
 
-            expect(screen.getByTestId('channelAttributeRow-graph_program')).toBeInTheDocument();
+            const row = screen.getByTestId(`${T}.attribute:f_graph_program`);
+            expect(row).toBeInTheDocument();
 
-            await userEvent.click(screen.getByTestId('channelAttribute-graph_program'));
+            await userEvent.click(within(row).getByTestId(`${T}.attribute.value--button`));
             await userEvent.click(await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'}));
 
             expect(onChange).toHaveBeenCalledWith('f_graph_program', ['opt_program']);
@@ -670,13 +694,14 @@ describe('ChannelAttributesForm', () => {
         test('keeps a span label, not a label element', () => {
             renderWithContext(
                 <ChannelAttributesForm
+                    testId={T}
                     fields={[graphProgram]}
                     values={{}}
                     onChange={jest.fn()}
                 />,
             );
 
-            const row = screen.getByTestId('channelAttributeRow-graph_program');
+            const row = screen.getByTestId(`${T}.attribute:f_graph_program`);
             expect(row.querySelector('label')).toBeNull();
             expect(row.querySelector('.channel-attributes-form__label')?.tagName).toBe('SPAN');
         });
@@ -685,13 +710,14 @@ describe('ChannelAttributesForm', () => {
             const onChange = jest.fn();
             renderWithContext(
                 <ChannelAttributesForm
+                    testId={T}
                     fields={[graphProgram]}
                     values={{f_graph_program: ['opt_program']}}
                     onChange={onChange}
                 />,
             );
 
-            await userEvent.click(screen.getByTestId('channelAttribute-graph_program'));
+            await userEvent.click(within(screen.getByTestId(`${T}.attribute:f_graph_program`)).getByTestId(`${T}.attribute.value--button`));
             const option = await screen.findByRole('menuitemcheckbox', {name: 'VALUE_PROGRAM'});
             expect(option).toHaveAttribute('aria-checked', 'true');
 

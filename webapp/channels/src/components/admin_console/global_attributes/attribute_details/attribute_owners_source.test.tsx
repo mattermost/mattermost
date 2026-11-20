@@ -39,8 +39,8 @@ describe('AttributeOwnersSource', () => {
     it('names an installed plugin owner and links to its settings', () => {
         renderComponent([plugin]);
 
-        expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent('Managed by SCIM');
-        const link = screen.getByTestId(`attributeOwnersSourceLink-${plugin.id}`);
+        expect(screen.getByTestId('admin.attribute.owners_source.managed_by--text')).toHaveTextContent('Managed by SCIM');
+        const link = screen.getByTestId(`admin.attribute.owners_source.settings:${plugin.id}--link`);
         expect(link).toHaveAttribute('href', `/admin_console/plugins/plugin_${plugin.id}`);
         expect(link).toHaveTextContent('SCIM settings');
     });
@@ -48,41 +48,41 @@ describe('AttributeOwnersSource', () => {
     it('falls back to the plugin ID with no link when the plugin is not installed', () => {
         renderComponent([plugin], {installed: false});
 
-        expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent(`Managed by ${plugin.id}`);
-        expect(screen.queryByTestId(`attributeOwnersSourceLink-${plugin.id}`)).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.attribute.owners_source.managed_by--text')).toHaveTextContent(`Managed by ${plugin.id}`);
+        expect(screen.queryByTestId(`admin.attribute.owners_source.settings:${plugin.id}--link`)).not.toBeInTheDocument();
     });
 
     it('shows no link until the plugin inventory has loaded', () => {
         renderComponent([plugin], {pluginInventoryLoaded: false});
 
-        expect(screen.queryByTestId(`attributeOwnersSourceLink-${plugin.id}`)).not.toBeInTheDocument();
+        expect(screen.queryByTestId(`admin.attribute.owners_source.settings:${plugin.id}--link`)).not.toBeInTheDocument();
     });
 
     it('names a service owner by its ID with no link', () => {
         renderComponent([service]);
 
-        expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent('Managed by svc-sync');
+        expect(screen.getByTestId('admin.attribute.owners_source.managed_by--text')).toHaveTextContent('Managed by svc-sync');
         expect(screen.queryByRole('link')).not.toBeInTheDocument();
     });
 
     it('names every owner in order and links only the installed plugin', () => {
         renderComponent([plugin, service]);
 
-        expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent('Managed by SCIM and svc-sync');
+        expect(screen.getByTestId('admin.attribute.owners_source.managed_by--text')).toHaveTextContent('Managed by SCIM and svc-sync');
         expect(screen.getAllByRole('link')).toHaveLength(1);
     });
 
     it('shows owner scopes on the Managed by line but not in the helper text', () => {
         renderComponent([{...plugin, scopes: ['local']}]);
 
-        expect(screen.getByTestId('attributeOwnersSourceManagedBy')).toHaveTextContent('Managed by SCIM: local');
-        expect(screen.getByTestId('attributeOwnersSourceHelperText')).toHaveTextContent('Values for users are set by SCIM.');
+        expect(screen.getByTestId('admin.attribute.owners_source.managed_by--text')).toHaveTextContent('Managed by SCIM: local');
+        expect(screen.getByTestId('admin.attribute.owners_source.help--text')).toHaveTextContent('Values for users are set by SCIM.');
     });
 
     it('names the owners in helper text that differs from the plugin-created text', () => {
         renderComponent([plugin]);
 
-        const helperText = screen.getByTestId('attributeOwnersSourceHelperText');
+        const helperText = screen.getByTestId('admin.attribute.owners_source.help--text');
         expect(helperText).toHaveTextContent('Values for users are set by SCIM.');
         expect(helperText).not.toHaveTextContent('read-only');
     });

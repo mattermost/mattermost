@@ -14,8 +14,9 @@ export interface Props {
     /** The testid of a title that is a separator (`role="separator"`): it renders `<separatorTestId>--separator`. */
     separatorTestId?: string;
 
-    /** The testid of any other title. */
+    /** The scope of any other title: it renders `<testId>--text`, or `<testId>:<testKey>--text` with a `testKey`. */
     testId?: string;
+    testKey?: string;
 }
 
 export function MenuTitle(props: Props) {
@@ -24,11 +25,14 @@ export function MenuTitle(props: Props) {
         role,
         separatorTestId,
         testId,
+        testKey,
     } = props;
 
-    let titleTestId = testId;
+    let titleTestId;
     if (separatorTestId) {
         titleTestId = `${separatorTestId}--separator`;
+    } else if (testId) {
+        titleTestId = `${testId}${testKey ? `:${testKey}` : ''}--text`;
     }
 
     return (

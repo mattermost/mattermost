@@ -3,7 +3,7 @@
 
 import type {PropertyField} from '@mattermost/types/properties';
 
-import {expect, test, Msg} from '@mattermost/playwright-lib';
+import {Api, settle, expect, test, DefaultChannel} from '@mattermost/playwright-lib';
 
 import {
     DISPLAY_BANNER_TOP,
@@ -17,6 +17,17 @@ import {
     purgeAttributes,
     setChannelValue,
 } from './helpers';
+import {
+    labelChip,
+    labelChips,
+    openAttributeControl,
+    openChannel,
+    openChannelInfo,
+    openNewChannelModal,
+    pickListOption,
+    row,
+    select,
+} from './surface';
 
 test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () => {
     test.describe.configure({mode: 'serial'});
@@ -47,29 +58,26 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             });
             created.push(required, optional);
 
-            const {page, channelsPage, app} = await pw.testBrowser.login(user);
-            await app.teamPage.goto({team});
-            await expect(app.center.composer.locator).toBeVisible();
-
-            const modal = await channelsPage.openNewChannelModal();
+            const app = await openChannel(pw, user, team, {name: DefaultChannel.TownSquare});
+            const modal = await openNewChannelModal(app);
 
             // Required is asked for; optional is not.
-            await expect(page.getByTestId(`channelAttributeRow-${required.name}`)).toBeVisible();
-            await expect(page.getByTestId(`channelAttributeRow-${optional.name}`)).toHaveCount(0);
+            await expect(modal.attributes.attribute(required)).toBeVisible();
+            await expect(modal.attributes.attribute(optional)).toHaveCount(0);
 
             const displayName = `Attr Required ${suffix}`;
-            await modal.fillDisplayName(displayName);
+            await modal.name.container.fill(displayName);
 
             // The dialog blocks submission so the user finds out here; the server
             // refuses the same create independently.
-            await expect(modal.createButton).toBeDisabled();
+            await expect(modal.confirmButton).toBeDisabled();
 
-            await page.getByTestId(`channelAttribute-${required.name}`).click();
-            await page.getByText('ALPHA', {exact: true}).click();
+            await openAttributeControl(modal, required);
+            await pickListOption(app, 'ALPHA');
 
-            await expect(modal.createButton).toBeEnabled();
-            await modal.create();
-            await expect(modal.container).not.toBeVisible();
+            await expect(modal.confirmButton).toBeEnabled();
+            await settle(modal.confirmButton, {wait: Api.CreateChannel}).click();
+            await expect(modal).not.toBeVisible();
 
             const channel = await adminClient.getChannelByName(team.id, displayName.toLowerCase().replace(/\s+/g, '-'));
             const values = await adminClient.getPropertyValues('access_control', 'channel', channel.id);
@@ -108,23 +116,23 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await adminClient.addToChannel(user.id, channel.id);
             await setChannelValue(adminClient, channel.id, program, optionId(program, 'BEFORE'));
 
-            const {page, app} = await pw.testBrowser.login(user);
-            await app.channelsPage.goto({team, channel: channel.name});
+            const app = await openChannel(pw, user, team, channel);
 
-            const chips = page.getByTestId('attributeChip');
-            await expect(chips.filter({hasText: 'BEFORE'}).first()).toBeVisible();
+            // the header shows one chip per field, keyed by the field's id
+            const chip = await labelChip(app.channelHeader.attributes, 'BEFORE');
+            await expect(chip).toHaveText('BEFORE');
 
             // Changed elsewhere, this session untouched.
             await setChannelValue(adminClient, channel.id, program, optionId(program, 'AFTER'));
 
-            await expect(chips.filter({hasText: 'AFTER'}).first()).toBeVisible();
-            await expect(chips.filter({hasText: 'BEFORE'})).toHaveCount(0);
+            await expect(chip).toHaveText('AFTER');
+            await expect(labelChips(app.channelHeader.attributes, 'BEFORE')).toHaveCount(0);
 
             // The shape most easily got wrong: a clear returns a null-valued row,
             // not a delete event.
             await setChannelValue(adminClient, channel.id, program, null);
 
-            await expect(page.getByTestId('attributeChip')).toHaveCount(0);
+            await expect(app.channelHeader.attributes.chipList).toHaveKeyCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -167,22 +175,21 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             });
             created.push(required);
 
-            const {page, app} = await pw.testBrowser.login(user);
-            await app.channelsPage.goto({team, channel: channel.name});
-            await page.locator('#channel-info-btn').click();
+            const app = await openChannel(pw, user, team, channel);
+            const attributes = await openChannelInfo(app);
 
             // The empty row is both the signal and the retry path.
-            const row = page.getByTestId(`channelInfoAttributeRow-${required.name}`);
-            await expect(row).toBeVisible();
-            await expect(row).toContainMessage(Msg.channel_attributes.info.not_set);
+            const unset = row(attributes, required).locator;
+            await expect(unset).toBeVisible();
+            await expect(row(attributes, required).unsetText).toBeVisible();
 
             // No chip while unset.
-            await expect(page.getByTestId('attributeChip')).toHaveCount(0);
+            await expect(app.channelHeader.attributes.chipList).toHaveKeyCount(0);
 
-            await page.getByTestId(`channelInfoAttributeEdit-${required.name}`).click();
-            await page.getByRole('menuitem', {name: 'RECOVERED', exact: true}).click();
+            await select(app, attributes, required, 'RECOVERED');
 
-            await expect(row).toContainText('RECOVERED');
+            await expect(unset).toContainText('RECOVERED');
+            await expect(row(attributes, required).unsetText).toHaveCount(0);
 
             await expect
                 .poll(async () => {
@@ -232,11 +239,10 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'RESTRICTED'));
             await setChannelValue(adminClient, channel.id, program, optionId(program, 'AURORA'));
 
-            const {page, app} = await pw.testBrowser.login(user);
-            await app.channelsPage.goto({team, channel: channel.name});
+            const app = await openChannel(pw, user, team, channel);
 
             // No manual text: falls back to the value name.
-            await expect(page.getByTestId('center.channel_banner.text--text')).toContainText('RESTRICTED');
+            await expect(app.center.channelBanner.textText).toContainText('RESTRICTED');
 
             // A two-attribute template resolves against this channel.
             await adminClient.patchChannel(channel.id, {
@@ -247,14 +253,14 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
                 },
             } as never);
 
-            await expect(page.getByTestId('center.channel_banner.text--text')).toContainText('RESTRICTED · AURORA');
+            await expect(app.center.channelBanner.textText).toContainText('RESTRICTED · AURORA');
 
             // A literal passes through untouched.
             await adminClient.patchChannel(channel.id, {
                 banner_info: {enabled: true, text: 'Handle with care', background_color: '#c8102e'},
             } as never);
 
-            await expect(page.getByTestId('center.channel_banner.text--text')).toContainText('Handle with care');
+            await expect(app.center.channelBanner.textText).toContainText('Handle with care');
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -288,13 +294,17 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             // Not blocked at the API level, but no DM surface displays them.
             await setChannelValue(adminClient, dm.id, marking, optionId(marking, 'PRIVATE'));
 
-            const {page, app} = await pw.testBrowser.login(user);
-            await app.teamPage.goto({team});
-            await expect(app.center.composer.locator).toBeVisible();
-            await page.goto(`/${team.name}/messages/@${other.username}`);
+            const app = await openChannel(pw, user, team, {name: `@${other.username}`});
 
-            await expect(page.getByTestId('channelAttributeLabels-info-header')).toHaveCount(0);
-            await expect(page.getByText('PRIVATE')).toHaveCount(0);
+            await expect(app.channelHeader.infoButton).toBeVisible();
+            await expect(app.channelHeader.attributes).toHaveCount(0);
+
+            // No DM surface may show this value, including outside the absent attribute container.
+            await expect(app.page.getByText('PRIVATE')).toHaveCount(0);
+
+            // Nor in Channel Info, which lists every value a channel holds anywhere else.
+            await openChannelInfo(app);
+            await expect(app.rhs.channelInfo.about.attributes).toHaveCount(0);
         } finally {
             await deleteAttributes(adminClient, created);
         }
@@ -330,10 +340,9 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
             await adminClient.addToChannel(user.id, channel.id);
             await setChannelValue(adminClient, channel.id, marking, optionId(marking, 'DARKBG'));
 
-            const {page, app} = await pw.testBrowser.login(user);
-            await app.channelsPage.goto({team, channel: channel.name});
+            const app = await openChannel(pw, user, team, channel);
 
-            const chip = page.getByTestId('attributeChip').filter({hasText: 'DARKBG'}).first();
+            const chip = await labelChip(app.channelHeader.attributes, 'DARKBG');
             await expect(chip).toBeVisible();
             await expect(chip).toHaveCSS('background-color', 'rgb(30, 50, 92)');
 

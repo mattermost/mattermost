@@ -10,13 +10,15 @@ import './session_attributes.scss';
 
 type Props = {
     enabled: boolean;
+
+    testId?: string;
 };
 
-export default function StatusChip({enabled}: Props) {
+export default function StatusChip({enabled, testId}: Props) {
     return (
         <span
             className='SessionAttributes__status-chip'
-            data-testid='session-attribute-status'
+            data-testid={testId ? `${testId}--text` : undefined}
             data-enabled={enabled}
         >
             {enabled ? (

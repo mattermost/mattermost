@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, enableABAC, navigateToABACPage} from '@mattermost/playwright-lib';
+import {expect, test, duration} from '@mattermost/playwright-lib';
 
 import {enableUserManagedAttributes} from '../support';
 
@@ -12,9 +12,8 @@ import {
     deletePolicy,
     disableMaskingFlag,
     enableMaskingFlag,
-    getPolicyIdFromURL,
     getRawPolicyExpression,
-    openExistingPolicy,
+    openMaskedPolicy,
     resubmitPolicyExpression,
     searchPoliciesExpression,
     setUserAttribute,
@@ -29,7 +28,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
     });
 
     test('MM-68508-12: GET /policies/{id} does not leak raw CEL when values are masked', async ({pw}) => {
-        test.setTimeout(60000);
+        test.setTimeout(duration.one_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
@@ -45,27 +44,21 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app} = await pw.testBrowser.login(adminUser);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
             const policyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 policyName,
                 `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
             );
             policyIds.push(policyId);
             await setFieldAsSharedOnly(fieldId);
 
-            await openExistingPolicy(page, policyName);
-            const storedPolicyId = await getPolicyIdFromURL(page);
-            expect(storedPolicyId).toBeTruthy();
-
             // GET policy as the logged-in user (holds "Alpha" only). Hidden values
             // must be replaced with the masked-token sentinel.
-            const expression = await getRawPolicyExpression(page, storedPolicyId);
+            const expression = await getRawPolicyExpression(app.page, policyId);
             expect(expression).toContain('Alpha');
             expect(expression).toContain('--------');
             expect(expression).not.toContain('Bravo');
@@ -73,7 +66,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
             // Direct DB read bypasses the API masking pipeline — stored expression
             // must still contain the originals.
-            const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
+            const rawExpression = (await getStoredPolicyRuleExpressions(policyId))[0] ?? '';
             expect(rawExpression).toContain('Alpha');
             expect(rawExpression).toContain('Bravo');
             expect(rawExpression).toContain('Charlie');
@@ -95,7 +88,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
     });
 
     test('MM-68508-13: POST /policies/search does not leak raw CEL when values are masked', async ({pw}) => {
-        test.setTimeout(60000);
+        test.setTimeout(duration.one_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
@@ -111,14 +104,12 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app} = await pw.testBrowser.login(adminUser);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
             const policyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 policyName,
                 `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
             );
@@ -127,7 +118,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
             // Search as the logged-in (masked) user — the response must contain the
             // masked-token sentinel for any hidden values, never the raw originals.
-            const maskedExpression = await searchPoliciesExpression(page, policyName);
+            const maskedExpression = await searchPoliciesExpression(app.page, policyName);
             expect(maskedExpression).toContain('--------');
             expect(maskedExpression).not.toContain('Bravo');
             expect(maskedExpression).not.toContain('Charlie');
@@ -154,7 +145,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
     });
 
     test('MM-68508-14: Warning banner visible in editor when policy has masked values', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
@@ -170,15 +161,13 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app} = await pw.testBrowser.login(adminUser);
 
             // Policy with masked values (admin holds Alpha; Bravo/Charlie are masked)
             const maskedPolicyName = `MaskingPolicy ${pw.random.id()}`;
             const maskedPolicyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 maskedPolicyName,
                 `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
             );
@@ -187,7 +176,8 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             // Policy with NO masked values (admin holds the only value in the condition)
             const cleanPolicyName = `CleanPolicy ${pw.random.id()}`;
             const cleanPolicyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 cleanPolicyName,
                 `user.attributes.${fieldName} in ["Alpha"]`,
             );
@@ -196,13 +186,14 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             // shared_only must flip AFTER both policy saves
             await setFieldAsSharedOnly(fieldId);
 
-            // Open masked policy — warning banner must be present
-            await openExistingPolicy(page, maskedPolicyName);
-            await expect(page.locator('text="This policy contains restricted values"')).toBeVisible({timeout: 5000});
+            // * The masked policy shows the warning banner
+            const masked = await openMaskedPolicy(app, maskedPolicyId);
+            await expect(masked.policy.maskedValuesWarning).toBeVisible();
 
-            // Open clean policy — warning banner must NOT be present
-            await openExistingPolicy(page, cleanPolicyName);
-            await expect(page.locator('text="This policy contains restricted values"')).not.toBeVisible();
+            // * The clean policy doesn't
+            const clean = await openMaskedPolicy(app, cleanPolicyId);
+            await expect(await clean.row.value.chipList.itemWith({text: 'Alpha'})).toContainText('Alpha');
+            await expect(clean.policy.maskedValuesWarning).toHaveCount(0);
         } finally {
             for (const id of policyIds) {
                 try {
@@ -223,7 +214,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
     test('MM-68508-15: Delete button is disabled on masked policies; clean policies open the standard confirmation modal', async ({
         pw,
     }) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
@@ -239,15 +230,13 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app} = await pw.testBrowser.login(adminUser);
 
             // Policy WITH masked values
             const maskedPolicyName = `MaskingPolicy ${pw.random.id()}`;
             const maskedPolicyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 maskedPolicyName,
                 `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
             );
@@ -256,7 +245,8 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             // Policy WITHOUT masked values
             const cleanPolicyName = `CleanPolicy ${pw.random.id()}`;
             const cleanPolicyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 cleanPolicyName,
                 `user.attributes.${fieldName} in ["Alpha"]`,
             );
@@ -264,28 +254,20 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
             await setFieldAsSharedOnly(fieldId);
 
-            // --- Masked policy: Delete button must be disabled (no modal flow) ---
-            await openExistingPolicy(page, maskedPolicyName);
+            // * Masked policy: Delete is disabled (no modal flow)
+            const masked = await openMaskedPolicy(app, maskedPolicyId);
+            await expect(masked.policy.deleteButton).toBeDisabled();
 
-            const deleteBtn = page.getByRole('button', {name: /delete policy|delete/i}).last();
-            await deleteBtn.scrollIntoViewIfNeeded();
-            await expect(deleteBtn).toBeDisabled();
-
-            // --- Clean policy: Delete button must be enabled and open a normal
-            // confirmation modal without the "restricted values" warning ---
-            await openExistingPolicy(page, cleanPolicyName);
-
-            const cleanDeleteBtn = page.getByRole('button', {name: /delete policy|delete/i}).last();
-            await cleanDeleteBtn.scrollIntoViewIfNeeded();
-            await expect(cleanDeleteBtn).toBeEnabled();
-            await cleanDeleteBtn.click();
-            await page.waitForTimeout(500);
-
-            const cleanModal = page.locator('[role="dialog"]').filter({hasText: /confirm|delete/i});
-            await cleanModal.waitFor({state: 'visible', timeout: 5000});
-            await expect(cleanModal.locator('text=/restricted values/i')).not.toBeVisible();
-
-            await cleanModal.getByRole('button', {name: /cancel/i}).click();
+            // * Clean policy: Delete is enabled and opens the standard confirmation, without the
+            // "restricted values" warning
+            const clean = await openMaskedPolicy(app, cleanPolicyId);
+            await expect(clean.policy.deleteButton).toBeEnabled();
+            await clean.policy.deleteButton.click();
+            const {deleteModal} = clean.policy;
+            await expect(deleteModal).toBeVisible();
+            await expect(deleteModal).not.toContainText(/restricted values/i);
+            await deleteModal.cancelButton.click();
+            await expect(deleteModal).not.toBeVisible();
         } finally {
             for (const id of policyIds) {
                 try {
@@ -307,7 +289,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
         // Validates that the read-only-when-masked invariant covers deletion:
         // - Delete Policy button in the UI is disabled when hasMaskedRows is true
         // - Server returns HTTP 403 for direct DELETE requests when caller has masked values
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
@@ -323,33 +305,29 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app} = await pw.testBrowser.login(adminUser);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
             const policyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 policyName,
                 `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
             );
             policyIds.push(policyId);
             await setFieldAsSharedOnly(fieldId);
 
-            await openExistingPolicy(page, policyName);
+            const {policy, row} = await openMaskedPolicy(app, policyId);
+            await expect(row.maskedImg).toBeVisible();
 
-            await expect(page.locator('.select__multi-value--masked')).toBeVisible();
-
-            // UI: Delete Policy button must be disabled when masked values present
-            const deleteBtn = page.getByRole('button', {name: /^delete$/i}).last();
-            await expect(deleteBtn).toBeVisible({timeout: 5000});
-            await expect(deleteBtn).toBeDisabled();
+            // * UI: Delete is disabled while masked values are present
+            await expect(policy.deleteButton).toBeVisible();
+            await expect(policy.deleteButton).toBeDisabled();
 
             expect(policyId).toMatch(/^[A-Za-z0-9]{26}$/);
 
             // Server: direct DELETE must return HTTP 403
-            const status = await page.evaluate(async (id: string) => {
+            const status = await app.page.evaluate(async (id: string) => {
                 const resp = await fetch(`/api/v4/access_control_policies/${id}`, {
                     method: 'DELETE',
                     headers: {'X-Requested-With': 'XMLHttpRequest'},
@@ -385,7 +363,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
         // Validates merge-on-save for a multi-condition policy. The caller (holds Alpha
         // in programField, nothing in clearanceField) can save — both conditions survive
         // with their hidden values intact. The server blocks deletion of masked conditions.
-        test.setTimeout(150000);
+        test.setTimeout(duration.four_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
@@ -404,14 +382,12 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
 
             await setUserAttribute(adminClient, adminUser.id, programFieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app} = await pw.testBrowser.login(adminUser);
 
             const policyName = `MaskingRegressionPolicy ${pw.random.id()}`;
             const policyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 policyName,
                 `user.attributes.${programFieldName} in ["Alpha", "Bravo", "Charlie"] && user.attributes.${clearanceFieldName} in ["Secret", "TopSecret"]`,
             );
@@ -421,32 +397,24 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             await setFieldAsSharedOnly(programFieldId);
             await setFieldAsSharedOnly(clearanceFieldId);
 
-            await openExistingPolicy(page, policyName);
-            const storedPolicyId = await getPolicyIdFromURL(page);
+            const {policy, row} = await openMaskedPolicy(app, policyId);
 
-            // Both rows are masked — banner visible
-            await expect(page.locator('.select__multi-value--masked').first()).toBeVisible();
-            await expect(page.locator('text="This policy contains restricted values"')).toBeVisible();
+            // * Both rows are masked, with the banner
+            await expect(row.maskedImg).toBeVisible();
+            await expect(policy.rules.row(1).maskedImg).toBeVisible();
+            await expect(policy.maskedValuesWarning).toBeVisible();
 
-            const saveBtn = page.getByRole('button', {name: 'Save'});
+            // * The remove buttons on both masked rows are disabled
+            await expect(row.removeButton).toBeDisabled();
+            await expect(policy.rules.row(1).removeButton).toBeDisabled();
 
-            // Trash buttons on both masked rows must be DISABLED
-            const trashButtons = page.locator('button[aria-label="Remove row"]');
-            const firstTrash = trashButtons.first();
-            if (await firstTrash.isVisible({timeout: 3000})) {
-                await expect(firstTrash).toBeDisabled();
-            }
-
-            // Dirty the form via the policy name so Save enables
-            const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
-            await nameInput.fill(policyName + ' (edited)');
-            await page.waitForTimeout(300);
-
-            await saveBtn.click();
-            await page.waitForLoadState('networkidle');
+            // # Dirty the form via the policy name so Save enables, and save
+            await policy.editPolicy.name.valueTextbox.fill(policyName + ' (edited)');
+            await app.admin.saveButton.click();
+            await expect(app.page).toHaveURL(/\/membership_policies$/);
 
             // Verify the stored policy directly — all hidden values must survive merge-on-save
-            const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
+            const rawExpression = (await getStoredPolicyRuleExpressions(policyId))[0] ?? '';
 
             expect(rawExpression).toContain(programFieldId);
             expect(rawExpression).toContain('Bravo');
@@ -456,7 +424,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             expect(rawExpression).toContain('TopSecret');
 
             // Server blocks a direct API attempt to remove a masked condition
-            const status = await page.evaluate(
+            const status = await app.page.evaluate(
                 async ({policyId: id, fn}: {policyId: string; fn: string}) => {
                     const resp = await fetch('/api/v4/access_control_policies', {
                         method: 'PUT',
@@ -492,7 +460,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
     });
 
     test('MM-68508-19: Mode toggle Simple → Advanced → Simple preserves all masked-row restrictions', async ({pw}) => {
-        test.setTimeout(120000);
+        test.setTimeout(duration.two_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
@@ -508,54 +476,40 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app} = await pw.testBrowser.login(adminUser);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
             const policyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 policyName,
                 `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
             );
             policyIds.push(policyId);
             await setFieldAsSharedOnly(fieldId);
 
-            await openExistingPolicy(page, policyName);
+            const {policy, row} = await openMaskedPolicy(app, policyId);
 
-            // --- Initial Simple mode: restrictions in place ---
-            const maskedChip = page.locator('.select__multi-value--masked');
-            const banner = page.locator('text="This policy contains restricted values"');
-            const deleteBtn = page.getByRole('button', {name: /^delete$/i}).last();
+            // * Simple mode: the restrictions are in place
+            await expect(row.maskedImg).toBeVisible();
+            await expect(policy.maskedValuesWarning).toBeVisible();
+            await expect(policy.deleteButton).toBeDisabled();
 
-            await expect(maskedChip.first()).toBeVisible();
-            await expect(banner).toBeVisible();
-            await expect(deleteBtn).toBeDisabled();
+            // # Switch to Advanced mode
+            await policy.switchModeButton.click();
 
-            // --- Switch to Advanced mode ---
-            const toAdvanced = page.getByRole('button', {name: /switch to advanced mode/i});
-            await toAdvanced.click();
-            await page.waitForTimeout(500);
+            // * The banner persists across the toggle
+            await expect(policy.cel.input).toBeVisible();
+            await expect(policy.maskedValuesWarning).toBeVisible();
 
-            // Banner must persist across the toggle
-            await expect(banner).toBeVisible();
-            await expect(page.locator('.monaco-editor').first()).toBeVisible();
+            // # Switch back to Simple mode
+            await policy.switchModeButton.click();
 
-            // --- Switch back to Simple mode ---
-            const toSimple = page.getByRole('button', {name: /switch to simple mode/i});
-            await toSimple.click();
-            await page.waitForTimeout(1500);
-
-            // All restrictions must STILL be in place after toggling back
-            await expect(banner).toBeVisible();
-            await expect(maskedChip.first()).toBeVisible();
-            await expect(deleteBtn).toBeDisabled();
-
-            const valueSelector = page.locator('[data-testid="valueSelectorMenuButton"]').first();
-            if (await valueSelector.isVisible({timeout: 2000})) {
-                await expect(valueSelector).toBeDisabled();
-            }
+            // * All restrictions are still in place
+            await expect(policy.maskedValuesWarning).toBeVisible();
+            await expect(row.maskedImg).toBeVisible();
+            await expect(policy.deleteButton).toBeDisabled();
+            await expect(row.value.container).toBeDisabled();
         } finally {
             for (const id of policyIds) {
                 try {
@@ -584,7 +538,7 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
         // of defence — rejectMaskedTokens' former "== false" check was only a
         // redundant (and overbroad) extra layer on top of it. This is the
         // end-to-end proof of that protection.
-        test.setTimeout(60000);
+        test.setTimeout(duration.one_min);
         await pw.skipIfNoLicense();
 
         const {adminUser, adminClient} = await pw.initSetup();
@@ -600,14 +554,12 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             fieldIds.push(fieldId);
             await setUserAttribute(adminClient, adminUser.id, fieldId, 'Alpha');
 
-            const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-            const page = systemConsolePage.page;
-            await navigateToABACPage(page);
-            await enableABAC(page);
+            const {app} = await pw.testBrowser.login(adminUser);
 
             const policyName = `MaskingPolicy ${pw.random.id()}`;
             const policyId = await createPolicyWithCEL(
-                page,
+                app,
+                adminClient,
                 policyName,
                 `user.attributes.${fieldName} in ["Alpha", "Bravo", "Charlie"]`,
             );
@@ -618,14 +570,14 @@ test.describe('Attribute-Value Masking - API Redaction and Delete', {tag: ['@aba
             await setFieldAsSharedOnly(fieldId);
 
             // Sanity: the caller's GET view is masked.
-            const masked = await getRawPolicyExpression(page, policyId);
+            const masked = await getRawPolicyExpression(app.page, policyId);
             expect(masked).toContain('Alpha');
             expect(masked).toContain('--------');
             expect(masked).not.toContain('Bravo');
             expect(masked).not.toContain('Charlie');
 
             // Attempt to overwrite the masked rule with the bare deny-all sentinel.
-            const {status, body} = await resubmitPolicyExpression(page, policyId, 'false');
+            const {status, body} = await resubmitPolicyExpression(app.page, policyId, 'false');
             expect(status, `PUT re-submitting "false" returned ${status}`).toBe(403);
             expect(body?.id).toBe('app.pap.save_policy.masked_condition_deleted');
 

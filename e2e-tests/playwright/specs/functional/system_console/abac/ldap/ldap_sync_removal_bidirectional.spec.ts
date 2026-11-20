@@ -4,27 +4,26 @@
 import {
     expect,
     test,
-    navigateToABACPage,
-    runSyncJob,
     verifyUserInChannel,
     updateUserAttributes,
     createUserWithAttributes,
+    duration,
 } from '@mattermost/playwright-lib';
 
 import {
     ensureUserAttributes,
     createPrivateChannelForABAC,
-    createBasicPolicy,
     activatePolicy,
-    waitForLatestSyncJob,
     getPolicyIdByName,
+    getUserAttributeFieldByName,
 } from '../support';
+import {createMembershipPolicy, runSyncJob, waitForSyncJob} from '../surface';
 
 /**
  * MM-T5800: Policy enforcement after attribute change (bidirectional)
  */
 test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async ({pw}) => {
-    test.setTimeout(180000);
+    test.setTimeout(duration.four_min);
 
     await pw.skipIfNoLicense();
 
@@ -41,17 +40,14 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
 
     const privateChannel = await createPrivateChannelForABAC(adminClient, team.id);
 
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-    await navigateToABACPage(systemConsolePage.page);
+    const {app} = await pw.testBrowser.login(adminUser);
 
     const policyName = `Dynamic Policy ${await pw.random.id()}`;
-    await createBasicPolicy(systemConsolePage.page, {
+    await createMembershipPolicy(app, {
         name: policyName,
-        attribute: 'Department',
-        operator: '==',
-        value: 'Engineering',
-        autoSync: true,
-        channels: [privateChannel.display_name],
+        rules: [{field: await getUserAttributeFieldByName(adminClient, 'Department'), value: 'Engineering'}],
+        channels: [privateChannel],
+        autoAdd: true,
     });
     const t5800PolicyId = (await getPolicyIdByName(adminClient, policyName))!;
 
@@ -66,12 +62,11 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
 
     // Capture exact job ID so waitForLatestSyncJob polls the right job, not
     // the most-recent row (which may belong to a concurrent shard's sync job).
-    const syncJob2 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob2);
+    await waitForSyncJob(adminClient, await runSyncJob(app));
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, privateChannel.id), {
-            timeout: 15_000,
+            timeout: duration.half_min,
             intervals: [500, 1000, 2000],
             message: 'User should have been added to channel after qualifying sync',
         })
@@ -80,12 +75,11 @@ test('MM-T5800 Policy enforcement after attribute change (bidirectional)', async
     // PHASE 3: Change back to non-qualifying → User auto-removed.
     await updateUserAttributes(adminClient, user.id, {Department: 'Marketing'});
 
-    const syncJob3 = await runSyncJob(systemConsolePage.page);
-    await waitForLatestSyncJob(systemConsolePage.page, undefined, syncJob3);
+    await waitForSyncJob(adminClient, await runSyncJob(app));
 
     await expect
         .poll(() => verifyUserInChannel(adminClient, user.id, privateChannel.id), {
-            timeout: 15_000,
+            timeout: duration.half_min,
             intervals: [500, 1000, 2000],
             message: 'User should have been removed from channel after non-qualifying sync',
         })
