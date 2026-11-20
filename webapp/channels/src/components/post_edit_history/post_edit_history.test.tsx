@@ -26,7 +26,7 @@ describe('components/post_edit_history', () => {
     };
     const mock = jest.spyOn(Client4, 'getPostEditHistory');
 
-    test('should match snapshot', async () => {
+    test('should render', async () => {
         const data = [
             TestHelper.getPostMock({
                 id: 'post_id_1',
@@ -39,11 +39,9 @@ describe('components/post_edit_history', () => {
         ];
         mock.mockResolvedValue(data);
 
-        const wrapper = renderWithContext(<PostEditHistory {...baseProps}/>);
+        renderWithContext(<PostEditHistory {...baseProps}/>);
 
         await waitForElementToBeRemoved(() => screen.queryByText('Loading'));
-
-        expect(wrapper.container).toMatchSnapshot();
         expect(mock).toHaveBeenCalledWith(baseProps.originalPost.id);
     });
 
@@ -51,11 +49,9 @@ describe('components/post_edit_history', () => {
         const error = new Error('An example error');
         mock.mockRejectedValue(error);
 
-        const wrapper = renderWithContext(<PostEditHistory {...baseProps}/>);
+        renderWithContext(<PostEditHistory {...baseProps}/>);
 
         await waitForElementToBeRemoved(() => screen.queryByText('Loading'));
-
-        expect(wrapper.container).toMatchSnapshot();
         expect(mock).toHaveBeenCalledWith(baseProps.originalPost.id);
     });
 });

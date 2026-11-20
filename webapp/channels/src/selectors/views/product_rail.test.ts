@@ -119,6 +119,11 @@ describe('getProductRailFilter', () => {
         expect(getProductRailFilter(getState({section: 'channels'}))).toBe('channels');
     });
 
+    test('should not narrow to boards when the product rail is off', () => {
+        const state = getState({enabled: false, section: 'boards'});
+        expect(getProductRailFilter(state)).toBeNull();
+    });
+
     test('should not narrow Channels while it lists boards too', () => {
         const state = getState({section: 'channels'});
         const withBoardsShown = {
@@ -161,6 +166,22 @@ describe('isTeamSidebarHidden', () => {
 
     test('should keep the team sidebar on mobile, where the rail\'s team menu is hidden', () => {
         expect(isTeamSidebarHidden(withTeamSidebarHidden('mobileView'))).toBe(false);
+    });
+
+    test('should collapse the team sidebar by default with the rail on', () => {
+        const state = getState();
+        expect(isTeamSidebarHidden({...state, views: {...state.views, browser: {windowSize: 'desktopView'}}} as unknown as GlobalState)).toBe(true);
+    });
+
+    test('should keep the team sidebar for a user who brought it back', () => {
+        const state = withTeamSidebarHidden('desktopView');
+        state.entities.preferences.myPreferences['sidebar_settings--hide_team_sidebar'].value = 'false';
+        expect(isTeamSidebarHidden(state)).toBe(false);
+    });
+
+    test('should keep the team sidebar with the rail off', () => {
+        const state = getState({enabled: false});
+        expect(isTeamSidebarHidden({...state, views: {...state.views, browser: {windowSize: 'desktopView'}}} as unknown as GlobalState)).toBe(false);
     });
 });
 

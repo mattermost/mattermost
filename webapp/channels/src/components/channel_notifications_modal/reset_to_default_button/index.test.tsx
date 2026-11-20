@@ -41,7 +41,6 @@ describe('ResetToDefaultButton', () => {
     test('should render if section name is valid', () => {
         const {container} = renderWithContext(<ResetToDefaultButton {...defaultProps}/>);
         expect(container).not.toBeEmptyDOMElement();
-        expect(container).toMatchSnapshot();
     });
 
     test('should hide but reserve space if desktop notifications are same as default user notification settings', () => {

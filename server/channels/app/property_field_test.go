@@ -2049,3 +2049,37 @@ func TestDeletePropertyFieldSAMLMapped(t *testing.T) {
 	syncCtx := RequestContextWithCallerID(th.Context, model.CallerIDSAMLSync)
 	require.Nil(t, th.App.DeletePropertyField(syncCtx, group.ID, created.ID, false, ""))
 }
+
+func TestCheckRequiredAttributeTransitionStaleRequiredRead(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := SetupConfig(t, func(cfg *model.Config) {
+		cfg.FeatureFlags.ChannelAttributes = true
+		cfg.FeatureFlags.ChannelAttributesRequired = true
+	}).InitBasic(t)
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterpriseAdvanced))
+
+	group, appErr := th.App.GetPropertyGroup(th.Context, model.AccessControlPropertyGroupName)
+	require.Nil(t, appErr)
+
+	field, appErr := th.App.CreatePropertyField(th.Context, &model.PropertyField{
+		Name:       "a" + model.NewId(),
+		Type:       model.PropertyFieldTypeText,
+		GroupID:    group.ID,
+		ObjectType: model.PropertyFieldObjectTypeChannel,
+		TargetType: string(model.PropertyFieldTargetLevelSystem),
+		Attrs:      model.StringInterface{},
+	}, false, "")
+	require.Nil(t, appErr)
+
+	// What a lagging replica would hand back after Required was turned off.
+	withRequired := func() *model.PropertyField {
+		copied := *field
+		copied.Attrs = model.StringInterface{model.PropertyFieldAttrRequired: true}
+		return &copied
+	}
+
+	err := th.App.checkRequiredAttributeTransition(th.Context, "test", group.ID, withRequired(), withRequired())
+	var conflict *model.AppError
+	require.ErrorAs(t, err, &conflict)
+	assert.Equal(t, "api.property_field.required.channels_missing_values.app_error", conflict.Id)
+}

@@ -526,6 +526,38 @@ func (s *SqlAccessControlPolicyStore) Get(_ request.CTX, id string) (*model.Acce
 	return policy, nil
 }
 
+func (s *SqlAccessControlPolicyStore) GetTypesByIDs(_ request.CTX, ids []string) (map[string]string, error) {
+	if len(ids) == 0 {
+		return map[string]string{}, nil
+	}
+
+	for _, id := range ids {
+		if !model.IsValidId(id) {
+			return nil, store.NewErrInvalidInput("AccessControlPolicy", "id", id)
+		}
+	}
+
+	query := s.getQueryBuilder().
+		Select("ID", "Type").
+		From("AccessControlPolicies").
+		Where(sq.Eq{"ID": ids})
+
+	rows := []struct {
+		ID   string
+		Type string
+	}{}
+	if err := s.GetMaster().SelectBuilder(&rows, query); err != nil {
+		return nil, errors.Wrap(err, "failed to find policy types by ids")
+	}
+
+	types := make(map[string]string, len(rows))
+	for _, row := range rows {
+		types[row.ID] = row.Type
+	}
+
+	return types, nil
+}
+
 func (s *SqlAccessControlPolicyStore) getT(_ request.CTX, tx *sqlxTxWrapper, id string) (*model.AccessControlPolicy, error) {
 	query := s.getQueryBuilder().
 		Select(accessControlPolicySliceColumns()...).

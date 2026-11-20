@@ -36,7 +36,7 @@ func (a *App) AIRecapsEnabled() bool {
 	return a.Config().AIRecapsEnabled()
 }
 
-func (a *App) requireAIRecapsEnabled(where string) *model.AppError {
+func (a *App) requireAIRecapsEnabled(where string) error {
 	if !a.AIRecapsEnabled() {
 		return model.NewAppError(where, "api.recap.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
@@ -94,8 +94,8 @@ func (a *App) GetRecapLimitStatus(rctx request.CTX, userID string) (*model.Recap
 
 // GetEffectiveLimits returns the system-wide resolved recap limits.
 func (a *App) GetEffectiveLimits() (*model.EffectiveRecapLimits, *model.AppError) {
-	if appErr := a.requireAIRecapsEnabled("GetEffectiveLimits"); appErr != nil {
-		return nil, appErr
+	if err := a.requireAIRecapsEnabled("GetEffectiveLimits"); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	config := a.Config()

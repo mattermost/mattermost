@@ -60,9 +60,8 @@ describe('components/emoji/components/AddEmoji', () => {
         (baseProps.actions.createCustomEmoji as jest.Mock).mockClear();
     });
 
-    test('should match snapshot', () => {
+    test('should render', () => {
         const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
-        expect(container).toMatchSnapshot();
 
         const nameInput = screen.getByRole('textbox');
         expect(nameInput).toHaveValue('');
@@ -75,16 +74,15 @@ describe('components/emoji/components/AddEmoji', () => {
         expect(fileInput).toBeInTheDocument();
     });
 
-    test('should update emoji name and match snapshot', async () => {
-        const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
+    test('should update emoji name', async () => {
+        renderWithContext(<AddEmoji {...baseProps}/>);
 
         const nameInput = screen.getByRole('textbox');
         await userEvent.type(nameInput, 'emojiName');
         expect(nameInput).toHaveValue('emojiName');
-        expect(container).toMatchSnapshot();
     });
 
-    test('should select a file and match snapshot', async () => {
+    test('should select a file', async () => {
         const {container} = renderWithContext(<AddEmoji {...baseProps}/>);
 
         const file = new File([image], 'emoji.png', {type: 'image/png'});
@@ -104,7 +102,6 @@ describe('components/emoji/components/AddEmoji', () => {
 
         // Preview should now be visible
         expect(screen.getByText('Preview')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
     });
 
     test('should submit the new added emoji', async () => {

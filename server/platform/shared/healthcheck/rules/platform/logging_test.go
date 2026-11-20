@@ -92,6 +92,35 @@ func TestLoggingRules(t *testing.T) {
 	}
 }
 
+func TestLogWebhookPayloads(t *testing.T) {
+	t.Parallel()
+
+	webhookDebugging := func(enabled *bool) func(*model.Config) {
+		return func(cfg *model.Config) {
+			cfg.LogSettings.EnableWebhookDebugging = enabled
+		}
+	}
+
+	testCases := []struct {
+		name     string
+		snapshot *healthcheck.Snapshot
+		want     want
+	}{
+		{"config section absent", &healthcheck.Snapshot{}, configUnknown},
+		{"defaults", configSnapshot(nil), resolved},
+		{"webhook debugging off", configSnapshot(webhookDebugging(new(false))), resolved},
+		{"webhook debugging on", configSnapshot(webhookDebugging(new(true))), firing("health.rule.log_webhook_payloads.message", nil)},
+		{"webhook debugging flag unreadable", configSnapshot(webhookDebugging(nil)), configUnknown},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			assertResult(t, tc.want, logWebhookPayloads.Eval(tc.snapshot))
+		})
+	}
+}
+
 func TestMetricsOff(t *testing.T) {
 	t.Parallel()
 

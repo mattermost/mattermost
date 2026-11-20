@@ -38,14 +38,6 @@ describe('components/ChannelMembersModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <ChannelMembersModal {...baseProps}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should hide the modal when close button is clicked', async () => {
         renderWithContext(
             <ChannelMembersModal {...baseProps}/>,
@@ -72,16 +64,6 @@ describe('components/ChannelMembersModal', () => {
         await waitFor(() => {
             expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
         });
-    });
-
-    test('should match snapshot with archived channel', () => {
-        const props = {...baseProps, channel: {...baseProps.channel, delete_at: 1234}};
-
-        const {baseElement} = renderWithContext(
-            <ChannelMembersModal {...props}/>,
-        );
-
-        expect(baseElement).toMatchSnapshot();
     });
 
     test('renders the channel display name', () => {

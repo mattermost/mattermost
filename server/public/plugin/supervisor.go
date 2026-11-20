@@ -26,6 +26,7 @@ type supervisor struct {
 	lock         sync.RWMutex
 	pluginID     string
 	appDriver    AppDriver
+	apiImpl      API
 	client       *plugin.Client
 	hooks        *hooksTimerLayer
 	implemented  [TotalHooksID]bool
@@ -88,6 +89,7 @@ func WithReattachConfig(pluginReattachConfig *model.PluginReattachConfig) func(*
 func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, parentLogger *mlog.Logger, metrics metricsInterface, opts ...func(*supervisor, *plugin.ClientConfig) error) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{
 		pluginID: pluginInfo.Manifest.Id,
+		apiImpl:  apiImpl,
 	}
 	if driver != nil {
 		sup.appDriver = &driverForPlugin{AppDriver: driver, pluginID: pluginInfo.Manifest.Id}
@@ -188,6 +190,14 @@ func (sup *supervisor) Shutdown() {
 		sup.hooksClient.doneWg.Wait()
 		if sup.appDriver != nil {
 			sup.appDriver.ShutdownConns(sup.pluginID)
+		}
+	}
+
+	// The plugin can no longer call the API, so anything it registered through
+	// this instance can be released without racing a late registration.
+	if closer, ok := sup.apiImpl.(io.Closer); ok {
+		if err := closer.Close(); err != nil {
+			mlog.Warn("Failed to close plugin API on Shutdown", mlog.String("plugin_id", sup.pluginID), mlog.Err(err))
 		}
 	}
 }
