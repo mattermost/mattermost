@@ -248,8 +248,7 @@ func TestHealthCheckJobEndToEnd(t *testing.T) {
 
 	require.NoError(t, th.App.clearLatestVersionCache())
 	t.Cleanup(func() { assert.NoError(t, th.App.clearLatestVersionCache()) })
-	_, appErr := th.App.GetLatestVersion(th.Context, latestVersionServer(t).URL)
-	require.Nil(t, appErr)
+	th.App.Srv().latestVersionURLOverride = latestVersionServer(t).URL
 
 	job, appErr := health_check.MakeScheduler(th.Server.Jobs, th.App.Srv().License).ScheduleJob(th.Context, th.App.Config(), false, nil)
 	require.Nil(t, appErr)

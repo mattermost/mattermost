@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path"
 	"slices"
 	"strconv"
 	"sync/atomic"
@@ -23,9 +24,12 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/healthchecktest"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
@@ -252,10 +256,93 @@ func TestBuildHealthSnapshotSkipsLatestVersionWithSecurityAlertsOff(t *testing.T
 	assert.False(t, enabled)
 }
 
+// parityCluster makes this node, node-1, a follower in a cluster with node-2, the leader.
+// node-2 runs this server's own collectors and packet writers, under its own hostname.
+type parityCluster struct {
+	captureClusterMock
+	t  *testing.T
+	ps *platform.PlatformService
+}
+
+func (c *parityCluster) GetClusterId() string { return "id-1" }
+
+func (c *parityCluster) GetMyClusterInfo() *model.ClusterInfo {
+	return &model.ClusterInfo{Id: "id-1", Hostname: "node-1", Version: model.CurrentVersion + ".12345", IPAddress: "10.0.0.1"}
+}
+
+func (c *parityCluster) GetClusterInfos() ([]*model.ClusterInfo, error) {
+	return []*model.ClusterInfo{
+		c.GetMyClusterInfo(),
+		{Id: "id-2", Hostname: "node-2", Version: model.CurrentVersion + ".12345", IPAddress: "10.0.0.2"},
+	}, nil
+}
+
+func (c *parityCluster) leaderDiagnostics(rctx request.CTX) (*model.NodeDiagnostics, error) {
+	diagnostics, err := c.ps.GetSupportPacketDiagnostics(rctx)
+	if diagnostics != nil {
+		diagnostics.Diagnostics.Server.Hostname = model.NewPointer("node-2")
+		diagnostics.Diagnostics.Cluster.IsLeader = true
+	}
+	return diagnostics, err
+}
+
+// CollectHealthDiagnostics may run off the test goroutine, so it asserts rather than requires.
+func (c *parityCluster) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
+	diagnostics, err := c.leaderDiagnostics(rctx)
+	if !assert.NoError(c.t, err, "collecting the leader's diagnostics") {
+		return nil
+	}
+	return map[string]*model.NodeDiagnostics{"id-2": diagnostics}
+}
+
+func (c *parityCluster) GenerateSupportPacket(rctx request.CTX, options *model.SupportPacketOptions) (map[string][]model.FileData, error) {
+	files, err := c.ps.GenerateSupportPacket(rctx, options)
+	if err != nil {
+		return nil, err
+	}
+	diagnostics, err := c.leaderDiagnostics(rctx)
+	if err != nil {
+		return nil, err
+	}
+	diagnosticsFile, err := platform.YAMLFile(model.SupportPacketDiagnosticsFileName, diagnostics.Diagnostics, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	nodeFiles := make([]model.FileData, 0, len(files))
+	for _, file := range files {
+		if file.Filename == model.SupportPacketDiagnosticsFileName {
+			file = *diagnosticsFile
+		}
+		nodeFiles = append(nodeFiles, model.FileData{Filename: path.Join("node-2", file.Filename), Body: file.Body})
+	}
+	return map[string][]model.FileData{"node-2": nodeFiles}, nil
+}
+
 // Not parallel: it clears the latest-version cache that TestGetLatestVersion also uses.
 func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	t.Skip("Skipped due to flakiness — tracked in https://mattermost.atlassian.net/browse/MM-72153")
-	th := Setup(t).InitBasic(t)
+	t.Run("standalone", func(t *testing.T) {
+		testHealthSnapshotLiveOfflineParity(t, Setup(t), nil)
+	})
+
+	t.Run("ha", func(t *testing.T) {
+		cluster := &parityCluster{t: t}
+		th := SetupWithClusterMock(t, cluster)
+		cluster.ps = th.App.Srv().Platform()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ClusterSettings.Enable = model.NewPointer(true)
+		})
+
+		testHealthSnapshotLiveOfflineParity(t, th, []string{"node-1", "node-2"})
+	})
+}
+
+// testHealthSnapshotLiveOfflineParity checks that the live snapshot and the Support Packet of th's
+// server evaluate the same. packetNodes are the node directories the packet must have; nil means
+// a standalone packet.
+func testHealthSnapshotLiveOfflineParity(t *testing.T, th *TestHelper, packetNodes []string) {
+	th.InitBasic(t)
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		cfg.ServiceSettings.SiteURL = model.NewPointer("http://chat.example.com")
 		cfg.EmailSettings.SendPushNotifications = model.NewPointer(true)
@@ -319,12 +406,27 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		p, readErr := packet.Read(bytes.NewReader(zipped.Bytes()), int64(zipped.Len()))
 		require.NoError(t, readErr)
 		assert.Empty(t, p.Warnings)
+		// What mmctl fills in, since packets don't record the latest release.
+		latest, fetchErr := releases.LatestVersion(th.Context.Context(), latestVersionServer(t).URL)
+		require.NoError(t, fetchErr)
+		p.Snapshot.Version.Latest = latest
 		return p
 	}
 	offline := readPacket(t, files)
+	require.NotEmpty(t, live.Version.Latest)
 
-	// Offline has no feed; align it so only the rules are compared.
-	offline.Snapshot.Version.Latest = live.Version.Latest
+	if packetNodes != nil {
+		var hostnames []string
+		for _, node := range offline.Snapshot.Nodes() {
+			hostnames = append(hostnames, node.Hostname)
+		}
+		require.Equal(t, packetNodes, hostnames)
+		leader, ok := offline.Snapshot.Leader()
+		require.True(t, ok)
+		liveLeader, ok := live.Leader()
+		require.True(t, ok)
+		assert.Equal(t, liveLeader.Hostname, leader.Hostname)
+	}
 
 	evaluatedAt := time.Now()
 	engine := healthcheck.NewEngine(healthcheck.EngineOpts{
@@ -335,15 +437,13 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 		t.Helper()
 
 		evaluations := engine.Evaluate(snapshot)
-		// Independently sampled values can differ between the live and packet collections.
 		for i := range evaluations {
 			switch evaluations[i].Code {
-			case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL":
-				require.NotNil(t, evaluations[i].Result.Value)
-				evaluations[i].Result.Value = nil
-				evaluations[i].Result.Details = nil
-			case "NODE_HOST_MEMORY_LOW", "NODE_CONTAINER_MEMORY_PRESSURE", "NODE_HOST_LOAD_HIGH", "NODE_CPU_THROTTLED":
-				// These set a value only when they have the numbers to compare, so none is required.
+			case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL", "DB_POOL_SATURATED":
+				// The test server always has these measurements, so both sides must report one.
+				require.NotNil(t, evaluations[i].Result.Value, evaluations[i].Code)
+			}
+			if slices.Contains(healthchecktest.SampledCodes, evaluations[i].Code) {
 				evaluations[i].Result.Value = nil
 				evaluations[i].Result.Details = nil
 			}
@@ -384,20 +484,19 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 
 	t.Run("a packet without the license expiry differs only in the codes that need it", func(t *testing.T) {
 		olderFiles := slices.Clone(files)
-		stripped := false
+		stripped := 0
 		for i, file := range olderFiles {
-			if file.Filename == model.SupportPacketDiagnosticsFileName {
+			if path.Base(file.Filename) == model.SupportPacketDiagnosticsFileName {
 				expiresAt := []byte("  expires_at: " + strconv.FormatInt(license.ExpiresAt, 10) + "\n")
 				require.Contains(t, string(file.Body), string(expiresAt))
 				olderFiles[i].Body = bytes.Replace(file.Body, expiresAt, nil, 1)
-				stripped = true
+				stripped++
 			}
 		}
-		require.True(t, stripped)
+		require.Equal(t, max(len(packetNodes), 1), stripped)
 
 		needsExpiry := []string{"LICENSE_EXPIRED", "LICENSE_EXPIRING", "SEATS_LIMIT_REACHED"}
 		older := readPacket(t, olderFiles)
-		older.Snapshot.Version.Latest = live.Version.Latest
 		olderEvaluations := evaluate(t, older.Snapshot)
 		require.Len(t, olderEvaluations, len(liveEvaluations))
 		for i, evaluation := range olderEvaluations {

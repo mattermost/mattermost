@@ -232,12 +232,12 @@ func fillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot) stri
 	ctx, cancel := context.WithTimeout(ctx, healthLatestVersionTimeout)
 	defer cancel()
 
-	release, err := releases.FetchLatest(ctx, healthLatestVersionURL)
+	latest, err := releases.LatestVersion(ctx, healthLatestVersionURL)
 	if err != nil {
 		return fmt.Sprintf("Could not fetch the latest release (%s): version-behind findings are unknown.", err)
 	}
 
-	snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+	snapshot.Version.Latest = latest
 	return ""
 }
 
