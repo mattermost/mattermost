@@ -8010,6 +8010,11 @@
     "description": "Internal API error when saving the metadata (property values) attached to a newly flagged post fails."
   },
   {
+    "id": "app.data_spillage.exposure.checksum_notification",
+    "translation": "@{{.Username}} downloaded an exposure report for the quarantined message.\nFile: `{{.FileName}}`\nSHA-256: `{{.Checksum}}`\nCompare this checksum with any copy of this file shared with you to confirm it has not been modified.",
+    "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer downloads an exposure report. Keep the Markdown backticks, line breaks and the {{.Username}}, {{.FileName}} and {{.Checksum}} placeholders unchanged."
+  },
+  {
     "id": "app.data_spillage.exposure.column.email",
     "translation": "Email",
     "description": "Column header in the post exposure report CSV that content reviewers download for a flagged post. Column holds each listed user's email address. Keep it short — it is a spreadsheet header, not a sentence."
@@ -8253,6 +8258,11 @@
     "id": "app.data_spillage.report.attachments_omitted.notification",
     "translation": "The report you generated did not include the quarantined message's file attachments, because you do not comply with the channel's file download policy.",
     "description": "Message posted by the system bot to a content reviewer in the flagged-content review thread after they generated a report on a quarantined message whose attachments were left out."
+  },
+  {
+    "id": "app.data_spillage.report.checksum_notification",
+    "translation": "@{{.Username}} generated a report for the quarantined message.\nFile: `{{.FileName}}`\nSHA-256: `{{.Checksum}}`\nCompare this checksum with any copy of this file shared with you to confirm it has not been modified.",
+    "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer generates a flagged post report. Keep the Markdown backticks, line breaks and the {{.Username}}, {{.FileName}} and {{.Checksum}} placeholders unchanged."
   },
   {
     "id": "app.data_spillage.report.cleared",

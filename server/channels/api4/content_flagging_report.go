@@ -20,6 +20,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// reportSHA256Header carries the hex SHA-256 of a downloaded report so API clients can
+// verify the download against the checksum posted to reviewers.
+const reportSHA256Header = "X-Report-SHA256"
+
 func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.Err != nil {
 		return
@@ -123,18 +127,17 @@ func generateFlaggedPostReport(c *Context, w http.ResponseWriter, r *http.Reques
 	model.AddEventParameterToAuditRec(auditRec, "filename", filename)
 	model.AddEventParameterToAuditRec(auditRec, "sha256", checksum)
 
-	// Reviewers must have the checksum on record before the report is served, otherwise
-	// a copy of it could not be verified. Must run before http.ServeContent (which writes
-	// the response and may block).
+	// Must run before http.ServeContent (which writes the response and may block). A failure
+	// does not block the download; the checksum stays on the audit record and in the log.
 	if appErr := c.App.NotifyReviewersOfFlaggedPostReportGeneration(c.AppContext, postId, userId, filename, checksum); appErr != nil {
-		c.Err = appErr
-		return
+		logReportChecksumNotPosted(c, postId, filename, checksum, appErr)
 	}
 	if omittedAttachments > 0 {
 		c.App.NotifyRequestingReviewerOfSkippedAttachments(c.AppContext, postId, userId)
 	}
 
 	w.Header().Set("Content-Type", "application/zip")
+	w.Header().Set(reportSHA256Header, checksum)
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	http.ServeContent(w, r, filename, stat.ModTime(), f)
 
@@ -205,11 +208,11 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 	model.AddEventParameterToAuditRec(auditRec, "sha256", checksum)
 
 	if appErr := c.App.NotifyReviewersOfPostExposureReportGeneration(c.AppContext, postId, userId, filename, checksum); appErr != nil {
-		c.Err = appErr
-		return
+		logReportChecksumNotPosted(c, postId, filename, checksum, appErr)
 	}
 
 	w.Header().Set("Content-Type", "text/csv; charset=utf-8")
+	w.Header().Set(reportSHA256Header, checksum)
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	if _, err := w.Write(buf.Bytes()); err != nil {
 		c.Logger.Warn("Failed to write post exposure report response", mlog.String("post_id", postId), mlog.Err(err))
@@ -217,4 +220,13 @@ func generatePostExposureReport(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	auditRec.Success()
+}
+
+func logReportChecksumNotPosted(c *Context, flaggedPostID, filename, checksum string, appErr *model.AppError) {
+	c.Logger.Error("Failed to post report checksum to reviewers; serving the report without a reviewer-visible checksum",
+		mlog.String("flagged_post_id", flaggedPostID),
+		mlog.String("filename", filename),
+		mlog.String("sha256", checksum),
+		mlog.Err(appErr),
+	)
 }

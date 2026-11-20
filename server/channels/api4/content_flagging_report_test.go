@@ -630,7 +630,7 @@ func TestGenerateFlaggedPostReportAttachmentsOmittedAudit(t *testing.T) {
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
 	setDownloadDecision(true)
-	_, resp, err = client.GenerateFlaggedPostReport(context.Background(), completePost.Id, &model.FlagContentActionRequest{})
+	completeReport, resp, err := client.GenerateFlaggedPostReport(context.Background(), completePost.Id, &model.FlagContentActionRequest{})
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode)
 
@@ -650,6 +650,10 @@ func TestGenerateFlaggedPostReportAttachmentsOmittedAudit(t *testing.T) {
 	require.NotNil(t, completeEntry, "should find a generateFlaggedPostReport audit entry for the complete report")
 	require.Equal(t, "success", completeEntry.Status)
 	require.NotContains(t, completeEntry.Parameters, "omitted_attachment_count", "a complete report has no omission to record")
+
+	completeSum := sha256.Sum256(completeReport)
+	require.Equal(t, hex.EncodeToString(completeSum[:]), completeEntry.Parameters["sha256"], "the audit entry records the checksum of the served report")
+	require.Contains(t, completeEntry.Parameters["filename"], "flagged-post-"+completePost.Id)
 }
 
 // auditLinesForPost narrows the audit log to the entries mentioning postID, so that
@@ -751,6 +755,7 @@ func TestGenerateFlaggedPostReportEvaluatesSessionAttributes(t *testing.T) {
 
 // requireReviewerChecksumMessage asserts that the content review bot posted the downloaded
 // file's name and the SHA-256 of the exact bytes the client received in the reviewer's DM.
+// It also asserts the response's X-Report-SHA256 header carries that same checksum.
 func requireReviewerChecksumMessage(t *testing.T, th *TestHelper, reviewerID string, resp *model.Response, file []byte) {
 	t.Helper()
 
@@ -761,6 +766,7 @@ func requireReviewerChecksumMessage(t *testing.T, th *TestHelper, reviewerID str
 
 	sum := sha256.Sum256(file)
 	checksum := hex.EncodeToString(sum[:])
+	require.Equal(t, checksum, resp.Header.Get("X-Report-SHA256"))
 
 	bot, appErr := th.App.GetUserByUsername(model.ContentFlaggingBotUsername)
 	require.Nil(t, appErr)

@@ -1750,7 +1750,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test reviewer message"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", "")
+		_, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(testMessage), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted to the reviewer thread
@@ -1807,7 +1807,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message for multiple reviewers"
-		_, appErr = th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", "")
+		_, appErr = th.App.postReviewerMessage(th.Context, untranslatedMessage(testMessage), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted to both reviewer threads
@@ -1872,7 +1872,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		report.AddStep("app.data_spillage.report.step.file_attachments", model.StepFailed, "app.data_spillage.report.detail.failed", []string{"file not found"})
 
 		reportFileName := "deletion_report.md"
-		createdPosts, appErr := th.App.postReviewerMessage(th.Context, "", groupId, post.Id, report, reportFileName, "")
+		createdPosts, appErr := th.App.postReviewerMessage(th.Context, report.RenderSummary, groupId, post.Id, report, reportFileName, "")
 		require.Nil(t, appErr)
 		require.NotEmpty(t, createdPosts)
 
@@ -1899,7 +1899,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message for non-flagged post"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", "")
+		_, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(testMessage), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 	})
 
@@ -1912,7 +1912,7 @@ func TestPostReviewerMessage(t *testing.T) {
 		require.Nil(t, err)
 
 		testMessage := "Test message with special chars: @user #channel ~team & <script>alert('xss')</script>"
-		_, appErr := th.App.postReviewerMessage(th.Context, testMessage, groupId, post.Id, nil, "", "")
+		_, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(testMessage), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 
 		// Verify message was posted correctly with special characters preserved
@@ -3437,7 +3437,7 @@ func TestPostReviewerMessageTargeting(t *testing.T) {
 	t.Run("empty target posts to every reviewer thread", func(t *testing.T) {
 		message := "fan out to everyone " + model.NewId()
 
-		created, appErr := th.App.postReviewerMessage(th.Context, message, groupId, post.Id, nil, "", "")
+		created, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(message), groupId, post.Id, nil, "", "")
 		require.Nil(t, appErr)
 		require.Len(t, created, 2)
 
@@ -3448,7 +3448,7 @@ func TestPostReviewerMessageTargeting(t *testing.T) {
 	t.Run("non-empty target posts only to that reviewer's thread", func(t *testing.T) {
 		message := "for the second reviewer only " + model.NewId()
 
-		created, appErr := th.App.postReviewerMessage(th.Context, message, groupId, post.Id, nil, "", th.BasicUser2.Id)
+		created, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(message), groupId, post.Id, nil, "", th.BasicUser2.Id)
 		require.Nil(t, appErr)
 		require.Len(t, created, 1)
 
@@ -3456,10 +3456,33 @@ func TestPostReviewerMessageTargeting(t *testing.T) {
 		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser2.Id, message))
 	})
 
+	t.Run("renders the message in each reviewer's locale", func(t *testing.T) {
+		_, appErr := th.App.PatchUser(th.Context, th.BasicUser2.Id, &model.UserPatch{Locale: model.NewPointer("de")}, false)
+		require.Nil(t, appErr)
+		t.Cleanup(func() {
+			_, appErr := th.App.PatchUser(th.Context, th.BasicUser2.Id, &model.UserPatch{Locale: model.NewPointer("en")}, false)
+			require.Nil(t, appErr)
+		})
+
+		const messageID = "app.data_spillage.report.attachments_omitted.notification"
+		renderMessage := func(T i18n.TranslateFunc) string { return T(messageID) }
+
+		created, appErr := th.App.postReviewerMessage(th.Context, renderMessage, groupId, post.Id, nil, "", "")
+		require.Nil(t, appErr)
+		require.Len(t, created, 2)
+
+		english := i18n.GetUserTranslations("en")(messageID)
+		german := i18n.GetUserTranslations("de")(messageID)
+		require.NotEqual(t, english, german)
+
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser.Id, english))
+		require.Equal(t, 1, countReviewerThreadReplies(t, th, th.BasicUser2.Id, german))
+	})
+
 	t.Run("target without a review thread posts nothing", func(t *testing.T) {
 		message := "nobody should see this " + model.NewId()
 
-		created, appErr := th.App.postReviewerMessage(th.Context, message, groupId, post.Id, nil, "", th.SystemAdminUser.Id)
+		created, appErr := th.App.postReviewerMessage(th.Context, untranslatedMessage(message), groupId, post.Id, nil, "", th.SystemAdminUser.Id)
 		require.Nil(t, appErr)
 		require.Empty(t, created)
 
