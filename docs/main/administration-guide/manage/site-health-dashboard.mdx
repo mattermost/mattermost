@@ -125,6 +125,18 @@ Each muted finding row shows:
 
 Select **Unmute** on any row in the muted list. The finding leaves the muted list and appears again in the tab for its current state, for example **Recently resolved** if the check has passed since you muted it.
 
+## Export findings
+
+To share the findings with your team, select **Export** next to **Re-run checks**, then choose one of the following options:
+
+- **Download HTML**: Saves a self-contained HTML report that opens in any browser.
+- **Download Markdown**: Saves the report as a Markdown file, for pasting into a ticket or a wiki page.
+- **Print / Save as PDF**: Opens your browser's print dialog for the report. To save a PDF, choose **Save as PDF** as the printer.
+
+The export always includes all findings, including muted and resolved ones, whatever tab, grouping, or muted view you have open. The file name includes the site name and the date, for example `site-health-mattermost-2026-11-19.html`.
+
+Only system admins can export findings.
+
 ## Check health from the command line
 
 Use the [mmctl](/administration-guide/manage/mmctl-command-line-tool) `health check` command to list the same findings shown on the dashboard. This is useful for scripting and for checking a server without opening the System Console.
