@@ -29577,7 +29577,15 @@
   },
   "product_rail.itemMenu.label": {
     "defaultMessage": "Product options",
-    "description": "Accessible name of the menu opened by right-clicking a product, such as Boards or Playbooks, in the product navigation rail."
+    "description": "Accessible name of the menu opened by right-clicking an item, such as Channels, Boards or Playbooks, in the product navigation rail."
+  },
+  "product_rail.itemMenu.moveDown": {
+    "defaultMessage": "Move down",
+    "description": "Item in the right-click menu of an item in the product navigation rail, such as Channels or Playbooks. It moves the item one place down in the rail."
+  },
+  "product_rail.itemMenu.moveUp": {
+    "defaultMessage": "Move up",
+    "description": "Item in the right-click menu of an item in the product navigation rail, such as Channels or Playbooks. It moves the item one place up in the rail."
   },
   "product_rail.more": {
     "defaultMessage": "More",

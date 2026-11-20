@@ -75,3 +75,16 @@ export function setProductRailItemHidden(itemId: string, hidden: boolean): Actio
         }]));
     };
 }
+
+// Saves the order the user has put the rail items in.
+export function setProductRailOrder(order: string[]): ActionFuncAsync {
+    return (dispatch, getState) => {
+        const userId = getCurrentUserId(getState());
+        return dispatch(savePreferences(userId, [{
+            category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
+            name: Preferences.PRODUCT_RAIL_ORDER,
+            user_id: userId,
+            value: JSON.stringify(order),
+        }]));
+    };
+}

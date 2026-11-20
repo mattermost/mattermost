@@ -125,23 +125,33 @@ export function getProductRailSection(state: GlobalState): ProductRailSection | 
 
 export type ProductRailFilter = ProductRailSection | null;
 
-const noHiddenItems: string[] = [];
+const noItems: string[] = [];
 
-/**
- * The rail items the user has moved into the rail's More menu: 'boards', or a product's plugin id.
- * A preference that isn't a JSON array of strings hides nothing.
- */
+// A preference holding a JSON array of rail item ids. Anything else names none.
+function parseItemIds(value: string): string[] {
+    try {
+        const parsed: unknown = JSON.parse(value || '[]');
+        return Array.isArray(parsed) ? parsed.filter((itemId): itemId is string => typeof itemId === 'string') : noItems;
+    } catch {
+        return noItems;
+    }
+}
+
+/** The rail items the user has moved into the rail's More menu: 'boards', or a product's plugin id. */
 export const getProductRailHiddenItems: (state: GlobalState) => string[] = createSelector(
     'getProductRailHiddenItems',
     (state: GlobalState) => getPreference(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.PRODUCT_RAIL_HIDDEN_ITEMS, ''),
-    (value) => {
-        try {
-            const parsed: unknown = JSON.parse(value || '[]');
-            return Array.isArray(parsed) ? parsed.filter((itemId): itemId is string => typeof itemId === 'string') : noHiddenItems;
-        } catch {
-            return noHiddenItems;
-        }
-    },
+    parseItemIds,
+);
+
+/**
+ * The order the user has dragged the rail items into: 'threads', 'channels', 'boards', or a
+ * product's plugin id. Items it doesn't name follow in their default order.
+ */
+export const getProductRailItemOrder: (state: GlobalState) => string[] = createSelector(
+    'getProductRailItemOrder',
+    (state: GlobalState) => getPreference(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.PRODUCT_RAIL_ORDER, ''),
+    parseItemIds,
 );
 
 /** Whether the user has chosen to list boards in the Channels view too. */

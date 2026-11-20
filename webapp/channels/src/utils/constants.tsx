@@ -149,6 +149,9 @@ export const Preferences = {
 
     // In CATEGORY_SIDEBAR_SETTINGS: a JSON array of the product rail items the user moved into its More menu.
     PRODUCT_RAIL_HIDDEN_ITEMS: 'product_rail_hidden_items',
+
+    // In CATEGORY_SIDEBAR_SETTINGS: a JSON array of product rail item ids in the order the user dragged them into.
+    PRODUCT_RAIL_ORDER: 'product_rail_order',
     CLOUD_UPGRADE_BANNER: 'cloud_upgrade_banner',
     CLOUD_TRIAL_BANNER: 'cloud_trial_banner',
     START_TRIAL_MODAL: 'start_trial_modal',

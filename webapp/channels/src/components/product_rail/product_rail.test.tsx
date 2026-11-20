@@ -568,4 +568,76 @@ describe('ProductRail', () => {
             expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
         });
     });
+
+    describe('reordering items', () => {
+        function getOrderState({order, hidden = []}: {order?: string[]; hidden?: string[]}): DeepPartial<GlobalState> {
+            const state = getBoardsState(townSquare.id);
+            const preference = (name: string, value: string[]) => ({category: 'sidebar_settings', name, user_id: user.id, value: JSON.stringify(value)});
+            return {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    preferences: {
+                        myPreferences: {
+                            ...(order ? {'sidebar_settings--product_rail_order': preference('product_rail_order', order)} : {}),
+                            'sidebar_settings--product_rail_hidden_items': preference('product_rail_hidden_items', hidden),
+                        },
+                    },
+                },
+                plugins: {
+                    components: {
+                        ...state.plugins!.components,
+                        Product: [agents, playbooks],
+                    },
+                },
+            };
+        }
+
+        const railItemIds = () => [...document.querySelectorAll('.ProductRail .ProductRail__item')].map((item) => item.id.replace('product-rail-item-', ''));
+
+        test('should list items in the saved order, then any it does not name in their default order', () => {
+            renderAt('/team-one/channels/town-square', getOrderState({order: ['playbooks', 'boards', 'threads']}));
+
+            expect(railItemIds()).toEqual(['playbooks', 'boards', 'threads', 'channels', 'mattermost-ai']);
+        });
+
+        test('should move an item up from its right-click menu', async () => {
+            renderAt('/team-one/channels/town-square', getOrderState({}));
+
+            fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
+            await userEvent.click(await screen.findByRole('menuitem', {name: 'Move up'}));
+
+            await waitFor(() => {
+                expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
+                    category: 'sidebar_settings',
+                    name: 'product_rail_order',
+                    value: JSON.stringify(['threads', 'channels', 'mattermost-ai', 'boards', 'playbooks']),
+                })]);
+            });
+        });
+
+        test('should keep items in More in place when moving one past where they sit', async () => {
+            renderAt('/team-one/channels/town-square', getOrderState({hidden: ['boards']}));
+
+            fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
+            await userEvent.click(await screen.findByRole('menuitem', {name: 'Move up'}));
+
+            await waitFor(() => {
+                expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
+                    name: 'product_rail_order',
+                    value: JSON.stringify(['threads', 'mattermost-ai', 'channels', 'boards', 'playbooks']),
+                })]);
+            });
+        });
+
+        test('should offer only moves for Threads and Channels, and no move past either end', async () => {
+            renderAt('/team-one/channels/town-square', getOrderState({}));
+
+            fireEvent.contextMenu(screen.getByRole('link', {name: /Threads/}));
+
+            expect(await screen.findByRole('menuitem', {name: 'Move down'})).toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Move up'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('menuitem', {name: 'Hide'})).not.toBeInTheDocument();
+        });
+    });
 });

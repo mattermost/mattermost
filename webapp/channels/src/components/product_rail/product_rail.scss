@@ -181,10 +181,30 @@
         }
     }
 
-    // Boards and products sit in a wrapper that anchors their right-click menu beside them.
+    // The draggable items. Drag and drop measures margins, not gaps, so they're spaced with margins;
+    // the list's negative margin keeps the rail's usual gap before the More item.
+    &__items {
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: -4px;
+    }
+
+    // Each item sits in a wrapper that is dragged, and anchors its right-click menu beside it.
     &__itemWrapper {
         position: relative;
         display: flex;
+        margin-bottom: 4px;
+
+        &:focus-visible {
+            outline: none;
+        }
+
+        &--dragging .ProductRail__icon {
+            background: rgba(var(--sidebar-text-rgb), 0.16);
+            box-shadow: var(--elevation-3);
+        }
     }
 
     &__itemMenuAnchor {

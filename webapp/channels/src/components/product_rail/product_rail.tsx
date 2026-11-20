@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {DragDropContext, Draggable, Droppable} from '@hello-pangea/dnd';
+import type {DropResult} from '@hello-pangea/dnd';
 import classNames from 'classnames';
 import React, {forwardRef, useEffect, useRef, useState} from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, matchPath, useHistory, useLocation} from 'react-router-dom';
 
-import glyphMap, {DotsHorizontalIcon, EyeOffOutlineIcon, EyeOutlineIcon, MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {ArrowDownIcon, ArrowUpIcon, DotsHorizontalIcon, EyeOffOutlineIcon, EyeOutlineIcon, MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 
 import {selectTeam} from 'mattermost-redux/actions/teams';
@@ -19,12 +21,13 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {productRailPathsLoaded, productRailPathViewed, setProductRailItemHidden, setProductRailSection} from 'actions/views/product_rail';
+import {productRailPathsLoaded, productRailPathViewed, setProductRailItemHidden, setProductRailOrder, setProductRailSection} from 'actions/views/product_rail';
 import {selectProducts} from 'selectors/products';
 import {
     getBoardChannelIds,
     getFirstBoardInCurrentTeam,
     getProductRailHiddenItems,
+    getProductRailItemOrder,
     getProductRailLastPath,
     getProductRailLastPaths,
     getProductRailSection,
@@ -83,12 +86,22 @@ const messages = defineMessages({
     itemMenuLabel: {
         id: 'product_rail.itemMenu.label',
         defaultMessage: 'Product options',
-        description: 'Accessible name of the menu opened by right-clicking a product, such as Boards or Playbooks, in the product navigation rail.',
+        description: 'Accessible name of the menu opened by right-clicking an item, such as Channels, Boards or Playbooks, in the product navigation rail.',
     },
     hide: {
         id: 'product_rail.itemMenu.hide',
         defaultMessage: 'Hide',
         description: 'Item in the right-click menu of a product in the product navigation rail. It moves the product into the More menu at the end of the rail.',
+    },
+    moveUp: {
+        id: 'product_rail.itemMenu.moveUp',
+        defaultMessage: 'Move up',
+        description: 'Item in the right-click menu of an item in the product navigation rail, such as Channels or Playbooks. It moves the item one place up in the rail.',
+    },
+    moveDown: {
+        id: 'product_rail.itemMenu.moveDown',
+        defaultMessage: 'Move down',
+        description: 'Item in the right-click menu of an item in the product navigation rail, such as Channels or Playbooks. It moves the item one place down in the rail.',
     },
     alwaysShow: {
         id: 'product_rail.itemMenu.alwaysShow',
@@ -174,6 +187,7 @@ export default function ProductRail() {
     const teamSidebarHidden = useSelector(isTeamSidebarHidden);
     const boardsShownInChannels = useSelector(areBoardsShownInChannels);
     const hiddenItems = useSelector(getProductRailHiddenItems);
+    const itemOrder = useSelector(getProductRailItemOrder);
     const history = useHistory();
 
     const currentTeamId = currentTeam?.id ?? '';
@@ -298,10 +312,6 @@ export default function ProductRail() {
 
     const inChannelsProduct = !currentProduct && !inThreads;
 
-    // Boards and products can be hidden; a hidden one stays in the rail while it's open, so the
-    // user can see where they are, and is otherwise listed in the More menu at the end.
-    const hideableItems: RailEntry[] = [];
-
     const productEntry = (product: ProductComponent): RailEntry | null => {
         const link = getProductSwitcherLinkURL(product, currentTeam.name);
         if (link === null) {
@@ -323,27 +333,29 @@ export default function ProductRail() {
             icon,
             label: product.switcherText,
             active: currentProduct?.id === product.id,
+            hideable: true,
         };
     };
 
     // A stable sort, so products with no rank keep their registration order after the ranked ones.
     const sortedProducts = [...products].sort((a, b) => defaultProductRank(a) - defaultProductRank(b));
 
-    const threadsItem = threadsEnabled && (
-        <ProductRailItem
-            id='product-rail-item-threads'
-            to={lastThreadsPath ?? `/${currentTeam.name}/threads`}
-            icon={<MessageTextOutlineIcon size={20}/>}
-            label={formatMessage(messages.threads)}
-            active={inThreads}
-            mentions={threadCounts?.total_unread_mentions ?? 0}
-            hasUrgent={Boolean(threadCounts?.total_unread_urgent_mentions)}
-            unread={Boolean(threadCounts?.total_unread_threads)}
-        />
-    );
+    const entries: RailEntry[] = [];
+    if (threadsEnabled) {
+        entries.push({
+            itemId: 'threads',
+            elementId: 'product-rail-item-threads',
+            to: lastThreadsPath ?? `/${currentTeam.name}/threads`,
+            icon: <MessageTextOutlineIcon size={20}/>,
+            label: formatMessage(messages.threads),
+            active: inThreads,
+            mentions: threadCounts?.total_unread_mentions ?? 0,
+            hasUrgent: Boolean(threadCounts?.total_unread_urgent_mentions),
+            unread: Boolean(threadCounts?.total_unread_threads),
+        });
+    }
 
     // With boards split off, Channels shows the rest of the sidebar; without, it's all of it.
-    let channelsItem;
     if (section) {
         // While Channels lists boards too, its badge counts them as well.
         const channelsUnreads = boardsShownInChannels ? {
@@ -366,18 +378,17 @@ export default function ProductRail() {
         }
         const boardsTo = boardsPath;
 
-        channelsItem = (
-            <ProductRailItem
-                id='product-rail-item-channels'
-                to={channelsPath}
-                onClick={() => dispatch(setProductRailSection('channels'))}
-                icon={<ProductChannelsIcon size={20}/>}
-                label={formatMessage(messages.channels)}
-                active={inChannelsProduct && section === 'channels'}
-                {...channelsUnreads}
-            />
-        );
-        hideableItems.push({
+        entries.push({
+            itemId: 'channels',
+            elementId: 'product-rail-item-channels',
+            to: channelsPath,
+            onClick: () => dispatch(setProductRailSection('channels')),
+            icon: <ProductChannelsIcon size={20}/>,
+            label: formatMessage(messages.channels),
+            active: inChannelsProduct && section === 'channels',
+            ...channelsUnreads,
+        });
+        entries.push({
             itemId: 'boards',
             elementId: 'product-rail-item-boards',
             to: boardsTo,
@@ -389,33 +400,66 @@ export default function ProductRail() {
             icon: <ProductBoardsIcon size={20}/>,
             label: formatMessage(messages.boards),
             active: inChannelsProduct && section === 'boards',
+            hideable: true,
             ...sectionUnreads.boards,
         });
     } else {
-        channelsItem = (
-            <ProductRailItem
-                id='product-rail-item-channels'
-                to={lastChannelPath ?? `/${currentTeam.name}`}
-                icon={<ProductChannelsIcon size={20}/>}
-                label={formatMessage(messages.channels)}
-                active={inChannelsProduct}
-                mentions={mentionsInTeamMap.get(currentTeam.id) ?? 0}
-                hasUrgent={teamHasUrgentMap.get(currentTeam.id) ?? false}
-                unread={unreadTeamsSet.has(currentTeam.id)}
-            />
-        );
+        entries.push({
+            itemId: 'channels',
+            elementId: 'product-rail-item-channels',
+            to: lastChannelPath ?? `/${currentTeam.name}`,
+            icon: <ProductChannelsIcon size={20}/>,
+            label: formatMessage(messages.channels),
+            active: inChannelsProduct,
+            mentions: mentionsInTeamMap.get(currentTeam.id) ?? 0,
+            hasUrgent: teamHasUrgentMap.get(currentTeam.id) ?? false,
+            unread: unreadTeamsSet.has(currentTeam.id),
+        });
     }
 
     for (const product of sortedProducts) {
         const entry = productEntry(product);
         if (entry) {
-            hideableItems.push(entry);
+            entries.push(entry);
         }
     }
 
+    // The user's order goes first; items it doesn't name yet (a newly installed product, say)
+    // follow in their default order.
+    const orderIndex = new Map(itemOrder.map((itemId, index) => [itemId, index]));
+    const orderedEntries = entries.
+        map((entry, defaultIndex) => ({entry, rank: orderIndex.get(entry.itemId) ?? itemOrder.length + defaultIndex})).
+        sort((a, b) => a.rank - b.rank).
+        map(({entry}) => entry);
+
+    // Boards and products can be hidden; a hidden one stays in the rail while it's open, so the
+    // user can see where they are, and is otherwise listed in the More menu at the end.
     const hiddenItemIds = new Set(hiddenItems);
-    const railItems = hideableItems.filter((entry) => !hiddenItemIds.has(entry.itemId) || entry.active);
-    const moreItems = hideableItems.filter((entry) => hiddenItemIds.has(entry.itemId) && !entry.active);
+    const isInMore = (entry: RailEntry) => entry.hideable === true && hiddenItemIds.has(entry.itemId) && !entry.active;
+    const railItems = orderedEntries.filter((entry) => !isInMore(entry));
+    const moreItems = orderedEntries.filter(isInMore);
+
+    // Moves an item among those on the rail, keeping the items in More where they were relative to it.
+    const moveItem = (fromIndex: number, toIndex: number) => {
+        if (fromIndex === toIndex || toIndex < 0 || toIndex >= railItems.length) {
+            return;
+        }
+        const railIds = railItems.map((entry) => entry.itemId);
+        const [movedId] = railIds.splice(fromIndex, 1);
+        railIds.splice(toIndex, 0, movedId);
+
+        const order = orderedEntries.map((entry) => entry.itemId).filter((itemId) => itemId !== movedId);
+        const nextId = railIds[toIndex + 1];
+        const insertAt = nextId ? order.indexOf(nextId) : order.indexOf(railIds[toIndex - 1]) + 1;
+        order.splice(insertAt, 0, movedId);
+        dispatch(setProductRailOrder(order));
+    };
+
+    const onDragEnd = (result: DropResult) => {
+        if (result.destination) {
+            moveItem(result.source.index, result.destination.index);
+        }
+    };
 
     return (
         <nav
@@ -423,27 +467,30 @@ export default function ProductRail() {
             aria-label={formatMessage(messages.ariaLabel)}
         >
             {teamSidebarHidden && <ProductRailTeamMenu/>}
-            {threadsItem}
-            {channelsItem}
-            {railItems.map((entry) => (
-                <HideableRailItem
-                    key={entry.itemId}
-                    itemId={entry.itemId}
-                    hidden={hiddenItemIds.has(entry.itemId)}
-                >
-                    <ProductRailItem
-                        id={entry.elementId}
-                        to={entry.to}
-                        onClick={entry.onClick}
-                        icon={entry.icon}
-                        label={entry.label}
-                        active={entry.active}
-                        mentions={entry.mentions}
-                        hasUrgent={entry.hasUrgent}
-                        unread={entry.unread}
-                    />
-                </HideableRailItem>
-            ))}
+            <DragDropContext onDragEnd={onDragEnd}>
+                <Droppable droppableId='product-rail'>
+                    {(droppableProvided) => (
+                        <div
+                            ref={droppableProvided.innerRef}
+                            className='ProductRail__items'
+                            {...droppableProvided.droppableProps}
+                        >
+                            {railItems.map((entry, index) => (
+                                <RailItemContainer
+                                    key={entry.itemId}
+                                    entry={entry}
+                                    index={index}
+                                    hidden={hiddenItemIds.has(entry.itemId)}
+                                    canMoveUp={index > 0}
+                                    canMoveDown={index < railItems.length - 1}
+                                    onMove={(offset) => moveItem(index, index + offset)}
+                                />
+                            ))}
+                            {droppableProvided.placeholder}
+                        </div>
+                    )}
+                </Droppable>
+            </DragDropContext>
             {moreItems.length > 0 && (
                 <Menu.Container
                     menuButton={{
@@ -490,10 +537,11 @@ export default function ProductRail() {
     );
 }
 
-// A rail item that can be hidden: Boards, or a product.
+// An item in the rail: Threads, Channels, Boards, or a product.
 type RailEntry = {
 
-    // What the user's hidden items preference names it by: 'boards', or the product's plugin id.
+    // What the user's order and hidden items preferences name it by: 'threads', 'channels',
+    // 'boards', or the product's plugin id.
     itemId: string;
     elementId: string;
     to: string;
@@ -501,6 +549,9 @@ type RailEntry = {
     icon: React.ReactNode;
     label: React.ReactNode;
     active: boolean;
+
+    // Boards and products can be moved into the More menu; Threads and Channels always show.
+    hideable?: boolean;
     mentions?: number;
     hasUrgent?: boolean;
     unread?: boolean;
@@ -516,48 +567,102 @@ const ItemMenuAnchor = forwardRef<HTMLButtonElement, MenuButtonComponentProps>((
 ));
 ItemMenuAnchor.displayName = 'ItemMenuAnchor';
 
-// Wraps a hideable rail item with a right-click (or context menu key) menu to hide it, or, for a
-// hidden one shown while open, to put it back in the rail for good.
-function HideableRailItem({itemId, hidden, children}: {itemId: string; hidden: boolean; children: React.ReactNode}) {
+type RailItemContainerProps = {
+    entry: RailEntry;
+    index: number;
+    hidden: boolean;
+    canMoveUp: boolean;
+    canMoveDown: boolean;
+    onMove: (offset: -1 | 1) => void;
+};
+
+// A rail item the user can drag to reorder, with a right-click (or context menu key) menu to move
+// it up or down and, for Boards and products, to hide it, or put a hidden one shown while it's open
+// back in the rail for good.
+function RailItemContainer({entry, index, hidden, canMoveUp, canMoveDown, onMove}: RailItemContainerProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [open, setOpen] = useState(false);
+    const {itemId} = entry;
 
     return (
-        <div
-            className='ProductRail__itemWrapper'
-            onContextMenu={(event) => {
-                event.preventDefault();
-                setOpen(true);
-            }}
+        <Draggable
+            draggableId={itemId}
+            index={index}
         >
-            {children}
-            <Menu.Container
-                menuButton={{
-                    id: `product-rail-item-menu-anchor-${itemId}`,
-                    as: ItemMenuAnchor,
-                }}
-                menu={{
-                    id: `productRailItemMenu-${itemId}`,
-                    'aria-label': formatMessage(messages.itemMenuLabel),
-                    isMenuOpen: open,
-                    onToggle: (isOpen) => {
-                        if (!isOpen) {
-                            setOpen(false);
-                        }
-                    },
-                }}
-                anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-                transformOrigin={{vertical: 'top', horizontal: 'left'}}
-            >
-                <Menu.Item
-                    id={`productRailItemMenu-${itemId}-${hidden ? 'show' : 'hide'}`}
-                    leadingElement={hidden ? <EyeOutlineIcon size={18}/> : <EyeOffOutlineIcon size={18}/>}
-                    labels={<span>{formatMessage(hidden ? messages.alwaysShow : messages.hide)}</span>}
-                    onClick={() => dispatch(setProductRailItemHidden(itemId, !hidden))}
-                />
-            </Menu.Container>
-        </div>
+            {(provided, snapshot) => (
+                <div
+                    ref={provided.innerRef}
+                    {...provided.draggableProps}
+                    {...provided.dragHandleProps}
+
+                    // The link inside takes keyboard focus; the right-click menu moves items by keyboard.
+                    tabIndex={-1}
+                    role={undefined}
+                    className={classNames('ProductRail__itemWrapper', {'ProductRail__itemWrapper--dragging': snapshot.isDragging})}
+                    onContextMenu={(event) => {
+                        event.preventDefault();
+                        setOpen(true);
+                    }}
+                >
+                    <ProductRailItem
+                        id={entry.elementId}
+                        to={entry.to}
+                        onClick={entry.onClick}
+                        icon={entry.icon}
+                        label={entry.label}
+                        active={entry.active}
+                        mentions={entry.mentions}
+                        hasUrgent={entry.hasUrgent}
+                        unread={entry.unread}
+                    />
+                    <Menu.Container
+                        menuButton={{
+                            id: `product-rail-item-menu-anchor-${itemId}`,
+                            as: ItemMenuAnchor,
+                        }}
+                        menu={{
+                            id: `productRailItemMenu-${itemId}`,
+                            'aria-label': formatMessage(messages.itemMenuLabel),
+                            isMenuOpen: open,
+                            onToggle: (isOpen) => {
+                                if (!isOpen) {
+                                    setOpen(false);
+                                }
+                            },
+                        }}
+                        anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+                        transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                    >
+                        {canMoveUp && (
+                            <Menu.Item
+                                id={`productRailItemMenu-${itemId}-moveUp`}
+                                leadingElement={<ArrowUpIcon size={18}/>}
+                                labels={<span>{formatMessage(messages.moveUp)}</span>}
+                                onClick={() => onMove(-1)}
+                            />
+                        )}
+                        {canMoveDown && (
+                            <Menu.Item
+                                id={`productRailItemMenu-${itemId}-moveDown`}
+                                leadingElement={<ArrowDownIcon size={18}/>}
+                                labels={<span>{formatMessage(messages.moveDown)}</span>}
+                                onClick={() => onMove(1)}
+                            />
+                        )}
+                        {entry.hideable && (canMoveUp || canMoveDown) && <Menu.Separator/>}
+                        {entry.hideable && (
+                            <Menu.Item
+                                id={`productRailItemMenu-${itemId}-${hidden ? 'show' : 'hide'}`}
+                                leadingElement={hidden ? <EyeOutlineIcon size={18}/> : <EyeOffOutlineIcon size={18}/>}
+                                labels={<span>{formatMessage(hidden ? messages.alwaysShow : messages.hide)}</span>}
+                                onClick={() => dispatch(setProductRailItemHidden(itemId, !hidden))}
+                            />
+                        )}
+                    </Menu.Container>
+                </div>
+            )}
+        </Draggable>
     );
 }
 
