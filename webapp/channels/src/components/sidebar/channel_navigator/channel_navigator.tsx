@@ -15,7 +15,7 @@ import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
-import type {ChannelKind} from 'types/store/plugins';
+import type {ChannelKind, ProductRailSectionMessages} from 'types/store/plugins';
 
 import ChannelFilter from '../channel_filter';
 
@@ -25,6 +25,9 @@ export type Props = WrappedComponentProps & {
 
     // 'board' while the product rail's Boards item narrows the sidebar.
     channelKind?: ChannelKind;
+
+    // A plugin's rail section's wording, while that section is selected.
+    sectionMessages?: ProductRailSectionMessages;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
@@ -99,13 +102,13 @@ class ChannelNavigator extends React.PureComponent<Props> {
                 <button
                     className={'SidebarChannelNavigator_jumpToButton'}
                     onClick={this.openQuickSwitcher}
-                    aria-label={this.props.intl.formatMessage(channelKindMessages.channelSwitcherLabel[channelKind])}
+                    aria-label={this.props.intl.formatMessage(this.props.sectionMessages?.channelSwitcherLabel ?? channelKindMessages.channelSwitcherLabel[channelKind])}
                     aria-haspopup='dialog'
                     data-testid='SidebarChannelNavigatorButton'
                     id='SidebarChannelNavigatorButton'
                 >
                     <i className='icon icon-magnify'/>
-                    <FormattedMessage {...channelKindMessages.findChannel[channelKind]}/>
+                    <FormattedMessage {...(this.props.sectionMessages?.findChannel ?? channelKindMessages.findChannel[channelKind])}/>
                     <div className={'SidebarChannelNavigator_shortcutText'}>
                         {`${UserAgent.isMac() ? '⌘' : 'Ctrl+'}K`}
                     </div>

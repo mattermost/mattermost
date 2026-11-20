@@ -233,8 +233,10 @@ export type ViewsState = {
     };
 };
 
-// Channels shows channels and DMs, Boards only boards.
-export type ProductRailSection = 'channels' | 'boards';
+// Channels shows channels and DMs, Boards only boards, and a plugin's section (registered with
+// registerProductRailChannelSection, as `plugin:<plugin id>`) only the channels its matcher accepts.
+export type ProductRailSection = 'channels' | 'boards' | PluginProductRailSection;
+export type PluginProductRailSection = `plugin:${string}`;
 
 // A rail item that remembers where the user was: a section, Threads, or a product as `product:<id>`.
 export type ProductRailTab = ProductRailSection | 'threads' | `product:${string}`;

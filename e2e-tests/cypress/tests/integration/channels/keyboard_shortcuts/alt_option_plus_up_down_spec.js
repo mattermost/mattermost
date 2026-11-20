@@ -107,7 +107,7 @@ describe('Keyboard Shortcuts', () => {
                 label = channel.display_name.toLowerCase();
             }
 
-            cy.findByLabelText(label).parent().should(assertion, 'active');
+            cy.findByLabelText(label).closest('.SidebarChannel').should(assertion, 'active');
         }
     }
 });

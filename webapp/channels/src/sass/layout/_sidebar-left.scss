@@ -1237,7 +1237,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
             position: relative;
             display: flex;
             width: 100%;
-            height: 28px;
+            height: 32px;
             align-items: center;
 
             &:hover,
@@ -1321,11 +1321,12 @@ $sidebarOpacityAnimationDuration: 0.15s;
             box-shadow: inset 0 0 0 1px var(--sidebar-text-active-border);
         }
 
+        // On the right, where a channel row keeps its own expand toggle, 16px from the edge.
         &__toggle {
             position: absolute;
             z-index: 1;
-            top: 2px;
-            left: calc(44px + var(--sub-item-depth, 0) * var(--sub-item-indent, 16px) - 22px);
+            top: 4px;
+            right: 16px;
             display: flex;
             width: 24px;
             height: 24px;
@@ -1352,12 +1353,17 @@ $sidebarOpacityAnimationDuration: 0.15s;
             }
         }
 
+        // In line with a channel row's menu button, 16px from the edge, or just before the expand toggle.
         &__menu {
             position: absolute;
             z-index: 1;
-            top: 2px;
-            right: 4px;
+            top: 4px;
+            right: 16px;
             opacity: 0;
+        }
+
+        &__row.hasToggle > .SidebarChannelSubItem__menu {
+            right: 40px;
         }
 
         &__menuButton {
@@ -1393,17 +1399,39 @@ $sidebarOpacityAnimationDuration: 0.15s;
             opacity: 1;
         }
 
+        &__row.hasToggle > .SidebarChannelSubItem__link,
         &__row.hasMenu:hover > .SidebarChannelSubItem__link,
         &__row.hasMenu:focus-within > .SidebarChannelSubItem__link,
         &__row.hasMenu.menuOpen > .SidebarChannelSubItem__link {
-            padding-right: 32px;
+            padding-right: 44px;
         }
 
-        &__icon {
+        &__row.hasToggle.hasMenu:hover > .SidebarChannelSubItem__link,
+        &__row.hasToggle.hasMenu:focus-within > .SidebarChannelSubItem__link,
+        &__row.hasToggle.hasMenu.menuOpen > .SidebarChannelSubItem__link {
+            padding-right: 68px;
+        }
+
+        // With .icon too, so it outranks #SidebarContainer .icon's inherited size, as channel icons do.
+        &__icon,
+        &__icon.icon {
             display: flex;
             flex-shrink: 0;
-            margin-right: 4px;
-            font-size: 16px;
+            margin-right: 6px;
+            font-size: 18px;
+        }
+
+        // An emoji in the icon's place, taking the icon's room: an 18px glyph that compass-icons pad
+        // by 0.2em (3.6px) each side. The emoji is a little smaller, to sit in it.
+        &__emoji {
+            width: 18px;
+            height: 18px;
+            box-sizing: content-box;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3.6px;
+            font-size: 14px;
+            line-height: 1;
         }
 
         &__label {

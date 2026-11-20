@@ -237,6 +237,106 @@ describe('ProductRail', () => {
         });
     });
 
+    describe('with a plugin registering a rail section', () => {
+        const handbook = TestHelper.getChannelMock({id: 'handbook', name: 'handbook', display_name: 'Handbook', team_id: team.id});
+        const docsSection = {
+            id: 'docs-section',
+            pluginId: 'conflux',
+            label: 'Docs',
+            icon: <span>{'docs-icon'}</span>,
+            matcher: (_state: GlobalState, channel: {id: string}) => channel.id === handbook.id,
+        };
+
+        function getDocsState(currentChannelId: string, section: ProductRailSection = 'channels', lastPathByTeam = {}): DeepPartial<GlobalState> {
+            const state = getBoardsState(currentChannelId, section);
+            const channels = state.entities!.channels!;
+            return {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    channels: {
+                        ...channels,
+                        channels: {...channels.channels, [handbook.id]: handbook},
+                        myMembers: {
+                            ...channels.myMembers,
+                            [handbook.id]: TestHelper.getChannelMembershipMock({channel_id: handbook.id, user_id: user.id, mention_count: 7, mention_count_root: 7, msg_count: 0, msg_count_root: 0}, {}),
+                        },
+                        messageCounts: {...channels.messageCounts, [handbook.id]: {total: 5, root: 5}},
+                    },
+                },
+                plugins: {
+                    components: {
+                        Product: [],
+                        ChannelKind: [],
+                        ProductRailChannelSection: [docsSection],
+                    } as unknown as GlobalState['plugins']['components'],
+                },
+                views: {
+                    productRail: {section, lastPathByTeam, lastPathsLoaded: false},
+                },
+            };
+        }
+
+        test('should move a section\'s channel opened from Boards to its own section', () => {
+            const state = getDocsState(handbook.id, 'boards');
+            const {store} = renderAt('/team-one/channels/handbook', {
+                ...state,
+                plugins: {components: {...state.plugins!.components, ChannelKind: [boardKind]} as unknown as GlobalState['plugins']['components']},
+            });
+
+            expect(store.getState().views.productRail.section).toBe('plugin:conflux');
+        });
+
+        test('should show the section after Channels, opening its first channel, and no Boards without boards', () => {
+            renderAt('/team-one/channels/town-square', getDocsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Docs/})).toHaveAttribute('href', '/team-one/channels/handbook');
+            expect(screen.queryByRole('link', {name: /Boards/})).not.toBeInTheDocument();
+        });
+
+        test('should count the section\'s mentions on it and on Channels, which lists its channels too', () => {
+            renderAt('/team-one/channels/town-square', getDocsState(townSquare.id));
+
+            expect(screen.getByRole('link', {name: /Docs/})).toHaveTextContent('7');
+
+            // Town square's 1, the roadmap's 4 (not a board here) and the handbook's 7.
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('12');
+        });
+
+        test('should stay in Channels for a section\'s channel opened there, as Channels lists it too', () => {
+            const {store} = renderAt('/team-one/channels/handbook', getDocsState(handbook.id));
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveAttribute('aria-current', 'page');
+            expect(store.getState().views.productRail.section).toBe('channels');
+        });
+
+        test('should reopen the section saved from the last session, keeping the sub-path to return to', () => {
+            localStorage.setItem(`product_rail_section_${user.id}`, 'plugin:conflux');
+            const {store} = renderAt('/team-one/channels/handbook/pages/abc', getDocsState(handbook.id));
+
+            expect(screen.getByRole('link', {name: /Docs/})).toHaveAttribute('aria-current', 'page');
+            expect(store.getState().views.productRail.section).toBe('plugin:conflux');
+            expect(store.getState().views.productRail.lastPathByTeam['plugin:conflux'][team.id]).toBe('/team-one/channels/handbook/pages/abc');
+        });
+
+        test('should keep the saved section on reload while the plugin doesn\'t yet know the open channel is its own', () => {
+            localStorage.setItem(`product_rail_section_${user.id}`, 'plugin:conflux');
+            const state = getDocsState(handbook.id);
+            const {store} = renderAt('/team-one/channels/handbook/pages/abc', {
+                ...state,
+                plugins: {components: {...state.plugins!.components, ProductRailChannelSection: [{...docsSection, matcher: () => false}]} as unknown as GlobalState['plugins']['components']},
+            });
+
+            expect(store.getState().views.productRail.section).toBe('plugin:conflux');
+        });
+
+        test('should return the section to the page last viewed under it', () => {
+            renderAt('/team-one/channels/town-square', getDocsState(townSquare.id, 'channels', {'plugin:conflux': {[team.id]: '/team-one/channels/handbook/pages/xyz'}}));
+
+            expect(screen.getByRole('link', {name: /Docs/})).toHaveAttribute('href', '/team-one/channels/handbook/pages/xyz');
+        });
+    });
+
     describe('order and boards in Channels', () => {
         test('should list Threads, Channels and Boards with no dividers', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));

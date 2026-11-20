@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type React from 'react';
-import type {IntlShape} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {WebSocketClient} from '@mattermost/client';
@@ -77,6 +77,7 @@ export type PluginsState = {
         ChannelTypeOption: ChannelTypeOptionComponent[];
         ChannelIconOverride: ChannelIconOverrideRegistration[];
         ChannelKind: ChannelKindRegistration[];
+        ProductRailChannelSection: ProductRailChannelSectionRegistration[];
         ChannelComposerBanner: ChannelComposerBannerComponent[];
         EntityCardPart: EntityCardPartComponent[];
         ChannelIntro: ChannelIntroRegistration[];
@@ -518,6 +519,43 @@ export type ChannelKindRegistration = PluginComponent & {
     kind: RegisteredChannelKind;
 };
 
+/**
+ * A product rail item a plugin adds for the channels its matcher accepts (registerProductRailChannelSection).
+ * Choosing it narrows the channel sidebar to those channels, as Boards does for boards.
+ */
+export type ProductRailChannelSectionRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    label: React.ReactNode;
+
+    // A compass glyph name, or an element to render as the icon.
+    icon: IconGlyphTypes | React.ReactNode;
+
+    // Shown at the top of the sidebar while the section has no channels in the team.
+    emptyState?: React.ReactNode;
+
+    // What the sidebar calls its list while the section is selected, as Boards says "BOARDS".
+    sidebarMessages?: ProductRailSectionMessages;
+};
+
+/**
+ * Sidebar wording for a plugin's product rail section, each a message the plugin registered with
+ * registerTranslations (its defaultMessage is used otherwise). Any left out keep the channel wording.
+ */
+export type ProductRailSectionMessages = {
+
+    // The Channels category's header, such as "SPACES".
+    categoryName?: MessageDescriptor;
+
+    // The button at the bottom of the sidebar, such as "Add Spaces". It names the section only
+    // while the menu offers the plugin's own create item (registerSidebarBrowseOrAddChannelMenuAction
+    // with placement 'afterCreateChannel'), which then replaces Create new channel.
+    addChannels?: MessageDescriptor;
+
+    // The quick switcher button's text and accessible label, such as "Find space" and "Find Spaces".
+    findChannel?: MessageDescriptor;
+    channelSwitcherLabel?: MessageDescriptor;
+};
+
 export type ChannelComposerBannerComponent = PluginComponent & {
     component: React.ComponentType<{channel: Channel}>;
 };
@@ -573,6 +611,12 @@ export type ChannelSidebarSubItem = {
 
     /** Compass glyph name. Unknown names are ignored. */
     iconName?: IconGlyphTypes;
+
+    /**
+     * An emoji shown in place of the glyph, such as a page's own icon: the emoji itself (`🚨`) or
+     * a custom emoji's name between colons (`:party-parrot:`).
+     */
+    emoji?: string;
 
     /**
      * Id of another item from the same registration to nest this item under. A missing, unknown,

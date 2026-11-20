@@ -30,6 +30,7 @@ export type ResolvedChannelSidebarSubItem = {
     label: string;
     subpath: string;
     iconName?: IconGlyphTypes;
+    emoji?: string;
 
     /** Key of the parent item. Only set when the parent is in the same registration and the item is not part of a cycle. */
     parentKey?: string;
@@ -89,7 +90,7 @@ function resolveItem(reg: ChannelSidebarSubItemsRegistration, item: unknown): Re
     if (!item || typeof item !== 'object') {
         return null;
     }
-    const {id, label, subpath, iconName, parentId, draggable} = item as Record<string, unknown>;
+    const {id, label, subpath, iconName, emoji, parentId, draggable} = item as Record<string, unknown>;
     if (typeof id !== 'string' || !id || typeof label !== 'string' || !label || typeof subpath !== 'string') {
         return null;
     }
@@ -110,6 +111,9 @@ function resolveItem(reg: ChannelSidebarSubItemsRegistration, item: unknown): Re
     };
     if (isValidIcon(iconName)) {
         resolved.iconName = iconName;
+    }
+    if (typeof emoji === 'string' && emoji.trim()) {
+        resolved.emoji = emoji.trim();
     }
     return {
         item: resolved,
@@ -272,6 +276,7 @@ export function areChannelSidebarSubItemsEqual(
             item.label === other.label &&
             item.subpath === other.subpath &&
             item.iconName === other.iconName &&
+            item.emoji === other.emoji &&
             item.registrationId === other.registrationId &&
             item.parentKey === other.parentKey &&
             item.depth === other.depth &&

@@ -6,6 +6,7 @@ import classNames from 'classnames';
 import React from 'react';
 import type {JSX, KeyboardEvent, MouseEvent} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 
 import {PlusIcon} from '@mattermost/compass-icons/components';
 import {Icon} from '@mattermost/compass-ui/components/icon';
@@ -47,6 +48,9 @@ type Props = {
 
     // 'board' while the product rail's Boards item narrows the sidebar, so the Channels category is named for boards.
     channelKind?: ChannelKind;
+
+    // A plugin's rail section's name for the Channels category, while that section is selected.
+    channelsCategoryName?: MessageDescriptor;
     setChannelRef: (channelId: string, ref: HTMLLIElement) => void;
     handleOpenMoreDirectChannelsModal: (e: Event) => void;
     isNewCategory: boolean;
@@ -342,8 +346,11 @@ export default class SidebarCategory extends React.PureComponent<Props, State> {
 
         let displayName = category.display_name;
         if (category.type !== CategoryTypes.CUSTOM && category.type !== CategoryTypes.MANAGED) {
-            const message = category.type === CategoryTypes.CHANNELS ? channelKindMessages.sidebarCategoryName[this.props.channelKind ?? 'channel'] : categoryNames[category.type as keyof typeof categoryNames];
-            displayName = localizeMessage({id: message.id, defaultMessage: message.defaultMessage});
+            let message: MessageDescriptor = categoryNames[category.type as keyof typeof categoryNames];
+            if (category.type === CategoryTypes.CHANNELS) {
+                message = this.props.channelsCategoryName ?? channelKindMessages.sidebarCategoryName[this.props.channelKind ?? 'channel'];
+            }
+            displayName = localizeMessage({id: message.id as string, defaultMessage: message.defaultMessage as string});
         }
 
         if (category.type === CategoryTypes.MANAGED) {
