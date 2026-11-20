@@ -101,7 +101,117 @@ func (s SqlChannelStore) createInitialSidebarCategoriesT(transaction *sqlxTxWrap
 		}
 	}
 
+	if _, err = s.createAgentsSidebarCategoryT(transaction, userId, teamId); err != nil {
+		return errors.Wrap(err, "createInitialSidebarCategoriesT: failed to create agents category")
+	}
+
 	return nil
+}
+
+// CreateAgentsSidebarCategoryIfNeeded creates the user's Agents category for the team, placed right after the Direct
+// Messages category, if the user has a direct channel with an agent bot and doesn't already have an Agents category.
+// It returns whether the category was created.
+func (s SqlChannelStore) CreateAgentsSidebarCategoryIfNeeded(userId, teamId string) (created bool, err error) {
+	var hasAgentDM bool
+	if err = s.GetReplica().Get(&hasAgentDM, userHasAgentDMQuery, userId); err != nil {
+		return false, errors.Wrap(err, "CreateAgentsSidebarCategoryIfNeeded: failed to check for agent DMs")
+	}
+	if !hasAgentDM {
+		return false, nil
+	}
+
+	transaction, err := s.GetMaster().Begin()
+	if err != nil {
+		return false, errors.Wrap(err, "CreateAgentsSidebarCategoryIfNeeded: begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	created, err = s.createAgentsSidebarCategoryT(transaction, userId, teamId)
+	if err != nil {
+		return false, errors.Wrap(err, "CreateAgentsSidebarCategoryIfNeeded: createAgentsSidebarCategoryT")
+	}
+
+	if err = transaction.Commit(); err != nil {
+		return false, errors.Wrap(err, "CreateAgentsSidebarCategoryIfNeeded: commit_transaction")
+	}
+
+	return created, nil
+}
+
+const userHasAgentDMQuery = `
+	SELECT EXISTS (
+		SELECT 1
+		FROM ChannelMembers
+		JOIN Channels ON Channels.Id = ChannelMembers.ChannelId
+		JOIN ChannelMembers OtherMembers ON OtherMembers.ChannelId = ChannelMembers.ChannelId AND OtherMembers.UserId != ChannelMembers.UserId
+		JOIN Bots ON Bots.UserId = OtherMembers.UserId
+		WHERE ChannelMembers.UserId = ?
+			AND Channels.Type = 'D'
+			AND Channels.DeleteAt = 0
+			AND Bots.IsAgent
+	)`
+
+func (s SqlChannelStore) createAgentsSidebarCategoryT(transaction *sqlxTxWrapper, userId, teamId string) (bool, error) {
+	categories := []*model.SidebarCategory{}
+	query := s.sidebarCategorySelectQuery.
+		Where(sq.Eq{"SidebarCategories.UserId": userId, "SidebarCategories.TeamId": teamId}).
+		OrderBy("SidebarCategories.SortOrder ASC")
+	if err := transaction.SelectBuilder(&categories, query); err != nil {
+		return false, errors.Wrap(err, "createAgentsSidebarCategoryT: failed to select existing categories")
+	}
+
+	dmsIndex := -1
+	for i, category := range categories {
+		switch category.Type {
+		case model.SidebarCategoryAgents:
+			return false, nil
+		case model.SidebarCategoryDirectMessages:
+			dmsIndex = i
+		}
+	}
+	if dmsIndex == -1 {
+		return false, nil
+	}
+
+	var hasAgentDM bool
+	if err := transaction.Get(&hasAgentDM, userHasAgentDMQuery, userId); err != nil {
+		return false, errors.Wrap(err, "createAgentsSidebarCategoryT: failed to check for agent DMs")
+	}
+	if !hasAgentDM {
+		return false, nil
+	}
+
+	agentsCategoryId := fmt.Sprintf("%s_%s_%s", model.SidebarCategoryAgents, userId, teamId)
+	insertQuery := s.getQueryBuilder().Insert("SidebarCategories").
+		Columns("Id, UserId, TeamId, SortOrder, Sorting, Type, DisplayName, Muted, Collapsed").
+		Values(agentsCategoryId, userId, teamId, categories[dmsIndex].SortOrder+model.MinimalSidebarSortDistance, model.SidebarCategorySortRecent, model.SidebarCategoryAgents, "Agents" /* This will be retranslated by the client into the user's locale */, false, false).
+		Suffix("ON CONFLICT (Id) DO NOTHING")
+	result, err := transaction.ExecBuilder(insertQuery)
+	if err != nil {
+		return false, errors.Wrap(err, "createAgentsSidebarCategoryT: failed to insert category")
+	}
+	if inserted, err := result.RowsAffected(); err != nil || inserted == 0 {
+		return false, err
+	}
+
+	order := make([]string, 0, len(categories)+1)
+	for i, category := range categories {
+		order = append(order, category.Id)
+		if i == dmsIndex {
+			order = append(order, agentsCategoryId)
+		}
+	}
+	if err := s.updateSidebarCategoryOrderT(transaction, order); err != nil {
+		return false, errors.Wrap(err, "createAgentsSidebarCategoryT: failed to update category order")
+	}
+
+	return true, nil
+}
+
+// isOrphanPopulatedCategory returns true for the categories whose channels are never stored in SidebarChannels,
+// but are instead derived from the channels that are not in any other category.
+func isOrphanPopulatedCategory(categoryType model.SidebarCategoryType) bool {
+	return categoryType == model.SidebarCategoryDirectMessages || categoryType == model.SidebarCategoryAgents
 }
 
 type userMembership struct {
@@ -333,7 +443,7 @@ func (s SqlChannelStore) CreateSidebarCategory(userId, teamId string, newCategor
 }
 
 // completePopulatingCategoryT ensures that any orphaned channels are always included in a sidebar category by adding
-// orphaned channels to either the Channels category or DMs category. It has no effect on other types of categories.
+// orphaned channels to either the Channels, DMs or Agents category. It has no effect on other types of categories.
 func (s SqlChannelStore) completePopulatingCategoryT(db sqlxExecutor, category *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, error) {
 	populatedChannels, err := s.getOrphanedSidebarChannels(
 		db,
@@ -341,6 +451,7 @@ func (s SqlChannelStore) completePopulatingCategoryT(db sqlxExecutor, category *
 		category.TeamId,
 		category.Type == model.SidebarCategoryChannels,
 		category.Type == model.SidebarCategoryDirectMessages,
+		category.Type == model.SidebarCategoryAgents,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to get orphaned sidebar channels")
@@ -354,16 +465,20 @@ func (s SqlChannelStore) completePopulatingCategoryT(db sqlxExecutor, category *
 }
 
 // completePopulatingCategoriesT ensures that any orphaned channels are always included in a sidebar category by adding
-// orphaned channels to either the Channels category or DMs category. It has no effect on other types of categories.
+// orphaned channels to either the Channels, DMs or Agents category. It has no effect on other types of categories.
 func (s SqlChannelStore) completePopulatingCategoriesT(db sqlxExecutor, userId string, teamId string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, error) {
-	// Find the channels and DMs categories to know what to get from the database
+	// Find the channels, DMs and agents categories to know what to get from the database
 	channelsIndex := -1
 	dmsIndex := -1
+	agentsIndex := -1
 	for i, category := range categories {
-		if category.Type == model.SidebarCategoryChannels {
+		switch category.Type {
+		case model.SidebarCategoryChannels:
 			channelsIndex = i
-		} else if category.Type == model.SidebarCategoryDirectMessages {
+		case model.SidebarCategoryDirectMessages:
 			dmsIndex = i
+		case model.SidebarCategoryAgents:
+			agentsIndex = i
 		}
 	}
 
@@ -373,6 +488,7 @@ func (s SqlChannelStore) completePopulatingCategoriesT(db sqlxExecutor, userId s
 		teamId,
 		channelsIndex != -1,
 		dmsIndex != -1,
+		agentsIndex != -1,
 	)
 	if err != nil {
 		return nil, errors.Wrap(err, "Failed to get orphaned sidebar channels")
@@ -382,6 +498,8 @@ func (s SqlChannelStore) completePopulatingCategoriesT(db sqlxExecutor, userId s
 	for _, channel := range populatedChannels {
 		if channelsIndex != -1 && (channel.Type == model.ChannelTypeOpen || channel.Type == model.ChannelTypePrivate) {
 			categories[channelsIndex].Channels = append(categories[channelsIndex].Channels, channel.Id)
+		} else if agentsIndex != -1 && channel.IsAgent {
+			categories[agentsIndex].Channels = append(categories[agentsIndex].Channels, channel.Id)
 		} else if dmsIndex != -1 && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
 			categories[dmsIndex].Channels = append(categories[dmsIndex].Channels, channel.Id)
 		}
@@ -391,20 +509,43 @@ func (s SqlChannelStore) completePopulatingCategoriesT(db sqlxExecutor, userId s
 }
 
 type OrphanedSidebarChannel struct {
-	Id   string
-	Type model.ChannelType
+	Id      string
+	Type    model.ChannelType
+	IsAgent bool
 }
 
+// agentDMCondition is true for direct channels whose other member is an agent bot.
+const agentDMCondition = `(Channels.Type = 'D' AND EXISTS (
+	SELECT 1
+	FROM ChannelMembers OtherMembers
+	JOIN Bots ON Bots.UserId = OtherMembers.UserId
+	WHERE OtherMembers.ChannelId = ChannelMembers.ChannelId
+		AND OtherMembers.UserId != ChannelMembers.UserId
+		AND Bots.IsAgent
+))`
+
 // getOrphanedSidebarChannels returns all of the user's channels on a given team that aren't explicitly in any category.
-func (s SqlChannelStore) getOrphanedSidebarChannels(db sqlxExecutor, userId string, teamId string, selectChannels bool, selectDMs bool) ([]*OrphanedSidebarChannel, error) {
-	if !selectChannels && !selectDMs {
+// Direct channels with an agent bot are only returned for the Agents category, never for the Direct Messages category.
+func (s SqlChannelStore) getOrphanedSidebarChannels(db sqlxExecutor, userId string, teamId string, selectChannels bool, selectDMs bool, selectAgents bool) ([]*OrphanedSidebarChannel, error) {
+	if !selectChannels && !selectDMs && !selectAgents {
 		return nil, nil
 	}
 
 	channelTypeFilter := sq.Or{}
 	if selectDMs {
-		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category
-		channelTypeFilter = append(channelTypeFilter, sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}})
+		// any DM/GM channels that aren't in any category should be returned as part of the Direct Messages category,
+		// except for agent DMs when the user has an Agents category to show them in
+		channelTypeFilter = append(channelTypeFilter, sq.And{
+			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
+			sq.Expr(`NOT (`+agentDMCondition+` AND EXISTS (
+				SELECT 1 FROM SidebarCategories AgentsCategories
+				WHERE AgentsCategories.UserId = ? AND AgentsCategories.TeamId = ? AND AgentsCategories.Type = ?
+			))`, userId, teamId, model.SidebarCategoryAgents),
+		})
+	}
+	if selectAgents {
+		// any agent DM channels that aren't in any category should be returned as part of the Agents category
+		channelTypeFilter = append(channelTypeFilter, sq.Expr(agentDMCondition))
 	}
 	if selectChannels {
 		// any public/private channels that are on the current team and aren't in any category should be returned as part of the Channels category
@@ -429,7 +570,7 @@ func (s SqlChannelStore) getOrphanedSidebarChannels(db sqlxExecutor, userId stri
 
 	channels := []*OrphanedSidebarChannel{}
 	sql, args, err := s.getQueryBuilder().
-		Select("Id, Channels.Type").
+		Select("Id, Channels.Type, " + agentDMCondition + " AS IsAgent").
 		From("ChannelMembers").
 		LeftJoin("Channels ON Channels.Id=ChannelMembers.ChannelId").
 		Where(sq.And{
@@ -625,6 +766,34 @@ func (s SqlChannelStore) UpdateSidebarCategoryOrder(userId, teamId string, categ
 	return nil
 }
 
+// validateAgentsCategoryChannelsT returns an invalid input error unless every given channel is a direct channel
+// between the user and an agent bot.
+func (s SqlChannelStore) validateAgentsCategoryChannelsT(transaction *sqlxTxWrapper, userId string, channelIds []string) error {
+	if len(channelIds) == 0 {
+		return nil
+	}
+
+	query := s.getQueryBuilder().
+		Select("Channels.Id").
+		From("ChannelMembers").
+		Join("Channels ON Channels.Id = ChannelMembers.ChannelId").
+		Where(sq.Eq{"ChannelMembers.UserId": userId, "ChannelMembers.ChannelId": channelIds}).
+		Where(agentDMCondition)
+
+	agentDMIds := []string{}
+	if err := transaction.SelectBuilder(&agentDMIds, query); err != nil {
+		return errors.Wrap(err, "failed to select agent DMs")
+	}
+
+	for _, channelId := range channelIds {
+		if !slices.Contains(agentDMIds, channelId) {
+			return store.NewErrInvalidInput("SidebarCategory", "channel_ids", channelId)
+		}
+	}
+
+	return nil
+}
+
 //nolint:unparam
 func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categories []*model.SidebarCategoryWithChannels) (updated []*model.SidebarCategoryWithChannels, original []*model.SidebarCategoryWithChannels, err error) {
 	transaction, err := s.GetMaster().Begin()
@@ -657,7 +826,13 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 			destCategory.DisplayName = srcCategory.DisplayName
 		}
 
-		if destCategory.Type != model.SidebarCategoryDirectMessages {
+		if destCategory.Type == model.SidebarCategoryAgents {
+			if err2 = s.validateAgentsCategoryChannelsT(transaction, userId, category.Channels); err2 != nil {
+				return nil, nil, err2
+			}
+		}
+
+		if !isOrphanPopulatedCategory(destCategory.Type) {
 			destCategory.Channels = make([]string, len(category.Channels))
 			copy(destCategory.Channels, category.Channels)
 
@@ -721,9 +896,9 @@ func (s SqlChannelStore) UpdateSidebarCategories(userId, teamId string, categori
 		return nil, nil, errors.Wrap(err, "failed to delete SidebarChannels")
 	}
 
-	for _, category := range categories {
-		if category.Type == model.SidebarCategoryDirectMessages {
-			// The order of the DM category isn't stored explicitly, so there's nothing to do here
+	for i, category := range categories {
+		if isOrphanPopulatedCategory(updatedCategories[i].Type) {
+			// The order of the DM and Agents categories isn't stored explicitly, so there's nothing to do here
 			continue
 		}
 

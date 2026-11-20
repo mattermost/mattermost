@@ -109,6 +109,7 @@ func getBotInfoColumns() []string {
 		"b.UserId IS NOT NULL AS IsBot",
 		"COALESCE(b.Description, '') AS BotDescription",
 		"COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate",
+		"COALESCE(b.IsAgent, false) AS IsAgent",
 	}
 }
 
@@ -622,7 +623,7 @@ func (us SqlUserStore) Get(rctx request.CTX, id string) (*model.User, error) {
 		&user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles,
 		&user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate,
 		&user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.MfaUsedTimestamps,
-		&user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate)
+		&user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.IsAgent)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("User", id)
@@ -981,7 +982,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(rctx request.CTX, channelID strin
 	for rows.Next() {
 		var user model.User
 		var props, notifyProps, timezone []byte
-		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.MfaUsedTimestamps, &user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate); err != nil {
+		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.MfaUsedTimestamps, &user.RemoteId, &user.LastLogin, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.IsAgent); err != nil {
 			return nil, errors.Wrap(err, "failed to scan values from rows into User entity")
 		}
 		if err = json.Unmarshal(props, &user.Props); err != nil {

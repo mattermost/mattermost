@@ -862,6 +862,74 @@ func TestSidebarCategoryStoreErrorClassification(t *testing.T) {
 		requireMapped(t, got, http.StatusInternalServerError, cause)
 	})
 
+	t.Run("a failure to create the Agents category does not fail the fetch", func(t *testing.T) {
+		categories := &model.OrderedSidebarCategories{
+			Categories: model.SidebarCategoriesWithChannels{{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryChannels}}},
+		}
+
+		channel := &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategoriesForTeamForUser", mock.Anything, mock.Anything).Return(categories, nil).Once()
+		channel.On("CreateAgentsSidebarCategoryIfNeeded", mock.Anything, mock.Anything).Return(false, plain()).Once()
+		bindChannel(channel)
+		got, appErr := th.App.GetSidebarCategoriesForTeamForUser(th.Context, model.NewId(), model.NewId())
+		require.Nil(t, appErr)
+		assert.Same(t, categories, got)
+
+		channel = &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategories", mock.Anything, mock.Anything).Return(categories, nil).Once()
+		channel.On("CreateAgentsSidebarCategoryIfNeeded", mock.Anything, mock.Anything).Return(false, plain()).Once()
+		bindChannel(channel)
+		got, appErr = th.App.GetSidebarCategories(th.Context, model.NewId(), model.NewId())
+		require.Nil(t, appErr)
+		assert.Same(t, categories, got)
+	})
+
+	t.Run("the Agents category is not looked up again once it exists", func(t *testing.T) {
+		categories := &model.OrderedSidebarCategories{
+			Categories: model.SidebarCategoriesWithChannels{{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryAgents}}},
+		}
+
+		channel := &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategories", mock.Anything, mock.Anything).Return(categories, nil).Once()
+		bindChannel(channel)
+		_, appErr := th.App.GetSidebarCategories(th.Context, model.NewId(), model.NewId())
+		require.Nil(t, appErr)
+		channel.AssertNotCalled(t, "CreateAgentsSidebarCategoryIfNeeded", mock.Anything, mock.Anything)
+	})
+
+	t.Run("a freshly created Agents category is returned", func(t *testing.T) {
+		before := &model.OrderedSidebarCategories{
+			Categories: model.SidebarCategoriesWithChannels{{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryChannels}}},
+		}
+		after := &model.OrderedSidebarCategories{
+			Categories: model.SidebarCategoriesWithChannels{
+				{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryChannels}},
+				{SidebarCategory: model.SidebarCategory{Type: model.SidebarCategoryAgents}},
+			},
+		}
+
+		channel := &storemocks.ChannelStore{}
+		channel.On("GetSidebarCategories", mock.Anything, mock.Anything).Return(before, nil).Once()
+		channel.On("CreateAgentsSidebarCategoryIfNeeded", mock.Anything, mock.Anything).Return(true, nil).Once()
+		channel.On("GetSidebarCategories", mock.Anything, mock.Anything).Return(after, nil).Once()
+		bindChannel(channel)
+		got, appErr := th.App.GetSidebarCategories(th.Context, model.NewId(), model.NewId())
+		require.Nil(t, appErr)
+		assert.Same(t, after, got)
+	})
+
+	t.Run("an invalid Agents category update is a bad request", func(t *testing.T) {
+		cause := invalidInput()
+		channel := &storemocks.ChannelStore{}
+		channel.On("UpdateSidebarCategories", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, cause).Once()
+		bindChannel(channel)
+		_, got := th.App.UpdateSidebarCategories(th.Context, model.NewId(), model.NewId(), nil)
+		require.NotNil(t, got)
+		assert.Equal(t, "app.channel.sidebar_categories.agents_only.app_error", got.Id)
+		assert.Equal(t, http.StatusBadRequest, got.StatusCode)
+		assert.ErrorIs(t, got, cause)
+	})
+
 	t.Run("GetSidebarCategoryOrder", func(t *testing.T) {
 		cause := notFound()
 		channel := &storemocks.ChannelStore{}

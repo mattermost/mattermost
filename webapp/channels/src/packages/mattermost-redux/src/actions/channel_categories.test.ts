@@ -8,6 +8,7 @@ import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {Channel} from '@mattermost/types/channels';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
+import {ChannelCategoryTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getAllCategoriesByIds, getCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
@@ -422,10 +423,14 @@ describe('addChannelToInitialCategory', () => {
                         channelsCategory1: {id: 'channelsCategory1', team_id: 'team1', type: CategoryTypes.CHANNELS, channel_ids: ['publicChannel1', 'privateChannel1']},
                     },
                 },
+                users: {
+                    currentUserId: 'user1',
+                    profiles: {user2: {id: 'user2'}},
+                },
             },
         });
 
-        const newDmChannel: DeepPartial<Channel> = {id: 'newDmChannel', type: General.DM_CHANNEL};
+        const newDmChannel: DeepPartial<Channel> = {id: 'newDmChannel', type: General.DM_CHANNEL, name: 'user1__user2'};
 
         store.dispatch(Actions.addChannelToInitialCategory(newDmChannel as Channel));
 
@@ -433,6 +438,264 @@ describe('addChannelToInitialCategory', () => {
         expect(categoriesById.dmCategory1.channel_ids).toEqual(['newDmChannel', 'dmChannel1', 'dmChannel2']);
         expect(categoriesById.dmCategory2.channel_ids).toEqual(['newDmChannel', 'dmChannel1', 'dmChannel2']);
         expect(categoriesById.channelsCategory1.channel_ids).not.toContain('newDmChannel');
+    });
+
+    describe('DMs with agents', () => {
+        const agentDmChannel: DeepPartial<Channel> = {id: 'agentDm', type: General.DM_CHANNEL, name: 'user1__agent1'};
+
+        test('should add the DM to Agents categories instead of Direct Messages categories', () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            agentsCategory1: {id: 'agentsCategory1', team_id: 'team1', type: CategoryTypes.AGENTS, channel_ids: ['existingAgentDm']},
+                            agentsCategory2: {id: 'agentsCategory2', team_id: 'team2', type: CategoryTypes.AGENTS, channel_ids: []},
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: ['dmChannel1']},
+                            dmCategory2: {id: 'dmCategory2', team_id: 'team2', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: ['dmChannel1']},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {agent1: {id: 'agent1', is_bot: true, is_agent: true}},
+                    },
+                },
+            });
+
+            store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            const categoriesById = getAllCategoriesByIds(store.getState());
+            expect(categoriesById.agentsCategory1.channel_ids).toEqual(['agentDm', 'existingAgentDm']);
+            expect(categoriesById.agentsCategory2.channel_ids).toEqual(['agentDm']);
+            expect(categoriesById.dmCategory1.channel_ids).toEqual(['dmChannel1']);
+            expect(categoriesById.dmCategory2.channel_ids).toEqual(['dmChannel1']);
+        });
+
+        test('should not add the DM to an Agents category on a team where it is in another category', () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            agentsCategory1: {id: 'agentsCategory1', team_id: 'team1', type: CategoryTypes.AGENTS, channel_ids: []},
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                            favorites1: {id: 'favorites1', team_id: 'team1', type: CategoryTypes.FAVORITES, channel_ids: ['agentDm']},
+                            agentsCategory2: {id: 'agentsCategory2', team_id: 'team2', type: CategoryTypes.AGENTS, channel_ids: []},
+                            dmCategory2: {id: 'dmCategory2', team_id: 'team2', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {agent1: {id: 'agent1', is_bot: true, is_agent: true}},
+                    },
+                },
+            });
+
+            store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            const categoriesById = getAllCategoriesByIds(store.getState());
+            expect(categoriesById.agentsCategory1.channel_ids).toEqual([]);
+            expect(categoriesById.agentsCategory2.channel_ids).toEqual(['agentDm']);
+        });
+
+        test('should load the categories of a team that does not have an Agents category yet', async () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: ['dmChannel1']},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {agent1: {id: 'agent1', is_bot: true, is_agent: true}},
+                    },
+                },
+            });
+
+            const serverCategories = [
+                {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: ['dmChannel1']},
+                {id: 'agents_user1_team1', team_id: 'team1', type: CategoryTypes.AGENTS, channel_ids: ['agentDm']},
+            ];
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories').
+                reply(200, {categories: serverCategories, order: serverCategories.map((category) => category.id)});
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories/managed').
+                reply(200, []);
+
+            await store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            const categoriesById = getAllCategoriesByIds(store.getState());
+            expect(categoriesById.agents_user1_team1.channel_ids).toEqual(['agentDm']);
+            expect(categoriesById.dmCategory1.channel_ids).toEqual(['dmChannel1']);
+        });
+
+        test('should keep the DM visible in Direct Messages when the categories can not be loaded', async () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: ['dmChannel1']},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {agent1: {id: 'agent1', is_bot: true, is_agent: true}},
+                    },
+                },
+            });
+
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories').
+                reply(500, {message: 'server error'});
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories/managed').
+                reply(500, {message: 'server error'});
+
+            await store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            expect(getAllCategoriesByIds(store.getState()).dmCategory1.channel_ids).toEqual(['agentDm', 'dmChannel1']);
+        });
+
+        test('should not assume a regular DM when the teammate profile can not be loaded', async () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {},
+                    },
+                },
+            });
+
+            nock(Client4.getBaseRoute()).
+                post('/users/ids').
+                reply(500, {message: 'server error'});
+
+            const serverCategories = [
+                {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                {id: 'agents_user1_team1', team_id: 'team1', type: CategoryTypes.AGENTS, channel_ids: ['agentDm']},
+            ];
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories').
+                reply(200, {categories: serverCategories, order: serverCategories.map((category) => category.id)});
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories/managed').
+                reply(200, []);
+
+            await store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            const categoriesById = getAllCategoriesByIds(store.getState());
+            expect(categoriesById.agents_user1_team1.channel_ids).toEqual(['agentDm']);
+            expect(categoriesById.dmCategory1.channel_ids).toEqual([]);
+        });
+
+        test('should keep changes made to other categories while the categories of another team load', async () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                            dmCategory2: {id: 'dmCategory2', team_id: 'team2', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                            agentsCategory2: {id: 'agentsCategory2', team_id: 'team2', type: CategoryTypes.AGENTS, channel_ids: ['existingAgentDm']},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {agent1: {id: 'agent1', is_bot: true, is_agent: true}},
+                    },
+                },
+            });
+
+            const serverCategories = [
+                {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                {id: 'agents_user1_team1', team_id: 'team1', type: CategoryTypes.AGENTS, channel_ids: ['agentDm']},
+            ];
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories').
+                reply(() => {
+                    store.dispatch({
+                        type: ChannelCategoryTypes.RECEIVED_CATEGORY,
+                        data: {...getAllCategoriesByIds(store.getState()).agentsCategory2, channel_ids: ['movedAgentDm', 'existingAgentDm']},
+                    });
+                    return [200, {categories: serverCategories, order: serverCategories.map((category) => category.id)}];
+                });
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories/managed').
+                reply(200, []);
+
+            await store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            expect(getAllCategoriesByIds(store.getState()).agentsCategory2.channel_ids).toEqual(['agentDm', 'movedAgentDm', 'existingAgentDm']);
+        });
+
+        test('should use the teammate profile as it is after the categories load', async () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                            dmCategory2: {id: 'dmCategory2', team_id: 'team2', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                            agentsCategory2: {id: 'agentsCategory2', team_id: 'team2', type: CategoryTypes.AGENTS, channel_ids: []},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {agent1: {id: 'agent1', is_bot: true, is_agent: true}},
+                    },
+                },
+            });
+
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories').
+                reply(() => {
+                    store.dispatch({
+                        type: UserTypes.RECEIVED_PROFILE,
+                        data: {id: 'agent1', is_bot: true, is_agent: false},
+                    });
+                    return [500, {message: 'server error'}];
+                });
+            nock(Client4.getBaseRoute()).
+                get('/users/user1/teams/team1/channels/categories/managed').
+                reply(500, {message: 'server error'});
+
+            await store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            const categoriesById = getAllCategoriesByIds(store.getState());
+            expect(categoriesById.agentsCategory2.channel_ids).toEqual([]);
+            expect(categoriesById.dmCategory1.channel_ids).toEqual(['agentDm']);
+            expect(categoriesById.dmCategory2.channel_ids).toEqual(['agentDm']);
+        });
+
+        test('should load the teammate profile to tell whether the DM is with an agent', async () => {
+            const store = configureStore({
+                entities: {
+                    channelCategories: {
+                        byId: {
+                            agentsCategory1: {id: 'agentsCategory1', team_id: 'team1', type: CategoryTypes.AGENTS, channel_ids: []},
+                            dmCategory1: {id: 'dmCategory1', team_id: 'team1', type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []},
+                        },
+                    },
+                    users: {
+                        currentUserId: 'user1',
+                        profiles: {},
+                    },
+                },
+            });
+
+            nock(Client4.getBaseRoute()).
+                post('/users/ids').
+                reply(200, [{id: 'agent1', is_bot: true, is_agent: true}]);
+
+            await store.dispatch(Actions.addChannelToInitialCategory(agentDmChannel as Channel));
+
+            const categoriesById = getAllCategoriesByIds(store.getState());
+            expect(categoriesById.agentsCategory1.channel_ids).toEqual(['agentDm']);
+            expect(categoriesById.dmCategory1.channel_ids).toEqual([]);
+        });
     });
 
     test('should do nothing if categories have not been loaded yet for the given team', () => {

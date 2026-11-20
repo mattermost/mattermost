@@ -121,6 +121,7 @@ type User struct {
 	IsBot                  bool        `json:"is_bot,omitempty" xml:"IsBot,omitempty"`
 	BotDescription         string      `json:"bot_description,omitempty" xml:"BotDescription,omitempty"`
 	BotLastIconUpdate      int64       `json:"bot_last_icon_update,omitempty" xml:"BotLastIconUpdate,omitempty"`
+	IsAgent                bool        `json:"is_agent,omitempty" xml:"IsAgent,omitempty"`
 	TermsOfServiceId       string      `json:"terms_of_service_id,omitempty" xml:"TermsOfServiceId,omitempty"`
 	TermsOfServiceCreateAt int64       `json:"terms_of_service_create_at,omitempty" xml:"TermsOfServiceCreateAt,omitempty"`
 	DisableWelcomeEmail    bool        `json:"disable_welcome_email" xml:"DisableWelcomeEmail"`

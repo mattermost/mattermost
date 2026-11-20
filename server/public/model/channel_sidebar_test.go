@@ -37,6 +37,11 @@ func TestIsValidCategoryId(t *testing.T) {
 			Expected: true,
 		},
 		{
+			Name:     "should accept an agents ID",
+			Input:    fmt.Sprintf("agents_%s_%s", NewId(), NewId()),
+			Expected: true,
+		},
+		{
 			Name:     "should reject a garbage ID",
 			Input:    "a garbage ID",
 			Expected: false,

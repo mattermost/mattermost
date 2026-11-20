@@ -131,4 +131,51 @@ describe('components/sidebar/sidebar_category/sidebar_category_menu', () => {
 
         expect(screen.getByRole('menuitem', {name: /mute category/i})).toBeInTheDocument();
     });
+
+    test('should show correct menu items when category is agents', async () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.AGENTS,
+                sorting: CategorySorting.Recency,
+            },
+        };
+
+        renderWithContext(
+            <SidebarCategoryMenu {...props}/>,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: /custom_category_1 category options/i}));
+
+        expect(screen.queryByRole('menuitem', {name: /mute category/i})).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: /rename category/i})).not.toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: /delete category/i})).not.toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /sort/i})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /create new category/i})).toBeInTheDocument();
+    });
+
+    test('should not offer manual sorting for agents', async () => {
+        const props = {
+            ...baseProps,
+            category: {
+                ...baseProps.category,
+                type: CategoryTypes.AGENTS,
+                sorting: CategorySorting.Recency,
+            },
+        };
+
+        renderWithContext(
+            <SidebarCategoryMenu {...props}/>,
+            initialState,
+        );
+
+        await userEvent.click(screen.getByRole('button', {name: /custom_category_1 category options/i}));
+        await userEvent.click(screen.getByRole('menuitem', {name: /sort/i}));
+
+        expect(screen.getByRole('menuitem', {name: /alphabetically/i})).toBeInTheDocument();
+        expect(screen.getByRole('menuitem', {name: /recent activity/i})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: /manually/i})).not.toBeInTheDocument();
+    });
 });

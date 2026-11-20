@@ -22,6 +22,8 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {shouldShowUnreadsCategory, isCollapsedThreadsEnabled, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {isAgentDirectChannel} from 'mattermost-redux/utils/channel_utils';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import {filterChannelIdsForSection, getBoardChannelIds, getProductRailFilter} from 'selectors/views/product_rail';
@@ -225,6 +227,17 @@ export const getDisplayedChannels = createSelector(
         }
 
         return channelsInCategoryOrder;
+    },
+);
+
+// Returns the ids of the displayed channels that are direct messages with an agent.
+export const getDisplayedAgentChannelIds = createSelector(
+    'getDisplayedAgentChannelIds',
+    getDisplayedChannels,
+    getCurrentUserId,
+    (state: GlobalState) => state.entities.users.profiles,
+    (channels, currentUserId, profiles) => {
+        return channels.filter((channel) => isAgentDirectChannel(channel, currentUserId, profiles)).map((channel) => channel.id);
     },
 );
 

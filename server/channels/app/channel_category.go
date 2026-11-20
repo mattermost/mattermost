@@ -6,6 +6,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -24,6 +25,32 @@ func (a *App) createInitialSidebarCategories(rctx request.CTX, userID string, te
 	return categories, nil
 }
 
+// ensureAgentsSidebarCategory lazily creates the Agents category the first time the user has a direct channel with an
+// agent bot, and returns the refreshed categories when it did.
+func (a *App) ensureAgentsSidebarCategory(rctx request.CTX, userID, teamID string, categories *model.OrderedSidebarCategories, refetch func(userID, teamID string) (*model.OrderedSidebarCategories, error)) (*model.OrderedSidebarCategories, error) {
+	for _, category := range categories.Categories {
+		if category.Type == model.SidebarCategoryAgents {
+			return categories, nil
+		}
+	}
+
+	created, err := a.Srv().Store().Channel().CreateAgentsSidebarCategoryIfNeeded(userID, teamID)
+	if err != nil {
+		// Agent DMs stay in Direct Messages until the category exists, so the sidebar is still usable.
+		rctx.Logger().Warn("Failed to create the Agents sidebar category", mlog.String("user_id", userID), mlog.String("team_id", teamID), mlog.Err(err))
+		return categories, nil
+	}
+	if !created {
+		return categories, nil
+	}
+
+	message := model.NewWebSocketEvent(model.WebsocketEventSidebarCategoryCreated, teamID, "", userID, nil, "")
+	message.Add("category_id", fmt.Sprintf("%s_%s_%s", model.SidebarCategoryAgents, userID, teamID))
+	a.Publish(message)
+
+	return refetch(userID, teamID)
+}
+
 func (a *App) GetSidebarCategoriesForTeamForUser(rctx request.CTX, userID, teamID string) (*model.OrderedSidebarCategories, *model.AppError) {
 	var appErr *model.AppError
 	categories, err := a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser(userID, teamID)
@@ -33,6 +60,8 @@ func (a *App) GetSidebarCategoriesForTeamForUser(rctx request.CTX, userID, teamI
 		if appErr != nil {
 			return nil, appErr
 		}
+	} else if err == nil {
+		categories, err = a.ensureAgentsSidebarCategory(rctx, userID, teamID, categories, a.Srv().Store().Channel().GetSidebarCategoriesForTeamForUser)
 	}
 
 	if err != nil {
@@ -54,6 +83,8 @@ func (a *App) GetSidebarCategories(rctx request.CTX, userID string, teamID strin
 		if appErr != nil {
 			return nil, appErr
 		}
+	} else if err == nil {
+		categories, err = a.ensureAgentsSidebarCategory(rctx, userID, teamID, categories, a.Srv().Store().Channel().GetSidebarCategories)
 	}
 
 	if err != nil {
@@ -123,6 +154,9 @@ func (a *App) UpdateSidebarCategoryOrder(rctx request.CTX, userID, teamID string
 func (a *App) UpdateSidebarCategories(rctx request.CTX, userID, teamID string, categories []*model.SidebarCategoryWithChannels) ([]*model.SidebarCategoryWithChannels, *model.AppError) {
 	updatedCategories, originalCategories, err := a.Srv().Store().Channel().UpdateSidebarCategories(userID, teamID, categories)
 	if err != nil {
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
+			return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.agents_only.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 		return nil, model.NewAppError("UpdateSidebarCategories", "app.channel.sidebar_categories.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

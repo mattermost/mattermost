@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ChannelCategoryType} from '@mattermost/types/channel_categories';
 import type {Channel, ChannelType, ChannelMembership, ChannelNotifyProps, ChannelMessageCount} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {GlobalState} from '@mattermost/types/store';
@@ -118,6 +119,35 @@ export function getUserIdFromChannelName(userId: string, channelName: string): s
 
 export function isDirectChannel(channel: Channel): boolean {
     return channel.type === General.DM_CHANNEL;
+}
+
+// isAgentDirectChannel returns whether the channel is a direct message with an agent bot. The other user's profile
+// must be loaded for this to be known.
+export function isAgentDirectChannel(channel: Channel | undefined, currentUserId: string, profiles: IDMappedObjects<UserProfile>): boolean {
+    if (!channel || channel.type !== General.DM_CHANNEL) {
+        return false;
+    }
+
+    return Boolean(profiles[getUserIdFromChannelName(currentUserId, channel.name)]?.is_agent);
+}
+
+// canChannelBeInCategoryType returns whether a channel can be moved into a category of the given type. DMs and GMs can't
+// go in Channels, channels can't go in Direct Messages, and the Agents category only holds DMs with agents which in
+// turn never go in Direct Messages.
+export function canChannelBeInCategoryType(channel: Channel, categoryType: ChannelCategoryType, isAgentDM: boolean): boolean {
+    const isDMGM = channel.type === General.DM_CHANNEL || channel.type === General.GM_CHANNEL;
+
+    switch (categoryType) {
+    case 'custom':
+    case 'favorites':
+        return true;
+    case 'agents':
+        return isAgentDM;
+    case 'direct_messages':
+        return isDMGM && !isAgentDM;
+    default:
+        return !isDMGM;
+    }
 }
 
 export function isGroupChannel(channel: Channel): boolean {

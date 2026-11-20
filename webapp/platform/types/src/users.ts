@@ -58,6 +58,7 @@ export type UserProfile = {
     last_activity_at: number;
     is_bot: boolean;
     bot_description: string;
+    is_agent?: boolean;
     terms_of_service_id: string;
     terms_of_service_create_at: number;
     remote_id?: string;

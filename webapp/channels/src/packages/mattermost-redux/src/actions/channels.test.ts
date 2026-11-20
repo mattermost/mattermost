@@ -1810,6 +1810,117 @@ describe('Actions.Channels', () => {
         expect(state.entities.channelCategories.byId.channelsCategory.channel_ids).toEqual([channel.id]);
     });
 
+    it('unfavoriteChannel should return an agent DM to the Agents category', async () => {
+        const team = TestHelper.basicTeam!;
+        const currentUserId = TestHelper.generateId();
+        const agentId = TestHelper.generateId();
+        const agentDm = TestHelper.fakeChannelWithId('');
+        agentDm.type = General.DM_CHANNEL;
+        agentDm.team_id = '';
+        agentDm.name = `${currentUserId}__${agentId}`;
+
+        const favoritesCategory = {id: 'favoritesCategory', team_id: team.id, type: CategoryTypes.FAVORITES, channel_ids: [agentDm.id]};
+        const agentsCategory = {id: 'agentsCategory', team_id: team.id, type: CategoryTypes.AGENTS, channel_ids: []};
+        const dmCategory = {id: 'dmCategory', team_id: team.id, type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []};
+
+        store = configureStore({
+            entities: {
+                channels: {
+                    channels: {
+                        [agentDm.id]: agentDm,
+                    },
+                },
+                channelCategories: {
+                    byId: {
+                        favoritesCategory,
+                        agentsCategory,
+                        dmCategory,
+                    },
+                    orderByTeam: {
+                        [team.id]: ['favoritesCategory', 'agentsCategory', 'dmCategory'],
+                    },
+                },
+                teams: {
+                    currentTeamId: team.id,
+                },
+                users: {
+                    currentUserId,
+                    profiles: {
+                        [agentId]: {id: agentId, is_bot: true, is_agent: true},
+                    },
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            put(`/users/${currentUserId}/teams/${team.id}/channels/categories`).
+            reply(200, [
+                {...favoritesCategory, channel_ids: []},
+                {...agentsCategory, channel_ids: [agentDm.id]},
+            ]);
+
+        await store.dispatch(Actions.unfavoriteChannel(agentDm.id));
+
+        const state = store.getState();
+        expect(state.entities.channelCategories.byId.favoritesCategory.channel_ids).toEqual([]);
+        expect(state.entities.channelCategories.byId.agentsCategory.channel_ids).toEqual([agentDm.id]);
+        expect(state.entities.channelCategories.byId.dmCategory.channel_ids).toEqual([]);
+    });
+
+    it('unfavoriteChannel should return an agent DM to Direct Messages while there is no Agents category', async () => {
+        const team = TestHelper.basicTeam!;
+        const currentUserId = TestHelper.generateId();
+        const agentId = TestHelper.generateId();
+        const agentDm = TestHelper.fakeChannelWithId('');
+        agentDm.type = General.DM_CHANNEL;
+        agentDm.team_id = '';
+        agentDm.name = `${currentUserId}__${agentId}`;
+
+        const favoritesCategory = {id: 'favoritesCategory', team_id: team.id, type: CategoryTypes.FAVORITES, channel_ids: [agentDm.id]};
+        const dmCategory = {id: 'dmCategory', team_id: team.id, type: CategoryTypes.DIRECT_MESSAGES, channel_ids: []};
+
+        store = configureStore({
+            entities: {
+                channels: {
+                    channels: {
+                        [agentDm.id]: agentDm,
+                    },
+                },
+                channelCategories: {
+                    byId: {
+                        favoritesCategory,
+                        dmCategory,
+                    },
+                    orderByTeam: {
+                        [team.id]: ['favoritesCategory', 'dmCategory'],
+                    },
+                },
+                teams: {
+                    currentTeamId: team.id,
+                },
+                users: {
+                    currentUserId,
+                    profiles: {
+                        [agentId]: {id: agentId, is_bot: true, is_agent: true},
+                    },
+                },
+            },
+        });
+
+        nock(Client4.getBaseRoute()).
+            put(`/users/${currentUserId}/teams/${team.id}/channels/categories`).
+            reply(200, [
+                {...favoritesCategory, channel_ids: []},
+                {...dmCategory, channel_ids: [agentDm.id]},
+            ]);
+
+        await store.dispatch(Actions.unfavoriteChannel(agentDm.id));
+
+        const state = store.getState();
+        expect(state.entities.channelCategories.byId.favoritesCategory.channel_ids).toEqual([]);
+        expect(state.entities.channelCategories.byId.dmCategory.channel_ids).toEqual([agentDm.id]);
+    });
+
     it('autocompleteChannels', async () => {
         const prefix = TestHelper.basicChannel!.name.slice(0, 5);
 
