@@ -27,6 +27,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/healthchecktest"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
@@ -259,6 +260,7 @@ func TestBuildHealthSnapshotSkipsLatestVersionWithSecurityAlertsOff(t *testing.T
 // node-2 runs this server's own collectors and packet writers, under its own hostname.
 type parityCluster struct {
 	captureClusterMock
+	t  *testing.T
 	ps *platform.PlatformService
 }
 
@@ -284,8 +286,12 @@ func (c *parityCluster) leaderDiagnostics(rctx request.CTX) (*model.NodeDiagnost
 	return diagnostics, err
 }
 
+// CollectHealthDiagnostics may run off the test goroutine, so it asserts rather than requires.
 func (c *parityCluster) CollectHealthDiagnostics(rctx request.CTX) map[string]*model.NodeDiagnostics {
-	diagnostics, _ := c.leaderDiagnostics(rctx)
+	diagnostics, err := c.leaderDiagnostics(rctx)
+	if !assert.NoError(c.t, err, "collecting the leader's diagnostics") {
+		return nil
+	}
 	return map[string]*model.NodeDiagnostics{"id-2": diagnostics}
 }
 
@@ -320,7 +326,7 @@ func TestHealthSnapshotLiveOfflineParity(t *testing.T) {
 	})
 
 	t.Run("ha", func(t *testing.T) {
-		cluster := &parityCluster{}
+		cluster := &parityCluster{t: t}
 		th := SetupWithClusterMock(t, cluster)
 		cluster.ps = th.App.Srv().Platform()
 		th.App.UpdateConfig(func(cfg *model.Config) {
@@ -431,7 +437,12 @@ func testHealthSnapshotLiveOfflineParity(t *testing.T, th *TestHelper, packetNod
 
 		evaluations := engine.Evaluate(snapshot)
 		for i := range evaluations {
-			if slices.Contains(healthcheck.SampledCodes, evaluations[i].Code) {
+			switch evaluations[i].Code {
+			case "NODE_FD_EXHAUSTION", "FILESTORE_DISK_LOW", "FILESTORE_DISK_FULL", "DB_POOL_SATURATED":
+				// The test server always has these measurements, so both sides must report one.
+				require.NotNil(t, evaluations[i].Result.Value, evaluations[i].Code)
+			}
+			if slices.Contains(healthchecktest.SampledCodes, evaluations[i].Code) {
 				evaluations[i].Result.Value = nil
 				evaluations[i].Result.Details = nil
 			}

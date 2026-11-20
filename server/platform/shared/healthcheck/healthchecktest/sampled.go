@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-package healthcheck
+// Package healthchecktest holds helpers for tests of the health check, shared by the packages
+// that compare a live check with a Support Packet.
+package healthchecktest
 
 // SampledCodes are the rules whose value and details come from what a node measures when its
 // diagnostics are collected, so two collections of the same server can disagree on them. Tests
