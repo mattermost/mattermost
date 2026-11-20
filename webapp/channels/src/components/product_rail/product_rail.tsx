@@ -9,8 +9,10 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, matchPath, useHistory, useLocation} from 'react-router-dom';
 
-import glyphMap, {ArrowDownIcon, ArrowUpIcon, DotsHorizontalIcon, EyeOffOutlineIcon, EyeOutlineIcon, MessageTextOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {DotsHorizontalIcon, MessageTextOutlineIcon, PinOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
@@ -76,37 +78,32 @@ const messages = defineMessages({
     more: {
         id: 'product_rail.more',
         defaultMessage: 'More',
-        description: 'Label under the three-dots item at the end of the product navigation rail. It opens a menu of the products the user hid from the rail.',
+        description: 'Label under the three-dots item at the end of the product navigation rail. It opens a menu of the products the user unpinned from the rail.',
     },
     moreMenuLabel: {
         id: 'product_rail.moreMenu.label',
         defaultMessage: 'More products',
-        description: 'Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user hid from the rail.',
+        description: 'Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user unpinned from the rail.',
     },
     itemMenuLabel: {
         id: 'product_rail.itemMenu.label',
         defaultMessage: 'Product options',
-        description: 'Accessible name of the menu opened by right-clicking an item, such as Channels, Boards or Playbooks, in the product navigation rail.',
+        description: 'Accessible name of the menu opened by right-clicking a product, such as Boards or Playbooks, in the product navigation rail.',
     },
-    hide: {
-        id: 'product_rail.itemMenu.hide',
-        defaultMessage: 'Hide',
-        description: 'Item in the right-click menu of a product in the product navigation rail. It moves the product into the More menu at the end of the rail.',
+    unpin: {
+        id: 'product_rail.itemMenu.unpin',
+        defaultMessage: 'Unpin',
+        description: 'Item in the right-click menu of a product, such as Boards or Playbooks, in the product navigation rail. It takes the product off the rail and into the More menu at the end of it.',
     },
-    moveUp: {
-        id: 'product_rail.itemMenu.moveUp',
-        defaultMessage: 'Move up',
-        description: 'Item in the right-click menu of an item in the product navigation rail, such as Channels or Playbooks. It moves the item one place up in the rail.',
+    pin: {
+        id: 'product_rail.itemMenu.pin',
+        defaultMessage: 'Pin',
+        description: 'Item in the right-click menu of an unpinned product, shown in the product navigation rail only while it is open. It pins the product back on the rail, out of the More menu.',
     },
-    moveDown: {
-        id: 'product_rail.itemMenu.moveDown',
-        defaultMessage: 'Move down',
-        description: 'Item in the right-click menu of an item in the product navigation rail, such as Channels or Playbooks. It moves the item one place down in the rail.',
-    },
-    alwaysShow: {
-        id: 'product_rail.itemMenu.alwaysShow',
-        defaultMessage: 'Always show',
-        description: 'Item in the right-click menu of a hidden product, shown in the product navigation rail only while it is open. It puts the product back in the rail for good, out of the More menu.',
+    pinProduct: {
+        id: 'product_rail.moreMenu.pin',
+        defaultMessage: 'Pin {name}',
+        description: 'Accessible name of the pin button at the end of a row in the More menu of the product navigation rail. {name} is the product, such as Playbooks. It pins the product back on the rail.',
     },
 });
 
@@ -200,6 +197,7 @@ export default function ProductRail() {
 
     const channelMatch = matchPath<{team: string; path: string; identifier: string}>(pathname, {path: channelRoutePath});
     const inThreads = matchPath(pathname, {path: threadsRoutePath}) !== null;
+    const urlChannelPath = channelMatch ? `/${channelMatch.params.team}/${channelMatch.params.path}/${channelMatch.params.identifier}` : null;
 
     // The rail item the user is under now, and the path to return them to. A channel is recorded
     // only once the open channel matches the URL: while switching, the URL moves first, and the
@@ -282,7 +280,16 @@ export default function ProductRail() {
 
     useEffect(() => {
         const awaitedPath = awaitingBoardAt.current;
-        if (!awaitedPath || !viewedTab) {
+        if (!awaitedPath) {
+            return;
+        }
+
+        // While the channel loads (the URL is there before the open channel catches up), keep
+        // waiting; leaving for a page outside the rail's items, such as Integrations, stops it.
+        if (!viewedTab) {
+            if (urlChannelPath !== awaitedPath) {
+                awaitingBoardAt.current = null;
+            }
             return;
         }
 
@@ -296,7 +303,7 @@ export default function ProductRail() {
             awaitingBoardAt.current = null;
             history.replace(`/${currentTeam.name}/channels/${firstBoard.name}`);
         }
-    }, [viewedTab, viewedPath, section, currentChannelIsBoard, firstBoard, currentTeam, history]);
+    }, [viewedTab, viewedPath, urlChannelPath, section, currentChannelIsBoard, firstBoard, currentTeam, history]);
 
     // Saved only once the earlier paths are restored, so they're never overwritten unseen.
     useEffect(() => {
@@ -432,32 +439,25 @@ export default function ProductRail() {
         sort((a, b) => a.rank - b.rank).
         map(({entry}) => entry);
 
-    // Boards and products can be hidden; a hidden one stays in the rail while it's open, so the
+    // Boards and products can be unpinned; an unpinned one stays in the rail while it's open, so the
     // user can see where they are, and is otherwise listed in the More menu at the end.
     const hiddenItemIds = new Set(hiddenItems);
     const isInMore = (entry: RailEntry) => entry.hideable === true && hiddenItemIds.has(entry.itemId) && !entry.active;
     const railItems = orderedEntries.filter((entry) => !isInMore(entry));
     const moreItems = orderedEntries.filter(isInMore);
 
-    // Moves an item among those on the rail, keeping the items in More where they were relative to it.
-    const moveItem = (fromIndex: number, toIndex: number) => {
-        if (fromIndex === toIndex || toIndex < 0 || toIndex >= railItems.length) {
+    const onDragEnd = (result: DropResult) => {
+        if (!result.destination) {
             return;
         }
-        const railIds = railItems.map((entry) => entry.itemId);
-        const [movedId] = railIds.splice(fromIndex, 1);
-        railIds.splice(toIndex, 0, movedId);
-
-        const order = orderedEntries.map((entry) => entry.itemId).filter((itemId) => itemId !== movedId);
-        const nextId = railIds[toIndex + 1];
-        const insertAt = nextId ? order.indexOf(nextId) : order.indexOf(railIds[toIndex - 1]) + 1;
-        order.splice(insertAt, 0, movedId);
-        dispatch(setProductRailOrder(order));
-    };
-
-    const onDragEnd = (result: DropResult) => {
-        if (result.destination) {
-            moveItem(result.source.index, result.destination.index);
+        const order = moveRailItem(
+            orderedEntries.map((entry) => entry.itemId),
+            railItems.map((entry) => entry.itemId),
+            result.source.index,
+            result.destination.index,
+        );
+        if (order) {
+            dispatch(setProductRailOrder(order));
         }
     };
 
@@ -481,9 +481,6 @@ export default function ProductRail() {
                                     entry={entry}
                                     index={index}
                                     hidden={hiddenItemIds.has(entry.itemId)}
-                                    canMoveUp={index > 0}
-                                    canMoveDown={index < railItems.length - 1}
-                                    onMove={(offset) => moveItem(index, index + offset)}
                                 />
                             ))}
                             {droppableProvided.placeholder}
@@ -513,6 +510,8 @@ export default function ProductRail() {
                     }}
                     menu={{
                         id: 'productRailMoreMenu',
+                        className: 'ProductRail__moreMenu',
+                        width: '248px',
                         'aria-label': formatMessage(messages.moreMenuLabel),
                     }}
                     anchorOrigin={{vertical: 'top', horizontal: 'right'}}
@@ -524,7 +523,22 @@ export default function ProductRail() {
                             id={`productRailMoreMenu-${entry.itemId}`}
                             leadingElement={<span className='ProductRail__menuIcon'>{entry.icon}</span>}
                             labels={<span>{entry.label}</span>}
-                            trailingElements={renderMenuIndicator(entry)}
+                            trailingElements={(
+                                <>
+                                    {renderMenuIndicator(entry)}
+                                    <IconButton
+                                        size='x-small'
+                                        className='ProductRail__pinButton'
+                                        icon={<Icon glyph={<PinOutlineIcon/>}/>}
+                                        aria-label={typeof entry.label === 'string' ? formatMessage(messages.pinProduct, {name: entry.label}) : formatMessage(messages.pin)}
+                                        onClick={(event) => {
+                                            // Pins without opening the product, and leaves the menu open.
+                                            event.stopPropagation();
+                                            dispatch(setProductRailItemHidden(entry.itemId, false));
+                                        }}
+                                    />
+                                </>
+                            )}
                             onClick={() => {
                                 entry.onClick?.();
                                 history.push(entry.to);
@@ -550,7 +564,7 @@ type RailEntry = {
     label: React.ReactNode;
     active: boolean;
 
-    // Boards and products can be moved into the More menu; Threads and Channels always show.
+    // Boards and products can be unpinned into the More menu; Threads and Channels always show.
     hideable?: boolean;
     mentions?: number;
     hasUrgent?: boolean;
@@ -571,15 +585,12 @@ type RailItemContainerProps = {
     entry: RailEntry;
     index: number;
     hidden: boolean;
-    canMoveUp: boolean;
-    canMoveDown: boolean;
-    onMove: (offset: -1 | 1) => void;
 };
 
-// A rail item the user can drag to reorder, with a right-click (or context menu key) menu to move
-// it up or down and, for Boards and products, to hide it, or put a hidden one shown while it's open
-// back in the rail for good.
-function RailItemContainer({entry, index, hidden, canMoveUp, canMoveDown, onMove}: RailItemContainerProps) {
+// A rail item the user can drag to reorder. Boards and products also have a right-click (or
+// context menu key) menu to unpin them into the More menu, or to pin an unpinned one shown while
+// it's open back on the rail.
+function RailItemContainer({entry, index, hidden}: RailItemContainerProps) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const [open, setOpen] = useState(false);
@@ -596,14 +607,14 @@ function RailItemContainer({entry, index, hidden, canMoveUp, canMoveDown, onMove
                     {...provided.draggableProps}
                     {...provided.dragHandleProps}
 
-                    // The link inside takes keyboard focus; the right-click menu moves items by keyboard.
+                    // The link inside takes keyboard focus.
                     tabIndex={-1}
                     role={undefined}
                     className={classNames('ProductRail__itemWrapper', {'ProductRail__itemWrapper--dragging': snapshot.isDragging})}
-                    onContextMenu={(event) => {
+                    onContextMenu={entry.hideable ? (event) => {
                         event.preventDefault();
                         setOpen(true);
-                    }}
+                    } : undefined}
                 >
                     <ProductRailItem
                         id={entry.elementId}
@@ -616,54 +627,57 @@ function RailItemContainer({entry, index, hidden, canMoveUp, canMoveDown, onMove
                         hasUrgent={entry.hasUrgent}
                         unread={entry.unread}
                     />
-                    <Menu.Container
-                        menuButton={{
-                            id: `product-rail-item-menu-anchor-${itemId}`,
-                            as: ItemMenuAnchor,
-                        }}
-                        menu={{
-                            id: `productRailItemMenu-${itemId}`,
-                            'aria-label': formatMessage(messages.itemMenuLabel),
-                            isMenuOpen: open,
-                            onToggle: (isOpen) => {
-                                if (!isOpen) {
-                                    setOpen(false);
-                                }
-                            },
-                        }}
-                        anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-                        transformOrigin={{vertical: 'top', horizontal: 'left'}}
-                    >
-                        {canMoveUp && (
+                    {entry.hideable && (
+                        <Menu.Container
+                            menuButton={{
+                                id: `product-rail-item-menu-anchor-${itemId}`,
+                                as: ItemMenuAnchor,
+                            }}
+                            menu={{
+                                id: `productRailItemMenu-${itemId}`,
+                                'aria-label': formatMessage(messages.itemMenuLabel),
+                                isMenuOpen: open,
+                                onToggle: (isOpen) => {
+                                    if (!isOpen) {
+                                        setOpen(false);
+                                    }
+                                },
+                            }}
+                            anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+                            transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                        >
                             <Menu.Item
-                                id={`productRailItemMenu-${itemId}-moveUp`}
-                                leadingElement={<ArrowUpIcon size={18}/>}
-                                labels={<span>{formatMessage(messages.moveUp)}</span>}
-                                onClick={() => onMove(-1)}
-                            />
-                        )}
-                        {canMoveDown && (
-                            <Menu.Item
-                                id={`productRailItemMenu-${itemId}-moveDown`}
-                                leadingElement={<ArrowDownIcon size={18}/>}
-                                labels={<span>{formatMessage(messages.moveDown)}</span>}
-                                onClick={() => onMove(1)}
-                            />
-                        )}
-                        {entry.hideable && (canMoveUp || canMoveDown) && <Menu.Separator/>}
-                        {entry.hideable && (
-                            <Menu.Item
-                                id={`productRailItemMenu-${itemId}-${hidden ? 'show' : 'hide'}`}
-                                leadingElement={hidden ? <EyeOutlineIcon size={18}/> : <EyeOffOutlineIcon size={18}/>}
-                                labels={<span>{formatMessage(hidden ? messages.alwaysShow : messages.hide)}</span>}
+                                id={`productRailItemMenu-${itemId}-${hidden ? 'pin' : 'unpin'}`}
+                                leadingElement={<PinOutlineIcon size={18}/>}
+                                labels={<span>{formatMessage(hidden ? messages.pin : messages.unpin)}</span>}
                                 onClick={() => dispatch(setProductRailItemHidden(itemId, !hidden))}
                             />
-                        )}
-                    </Menu.Container>
+                        </Menu.Container>
+                    )}
                 </div>
             )}
         </Draggable>
     );
+}
+
+/**
+ * The rail's full order after dragging the item at fromIndex among those on the rail (railIds) to
+ * toIndex, or null if it doesn't move. Items in the More menu, which orderedIds includes but the
+ * rail doesn't, keep their places relative to the rest.
+ */
+export function moveRailItem(orderedIds: string[], railIds: string[], fromIndex: number, toIndex: number): string[] | null {
+    if (fromIndex === toIndex || toIndex < 0 || toIndex >= railIds.length) {
+        return null;
+    }
+    const nextRailIds = [...railIds];
+    const [movedId] = nextRailIds.splice(fromIndex, 1);
+    nextRailIds.splice(toIndex, 0, movedId);
+
+    const order = orderedIds.filter((itemId) => itemId !== movedId);
+    const nextId = nextRailIds[toIndex + 1];
+    const insertAt = nextId ? order.indexOf(nextId) : order.indexOf(nextRailIds[toIndex - 1]) + 1;
+    order.splice(insertAt, 0, movedId);
+    return order;
 }
 
 const formatMentionCount = (mentions: number) => (mentions > 99 ? '99+' : String(mentions));

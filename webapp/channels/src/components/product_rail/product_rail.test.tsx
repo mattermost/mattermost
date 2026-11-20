@@ -18,7 +18,7 @@ import type {GlobalState} from 'types/store';
 import type {ProductComponent} from 'types/store/plugins';
 import type {ProductRailSection} from 'types/store/views';
 
-import ProductRail from './product_rail';
+import ProductRail, {moveRailItem} from './product_rail';
 
 jest.mock('mattermost-redux/actions/threads', () => ({
     getThreadCounts: () => ({type: 'MOCK_GET_THREAD_COUNTS'}),
@@ -456,6 +456,39 @@ describe('ProductRail', () => {
         });
     });
 
+    describe('Boards before the team\'s boards are known, leaving first', () => {
+        test('should not open the first board after the user leaves for a page outside the rail', async () => {
+            const historyReplace = (global as unknown as {historyMock: {replace: jest.Mock}}).historyMock.replace;
+            historyReplace.mockClear();
+
+            let boardsKnown = false;
+            const state = getBoardsState(townSquare.id);
+            const history = createMemoryHistory({initialEntries: ['/mattermost-ai']});
+            const {store} = renderWithContext(<ProductRail/>, {
+                ...state,
+                plugins: {
+                    components: {
+                        Product: [agents],
+                        ChannelKind: [{...boardKind, matcher: (_state: GlobalState, channel: {id: string}) => boardsKnown && channel.id === roadmap.id}],
+                    } as unknown as GlobalState['plugins']['components'],
+                },
+            }, {history});
+
+            await userEvent.click(screen.getByRole('link', {name: /Boards/}));
+            act(() => {
+                history.push('/team-one/integrations');
+            });
+
+            boardsKnown = true;
+            act(() => {
+                store.dispatch({type: ChannelTypes.RECEIVED_CHANNEL, data: {...roadmap}});
+                history.push('/team-one/channels/town-square');
+            });
+
+            expect(historyReplace).not.toHaveBeenCalled();
+        });
+    });
+
     describe('hiding items', () => {
         function getHiddenState(hidden: string[], currentChannelId = townSquare.id): DeepPartial<GlobalState> {
             const state = getBoardsState(currentChannelId);
@@ -523,11 +556,11 @@ describe('ProductRail', () => {
             });
         });
 
-        test('should hide an item from its right-click menu', async () => {
+        test('should unpin an item from its right-click menu', async () => {
             renderAt('/team-one/channels/town-square', getHiddenState(['boards']));
 
             fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
-            await userEvent.click(await screen.findByRole('menuitem', {name: 'Hide'}));
+            await userEvent.click(await screen.findByRole('menuitem', {name: 'Unpin'}));
 
             await waitFor(() => {
                 expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
@@ -538,11 +571,11 @@ describe('ProductRail', () => {
             });
         });
 
-        test('should put an open hidden item back in the rail for good', async () => {
+        test('should pin an open unpinned item back on the rail', async () => {
             renderAt('/mattermost-ai', getHiddenState(['boards', 'mattermost-ai']));
 
             fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
-            await userEvent.click(await screen.findByRole('menuitem', {name: 'Always show'}));
+            await userEvent.click(await screen.findByRole('menuitem', {name: 'Pin'}));
 
             await waitFor(() => {
                 expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
@@ -550,6 +583,28 @@ describe('ProductRail', () => {
                     value: JSON.stringify(['boards']),
                 })]);
             });
+        });
+
+        test('should pin an item from its row in the More menu without opening it', async () => {
+            const historyPush = (global as unknown as {historyMock: {push: jest.Mock}}).historyMock.push;
+            historyPush.mockClear();
+            renderAt('/team-one/channels/town-square', getHiddenState(['boards', 'mattermost-ai']));
+
+            await userEvent.click(screen.getByRole('button', {name: 'More products'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Pin Agents', hidden: true}));
+
+            expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
+                name: 'product_rail_hidden_items',
+                value: JSON.stringify(['boards']),
+            })]);
+            expect(historyPush).not.toHaveBeenCalled();
+        });
+
+        test('should offer no right-click menu on Threads or Channels', () => {
+            renderAt('/team-one/channels/town-square', getHiddenState([]));
+
+            expect(fireEvent.contextMenu(screen.getByRole('link', {name: /Threads/}))).toBe(true);
+            expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
         });
 
         test.each([
@@ -606,43 +661,19 @@ describe('ProductRail', () => {
             expect(railItemIds()).toEqual(['playbooks', 'boards', 'threads', 'channels', 'mattermost-ai']);
         });
 
-        test('should move an item up from its right-click menu', async () => {
-            renderAt('/team-one/channels/town-square', getOrderState({}));
+        test.each([
+            ['up past a neighbour', ['threads', 'channels', 'mattermost-ai', 'playbooks'], 2, 1, ['threads', 'mattermost-ai', 'channels', 'boards', 'playbooks']],
+            ['to the end', ['threads', 'channels', 'mattermost-ai', 'playbooks'], 0, 3, ['channels', 'boards', 'mattermost-ai', 'playbooks', 'threads']],
+            ['to the top', ['threads', 'channels', 'mattermost-ai', 'playbooks'], 3, 0, ['playbooks', 'threads', 'channels', 'boards', 'mattermost-ai']],
+        ])('should move an item %s, keeping items in More in place', (_case, railIds, from, to, expected) => {
+            // Boards is in More: in the full order, but not on the rail.
+            const orderedIds = ['threads', 'channels', 'boards', 'mattermost-ai', 'playbooks'];
 
-            fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
-            await userEvent.click(await screen.findByRole('menuitem', {name: 'Move up'}));
-
-            await waitFor(() => {
-                expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
-                    category: 'sidebar_settings',
-                    name: 'product_rail_order',
-                    value: JSON.stringify(['threads', 'channels', 'mattermost-ai', 'boards', 'playbooks']),
-                })]);
-            });
+            expect(moveRailItem(orderedIds, railIds as string[], from as number, to as number)).toEqual(expected);
         });
 
-        test('should keep items in More in place when moving one past where they sit', async () => {
-            renderAt('/team-one/channels/town-square', getOrderState({hidden: ['boards']}));
-
-            fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
-            await userEvent.click(await screen.findByRole('menuitem', {name: 'Move up'}));
-
-            await waitFor(() => {
-                expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
-                    name: 'product_rail_order',
-                    value: JSON.stringify(['threads', 'mattermost-ai', 'channels', 'boards', 'playbooks']),
-                })]);
-            });
-        });
-
-        test('should offer only moves for Threads and Channels, and no move past either end', async () => {
-            renderAt('/team-one/channels/town-square', getOrderState({}));
-
-            fireEvent.contextMenu(screen.getByRole('link', {name: /Threads/}));
-
-            expect(await screen.findByRole('menuitem', {name: 'Move down'})).toBeInTheDocument();
-            expect(screen.queryByRole('menuitem', {name: 'Move up'})).not.toBeInTheDocument();
-            expect(screen.queryByRole('menuitem', {name: 'Hide'})).not.toBeInTheDocument();
+        test('should not move an item dropped where it was', () => {
+            expect(moveRailItem(['threads', 'channels'], ['threads', 'channels'], 1, 1)).toBeNull();
         });
     });
 });

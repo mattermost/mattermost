@@ -260,6 +260,16 @@
     }
 }
 
+.ProductRail__moreMenu .MuiMenuItem-root {
+    min-height: 40px;
+
+    > .trailing-elements {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+}
+
 .ProductRail__menuDot {
     width: 8px;
     height: 8px;
@@ -305,6 +315,12 @@
 .MuiPopover-root.menu_menuStyled .MuiPaper-root:has(#productRailTeamMenu) {
     margin-block-start: 0;
     margin-inline-start: 4px;
+}
+
+// The More menu and the items' right-click menus open beside the rail rather than over its edge.
+.MuiPopover-root.menu_menuStyled .MuiPaper-root:has(#productRailMoreMenu, [id^='productRailItemMenu-']) {
+    margin-block-start: 0;
+    margin-inline-start: 8px;
 }
 
 // Teams lead the menu, so their rows are taller and their names bolder than the action below

@@ -29567,33 +29567,29 @@
     "defaultMessage": "Channels",
     "description": "Label under the Channels icon in the product navigation rail. Clicking it shows only channels and direct messages in the left sidebar, leaving out boards."
   },
-  "product_rail.itemMenu.alwaysShow": {
-    "defaultMessage": "Always show",
-    "description": "Item in the right-click menu of a hidden product, shown in the product navigation rail only while it is open. It puts the product back in the rail for good, out of the More menu."
-  },
-  "product_rail.itemMenu.hide": {
-    "defaultMessage": "Hide",
-    "description": "Item in the right-click menu of a product in the product navigation rail. It moves the product into the More menu at the end of the rail."
-  },
   "product_rail.itemMenu.label": {
     "defaultMessage": "Product options",
-    "description": "Accessible name of the menu opened by right-clicking an item, such as Channels, Boards or Playbooks, in the product navigation rail."
+    "description": "Accessible name of the menu opened by right-clicking a product, such as Boards or Playbooks, in the product navigation rail."
   },
-  "product_rail.itemMenu.moveDown": {
-    "defaultMessage": "Move down",
-    "description": "Item in the right-click menu of an item in the product navigation rail, such as Channels or Playbooks. It moves the item one place down in the rail."
+  "product_rail.itemMenu.pin": {
+    "defaultMessage": "Pin",
+    "description": "Item in the right-click menu of an unpinned product, shown in the product navigation rail only while it is open. It pins the product back on the rail, out of the More menu."
   },
-  "product_rail.itemMenu.moveUp": {
-    "defaultMessage": "Move up",
-    "description": "Item in the right-click menu of an item in the product navigation rail, such as Channels or Playbooks. It moves the item one place up in the rail."
+  "product_rail.itemMenu.unpin": {
+    "defaultMessage": "Unpin",
+    "description": "Item in the right-click menu of a product, such as Boards or Playbooks, in the product navigation rail. It takes the product off the rail and into the More menu at the end of it."
   },
   "product_rail.more": {
     "defaultMessage": "More",
-    "description": "Label under the three-dots item at the end of the product navigation rail. It opens a menu of the products the user hid from the rail."
+    "description": "Label under the three-dots item at the end of the product navigation rail. It opens a menu of the products the user unpinned from the rail."
   },
   "product_rail.moreMenu.label": {
     "defaultMessage": "More products",
-    "description": "Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user hid from the rail."
+    "description": "Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user unpinned from the rail."
+  },
+  "product_rail.moreMenu.pin": {
+    "defaultMessage": "Pin {name}",
+    "description": "Accessible name of the pin button at the end of a row in the More menu of the product navigation rail. {name} is the product, such as Playbooks. It pins the product back on the rail."
   },
   "product_rail.teamMenu.buttonLabel": {
     "defaultMessage": "Switch teams",
