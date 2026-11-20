@@ -5,6 +5,7 @@ import {
     autoUpdate,
     flip,
     FloatingPortal,
+    offset,
     shift,
     useFloating,
 } from '@floating-ui/react';
@@ -32,7 +33,13 @@ const passThroughStyles = `
 }
 `;
 
-const TOUR_Z_INDEX = 1300;
+// The closed control is a 32px box centered on the tip. Park the tip this far
+// off the anchor so that box does not cover the control or the one beside it.
+const CLOSED_DOT_CLEARANCE = 20;
+
+// Below modals (1050), menus (1100), and popovers (1200). A tip on the
+// composer must not take clicks from a dialog or an open menu.
+const TOUR_Z_INDEX = 1000;
 
 type Aim = 'corner' | 'center';
 
@@ -78,8 +85,9 @@ const AnchoredTourPoint = ({
     }, [anchorId]);
 
     // The TourPoint root is a 0×0 box whose origin is the pointer tip. Place
-    // that origin on the control: the top-end corner of the +, or the top
-    // center of the burn-on-read button. The card is laid out from the tip.
+    // that origin just off the control: above the top-end corner of the +, or
+    // above the top center of the burn-on-read button. The closed dot is
+    // centered on the tip, so this clearance keeps it off the control.
     const placement = aim === 'corner' ? 'top-end' : 'top';
     const {refs, floatingStyles, placement: resolved} = useFloating({
         elements: {reference: anchor},
@@ -87,6 +95,10 @@ const AnchoredTourPoint = ({
         whileElementsMounted: autoUpdate,
         placement,
         middleware: [
+            offset({
+                mainAxis: CLOSED_DOT_CLEARANCE,
+                crossAxis: aim === 'corner' ? CLOSED_DOT_CLEARANCE : 0,
+            }),
             flip({crossAxis: false, padding: 8}),
             shift({padding: 8}),
         ],

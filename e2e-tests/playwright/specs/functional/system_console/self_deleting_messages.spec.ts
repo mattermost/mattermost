@@ -387,9 +387,15 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await page.goto(`/${team.name}/channels/off-topic`);
         await page.waitForLoadState('networkidle');
 
-        // * Verify burn-on-read is a row in the composer + menu
-        await page.locator('#create_post').getByTestId('agent-composer-menu-button').click();
-        await expect(page.getByRole('menuitem', {name: 'Burn-on-read'})).toBeVisible({timeout: 10000});
+        // * Verify burn-on-read is available: the formatting-bar button, or the + menu row when that bar is hidden
+        const composer = page.locator('#create_post');
+        const barButton = composer.locator('#burnOnReadButton');
+        if (await barButton.count()) {
+            await expect(barButton).toBeVisible();
+        } else {
+            await composer.getByTestId('agent-composer-menu-button').click();
+            await expect(page.getByRole('menuitem', {name: 'Burn-on-read'})).toBeVisible({timeout: 10000});
+        }
     });
 
     test('BoR toggle is hidden when feature is disabled in System Console', async ({pw}) => {
@@ -444,8 +450,10 @@ test.describe('System Console > Self-Deleting Messages', () => {
         await page.goto(`/${team.name}/channels/off-topic`);
         await page.waitForLoadState('networkidle');
 
-        // * Verify the composer + menu does not offer burn-on-read
-        await page.locator('#create_post').getByTestId('agent-composer-menu-button').click();
+        // * Verify neither the formatting bar nor the + menu offers burn-on-read
+        const composer = page.locator('#create_post');
+        await expect(composer.locator('#burnOnReadButton')).toHaveCount(0);
+        await composer.getByTestId('agent-composer-menu-button').click();
         await expect(page.getByRole('menu', {name: 'Message options'})).toBeVisible();
         await expect(page.getByRole('menuitem', {name: 'Burn-on-read'})).toHaveCount(0);
     });
