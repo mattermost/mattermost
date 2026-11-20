@@ -289,6 +289,15 @@ export class TestConfig {
         return `${this.subpathPrefix}${path}`;
     }
 
+    /** The app path of a pathname the browser sees: subpathPrefix removed, for matching requests under a subpath. */
+    withoutSubpath(pathname: string): string {
+        const prefix = this.subpathPrefix;
+        if (prefix && (pathname === prefix || pathname.startsWith(`${prefix}/`))) {
+            return pathname.slice(prefix.length) || '/';
+        }
+        return pathname;
+    }
+
     /**
      * The SiteURL the server runs with in subpath mode: the nginx proxy under the subpath, addressed
      * by its Docker network alias. The server calls itself back through SiteURL (plugin integration

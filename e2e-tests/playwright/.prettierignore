@@ -17,3 +17,5 @@ lib/src/server/default_feature_flags.ts
 
 test-surface
 lib/src/ui/generated
+# written by the test surface tool's serializer, one line per entry
+lib/surface/webapp.surface.json

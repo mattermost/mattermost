@@ -151,7 +151,7 @@ test(
                 'aria-required-children',
                 'aria-required-parent',
             ])
-            .include(settingsModal.getContainerId())
+            .include(`#${await settingsModal.getContainerId()}`)
             .analyze();
 
         // * Should have no violation
@@ -200,7 +200,7 @@ test(
                 'aria-required-children',
                 'aria-required-parent',
             ])
-            .include(settingsModal.getContainerId())
+            .include(`#${await settingsModal.getContainerId()}`)
             .analyze();
 
         // * Should have no violation
@@ -249,7 +249,7 @@ test(
                 'aria-required-children',
                 'aria-required-parent',
             ])
-            .include(settingsModal.getContainerId())
+            .include(`#${await settingsModal.getContainerId()}`)
             .analyze();
 
         // * Should have no violation
@@ -298,7 +298,7 @@ test(
                 'aria-required-children',
                 'aria-required-parent',
             ])
-            .include(settingsModal.getContainerId())
+            .include(`#${await settingsModal.getContainerId()}`)
             .analyze();
 
         // * Should have no violation

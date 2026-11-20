@@ -14,7 +14,9 @@
   "homepage": "https://github.com/mattermost/mattermost/tree/master/e2e-tests/playwright/lib#readme",
   "type": "module",
   "files": [
-    "dist"
+    "dist",
+    "surface/config.json",
+    "surface/webapp.surface.json"
   ],
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -32,12 +34,17 @@
     "test-automation"
   ],
   "scripts": {
+    "scan": "test-surface scan --config surface/config.json",
+    "scan:check": "test-surface check --config surface/config.json",
+    "generate": "test-surface generate --config surface/config.json",
+    "prebuild": "npm run generate",
     "build": "rollup -c --bundleConfigAsCjs",
     "build:watch": "npm run build -- --watch",
     "build-tsc": "tsc --build --verbose",
     "build-tsc:watch": "tsc --watch --preserveWatchOutput",
     "clean": "rm -rf dist node_modules *.tsbuildinfo",
-    "tsc": "tsc -b"
+    "tsc": "npm run generate && tsc --noEmit -p . && tsc -p typecheck",
+    "test": "playwright test -c playwright.lib.config.ts"
   },
   "publishConfig": {
     "access": "public"
@@ -55,6 +62,7 @@
     "axe-core": "4.13.0",
     "chalk": "6.0.0",
     "dotenv": "17.4.2",
+    "intl-messageformat": "10.7.18",
     "ldapts": "9.0.0",
     "luxon": "3.7.2",
     "mime-types": "3.0.2",
@@ -63,6 +71,7 @@
     "uuid": "14.0.1"
   },
   "devDependencies": {
+    "@mattermost/test-surface": "*",
     "@rollup/plugin-typescript": "12.3.0",
     "@types/luxon": "3.7.4",
     "@types/mime-types": "3.0.1",

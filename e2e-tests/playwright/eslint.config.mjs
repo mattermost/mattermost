@@ -116,4 +116,14 @@ export default [
             'test-surface/e2e-no-literal-locators': 'warn',
         },
     },
+
+    // The lib's type tests declare values only to read their types, and write bindings the way generated code does:
+    // `{}` for a part that does nothing at a mount.
+    {
+        files: ['lib/typecheck/**/*.ts', 'lib/test/fixture.ts'],
+        rules: {
+            '@typescript-eslint/no-empty-object-type': 'off',
+            '@typescript-eslint/no-unused-vars': 'off',
+        },
+    },
 ];

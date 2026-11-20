@@ -877,7 +877,7 @@ test.fixme(
 
         const notTranslatedPost = channelsPage.centerView.container
             .locator('[id^="post_"]')
-            .filter({hasText: 'English only', exact: true});
+            .filter({hasText: 'English only'});
         await expect(notTranslatedPost).toBeVisible();
     },
 );
