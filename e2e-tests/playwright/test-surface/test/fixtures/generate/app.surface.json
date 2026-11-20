@@ -1,0 +1,62 @@
+{
+    "version": 4,
+    "families": {
+        "AdminPlugin": {"children":{"grid":{"family":"DataGrid"},"remove_modal":{"family":"ConfirmModal"}}},
+        "Audit": {"children":{"filters":{"family":"Tabs"},"grid":{"family":"DataGrid"},"tabs":{"family":"Tabs"}}},
+        "ChannelSettings": {"children":{"archive_modal":{"family":"ConfirmModal"},"more_menu":{"family":"ChannelSettingsMoreMenu"}},"container":{"role":"dialog"},"parts":{"archive":{"role":"button"},"more":{"role":"button"},"name":{"role":"textbox"},"private":{"conditional":true,"role":"switch"},"purpose":{"role":"textbox"},"save":{"role":"button"}},"source":"ChannelSettingsModal"},
+        "ChannelSettingsMoreMenu": {"parts":{"leave":{"role":"menuitem"}}},
+        "ConfirmModal": {"container":{"role":"dialog"},"parts":{"cancel":{"role":"button"},"checkbox":{"conditional":true,"role":"checkbox"},"confirm":{"role":"button"}}},
+        "DataGrid": {"children":{"row":{"family":"DataGridRow","key":{"kind":"mount"}}}},
+        "DataGridRow": {"container":{"role":"row"},"parts":{"name":{"role":"text"}}},
+        "Markdown": {"parts":{"link":{"key":{"kind":"index"},"role":"link"}}},
+        "PostList": {"children":{"post":{"family":"PostListPost","key":{"entity":"Post","field":"id","from":"@mattermost/types/posts","kind":"id"}}}},
+        "PostListPost": {"container":{"role":"listitem"},"parts":{"author":{"role":"text"},"time":{"role":"text"}},"renders":["markdown"],"source":"Post"},
+        "Recaps": {"children":{"grid":{"family":"DataGrid"},"recap":{"family":"RecapsRecap","key":{"entity":"Recap","field":"id","from":"@mattermost/types/recaps","kind":"id"}}},"parts":{"create":{"role":"button"},"import_file":{"native":"file","role":null}}},
+        "RecapsRecap": {"children":{"delete_modal":{"family":"ConfirmModal"}},"container":{"role":null},"parts":{"action":{"key":{"kind":"set","set":"RecapAction"},"role":"menuitem","source":"RecapMenu"},"delete":{"role":"button"},"title":{"role":"text"}},"source":"RecapItem"},
+        "Tabs": {"parts":{"tab":{"key":{"kind":"mount"},"role":"tab"}}}
+    },
+    "scopes": {
+        "admin.plugin": {"family":"AdminPlugin"},
+        "admin.plugin.grid": {"bind":{"row":{"key":{"entity":"PluginStatus","field":"plugin_id","from":"@mattermost/types/plugins","kind":"id"}}},"family":"DataGrid"},
+        "admin.plugin.grid.row": {"family":"DataGridRow"},
+        "admin.plugin.remove_modal": {"family":"ConfirmModal","portal":true},
+        "audit": {"family":"Audit"},
+        "audit.filters": {"bind":{"tab":{"key":{"kind":"set","set":"RecapAction"}}},"family":"Tabs"},
+        "audit.grid": {"bind":{"row":{"key":{"kind":"index"}}},"family":"DataGrid"},
+        "audit.grid.row": {"family":"DataGridRow"},
+        "audit.tabs": {"bind":{"tab":{"key":{"kind":"index"}}},"family":"Tabs"},
+        "channel_settings": {"family":"ChannelSettings","portal":true},
+        "channel_settings.archive_modal": {"bind":{"checkbox":false},"family":"ConfirmModal","portal":true},
+        "channel_settings.more_menu": {"family":"ChannelSettingsMoreMenu","portal":true},
+        "markdown": {"family":"Markdown"},
+        "post_list": {"family":"PostList"},
+        "post_list.post": {"family":"PostListPost"},
+        "recaps": {"family":"Recaps"},
+        "recaps.grid": {"bind":{"row":{"key":{"kind":"set","set":"RecapAction"}}},"family":"DataGrid"},
+        "recaps.grid.row": {"family":"DataGridRow"},
+        "recaps.recap": {"family":"RecapsRecap"},
+        "recaps.recap.delete_modal": {"bind":{"checkbox":false},"family":"ConfirmModal","portal":true}
+    },
+    "operations": {
+        "DeleteChannel": {"body":"StatusOK","imports":{"StatusOK":"@mattermost/types/client4"},"method":"DELETE","path":"/api/v4/channels/{channel_id}"},
+        "DeleteRecap": {"body":"StatusOK","imports":{"StatusOK":"@mattermost/types/client4"},"method":"DELETE","path":"/api/v4/recaps/{recap_id}"},
+        "GetChannel": {"body":"Channel","imports":{"Channel":"@mattermost/types/channels"},"method":"GET","path":"/api/v4/channels/{channel_id}"},
+        "GetPluginStatuses": {"body":"PluginStatus[]","imports":{"PluginStatus":"@mattermost/types/plugins"},"method":"GET","path":"/api/v4/plugins/statuses"},
+        "GetRecap": {"body":"Recap","imports":{"Recap":"@mattermost/types/recaps"},"method":"GET","path":"/api/v4/recaps/{recap_id}"},
+        "MarkRecapRead": {"body":"Recap","imports":{"Recap":"@mattermost/types/recaps"},"method":"POST","path":"/api/v4/recaps/{recap_id}/read"},
+        "PatchChannel": {"body":"Channel","imports":{"Channel":"@mattermost/types/channels"},"method":"PUT","path":"/api/v4/channels/{channel_id}/patch"},
+        "RegenerateRecap": {"body":"Recap","imports":{"Recap":"@mattermost/types/recaps"},"method":"POST","path":"/api/v4/recaps/{recap_id}/regenerate"},
+        "RemovePlugin": {"body":"StatusOK","imports":{"StatusOK":"@mattermost/types/client4"},"method":"DELETE","path":"/api/v4/plugins/{plugin_id}"}
+    },
+    "sets": {
+        "RecapAction": ["mark_read","regenerate"]
+    },
+    "pages": {
+        "AdminPluginsPage": {"path":"/admin_console/plugins","scopes":["admin.plugin"],"source":"PluginManagement"},
+        "ChannelPage": {"params":[{"entity":{"field":"name","from":"@mattermost/types/teams","type":"Team"},"name":"team"},{"name":"path","values":["channels","messages"]},{"as":"channel","entity":{"field":"name","from":"@mattermost/types/channels","type":"Channel"},"name":"identifier"}],"path":"/:team/:path(channels|messages)/:identifier","ready":["post_list","channel_settings--dialog"],"scopes":["channel_settings","post_list"],"source":"ChannelView"},
+        "RecapsPage": {"params":[{"entity":{"field":"name","from":"@mattermost/types/teams","type":"Team"},"name":"team"}],"path":"/:team/recaps","ready":["recaps.create--button"],"scopes":["recaps"],"source":"Recaps"}
+    },
+    "pluginSlots": {
+        "channel_header_menu_item": "channel_header.menu.plugin:{key}--menuitem"
+    }
+}

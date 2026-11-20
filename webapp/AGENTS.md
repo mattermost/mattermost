@@ -6,6 +6,29 @@ Guidance for coding agents working inside `webapp/`.
 
 Follow `webapp/STYLE_GUIDE.md` for canonical style, accessibility, and testing standards.
 
+## Product testids and the generated test surface
+
+Product code declares its testable surface with `data-testid`; Playwright page objects are generated from the committed version 4 surface report. Read [the tool README](../e2e-tests/playwright/test-surface/README.md) for config, diagnostics and the scan workflow. Do not hand-write or patch generated page objects.
+
+- Use `scope.name[:key][--role]`. Path words are lowercase `[a-z][a-z0-9_]*`, separated by dots. Examples: `channel_settings.save--button`, `post_list.post:${post.id}--listitem`, `channel_settings.title--text`.
+- The role suffix describes the element carrying the testid, not its handler's effect. Put a link's testid on the link and a button's on the button. Read-only content uses `--text`; `aria-pressed` buttons use `--togglebutton`. Keep existing DOM structure and accessibility semantics.
+- A scope root may omit its role suffix. A prefix alone does not prove that an element with that ID exists. A component that only exposes its own element is a part of its parent's scope; a bare top-level word without members is not a generated scope.
+- Keep scope and identity separate. An optional `testId`/`testIdScope` prop takes only a scope, never a key or role suffix. Derive member IDs with literal suffixes and guard a missing scope: ``testId ? `${testId}.save--button` : undefined``.
+- Keys follow the first colon and keep their raw value, including dots in plugin IDs/config paths. Use an entity ID, a fixed set or a position whose origin the scan can prove. Do not use translated labels, mutable display text, concatenated identities or encoded/sanitized substitutes. Pass a repeated item's key separately from its scope; descendants are looked up within that item.
+- Use one key kind and one role for each named element. Split the names when mounts represent different identities or interaction patterns. For a stable identity field outside the default id pattern, use a reasoned `checks.keyFields.allow` entry rather than changing product types to satisfy the scanner. Only the canonical `dayKey`/`timeKey` helpers may be listed in `keyValues`.
+- A native file input has its own testid without a role suffix, for example `composer.upload`. It is a plain part of its item's family: never give the input its own key or make it a scope container. The generated file-input driver owns `chooseFiles`; an opener button does not.
+- For a testid-only task, limit product changes to the IDs, optional scope/key prop plumbing and the corresponding test expectations. Preserve behavior, state, network calls, roles and DOM structure; do not add wrappers, refactor handlers or bend the surface for one spec. If a spec cannot reasonably use the generated API, follow the scoped-locator guidance in [Playwright AGENTS.md](../e2e-tests/playwright/AGENTS.md).
+
+After a testid or declaration/config change, run from `e2e-tests/playwright`:
+
+```sh
+npm run scan --workspace @mattermost/playwright-lib
+npm run tsc --workspace @mattermost/playwright-lib
+npm run scan:check --workspace @mattermost/playwright-lib
+```
+
+Fix scan errors and commit `e2e-tests/playwright/lib/surface/webapp.surface.json` with the source change. Generated SDK files are ignored; regenerate them. CI checks that a fresh scan matches the report and that the generated library compiles. An absence assertion on a renamed or nonexistent testid can pass vacuously: update affected tests when changing an ID and preserve their assertions.
+
 ## UI components (Compass)
 
 - **Catalog / APIs**: inspect `@mattermost/compass-ui` (package exports / component types) before inventing UI or props.

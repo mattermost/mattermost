@@ -1,0 +1,1 @@
+{"extends": "../_lib/tsconfig.base.json", "compilerOptions": {"baseUrl": ".", "paths": {"@mattermost/compass-ui": ["node_modules/@mattermost/compass-ui/index.d.ts"]}}, "include": ["src", "node_modules", "../_lib"]}
