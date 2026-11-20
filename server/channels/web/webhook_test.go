@@ -209,6 +209,21 @@ func TestIncomingWebhook(t *testing.T) {
 		assert.True(t, resp.StatusCode == http.StatusOK)
 	})
 
+	t.Run("WebhookMultipartNullCharacters", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnablePostUsernameOverride = true })
+		payloadMultiPart := "------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"username\"\r\n\r\nwebhook\x00-bot\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW\r\nContent-Disposition: form-data; name=\"text\"\r\n\r\nmultipart\x00 null test\r\n------WebKitFormBoundary7MA4YWxkTrZu0gW--"
+		resp, err := http.Post(url, "multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW", strings.NewReader(payloadMultiPart))
+		require.NoError(t, err)
+		require.Equal(t, http.StatusOK, resp.StatusCode)
+
+		postList, appErr := th.App.GetPostsPage(th.Context, model.GetPostsOptions{ChannelId: th.BasicChannel.Id, Page: 0, PerPage: 1})
+		require.Nil(t, appErr)
+		require.Len(t, postList.Order, 1)
+		post := postList.Posts[postList.Order[0]]
+		assert.Equal(t, "multipart null test", post.Message)
+		assert.Equal(t, "webhook-bot", post.GetProp(model.PostPropsOverrideUsername))
+	})
+
 	t.Run("ChannelLockedWebhook", func(t *testing.T) {
 		channel, err := th.App.CreateChannel(th.Context, &model.Channel{TeamId: th.BasicTeam.Id, Name: model.NewId(), DisplayName: model.NewId(), Type: model.ChannelTypeOpen, CreatorId: th.BasicUser.Id}, true)
 		require.Nil(t, err)

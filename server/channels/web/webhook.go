@@ -83,6 +83,14 @@ func incomingWebhook(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// The database rejects NULL characters, so remove them from the form values
+		// as IncomingWebhookRequestFromJSON does for JSON payloads.
+		for _, values := range r.PostForm {
+			for i, value := range values {
+				values[i] = strings.ReplaceAll(value, "\x00", "")
+			}
+		}
+
 		incomingWebhookPayload = &model.IncomingWebhookRequest{}
 		decoder := schema.NewDecoder()
 		err := decoder.Decode(incomingWebhookPayload, r.PostForm)
