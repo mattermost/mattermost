@@ -10,9 +10,11 @@ name: Release Docs PR Check
 # fail. With no due date on the milestone it fails, since T-2 can't be known.
 #
 # It runs on every change to the PR (pushes and description edits). A PR that doesn't change still
-# has to start failing at T-2, so every weekday the recheck job starts this workflow again on each
-# open release docs PR's branch (workflow_dispatch, which GITHUB_TOKEN may start); that run's check
-# has the same name, on the PR's head commit.
+# has to start failing at T-2, so every weekday the recheck job reruns, for each open release docs
+# PR, the latest pull_request run of this workflow for the PR's head commit: a rerun updates the
+# check the PR (and a required check) shows, which a workflow_dispatch run would not. Only when
+# there is no such run (or it can't be rerun) does it start this workflow on the PR's branch
+# (workflow_dispatch, also kept for manual runs) and say so in its summary.
 
 on:
   pull_request:
@@ -63,22 +65,31 @@ jobs:
     if: github.event_name == 'schedule'
     runs-on: ubuntu-24.04
     permissions:
-      actions: write # start this workflow on each PR's branch
+      actions: write # rerun this workflow's runs, or start it on a PR's branch
       pull-requests: read
     steps:
-      - name: Start the check on each open release docs PR
+      - name: Rerun the check on each open release docs PR
         env:
           GH_TOKEN: ${{ github.token }}
           REPO: ${{ github.repository }}
+          WORKFLOW: release-docs-release-pr-check.yml
         run: |
-          branches="$(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" \
-            --jq ".[] | select(.head.repo.full_name == \"$REPO\") | .head.ref" \
-            | grep -E '^release-agent/v[0-9]+\.[0-9]+\.0/release-docs$' || true)"
-          if [ -z "$branches" ]; then
+          # "branch sha" per open release docs PR from this repo; anything else is dropped by the pattern.
+          prs="$(gh api --paginate "repos/$REPO/pulls?state=open&per_page=100" \
+            --jq ".[] | select(.head.repo.full_name == \"$REPO\") | \"\(.head.ref) \(.head.sha)\"" \
+            | grep -E '^release-agent/v[0-9]+\.[0-9]+\.0/release-docs [0-9a-f]{40}$' || true)"
+          if [ -z "$prs" ]; then
             echo "No open release docs PR." | tee -a "$GITHUB_STEP_SUMMARY"
             exit 0
           fi
-          for branch in $branches; do
-            echo "Checking $branch" | tee -a "$GITHUB_STEP_SUMMARY"
-            gh workflow run release-docs-release-pr-check.yml --repo "$REPO" --ref "$branch"
-          done
+          while read -r branch sha; do
+            run_id="$(gh api "repos/$REPO/actions/workflows/$WORKFLOW/runs?event=pull_request&head_sha=$sha&per_page=1" \
+              --jq '.workflow_runs[0].id // empty' || true)"
+            if [ -n "$run_id" ] && gh run rerun "$run_id" --repo "$REPO"; then
+              echo "$branch: reran the check's pull_request run $run_id for $sha." | tee -a "$GITHUB_STEP_SUMMARY"
+            else
+              echo "$branch: no pull_request run of the check for $sha could be rerun; started it on the branch" \
+                "instead (workflow_dispatch: its result is not shown in the PR's checks)." | tee -a "$GITHUB_STEP_SUMMARY"
+              gh workflow run "$WORKFLOW" --repo "$REPO" --ref "$branch"
+            fi
+          done <<< "$prs"
