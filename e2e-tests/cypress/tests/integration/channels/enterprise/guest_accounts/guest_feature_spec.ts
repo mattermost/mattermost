@@ -30,7 +30,7 @@ describe('Guest Accounts', () => {
         cy.visit('/admin_console/authentication/guest_access');
 
         // # Enable guest accounts.
-        cy.findByTestId('GuestAccountsSettings.Enabletrue').check();
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Click "Save".
         cy.get('#saveSetting').then((btn) => {
@@ -50,7 +50,7 @@ describe('Guest Accounts', () => {
         cy.visit('/admin_console/authentication/guest_access');
 
         // # Set Enable Guest Access to false.
-        cy.findByTestId('GuestAccountsSettings.Enablefalse').check();
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.false--radio"]').check();
 
         // # Click "Save".
         cy.get('#saveSetting').scrollIntoView().click();
@@ -65,7 +65,7 @@ describe('Guest Accounts', () => {
         cy.visit('/admin_console/authentication/guest_access');
 
         // # Enable guest accounts.
-        cy.findByTestId('GuestAccountsSettings.Enabletrue').check();
+        cy.get('[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.true--radio"]').check();
 
         // # Click "Save".
         cy.get('#saveSetting').scrollIntoView().click();

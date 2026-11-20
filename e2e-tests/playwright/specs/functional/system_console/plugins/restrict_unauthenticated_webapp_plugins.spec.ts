@@ -2,12 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {
+    openSystemConsoleSection,
+    Api,
     ensureTestWebappPlugins,
     expect,
     getAdminClient,
     postAuthTestPluginId,
     preAuthTestPluginId,
     removeTestWebappPlugins,
+    settle,
     test,
 } from '@mattermost/playwright-lib';
 
@@ -23,14 +26,14 @@ test.afterAll(async () => {
 test(
     'system admin can toggle restricting webapp plugins available before login',
     {tag: '@system_console'},
-    async ({pw}) => {
+    async ({pw, request}) => {
         // # Install the test plugins with the restriction on
         await ensureTestWebappPlugins();
         const {adminClient, adminUser} = await pw.initSetup();
         await adminClient.patchConfig({PluginSettings: {RestrictUnauthenticatedWebappPlugins: true}});
 
         const anonymousPluginIds = async () => {
-            const response = await pw.loginPage.page.request.get('/api/v4/plugins/webapp', {
+            const response = await request.get('/api/v4/plugins/webapp', {
                 headers: {'X-Requested-With': 'XMLHttpRequest'},
             });
             expect(response.ok()).toBe(true);
@@ -39,27 +42,31 @@ test(
         };
 
         // # Open Plugin Management as a system admin
-        const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-        await systemConsolePage.gotoPluginManagement();
-        const pluginManagement = systemConsolePage.pluginManagement;
+        const {app} = await pw.testBrowser.login(adminUser);
+        await openSystemConsoleSection(app, 'plugins/plugin_management');
+        const setting = app.admin.setting('restrictUnauthenticatedWebappPlugins');
 
         // * Verify the setting is shown as true with help text about webapp.pre_auth
-        await expect(pluginManagement.restrictUnauthenticatedWebappPluginsTrue).toBeChecked();
-        await expect(pluginManagement.restrictUnauthenticatedWebappPluginsHelpText).toContainText('webapp.pre_auth');
+        await expect(setting.trueRadio).toBeChecked();
+        await expect(setting.helpText).toContainText('webapp.pre_auth');
 
         // # Set it to false and save
-        await pluginManagement.restrictUnauthenticatedWebappPluginsFalse.check();
-        await pluginManagement.save();
+        await setting.falseRadio.check();
+        await expect(setting.falseRadio).toBeChecked();
+        await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
+        await expect(app.admin.saveButton).toBeSaved();
 
         // * Verify the config is saved and every plugin is listed to unauthenticated requests
         expect((await adminClient.getConfig()).PluginSettings.RestrictUnauthenticatedWebappPlugins).toBe(false);
         expect((await anonymousPluginIds()).sort()).toEqual([postAuthTestPluginId, preAuthTestPluginId].sort());
 
         // # Reload, then set it back to true and save
-        await systemConsolePage.gotoPluginManagement();
-        await expect(pluginManagement.restrictUnauthenticatedWebappPluginsFalse).toBeChecked();
-        await pluginManagement.restrictUnauthenticatedWebappPluginsTrue.check();
-        await pluginManagement.save();
+        await openSystemConsoleSection(app, 'plugins/plugin_management');
+        await expect(setting.falseRadio).toBeChecked();
+        await setting.trueRadio.check();
+        await expect(setting.trueRadio).toBeChecked();
+        await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
+        await expect(app.admin.saveButton).toBeSaved();
 
         // * Verify the config is saved and only the pre-auth plugin is listed to unauthenticated requests
         expect((await adminClient.getConfig()).PluginSettings.RestrictUnauthenticatedWebappPlugins).toBe(true);

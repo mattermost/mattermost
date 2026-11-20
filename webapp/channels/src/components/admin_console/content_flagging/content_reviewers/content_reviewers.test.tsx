@@ -67,8 +67,8 @@ describe('ContentFlaggingContentReviewers', () => {
         renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
         expect(screen.getByText('Same reviewers for all teams:')).toBeInTheDocument();
-        expect(screen.getByTestId('sameReviewersForAllTeams_true')).toBeInTheDocument();
-        expect(screen.getByTestId('sameReviewersForAllTeams_false')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.content_flagging.reviewers.same_for_all_teams.true--radio')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.content_flagging.reviewers.same_for_all_teams.false--radio')).toBeInTheDocument();
     });
 
     it('shows common reviewers section when CommonReviewers is true', () => {
@@ -114,7 +114,7 @@ describe('ContentFlaggingContentReviewers', () => {
 
         renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
-        const trueRadio = screen.getByTestId('sameReviewersForAllTeams_true');
+        const trueRadio = screen.getByTestId('admin.content_flagging.reviewers.same_for_all_teams.true--radio');
         await userEvent.click(trueRadio);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('content_reviewers', {
@@ -126,7 +126,7 @@ describe('ContentFlaggingContentReviewers', () => {
     it('handles same reviewers for all teams radio button change to false', async () => {
         renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
-        const falseRadio = screen.getByTestId('sameReviewersForAllTeams_false');
+        const falseRadio = screen.getByTestId('admin.content_flagging.reviewers.same_for_all_teams.false--radio');
         await userEvent.click(falseRadio);
 
         expect(defaultProps.onChange).toHaveBeenCalledWith('content_reviewers', {
@@ -236,8 +236,8 @@ describe('ContentFlaggingContentReviewers', () => {
     it('correctly sets radio button checked states', () => {
         renderWithContext(<ContentFlaggingContentReviewers {...defaultProps}/>);
 
-        const trueRadio = screen.getByTestId('sameReviewersForAllTeams_true') as HTMLInputElement;
-        const falseRadio = screen.getByTestId('sameReviewersForAllTeams_false') as HTMLInputElement;
+        const trueRadio = screen.getByTestId('admin.content_flagging.reviewers.same_for_all_teams.true--radio') as HTMLInputElement;
+        const falseRadio = screen.getByTestId('admin.content_flagging.reviewers.same_for_all_teams.false--radio') as HTMLInputElement;
 
         expect(trueRadio.checked).toBe(true);
         expect(falseRadio.checked).toBe(false);
@@ -254,8 +254,8 @@ describe('ContentFlaggingContentReviewers', () => {
 
         renderWithContext(<ContentFlaggingContentReviewers {...props}/>);
 
-        const trueRadio = screen.getByTestId('sameReviewersForAllTeams_true') as HTMLInputElement;
-        const falseRadio = screen.getByTestId('sameReviewersForAllTeams_false') as HTMLInputElement;
+        const trueRadio = screen.getByTestId('admin.content_flagging.reviewers.same_for_all_teams.true--radio') as HTMLInputElement;
+        const falseRadio = screen.getByTestId('admin.content_flagging.reviewers.same_for_all_teams.false--radio') as HTMLInputElement;
 
         expect(trueRadio.checked).toBe(false);
         expect(falseRadio.checked).toBe(true);

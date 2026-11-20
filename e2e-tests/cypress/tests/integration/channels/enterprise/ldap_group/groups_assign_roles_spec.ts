@@ -120,14 +120,14 @@ describe('LDAP Group Sync', () => {
             // * Ensure that the text in the roles column is Member as default text for each row
             const table = el[0] as HTMLTableElement;
             const name = table.rows[1].cells[0].innerText;
-            cy.findByTestId(`${name}_current_role`).scrollIntoView().should('contain.text', 'Member');
+            cy.findByTestId((testId, element) => testId === 'admin.group.teams_and_channels.row.role' && element?.closest('[data-testid^="admin.group.teams_and_channels.row:"]')?.querySelector('td:first-of-type')?.textContent === name).scrollIntoView().should('contain.text', 'Member');
 
             // # Change the option to the admin roles (Channel Admin/Team Admin) for each row
-            cy.findByTestId(`${name}_current_role`).scrollIntoView().click();
+            cy.findByTestId((testId, element) => testId === 'admin.group.teams_and_channels.row.role' && element?.closest('[data-testid^="admin.group.teams_and_channels.row:"]')?.querySelector('td:first-of-type')?.textContent === name).scrollIntoView().click();
             cy.get(`#${name}_change_role_options button`).scrollIntoView().click();
 
             // * Ensure that each row roles have changed successfully (by making sure that the Member text is not existent anymore)
-            cy.findByTestId(`${name}_current_role`).scrollIntoView().should('not.contain.text', 'Member');
+            cy.findByTestId((testId, element) => testId === 'admin.group.teams_and_channels.row.role' && element?.closest('[data-testid^="admin.group.teams_and_channels.row:"]')?.querySelector('td:first-of-type')?.textContent === name).scrollIntoView().should('not.contain.text', 'Member');
         });
     });
 });

@@ -9,17 +9,18 @@ type Props = {
     title: string | JSX.Element;
     action?: JSX.Element;
     children?: React.ReactNode;
-    definitionKey?: string;
+
+    testKey?: string;
     name?: string;
     parentLink?: string;
 };
 
-const AdminSidebarCategory = ({icon, title, action, children, definitionKey, name, parentLink = ''}: Props) => {
+const AdminSidebarCategory = ({icon, title, action, children, testKey, name, parentLink = ''}: Props) => {
     let link = parentLink;
     let titleDiv = (
         <div
             className='category-title category-title--active'
-            data-testid='sidebar-category-title'
+            data-testid='admin.sidebar.category.title--text'
         >
             <span className='category-icon'>{icon}</span>
             <span className='category-title__text'>
@@ -36,7 +37,7 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
                 to={link}
                 className='category-title'
                 activeClassName='category-title category-title--active'
-                data-testid='sidebar-category-title'
+                data-testid='admin.sidebar.category.title--link'
             >
                 {title}
             </NavLink>
@@ -48,7 +49,7 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
         clonedChildren = (
             <ul
                 className='sections'
-                data-testid='sidebar-category-sections'
+                data-testid='admin.sidebar.category.sections--list'
             >
                 {
                     React.Children.map(children, (child) => {
@@ -68,7 +69,7 @@ const AdminSidebarCategory = ({icon, title, action, children, definitionKey, nam
     return (
         <li
             className='sidebar-category'
-            data-testid={definitionKey}
+            data-testid={testKey ? `admin.sidebar.category:${testKey}--listitem` : undefined}
         >
             {titleDiv}
             {clonedChildren}

@@ -84,6 +84,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
             <Menu.Container
                 menuButton={{
                     id: 'systemUsersDateRangeSelectorMenuButton',
+                    dataTestId: 'admin.users.date_range--button',
                     class: 'inputWithMenu',
                     'aria-label': formatMessage({
                         id: 'admin.system_users.date_range_selector.menuButtonAriaLabel',
@@ -93,6 +94,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
                     as: 'div',
                     children: (
                         <Input
+                            testId='admin.users.date_range.value'
                             label={formatMessage({
                                 id: 'admin.system_users.date_range_selector.label',
                                 defaultMessage: 'Duration',
@@ -118,6 +120,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
                 <Menu.Item
                     key={ReportDuration.AllTime}
                     id={ReportDuration.AllTime}
+                    data-testid='admin.users.date_range_menu.all_time--menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.date_range_selector.date_range.all_time'
@@ -130,6 +133,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
                 <Menu.Item
                     key={ReportDuration.Last30Days}
                     id={ReportDuration.Last30Days}
+                    data-testid='admin.users.date_range_menu.last_30_days--menuitem'
                     labels={
                         <>
                             <FormattedMessage
@@ -152,6 +156,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
                 <Menu.Item
                     key={ReportDuration.PreviousMonth}
                     id={ReportDuration.PreviousMonth}
+                    data-testid='admin.users.date_range_menu.previous_month--menuitem'
                     labels={
                         <>
                             <FormattedMessage
@@ -174,6 +179,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
                 <Menu.Item
                     key={ReportDuration.Last6Months}
                     id={ReportDuration.Last6Months}
+                    data-testid='admin.users.date_range_menu.last_6_months--menuitem'
                     labels={
                         <>
                             <FormattedMessage

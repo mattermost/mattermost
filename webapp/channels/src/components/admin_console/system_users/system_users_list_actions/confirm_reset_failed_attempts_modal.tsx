@@ -66,6 +66,7 @@ export default function ConfirmResetFailedAttemptsModal({user, onSuccess, onErro
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.reset_attempts_modal'
             title={title}
             message={message}
             destructive={true}

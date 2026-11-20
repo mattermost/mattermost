@@ -60,6 +60,7 @@ export default function PromoteToMemberModal({user, onExited, onSuccess, onError
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.promote_modal'
             title={title}
             message={message}
             destructive={true}

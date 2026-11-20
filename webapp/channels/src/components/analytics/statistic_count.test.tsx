@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen, within} from 'tests/react_testing_utils';
 
 import StatisticCount from './statistic_count';
 
@@ -20,6 +20,6 @@ describe('components/analytics/statistic_count.tsx', () => {
             />,
         );
 
-        expect(screen.getByTestId('test-stat')).toHaveTextContent('42%');
+        expect(within(screen.getByTestId('admin.statistics.stat:test-stat--group')).getByTestId('admin.statistics.stat.value--text')).toHaveTextContent('42%');
     });
 });

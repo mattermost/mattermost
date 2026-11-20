@@ -153,7 +153,7 @@ describe('components/PluginManagement', () => {
     ])('should render overwrite review panel for %s uploads', async (direction, existingVersion, uploadedVersion, message) => {
         await renderWithUploadConflict(makeConflictProps(direction, existingVersion, uploadedVersion));
 
-        expect(screen.getByTestId('plugin-upload-overwrite-review')).toHaveClass(`PluginUploadOverwriteReview--${direction}`);
+        expect(screen.getByTestId('admin.plugins.overwrite_modal.review')).toHaveClass(`PluginUploadOverwriteReview--${direction}`);
         expect(screen.getByText('Review plugin overwrite')).toBeInTheDocument();
         expect(screen.getByText(message)).toBeInTheDocument();
         expect(screen.getByText(`${existingVersion.startsWith('v') ? existingVersion : `v${existingVersion}`} \u2192 ${uploadedVersion.startsWith('v') ? uploadedVersion : `v${uploadedVersion}`}`)).toBeInTheDocument();
@@ -198,7 +198,7 @@ describe('components/PluginManagement', () => {
 
         await waitFor(() => expect(uploadPlugin).toHaveBeenLastCalledWith(file, true));
         await waitFor(() => expect(getPlugins).toHaveBeenCalled());
-        expect(screen.queryByTestId('plugin-upload-overwrite-review')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.plugins.overwrite_modal.review')).not.toBeInTheDocument();
     });
 
     test('should clear overwrite review when upload overwrite is cancelled', async () => {
@@ -206,7 +206,7 @@ describe('components/PluginManagement', () => {
 
         await userEvent.click(document.getElementById('cancelModalButton')!);
 
-        expect(screen.queryByTestId('plugin-upload-overwrite-review')).not.toBeInTheDocument();
+        expect(screen.queryByTestId('admin.plugins.overwrite_modal.review')).not.toBeInTheDocument();
         expect(uploadPlugin).toHaveBeenCalledTimes(1);
     });
 
@@ -478,7 +478,7 @@ describe('components/PluginManagement', () => {
         test('offers Disable when config says enabled but the plugin is not running', () => {
             renderWithPluginState(true);
 
-            const row = screen.getByTestId('plugin_0');
+            const row = screen.getByTestId('admin.plugins.plugin:plugin_0--group');
             expect(row).toHaveTextContent('Disable');
             expect(row).not.toHaveTextContent('Enable');
         });
@@ -486,7 +486,7 @@ describe('components/PluginManagement', () => {
         test('still offers Enable when config says disabled and the plugin is not running', () => {
             renderWithPluginState(false);
 
-            const row = screen.getByTestId('plugin_0');
+            const row = screen.getByTestId('admin.plugins.plugin:plugin_0--group');
             expect(row).toHaveTextContent('Enable');
             expect(row).not.toHaveTextContent('Disable');
         });
@@ -519,7 +519,7 @@ describe('components/PluginManagement', () => {
         test('replaces the Enable link with an explanation when the license lacks the add-on', () => {
             renderAddOn({IsLicensed: 'true'});
 
-            const row = screen.getByTestId('plugin_0');
+            const row = screen.getByTestId('admin.plugins.plugin:plugin_0--group');
             expect(row).toHaveTextContent('Not included in your license');
             expect(row).not.toHaveTextContent('Enable');
         });
@@ -527,7 +527,7 @@ describe('components/PluginManagement', () => {
         test('offers Enable when the license grants the add-on', () => {
             renderAddOn({IsLicensed: 'true', AddOns: 'crossguard'});
 
-            const row = screen.getByTestId('plugin_0');
+            const row = screen.getByTestId('admin.plugins.plugin:plugin_0--group');
             expect(row).toHaveTextContent('Enable');
             expect(row).not.toHaveTextContent('Not included in your license');
         });
@@ -561,7 +561,7 @@ describe('components/PluginManagement', () => {
             renderWithLogs(true);
 
             for (const id of ['plugin_0', 'plugin_1']) {
-                const row = within(screen.getByTestId(id));
+                const row = within(screen.getByTestId(`admin.plugins.plugin:${id}--group`));
                 expect(row.getAllByRole('link', {name: 'View logs'})).toHaveLength(1);
                 expect(row.getByRole('link', {name: 'View logs'})).toHaveAttribute('href', `/admin_console/reporting/server_logs?levels=all&node=&field.plugin_id=${id}`);
             }

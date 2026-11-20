@@ -55,7 +55,7 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
                 <button
                     onClick={() => this.props.setSectionVisible(section.name, !isSectionVisible)}
                     className='dropdown-toggle theme color--link style--none'
-                    data-testid='permissionSubsectionsToggle-button'
+                    data-testid='admin.role.section.subsections_toggle--button'
                 >
                     {message}
                     {chevron}
@@ -73,7 +73,7 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
                 {isSectionVisible &&
                     <div
                         className='PermissionSubsections'
-                        data-testid='permissionSubsections'
+                        data-testid='admin.role.permission.subsections'
                     >
                         {section.subsections.map((subsection) => this.renderSectionRow(subsection, permissionsMap, permissionsToUpdate, isSectionVisible))}
                     </div>
@@ -88,13 +88,16 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
         return (
             <div
                 key={section.name}
-                data-testid={`permission_section_${section.name}`}
+                role='group'
+                aria-labelledby={`admin-role-section-${section.name}-title`}
+                data-testid={`admin.role.section:${section.name}--group`}
                 className='PermissionSection'
             >
                 <div className='PermissionSectionText'>
                     <div
                         className='PermissionSectionText_title'
-                        data-testid='permissionSection-title'
+                        id={`admin-role-section-${section.name}-title`}
+                        data-testid='admin.role.section.title--text'
                     >
                         {name}
                     </div>
@@ -102,7 +105,7 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
                     {section.hasDescription && description &&
                         <div
                             className='PermissionSection_description'
-                            data-testid='permissionSection-description'
+                            data-testid='admin.role.section.description--text'
                         >
                             {description}
                         </div>
@@ -184,7 +187,9 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
         return (
             <div
                 className='PermissionRow'
-                data-testid={`permissionRow_${section.name}`}
+                role='group'
+                aria-labelledby={`admin-role-section-${section.name}-title`}
+                data-testid={`admin.role.permission:${section.name}--group`}
             >
                 {this.renderSectionRow(section, permissionsMap, permissionsToUpdate, isSectionVisible)}
                 {this.renderSubsections(section, permissionsMap, permissionsToUpdate, isSectionVisible)}

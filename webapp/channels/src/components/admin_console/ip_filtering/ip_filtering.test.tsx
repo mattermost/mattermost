@@ -117,7 +117,7 @@ describe('IPFiltering', () => {
 
         const descriptionInput = getByLabelText('Enter a name for this rule');
         const cidrInput = getByLabelText('Enter IP Range');
-        const saveButton = screen.getByTestId('save-add-edit-button');
+        const saveButton = screen.getByTestId('admin.ip_filtering.edit_modal.save--button');
 
         await userEvent.clear(cidrInput);
         await userEvent.type(cidrInput, '192.168.0.0/16');
@@ -145,7 +145,7 @@ describe('IPFiltering', () => {
 
         const descriptionInput = getByLabelText('Enter a name for this rule');
         const cidrInput = getByLabelText('Enter IP Range');
-        const saveButton = screen.getByTestId('save-add-edit-button');
+        const saveButton = screen.getByTestId('admin.ip_filtering.edit_modal.save--button');
 
         await userEvent.clear(cidrInput);
         await userEvent.type(cidrInput, '192.168.0.0/16');
@@ -201,7 +201,7 @@ describe('IPFiltering', () => {
         });
 
         await userEvent.click(getByText('Save'));
-        await userEvent.click(screen.getByTestId('save-confirmation-button'));
+        await userEvent.click(screen.getByTestId('admin.ip_filtering.save_confirmation_modal.confirm--button'));
 
         await waitFor(() => {
             expect(applyIPFiltersMock).toHaveBeenCalledTimes(1);
@@ -222,7 +222,7 @@ describe('IPFiltering', () => {
 
         const descriptionInput = getByLabelText('Enter a name for this rule');
         const cidrInput = getByLabelText('Enter IP Range');
-        const saveButton = screen.getByTestId('save-add-edit-button');
+        const saveButton = screen.getByTestId('admin.ip_filtering.edit_modal.save--button');
 
         await userEvent.clear(cidrInput);
         await userEvent.type(cidrInput, '192.168.0.0/16');
@@ -236,7 +236,7 @@ describe('IPFiltering', () => {
 
             // ensure that the old description is gone, because we've now changed it
             expect(queryByText('Test IP Filter')).toBeNull();
-            expect(getByTestId('saveSetting')).toBeDisabled();
+            expect(getByTestId('admin.ip_filtering.save_panel.save--button')).toBeDisabled();
         });
     });
 

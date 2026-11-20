@@ -23,6 +23,7 @@ const GroupSettingsToggle = ({
 }: GroupSettingsToggleProps) => (
     <AdminSettingsSwitch
         id={'allowReferenceSwitch'}
+        testId='admin.group.allow_reference'
         disabled={isDisabled || isDefault}
         checked={allowReference}
         last={true}

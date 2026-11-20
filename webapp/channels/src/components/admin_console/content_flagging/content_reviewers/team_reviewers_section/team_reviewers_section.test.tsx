@@ -55,7 +55,7 @@ describe('TeamReviewersSection', () => {
         });
 
         await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
+            const teamNameCells = screen.getAllByTestId('admin.content_flagging.reviewers.teams.row.team_name--text');
             expect(teamNameCells).toHaveLength(2);
             expect(teamNameCells[0]).toBeVisible();
             expect(teamNameCells[0]).toHaveTextContent('Team One');
@@ -108,7 +108,7 @@ describe('TeamReviewersSection', () => {
         });
 
         await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
+            const teamNameCells = screen.getAllByTestId('admin.content_flagging.reviewers.teams.row.team_name--text');
             expect(teamNameCells).toHaveLength(2);
             expect(teamNameCells[0]).toBeVisible();
             expect(teamNameCells[0]).toHaveTextContent('Team One');
@@ -141,7 +141,7 @@ describe('TeamReviewersSection', () => {
 
         // First go to next page
         await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
+            const teamNameCells = screen.getAllByTestId('admin.content_flagging.reviewers.teams.row.team_name--text');
             expect(teamNameCells).toHaveLength(2);
             expect(teamNameCells[0]).toBeVisible();
             expect(teamNameCells[0]).toHaveTextContent('Team One');
@@ -180,7 +180,7 @@ describe('TeamReviewersSection', () => {
         });
 
         await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
+            const teamNameCells = screen.getAllByTestId('admin.content_flagging.reviewers.teams.row.team_name--text');
             expect(teamNameCells).toHaveLength(2);
             expect(teamNameCells[0]).toBeVisible();
             expect(teamNameCells[0]).toHaveTextContent('Team One');
@@ -232,7 +232,7 @@ describe('TeamReviewersSection', () => {
         });
 
         await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
+            const teamNameCells = screen.getAllByTestId('admin.content_flagging.reviewers.teams.row.team_name--text');
             expect(teamNameCells).toHaveLength(2);
             expect(teamNameCells[0]).toBeVisible();
             expect(teamNameCells[0]).toHaveTextContent('Team One');
@@ -325,7 +325,7 @@ describe('TeamReviewersSection', () => {
         });
 
         await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
+            const teamNameCells = screen.getAllByTestId('admin.content_flagging.reviewers.teams.row.team_name--text');
             expect(teamNameCells).toHaveLength(2);
             expect(teamNameCells[0]).toBeVisible();
             expect(teamNameCells[0]).toHaveTextContent('Team One');
@@ -386,7 +386,7 @@ describe('TeamReviewersSection', () => {
         });
 
         await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
+            const teamNameCells = screen.getAllByTestId('admin.content_flagging.reviewers.teams.row.team_name--text');
             expect(teamNameCells).toHaveLength(2);
             expect(teamNameCells[0]).toBeVisible();
             expect(teamNameCells[0]).toHaveTextContent('Team One');
@@ -459,11 +459,11 @@ describe('TeamReviewersSection', () => {
         );
 
         await waitFor(() => {
-            const teamNameCells = screen.getAllByTestId('teamName');
+            const teamNameCells = screen.getAllByTestId('admin.content_flagging.reviewers.teams.row.team_name--text');
             expect(teamNameCells).toHaveLength(2);
         });
 
-        const disableForAllButton = screen.getByTestId('disableForAllTeamsButton');
+        const disableForAllButton = screen.getByTestId('admin.content_flagging.reviewers.disable_all--button');
         await userEvent.click(disableForAllButton);
 
         expect(onChange).toHaveBeenCalledWith({

@@ -26,7 +26,7 @@ describe('Upload Files - Settings', () => {
             and('have.text', 'File Sharing and Downloads');
 
         // # Set file sharing to false
-        cy.findByTestId('FileSettings.EnableFileAttachmentsfalse').click();
+        cy.get('[data-testid="admin.setting:FileSettings.EnableFileAttachments--group"] [data-testid="admin.setting.false--radio"]').click();
         cy.get('#saveSetting').click();
 
         // # Create new team and new user and visit test channel

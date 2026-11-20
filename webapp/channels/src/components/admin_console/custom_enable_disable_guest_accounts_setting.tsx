@@ -75,6 +75,7 @@ const CustomEnableDisableGuestAccountsSetting = ({
                 disabled={disabled}
             />
             <ConfirmModal
+                testId='admin.guest_access.disable_guests_modal'
                 show={showConfirm && (value === false)}
                 title={
                     <FormattedMessage

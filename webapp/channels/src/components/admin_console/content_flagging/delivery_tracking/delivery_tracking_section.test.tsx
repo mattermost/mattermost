@@ -54,22 +54,22 @@ describe('DeliveryTrackingSection', () => {
     test('should hide the scope radios and the picker when disabled', () => {
         renderSection({Enable: false});
 
-        expect(screen.getByTestId('deliveryTrackingEnable_false')).toBeChecked();
-        expect(screen.queryByTestId('deliveryTrackingAllChannels_true')).not.toBeInTheDocument();
+        expect(screen.getByTestId('admin.content_flagging.delivery_tracking.enable.false--radio')).toBeChecked();
+        expect(screen.queryByTestId('admin.content_flagging.delivery_tracking.all_channels.true--radio')).not.toBeInTheDocument();
         expect(screen.queryByTestId('channel-multi-selector-delivery_tracking_channels')).not.toBeInTheDocument();
     });
 
     test('should show the scope radios but not the picker when tracking all channels', () => {
         renderSection({Enable: true, EnableForAllChannels: true});
 
-        expect(screen.getByTestId('deliveryTrackingAllChannels_true')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.delivery_tracking.all_channels.true--radio')).toBeChecked();
         expect(screen.queryByTestId('channel-multi-selector-delivery_tracking_channels')).not.toBeInTheDocument();
     });
 
     test('should show the picker when scoped to selected channels', () => {
         renderSection({Enable: true, EnableForAllChannels: false, ChannelIds: ['channel1']});
 
-        expect(screen.getByTestId('deliveryTrackingAllChannels_false')).toBeChecked();
+        expect(screen.getByTestId('admin.content_flagging.delivery_tracking.all_channels.false--radio')).toBeChecked();
         expect(screen.getByTestId('channel-multi-selector-delivery_tracking_channels')).toBeInTheDocument();
         expect(screen.getByTestId('delivery_tracking_channels-value')).toHaveTextContent('channel1');
     });
@@ -77,7 +77,7 @@ describe('DeliveryTrackingSection', () => {
     test('should emit Enable when the enable radio changes', async () => {
         const onChange = renderSection({Enable: false});
 
-        await userEvent.click(screen.getByTestId('deliveryTrackingEnable_true'));
+        await userEvent.click(screen.getByTestId('admin.content_flagging.delivery_tracking.enable.true--radio'));
 
         expect(onChange).toHaveBeenCalledWith({...baseValue, Enable: true});
     });
@@ -85,7 +85,7 @@ describe('DeliveryTrackingSection', () => {
     test('should emit EnableForAllChannels when the scope radio changes', async () => {
         const onChange = renderSection({Enable: true, EnableForAllChannels: true});
 
-        await userEvent.click(screen.getByTestId('deliveryTrackingAllChannels_false'));
+        await userEvent.click(screen.getByTestId('admin.content_flagging.delivery_tracking.all_channels.false--radio'));
 
         expect(onChange).toHaveBeenCalledWith({...baseValue, Enable: true, EnableForAllChannels: false});
     });

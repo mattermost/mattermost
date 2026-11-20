@@ -11,10 +11,14 @@ import ProfilePicture from 'components/profile_picture';
 
 type Props = {
     user: UserProfile;
+
+    // The grid row: `.name`, `.display_name--text`, `.email--text`.
+    testId?: string;
 };
 
 const UserGridName = ({
     user,
+    testId,
 }: Props) => {
     return (
         <div className='UserGrid_nameRow'>
@@ -26,14 +30,14 @@ const UserGridName = ({
 
             <div
                 className='UserGrid_name'
-                data-testid='userGrid-name'
+                data-testid={testId ? `${testId}.name` : undefined}
             >
-                <span data-testid='userGrid-displayName'>
+                <span data-testid={testId ? `${testId}.display_name--text` : undefined}>
                     {`${user.username} - ${user.first_name} ${user.last_name}`}
                 </span>
                 <span
                     className='ug-email'
-                    data-testid='userGrid-email'
+                    data-testid={testId ? `${testId}.email--text` : undefined}
                 >
                     {user.email}
                 </span>

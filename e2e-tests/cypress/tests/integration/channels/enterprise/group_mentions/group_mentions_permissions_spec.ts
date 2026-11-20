@@ -100,7 +100,7 @@ describe('Group Mentions', () => {
         cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'System Scheme');
 
         // # Click reset to defaults and confirm
-        cy.findByTestId('resetPermissionsToDefault').click();
+        cy.findByTestId('admin.permissions.reset--button').click();
         cy.get('#confirmModalButton').click();
 
         // # Save
@@ -117,8 +117,8 @@ describe('Group Mentions', () => {
         // # Disable Group Mentions for All Users & Channel Admins
         cy.visit('/admin_console/user_management/permissions/system_scheme');
         cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'System Scheme');
-        disablePermission('all_users-posts-use_group_mentions-checkbox');
-        disablePermission('channel_admin-posts-use_group_mentions-checkbox');
+        disablePermission('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:use_group_mentions--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
+        disablePermission('[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.group.row:use_group_mentions--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
         cy.uiSaveConfig();
 
         // # Login as a regular user
@@ -153,7 +153,7 @@ describe('Group Mentions', () => {
             cy.apiAdminLogin();
             cy.visit('/admin_console/user_management/permissions/system_scheme');
             cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'System Scheme');
-            enablePermission('channel_admin-posts-use_group_mentions-checkbox');
+            enablePermission('[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.group.row:use_group_mentions--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
             cy.uiSaveConfig();
 
             // # Login as a regular user and visit the channel
@@ -192,9 +192,9 @@ describe('Group Mentions', () => {
         // # Disable Group Mentions for All Users & Channel Admins & Team Admins
         cy.visit('/admin_console/user_management/permissions/system_scheme');
         cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'System Scheme');
-        disablePermission('all_users-posts-use_group_mentions-checkbox');
-        disablePermission('channel_admin-posts-use_group_mentions-checkbox');
-        disablePermission('team_admin-posts-use_group_mentions-checkbox');
+        disablePermission('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:use_group_mentions--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
+        disablePermission('[data-testid="admin.permissions.role:channel_admin--group"] [data-testid="admin.permissions.group.row:use_group_mentions--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
+        disablePermission('[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.group.row:use_group_mentions--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
         cy.uiSaveConfig();
 
         // # Login as a regular user
@@ -230,7 +230,7 @@ describe('Group Mentions', () => {
                 cy.apiAdminLogin();
                 cy.visit('/admin_console/user_management/permissions/system_scheme');
                 cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'System Scheme');
-                enablePermission('team_admin-posts-use_group_mentions-checkbox');
+                enablePermission('[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.group.row:use_group_mentions--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]');
                 cy.uiSaveConfig();
 
                 // # Login as a regular user and visit the channel
@@ -273,8 +273,8 @@ describe('Group Mentions', () => {
         // # Verify that group mentions for all users & guests are disabled
         cy.visit('/admin_console/user_management/permissions/system_scheme');
         cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'System Scheme');
-        cy.findByTestId('all_users-posts-use_group_mentions-checkbox').should('not.have.class', 'checked');
-        cy.findByTestId('guests-guest_use_group_mentions-checkbox').should('not.have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:use_group_mentions--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').should('not.have.class', 'checked');
+        cy.get('[data-testid="admin.permissions.role:guests--group"] [data-testid="admin.permissions.group:guest_use_group_mentions--checkbox"] [data-testid="admin.permissions.group.checkbox"]').should('not.have.class', 'checked');
 
         // # Create a new channel as a sysadmin
         cy.apiCreateChannel(testTeam.id, 'group-mention', 'Group Mentions').then(({channel}) => {
@@ -317,7 +317,7 @@ describe('Group Mentions', () => {
                 cy.apiAdminLogin();
                 cy.visit('/admin_console/user_management/permissions/system_scheme');
                 cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'System Scheme');
-                enablePermission('guests-guest_use_group_mentions-checkbox');
+                enablePermission('[data-testid="admin.permissions.role:guests--group"] [data-testid="admin.permissions.group:guest_use_group_mentions--checkbox"] [data-testid="admin.permissions.group.checkbox"]');
                 cy.uiSaveConfig();
 
                 // # Login as guest user again and visit the channel

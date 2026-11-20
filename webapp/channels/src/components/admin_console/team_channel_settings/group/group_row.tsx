@@ -80,17 +80,22 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
             <div
                 id='group'
                 className='group'
+                data-testid={`admin.groups.group:${group.id}`}
             >
                 <div
                     id='group-row'
                     className='group-row'
                 >
-                    <span className='group-name row-content'>
+                    <span
+                        className='group-name row-content'
+                        data-testid='admin.groups.group.name--text'
+                    >
                         {group.display_name || group.name}
                     </span>
                     <span className='group-description row-content'>
                         <ToggleModalButton
                             id={`${group.display_name}MembersToggle`}
+                            testId='admin.groups.group.members'
                             className='color--link'
                             modalId={ModalIdentifiers.GROUP_MEMBERS}
                             dialogType={GroupMembersModal}
@@ -110,19 +115,26 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
                             isDisabled={this.props.isDisabled}
                         >
                             <div>
-                                <a data-testid='current-role'>
+                                <a
+                                    role='button'
+                                    aria-disabled={this.props.isDisabled}
+                                    aria-haspopup='menu'
+                                    data-testid='admin.groups.group.role--button'
+                                >
                                     <span>{this.displayCurrentRole()}</span>
                                     <span className='caret'/>
                                 </a>
                             </div>
                             <Menu
                                 id='role-to-be-menu'
+                                testId='admin.groups.group.role_menu'
                                 openLeft={true}
                                 openUp={false}
                                 ariaLabel={localizeMessage({id: 'admin.team_channel_settings.group_row.memberRole', defaultMessage: 'Member Role'})}
                             >
                                 <Menu.ItemAction
                                     id='role-to-be'
+                                    testId='admin.groups.group.role_menu.role_to_be'
                                     onClick={this.setNewGroupRole}
                                     text={this.displayRoleToBe()}
                                 />
@@ -136,6 +148,7 @@ export default class GroupRow extends React.PureComponent<GroupRowProps> {
                         <a
                             href='#'
                             onClick={this.removeGroup}
+                            data-testid='admin.groups.group.remove--link'
                             className={this.props.isDisabled ? 'disabled' : ''}
                         >
                             <FormattedMessage

@@ -337,6 +337,7 @@ const IPFiltering = () => {
                 </>
             </div>
             <SaveChangesPanel
+                testId='admin.ip_filtering.save_panel'
                 saving={saving}
                 saveNeeded={saveNeeded || installationStatus !== 'stable'}
                 isDisabled={!currentIPIsInRange() || installationStatus !== 'stable'}

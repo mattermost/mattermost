@@ -49,7 +49,7 @@ describe('Channel members test', () => {
         cy.get('#channelMembers').scrollIntoView().should('be.visible');
 
         // # Click the sync group members switch
-        cy.findByTestId('syncGroupSwitch-button').
+        cy.findByTestId('admin.channel.sync_groups--switch').
             scrollIntoView().
             click({force: true});
 

@@ -66,7 +66,7 @@ export default function DeliveryTrackingSection({
     return (
         <AdminPanel
             id='deliveryTrackingSection'
-            data-testid='deliveryTrackingSection'
+            data-testid='admin.content_flagging.delivery_tracking'
             title={messages.title}
             subtitle={messages.description}
             showBeta={true}
@@ -84,7 +84,7 @@ export default function DeliveryTrackingSection({
                     <div className='setting-content-wrapper'>
                         <div className='setting-content'>
                             <Radio
-                                data-testid='deliveryTrackingEnable_true'
+                                data-testid='admin.content_flagging.delivery_tracking.enable.true--radio'
                                 name='deliveryTrackingEnable'
                                 value='true'
                                 checked={value.Enable}
@@ -97,7 +97,7 @@ export default function DeliveryTrackingSection({
                             </Radio>
 
                             <Radio
-                                data-testid='deliveryTrackingEnable_false'
+                                data-testid='admin.content_flagging.delivery_tracking.enable.false--radio'
                                 name='deliveryTrackingEnable'
                                 value='false'
                                 checked={!value.Enable}
@@ -131,7 +131,7 @@ export default function DeliveryTrackingSection({
                         <div className='setting-content-wrapper'>
                             <div className='setting-content'>
                                 <Radio
-                                    data-testid='deliveryTrackingAllChannels_true'
+                                    data-testid='admin.content_flagging.delivery_tracking.all_channels.true--radio'
                                     name='deliveryTrackingAllChannels'
                                     value='true'
                                     checked={value.EnableForAllChannels}
@@ -144,7 +144,7 @@ export default function DeliveryTrackingSection({
                                 </Radio>
 
                                 <Radio
-                                    data-testid='deliveryTrackingAllChannels_false'
+                                    data-testid='admin.content_flagging.delivery_tracking.all_channels.false--radio'
                                     name='deliveryTrackingAllChannels'
                                     value='false'
                                     checked={!value.EnableForAllChannels}

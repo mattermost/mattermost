@@ -75,7 +75,10 @@ const PermissionsTreePlaybooks = (props: Props) => {
     });
 
     return (
-        <div className='permissions-tree'>
+        <div
+            className='permissions-tree'
+            data-testid={props.role?.name ? `admin.permissions.role:${props.role.name}--group` : undefined}
+        >
             <div className='permissions-tree--header'>
                 <div className='permission-name'>
                     <FormattedMessage

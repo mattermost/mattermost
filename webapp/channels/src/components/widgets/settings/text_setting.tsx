@@ -28,11 +28,11 @@ export type Props = {
     autoFocus?: boolean;
     multiple?: boolean;
 
-    /** The row's parts render under it (`${testIdScope}.value--textbox`, `--spinbutton` for numbers); without it the input keeps its id based testid. */
+    /** The row's parts render under it (`${testIdScope}.value--textbox`, `.number--spinbutton` for numbers); without it the input keeps its id based testid. */
     testIdScope?: string;
 
-    /** The row's own testid when it isn't the scope (a keyed row). */
-    testId?: string;
+    /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
+    testKey?: string;
 };
 
 function TextSetting(props: Props) {
@@ -76,7 +76,7 @@ function TextSetting(props: Props) {
         // a lot of our e2e test rely on 'input' being in the test id if it's a text/textarea input
         let testId = inputType === 'text' ? `${props.id}input` : `${props.id}${inputType}`;
         if (props.testIdScope) {
-            testId = inputType === 'number' ? `${props.testIdScope}.value--spinbutton` : `${props.testIdScope}.value--textbox`;
+            testId = inputType === 'number' ? `${props.testIdScope}.number--spinbutton` : `${props.testIdScope}.value--textbox`;
         }
 
         // An incomplete number like "-" parses to NaN. Rendering NaN makes React overwrite the input
@@ -108,7 +108,7 @@ function TextSetting(props: Props) {
             inputId={props.id}
             footer={props.footer}
             testIdScope={props.testIdScope}
-            testId={props.testId}
+            testKey={props.testKey}
         >
             {input}
         </Setting>

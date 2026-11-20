@@ -185,6 +185,7 @@ export default class GroupTeamsAndChannels extends React.PureComponent<
                                 onToggleCollapse={this.onToggleCollapse}
                                 isDisabled={this.props.isDisabled}
                                 {...entry}
+                                id={entry.id}
                             />
                         ))}
                     </tbody>

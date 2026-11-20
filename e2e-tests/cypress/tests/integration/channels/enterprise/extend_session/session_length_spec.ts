@@ -79,17 +79,17 @@ describe('MM-T2574 Session Lengths', () => {
 
         cy.get('#extendSessionLengthWithActivityfalse').should('exist').check();
         Object.entries(helpText).forEach(([key, value]) => {
-            cy.findByTestId(key).should('exist');
-            cy.findByTestId(`${key}help-text`).should('have.text', value.false);
+            cy.findByTestId(`admin.setting:${key}--group`).should('exist');
+            cy.get(`[data-testid="admin.setting:${key}--group"] [data-testid="admin.setting.${key === 'extendSessionLengthWithActivity' ? 'set_help' : 'help'}--text"]`).should('have.text', value.false);
         });
 
         cy.get('#extendSessionLengthWithActivitytrue').should('exist').check();
         Object.entries(helpText).forEach(([key, value]) => {
             if (value.true) {
-                cy.findByTestId(key).should('exist');
-                cy.findByTestId(`${key}help-text`).should('have.text', value.true);
+                cy.findByTestId(`admin.setting:${key}--group`).should('exist');
+                cy.get(`[data-testid="admin.setting:${key}--group"] [data-testid="admin.setting.${key === 'extendSessionLengthWithActivity' ? 'set_help' : 'help'}--text"]`).should('have.text', value.true);
             } else {
-                cy.findByTestId(key).should('not.exist');
+                cy.findByTestId(`admin.setting:${key}--group`).should('not.exist');
             }
         });
     });

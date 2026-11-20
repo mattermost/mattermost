@@ -119,11 +119,12 @@ function SecureConnectionCreateInviteModal({
             modalHeaderText={title}
             onExited={onExited}
             compassDesign={true}
+            testId='admin.create_invite_modal'
             autoCloseOnConfirmButton={done}
             backdrop='static'
         >
             {loading ? (
-                <LoadingScreen/>
+                <LoadingScreen testId='admin.secure_connections.create_invite.loading_screen'/>
             ) : (
                 <>
                     {message}
@@ -136,6 +137,7 @@ function SecureConnectionCreateInviteModal({
                     >
                         {inviteCode && (
                             <Input
+                                testId='admin.create_invite_modal.code'
                                 type='text'
                                 name='invite-code'
                                 containerClassName='secure-connections-modal-input'
@@ -144,7 +146,6 @@ function SecureConnectionCreateInviteModal({
                                     defaultMessage: 'Encrypted invitation code',
                                 })}
                                 value={inviteCode}
-                                data-testid='invite-code'
                                 readOnly={true}
                                 addon={(
                                     <Button
@@ -159,6 +160,7 @@ function SecureConnectionCreateInviteModal({
                             />
                         )}
                         <Input
+                            testId='admin.create_invite_modal.password'
                             type='text'
                             name='password'
                             containerClassName='secure-connections-modal-input'
@@ -168,7 +170,6 @@ function SecureConnectionCreateInviteModal({
                             })}
                             value={password}
                             onChange={handlePasswordChange}
-                            data-testid='password'
                             readOnly={done}
                             addon={done ? (
                                 <Button

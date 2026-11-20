@@ -1212,6 +1212,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             isDisabled={this.props.isDisabled}
                         />
                         <ConfirmModal
+                            testId='admin.team.archive_modal'
                             show={showArchiveConfirmModal}
                             title={
                                 <FormattedMessage
@@ -1235,6 +1236,7 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             onCancel={this.hideArchiveConfirmModal}
                         />
                         <ConfirmModal
+                            testId='admin.team.save_confirm_modal'
                             show={showAbacSaveConfirm}
                             title={
                                 <FormattedMessage
@@ -1298,6 +1300,8 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                 </div>
 
                 <SaveChangesPanel
+
+                    testId='admin.team.save_panel'
                     saving={saving}
                     cancelLink='/admin_console/user_management/teams'
                     saveNeeded={saveNeeded}

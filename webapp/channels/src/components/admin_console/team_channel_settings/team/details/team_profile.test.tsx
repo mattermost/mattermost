@@ -33,8 +33,8 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
     test('renders the team name and description as editable fields prefilled with the current values', () => {
         renderWithContext(<TeamProfile {...baseProps}/>, initialState);
 
-        expect(screen.getByTestId('teamNameInput')).toHaveValue('Cyber Defense HQ');
-        expect(screen.getByTestId('teamDescriptionInput')).toHaveValue('Original description');
+        expect(screen.getByTestId('admin.team.name--textbox')).toHaveValue('Cyber Defense HQ');
+        expect(screen.getByTestId('admin.team.description--textbox')).toHaveValue('Original description');
     });
 
     test('calls onNameChange with the typed value when the team name is edited', async () => {
@@ -47,7 +47,7 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
             initialState,
         );
 
-        await userEvent.type(screen.getByTestId('teamNameInput'), '!');
+        await userEvent.type(screen.getByTestId('admin.team.name--textbox'), '!');
 
         // The field is controlled by the name prop, so the change event reports the
         // current value with the appended character.
@@ -64,7 +64,7 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
             initialState,
         );
 
-        await userEvent.type(screen.getByTestId('teamDescriptionInput'), '.');
+        await userEvent.type(screen.getByTestId('admin.team.description--textbox'), '.');
 
         expect(onDescriptionChange).toHaveBeenCalledWith('Original description.');
     });
@@ -80,10 +80,10 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
         );
 
         // The error must render within the name field's container, not the description field's.
-        const nameContainer = screen.getByTestId('teamNameInput').closest('.Input_container') as HTMLElement;
+        const nameContainer = screen.getByTestId('admin.team.name--textbox').closest('.Input_container') as HTMLElement;
         expect(within(nameContainer).getByText('Team name must be 2 or more characters')).toBeInTheDocument();
 
-        const descriptionContainer = screen.getByTestId('teamDescriptionInput').closest('.Input_container') as HTMLElement;
+        const descriptionContainer = screen.getByTestId('admin.team.description--textbox').closest('.Input_container') as HTMLElement;
         expect(within(descriptionContainer).queryByText('Team name must be 2 or more characters')).not.toBeInTheDocument();
     });
 
@@ -96,7 +96,7 @@ describe('admin_console/team_channel_settings/team/TeamProfile editing', () => {
             initialState,
         );
 
-        expect(screen.getByTestId('teamNameInput')).toBeDisabled();
-        expect(screen.getByTestId('teamDescriptionInput')).toBeDisabled();
+        expect(screen.getByTestId('admin.team.name--textbox')).toBeDisabled();
+        expect(screen.getByTestId('admin.team.description--textbox')).toBeDisabled();
     });
 });

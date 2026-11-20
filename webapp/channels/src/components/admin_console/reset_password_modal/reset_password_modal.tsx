@@ -121,6 +121,7 @@ export default function ResetPasswordModal({
         <GenericModal
             id='resetPasswordModal'
             className='ResetPasswordModal'
+            testId='reset_password_modal'
             modalHeaderText={title}
             show={show}
             onExited={onExited}
@@ -143,6 +144,7 @@ export default function ResetPasswordModal({
                         type='password'
                         name='currentPassword'
                         autoComplete='current-password'
+                        testId='reset_password_modal.current_password'
                         label={formatMessage({
                             id: 'admin.reset_password.currentPassword',
                             defaultMessage: 'Current password',
@@ -161,6 +163,7 @@ export default function ResetPasswordModal({
                     type='password'
                     name='newPassword'
                     autoComplete='new-password'
+                    testId='reset_password_modal.new_password'
                     label={formatMessage({
                         id: 'admin.reset_password.newPassword',
                         defaultMessage: 'New password',

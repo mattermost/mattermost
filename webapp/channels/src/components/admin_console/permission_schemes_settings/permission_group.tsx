@@ -300,6 +300,10 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                         className={'permission-group-row ' + classes}
                         onClick={this.toggleSelectGroup}
                         id={uniqId}
+                        role='checkbox'
+                        aria-checked={this.getStatus(this.props.permissions) === 'intermediate' ? 'mixed' : this.getStatus(this.props.permissions) === 'checked'}
+                        aria-disabled={readOnly || !this.props.role}
+                        data-testid={`admin.permissions.group:${id}--checkbox`}
                     >
                         {!combined &&
                             <div
@@ -308,7 +312,7 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                             />}
                         <PermissionCheckbox
                             value={this.getStatus(this.props.permissions)}
-                            id={`${uniqId}-checkbox`}
+                            testId='admin.permissions.group.checkbox'
                         />
                         <span className='permission-name'>
                             {name}

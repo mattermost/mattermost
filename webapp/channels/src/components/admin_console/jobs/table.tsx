@@ -130,6 +130,7 @@ class JobTable extends React.PureComponent<Props, State> {
             return (
                 <tr
                     key={job.id}
+                    data-testid={`admin.jobs.table.job:${job.id}`}
                     onClick={this.props.onRowClick ? () => this.props.onRowClick!(job) : undefined}
                     className={this.props.onRowClick ? 'clickable' : ''}
                 >
@@ -157,6 +158,7 @@ class JobTable extends React.PureComponent<Props, State> {
                                 emphasis='quaternary'
                                 size='small'
                                 className='view-details-link'
+                                data-testid='admin.jobs.table.job.view_details--button'
                                 trailingIcon={<Icon glyph={<ChevronRightIcon/>}/>}
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -220,7 +222,7 @@ class JobTable extends React.PureComponent<Props, State> {
             <div className='job-table__table'>
                 <table
                     className='table'
-                    data-testid='jobTable'
+                    data-testid={`admin.jobs.table:${this.props.jobType}`}
                 >
                     <thead>
                         <tr>
@@ -297,6 +299,7 @@ class JobTable extends React.PureComponent<Props, State> {
                     <Button
                         type='button'
                         emphasis='primary'
+                        data-testid={`admin.jobs.create:${this.props.jobType}--button`}
                         onClick={this.handleCreateJob}
                         disabled={this.props.disabled}
                     >

@@ -185,7 +185,8 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     sidebarItems.push((
                         <AdminSidebarSection
                             key={subDefinitionKey}
-                            definitionKey={subDefinitionKey}
+                            testId='admin.sidebar.category.section'
+                            testKey={subKey}
                             name={item.url}
                             restrictedIndicator={item.restrictedIndicator?.shouldDisplay() ? item.restrictedIndicator.value(cloud) : undefined}
                             title={typeof item.title === 'string' ? item.title : (
@@ -211,7 +212,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                 sidebarSections.push((
                     <AdminSidebarCategory
                         key={key}
-                        definitionKey={key}
+                        testKey={key}
                         parentLink='/admin_console'
                         icon={section.icon}
                         title={typeof section.sectionTitle === 'string' ? section.sectionTitle : (
@@ -249,6 +250,8 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     return (
                         <AdminSidebarSection
                             key={'customplugin' + plugin.id}
+                            testId='admin.sidebar.category.plugin'
+                            testKey={plugin.id}
                             name={'plugins/plugin_' + plugin.id}
                             title={plugin.name}
                         />
@@ -269,7 +272,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         return (
             <div
                 className='admin-sidebar'
-                data-testid='admin-sidebar'
+                data-testid='admin.sidebar'
             >
                 <AdminSidebarHeader/>
                 <div className='filter-container'>
@@ -285,6 +288,8 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         placeholder={this.props.intl.formatMessage({id: 'admin.sidebar.filter', defaultMessage: 'Find settings'})}
                         ref={this.searchRef}
                         id='adminSidebarFilter'
+                        data-testid='admin.sidebar.filter--textbox'
+                        clearTestId='admin.sidebar.filter.clear'
                         clearable={true}
                         onClear={this.handleClearFilter}
                     />

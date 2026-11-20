@@ -32,7 +32,7 @@ export default function SecureConnections() {
     const serviceNotRunning = error?.server_error_id === 'api.remote_cluster.service_not_enabled.app_error';
     const disabled = loading || serviceNotRunning;
 
-    const placeholder = loading ? <LoadingScreen/> : (
+    const placeholder = loading ? <LoadingScreen testId='admin.secure_connections.loading_screen'/> : (
         <Placeholder
             disabled={disabled}
             serviceNotRunning={serviceNotRunning}
@@ -42,7 +42,7 @@ export default function SecureConnections() {
     return (
         <div
             className='wrapper--fixed'
-            data-testid='secureConnectionsSection'
+            data-testid='admin.secure_connections'
         >
             <AdminHeader>
                 <FormattedMessage {...msg.pageTitle}/>

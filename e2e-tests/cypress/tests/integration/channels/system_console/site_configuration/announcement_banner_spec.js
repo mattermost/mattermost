@@ -30,16 +30,16 @@ describe('Announcement Banner', () => {
         cy.visit('/admin_console/site_config/announcement_banner');
 
         // # Enable banner if not already enabled
-        cy.findByTestId('AnnouncementSettings.EnableBanner').
+        cy.findByTestId('admin.setting:AnnouncementSettings.EnableBanner--group').
             should('be.visible').
             within(() => {
-                cy.findByTestId('AnnouncementSettings.EnableBannertrue').
+                cy.findByTestId('admin.setting.true--radio').
                     should('be.visible').
                     click({force: true});
             });
 
         // # Enter the long banner text
-        cy.findByTestId('AnnouncementSettings.BannerText').
+        cy.findByTestId('admin.setting:AnnouncementSettings.BannerText--group').
             should('be.visible').
             within(() => {
                 cy.get('input').
@@ -51,7 +51,7 @@ describe('Announcement Banner', () => {
             });
 
         // # Change the banner background color
-        cy.findByTestId('AnnouncementSettings.BannerColor').
+        cy.findByTestId('admin.setting:AnnouncementSettings.BannerColor--group').
             should('be.visible').
             within(() => {
                 cy.get('input').
@@ -61,7 +61,7 @@ describe('Announcement Banner', () => {
             });
 
         // # Change the banner text color
-        cy.findByTestId('AnnouncementSettings.BannerTextColor').
+        cy.findByTestId('admin.setting:AnnouncementSettings.BannerTextColor--group').
             should('be.visible').
             within(() => {
                 cy.get('input').
@@ -71,10 +71,10 @@ describe('Announcement Banner', () => {
             });
 
         // # Allow for banner dismissal to true
-        cy.findByTestId('AnnouncementSettings.AllowBannerDismissal').
+        cy.findByTestId('admin.setting:AnnouncementSettings.AllowBannerDismissal--group').
             should('be.visible').
             within(() => {
-                cy.findByTestId('AnnouncementSettings.AllowBannerDismissaltrue').
+                cy.findByTestId('admin.setting.true--radio').
                     should('be.visible').
                     click({force: true});
             });

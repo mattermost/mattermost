@@ -161,7 +161,7 @@ describe('components/admin_console/custom_plugin_settings/PluginEnableButton', (
         await userEvent.click(screen.getByRole('switch', {name: 'Enable plugin'}));
 
         expect(screen.getByText('Enabling')).toBeInTheDocument();
-        expect(screen.getByTestId('loadingSpinner')).toBeInTheDocument();
+        expect(screen.getByTestId('admin.plugins.enable_plugin.loading_spinner')).toBeInTheDocument();
         expect(screen.getByRole('switch', {name: 'Enable plugin'})).toBeDisabled();
         expect(screen.getByRole('button', {name: 'Plugin actions'})).toBeDisabled();
         expect(screen.queryByText('Enabled')).not.toBeInTheDocument();

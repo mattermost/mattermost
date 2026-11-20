@@ -54,7 +54,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
         );
 
         // Click the Remove button to show confirmation modal
-        const removeButton = screen.getByTestId('Test team with children_groupsyncable_remove');
+        const removeButton = screen.getByTestId('admin.group.teams_and_channels.row.remove--button');
         await userEvent.click(removeButton);
 
         // Confirmation modal should be shown - click confirm

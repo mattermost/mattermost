@@ -72,7 +72,7 @@ describe('LDAP guest', () => {
         gotoLDAPSettings();
 
         // # expand the filters section
-        cy.findByTestId('LdapSettings.AdditionalFiltersbutton').click();
+        cy.findByTestId('admin.ldap.expand:LdapSettings.AdditionalFilters--button').click();
         updateGuestFilter(`(uid=${user1.username})`);
 
         // # Login as LDAP user1
@@ -92,7 +92,7 @@ describe('LDAP guest', () => {
 
             // # Go to LDAP settings page and EMPTY guest filter value
             gotoLDAPSettings();
-            cy.findByTestId('LdapSettings.AdditionalFiltersbutton').click();
+            cy.findByTestId('admin.ldap.expand:LdapSettings.AdditionalFilters--button').click();
             updateGuestFilter('');
 
             // # Login again as LDAP user1
@@ -126,7 +126,7 @@ describe('LDAP guest', () => {
 
         // # Go to LDAP settings page and update guest filter as user1
         gotoLDAPSettings();
-        cy.findByTestId('LdapSettings.AdditionalFiltersbutton').click();
+        cy.findByTestId('admin.ldap.expand:LdapSettings.AdditionalFilters--button').click();
         updateGuestFilter(`(uid=${user1.username})`);
 
         // # Go to Guest access page and disable guest access
@@ -135,12 +135,12 @@ describe('LDAP guest', () => {
 
         // # Go to LDAP settings page
         gotoLDAPSettings();
-        cy.findByTestId('LdapSettings.GuestFilterinput').should('have.attr', 'disabled');
+        cy.get('[data-testid="admin.setting:LdapSettings.GuestFilter--group"] [data-testid="admin.setting.value--textbox"]').should('have.attr', 'disabled');
 
         // # Go to SAML settings page
         cy.visit('/admin_console/authentication/saml');
         cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'SAML 2.0');
-        cy.findByTestId('SamlSettings.GuestAttributeinput').should('be.disabled');
+        cy.get('[data-testid="admin.setting:SamlSettings.GuestAttribute--group"] [data-testid="admin.setting.value--textbox"]').should('be.disabled');
 
         // # Login again as LDAP user1
         testSettings.user = user1;
@@ -200,7 +200,7 @@ describe('LDAP guest', () => {
                     cy.get('.admin-console__header', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('have.text', 'Team Configuration');
 
                     // # Turn on sync group members
-                    cy.findByTestId('syncGroupSwitch-button').scrollIntoView().click({force: true});
+                    cy.findByTestId('admin.team.sync_groups--switch').scrollIntoView().click({force: true});
 
                     // # Add board group to team
                     cy.get('#addGroupsToTeamToggle').scrollIntoView().click();
@@ -284,15 +284,14 @@ function removeUserFromAllTeams(user: {id: string}) {
 }
 
 function setGuestAccess(enable: boolean) {
-    const inputId = 'GuestAccountsSettings.' + (enable ? 'Enabletrue' : 'Enablefalse');
-    cy.findByTestId(inputId).then((elem) => {
+    cy.get(`[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.${enable}--radio"]`).then((elem) => {
         // Proceed only if it's not already checked
         if (!Cypress.$(elem).is(':checked')) {
             // # Check the radio button
-            cy.findByTestId(inputId).check().should('be.checked');
+            cy.get(`[data-testid="admin.setting:GuestAccountsSettings.Enable--group"] [data-testid="admin.setting.${enable}--radio"]`).check().should('be.checked');
 
             // # Save settings
-            cy.findByTestId('saveSetting').click();
+            cy.findByTestId('admin.save--button').click();
 
             if (!enable) {
                 // # Confirm the modal button
@@ -315,19 +314,19 @@ function setLDAPTestSettings(config: Cypress.AdminConfig) {
 function updateGuestFilter(value: string) {
     // # Set guest filter value
     if (value) {
-        cy.findByTestId('LdapSettings.GuestFilterinput').type(value);
+        cy.get('[data-testid="admin.setting:LdapSettings.GuestFilter--group"] [data-testid="admin.setting.value--textbox"]').type(value);
     } else {
-        cy.findByTestId('LdapSettings.GuestFilterinput').clear();
+        cy.get('[data-testid="admin.setting:LdapSettings.GuestFilter--group"] [data-testid="admin.setting.value--textbox"]').clear();
     }
 
     // # Save config settings and wait until saved
-    cy.findByTestId('saveSetting').click();
+    cy.findByTestId('admin.save--button').click();
     waitUntilConfigSave();
 }
 
 // # Wait's until the Saving text becomes Save
 const waitUntilConfigSave = () => {
-    cy.waitUntil(() => cy.findByTestId('saveSetting').then((el) => {
+    cy.waitUntil(() => cy.findByTestId('admin.save--button').then((el) => {
         return el[0].innerText === 'Save';
     }));
 };

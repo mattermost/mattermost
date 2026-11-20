@@ -1,186 +1,125 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, openSystemUsers, searchSystemUsers, test, Msg} from '@mattermost/playwright-lib';
 
 test('MM-T5521-1 Should be able to search users with their first names', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
-
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
 
     // # Create 2 users
     const user1 = await adminClient.createUser(await pw.random.user(), '', '');
     const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    // # Log in as admin and open System Console > Users
+    const app = await openSystemUsers(pw, adminUser);
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
+    // # Search for the first user's first name
+    await searchSystemUsers(app, user1.first_name, user1);
 
-    // # Enter the 'First Name' of the first user in the search box
-    await systemConsolePage.users.searchUsers(user1.first_name);
-
-    // * Verify that the searched user i.e first user is found in the list
-    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
-
-    // * Verify that the second user doesnt appear in the list
-    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
+    // * Only the first user is listed
+    const {table} = app.admin.users;
+    await expect(table.row(user1.id).cell('emailColumn')).toHaveText(user1.email);
+    await expect(table.row(user1.id).cell('emailColumn')).toBeVisible();
+    await expect(table.rowList).toHaveKeyCount(1);
+    await expect(table.row(user2.id)).toHaveCount(0);
 });
 
 test('MM-T5521-2 Should be able to search users with their last names', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
     // # Create 2 users
     const user1 = await adminClient.createUser(await pw.random.user(), '', '');
     const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    // # Log in as admin and open System Console > Users
+    const app = await openSystemUsers(pw, adminUser);
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
+    // # Search for the first user's last name
+    await searchSystemUsers(app, user1.last_name, user1);
 
-    // # Enter the 'Last Name' of the user in the search box
-    await systemConsolePage.users.searchUsers(user1.last_name);
-
-    // * Verify that the searched user i.e first user is found in the list
-    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
-
-    //  * Verify that the second user doesnt appear in the list
-    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
+    // * Only the first user is listed
+    const {table} = app.admin.users;
+    await expect(table.row(user1.id).cell('emailColumn')).toHaveText(user1.email);
+    await expect(table.row(user1.id).cell('emailColumn')).toBeVisible();
+    await expect(table.rowList).toHaveKeyCount(1);
+    await expect(table.row(user2.id)).toHaveCount(0);
 });
 
 test('MM-T5521-3 Should be able to search users with their emails', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
     // # Create 2 users
     const user1 = await adminClient.createUser(await pw.random.user(), '', '');
     const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    // # Log in as admin and open System Console > Users
+    const app = await openSystemUsers(pw, adminUser);
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
+    // # Search for the first user's email
+    await searchSystemUsers(app, user1.email, user1);
 
-    // * Enter the 'Email' of the first user in the search box
-    await systemConsolePage.users.searchUsers(user1.email);
-
-    // * Verify that the searched user i.e first user is found in the list
-    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
-
-    //  * Verify that the second user doesnt appear in the list
-    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
+    // * Only the first user is listed
+    const {table} = app.admin.users;
+    await expect(table.row(user1.id).cell('emailColumn')).toHaveText(user1.email);
+    await expect(table.row(user1.id).cell('emailColumn')).toBeVisible();
+    await expect(table.rowList).toHaveKeyCount(1);
+    await expect(table.row(user2.id)).toHaveCount(0);
 });
 
 test('MM-T5521-4 Should be able to search users with their usernames', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
     // # Create 2 users
     const user1 = await adminClient.createUser(await pw.random.user(), '', '');
     const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    // # Log in as admin and open System Console > Users
+    const app = await openSystemUsers(pw, adminUser);
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-    await systemConsolePage.users.toBeVisible();
+    // # Search for the first user's username
+    await searchSystemUsers(app, user1.username, user1);
 
-    // # Enter the 'Username' of the first user in the search box
-    await systemConsolePage.users.searchUsers(user1.username);
-
-    // * Verify that the searched user i.e first user is found in the list
-    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
-
-    //  * Verify that the another user is not visible
-    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
+    // * Only the first user is listed
+    const {table} = app.admin.users;
+    await expect(table.row(user1.id).cell('emailColumn')).toHaveText(user1.email);
+    await expect(table.row(user1.id).cell('emailColumn')).toBeVisible();
+    await expect(table.rowList).toHaveKeyCount(1);
+    await expect(table.row(user2.id)).toHaveCount(0);
 });
 
 test('MM-T5521-5 Should be able to search users with their nick names', async ({pw}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
-
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
-
     // # Create 2 users
     const user1 = await adminClient.createUser(await pw.random.user(), '', '');
     const user2 = await adminClient.createUser(await pw.random.user(), '', '');
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
+    // # Log in as admin and open System Console > Users
+    const app = await openSystemUsers(pw, adminUser);
 
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
+    // # Search for the first user's nickname
+    await searchSystemUsers(app, user1.nickname, user1);
 
-    // # Enter the 'Nickname' of the first user in the search box
-    await systemConsolePage.users.searchUsers(user1.nickname);
-
-    // * Verify that the searched user i.e first user is found in the list
-    await expect(systemConsolePage.users.container.getByText(user1.email)).toBeVisible();
-
-    //  * Verify that the second user doesnt appear in the list
-    await expect(systemConsolePage.users.container.getByText(user2.email)).not.toBeVisible();
+    // * Only the first user is listed
+    const {table} = app.admin.users;
+    await expect(table.row(user1.id).cell('emailColumn')).toHaveText(user1.email);
+    await expect(table.row(user1.id).cell('emailColumn')).toBeVisible();
+    await expect(table.rowList).toHaveKeyCount(1);
+    await expect(table.row(user2.id)).toHaveCount(0);
 });
 
 test('MM-T5521-6 Should show no user is found when user doesnt exists', async ({pw}) => {
     const {adminUser} = await pw.initSetup();
 
-    if (!adminUser) {
-        throw new Error('Failed to create admin user');
-    }
+    // # Log in as admin and open System Console > Users
+    const app = await openSystemUsers(pw, adminUser);
 
-    // # Log in as admin
-    const {systemConsolePage} = await pw.testBrowser.login(adminUser);
+    // # Search for random text
+    await app.admin.users.search.container.fill(`!${pw.random.id(15)}_^^^_${pw.random.id(15)}!`);
 
-    // # Visit system console
-    await systemConsolePage.goto();
-    await systemConsolePage.toBeVisible();
-
-    // # Go to Users section
-    await systemConsolePage.sidebar.users.click();
-
-    // # Enter random text in the search box
-    await systemConsolePage.users.searchUsers(`!${pw.random.id(15)}_^^^_${pw.random.id(15)}!`);
-
-    await expect(systemConsolePage.users.container.getByText('No data')).toBeVisible();
+    // * The table says there is nothing to show
+    const {table} = app.admin.users;
+    await expect(table.noDataText).toHaveMessage(Msg.adminConsole.list.table.genericNoData);
+    await expect(table.noDataText).toBeVisible();
+    await expect(table.rowList).toHaveKeyCount(0);
 });

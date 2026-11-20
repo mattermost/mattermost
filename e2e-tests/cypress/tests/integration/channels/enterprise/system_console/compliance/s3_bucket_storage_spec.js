@@ -62,12 +62,12 @@ describe('Compliance Export', () => {
         } = Cypress.expose();
 
         // # Update S3 Storage settings
-        cy.findByTestId('FileSettings.DriverNamedropdown').select('amazons3');
-        cy.findByTestId('FileSettings.AmazonS3Bucketinput').clear().type(minioS3Bucket);
-        cy.findByTestId('FileSettings.AmazonS3AccessKeyIdinput').clear().type(minioAccessKey);
-        cy.findByTestId('FileSettings.AmazonS3SecretAccessKeyinput').clear().type(minioSecretKey);
-        cy.findByTestId('FileSettings.AmazonS3Endpointinput').clear().type(minioS3Endpoint);
-        cy.findByTestId(`FileSettings.AmazonS3SSL${minioS3SSL}`).check();
+        cy.get('[data-testid="admin.setting:FileSettings.DriverName--group"] [data-testid="admin.setting.choice--combobox"]').select('amazons3');
+        cy.get('[data-testid="admin.setting:FileSettings.AmazonS3Bucket--group"] [data-testid="admin.setting.value--textbox"]').clear().type(minioS3Bucket);
+        cy.get('[data-testid="admin.setting:FileSettings.AmazonS3AccessKeyId--group"] [data-testid="admin.setting.value--textbox"]').clear().type(minioAccessKey);
+        cy.get('[data-testid="admin.setting:FileSettings.AmazonS3SecretAccessKey--group"] [data-testid="admin.setting.value--textbox"]').clear().type(minioSecretKey);
+        cy.get('[data-testid="admin.setting:FileSettings.AmazonS3Endpoint--group"] [data-testid="admin.setting.value--textbox"]').clear().type(minioS3Endpoint);
+        cy.get(`[data-testid="admin.setting:FileSettings.AmazonS3SSL--group"] [data-testid="admin.setting.${minioS3SSL}--radio"]`).check();
 
         // # Save file storage settings
         cy.uiSaveConfig();

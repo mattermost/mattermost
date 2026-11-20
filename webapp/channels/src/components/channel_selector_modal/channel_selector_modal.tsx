@@ -206,6 +206,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 key={option.id}
                 ref={isSelected ? this.selectedItemRef : undefined}
                 className={'more-modal__row clickable ' + rowSelected}
+                data-testid={`channel_selector_modal.channels.results.channel:${option.id}`}
                 onClick={() => onAdd(option)}
                 onMouseMove={() => onMouseMove(option)}
             >
@@ -302,6 +303,7 @@ export class ChannelSelectorModal extends React.PureComponent<Props, State> {
                 compassDesign={true}
                 bodyPadding={false}
                 id='channelSelectorModal'
+                testId='channel_selector_modal'
             >
                 <MultiSelect<ChannelWithTeamDataValue>
                     testId='channel_selector_modal.channels'

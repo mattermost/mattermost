@@ -87,6 +87,7 @@ export function ExportUserDataModal({onConfirm, onExited}: Props) {
 
     return (
         <ConfirmModalRedux
+            testId='admin.users.export_modal'
             id='exportUserDataModal'
             title={title}
             message={message}

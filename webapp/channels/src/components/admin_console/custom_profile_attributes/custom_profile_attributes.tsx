@@ -260,6 +260,8 @@ const CustomProfileAttributes: React.FC<Props> = (props: Props): JSX.Element | n
                             <TextSetting
                                 key={attr.id}
                                 id={`custom_profile_attribute-${attr.name}`}
+                                testIdScope='admin.custom_profile_attribute'
+                                testKey={attr.id}
                                 label={getUserPropertyFieldLabel(attr)}
                                 value={attr.attrs?.[attributeKey] as string || ''}
                                 onChange={(id, newValue) => {

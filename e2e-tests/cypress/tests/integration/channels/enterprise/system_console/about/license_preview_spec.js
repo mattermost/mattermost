@@ -171,7 +171,7 @@ describe('System console - License preview/diff view', () => {
 // Feed a small dummy file into the hidden license file input. The actual bytes
 // are irrelevant because the preview/upload endpoints are stubbed.
 function selectLicenseFile() {
-    cy.get('[data-testid="EnterpriseEditionLeftPanel"] input[type="file"]').
+    cy.get('[data-testid="admin.license.enterprise_panel"] input[type="file"]').
         selectFile({
             contents: Cypress.Buffer.from('dummy-license-content'),
             fileName: 'test-license.mattermost-license',

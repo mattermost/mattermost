@@ -174,7 +174,7 @@ describe('components/AdminSidebar', () => {
 
         renderWithContext(<AdminSidebar {...props}/>);
 
-        const systemAttributes = screen.getByTestId('system_attributes');
+        const systemAttributes = screen.getByTestId('admin.sidebar.category:system_attributes--listitem');
         const titles = Array.from(systemAttributes.querySelectorAll('.sidebar-section-title__text')).map((el) => el.textContent);
         const attributeManagementIndex = titles.indexOf('Attribute Management');
         const sessionAttributesIndex = titles.indexOf('Session Attributes');

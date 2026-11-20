@@ -96,12 +96,12 @@ describe('System console', () => {
 // # Set channel permissions as listed in the test
 function setChannelPermission() {
     cy.visit('admin_console/user_management/permissions/system_scheme');
-    cy.findByTestId('resetPermissionsToDefault').click();
+    cy.findByTestId('admin.permissions.reset--button').click();
     cy.get('#confirmModalButton').click();
-    cy.findByTestId('all_users-public_channel-create_public_channel-checkbox').click();
-    cy.findByTestId('all_users-private_channel-manage_private_channel_properties-checkbox').click();
-    cy.findByTestId('team_admin-private_channel-manage_private_channel_properties-checkbox').click();
-    cy.findByTestId('saveSetting').click();
+    cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:create_public_channel--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').click();
+    cy.get('[data-testid="admin.permissions.role:all_users--group"] [data-testid="admin.permissions.group.row:manage_private_channel_properties--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').click();
+    cy.get('[data-testid="admin.permissions.role:team_admin--group"] [data-testid="admin.permissions.group.row:manage_private_channel_properties--checkbox"] [data-testid="admin.permissions.group.row.checkbox"]').click();
+    cy.findByTestId('admin.save--button').click();
 }
 
 function verifyCreatePublicChannel(teamName, testUsers) {

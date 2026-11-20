@@ -19,7 +19,7 @@ Cypress.Commands.add('uiResetPermissionsToDefault', () => {
     cy.visit('/admin_console/user_management/permissions/system_scheme');
 
     // # Click reset to defaults and confirm
-    cy.findByTestId('resetPermissionsToDefault', {timeout: TIMEOUTS.HALF_MIN}).click();
+    cy.findByTestId('admin.permissions.reset--button', {timeout: TIMEOUTS.HALF_MIN}).click();
     cy.get('#confirmModalButton').click();
     cy.uiSaveConfig();
 });

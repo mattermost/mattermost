@@ -6,7 +6,7 @@ import React from 'react';
 import type {LLMService} from '@mattermost/types/agents';
 import type {AutoTranslationSettings} from '@mattermost/types/config';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, within} from 'tests/react_testing_utils';
 
 import AgentsSettings from './agents_settings';
 
@@ -38,7 +38,7 @@ function renderAgentsSettings(llmServiceID: string, llmServices: LLMService[] = 
         {entities: {agents: {agents: [], agentsStatus: {available: true}, llmServices}}},
     );
 
-    return {onChange, select: screen.getByTestId('LLMServiceIDdropdown') as HTMLSelectElement};
+    return {onChange, select: within(screen.getByTestId('admin.setting:LLMServiceID--group')).getByTestId('admin.setting.choice--combobox') as HTMLSelectElement};
 }
 
 describe('components/admin_console/localization/AgentsSettings', () => {

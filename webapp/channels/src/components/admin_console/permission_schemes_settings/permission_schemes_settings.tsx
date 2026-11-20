@@ -181,6 +181,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
             return (
                 <AdminPanelWithLink
                     id='team-override-schemes'
+                    testId='admin.permission_schemes.team_overrides'
                     className='permissions-block'
                     title={messages.teamOverrideSchemesTitle}
                     subtitle={messages.teamOverrideSchemesBannerText}
@@ -229,7 +230,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
 
     render = () => {
         if (this.state.loading) {
-            return (<LoadingScreen/>);
+            return (<LoadingScreen testId='admin.permission_schemes.loading_screen'/>);
         }
 
         const teamOverrideView = this.teamOverrideSchemesMigrationView();
@@ -266,6 +267,7 @@ export default class PermissionSchemesSettings extends React.PureComponent<Props
 
                         <AdminPanelWithLink
                             id='systemScheme'
+                            testId='admin.permission_schemes.system_scheme'
                             title={messages.systemSchemeBannerTitle}
                             subtitle={messages.systemSchemeBannerText}
                             subtitleValues={{

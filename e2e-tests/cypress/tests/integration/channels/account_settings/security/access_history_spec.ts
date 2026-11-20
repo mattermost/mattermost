@@ -47,6 +47,6 @@ describe('Profile > Security > View Access History', () => {
         cy.get('.modal-body table thead tr th span').eq(3).should('be.visible').should('contain', 'Session ID');
 
         // * Check that the Access History table body is visible and not empty
-        cy.findByTestId('auditTableBody').should('be.visible').should('not.empty');
+        cy.findByTestId('audit_table.body').should('be.visible').should('not.empty');
     });
 });

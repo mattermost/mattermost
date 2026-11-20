@@ -270,7 +270,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         await userEvent.type(nameInput, 'Test Scheme');
 
         // Click save
-        const saveButton = screen.getByTestId('saveSetting');
+        const saveButton = screen.getByTestId('admin.save--button');
         await userEvent.click(saveButton);
 
         await waitFor(() => {
@@ -294,7 +294,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         await userEvent.type(nameInput, 'Test Scheme');
 
         // Click save
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         await waitFor(() => {
             expect(screen.getByText('test error')).toBeInTheDocument();
@@ -331,7 +331,7 @@ describe('components/admin_console/permission_schemes_settings/permission_team_s
         await userEvent.type(nameInput, 'Test Scheme');
 
         // Click save
-        await userEvent.click(screen.getByTestId('saveSetting'));
+        await userEvent.click(screen.getByTestId('admin.save--button'));
 
         await waitFor(() => {
             expect(screen.getByText('test error')).toBeInTheDocument();

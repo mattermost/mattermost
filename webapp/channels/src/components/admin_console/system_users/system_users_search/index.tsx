@@ -43,6 +43,7 @@ export function SystemUsersSearch(props: Props) {
     return (
         <div className='system-users__filter'>
             <Input
+                testId='admin.users.search'
                 type='text'
                 clearable={true}
                 name='searchTerm'

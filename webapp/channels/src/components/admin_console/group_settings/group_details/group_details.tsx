@@ -699,6 +699,7 @@ export class GroupDetails extends React.PureComponent<Props, State> {
                                         <Button
                                             type='button'
                                             id='add_team_or_channel'
+                                            data-testid='admin.group.add--button'
                                             emphasis='primary'
                                             trailingIcon={<Icon glyph={<ChevronDownIcon/>}/>}
                                         >
@@ -715,6 +716,7 @@ export class GroupDetails extends React.PureComponent<Props, State> {
                                         >
                                             <Menu.ItemAction
                                                 id='add_team'
+                                                testId='admin.group.add_menu.team'
                                                 onClick={this.openAddTeam}
                                                 text={this.props.intl.formatMessage({
                                                     id: 'admin.group_settings.group_details.add_team',
@@ -723,6 +725,7 @@ export class GroupDetails extends React.PureComponent<Props, State> {
                                             />
                                             <Menu.ItemAction
                                                 id='add_channel'
+                                                testId='admin.group.add_menu.channel'
                                                 onClick={this.openAddChannel}
                                                 text={this.props.intl.formatMessage({
                                                     id: 'admin.group_settings.group_details.add_channel',
@@ -781,6 +784,8 @@ export class GroupDetails extends React.PureComponent<Props, State> {
                 </div>
 
                 <SaveChangesPanel
+
+                    testId='admin.group.save_panel'
                     saving={saving}
                     cancelLink='/admin_console/user_management/groups'
                     saveNeeded={saveNeeded}

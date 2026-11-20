@@ -126,12 +126,13 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
                 <button
                     id={`systemRolePermissionDropdown${section.name}`}
                     className='PermissionSectionDropdownButton dropdown-toggle theme'
+                    data-testid='admin.role.section.access--button'
                     type='button'
                     aria-expanded='true'
                 >
                     <div
                         className='PermissionSectionDropdownButton_text'
-                        data-testid='permissionDropdownButton-text'
+                        data-testid='admin.role.section.access_level--text'
                     >
                         {currentAccess}
                     </div>
@@ -139,17 +140,23 @@ export default class SystemRolePermissionDropdown extends React.PureComponent<Pr
                         <DropdownIcon/>
                     </div>
                 </button>
-                <Menu ariaLabel={ariaLabel}>
+                <Menu
+                    ariaLabel={ariaLabel}
+                    testId='admin.role.section.access_menu'
+                >
                     <Menu.ItemAction
                         onClick={() => this.updatePermission(writeAccess)}
+                        testId='admin.role.section.access_menu.can_edit'
                         text={this.renderOption(canWriteLabel, canWriteDescription)}
                     />
                     <Menu.ItemAction
                         onClick={() => this.updatePermission(readAccess)}
+                        testId='admin.role.section.access_menu.read_only'
                         text={this.renderOption(canReadLabel, canReadDescription)}
                     />
                     <Menu.ItemAction
                         onClick={() => this.updatePermission(noAccess)}
+                        testId='admin.role.section.access_menu.no_access'
                         text={this.renderOption(noAccessLabel, noAccessDescription)}
                     />
                 </Menu>

@@ -77,6 +77,7 @@ export default function CustomRangeModal({initialRange, onConfirm, onExited}: Pr
     return (
         <GenericModal
             id='serverLogsCustomRangeModal'
+            testId='admin.server_logs.custom_range'
             className='ServerLogsCustomRangeModal'
             ariaLabel={intl.formatMessage({id: 'admin.logs.customRange.title', defaultMessage: 'Custom time range'})}
             modalHeaderText={

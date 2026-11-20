@@ -52,7 +52,7 @@ describe('Connected Workspaces', () => {
 
         cy.get("a[id='site_config/secure_connections']").click();
 
-        cy.findByTestId('secureConnectionsSection').within(() => {
+        cy.findByTestId('admin.secure_connections').within(() => {
             cy.findByRole('heading', {name: 'Connected Workspaces'});
             cy.findByRole('heading', {name: 'Share channels'});
             cy.contains('Connecting with an external workspace allows you to share channels with them');
@@ -99,7 +99,7 @@ describe('Connected Workspaces', () => {
                 cy.uiGetButton('Accept').should('be.disabled');
 
                 // # Select team
-                cy.findByTestId('destination-team-input').click().
+                cy.findByTestId('admin.accept_invite_modal.destination_team').click().
                     findByRole('textbox').type(`${testTeam2.display_name}{enter}`);
 
                 // # Try accept
@@ -135,12 +135,12 @@ describe('Connected Workspaces', () => {
 
             // * Verify name focused
             // # Enter name
-            cy.findByTestId('organization-name-input').
+            cy.findByTestId('admin.secure_connection.name--textbox').
                 should('be.focused').
                 type(orgDisplayName);
 
             // # Select team
-            cy.findByTestId('destination-team-input').click().
+            cy.findByTestId('admin.secure_connection.destination_team').click().
                 findByRole('textbox').type(`${testTeam.display_name}{enter}`);
 
             // # Save
@@ -157,19 +157,19 @@ describe('Connected Workspaces', () => {
 
         it('basic details', () => {
             // * Verify name
-            cy.findByTestId('organization-name-input').
+            cy.findByTestId('admin.secure_connection.name--textbox').
                 should('not.be.focused').
                 should('have.value', orgDisplayName);
 
             // * Verify team
-            cy.findByTestId('destination-team-input').should('have.text', testTeam.display_name);
+            cy.findByTestId('admin.secure_connection.destination_team').should('have.text', testTeam.display_name);
 
             // * Verify connection status label
             cy.findByText('Connection Pending');
         });
 
         it('shared channels - empty', () => {
-            cy.findByTestId('shared_channels_section').within(() => {
+            cy.findByTestId('admin.secure_connection.shared_channels').within(() => {
                 cy.findByRole('heading', {name: "You haven't shared any channels"});
 
                 cy.findByText('Please add channels to start sharing');
@@ -177,7 +177,7 @@ describe('Connected Workspaces', () => {
         });
 
         it('add channel', () => {
-            cy.findByTestId('shared_channels_section').within(() => {
+            cy.findByTestId('admin.secure_connection.shared_channels').within(() => {
                 // * Verify title
                 cy.findByRole('heading', {name: 'Shared Channels'});
 
@@ -209,7 +209,7 @@ describe('Connected Workspaces', () => {
         });
 
         it('shared channels', () => {
-            cy.findByTestId('shared_channels_section').within(() => {
+            cy.findByTestId('admin.secure_connection.shared_channels').within(() => {
                 // * Verify tabs
                 cy.findByRole('tab', {name: orgDisplayName});
                 cy.findByRole('tab', {name: 'Your channels', selected: true});
@@ -256,24 +256,24 @@ describe('Connected Workspaces', () => {
             cy.uiGetButton('Save').should('be.disabled');
 
             // # Enter name
-            cy.findByTestId('organization-name-input').
+            cy.findByTestId('admin.secure_connection.name--textbox').
                 focus().
                 clear().
                 type(orgDisplayName2);
 
             // # Select team
-            cy.findByTestId('destination-team-input').click().
+            cy.findByTestId('admin.secure_connection.destination_team').click().
                 findByRole('textbox').type(`${testTeam2.display_name}{enter}`);
 
             // # Save
             cy.uiGetButton('Save').click();
 
             // * Verify name
-            cy.findByTestId('organization-name-input').
+            cy.findByTestId('admin.secure_connection.name--textbox').
                 should('have.value', orgDisplayName2);
 
             // * Verify team
-            cy.findByTestId('destination-team-input').should('have.text', testTeam2.display_name);
+            cy.findByTestId('admin.secure_connection.destination_team').should('have.text', testTeam2.display_name);
 
             cy.wait(timeouts.ONE_SEC);
         });

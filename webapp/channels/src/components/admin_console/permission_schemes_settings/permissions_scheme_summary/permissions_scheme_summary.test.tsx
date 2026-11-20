@@ -105,15 +105,15 @@ describe('components/admin_console/permission_schemes_settings/permissions_schem
         expect(deleteScheme).not.toHaveBeenCalled();
 
         // Click delete to open confirm modal
-        await userEvent.click(screen.getByTestId('Test-delete'));
+        await userEvent.click(screen.getByTestId('admin.permission_schemes.scheme.delete--button'));
         expect(deleteScheme).not.toHaveBeenCalled();
 
         // Cancel the deletion
-        await userEvent.click(screen.getByTestId('cancel-button'));
+        await userEvent.click(screen.getByTestId('admin.permission_schemes.delete_modal.cancel--button'));
         expect(deleteScheme).not.toHaveBeenCalled();
 
         // Click delete again to open confirm modal
-        await userEvent.click(screen.getByTestId('Test-delete'));
+        await userEvent.click(screen.getByTestId('admin.permission_schemes.scheme.delete--button'));
 
         // Confirm the deletion
         await userEvent.click(screen.getByRole('button', {name: /yes, delete/i}));

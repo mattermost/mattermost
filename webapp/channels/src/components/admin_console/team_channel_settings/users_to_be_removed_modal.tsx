@@ -83,6 +83,7 @@ const UsersToBeRemovedModal = ({total, scope, scopeId, users, onExited}: Props) 
             onHide={handleHide}
             onExited={onExited}
             id='confirmModal'
+            data-testid='users_to_be_removed_modal'
             role='none'
             aria-labelledby='confirmModalLabel'
         >
