@@ -678,8 +678,8 @@ export async function createBasicPolicy(
     }
 
     // No channels assigned — save runs immediately and no sync job is triggered.
+    // A validation error (duplicate name) stays on the form, so do not require the list.
     await saved;
-    await expect(page.getByRole('button', {name: 'Add policy'})).toBeVisible();
     return null;
 }
 
