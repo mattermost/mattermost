@@ -9,7 +9,6 @@ import type {GlobalState} from '@mattermost/types/store';
 import {fetchPropertyFields} from 'mattermost-redux/actions/properties';
 import {
     ACCESS_CONTROL_PROPERTY_GROUP,
-    SYSTEM_TARGET_ID,
     SYSTEM_TARGET_TYPE,
     USER_OBJECT_TYPE,
 } from 'mattermost-redux/constants/properties';
@@ -48,7 +47,7 @@ export default function useClassificationClearance(templateFieldId?: string): {c
 
         const lookup = async () => {
             try {
-                await dispatch(fetchPropertyFields(ACCESS_CONTROL_PROPERTY_GROUP, USER_OBJECT_TYPE, SYSTEM_TARGET_TYPE, SYSTEM_TARGET_ID));
+                await dispatch(fetchPropertyFields(ACCESS_CONTROL_PROPERTY_GROUP, USER_OBJECT_TYPE, {targetType: SYSTEM_TARGET_TYPE}));
             } catch {
                 // A failed lookup does not prove that no clearance attribute exists.
                 if (active) {
