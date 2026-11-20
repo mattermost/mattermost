@@ -515,6 +515,7 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
                 <div className='settings-links'>
                     <React.Suspense fallback={null}>
                         <SettingsSidebar
+                            testIdScope='channel_settings_modal'
                             tabs={tabs}
                             pluginTabs={pluginTabs}
                             activeTab={activeTab}
@@ -534,6 +535,7 @@ function ChannelSettingsModalBody({channel, isOpen, onExited, focusOriginElement
     return (
         <GenericModal
             id='channelSettingsModal'
+            testId='channel_settings_modal'
             ariaLabel={modalTitle}
             className='ChannelSettingsModal settings-modal'
             show={show}

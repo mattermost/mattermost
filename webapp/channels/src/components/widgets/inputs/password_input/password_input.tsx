@@ -25,6 +25,8 @@ type PasswordInputProps = {
     createMode?: boolean;
     disabled?: boolean;
     inputSize?: SIZE;
+
+    testId?: string;
 };
 
 const PasswordInput = React.forwardRef((
@@ -40,6 +42,7 @@ const PasswordInput = React.forwardRef((
         createMode,
         disabled,
         inputSize,
+        testId,
         ...otherProps
     }: PasswordInputProps,
     ref?: React.Ref<HTMLInputElement>,
@@ -66,6 +69,7 @@ const PasswordInput = React.forwardRef((
             addon={
                 <button
                     id='password_toggle'
+                    data-testid={testId ? `${testId}.toggle--button` : undefined}
                     type='button'
                     aria-label={formatMessage({
                         id: showPassword ? 'widget.passwordInput.hidePassword' : 'widget.passwordInput.showPassword',
@@ -90,6 +94,7 @@ const PasswordInput = React.forwardRef((
             customMessage={error || info ? customMessage : undefined}
             disabled={disabled}
             ref={ref}
+            testId={testId}
             {...otherProps}
         />
     );

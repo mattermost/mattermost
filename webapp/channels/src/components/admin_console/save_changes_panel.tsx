@@ -16,13 +16,19 @@ type Props = {
     serverError?: JSX.Element | string;
     isDisabled?: boolean;
     savingMessage?: string;
+
+    /**
+     * The panel's path: `.save--button`, `.cancel--link` (or `.cancel--button`), `.error--text`. Without one the panel
+     * keeps `saveSetting` and `saveChangesPanel-errorMessage`.
+     */
+    testId?: string;
 } & (
     {cancelLink: string; onCancel?: never} |
     {cancelLink?: never; onCancel: () => void} |
     {cancelLink?: never; onCancel?: never}
 ); // allow a cancelLink or an onCancel handler, or neither
 
-const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage}: Props) => {
+const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink, onCancel, isDisabled, savingMessage, testId}: Props) => {
     const {formatMessage} = useIntl();
 
     const showCancel = Boolean(cancelLink) || Boolean(onCancel);
@@ -35,11 +41,15 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
     );
 
     return (
-        <div className='admin-console-save'>
+        <div
+            className='admin-console-save'
+            data-testid={testId}
+        >
             <SaveButton
                 saving={saving}
                 disabled={isDisabled || !saveNeeded}
                 onClick={onClick}
+                testId={testId ? `${testId}.save` : undefined}
                 savingMessage={savingMessage ?? formatMessage({id: 'admin.team_channel_settings.saving', defaultMessage: 'Saving Config...'})}
             />
             {showCancel && (
@@ -49,13 +59,17 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
                         emphasis='tertiary'
                         id='cancelButtonSettings'
                     >
-                        <BlockableLink to={cancelLink}>
+                        <BlockableLink
+                            to={cancelLink}
+                            data-testid={testId ? `${testId}.cancel--link` : undefined}
+                        >
                             {cancelLabel}
                         </BlockableLink>
                     </Button>
                 ) : (
                     <Button
                         id='cancelButtonSettings'
+                        data-testid={testId ? `${testId}.cancel--button` : undefined}
                         type='button'
                         emphasis='tertiary'
                         onClick={() => onCancel?.()}
@@ -66,7 +80,7 @@ const SaveChangesPanel = ({saveNeeded, onClick, saving, serverError, cancelLink,
             )}
             <div
                 className='error-message'
-                data-testid='saveChangesPanel-errorMessage'
+                data-testid={testId ? `${testId}.error--text` : 'saveChangesPanel-errorMessage'}
             >
                 {serverError}
             </div>

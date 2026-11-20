@@ -71,6 +71,7 @@ const ChannelActivityWarningModal: React.FC<Props> = ({
     return (
         <ConfirmModal
             id='activityWarningModal'
+            testId='channel_activity_warning_modal'
             show={isOpen}
             title={<FormattedMessage {...messages.title[channelKind]}/>}
             message={

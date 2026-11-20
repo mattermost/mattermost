@@ -23,6 +23,9 @@ type Props = {
         };
     };
     isDisabled?: boolean;
+
+    // Rows are `<testIdScope>.user:<user id>`; without users, `<testIdScope>.no_users--text`.
+    testIdScope?: string;
     users?: UserProfile[] | null;
     extraInfo?: {[key: string]: Array<string | JSX.Element>};
     actionProps?: {
@@ -46,6 +49,7 @@ const UserList = ({
     extraInfo = {},
     actions = [],
     rowComponentType = UserListRow,
+    testIdScope,
 }: Props) => {
     const containerRef = useRef(null);
 
@@ -54,7 +58,7 @@ const UserList = ({
 
     let content;
     if (users == null) {
-        return <LoadingScreen/>;
+        return <LoadingScreen testId={testIdScope ? `${testIdScope}.loading` : undefined}/>;
     } else if (users.length > 0 && RowComponentType && actionProps) {
         content = users.map((user: UserProfile, index: number) => {
             const userId = user.id;
@@ -70,6 +74,7 @@ const UserList = ({
                     totalUsers={users.length}
                     userCount={index >= 0 ? index : -1}
                     isDisabled={isDisabled}
+                    testIdScope={testIdScope ? `${testIdScope}.user` : undefined}
                 />
             );
         });
@@ -78,7 +83,7 @@ const UserList = ({
             <div
                 key='no-users-found'
                 className='more-modal__placeholder-row no-users-found'
-                data-testid='noUsersFound'
+                data-testid={testIdScope ? `${testIdScope}.no_users--text` : 'noUsersFound'}
             >
                 <p>
                     <FormattedMessage

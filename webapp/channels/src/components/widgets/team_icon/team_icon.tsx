@@ -35,6 +35,9 @@ type Props = {
 
     /** react-intl helper object */
     intl: IntlShape;
+
+    /** The icon's path: `.icon--img` or `.initials--img`; without it the icon renders `teamIconImage` and `teamIconInitial`. */
+    testIdScope?: string;
 };
 
 /**
@@ -47,7 +50,7 @@ export class TeamIcon extends React.PureComponent<Props> {
     };
 
     public render() {
-        const {content, url, size, withHover, className} = this.props;
+        const {content, url, size, withHover, className, testIdScope} = this.props;
         const hoverCss = withHover ? '' : 'no-hover';
         const {formatMessage} = this.props.intl;
 
@@ -58,7 +61,7 @@ export class TeamIcon extends React.PureComponent<Props> {
             if (teamIconUrl) {
                 icon = (
                     <div
-                        data-testid='teamIconImage'
+                        data-testid={testIdScope ? `${testIdScope}.icon--img` : 'teamIconImage'}
                         className={`TeamIcon__image TeamIcon__${size}`}
                         aria-label={
                             formatMessage({
@@ -75,7 +78,7 @@ export class TeamIcon extends React.PureComponent<Props> {
             } else {
                 icon = (
                     <div
-                        data-testid='teamIconInitial'
+                        data-testid={testIdScope ? `${testIdScope}.initials--img` : 'teamIconInitial'}
                         className={`TeamIcon__initials TeamIcon__initials__${size}`}
                         aria-label={
                             formatMessage({

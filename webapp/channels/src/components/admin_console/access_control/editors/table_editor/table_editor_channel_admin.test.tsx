@@ -15,6 +15,10 @@ jest.mock('mattermost-redux/actions/access_control', () => ({
     searchUsersForExpression: jest.fn(),
 }));
 
+// The rule table's testid scope; each rule row's controls are under `${ROW}`.
+const TABLE = 'test.rules' as const;
+const ROW = `${TABLE}.row` as const;
+
 describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
     const mockMultiselectAttributes: UserPropertyField[] = [
         {
@@ -72,6 +76,7 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
         enableUserManagedAttributes: true,
         onParseError: jest.fn(),
         actions: mockMultiselectActions,
+        testId: TABLE,
     };
 
     beforeEach(() => {
@@ -95,10 +100,10 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
         await userEvent.click(screen.getByRole('button', {name: /add attribute/i}));
 
         await waitFor(() => {
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toBeInTheDocument();
         });
 
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has any of');
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('has any of');
     });
 
     test('should show "has all of" operator for multiselect attribute parsed from expression', async () => {
@@ -124,10 +129,10 @@ describe('TableEditor - Multiselect Attribute Operator Restriction', () => {
         renderWithContext(<TableEditor {...props}/>, {});
 
         await waitFor(() => {
-            expect(screen.getByTestId('operatorSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.operator--button`)).toBeInTheDocument();
         });
 
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('has all of');
+        expect(screen.getByTestId(`${ROW}.operator--button`)).toHaveTextContent('has all of');
     });
 });
 
@@ -613,6 +618,7 @@ describe('TableEditor - attribute name collision across namespaces', () => {
         enableUserManagedAttributes: true,
         onParseError: jest.fn(),
         actions: mockActions,
+        testId: TABLE,
     };
 
     beforeEach(() => {
@@ -638,22 +644,19 @@ describe('TableEditor - attribute name collision across namespaces', () => {
     });
 
     test('picking the session attribute that shares a name resolves to the user.session namespace', async () => {
-        const {container} = renderWithContext(<TableEditor {...baseProps}/>, {});
+        renderWithContext(<TableEditor {...baseProps}/>, {});
 
         await waitFor(() => {
-            expect(screen.getByTestId('attributeSelectorMenuButton')).toBeInTheDocument();
+            expect(screen.getByTestId(`${ROW}.attribute--button`)).toBeInTheDocument();
         });
 
-        fireEvent.click(screen.getByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute--button`));
 
-        const sessionOption = document.getElementById('attribute-s-region');
-        expect(sessionOption).toBeInTheDocument();
-        fireEvent.click(sessionOption as HTMLElement);
+        fireEvent.click(screen.getByTestId(`${ROW}.attribute_menu.attribute:s-region--menuitemradio`));
 
         // Selecting a new attribute clears the value; commit a fresh one so the
         // expression is regenerated through the session namespace.
-        const valueInput = container.querySelector('.values-editor__simple-input') as HTMLInputElement;
-        expect(valueInput).toBeInTheDocument();
+        const valueInput = screen.getByTestId(`${ROW}.value_input--textbox`);
         fireEvent.focus(valueInput);
         fireEvent.change(valueInput, {target: {value: '10.0.0.1'}});
         fireEvent.blur(valueInput);

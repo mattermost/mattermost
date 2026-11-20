@@ -79,7 +79,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
     test('should render nothing when no policies are provided', () => {
         const {container} = renderWithContext(
-            <SystemPolicyIndicator policies={[]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={[]}
+            />,
             initialState,
         );
 
@@ -88,7 +91,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
     test('should render single policy indicator with detailed variant', () => {
         renderWithContext(
-            <SystemPolicyIndicator policies={[mockPolicy1]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={[mockPolicy1]}
+            />,
             initialState,
         );
 
@@ -100,13 +106,16 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         expect(screen.getByText(/Any custom membership rules you set here will be applied in addition to this policy/)).toBeInTheDocument();
 
         // Check for alert banner structure
-        expect(screen.getByTestId('system-policy-indicator')).toBeInTheDocument();
-        expect(screen.getByTestId('system-policy-indicator')).toHaveClass('AlertBanner');
+        expect(screen.getByTestId('test.system_policies')).toBeInTheDocument();
+        expect(screen.getByTestId('test.system_policies')).toHaveClass('AlertBanner');
     });
 
     test('should render multiple policies indicator', () => {
         renderWithContext(
-            <SystemPolicyIndicator policies={[mockPolicy1, mockPolicy2]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={[mockPolicy1, mockPolicy2]}
+            />,
             initialState,
         );
 
@@ -122,7 +131,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
     test('should render policy names as strong text for all users', () => {
         renderWithContext(
-            <SystemPolicyIndicator policies={[mockPolicy1]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={[mockPolicy1]}
+            />,
             initialState,
         );
 
@@ -157,7 +169,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         };
 
         renderWithContext(
-            <SystemPolicyIndicator policies={[mockPolicy1, mockPolicy2, mockPolicy3, mockPolicy4]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={[mockPolicy1, mockPolicy2, mockPolicy3, mockPolicy4]}
+            />,
             initialState,
         );
 
@@ -174,7 +189,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
     test('should join two policy names with a locale-formatted conjunction', () => {
         renderWithContext(
-            <SystemPolicyIndicator policies={[mockPolicy1, mockPolicy2]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={[mockPolicy1, mockPolicy2]}
+            />,
             initialState,
         );
 
@@ -191,7 +209,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         };
 
         renderWithContext(
-            <SystemPolicyIndicator policies={[mockPolicy1, mockPolicy2, mockPolicy3]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
+            />,
             initialState,
         );
 
@@ -204,6 +225,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
     test('should render the detailed variant for a file with access wording', () => {
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1]}
                 resourceType='file'
             />,
@@ -231,6 +253,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
                 resourceType='team'
             />,
@@ -247,6 +270,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
     test('should render compact variant', () => {
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1, mockPolicy2]}
                 variant='compact'
             />,
@@ -262,6 +286,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
     test('should handle different resource types in compact variant', () => {
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1]}
                 resourceType='team'
                 variant='compact'
@@ -275,6 +300,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
     test('should handle file resource type in compact variant', () => {
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1]}
                 resourceType='file'
                 variant='compact'
@@ -289,6 +315,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
     test('should not show policy names when showPolicyNames is false', () => {
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1]}
                 showPolicyNames={false}
             />,
@@ -317,6 +344,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
                 onMorePoliciesClick={onMorePoliciesClick}
             />,
@@ -346,6 +374,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
                 onMorePoliciesClick={onMorePoliciesClick}
             />,
@@ -362,7 +391,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
     // Error handling and edge cases
     test('should handle null policies gracefully', () => {
         const {container} = renderWithContext(
-            <SystemPolicyIndicator policies={null as unknown as AccessControlPolicy[]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={null as unknown as AccessControlPolicy[]}
+            />,
             initialState,
         );
 
@@ -371,7 +403,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
     test('should handle undefined policies gracefully', () => {
         const {container} = renderWithContext(
-            <SystemPolicyIndicator policies={undefined as unknown as AccessControlPolicy[]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={undefined as unknown as AccessControlPolicy[]}
+            />,
             initialState,
         );
 
@@ -385,7 +420,10 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
         };
 
         renderWithContext(
-            <SystemPolicyIndicator policies={[policyWithIdOnly]}/>,
+            <SystemPolicyIndicator
+                testId='test.system_policies'
+                policies={[policyWithIdOnly]}
+            />,
             initialState,
         );
 
@@ -409,6 +447,7 @@ describe('components/system_policy_indicator/SystemPolicyIndicator', () => {
 
         renderWithContext(
             <SystemPolicyIndicator
+                testId='test.system_policies'
                 policies={[mockPolicy1, mockPolicy2, mockPolicy3]}
                 onMorePoliciesClick={onMorePoliciesClick}
             />,

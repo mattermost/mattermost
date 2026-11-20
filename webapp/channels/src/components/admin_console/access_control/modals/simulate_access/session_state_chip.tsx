@@ -31,7 +31,7 @@ export default function SessionStateChip({state}: Props): JSX.Element {
     return (
         <span
             className={`SimulateAccessModal__rowChip ${sessionStateClass[state]}`}
-            data-testid={`simulate-access-session-chip-${state}`}
+            data-testid={`admin.simulate_access.session.state:${state}--text`}
         >
             {label}
         </span>

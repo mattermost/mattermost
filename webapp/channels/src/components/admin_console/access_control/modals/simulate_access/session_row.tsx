@@ -102,7 +102,7 @@ export default function SessionRow({session, actions}: Props): JSX.Element {
     return (
         <tr
             className='SimulateAccessModal__sessionRow'
-            data-testid='simulate-access-session-row'
+            data-testid={`admin.simulate_access.session:${session.id}`}
         >
             <td colSpan={2}>
                 <div className='SimulateAccessModal__sessionMeta'>

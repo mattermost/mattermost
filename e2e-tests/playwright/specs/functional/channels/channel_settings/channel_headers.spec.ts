@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, closeChannelSettings, openChannelSettingsInfoTab, Api, settle} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a multi-line channel header is truncated in the header bar, that hovering it opens a
@@ -23,10 +23,10 @@ test(
         // # Set a multi-line channel header that contains a markdown link, via Channel Settings
         const header = ['Header text line one', '', '- Two', '- [Google](https://google.com/)', '- Four'].join('\n');
         const channelSettings = await channelsPage.openChannelSettings();
-        const infoSettings = await channelSettings.openInfoTab();
-        await infoSettings.updateHeader(header);
-        await channelSettings.save();
-        await channelSettings.close();
+        const infoSettings = await openChannelSettingsInfoTab(channelSettings);
+        await infoSettings.header.container.fill(header);
+        await settle(channelSettings.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+        await closeChannelSettings(channelSettings);
 
         // * Verify the header bar shows the first line of the header
         const headerText = channelsPage.centerView.header.container.getByText('Header text line one');
@@ -69,17 +69,17 @@ test('MM-T880 adds a channel header from the intro Set header link', {tag: '@cha
     // # Create a new public channel so its intro (with the "Set header" link) is shown
     const channelName = `channel header ${pw.random.id()}`;
     await channelsPage.newChannel(channelName, 'O');
-    await channelsPage.centerView.header.toHaveTitle(channelName);
+    await expect(channelsPage.centerView.header.title).toContainText(channelName);
 
     // # Open the Edit Header modal from the intro and cancel without entering text
     await channelsPage.centerView.channelIntro.getByRole('button', {name: 'Set header'}).click();
-    await channelsPage.editChannelHeaderModal.toBeVisible();
+    await expect(channelsPage.editChannelHeaderModal.container).toBeVisible();
     await channelsPage.editChannelHeaderModal.cancel();
 
     // # Reopen the Edit Header modal and save a header
     const header = 'this is the channel header';
     await channelsPage.centerView.channelIntro.getByRole('button', {name: 'Set header'}).click();
-    await channelsPage.editChannelHeaderModal.toBeVisible();
+    await expect(channelsPage.editChannelHeaderModal.container).toBeVisible();
     await channelsPage.editChannelHeaderModal.setHeader(header);
 
     // * Verify the header-change system message is posted
@@ -88,7 +88,7 @@ test('MM-T880 adds a channel header from the intro Set header link', {tag: '@cha
     // # Open the channel info panel from the channel header menu
     const channelMenu = await channelsPage.openChannelMenu();
     await channelMenu.viewInfo.click();
-    await channelsPage.sidebarRight.toBeVisible();
+    await expect(channelsPage.sidebarRight.container).toBeVisible();
 
     // * Verify the saved header appears in the channel info panel
     await expect(channelsPage.sidebarRight.container.getByText(header)).toBeVisible();

@@ -34,9 +34,14 @@ export type Row = {
         [key: string]: JSX.Element | string | null;
     };
     onClick?: () => void;
+
+    testKey?: string;
 };
 
 type Props = {
+
+    /** The grid's testid scope; without it the grid renders its original ids. */
+    testIdScope?: string;
     rows: Row[];
     columns: Column[];
     placeholderEmpty?: JSX.Element;
@@ -150,7 +155,7 @@ class DataGrid extends React.PureComponent<Props, State> {
             } else {
                 rowsToRender = (
                     <div className='DataGrid_loading'>
-                        <LoadingSpinner/>
+                        <LoadingSpinner testId={this.props.testIdScope ? `${this.props.testIdScope}.loading` : undefined}/>
                         <FormattedMessage
                             id='admin.data_grid.loading'
                             defaultMessage='Loading'
@@ -177,6 +182,8 @@ class DataGrid extends React.PureComponent<Props, State> {
                         key={index}
                         row={row}
                         columns={visibleColumns}
+                        testIdScope={this.props.testIdScope}
+                        testKey={row.testKey}
                     />
                 );
             });
@@ -184,7 +191,8 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className='DataGrid_rows'
-                data-testid='dataGrid-rows'
+                role='presentation'
+                data-testid={this.props.testIdScope ? `${this.props.testIdScope}.rows` : 'dataGrid-rows'}
                 style={rowsContainerStyles || {}}
             >
                 {rowsToRender}
@@ -196,6 +204,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <DataGridHeader
                 columns={this.state.visibleColumns}
+                testIdScope={this.props.testIdScope}
             />
         );
     }
@@ -209,6 +218,7 @@ class DataGrid extends React.PureComponent<Props, State> {
                     filterProps={this.props.filterProps}
                     extraComponent={this.props.extraComponent}
                     disabled={this.props.disabled}
+                    testIdScope={this.props.testIdScope}
                 />
             );
         }
@@ -254,10 +264,10 @@ class DataGrid extends React.PureComponent<Props, State> {
             footer = (
                 <div
                     className='DataGrid_footer'
-                    data-testid='dataGrid-footer'
+                    data-testid={this.props.testIdScope ? `${this.props.testIdScope}.footer` : 'dataGrid-footer'}
                 >
                     <div className='DataGrid_cell'>
-                        <span data-testid='dataGrid-footer-paginationInfo'>
+                        <span data-testid={this.props.testIdScope ? `${this.props.testIdScope}.footer.pagination--text` : 'dataGrid-footer-paginationInfo'}>
                             <FormattedMessage
                                 id='admin.data_grid.paginatorCount'
                                 defaultMessage='{startCount, number} - {endCount, number} of {total, number}'
@@ -275,6 +285,8 @@ class DataGrid extends React.PureComponent<Props, State> {
                             disableNext={lastPage}
                             previousButtonClassName='ml-2 prev'
                             nextButtonClassName='next'
+                            previousButtonTestId={this.props.testIdScope ? `${this.props.testIdScope}.footer.previous--button` : undefined}
+                            nextButtonTestId={this.props.testIdScope ? `${this.props.testIdScope}.footer.next--button` : undefined}
                         />
                     </div>
                 </div>
@@ -288,7 +300,7 @@ class DataGrid extends React.PureComponent<Props, State> {
         return (
             <div
                 className={classNames('DataGrid', this.props.className)}
-                data-testid='dataGrid'
+                data-testid={this.props.testIdScope ?? 'dataGrid'}
                 ref={this.ref}
             >
                 {this.renderSearch()}

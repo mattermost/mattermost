@@ -9,7 +9,7 @@
  * @reference Public-channel ABAC feature
  */
 
-import {ChannelsPage, expect, getAdminClient, test} from '@mattermost/playwright-lib';
+import {ChannelsPage, expect, getAdminClient, test, closeChannelSettings} from '@mattermost/playwright-lib';
 
 import {enableABACConfig, enableAPIUserDeletion} from '../team_settings/helpers';
 
@@ -63,9 +63,9 @@ test.describe('ABAC - Public channels', () => {
         // * Membership Policy tab is NOT rendered for the default channel —
         // ValidateChannelEligibilityForAccessControl rejects default channels
         // server-side, so the tab would only let a user assemble unsaveable rules.
-        await expect(channelSettings.container.getByTestId('access_rules-tab-button')).not.toBeVisible();
+        await expect(channelSettings.tabs.tab('access_rules').locator).not.toBeVisible();
 
-        await channelSettings.close();
+        await closeChannelSettings(channelSettings);
     });
 
     test('Default channel is excluded from Team Settings policy editor channel selector', async ({pw}) => {
@@ -82,11 +82,12 @@ test.describe('ABAC - Public channels', () => {
         const teamSettings = await channelsPage.openTeamSettings();
         await teamSettings.openAccessPoliciesTab();
         await teamSettings.container.getByRole('button', {name: 'Add policy'}).click();
+        await expect(teamSettings.container.getByRole('button', {name: /Add channels/i})).toBeVisible();
 
         // # Open the channel selector modal
         await teamSettings.container.getByRole('button', {name: /Add channels/i}).click();
         const channelSelector = page.locator('.channel-selector-modal');
-        await channelSelector.waitFor();
+        await expect(channelSelector).toBeVisible();
 
         // * Both default channels (town-square, off-topic) are absent from the list.
         // The component contract is `excludeDefaultChannels={true}` — assert the
@@ -163,6 +164,7 @@ test.describe('ABAC - Public channels', () => {
         // enabled in client config. Using the stable id avoids brittleness from
         // the dropdown's localized label.
         await browse.container.locator('#menuWrapper').click();
+        await expect(page.locator('#channelsMoreDropdownRecommended')).toBeVisible();
         await page.locator('#channelsMoreDropdownRecommended').click();
 
         // * The public channel appears in the Recommended results. The row id

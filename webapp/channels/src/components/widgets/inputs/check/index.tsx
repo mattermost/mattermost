@@ -3,6 +3,7 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
+
 import './check.scss';
 
 type Props = {
@@ -12,10 +13,13 @@ type Props = {
     text: ReactNode;
     onChange: () => void;
     checked: boolean;
+
+    // The checkbox renders `<testId>--checkbox`; without it, its `id`.
+    testId?: string;
 };
 
 function CheckInput(props: Props) {
-    const {id, ariaLabel, text, ...rest} = props;
+    const {id, ariaLabel, text, testId, ...rest} = props;
 
     return (
         <div className='check-input'>
@@ -23,7 +27,7 @@ function CheckInput(props: Props) {
                 {...rest}
                 id={id}
                 aria-label={ariaLabel}
-                data-testid={id}
+                data-testid={testId ? `${testId}--checkbox` : id}
                 type='checkbox'
             />
             <label

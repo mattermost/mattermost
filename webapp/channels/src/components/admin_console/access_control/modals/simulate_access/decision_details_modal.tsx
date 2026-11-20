@@ -104,6 +104,7 @@ export default function DecisionDetailsModal({
     return (
         <GenericModal
             id='simulateAccessDecisionDetailsModal'
+            testId='admin.simulate_access.details'
             className='SimulateAccessModal__details a11y__modal'
             show={show}
             onHide={handleHide}
@@ -153,7 +154,7 @@ export default function DecisionDetailsModal({
             {(userAttrs || sessionAttrs) ? (
                 <div
                     className='SimulateAccessModal__detailsAttributes'
-                    data-testid='simulate-access-details-attributes'
+                    data-testid='admin.simulate_access.details.attributes'
                 >
                     {userAttrs ? (
                         <AttributeSection
@@ -164,7 +165,7 @@ export default function DecisionDetailsModal({
                                 />
                             }
                             values={userAttrs}
-                            testId='simulate-access-details-user-attributes'
+                            testId='admin.simulate_access.details.attributes.user'
                         />
                     ) : null}
                     {sessionAttrs ? (
@@ -176,20 +177,21 @@ export default function DecisionDetailsModal({
                                 />
                             }
                             values={sessionAttrs}
-                            testId='simulate-access-details-session-attributes'
+                            testId='admin.simulate_access.details.attributes.session'
                         />
                     ) : null}
                 </div>
             ) : null}
 
             <ul className='SimulateAccessModal__detailsList'>
-                {actions.map((action) => {
+                {actions.map((action, position) => {
                     const dec = decisions?.[action];
                     const traces = !pending && dec ? deriveTraces(dec, action, policy) : [];
                     return (
                         <ActionDetailsRow
                             key={action}
                             action={action}
+                            position={position}
                             label={actionLabels?.[action] ?? action}
                             decision={dec}
                             pending={pending}
@@ -204,6 +206,7 @@ export default function DecisionDetailsModal({
 
 type ActionDetailsRowProps = {
     action: string;
+    position: number;
     label: string;
     decision: PolicySimulationActionDecision | undefined;
     pending: boolean;
@@ -219,13 +222,13 @@ type ActionDetailsRowProps = {
  * scrolling through long CEL expressions or deeply nested trees by
  * default when a row is uninteresting (e.g. an allow).
  */
-function ActionDetailsRow({action, label, decision, pending, traces}: ActionDetailsRowProps): JSX.Element {
+function ActionDetailsRow({action, position, label, decision, pending, traces}: ActionDetailsRowProps): JSX.Element {
     const [showDetails, setShowDetails] = useState(false);
 
     return (
         <li
             className='SimulateAccessModal__detailsItem'
-            data-testid={`simulate-access-details-${action}`}
+            data-testid={`admin.simulate_access.details.action:${position}`}
         >
             <div className='SimulateAccessModal__detailsRow'>
                 <span className='SimulateAccessModal__detailsLabel'>
@@ -234,6 +237,7 @@ function ActionDetailsRow({action, label, decision, pending, traces}: ActionDeta
                 <DecisionChip
                     decision={decision}
                     pending={pending}
+                    testIdScope='admin.simulate_access.details.action'
                 />
             </div>
             {traces.length > 0 ? (
@@ -241,7 +245,7 @@ function ActionDetailsRow({action, label, decision, pending, traces}: ActionDeta
                     <button
                         type='button'
                         className='SimulateAccessModal__detailsToggle'
-                        data-testid={`simulate-access-details-toggle-${action}`}
+                        data-testid='admin.simulate_access.details.action.toggle--button'
                         aria-expanded={showDetails}
                         aria-controls={`simulate-access-details-rule-${action}`}
                         onClick={() => setShowDetails((s) => !s)}
@@ -268,22 +272,16 @@ function ActionDetailsRow({action, label, decision, pending, traces}: ActionDeta
                     {showDetails ? (
                         <div
                             id={`simulate-access-details-rule-${action}`}
-                            data-testid={`simulate-access-details-rule-${action}`}
+                            data-testid='admin.simulate_access.details.action.rule'
                             className={classNames(
                                 'SimulateAccessModal__detailsRule',
                                 {'SimulateAccessModal__detailsRule--multiPolicy': traces.length > 1},
                             )}
                         >
                             {traces.length > 1 ? (
-                                <MultiPolicyTraces
-                                    action={action}
-                                    traces={traces}
-                                />
+                                <MultiPolicyTraces traces={traces}/>
                             ) : (
-                                <SingleTraceBlock
-                                    action={action}
-                                    trace={traces[0]}
-                                />
+                                <SingleTraceBlock trace={traces[0]}/>
                             )}
                         </div>
                     ) : null}
@@ -294,7 +292,6 @@ function ActionDetailsRow({action, label, decision, pending, traces}: ActionDeta
 }
 
 type SingleTraceBlockProps = {
-    action: string;
     trace: DenyTrace;
     policyIndex?: number;
 };
@@ -312,11 +309,11 @@ type SingleTraceBlockProps = {
  * contributed to the deny vs. which informational entries (e.g. the
  * editing draft itself) tell them their own policy allowed.
  */
-function SingleTraceBlock({action, trace, policyIndex}: SingleTraceBlockProps): JSX.Element {
+function SingleTraceBlock({trace, policyIndex}: SingleTraceBlockProps): JSX.Element {
     const isInMultiPolicy = policyIndex !== undefined;
-    const sectionTestId = isInMultiPolicy ?
-        `simulate-access-details-policy-${action}-${policyIndex}` :
-        undefined;
+
+    // keyed by position on purpose: the modal numbers the policies (1, 2, …), and that number is what a reader refers to
+    const sectionTestId = policyIndex === undefined ? undefined : `admin.simulate_access.details.action.policy:${policyIndex}`;
     const showHeader = Boolean(trace.policyName) || isInMultiPolicy;
     return (
         <div
@@ -350,12 +347,8 @@ function SingleTraceBlock({action, trace, policyIndex}: SingleTraceBlockProps): 
                     ) : null}
                 </div>
             ) : null}
-            <TraceOriginHeader
-                action={action}
-                trace={trace}
-            />
+            <TraceOriginHeader trace={trace}/>
             <TraceBody
-                action={action}
                 trace={trace}
                 policyIndex={policyIndex}
             />
@@ -415,7 +408,6 @@ function PolicyOutcomeChip({outcome, isEditingDraft}: PolicyOutcomeChipProps): J
 }
 
 type MultiPolicyTracesProps = {
-    action: string;
     traces: DenyTrace[];
 };
 
@@ -432,13 +424,13 @@ type MultiPolicyTracesProps = {
  * `deriveTraces` filters them out at the source — so we don't need
  * an extra privacy guard here.
  */
-function MultiPolicyTraces({action, traces}: MultiPolicyTracesProps): JSX.Element {
+function MultiPolicyTraces({traces}: MultiPolicyTracesProps): JSX.Element {
     const denyCount = traces.filter((t) => t.outcome === 'deny').length;
     const allowCount = traces.length - denyCount;
     return (
         <div
             className='SimulateAccessModal__detailsPolicies'
-            data-testid={`simulate-access-details-policies-${action}`}
+            data-testid='admin.simulate_access.details.action.policies'
         >
             <div className='SimulateAccessModal__detailsPoliciesHead'>
                 {allowCount > 0 ? (
@@ -463,7 +455,6 @@ function MultiPolicyTraces({action, traces}: MultiPolicyTracesProps): JSX.Elemen
             {traces.map((trace, idx) => (
                 <SingleTraceBlock
                     key={`${trace.policyName ?? 'editing'}-${idx}`}
-                    action={action}
                     trace={trace}
                     policyIndex={idx + 1}
                 />
@@ -560,7 +551,6 @@ type MergedRuleEntry = {
 };
 
 type TraceOriginHeaderProps = {
-    action: string;
     trace: DenyTrace;
 };
 
@@ -583,7 +573,7 @@ type TraceOriginHeaderProps = {
  *  - **Unnamed rule, no role**: render nothing (the tree itself is
  *    enough context).
  */
-function TraceOriginHeader({action, trace}: TraceOriginHeaderProps): JSX.Element | null {
+function TraceOriginHeader({trace}: TraceOriginHeaderProps): JSX.Element | null {
     const {formatMessage} = useIntl();
     const {ruleName, role, mergedRules} = trace;
     const merged = mergedRules ?? [];
@@ -593,7 +583,7 @@ function TraceOriginHeader({action, trace}: TraceOriginHeaderProps): JSX.Element
         return (
             <div
                 className='SimulateAccessModal__detailsRuleName SimulateAccessModal__detailsRuleName--combined'
-                data-testid={`simulate-access-details-origin-${action}`}
+                data-testid='admin.simulate_access.details.action.origin'
             >
                 {role ? (
                     <FormattedMessage
@@ -615,7 +605,7 @@ function TraceOriginHeader({action, trace}: TraceOriginHeaderProps): JSX.Element
                     <button
                         type='button'
                         className='SimulateAccessModal__detailsCombinedHelp'
-                        data-testid={`simulate-access-details-origin-help-${action}`}
+                        data-testid='admin.simulate_access.details.action.origin_help--button'
                         aria-label={formatMessage({
                             id: 'admin.access_control.simulate_access.details.show_contributing_rules',
                             defaultMessage: 'Show contributing rules',
@@ -667,7 +657,6 @@ function CombinedRulesTooltip({rules}: {rules: MergedRuleEntry[]}): JSX.Element 
 }
 
 type TraceBodyProps = {
-    action: string;
     trace: DenyTrace;
 
     /** When this trace is rendered as one of N policy sections, the
@@ -693,7 +682,7 @@ type TraceBodyProps = {
  * just that rule against the same activation, so per-rule chips
  * (TRUE / FALSE / ERROR) line up with the attribute values shown.
  */
-function TraceBody({action, trace, policyIndex}: TraceBodyProps): JSX.Element {
+function TraceBody({trace, policyIndex}: TraceBodyProps): JSX.Element {
     const merged = trace.mergedRules ?? [];
 
     // Per-rule numbered sections only render when the server attached
@@ -708,12 +697,11 @@ function TraceBody({action, trace, policyIndex}: TraceBodyProps): JSX.Element {
         return (
             <div
                 className='SimulateAccessModal__detailsMergedRules'
-                data-testid={`simulate-access-details-merged-${action}`}
+                data-testid='admin.simulate_access.details.action.merged'
             >
                 {merged.map((rule, idx) => (
                     <MergedRuleSection
                         key={`${rule.name}-${idx}`}
-                        action={action}
                         index={idx + 1}
                         policyIndex={policyIndex}
                         rule={rule}
@@ -727,7 +715,7 @@ function TraceBody({action, trace, policyIndex}: TraceBodyProps): JSX.Element {
         return (
             <div
                 className='SimulateAccessModal__detailsTree'
-                data-testid={`simulate-access-details-tree-${action}`}
+                data-testid='admin.simulate_access.details.action.tree'
             >
                 <ExpressionTraceNode node={trace.evaluationTree}/>
             </div>
@@ -742,7 +730,6 @@ function TraceBody({action, trace, policyIndex}: TraceBodyProps): JSX.Element {
 }
 
 type MergedRuleSectionProps = {
-    action: string;
     index: number;
     rule: MergedRuleEntry;
 
@@ -765,12 +752,14 @@ type MergedRuleSectionProps = {
  * `policyIndex` makes the badge read "1.1", "1.2", ... so rule
  * numbering doesn't collide with policy numbering.
  */
-function MergedRuleSection({action, index, rule, policyIndex}: MergedRuleSectionProps): JSX.Element {
+function MergedRuleSection({index, rule, policyIndex}: MergedRuleSectionProps): JSX.Element {
     const badgeLabel = policyIndex === undefined ? `${index}` : `${policyIndex}.${index}`;
     return (
         <div
             className='SimulateAccessModal__detailsMergedRule'
-            data-testid={`simulate-access-details-merged-rule-${action}-${index}`}
+
+            // keyed by position on purpose: the badge numbers the rules ("1.1", "1.2"), and that number is what a reader refers to
+            data-testid={`admin.simulate_access.details.action.merged_rule:${index}`}
         >
             <div className='SimulateAccessModal__detailsMergedRuleHeader'>
                 <span
@@ -992,6 +981,8 @@ function ExpressionTraceNode({node}: ExpressionTraceNodeProps): JSX.Element {
     // and as supplementary info on FALSE leaves. Use a nullish check
     // so legitimate falsy values (false, 0, '') still surface in the
     // tooltip — only null/undefined should suppress it.
+    // A node reads as its kind and outcome together: one member of a fixed set.
+    const traceKey: `${PolicySimulationEvaluationNode['kind']}_${PolicySimulationEvaluationNode['outcome']}` = `${node.kind}_${node.outcome}`;
     const expressionTitle = node.actual_value == null ? undefined : `actual: ${node.actual_value}`;
 
     return (
@@ -1001,7 +992,7 @@ function ExpressionTraceNode({node}: ExpressionTraceNodeProps): JSX.Element {
                 outcomeClass(node.outcome),
                 {'SimulateAccessModal__traceNode--compound': isCompound},
             )}
-            data-testid={`simulate-access-trace-node-${node.kind}-${node.outcome}`}
+            data-testid={`admin.simulate_access.details.action.trace_node:${traceKey}`}
         >
             <div className='SimulateAccessModal__traceHeader'>
                 <OutcomeIcon outcome={node.outcome}/>

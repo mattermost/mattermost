@@ -15,11 +15,14 @@ import {copyToClipboard} from 'utils/utils';
 type Props = {
     label: MessageDescriptor;
     value: string;
+
+    testId?: string;
 };
 
 const CopyText = ({
     label,
     value,
+    testId,
 }: Props) => {
     const intl = useIntl();
     const ariaLabel = intl.formatMessage(label);
@@ -36,7 +39,7 @@ const CopyText = ({
     return (
         <WithTooltip title={label}>
             <IconButton
-                data-testid='copyText'
+                data-testid={testId ? `${testId}--button` : 'copyText'}
                 size='x-small'
                 className='ml-2'
                 icon={<Icon glyph={<ContentCopyIcon/>}/>}

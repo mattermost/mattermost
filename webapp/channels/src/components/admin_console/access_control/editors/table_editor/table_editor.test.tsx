@@ -1826,6 +1826,7 @@ const cpaEmail: UserPropertyField = {
 describe('TableEditor picker filter and help text', () => {
     const getVisualAST = jest.fn();
     const baseProps = {
+        testId: 'test.rules' as const,
         value: '',
         onChange: jest.fn(),
         userAttributes: nativeFields,
@@ -1856,7 +1857,7 @@ describe('TableEditor picker filter and help text', () => {
             />,
         );
 
-        fireEvent.click(await screen.findByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(await screen.findByTestId('test.rules.row.attribute--button'));
 
         expect(screen.getByText('Built-in attributes')).toBeInTheDocument();
         expect(menuItem(nativeCreateAt)).toBeInTheDocument();
@@ -1876,8 +1877,8 @@ describe('TableEditor picker filter and help text', () => {
             />,
         );
 
-        expect(await screen.findByTestId('attributeSelectorMenuButton')).toHaveTextContent('Email');
-        expect(screen.getByTestId('operatorSelectorMenuButton')).toHaveTextContent('is');
+        expect(await screen.findByTestId('test.rules.row.attribute--button')).toHaveTextContent('Email');
+        expect(screen.getByTestId('test.rules.row.operator--button')).toHaveTextContent('is');
         expect(container.querySelector('.values-editor__simple-input')).toHaveValue('a@b.com');
     });
 
@@ -1892,7 +1893,7 @@ describe('TableEditor picker filter and help text', () => {
             />,
         );
 
-        expect(await screen.findByTestId('attributeSelectorMenuButton')).toHaveTextContent('Bot account');
+        expect(await screen.findByTestId('test.rules.row.attribute--button')).toHaveTextContent('Bot account');
         expect(container.querySelector('.values-editor__simple-input')).not.toBeInTheDocument();
     });
 
@@ -1907,11 +1908,11 @@ describe('TableEditor picker filter and help text', () => {
             />,
         );
 
-        fireEvent.click(await screen.findByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(await screen.findByTestId('test.rules.row.attribute--button'));
         fireEvent.click(menuItem(nativeCreateAt) as HTMLElement);
 
         await waitFor(() => {
-            expect(screen.getByTestId('attributeSelectorMenuButton')).toHaveTextContent('Account created');
+            expect(screen.getByTestId('test.rules.row.attribute--button')).toHaveTextContent('Account created');
         });
     });
 
@@ -1926,7 +1927,7 @@ describe('TableEditor picker filter and help text', () => {
         await userEvent.click(addAttributeButton());
 
         await waitFor(() => {
-            expect(screen.getAllByTestId('attributeSelectorMenuButton')[0]).toHaveTextContent('Account created');
+            expect(screen.getAllByTestId('test.rules.row.attribute--button')[0]).toHaveTextContent('Account created');
         });
         expect(baseProps.onParseError).not.toHaveBeenCalled();
     });
@@ -1937,7 +1938,7 @@ describe('TableEditor picker filter and help text', () => {
         await userEvent.click(addAttributeButton());
 
         await waitFor(() => {
-            expect(screen.getAllByTestId('attributeSelectorMenuButton')[0]).toHaveTextContent('Email');
+            expect(screen.getAllByTestId('test.rules.row.attribute--button')[0]).toHaveTextContent('Email');
         });
         expect(baseProps.onParseError).not.toHaveBeenCalled();
     });
@@ -1952,7 +1953,7 @@ describe('TableEditor picker filter and help text', () => {
             />,
         );
 
-        fireEvent.click(await screen.findByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(await screen.findByTestId('test.rules.row.attribute--button'));
 
         for (const field of nativeFields) {
             expect(menuItem(field)).toBeInTheDocument();
@@ -1985,7 +1986,7 @@ describe('TableEditor picker filter and help text', () => {
             />,
         );
 
-        expect(await screen.findByTestId('attributeSelectorMenuButton')).toHaveTextContent('Email');
+        expect(await screen.findByTestId('test.rules.row.attribute--button')).toHaveTextContent('Email');
         expect(addAttributeButton()).toBeDisabled();
     });
 
@@ -2027,7 +2028,7 @@ describe('TableEditor picker filter and help text', () => {
         await userEvent.click(addAttributeButton());
 
         await waitFor(() => {
-            expect(screen.getAllByTestId('attributeSelectorMenuButton')[0]).toHaveTextContent('Email');
+            expect(screen.getAllByTestId('test.rules.row.attribute--button')[0]).toHaveTextContent('Email');
         });
 
         // The new row auto-opens its picker.
@@ -2051,7 +2052,7 @@ describe('TableEditor picker filter and help text', () => {
             />,
         );
 
-        fireEvent.click(await screen.findByTestId('attributeSelectorMenuButton'));
+        fireEvent.click(await screen.findByTestId('test.rules.row.attribute--button'));
 
         expect(screen.getByText('Custom attributes')).toBeInTheDocument();
         expect(menuItem(cpaEmail)).toBeInTheDocument();

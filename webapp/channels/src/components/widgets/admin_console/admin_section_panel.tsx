@@ -17,6 +17,9 @@ type Props = {
     licenseSku?: string;
     children: React.ReactNode;
     'data-testid'?: string;
+
+    /** The panel's scope: the body is `<testId>.body`, the description `<testId>.description--text`. */
+    testId?: string;
 };
 
 function asMessageDescriptor(value: string | MessageDescriptor): MessageDescriptor {
@@ -33,6 +36,7 @@ const AdminSectionPanel: React.FC<Props> = ({
     licenseSku,
     children,
     'data-testid': dataTestId,
+    testId,
 }) => {
     // Schema sections without a title/description still need a body wrapper for layout
     // and test hooks; Compass AdminPanel requires a title so skip the panel chrome.
@@ -42,7 +46,7 @@ const AdminSectionPanel: React.FC<Props> = ({
                 className='AdminSectionPanel'
                 data-testid={dataTestId}
             >
-                <div data-testid='admin-section-panel-body'>
+                <div data-testid={testId ? `${testId}.body` : 'admin-section-panel-body'}>
                     {children}
                 </div>
             </div>
@@ -51,6 +55,8 @@ const AdminSectionPanel: React.FC<Props> = ({
 
     const titleDescriptor = title ? asMessageDescriptor(title) : undefined;
     const descriptionDescriptor = description ? asMessageDescriptor(description) : undefined;
+
+    const descriptionTestId = descriptionDescriptor && testId ? `${testId}.description--text` : undefined;
 
     return (
         <AdminPanel
@@ -62,8 +68,10 @@ const AdminSectionPanel: React.FC<Props> = ({
             subtitle={titleDescriptor ? descriptionDescriptor : undefined}
             button={licenseSku ? <LicenseSkuBadge sku={licenseSku}/> : undefined}
             data-testid={dataTestId}
+            titleTestId={descriptionTestId && !titleDescriptor ? descriptionTestId : undefined}
+            subtitleTestId={descriptionTestId && titleDescriptor ? descriptionTestId : undefined}
         >
-            <div data-testid='admin-section-panel-body'>
+            <div data-testid={testId ? `${testId}.body` : 'admin-section-panel-body'}>
                 {children}
             </div>
         </AdminPanel>

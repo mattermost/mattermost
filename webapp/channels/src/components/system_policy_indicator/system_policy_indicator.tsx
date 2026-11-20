@@ -69,7 +69,7 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
     showPolicyNames = true,
     variant = 'detailed',
     className = '',
-    testId = 'system-policy-indicator',
+    testId,
     onMorePoliciesClick,
 }) => {
     const {formatMessage} = useIntl();
@@ -182,7 +182,8 @@ const SystemPolicyIndicator: React.FC<SystemPolicyIndicatorProps> = ({
 
     return (
         <AlertBanner
-            id={testId}
+            id='system-policy-indicator'
+            testId={testId}
             mode='info'
             className={`system-policy-indicator ${className}`}
             variant='app'

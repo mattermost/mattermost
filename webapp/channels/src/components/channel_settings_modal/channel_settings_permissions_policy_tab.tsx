@@ -892,7 +892,7 @@ function ChannelSettingsPermissionsPolicyTab({
             return (
                 <div
                     className='ChannelSettingsModal__permissionsPolicyTab'
-                    data-testid='permissions-policy-read-only'
+                    data-testid='channel_settings_modal.permissions_policy.read_only'
                 >
                     <ChannelSettingsReadOnlyNotice/>
                 </div>
@@ -902,7 +902,7 @@ function ChannelSettingsPermissionsPolicyTab({
         return (
             <div
                 className='ChannelSettingsModal__permissionsPolicyTab'
-                data-testid='permissions-policy-load-error'
+                data-testid='channel_settings_modal.permissions_policy.load_error--text'
             >
                 <div
                     className='ChannelSettingsModal__permissionsPolicyError'
@@ -959,6 +959,7 @@ function ChannelSettingsPermissionsPolicyTab({
                   * committed from the editor's own button. */}
                 {showTabSwitchError && (
                     <SaveChangesPanel
+                        testId='channel_settings_modal.save_panel'
                         handleSubmit={handleSaveChanges}
                         handleCancel={cancelEditor}
                         handleClose={handleClose}
@@ -976,7 +977,10 @@ function ChannelSettingsPermissionsPolicyTab({
 
     // ── Render: list view ────────────────────────────────────────────────
     return (
-        <div className='ChannelSettingsModal__permissionsPolicyTab'>
+        <div
+            className='ChannelSettingsModal__permissionsPolicyTab'
+            data-testid='channel_settings_modal.permissions_policy.overview'
+        >
             {isReadOnly && <ChannelSettingsReadOnlyNotice/>}
 
             {/* One-line system-policy banner: signal that policies defined
@@ -984,7 +988,7 @@ function ChannelSettingsPermissionsPolicyTab({
             {systemPolicies.length > 0 && (
                 <div
                     className='ChannelSettingsModal__permissionsPolicyBanner'
-                    data-testid='permissions-policy-system-banner'
+                    data-testid='channel_settings_modal.permissions_policy.system_banner'
                 >
                     <i className='icon icon-information-outline'/>
                     <span>
@@ -1000,7 +1004,7 @@ function ChannelSettingsPermissionsPolicyTab({
                 <Button
                     onClick={startNew}
                     disabled={!attributesLoaded || isReadOnly}
-                    data-testid='permissions-policy-add-rule'
+                    data-testid='channel_settings_modal.permissions_policy.add_rule--button'
                     leadingIcon={<Icon glyph={<PlusIcon/>}/>}
                 >
                     <FormattedMessage
@@ -1032,14 +1036,14 @@ function ChannelSettingsPermissionsPolicyTab({
                         id: 'channel_settings.permissions_policy.search_aria',
                         defaultMessage: 'Search permission rules by name or permission',
                     })}
-                    data-testid='permissions-policy-search'
+                    data-testid='channel_settings_modal.permissions_policy.search--textbox'
                 />
             </div>
 
             {showOrHint && (
                 <div
                     className='ChannelSettingsModal__permissionsPolicyOrHint'
-                    data-testid='permissions-or-hint'
+                    data-testid='channel_settings_modal.permissions_policy.or_hint--text'
                 >
                     <i className='icon icon-information-outline'/>
                     <FormattedMessage {...messages.orHint[channelKind]}/>
@@ -1048,7 +1052,7 @@ function ChannelSettingsPermissionsPolicyTab({
 
             <table
                 className='ChannelSettingsModal__permissionsPolicyTable'
-                data-testid='permissions-policy-rules-table'
+                data-testid='channel_settings_modal.permissions_policy.rules'
             >
                 <thead>
                     <tr>
@@ -1085,12 +1089,12 @@ function ChannelSettingsPermissionsPolicyTab({
                             </td>
                         </tr>
                     ) : (
-                        pagedRules.map((rule) => {
+                        pagedRules.map((rule, ruleIndex) => {
                             const permissionCount = (rule.actions || []).length;
                             return (
                                 <tr
                                     key={rule.key}
-                                    data-testid={`permissions-policy-row-${rule.key}`}
+                                    data-testid={`channel_settings_modal.permissions_policy.rules.rule:${ruleIndex}`}
                                     className='ChannelSettingsModal__permissionsPolicyRow'
                                     onClick={isReadOnly ? undefined : () => startEdit(rule.key)}
                                     aria-disabled={isReadOnly || undefined}
@@ -1209,6 +1213,7 @@ function ChannelSettingsPermissionsPolicyTab({
 
             {shouldShowPanel && (
                 <SaveChangesPanel
+                    testId='channel_settings_modal.save_panel'
                     handleSubmit={handleSaveChanges}
                     handleCancel={handleCancel}
                     handleClose={handleClose}
@@ -1352,7 +1357,7 @@ function PermissionRuleEditor({
     return (
         <div
             className='ChannelSettingsModal__permissionsPolicyEditor'
-            data-testid='permissions-policy-editor'
+            data-testid='channel_settings_modal.permissions_policy.editor'
         >
             <div className='ChannelSettingsModal__permissionsPolicyEditorHeader'>
                 <button
@@ -1399,7 +1404,7 @@ function PermissionRuleEditor({
                             id: 'channel_settings.permissions_policy.field.name_placeholder',
                             defaultMessage: 'e.g. Block external uploads',
                         })}
-                        data-testid='permissions-policy-editor-name'
+                        data-testid='channel_settings_modal.permissions_policy.editor.name--textbox'
                     />
                 </label>
 
@@ -1420,7 +1425,7 @@ function PermissionRuleEditor({
                         menuButton={{
                             id: 'cpp-role-selector-btn',
                             class: 'ChannelSettingsModal__permissionsPolicyDropdownButton',
-                            dataTestId: 'permissions-policy-editor-role',
+                            dataTestId: 'channel_settings_modal.permissions_policy.editor.role--button',
                             children: (
                                 <>
                                     <span>
@@ -1458,7 +1463,7 @@ function PermissionRuleEditor({
 
                 <div
                     className='ChannelSettingsModal__permissionsPolicyExpression'
-                    data-testid='permissions-policy-editor-expression-section'
+                    data-testid='channel_settings_modal.permissions_policy.editor.expression'
                 >
                     <span className='ChannelSettingsModal__permissionsPolicyFieldLabel'>
                         <FormattedMessage
@@ -1468,6 +1473,7 @@ function PermissionRuleEditor({
                     </span>
                     {attributesLoaded && (
                         <TableEditor
+                            testId='channel_settings_modal.permissions_policy.editor.rules'
                             value={draft.expression}
                             onChange={(next) => update({expression: next})}
                             onValidate={() => undefined}
@@ -1506,7 +1512,7 @@ function PermissionRuleEditor({
 
                 <div
                     className='ChannelSettingsModal__permissionsPolicyField'
-                    data-testid='permissions-policy-editor-permissions-section'
+                    data-testid='channel_settings_modal.permissions_policy.editor.permissions'
                 >
                     <span className='ChannelSettingsModal__permissionsPolicyFieldLabel'>
                         <FormattedMessage
@@ -1536,13 +1542,13 @@ function PermissionRuleEditor({
                                 />
                             </div>
                         ) : (
-                            draft.actions.map((permValue) => {
+                            draft.actions.map((permValue, permIndex) => {
                                 const permDef = AVAILABLE_PERMISSIONS.find((p) => p.value === permValue);
                                 return (
                                     <div
                                         key={permValue}
                                         className='ChannelSettingsModal__permissionsPolicyPermsTableRow'
-                                        data-testid={`permissions-policy-editor-action-${permValue}`}
+                                        data-testid={`channel_settings_modal.permissions_policy.editor.permissions.permission:${permIndex}`}
                                     >
                                         <span className='ChannelSettingsModal__permissionsPolicyPermsTableLabel'>
                                             {permDef ? formatMessage(permDef.label) : permValue}
@@ -1569,7 +1575,7 @@ function PermissionRuleEditor({
                             menuButton={{
                                 id: 'cpp-add-permission-btn',
                                 class: 'ChannelSettingsModal__permissionsPolicyAddPermissionButton',
-                                dataTestId: 'permissions-policy-editor-add-permission',
+                                dataTestId: 'channel_settings_modal.permissions_policy.editor.add_permission--button',
                                 children: (
                                     <>
                                         <i className='icon icon-plus'/>
@@ -1610,7 +1616,7 @@ function PermissionRuleEditor({
             {error && (
                 <div
                     className='ChannelSettingsModal__permissionsPolicyError'
-                    data-testid='permissions-policy-editor-error'
+                    data-testid='channel_settings_modal.permissions_policy.editor.error--text'
                 >
                     {error}
                 </div>
@@ -1620,7 +1626,7 @@ function PermissionRuleEditor({
                 <Button
                     emphasis='tertiary'
                     onClick={onCancel}
-                    data-testid='permissions-policy-editor-cancel'
+                    data-testid='channel_settings_modal.permissions_policy.editor.cancel--button'
                 >
                     <FormattedMessage
                         id='channel_settings.permissions_policy.editor.cancel'
@@ -1629,7 +1635,7 @@ function PermissionRuleEditor({
                 </Button>
                 <Button
                     onClick={() => onCommit(draft, isNew)}
-                    data-testid='permissions-policy-editor-save'
+                    data-testid='channel_settings_modal.permissions_policy.editor.save--button'
                 >
                     {isNew ? (
                         <FormattedMessage

@@ -10,6 +10,7 @@ import {request} from '@playwright/test';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {testConfig} from './test_config';
+import {App} from './ui/generated';
 import {pages} from './ui/pages';
 import {resolvePlaywrightPath} from './util';
 
@@ -36,6 +37,7 @@ export class TestBrowser {
         const page = await context.newPage();
         patchGotoToUseBaseUrl(page);
 
+        const app = new App(page);
         const channelsPage = new pages.ChannelsPage(page);
         const systemConsolePage = new pages.SystemConsolePage(page);
         const scheduledPostsPage = new pages.ScheduledPostsPage(page);
@@ -49,6 +51,7 @@ export class TestBrowser {
         return {
             context,
             page,
+            app,
             channelsPage,
             systemConsolePage,
             scheduledPostsPage,

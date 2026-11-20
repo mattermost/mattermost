@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expect, test, closeChannelSettings, openChannelSettingsInfoTab, Api, settle} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify the "in:" search autocomplete shows a renamed channel by both its new display name and
@@ -26,16 +26,17 @@ test(
 
         // # Rename the channel's display name via Channel Settings
         const channelSettings = await channelsPage.openChannelSettings();
-        const infoSettings = await channelSettings.openInfoTab();
-        await infoSettings.updateName(updatedName);
-        await channelSettings.save();
-        await channelSettings.close();
-        await channelsPage.centerView.header.toHaveTitle(updatedName);
+        const infoSettings = await openChannelSettingsInfoTab(channelSettings);
+        await infoSettings.name.container.fill(updatedName);
+        await settle(channelSettings.savePanel.saveButton, {wait: Api.PatchChannel}).click();
+        await closeChannelSettings(channelSettings);
+        await expect(channelsPage.centerView.header.title).toContainText(updatedName);
 
         // # Open search and type an "in:" filter matching the channel's original handle
         await channelsPage.globalHeader.openSearch();
-        await channelsPage.searchBox.toBeVisible();
+        await expect(channelsPage.searchBox.container).toBeVisible();
         await channelsPage.searchBox.searchInput.fill('in:');
+        await expect(channelsPage.searchBox.searchInput).toHaveValue('in:');
         await channelsPage.searchBox.searchInput.pressSequentially(handle);
 
         // * Verify the autocomplete shows the channel by its new display name and its original handle

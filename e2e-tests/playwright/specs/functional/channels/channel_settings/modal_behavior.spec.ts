@@ -18,7 +18,7 @@ test('MM-T841 keeps a modal open when a drag is released outside it', {tag: '@ch
     const modal = channelSettings.container;
 
     // # Press the mouse down inside the modal, drag to outside the modal, then release
-    const box = await modal.boundingBox();
+    const box = await modal.locator.boundingBox();
     if (!box) {
         throw new Error('Channel Settings modal has no bounding box');
     }
@@ -55,20 +55,21 @@ test(
         await channelsPage.newChannel(createdChannel, 'O');
 
         // * Verify the new channel is opened
-        await channelsPage.centerView.header.toHaveTitle(createdChannel);
+        await expect(channelsPage.centerView.header.title).toContainText(createdChannel);
 
         // # Leave the channel via the channel header menu
         const channelMenu = await channelsPage.openChannelMenu();
         await channelMenu.leaveChannel.click();
 
         // * Verify the user is redirected to the default channel and the channel is no longer in the sidebar
-        await channelsPage.centerView.header.toHaveTitle('Town Square');
+        await expect(channelsPage.centerView.header.title).toContainText('Town Square');
         await expect(channelsPage.sidebarLeft.container.getByText(createdChannel)).not.toBeVisible();
 
         // # Open the create-channel modal, enter a name, and cancel without creating
         const cancelledChannel = `AB ${pw.random.id()}`;
         const newChannelModal = await channelsPage.openNewChannelModal();
         await newChannelModal.displayNameInput.fill(cancelledChannel);
+        await expect(newChannelModal.displayNameInput).toHaveValue(cancelledChannel);
         await newChannelModal.cancel();
 
         // * Verify the modal is closed and the cancelled channel was never created or joined

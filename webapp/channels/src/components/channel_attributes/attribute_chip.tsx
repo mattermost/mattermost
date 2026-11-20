@@ -33,6 +33,10 @@ type Props = {
 
     className?: string;
 
+    // The chip is `<testId>`, or `<testId>:<testKey>` when the same scope repeats; its text is the value.
+    testId?: string;
+    testKey?: string | number;
+
     // Rendered inside the pill, after the value — a remove control belongs on the
     // chip's own background, not floating beside it. Callers must not put an
     // interactive child inside a Menu trigger <button>; use a sibling underlay
@@ -45,6 +49,9 @@ type RemoveButtonProps = {
     removeLabel: string;
     disabled?: boolean;
     className?: string;
+
+    // The remove button is `<testId>--button`.
+    testId?: string;
 };
 
 /**
@@ -52,11 +59,11 @@ type RemoveButtonProps = {
  * A real <button>: only safe as a descendant of a non-interactive chip host
  * (or a sibling of a Menu trigger), never nested inside another <button>.
  */
-export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled, className}: RemoveButtonProps) => (
+export const AttributeChipRemoveButton = ({onRemove, removeLabel, disabled, className, testId}: RemoveButtonProps) => (
     <button
         type='button'
         className={classNames('AttributeChip__remove', className)}
-        data-testid='attributeChipRemove'
+        data-testid={testId ? `${testId}--button` : 'channel_attributes.chip.remove--button'}
         data-menu-prevent-open={true}
         data-menu-prevent-close={true}
         aria-label={removeLabel}
@@ -101,6 +108,8 @@ const AttributeChip = ({
     announceLabel = true,
     size = 'small',
     className,
+    testId,
+    testKey,
     children,
 }: Props) => {
     const style = useMemo(() => {
@@ -119,6 +128,11 @@ const AttributeChip = ({
 
     const dismissible = Boolean(children);
 
+    let chipTestId = 'channel_attributes.chip';
+    if (testId) {
+        chipTestId = testKey === undefined ? testId : `${testId}:${testKey}`;
+    }
+
     return (
         <span
             className={classNames(
@@ -131,7 +145,7 @@ const AttributeChip = ({
                 className,
             )}
             style={style}
-            data-testid='attributeChip'
+            data-testid={chipTestId}
         >
             {announceLabel && (
                 <span className='sr-only'>

@@ -472,6 +472,7 @@ function SimulateAccessModal({
         <GenericModal
             className='SimulateAccessModal a11y__modal'
             id='simulateAccessModal'
+            testId='admin.simulate_access'
             show={true}
             onHide={onExited}
             onExited={onExited}
@@ -507,14 +508,14 @@ function SimulateAccessModal({
                 !searchTerm && (page > 0 || hasNextPage) ? (
                     <div
                         className='SimulateAccessModal__footer'
-                        data-testid='simulate-access-pagination'
+                        data-testid='admin.simulate_access.pagination'
                     >
                         <Button
                             emphasis='tertiary'
                             size='small'
                             onClick={handlePrevPage}
                             disabled={page === 0 || isLoadingUsers || pending}
-                            data-testid='simulate-access-pagination-prev'
+                            data-testid='admin.simulate_access.pagination.prev--button'
                         >
                             <FormattedMessage
                                 id='admin.access_control.simulate_access.pagination.previous'
@@ -526,7 +527,7 @@ function SimulateAccessModal({
                             size='small'
                             onClick={handleNextPage}
                             disabled={!hasNextPage || isLoadingUsers || pending}
-                            data-testid='simulate-access-pagination-next'
+                            data-testid='admin.simulate_access.pagination.next--button'
                         >
                             <FormattedMessage
                                 id='admin.access_control.simulate_access.pagination.next'
@@ -567,7 +568,7 @@ function SimulateAccessModal({
                         id: 'admin.access_control.simulate_access.search_aria',
                         defaultMessage: 'Search users to simulate',
                     })}
-                    data-testid='simulate-access-search'
+                    data-testid='admin.simulate_access.search--textbox'
                 />
             </div>
 
@@ -600,7 +601,7 @@ function SimulateAccessModal({
                                     />
                                 </>
                             ),
-                            dataTestId: 'simulate-access-permission-filter',
+                            dataTestId: 'admin.simulate_access.permission_filter--button',
                             'aria-label': formatMessage({
                                 id: 'admin.access_control.simulate_access.permission_filter.label',
                                 defaultMessage: 'Permission',
@@ -660,7 +661,7 @@ function SimulateAccessModal({
                                 'SimulateAccessModal__scopeSegment--active': scope === 'all',
                             })}
                             aria-pressed={scope === 'all'}
-                            data-testid='simulate-access-scope-all'
+                            data-testid='admin.simulate_access.range:all--togglebutton'
                             onClick={() => handleScopeChange('all')}
                         >
                             <FormattedMessage
@@ -674,7 +675,7 @@ function SimulateAccessModal({
                                 'SimulateAccessModal__scopeSegment--active': scope === 'this_rule',
                             })}
                             aria-pressed={scope === 'this_rule'}
-                            data-testid='simulate-access-scope-this-rule'
+                            data-testid='admin.simulate_access.range:this_rule--togglebutton'
                             onClick={() => handleScopeChange('this_rule')}
                         >
                             <FormattedMessage
@@ -690,7 +691,7 @@ function SimulateAccessModal({
                 {simulationError ? (
                     <div
                         className='SimulateAccessModal__simulateError'
-                        data-testid='simulate-access-simulate-error'
+                        data-testid='admin.simulate_access.simulate_error--alert'
                         role='alert'
                     >
                         <FormattedMessage
@@ -704,7 +705,7 @@ function SimulateAccessModal({
                         return (
                             <div
                                 className='SimulateAccessModal__empty SimulateAccessModal__empty--error'
-                                data-testid='simulate-access-load-error'
+                                data-testid='admin.simulate_access.load_error--alert'
                                 role='alert'
                             >
                                 <FormattedMessage

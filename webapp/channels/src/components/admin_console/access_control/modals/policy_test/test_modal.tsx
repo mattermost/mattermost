@@ -152,6 +152,7 @@ function TestResultsModal({
                     type='button'
                     className='TestResultsModal__back'
                     onClick={handleBack}
+                    data-testid='policy_test_modal.back--button'
                     aria-label={formatMessage({id: 'admin.access_control.test.channel_picker.back', defaultMessage: 'Back to channel selection'})}
                 >
                     <i className='icon icon-arrow-left'/>
@@ -165,6 +166,7 @@ function TestResultsModal({
         <GenericModal
             className='TestResultsModal a11y__modal'
             id='testResultsModal'
+            testId='policy_test_modal'
             show={true}
             onHide={onExited}
             onExited={onExited}
@@ -176,7 +178,10 @@ function TestResultsModal({
             isStacked={isStacked}
         >
             {showPicker ? (
-                <TestChannelPicker onSelect={handleChannelSelected}/>
+                <TestChannelPicker
+                    onSelect={handleChannelSelected}
+                    testIdScope='policy_test_modal.channel_picker'
+                />
             ) : (
                 <SearchableUserList
                     users={users}
@@ -185,6 +190,7 @@ function TestResultsModal({
                     nextPage={handleNextPage}
                     search={handleSearch}
                     actionUserProps={{}}
+                    testIdScope='policy_test_modal.users'
                 />
             )}
         </GenericModal>
