@@ -4,7 +4,6 @@
 package commands
 
 import (
-	"cmp"
 	"context"
 	"errors"
 	"fmt"
@@ -22,12 +21,10 @@ import (
 	serveri18n "github.com/mattermost/mattermost/server/v8/i18n"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/report"
 	_ "github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/rules"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
-
-// The server evaluates hourly, so results older than two intervals mean evaluation stopped.
-const healthEvaluationStaleAfter = 2 * time.Hour
 
 // healthRunPollInterval is how often health run checks on the run it started. A variable so tests
 // don't wait.
@@ -105,8 +102,7 @@ func healthCheckCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("failed to get health findings: %w", err)
 	}
 
-	printHealthFindings(list, includeResolved, time.Now())
-	return nil
+	return printHealthFindings(list, includeResolved, report.Options{GeneratedAt: time.Now()})
 }
 
 func healthRunCmdF(c client.Client, cmd *cobra.Command, args []string) error {
@@ -183,10 +179,14 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 	}
 	notes = append(notes, p.Warnings...)
 
-	// Findings are stamped with when the packet was generated, not when mmctl ran.
+	// Findings are stamped with when the packet was generated, not when mmctl ran. The report
+	// shows an unknown collection time rather than claiming the data is from now.
 	evaluatedAt := p.Snapshot.CollectedAt
+	var collectedAt int64
 	if evaluatedAt.IsZero() {
 		evaluatedAt = time.Now()
+	} else {
+		collectedAt = evaluatedAt.UnixMilli()
 	}
 	now := func() time.Time { return evaluatedAt }
 
@@ -214,8 +214,11 @@ func healthCheckPacketCmdF(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	printHealthFindings(&model.HealthFindingList{EvaluatedAt: evaluatedAt.UnixMilli(), Findings: findings}, includeResolved, evaluatedAt, notes...)
-	return nil
+	return printHealthFindings(&model.HealthFindingList{EvaluatedAt: collectedAt, Findings: findings}, includeResolved, report.Options{
+		GeneratedAt: time.Now(),
+		PointInTime: true,
+		Notes:       notes,
+	})
 }
 
 // fillLatestVersion fetches the latest release from GitHub when the snapshot doesn't record one.
@@ -241,198 +244,80 @@ func fillLatestVersion(ctx context.Context, snapshot *healthcheck.Snapshot) stri
 // printHealthFindings prints already-rendered findings, leaving out resolved ones unless
 // includeResolved is set. Notes open the plain output; with --json they go to stderr so the
 // output stays valid JSON.
-func printHealthFindings(list *model.HealthFindingList, includeResolved bool, now time.Time, notes ...string) {
+func printHealthFindings(list *model.HealthFindingList, includeResolved bool, opts report.Options) error {
 	shown := make([]*model.HealthFinding, 0, len(list.Findings))
 	for _, finding := range list.Findings {
 		if includeResolved || finding.State != string(healthcheck.StateResolved) {
 			shown = append(shown, finding)
 		}
 	}
+	list = &model.HealthFindingList{EvaluatedAt: list.EvaluatedAt, Findings: shown}
 
 	if printer.GetFormat() == printer.FormatJSON {
-		for _, note := range notes {
+		for _, note := range opts.Notes {
 			printer.PrintError(note)
 		}
 		printer.SetSingle(true)
-		printer.PrintT("", &model.HealthFindingList{EvaluatedAt: list.EvaluatedAt, Findings: shown})
-		return
+		printer.PrintT("", list)
+		return nil
 	}
 
-	printer.Print(strings.Join(slices.Concat(notes, []string{formatHealthFindings(list.EvaluatedAt, shown, now)}), "\n\n"))
+	if err := i18n.TranslationsPreInitFromFileBytes("en.json", serveri18n.English); err != nil {
+		return fmt.Errorf("failed to load translations: %w", err)
+	}
+	opts.T = i18n.T
+	opts.Location = time.Local
+
+	printer.Print(formatHealthReport(report.Build(list, opts)))
+	return nil
 }
 
-func formatHealthFindings(evaluatedAt int64, shown []*model.HealthFinding, now time.Time) string {
-	if evaluatedAt == 0 {
-		return "Not evaluated yet. The first check runs within an hour of enabling the feature."
-	}
-
-	slices.SortStableFunc(shown, compareHealthFindings)
-
-	var firing, unknown, resolved []*model.HealthFinding
-	for _, finding := range shown {
-		switch healthcheck.State(finding.State) {
-		case healthcheck.StateFiring:
-			firing = append(firing, finding)
-		case healthcheck.StateUnknown:
-			unknown = append(unknown, finding)
-		case healthcheck.StateResolved:
-			resolved = append(resolved, finding)
+func formatHealthReport(r *report.Report) string {
+	header := r.EvaluatedAt.Label + ": " + r.EvaluatedAt.Value
+	if r.Age != 0 {
+		minutes := int(r.Age.Minutes())
+		unit := "minutes"
+		if minutes == 1 {
+			unit = "minute"
 		}
+		header += fmt.Sprintf(" (%d %s ago)", minutes, unit)
 	}
+	if r.Stale != "" {
+		header += ". " + r.Stale
+	}
+	blocks := slices.Concat(r.Notes, []string{header})
 
-	blocks := []string{formatHealthEvaluationTime(evaluatedAt, now)}
-
-	for i := 0; i < len(firing); {
-		area := firing[i].Area
-		lines := []string{healthAreaHeading(area)}
-		for ; i < len(firing) && firing[i].Area == area; i++ {
-			lines = append(lines, healthFindingLines(firing[i], true)...)
+	for _, section := range r.Sections {
+		lines := []string{section.Title}
+		detail := func(text string) {
+			if text != "" {
+				lines = append(lines, "      "+text)
+			}
+		}
+		for _, finding := range section.Findings {
+			switch section.Kind {
+			case report.SectionUnknown, report.SectionMuted:
+				tags := finding.Severity
+				if section.Kind == report.SectionMuted && finding.Unknown {
+					tags += ", " + r.Labels.Unknown
+				}
+				lines = append(lines, fmt.Sprintf("  %s (%s)", finding.Title, tags))
+				detail(finding.Message)
+				if finding.Remediation != "" {
+					detail("→ " + finding.Remediation)
+				}
+			case report.SectionResolved:
+				lines = append(lines, "  "+finding.Title)
+			default:
+				lines = append(lines, fmt.Sprintf("  [%s] %s", finding.Area, finding.Title))
+				detail(finding.Message)
+				if finding.Remediation != "" {
+					detail("→ " + finding.Remediation)
+				}
+			}
 		}
 		blocks = append(blocks, strings.Join(lines, "\n"))
 	}
 
-	if len(unknown) > 0 {
-		lines := []string{"Could not evaluate"}
-		for _, finding := range unknown {
-			lines = append(lines, healthFindingLines(finding, false)...)
-		}
-		blocks = append(blocks, strings.Join(lines, "\n"))
-	}
-
-	if len(resolved) > 0 {
-		lines := []string{"Resolved"}
-		for _, finding := range resolved {
-			lines = append(lines, "  "+healthFindingTitle(finding))
-		}
-		blocks = append(blocks, strings.Join(lines, "\n"))
-	}
-
-	blocks = append(blocks, formatHealthCounts(firing, unknown))
-
-	return strings.Join(blocks, "\n\n")
-}
-
-func formatHealthEvaluationTime(evaluatedAtMillis int64, now time.Time) string {
-	evaluatedAt := time.UnixMilli(evaluatedAtMillis)
-	age := now.Sub(evaluatedAt)
-	minutes := int(age.Minutes())
-	unit := "minutes"
-	if minutes == 1 {
-		unit = "minute"
-	}
-
-	header := fmt.Sprintf("Last evaluated %s (%d %s ago)", evaluatedAt.Format("2006-01-02 15:04"), minutes, unit)
-	if age > healthEvaluationStaleAfter {
-		header += ". Evaluation appears to have stopped."
-	}
-	return header
-}
-
-// healthFindingLines prints an unknown finding's message too: for an unknown it is the reason
-// the rule could not be evaluated.
-func healthFindingLines(finding *model.HealthFinding, withRemediation bool) []string {
-	lines := []string{fmt.Sprintf("  %-10s%s", strings.ToUpper(finding.Severity), healthFindingTitle(finding))}
-	if finding.Message != "" {
-		lines = append(lines, "            "+finding.Message)
-	}
-	if withRemediation && finding.Remediation != "" {
-		lines = append(lines, "            → "+finding.Remediation)
-	}
-	return lines
-}
-
-func healthFindingTitle(finding *model.HealthFinding) string {
-	title := finding.Title
-	if finding.Scope != "" {
-		title += " on " + finding.Scope
-	}
-	if finding.IsMuted() {
-		title += " [muted]"
-	}
-	return title
-}
-
-func formatHealthCounts(firing, unknown []*model.HealthFinding) string {
-	if len(firing) == 0 && len(unknown) == 0 {
-		return "No findings."
-	}
-
-	bySeverity := map[healthcheck.Severity]int{}
-	for _, finding := range firing {
-		bySeverity[healthcheck.Severity(finding.Severity)]++
-	}
-
-	var counts []string
-	if n := bySeverity[healthcheck.SeverityCritical]; n > 0 {
-		counts = append(counts, fmt.Sprintf("%d critical", n))
-	}
-	if n := bySeverity[healthcheck.SeverityWarning]; n == 1 {
-		counts = append(counts, "1 warning")
-	} else if n > 1 {
-		counts = append(counts, fmt.Sprintf("%d warnings", n))
-	}
-	if n := bySeverity[healthcheck.SeverityInfo]; n > 0 {
-		counts = append(counts, fmt.Sprintf("%d info", n))
-	}
-	if len(unknown) > 0 {
-		counts = append(counts, fmt.Sprintf("%d could not be evaluated", len(unknown)))
-	}
-
-	return strings.Join(counts, ", ")
-}
-
-func compareHealthFindings(a, b *model.HealthFinding) int {
-	return cmp.Or(
-		cmp.Compare(healthAreaRank(a.Area), healthAreaRank(b.Area)),
-		cmp.Compare(healthSeverityRank(a.Severity), healthSeverityRank(b.Severity)),
-		strings.Compare(a.Title, b.Title),
-		strings.Compare(a.Scope, b.Scope),
-	)
-}
-
-func healthAreaRank(area model.HealthArea) int {
-	if i := slices.Index(model.AllHealthAreas(), area); i >= 0 {
-		return i
-	}
-	return len(model.AllHealthAreas())
-}
-
-func healthSeverityRank(severity string) int {
-	switch healthcheck.Severity(severity) {
-	case healthcheck.SeverityCritical:
-		return 0
-	case healthcheck.SeverityWarning:
-		return 1
-	case healthcheck.SeverityInfo:
-		return 2
-	default:
-		return 3
-	}
-}
-
-func healthAreaHeading(area model.HealthArea) string {
-	switch area {
-	case model.AreaAuth:
-		return "Authentication"
-	case model.AreaDatabase:
-		return "Database"
-	case model.AreaSearch:
-		return "Search"
-	case model.AreaJobs:
-		return "Jobs"
-	case model.AreaCluster:
-		return "Cluster"
-	case model.AreaNotifications:
-		return "Notifications"
-	case model.AreaCompliance:
-		return "Compliance"
-	case model.AreaPlatform:
-		return "Platform"
-	case model.AreaLicense:
-		return "License"
-	case model.AreaVersion:
-		return "Version"
-	default:
-		return string(area)
-	}
+	return strings.Join(append(blocks, r.Summary), "\n\n")
 }

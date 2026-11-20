@@ -26,6 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/report"
 )
 
 func healthTestFindings(lastSeen time.Time) []*model.HealthFinding {
@@ -190,8 +191,8 @@ func (s *MmctlUnitTestSuite) TestHealthCheckCmd() {
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
-		s.True(strings.HasPrefix(output, "Last evaluated "), output)
-		s.True(strings.HasSuffix(output, "\n\nNo findings."), output)
+		s.True(strings.HasPrefix(output, "Last evaluated: "), output)
+		s.True(strings.HasSuffix(output, "\n\nNo open findings."), output)
 	})
 
 	s.Run("client error", func() {
@@ -241,7 +242,7 @@ func (s *MmctlUnitTestSuite) TestHealthRun() {
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
-		s.True(strings.HasPrefix(output, "Last evaluated "), output)
+		s.True(strings.HasPrefix(output, "Last evaluated: "), output)
 		s.Contains(output, "Push notification server is not HTTPS")
 	})
 
@@ -346,24 +347,25 @@ func (s *MmctlUnitTestSuite) TestHealthRun() {
 
 func (s *MmctlUnitTestSuite) TestHealthPrintFindings() {
 	lastSeen := time.Date(2026, time.September, 24, 14, 2, 0, 0, time.Local)
-	now := lastSeen.Add(38 * time.Minute)
+	evaluated := "Last evaluated: " + lastSeen.Format("2006-01-02 15:04 MST") + " (38 minutes ago)"
+	opts := report.Options{GeneratedAt: lastSeen.Add(38 * time.Minute)}
 
 	s.Run("plain output", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(healthTestList(lastSeen), false, now)
+		s.Require().NoError(printHealthFindings(healthTestList(lastSeen), false, opts))
 
-		s.Equal(`Last evaluated 2026-09-24 14:02 (38 minutes ago)
+		s.Equal(evaluated+`
 
-Notifications
-  CRITICAL  Push notification server is not HTTPS
-            The push server is http://push.example.com, so notifications are sent unencrypted.
-            → Set Push Notification Server to an https:// URL.
+Critical
+  [Notifications] Push notification server is not HTTPS
+      The push server is http://push.example.com, so notifications are sent unencrypted.
+      → Set Push Notification Server to an https:// URL.
 
 Could not evaluate
-  WARNING   Site URL is not HTTPS
-            Config section unavailable.
+  Site URL is not HTTPS (Warning)
+      Config section unavailable.
 
 1 critical, 1 could not be evaluated`, s.printedHealthFindings())
 	})
@@ -373,59 +375,102 @@ Could not evaluate
 		printer.SetFormat(printer.FormatPlain)
 		findings := healthTestFindings(lastSeen)
 
-		printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, true, now)
+		s.Require().NoError(printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, true, opts))
 
 		output := s.printedHealthFindings()
 		for _, finding := range findings {
 			s.NotContains(output, finding.Code)
 			s.NotContains(output, finding.Fingerprint)
 		}
-		for _, state := range []string{"firing", "unknown", "resolved"} {
+		for _, state := range []string{"firing", "unknown"} {
 			s.NotContains(output, state)
 		}
 	})
 
-	s.Run("groups firing findings by area, sorted by severity then title", func() {
+	s.Run("groups findings by severity, sorted by area then title", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 		findings := []*model.HealthFinding{
 			{Severity: "warning", State: "firing", Area: model.AreaNotifications, Title: "B warning", LastSeenAt: lastSeen.UnixMilli()},
 			{Severity: "critical", State: "firing", Area: model.AreaNotifications, Title: "Z critical", LastSeenAt: lastSeen.UnixMilli()},
 			{Severity: "warning", State: "firing", Area: model.AreaNotifications, Title: "A warning", LastSeenAt: lastSeen.UnixMilli()},
+			{Severity: "warning", State: "firing", Area: model.AreaCluster, Title: "C warning", LastSeenAt: lastSeen.UnixMilli()},
 			{Severity: "info", State: "firing", Area: model.AreaCluster, Title: "Node info", Scope: "node-1", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()},
 		}
 
-		printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, false, now)
+		s.Require().NoError(printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, false, opts))
 
-		s.Equal(`Last evaluated 2026-09-24 14:02 (38 minutes ago)
+		s.Equal(evaluated+`
 
-Cluster
-  INFO      Node info on node-1 [muted]
+Critical
+  [Notifications] Z critical
 
-Notifications
-  CRITICAL  Z critical
-  WARNING   A warning
-  WARNING   B warning
+Warning
+  [High availability] C warning
+  [Notifications] A warning
+  [Notifications] B warning
 
-1 critical, 2 warnings, 1 info`, s.printedHealthFindings())
+Muted
+  Node info on node-1 (Info)
+
+1 critical, 3 warnings`, s.printedHealthFindings())
+	})
+
+	s.Run("a muted finding shows its remediation, or that its check could not run", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		findings := []*model.HealthFinding{
+			{Severity: "warning", State: "firing", Area: model.AreaCluster, Title: "Firing", Message: "Still a problem.", Remediation: "Fix it.", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()},
+			{Severity: "warning", State: "unknown", Area: model.AreaCluster, Title: "Unknown", Message: "Was a problem.", Remediation: "Fix it.", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()},
+		}
+
+		s.Require().NoError(printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, false, opts))
+
+		s.Equal(evaluated+`
+
+Muted
+  Firing (Warning)
+      Still a problem.
+      → Fix it.
+  Unknown (Warning, Could not evaluate)
+      Was a problem.
+
+No open findings.`, s.printedHealthFindings())
+	})
+
+	s.Run("a muted resolved finding is listed as resolved", func() {
+		printer.Clean()
+		printer.SetFormat(printer.FormatPlain)
+		findings := []*model.HealthFinding{
+			{Severity: "warning", State: "resolved", Area: model.AreaCluster, Title: "Muted and resolved", MutedAt: 1, LastSeenAt: lastSeen.UnixMilli()},
+		}
+
+		s.Require().NoError(printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: findings}, true, opts))
+
+		s.Equal(evaluated+`
+
+Resolved
+  Muted and resolved
+
+No open findings.`, s.printedHealthFindings())
 	})
 
 	s.Run("stored findings with nothing firing or unknown", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: healthTestFindings(lastSeen)[2:]}, false, now)
+		s.Require().NoError(printHealthFindings(&model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: healthTestFindings(lastSeen)[2:]}, false, opts))
 
-		s.Equal("Last evaluated 2026-09-24 14:02 (38 minutes ago)\n\nNo findings.", s.printedHealthFindings())
+		s.Equal(evaluated+"\n\nNo open findings.", s.printedHealthFindings())
 	})
 
 	s.Run("never evaluated", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, false, now)
+		s.Require().NoError(printHealthFindings(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, false, opts))
 
-		s.Equal("Not evaluated yet. The first check runs within an hour of enabling the feature.", s.printedHealthFindings())
+		s.Equal("Last evaluated: Not evaluated yet\n\nThe first health check runs within an hour of enabling the feature.", s.printedHealthFindings())
 	})
 
 	s.Run("evaluation time comes from the server, not the shown findings", func() {
@@ -433,25 +478,25 @@ Notifications
 		printer.SetFormat(printer.FormatPlain)
 		list := &model.HealthFindingList{EvaluatedAt: lastSeen.UnixMilli(), Findings: healthTestFindings(lastSeen.Add(-time.Hour))}
 
-		printHealthFindings(list, false, now)
+		s.Require().NoError(printHealthFindings(list, false, opts))
 
-		s.Contains(s.printedHealthFindings(), "Last evaluated 2026-09-24 14:02 (38 minutes ago)\n")
+		s.True(strings.HasPrefix(s.printedHealthFindings(), evaluated+"\n"))
 	})
 
 	s.Run("evaluation older than two hours appears stopped", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(healthTestList(lastSeen), false, lastSeen.Add(2*time.Hour+time.Minute))
+		s.Require().NoError(printHealthFindings(healthTestList(lastSeen), false, report.Options{GeneratedAt: lastSeen.Add(2*time.Hour + time.Minute)}))
 
-		s.Contains(s.printedHealthFindings(), "Last evaluated 2026-09-24 14:02 (121 minutes ago). Evaluation appears to have stopped.\n")
+		s.True(strings.HasPrefix(s.printedHealthFindings(), "Last evaluated: "+lastSeen.Format("2006-01-02 15:04 MST")+" (121 minutes ago). Evaluation appears to have stopped.\n"))
 	})
 
 	s.Run("evaluation two hours old is not reported as stopped", func() {
 		printer.Clean()
 		printer.SetFormat(printer.FormatPlain)
 
-		printHealthFindings(healthTestList(lastSeen), false, lastSeen.Add(2*time.Hour))
+		s.Require().NoError(printHealthFindings(healthTestList(lastSeen), false, report.Options{GeneratedAt: lastSeen.Add(2 * time.Hour)}))
 
 		s.NotContains(s.printedHealthFindings(), "Evaluation appears to have stopped")
 	})
@@ -460,7 +505,7 @@ Notifications
 		printer.Clean()
 		printer.SetFormat(printer.FormatJSON)
 
-		printHealthFindings(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, false, now)
+		s.Require().NoError(printHealthFindings(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, false, opts))
 
 		s.Require().Len(printer.GetLines(), 1)
 		s.Equal(&model.HealthFindingList{Findings: []*model.HealthFinding{}}, printer.GetLines()[0])
@@ -617,7 +662,7 @@ func healthTestFinding(findings []*model.HealthFinding, code string) *model.Heal
 func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 	s.serveLatestRelease(healthTestRelease("v12.4.0"))
 	packetPath := s.writeHealthTestPacket(healthTestPacketFiles())
-	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04")
+	evaluatedAt := time.UnixMilli(healthTestPacketGeneratedAt).Format("2006-01-02 15:04 MST")
 	packetWithFilestoreDisk := func(totalMB, availableMB uint64) string {
 		files := healthTestPacketFiles()
 		files[model.SupportPacketDiagnosticsFileName] = strings.Replace(
@@ -656,25 +701,23 @@ func (s *MmctlUnitTestSuite) TestHealthCheckPacket() {
 
 		s.Equal(healthPacketDisclaimer+`
 
-Last evaluated `+evaluatedAt+` (0 minutes ago)
+Data collected: `+evaluatedAt+`
 
-Notifications
-  CRITICAL  PushNotificationServer does not use https://
-            PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.
-            → Prefix PushNotificationServer with https:// and verify reachability from the app node.
-
-Version
-  CRITICAL  Mattermost version is past end-of-life
-            Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. Upgrade to the latest release.
-            → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
+Critical
+  [Notifications] PushNotificationServer does not use https://
+      PushNotificationServer http://push.example.com uses http://, so push notifications are sent in cleartext.
+      → Prefix PushNotificationServer with https:// and verify reachability from the app node.
+  [Updates] Mattermost version is past end-of-life
+      Running Mattermost 11.0.4. Support for this release line ended on 2026-01-15. No security patches ship for this release line. Upgrade to the latest release.
+      → Plan a staged upgrade to a supported Extended Support Release or the latest release. Supported versions are listed at https://docs.mattermost.com/product-overview/mattermost-server-releases.html.
 
 Could not evaluate
-  WARNING   GOMAXPROCS exceeds the container CPU limit on mm.example.com
-            Server diagnostics unavailable.
-  WARNING   Host memory is running low on mm.example.com
-            Server diagnostics unavailable.
-  INFO      Host load is high on mm.example.com
-            Server diagnostics unavailable.
+  GOMAXPROCS exceeds the container CPU limit on mm.example.com (Warning)
+      Server diagnostics unavailable.
+  Host memory is running low on mm.example.com (Warning)
+      Server diagnostics unavailable.
+  Host load is high on mm.example.com (Info)
+      Server diagnostics unavailable.
 
 2 critical, 3 could not be evaluated`, s.printedHealthFindings())
 	})
@@ -687,7 +730,8 @@ Could not evaluate
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
-		s.Contains(output, "CRITICAL  File storage disk is nearly full on mm.example.com")
+		s.Contains(output, "\n  [Platform] File storage disk is nearly full on mm.example.com\n")
+		s.Contains(output, "\n\n3 critical, ")
 		s.Contains(output, "The volume containing FileSettings.Directory has 4.0 GiB (4.00%) available of 100.0 GiB. File uploads and other file operations can fail when the volume fills.")
 		s.Contains(output, "Immediately expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.")
 	})
@@ -700,7 +744,7 @@ Could not evaluate
 		s.Require().NoError(err)
 
 		output := s.printedHealthFindings()
-		s.Contains(output, "WARNING   File storage disk space is low on mm.example.com")
+		s.Contains(output, "Warning\n  [Platform] File storage disk space is low on mm.example.com")
 		s.Contains(output, "The volume containing FileSettings.Directory has 9.0 GiB (9.00%) available of 100.0 GiB.")
 		s.Contains(output, "Expand the volume or remove unrelated data from its filesystem; do not manually delete files managed by Mattermost from FileSettings.Directory. Keep at least 10% or 10 GiB available, and never less than 1 GiB.")
 	})
@@ -969,6 +1013,7 @@ Could not evaluate
 		s.True(strings.HasPrefix(output, healthPacketDisclaimer+"\n\n"))
 		s.Contains(output, "newer server")
 		s.Contains(output, "no metadata.yaml")
+		s.Contains(output, "\nData collected: Unknown\n", "without metadata the collection time is unknown, not now")
 		s.NotContains(output, "—")
 	})
 
