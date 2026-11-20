@@ -312,6 +312,19 @@ describe('DynamicVirtualizedList', () => {
             expect(scroller.scrollTop).toBe(660);
         });
 
+        test('does not snap to the bottom when the list was near but not at the bottom', () => {
+            const {scroller} = renderList();
+            userScrollTo(scroller, 700);
+
+            rowHeights['item-8'] = 20;
+            scroller.scrollTop = totalHeight() - LIST_HEIGHT;
+            expect(scroller.scrollTop).toBe(660);
+
+            resizeRow('item-8', 20);
+
+            expect(scroller.scrollTop).toBeLessThan(660);
+        });
+
         test('does not compensate when several rows shrink before they are observed', () => {
             const {scroller} = renderList({correctScrollToBottom: false});
 

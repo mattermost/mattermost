@@ -617,9 +617,12 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
-        // When rows shrink while scrolled to the bottom, the browser has already clamped scrollTop to the new maximum
+        // When rows shrink while scrolled to the bottom, the browser has already clamped scrollTop to the new maximum.
+        // The committed scroll offset still holds the position from before the clamp.
         const shrunk = newSize < oldSize;
-        const clampedToBottom = shrunk && element.scrollHeight - this.props.height - element.scrollTop <= 1;
+        const clampedToBottom = shrunk &&
+            element.scrollHeight - this.props.height - element.scrollTop <= 1 &&
+            this.props.height + this.state.scrollOffset >= this._listMetaData.totalMeasuredSize - atBottomMargin;
         const wasAtBottom = clampedToBottom || (
             this.props.height + element.scrollTop >=
             this._listMetaData.totalMeasuredSize - atBottomMargin
