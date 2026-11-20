@@ -114,9 +114,9 @@ func (a *App) ComputePostExposure(rctx request.CTX, postID string) (*model.PostE
 		}
 
 		if !entry.IsDeactivated {
-			lastActivityAt, appErr := a.getUserLastActivityAt(rctx, userID)
-			if appErr != nil {
-				return nil, appErr
+			lastActivityAt, err := a.getUserLastActivityAt(rctx, userID)
+			if err != nil {
+				return nil, model.AsAppError(err)
 			}
 			entry.LastActivityAt = lastActivityAt
 		}
@@ -195,7 +195,7 @@ func (a *App) getUsersProfiles(rctx request.CTX, userIDs []string) (map[string]*
 	return profiles, nil
 }
 
-func (a *App) getUserLastActivityAt(rctx request.CTX, userID string) (*int64, *model.AppError) {
+func (a *App) getUserLastActivityAt(rctx request.CTX, userID string) (*int64, error) {
 	sessions, appErr := a.GetSessions(rctx, userID)
 	if appErr != nil {
 		return nil, model.NewAppError("getUserLastActivityAt", "app.data_spillage.exposure.get_last_activity.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)

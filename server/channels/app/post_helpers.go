@@ -273,7 +273,7 @@ func (a *App) isBurnOnReadEnabled() bool {
 
 // filterBurnOnReadPosts filters out burn-on-read posts from a PostList.
 // This should be used for contexts where burn-on-read posts should not appear (e.g., search results).
-func (a *App) filterBurnOnReadPosts(postList *model.PostList) *model.AppError {
+func (a *App) filterBurnOnReadPosts(postList *model.PostList) error {
 	if postList == nil || postList.Posts == nil || len(postList.Posts) == 0 {
 		return nil
 	}
@@ -393,7 +393,7 @@ func (a *App) revealBurnOnReadPostsForUser(rctx request.CTX, postList *model.Pos
 		// Get user's read receipt for this post
 		receipt, err := a.getUserReadReceipt(rctx, post.Id, userID)
 		if err != nil {
-			return nil, err
+			return nil, model.AsAppError(err)
 		}
 
 		// If no receipt exists, show unrevealed message

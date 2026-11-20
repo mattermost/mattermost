@@ -18,15 +18,15 @@ const (
 	MonthMilliseconds = 31 * DayMilliseconds
 )
 
-func (a *App) GetAnalytics(rctx request.CTX, name string, teamID string) (model.AnalyticsRows, *model.AppError) {
+func (a *App) GetAnalytics(rctx request.CTX, name string, teamID string) (model.AnalyticsRows, error) {
 	return a.getAnalytics(rctx, name, teamID, false)
 }
 
-func (a *App) GetAnalyticsForSupportPacket(rctx request.CTX) (model.AnalyticsRows, *model.AppError) {
+func (a *App) GetAnalyticsForSupportPacket(rctx request.CTX) (model.AnalyticsRows, error) {
 	return a.getAnalytics(rctx, "standard", "", true)
 }
 
-func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupportPacket bool) (model.AnalyticsRows, *model.AppError) {
+func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupportPacket bool) (model.AnalyticsRows, error) {
 	systemUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		return nil, model.NewAppError("GetAnalytics", "app.user.get_total_users_count.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -55,7 +55,7 @@ func (a *App) getAnalytics(rctx request.CTX, name string, teamID string, forSupp
 	}
 }
 
-func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCount int64) (model.AnalyticsRows, *model.AppError) {
+func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCount int64) (model.AnalyticsRows, error) {
 	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 12)
 	rows[0] = &model.AnalyticsRow{Name: "channel_open_count", Value: 0}
 	rows[1] = &model.AnalyticsRow{Name: "channel_private_count", Value: 0}
@@ -149,7 +149,7 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 	}
 
 	if err := g.Wait(); err != nil {
-		return nil, err.(*model.AppError)
+		return nil, err
 	}
 
 	rows[0].Value = float64(channelCounts[model.ChannelTypeOpen])
@@ -168,9 +168,9 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 
 	// If in HA mode then aggregate all the stats
 	if a.Cluster() != nil && *a.Config().ClusterSettings.Enable {
-		stats, err2 := a.Cluster().GetClusterStats(rctx)
-		if err2 != nil {
-			return nil, err2
+		stats, err := a.Cluster().GetClusterStats(rctx)
+		if err != nil {
+			return nil, err
 		}
 
 		totalSockets := a.TotalWebsocketConnections()
@@ -199,7 +199,7 @@ func (a *App) getStandardAnalytics(rctx request.CTX, teamID string, systemUserCo
 	return rows, nil
 }
 
-func (a *App) getBotPostCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, *model.AppError) {
+func (a *App) getBotPostCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, error) {
 	analyticsRows, nErr := a.Srv().Store().Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
 		TeamId:   teamID,
 		BotsOnly: true,
@@ -211,7 +211,7 @@ func (a *App) getBotPostCountsAnalytics(rctx request.CTX, teamID string) (model.
 	return analyticsRows, nil
 }
 
-func (a *App) getPostCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, *model.AppError) {
+func (a *App) getPostCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, error) {
 	analyticsRows, nErr := a.Srv().Store().Post().AnalyticsPostCountsByDay(&model.AnalyticsPostCountsOptions{
 		TeamId:   teamID,
 		BotsOnly: false,
@@ -223,7 +223,7 @@ func (a *App) getPostCountsAnalytics(rctx request.CTX, teamID string) (model.Ana
 	return analyticsRows, nil
 }
 
-func (a *App) getUserCountsWithPostsAnalytics(rctx request.CTX, teamID string, skipIntensiveQueries bool) (model.AnalyticsRows, *model.AppError) {
+func (a *App) getUserCountsWithPostsAnalytics(rctx request.CTX, teamID string, skipIntensiveQueries bool) (model.AnalyticsRows, error) {
 	if skipIntensiveQueries {
 		rows := model.AnalyticsRows{&model.AnalyticsRow{Name: "", Value: -1}}
 		return rows, nil
@@ -237,7 +237,7 @@ func (a *App) getUserCountsWithPostsAnalytics(rctx request.CTX, teamID string, s
 	return analyticsRows, nil
 }
 
-func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, *model.AppError) {
+func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string) (model.AnalyticsRows, error) {
 	var rows model.AnalyticsRows = make([]*model.AnalyticsRow, 6)
 	rows[0] = &model.AnalyticsRow{Name: "incoming_webhook_count", Value: 0}
 	rows[1] = &model.AnalyticsRow{Name: "outgoing_webhook_count", Value: 0}
@@ -303,7 +303,7 @@ func (a *App) getExtraCountsAnalytics(rctx request.CTX, teamID string) (model.An
 	})
 
 	if err := g.Wait(); err != nil {
-		return nil, err.(*model.AppError)
+		return nil, err
 	}
 
 	rows[0].Value = float64(incomingWebhookCount)

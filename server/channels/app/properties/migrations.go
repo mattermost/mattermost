@@ -214,8 +214,8 @@ func isPermanentPropertyFieldFailure(err error) bool {
 		errors.Is(err, ErrInvalidFieldAttrs) || errors.Is(err, ErrAdminRequired) || errors.Is(err, errPermissionsAuthored) {
 		return true
 	}
-	var appErr *model.AppError
-	return errors.As(err, &appErr)
+	_, ok := errors.AsType[*model.AppError](err)
+	return ok
 }
 
 // disambiguatedTemplateName appends the field's own globally-unique ID to

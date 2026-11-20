@@ -704,7 +704,7 @@ func deleteChannelsCmdF(c client.Client, cmd *cobra.Command, args []string) erro
 		if _, err := c.PermanentDeleteChannel(context.TODO(), channel.Id); err != nil {
 			result = multierror.Append(result, fmt.Errorf("unable to delete channel '%q' error: %w", channel.Name, err))
 		} else {
-			printer.PrintT("Deleted channel '{{.Name}}'", channel)
+			printer.PrintT("Deleted channel '{{.DisplayName}}' (ID: {{.Id}})", channel)
 		}
 	}
 	return result.ErrorOrNil()

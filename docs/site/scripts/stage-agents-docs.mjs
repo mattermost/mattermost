@@ -12,20 +12,23 @@
 // sidebar is generated — same effect as Sphinx's conf.py exclude/redirect
 // rules on its own full-repo submodule checkout.
 //
-// Navigation mirrors Sphinx exactly (source/end-user-guide/agents.rst,
-// source/administration-guide/configure/agents-admin-guide.rst): no
-// top-level Agents nav section. admin_guide.md/user_guide.md are `..
-// include::`d into the two curated pages; providers/aws_bedrock_setup/
-// sovereign_ai/usage_tips get their own nested pages via a small hidden
-// toctree; everything else (load-testing, upgrading_to_2.0, features/*) is
-// direct-URL-only, never in any toctree. Reproduced as a three-way split:
+// Navigation: no top-level Agents nav section. admin_guide.md, user_guide.md
+// and what_agents_see.md are inlined into the three curated pages (as Sphinx's
+// `.. include::` did). Every other page is either a listed child or unlisted:
 //   - INLINE_PARTIALS: staged as an unlisted doc (direct-link parity) AND
 //     as a Markdown partial (leading underscore) the curated pages
-//     `import` and render inline, reproducing `.. include::`.
-//   - NAV_CHILDREN: normal listed docs, nested under the curated pages by
-//     gen-documentation-sidebar.mjs via cross-directory {doc: ...} items.
-//   - Everything else: unlisted docs — built and linkable, absent from
-//     the sidebar.
+//     `import` and render inline, reproducing `.. include::`. Links to these
+//     pages from other staged pages are rewritten to the curated page's URL
+//     (INLINE_CANONICAL_URLS), because the staged copy is noindex.
+//   - NAV_CHILDREN: normal listed (indexable) docs, placed in the sidebar by
+//     gen-documentation-sidebar.mjs via cross-directory {doc: ...} items
+//     (the admin "AI agents" group and the End User Guide Agents category).
+//     Listing here only controls `unlisted`/noindex; keep the sidebar script
+//     in sync. Ids that are not staged (the pinned submodule may lag the
+//     plugin repo) are skipped there with a warning.
+//   - Everything else (currently just load-testing, which is for plugin
+//     contributors): unlisted docs — built and linkable, but `noindex` and
+//     absent from the sidebar.
 //
 // Re-run safely at any time (e.g. after `git submodule update --remote`) —
 // it fully regenerates its output directories.
@@ -49,11 +52,51 @@ const DEST_IMAGES = join(SITE_ROOT, 'static', 'images', 'agents');
 
 // Files whose body is inlined into a curated page via a Markdown partial
 // import, in addition to being staged as their own unlisted page.
-const INLINE_PARTIALS = new Set(['admin_guide', 'user_guide']);
+const INLINE_PARTIALS = new Set(['admin_guide', 'user_guide', 'what_agents_see']);
+
+// Where each inlined page is really published. Links to these pages from
+// other staged pages point here instead of at the unlisted staged copy.
+const INLINE_CANONICAL_URLS = {
+  admin_guide: '/administration-guide/configure/agents-admin-guide',
+  user_guide: '/end-user-guide/agents',
+  what_agents_see: '/end-user-guide/collaborate/agents-context-management',
+};
 
 // Files that get their own listed page, nested under a curated page by
 // gen-documentation-sidebar.mjs. Everything else staged ends up unlisted.
-const NAV_CHILDREN = new Set(['providers', 'aws_bedrock_setup', 'sovereign_ai', 'usage_tips']);
+// Keyed by path relative to the plugin's docs/ folder, without extension, so
+// same-named files in different folders can never be listed by accident.
+const NAV_CHILDREN = new Set([
+  // Admin: set up and configure
+  'llm_services',
+  'providers',
+  'aws_bedrock_setup',
+  'managing_agents',
+  'access_control',
+  'channel_settings',
+  'mcp_integrations',
+  'tool_approval',
+  'web_search',
+  'embedding_search',
+  'ai_output_security',
+  'observability',
+  'backup_and_automation',
+  'troubleshooting',
+  'data_handling',
+  'sovereign_ai',
+  'upgrading_to_2.0',
+  // Developers and integrators
+  'mcp_server',
+  'mcp_tools',
+  'llm_bridge',
+  // End users
+  'personal_agent',
+  'using_tools',
+  'agents_in_channels',
+  'summaries_and_search',
+  'meeting_summaries',
+  'skills',
+]);
 
 function rmrf(p) {
   if (existsSync(p)) rmSync(p, {recursive: true, force: true});
@@ -107,7 +150,8 @@ function rewriteImagePaths(body) {
 function rewriteRelativeMdLinks(body, fileRelDir) {
   return body.replace(/(\[[^\]]*]\()(?!https?:\/\/|\/|#)([^)\s#]+)\.md(#[^)\s]+)?(\))/g, (_m, pre, target, anchor, post) => {
     const resolved = posix.normalize(posix.join(fileRelDir, target));
-    return `${pre}/agents/docs/${resolved}${anchor || ''}${post}`;
+    const url = INLINE_CANONICAL_URLS[resolved] ?? `/agents/docs/${resolved}`;
+    return `${pre}${url}${anchor || ''}${post}`;
   });
 }
 
@@ -125,7 +169,8 @@ function stageDocs() {
     );
   }
 
-  const mdFiles = walk(VENDOR_DOCS, ['img']).filter((f) => extname(f) === '.md');
+  // AGENTS.md and CLAUDE.md are writing instructions for contributors, not pages.
+  const mdFiles = walk(VENDOR_DOCS, ['img', 'AGENTS.md', 'CLAUDE.md']).filter((f) => extname(f) === '.md');
   let partialCount = 0;
   for (const src of mdFiles) {
     const rel = relative(VENDOR_DOCS, src); // e.g. "admin_guide.md" or "features/channel_summaries.md"
@@ -139,7 +184,7 @@ function stageDocs() {
     const dest = join(DEST_DOCS, rel);
     mkdirSync(dirname(dest), {recursive: true});
 
-    const listed = NAV_CHILDREN.has(baseName);
+    const listed = NAV_CHILDREN.has(rel.replace(/\\/g, '/').replace(/\.md$/, ''));
     const inlined = INLINE_PARTIALS.has(baseName);
     const frontmatterLines = [];
     if (title) frontmatterLines.push(`title: "${title.replace(/"/g, '\\"')}"`);

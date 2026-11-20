@@ -34,6 +34,7 @@ import type {PostDraft} from 'types/store/draft';
  * @param focusTextbox - Callback to refocus the text editor
  * @param shouldShowPreview - Whether the preview mode is active
  * @param showIndividualCloseButton - Whether to show individual close button on label
+ * @param blockedReason - Why burn-on-read can't be turned on for this message right now; disables the button, is its tooltip, and stops anything else from turning it on
  * @returns Object containing label and control components, plus handlers
  */
 const useBurnOnRead = (
@@ -42,6 +43,7 @@ const useBurnOnRead = (
     focusTextbox: (keepFocus?: boolean) => void,
     shouldShowPreview: boolean,
     showIndividualCloseButton = true,
+    blockedReason?: string,
 ) => {
     const rootId = draft.rootId;
     const channelId = draft.channelId;
@@ -89,6 +91,12 @@ const useBurnOnRead = (
     const hasBurnOnReadSet = isEnabled && draft.type === PostTypes.BURN_ON_READ;
 
     const handleBurnOnReadApply = useCallback((enabled: boolean) => {
+        // Every way of turning it on goes through here, the tour tip's
+        // "Try it out" included, so a blocked message can't get it from any of them.
+        if (enabled && blockedReason) {
+            return;
+        }
+
         const updatedDraft = {
             ...draft,
             type: enabled ? PostTypes.BURN_ON_READ : undefined,
@@ -96,7 +104,7 @@ const useBurnOnRead = (
 
         handleDraftChange(updatedDraft, {instant: true});
         focusTextbox();
-    }, [draft, handleDraftChange, focusTextbox]);
+    }, [draft, handleDraftChange, focusTextbox, blockedReason]);
 
     const handleRemoveBurnOnRead = useCallback(() => {
         handleBurnOnReadApply(false);
@@ -131,13 +139,14 @@ const useBurnOnRead = (
                     onToggle={handleBurnOnReadApply}
                     disabled={shouldShowPreview}
                     durationMinutes={durationMinutes}
+                    blockedReason={blockedReason}
                 />
                 <BurnOnReadTourTip
                     key='burn-on-read-tour-tip-key'
                     onTryItOut={() => handleBurnOnReadApply(true)}
                 />
             </div>
-        ) : undefined), [rootId, isEnabled, allowedByPolicy, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes]);
+        ) : undefined), [rootId, isEnabled, allowedByPolicy, isAllowedInChannel, hasBurnOnReadSet, handleBurnOnReadApply, shouldShowPreview, durationMinutes, blockedReason]);
 
     return {
         labels,
@@ -145,6 +154,10 @@ const useBurnOnRead = (
         handleBurnOnReadApply,
         handleRemoveBurnOnRead,
         isBurnOnReadSendable,
+
+        // Whether this root post is set to burn-on-read, for the controls that
+        // can't be combined with it.
+        hasBurnOnReadSet: hasBurnOnReadSet && !rootId,
     };
 };
 

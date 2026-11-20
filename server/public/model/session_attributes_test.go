@@ -47,21 +47,41 @@ func TestSessionAttributeSystemFieldsDisplayNames(t *testing.T) {
 	}
 
 	expected := map[string]string{
-		SessionAttributesPropertyFieldClientIPAddress:      SessionAttributesDisplayNameClientIPAddress,
-		SessionAttributesPropertyFieldNetworkInterfaceType: SessionAttributesDisplayNameNetworkInterfaceType,
-		SessionAttributesPropertyFieldVPNActive:            SessionAttributesDisplayNameVPNActive,
-		SessionAttributesPropertyFieldSSID:                 SessionAttributesDisplayNameSSID,
-		SessionAttributesPropertyFieldClientDeviceID:       SessionAttributesDisplayNameClientDeviceID,
-		SessionAttributesPropertyFieldHardwareID:           SessionAttributesDisplayNameHardwareID,
-		SessionAttributesPropertyFieldMDMEnrolled:          SessionAttributesDisplayNameMDMEnrolled,
-		SessionAttributesPropertyFieldClientVersion:        SessionAttributesDisplayNameClientVersion,
-		SessionAttributesPropertyFieldOSPlatform:           SessionAttributesDisplayNameOSPlatform,
-		SessionAttributesPropertyFieldOSVersion:            SessionAttributesDisplayNameOSVersion,
-		SessionAttributesPropertyFieldJailbreakDetected:    SessionAttributesDisplayNameJailbreakDetected,
+		SessionAttributesPropertyFieldClientIPAddress:        SessionAttributesDisplayNameClientIPAddress,
+		SessionAttributesPropertyFieldNetworkInterfaceType:   SessionAttributesDisplayNameNetworkInterfaceType,
+		SessionAttributesPropertyFieldVPNActive:              SessionAttributesDisplayNameVPNActive,
+		SessionAttributesPropertyFieldSSID:                   SessionAttributesDisplayNameSSID,
+		SessionAttributesPropertyFieldClientDeviceID:         SessionAttributesDisplayNameClientDeviceID,
+		SessionAttributesPropertyFieldHardwareID:             SessionAttributesDisplayNameHardwareID,
+		SessionAttributesPropertyFieldMDMEnrolled:            SessionAttributesDisplayNameMDMEnrolled,
+		SessionAttributesPropertyFieldClientVersion:          SessionAttributesDisplayNameClientVersion,
+		SessionAttributesPropertyFieldOSPlatform:             SessionAttributesDisplayNameOSPlatform,
+		SessionAttributesPropertyFieldOSVersion:              SessionAttributesDisplayNameOSVersion,
+		SessionAttributesPropertyFieldJailbreakDetected:      SessionAttributesDisplayNameJailbreakDetected,
+		SessionAttributesPropertyFieldBiometricAuthenticated: SessionAttributesDisplayNameBiometricAuthenticated,
 	}
 	for name, displayName := range expected {
 		assert.Equal(t, displayName, displayNamesByName[name], "display name for %q", name)
 	}
+}
+
+func TestSessionAttributeSystemFieldsBiometricAuthenticated(t *testing.T) {
+	var field *PropertyField
+	for _, f := range SessionAttributeSystemFields("group-id") {
+		if f.Name == SessionAttributesPropertyFieldBiometricAuthenticated {
+			field = f
+			break
+		}
+	}
+	require.NotNil(t, field)
+
+	saField, err := SAFieldFromPropertyField(field)
+	require.NoError(t, err)
+	assert.Equal(t, []string{SessionAttributePlatformMobile}, saField.Attrs.Platforms)
+	assert.Equal(t, 300, saField.Attrs.TTLSeconds)
+	assert.Equal(t, 300, saField.Attrs.GracePeriodSeconds)
+	assert.True(t, IsValidSessionAttributeValue(field, "true"))
+	assert.True(t, IsValidSessionAttributeValue(field, "false"))
 }
 
 func TestSessionAttributeSystemFieldsOSPlatform(t *testing.T) {
@@ -236,5 +256,37 @@ func TestIsValidSessionAttributeValue(t *testing.T) {
 	t.Run("bool select rejects non-option values", func(t *testing.T) {
 		assert.False(t, IsValidSessionAttributeValue(boolField, true))
 		assert.False(t, IsValidSessionAttributeValue(boolField, "yes"))
+	})
+}
+
+func TestSessionAttributeValueValidator(t *testing.T) {
+	t.Run("select accepts an option by name or ID", func(t *testing.T) {
+		v := NewSessionAttributeValueValidator(&PropertyField{
+			Type: PropertyFieldTypeSelect,
+			Attrs: StringInterface{
+				PropertyFieldAttributeOptions: []map[string]string{{"id": "wifi-id", "name": "wifi"}},
+			},
+		})
+		assert.True(t, v.IsValid("wifi"))
+		assert.True(t, v.IsValid("wifi-id"))
+		assert.False(t, v.IsValid("ethernet"))
+		assert.False(t, v.IsValid(""))
+	})
+
+	t.Run("select without options rejects everything", func(t *testing.T) {
+		assert.False(t, NewSessionAttributeValueValidator(&PropertyField{Type: PropertyFieldTypeSelect}).IsValid("wifi"))
+	})
+
+	t.Run("text accepts any non-empty string", func(t *testing.T) {
+		v := NewSessionAttributeValueValidator(&PropertyField{Type: PropertyFieldTypeText})
+		assert.True(t, v.IsValid("anything"))
+		assert.False(t, v.IsValid(""))
+		assert.False(t, v.IsValid(nil))
+	})
+
+	t.Run("rejects other field types and a nil field", func(t *testing.T) {
+		assert.False(t, NewSessionAttributeValueValidator(&PropertyField{Type: PropertyFieldTypeDate}).IsValid("2026-10-01"))
+		assert.Nil(t, NewSessionAttributeValueValidator(nil))
+		assert.False(t, NewSessionAttributeValueValidator(nil).IsValid("value"))
 	})
 }

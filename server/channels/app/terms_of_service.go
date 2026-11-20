@@ -24,16 +24,13 @@ func (a *App) CreateTermsOfService(rctx request.CTX, text, userID string) (*mode
 
 	var err error
 	if termsOfService, err = a.Srv().Store().TermsOfService().Save(termsOfService); err != nil {
-		var invErr *store.ErrInvalidInput
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("CreateTermsOfService", "app.terms_of_service.create.existing.app_error", nil, "id="+termsOfService.Id, http.StatusBadRequest).Wrap(err)
-		case errors.As(err, &appErr):
-			return nil, appErr
-		default:
-			return nil, model.NewAppError("CreateTermsOfService", "app.terms_of_service.create.app_error", nil, "terms_of_service_id="+termsOfService.Id, http.StatusInternalServerError).Wrap(err)
 		}
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
+			return nil, appErr
+		}
+		return nil, model.NewAppError("CreateTermsOfService", "app.terms_of_service.create.app_error", nil, "terms_of_service_id="+termsOfService.Id, http.StatusInternalServerError).Wrap(err)
 	}
 
 	return termsOfService, nil
@@ -42,13 +39,10 @@ func (a *App) CreateTermsOfService(rctx request.CTX, text, userID string) (*mode
 func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError) {
 	termsOfService, err := a.Srv().Store().TermsOfService().GetLatest(true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetLatestTermsOfService", "app.terms_of_service.get.no_rows.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetLatestTermsOfService", "app.terms_of_service.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetLatestTermsOfService", "app.terms_of_service.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return termsOfService, nil
 }
@@ -56,13 +50,10 @@ func (a *App) GetLatestTermsOfService() (*model.TermsOfService, *model.AppError)
 func (a *App) GetTermsOfService(id string) (*model.TermsOfService, *model.AppError) {
 	termsOfService, err := a.Srv().Store().TermsOfService().Get(id, true)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetTermsOfService", "app.terms_of_service.get.no_rows.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetTermsOfService", "app.terms_of_service.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetTermsOfService", "app.terms_of_service.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return termsOfService, nil
 }

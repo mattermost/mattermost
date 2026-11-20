@@ -38,13 +38,10 @@ func (a *App) SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*mo
 
 	job, err := a.Srv().Store().Compliance().Save(job)
 	if err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return nil, appErr
-		default:
-			return nil, model.NewAppError("SaveComplianceReport", "app.compliance.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("SaveComplianceReport", "app.compliance.save.saving.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	jCopy := job.DeepCopy()
@@ -65,13 +62,10 @@ func (a *App) GetComplianceReport(reportId string) (*model.Compliance, *model.Ap
 
 	compliance, err := a.Srv().Store().Compliance().Get(reportId)
 	if err != nil {
-		var nfErr *store.ErrNotFound
-		switch {
-		case errors.As(err, &nfErr):
+		if _, ok := errors.AsType[*store.ErrNotFound](err); ok {
 			return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetComplianceReport", "app.compliance.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return compliance, nil

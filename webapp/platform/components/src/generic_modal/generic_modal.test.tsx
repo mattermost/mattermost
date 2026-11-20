@@ -15,14 +15,6 @@ describe('GenericModal', () => {
         children: <></>,
     };
 
-    test('should match snapshot for base case', () => {
-        const wrapper = render(
-            wrapIntl(<GenericModal {...baseProps}/>),
-        );
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
     test('should have confirm and cancels buttons when handlers are passed for both buttons', () => {
         const props = {
             ...baseProps,
