@@ -5,7 +5,7 @@ import React from 'react';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
 import type {GlobalState} from 'types/store';
@@ -76,20 +76,13 @@ describe('ProductRailTeamMenu', () => {
         expect(screen.getByRole('menuitem', {name: /Charlie/})).toBeInTheDocument();
     });
 
-    test('should bring the team sidebar back', async () => {
+    test('should leave bringing the team sidebar back to the rail\'s own button', async () => {
         renderWithContext(<ProductRailTeamMenu/>, getState());
 
         await userEvent.click(screen.getByRole('button', {name: 'Switch teams'}));
-        await userEvent.click(screen.getByRole('menuitem', {name: 'Show team sidebar'}));
 
-        // Menu items run their click handler once the menu has finished closing.
-        await waitFor(() => {
-            expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
-                category: 'sidebar_settings',
-                name: 'hide_team_sidebar',
-                value: 'false',
-            })]);
-        });
+        expect(screen.getByRole('menuitem', {name: /Bravo/})).toBeInTheDocument();
+        expect(screen.queryByRole('menuitem', {name: 'Show team sidebar'})).not.toBeInTheDocument();
     });
 
     describe('team activity', () => {

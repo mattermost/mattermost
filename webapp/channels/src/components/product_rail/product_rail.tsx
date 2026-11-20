@@ -18,7 +18,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getCurrentChannel, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {productRailPathsLoaded, productRailPathViewed, setProductRailItemHidden, setProductRailOrder, setProductRailSection, setTeamSidebarHidden} from 'actions/views/product_rail';
@@ -78,6 +78,16 @@ const messages = defineMessages({
         id: 'product_rail.moreMenu.label',
         defaultMessage: 'More products',
         description: 'Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user unpinned from the rail.',
+    },
+    moreLabelWithMentions: {
+        id: 'product_rail.moreMenu.labelWithMentions',
+        defaultMessage: 'More products, {count, plural, one {# mention} other {# mentions}}',
+        description: 'Accessible name of the More item at the end of the product navigation rail when its unpinned products have mentions. {count} is their total, shown in a badge on it.',
+    },
+    moreLabelWithUnreads: {
+        id: 'product_rail.moreMenu.labelWithUnreads',
+        defaultMessage: 'More products, unread activity',
+        description: 'Accessible name of the More item at the end of the product navigation rail when its unpinned products have unread activity but no mentions, shown as a dot on it.',
     },
     itemMenuLabel: {
         id: 'product_rail.itemMenu.label',
@@ -167,6 +177,9 @@ export default function ProductRail() {
     const enabled = useSelector(isProductRailEnabled);
     const products = useSelector(selectProducts);
     const currentTeam = useSelector(getCurrentTeam);
+
+    // The team sidebar only shows for more than one team, so only then can it be brought back.
+    const hasSeveralTeams = useSelector((state: GlobalState) => getMyTeams(state).length > 1);
     const currentUserId = useSelector(getCurrentUserId);
     const currentChannel = useSelector(getCurrentChannel);
     const currentChannelId = currentChannel?.id ?? '';
@@ -456,13 +469,30 @@ export default function ProductRail() {
     const railItems = orderedEntries.filter((entry) => !isInMore(entry));
     const moreItems = orderedEntries.filter(isInMore);
 
+    // The More button's badge, or dot, is read out with its name.
+    const moreMentions = moreItems.reduce((total, entry) => total + (entry.mentions ?? 0), 0);
+    const moreUnread = moreItems.some((entry) => entry.unread);
+    let moreButtonLabel = formatMessage(messages.moreMenuLabel);
+    if (moreMentions > 0) {
+        moreButtonLabel = formatMessage(messages.moreLabelWithMentions, {count: moreMentions});
+    } else if (moreUnread) {
+        moreButtonLabel = formatMessage(messages.moreLabelWithUnreads);
+    }
+
     const onDragEnd = (result: DropResult) => {
         if (!result.destination) {
             return;
         }
+
+        // The order can change mid-drag (a failed save puts the last one back), leaving another item
+        // where the dragged one started; drop the move then, rather than move the wrong item.
+        const railIds = railItems.map((entry) => entry.itemId);
+        if (railIds[result.source.index] !== result.draggableId) {
+            return;
+        }
         const order = moveRailItem(
             orderedEntries.map((entry) => entry.itemId),
-            railItems.map((entry) => entry.itemId),
+            railIds,
             result.source.index,
             result.destination.index,
         );
@@ -504,16 +534,12 @@ export default function ProductRail() {
                         menuButton={{
                             id: 'product-rail-item-more',
                             class: 'ProductRail__item',
-                            'aria-label': formatMessage(messages.moreMenuLabel),
+                            'aria-label': moreButtonLabel,
                             children: (
                                 <>
                                     <span className='ProductRail__icon'>
                                         <DotsHorizontalIcon size={20}/>
-                                        {renderIndicator(
-                                            moreItems.reduce((total, entry) => total + (entry.mentions ?? 0), 0),
-                                            moreItems.some((entry) => entry.hasUrgent),
-                                            moreItems.some((entry) => entry.unread),
-                                        )}
+                                        {renderIndicator(moreMentions, moreItems.some((entry) => entry.hasUrgent), moreUnread)}
                                     </span>
                                     <span className='ProductRail__label'>{formatMessage(messages.more)}</span>
                                 </>
@@ -607,7 +633,7 @@ export default function ProductRail() {
                             <Pluggable pluggableName='BottomTeamSidebar'/>
                         </div>
                     )}
-                    <WithTooltip title={formatMessage(messages.showTeamSidebar)}>
+                    {hasSeveralTeams && <WithTooltip title={formatMessage(messages.showTeamSidebar)}>
                         <button
                             type='button'
                             className='ProductRail__showTeamSidebar'
@@ -616,7 +642,7 @@ export default function ProductRail() {
                         >
                             <DockLeftIcon size={20}/>
                         </button>
-                    </WithTooltip>
+                    </WithTooltip>}
                 </div>
             )}
         </nav>
@@ -811,6 +837,15 @@ type ProductRailItemProps = {
 };
 
 function ProductRailItem({id, to, onClick, icon, label, active, mentions = 0, hasUrgent = false, unread = false, describedBy}: ProductRailItemProps) {
+    // The item's side effects (such as switching the sidebar's section) are for following the link
+    // here, not for opening it elsewhere with a modifier key or another button.
+    const handleLinkClick = onClick && ((event: React.MouseEvent<HTMLAnchorElement>) => {
+        if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+            return;
+        }
+        onClick();
+    });
+
     const indicator = renderIndicator(mentions, hasUrgent, unread);
 
     const className = classNames('ProductRail__item', {
@@ -844,7 +879,7 @@ function ProductRailItem({id, to, onClick, icon, label, active, mentions = 0, ha
         <Link
             id={id}
             to={to}
-            onClick={onClick}
+            onClick={handleLinkClick}
             className={className}
             aria-current={active ? 'page' : undefined}
             aria-describedby={describedBy}

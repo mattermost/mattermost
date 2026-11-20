@@ -269,6 +269,22 @@ describe('ProductRail', () => {
             expect(screen.getByRole('link', {name: /Boards/})).toHaveTextContent('4');
         });
 
+        test('should keep them on Channels even when a board plugin claims them', () => {
+            const state = withDirectMessage(getBoardsState(townSquare.id));
+            renderAt('/team-one/threads', {
+                ...state,
+                plugins: {
+                    components: {
+                        Product: [],
+                        ChannelKind: [{...boardKind, matcher: (_state: GlobalState, channel: {id: string}) => channel.id === 'dm' || channel.id === roadmap.id || channel.id === bugs.id}],
+                    } as unknown as GlobalState['plugins']['components'],
+                },
+            });
+
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('3');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveTextContent('4');
+        });
+
         test('should count their mentions on Channels, without boards', () => {
             const state = getBoardsState(townSquare.id);
             renderAt('/team-one/threads', withDirectMessage({
@@ -278,6 +294,21 @@ describe('ProductRail', () => {
 
             // Town square's 1, the boards' (now plain channels) 4 and the direct message's 2.
             expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('7');
+        });
+    });
+
+    describe('modified clicks', () => {
+        test('should leave the sidebar alone when Boards is opened in a new tab', () => {
+            const {store} = renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id, 'channels'));
+
+            fireEvent.click(screen.getByRole('link', {name: /Boards/}), {metaKey: true});
+            expect(store.getState().views.productRail.section).toBe('channels');
+
+            fireEvent.click(screen.getByRole('link', {name: /Boards/}), {ctrlKey: true});
+            expect(store.getState().views.productRail.section).toBe('channels');
+
+            fireEvent.click(screen.getByRole('link', {name: /Boards/}));
+            expect(store.getState().views.productRail.section).toBe('boards');
         });
     });
 
@@ -443,8 +474,25 @@ describe('ProductRail', () => {
     });
 
     describe('with the team sidebar hidden', () => {
+        // A second team, so there's a team sidebar to bring back.
+        function withTwoTeams(state: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
+            const team2 = TestHelper.getTeamMock({id: 'team2', name: 'team-two'});
+            const teams = state.entities!.teams!;
+            return {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    teams: {
+                        ...teams,
+                        teams: {...teams.teams, [team2.id]: team2},
+                        myMembers: {...teams.myMembers, [team2.id]: TestHelper.getTeamMembershipMock({team_id: team2.id, user_id: user.id})},
+                    },
+                },
+            };
+        }
+
         test('should bring the team sidebar back from the bottom of the rail', async () => {
-            renderAt('/team-one/channels/town-square', getState());
+            renderAt('/team-one/channels/town-square', withTwoTeams(getState()));
 
             await userEvent.click(screen.getByRole('button', {name: 'Show team sidebar'}));
 
@@ -452,6 +500,12 @@ describe('ProductRail', () => {
                 name: 'hide_team_sidebar',
                 value: 'false',
             })]);
+        });
+
+        test('should offer no way back to a team sidebar a user with one team never has', () => {
+            renderAt('/team-one/channels/town-square', getState());
+
+            expect(screen.queryByRole('button', {name: 'Show team sidebar'})).not.toBeInTheDocument();
         });
 
         test('should leave the team sidebar\'s button to it while it shows', () => {
@@ -635,23 +689,30 @@ describe('ProductRail', () => {
                 'product-rail-item-more',
             ]);
 
-            await userEvent.click(screen.getByRole('button', {name: 'More products'}));
+            await userEvent.click(screen.getByRole('button', {name: /More products/}));
 
             expect(screen.getByRole('menuitem', {name: /Boards/})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: /Agents/})).toBeInTheDocument();
         });
 
+        test('should read out the activity on the More item', () => {
+            // Boards, unpinned, has 4 mentions.
+            renderAt('/team-one/channels/town-square', getHiddenState(['boards']));
+
+            expect(screen.getByRole('button', {name: 'More products, 4 mentions'})).toBeInTheDocument();
+        });
+
         test('should show no More item while nothing is hidden', () => {
             renderAt('/team-one/channels/town-square', getHiddenState([]));
 
-            expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /More products/})).not.toBeInTheDocument();
         });
 
         test('should keep a hidden item in the rail while it is open', () => {
             renderAt('/mattermost-ai', getHiddenState(['mattermost-ai']));
 
             expect(screen.getByRole('link', {name: /Agents/})).toHaveAttribute('aria-current', 'page');
-            expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /More products/})).not.toBeInTheDocument();
         });
 
         test('should open a hidden item from the More menu', async () => {
@@ -659,7 +720,7 @@ describe('ProductRail', () => {
             historyPush.mockClear();
             renderAt('/team-one/channels/town-square', getHiddenState(['mattermost-ai']));
 
-            await userEvent.click(screen.getByRole('button', {name: 'More products'}));
+            await userEvent.click(screen.getByRole('button', {name: /More products/}));
             await userEvent.click(screen.getByRole('menuitem', {name: /Agents/}));
 
             // Menu items run their click handler once the menu has finished closing.
@@ -691,7 +752,7 @@ describe('ProductRail', () => {
             historyPush.mockClear();
             renderAt('/team-one/channels/town-square', getHiddenState(['boards', 'mattermost-ai']));
 
-            await userEvent.click(screen.getByRole('button', {name: 'More products'}));
+            await userEvent.click(screen.getByRole('button', {name: /More products/}));
             await userEvent.click(screen.getByRole('button', {name: 'Pin Agents', hidden: true}));
 
             await waitFor(() => expect(savedHiddenItems()).toBe(JSON.stringify(['boards'])));
@@ -703,7 +764,7 @@ describe('ProductRail', () => {
             historyPush.mockClear();
             renderAt('/team-one/channels/town-square', getHiddenState(['boards', 'mattermost-ai']));
 
-            screen.getByRole('button', {name: 'More products'}).focus();
+            screen.getByRole('button', {name: /More products/}).focus();
             await userEvent.keyboard('{Enter}');
             const boardsRow = await screen.findByRole('menuitem', {name: /Boards/});
             await waitFor(() => expect(boardsRow).toHaveFocus());
@@ -722,7 +783,7 @@ describe('ProductRail', () => {
         test('should move focus to the item on the rail when pinning the last one in More by keyboard', async () => {
             const {store} = renderAt('/team-one/channels/town-square', getHiddenState(['boards']));
 
-            screen.getByRole('button', {name: 'More products'}).focus();
+            screen.getByRole('button', {name: /More products/}).focus();
             await userEvent.keyboard('{Enter}');
             await waitFor(() => expect(screen.getByRole('menuitem', {name: /Boards/})).toHaveFocus());
             await userEvent.keyboard('{ArrowRight}{Enter}');
@@ -732,7 +793,7 @@ describe('ProductRail', () => {
                 store.dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [{category: 'sidebar_settings', name: 'product_rail_hidden_items', user_id: user.id, value: '[]'}]});
             });
 
-            expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /More products/})).not.toBeInTheDocument();
             await waitFor(() => expect(screen.getByRole('link', {name: /Boards/})).toHaveFocus());
         });
 
@@ -751,7 +812,7 @@ describe('ProductRail', () => {
                 },
             });
 
-            await userEvent.click(screen.getByRole('button', {name: 'More products'}));
+            await userEvent.click(screen.getByRole('button', {name: /More products/}));
             await userEvent.click(screen.getByRole('button', {name: 'Pin Agents One', hidden: true}));
 
             await waitFor(() => expect(savedHiddenItems()).toBe(JSON.stringify(['mattermost-ai:/agents-two'])));
@@ -791,7 +852,7 @@ describe('ProductRail', () => {
             });
 
             expect(screen.getByRole('link', {name: /Boards/})).toBeInTheDocument();
-            expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
+            expect(screen.queryByRole('button', {name: /More products/})).not.toBeInTheDocument();
         });
     });
 

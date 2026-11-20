@@ -6,7 +6,7 @@ import React from 'react';
 import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {CheckIcon, DockLeftIcon} from '@mattermost/compass-icons/components';
+import {CheckIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
 
 import {getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
@@ -14,7 +14,6 @@ import {get as getPreference} from 'mattermost-redux/selectors/entities/preferen
 import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 
 import {switchTeam} from 'actions/team_actions';
-import {setTeamSidebarHidden} from 'actions/views/product_rail';
 import {getCurrentLocale} from 'selectors/i18n';
 
 import * as Menu from 'components/menu';
@@ -48,16 +47,11 @@ const messages = defineMessages({
         defaultMessage: 'Teams',
         description: 'Accessible name of the menu of the user\'s teams opened from the top of the product navigation rail.',
     },
-    showTeamSidebar: {
-        id: 'product_rail.teamMenu.showTeamSidebar',
-        defaultMessage: 'Show team sidebar',
-        description: 'Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid.',
-    },
 });
 
 // Stands in for the team sidebar at the top of the product rail while the user has hidden it:
-// shows the current team, and opens a menu on hover (or click) to switch teams or bring the team
-// sidebar back.
+// shows the current team, and opens a menu of teams on hover (or click). The team sidebar comes
+// back from the button at the bottom of the rail.
 export default function ProductRailTeamMenu() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -164,18 +158,6 @@ export default function ProductRailTeamMenu() {
                     onClick={() => switchTo(team)}
                 />
             ))}
-            <Menu.Separator/>
-            <Menu.Item
-                id='productRailTeamMenu-showTeamSidebar'
-                leadingElement={(
-                    <DockLeftIcon
-                        size={18}
-                        aria-hidden='true'
-                    />
-                )}
-                labels={<span>{formatMessage(messages.showTeamSidebar)}</span>}
-                onClick={() => dispatch(setTeamSidebarHidden(false))}
-            />
         </Menu.Container>
     );
 }

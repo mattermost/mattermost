@@ -29587,6 +29587,14 @@
     "defaultMessage": "More products",
     "description": "Accessible name of the menu opened from the More item of the product navigation rail, listing the products the user unpinned from the rail."
   },
+  "product_rail.moreMenu.labelWithMentions": {
+    "defaultMessage": "More products, {count, plural, one {# mention} other {# mentions}}",
+    "description": "Accessible name of the More item at the end of the product navigation rail when its unpinned products have mentions. {count} is their total, shown in a badge on it."
+  },
+  "product_rail.moreMenu.labelWithUnreads": {
+    "defaultMessage": "More products, unread activity",
+    "description": "Accessible name of the More item at the end of the product navigation rail when its unpinned products have unread activity but no mentions, shown as a dot on it."
+  },
   "product_rail.moreMenu.pin": {
     "defaultMessage": "Pin {name}",
     "description": "Accessible name of the pin button at the end of a row in the More menu of the product navigation rail. {name} is the product, such as Playbooks. It pins the product back on the rail."
@@ -29610,10 +29618,6 @@
   "product_rail.teamMenu.menuLabel": {
     "defaultMessage": "Teams",
     "description": "Accessible name of the menu of the user's teams opened from the top of the product navigation rail."
-  },
-  "product_rail.teamMenu.showTeamSidebar": {
-    "defaultMessage": "Show team sidebar",
-    "description": "Last item in the team menu at the top of the product navigation rail. It brings back the team sidebar the user hid."
   },
   "profile_popover.aria_label.with_username": {
     "defaultMessage": "{userName}'s profile popover",

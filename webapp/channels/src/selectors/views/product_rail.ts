@@ -287,7 +287,9 @@ export const getProductRailSectionUnreads: (state: GlobalState) => Record<Produc
             }
 
             const unreads = calculateUnreadCount(messageCounts[channel.id], memberships[channel.id], crtEnabled);
-            const sectionUnreads = result[boardChannelIds.has(channel.id) ? 'boards' : 'channels'];
+
+            // Direct and group messages are never boards, whatever a plugin's matcher says.
+            const sectionUnreads = result[!isDirect && boardChannelIds.has(channel.id) ? 'boards' : 'channels'];
             sectionUnreads.mentions += unreads.mentions;
             sectionUnreads.hasUrgent = sectionUnreads.hasUrgent || unreads.hasUrgent;
             sectionUnreads.unread = sectionUnreads.unread || unreads.showUnread;
