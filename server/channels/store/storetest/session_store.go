@@ -4,7 +4,6 @@
 package storetest
 
 import (
-	"slices"
 	"testing"
 	"time"
 
@@ -40,7 +39,6 @@ func TestSessionStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("GetSessionsExpired", func(t *testing.T) { testGetSessionsExpired(t, rctx, ss) })
 	t.Run("UpdateExpiredNotify", func(t *testing.T) { testUpdateExpiredNotify(t, rctx, ss) })
 	t.Run("GetLRUSessions", func(t *testing.T) { testGetLRUSessions(t, rctx, ss) })
-	t.Run("GetUnexpiredSessions", func(t *testing.T) { testGetUnexpiredSessions(t, rctx, ss) })
 	t.Run("GetSessionsWithActiveDeviceIds", func(t *testing.T) { testGetSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetAllSessionsWithActiveDeviceIds", func(t *testing.T) { testGetAllSessionsWithActiveDeviceIds(t, rctx, ss) })
 	t.Run("GetMobileSessionMetadata", func(t *testing.T) { testGetMobileSessionMetadata(t, rctx, ss) })
@@ -623,86 +621,6 @@ func testGetLRUSessions(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, s3.Id, sessions[0].Id)
 	require.Equal(t, s2.Id, sessions[1].Id)
 	require.Equal(t, s1.Id, sessions[2].Id)
-}
-
-func testGetUnexpiredSessions(t *testing.T, rctx request.CTX, ss store.Store) {
-	require.NoError(t, ss.Session().RemoveAllSessions())
-
-	now := model.GetMillis()
-	userID1 := model.NewId()
-	userID2 := model.NewId()
-	userID3 := model.NewId()
-
-	save := func(userID string, expiresAt int64) *model.Session {
-		t.Helper()
-		s, err := ss.Session().Save(rctx, &model.Session{UserId: userID, Roles: model.SystemUserRoleId, ExpiresAt: expiresAt})
-		require.NoError(t, err)
-		return s
-	}
-	neverExpires := save(userID1, 0)
-	expiresLater := save(userID1, now+TenMinutes)
-	other := save(userID2, now+TenMinutes)
-	third := save(userID3, now+TenMinutes)
-	save(userID1, now-TenMinutes)
-	save(userID2, now-1)
-
-	ids := func(sessions []*model.Session) []string {
-		result := make([]string, 0, len(sessions))
-		for _, s := range sessions {
-			result = append(result, s.Id)
-		}
-		return result
-	}
-	sorted := func(sessions ...*model.Session) []string {
-		result := ids(sessions)
-		slices.Sort(result)
-		return result
-	}
-
-	t.Run("returns unexpired sessions ordered by ID", func(t *testing.T) {
-		sessions, err := ss.Session().GetUnexpiredSessions(rctx, store.UnexpiredSessionsOpts{Limit: 100})
-		require.NoError(t, err)
-		assert.Equal(t, sorted(neverExpires, expiresLater, other, third), ids(sessions))
-
-		for _, s := range sessions {
-			assert.Empty(t, s.TeamMembers)
-			assert.Equal(t, model.SystemUserRoleId, s.Roles)
-		}
-	})
-
-	t.Run("pages after the given ID", func(t *testing.T) {
-		all := sorted(neverExpires, expiresLater, other, third)
-
-		first, err := ss.Session().GetUnexpiredSessions(rctx, store.UnexpiredSessionsOpts{Limit: 3})
-		require.NoError(t, err)
-		assert.Equal(t, all[:3], ids(first))
-
-		rest, err := ss.Session().GetUnexpiredSessions(rctx, store.UnexpiredSessionsOpts{AfterID: first[2].Id, Limit: 3})
-		require.NoError(t, err)
-		assert.Equal(t, all[3:], ids(rest))
-	})
-
-	t.Run("filters by user", func(t *testing.T) {
-		sessions, err := ss.Session().GetUnexpiredSessions(rctx, store.UnexpiredSessionsOpts{UserIDs: []string{userID1, userID3}, Limit: 100})
-		require.NoError(t, err)
-		assert.Equal(t, sorted(neverExpires, expiresLater, third), ids(sessions))
-
-		sessions, err = ss.Session().GetUnexpiredSessions(rctx, store.UnexpiredSessionsOpts{UserIDs: []string{model.NewId()}, Limit: 100})
-		require.NoError(t, err)
-		assert.Empty(t, sessions)
-	})
-
-	t.Run("reads from the master when requested", func(t *testing.T) {
-		sessions, err := ss.Session().GetUnexpiredSessions(store.RequestContextWithMaster(rctx), store.UnexpiredSessionsOpts{UserIDs: []string{userID2}, Limit: 100})
-		require.NoError(t, err)
-		assert.Equal(t, sorted(other), ids(sessions))
-	})
-
-	t.Run("rejects a non-positive limit", func(t *testing.T) {
-		_, err := ss.Session().GetUnexpiredSessions(rctx, store.UnexpiredSessionsOpts{})
-		var invErr *store.ErrInvalidInput
-		require.ErrorAs(t, err, &invErr)
-	})
 }
 
 func testGetAllSessionsWithActiveDeviceIds(t *testing.T, rctx request.CTX, ss store.Store) {

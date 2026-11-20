@@ -571,8 +571,6 @@ type SessionStore interface {
 	Save(rctx request.CTX, session *model.Session) (*model.Session, error)
 	GetSessions(rctx request.CTX, userID string) ([]*model.Session, error)
 	GetLRUSessions(rctx request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error)
-	// GetUnexpiredSessions reads from the master when rctx requests it.
-	GetUnexpiredSessions(rctx request.CTX, opts UnexpiredSessionsOpts) ([]*model.Session, error)
 	GetMobileSessionMetadata() ([]*model.MobileSessionMetadata, error)
 	GetSessionsWithActiveDeviceIds(userID string) ([]*model.Session, error)
 	GetAllSessionsWithActiveDeviceIds() ([]*model.Session, error)
@@ -1485,12 +1483,6 @@ type UserGetByIdsOpts struct {
 
 	// Since filters the users based on their UpdateAt timestamp.
 	Since int64
-}
-
-type UnexpiredSessionsOpts struct {
-	UserIDs []string
-	AfterID string
-	Limit   int
 }
 
 // ThreadMembershipOpts defines some properties to be passed to

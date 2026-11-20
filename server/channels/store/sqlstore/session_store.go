@@ -176,35 +176,6 @@ func (me SqlSessionStore) GetLRUSessions(rctx request.CTX, userId string, limit 
 	return sessions, nil
 }
 
-func (me SqlSessionStore) GetUnexpiredSessions(rctx request.CTX, opts store.UnexpiredSessionsOpts) ([]*model.Session, error) {
-	if opts.Limit <= 0 {
-		return nil, store.NewErrInvalidInput("Session", "Limit", opts.Limit)
-	}
-
-	builder := me.sessionSelectQuery.
-		Where(sq.Or{
-			sq.LtOrEq{"ExpiresAt": 0},
-			sq.GtOrEq{"ExpiresAt": model.GetMillis()},
-		}).
-		Where(sq.Gt{"Id": opts.AfterID}).
-		OrderBy("Id").
-		Limit(uint64(opts.Limit))
-	if len(opts.UserIDs) > 0 {
-		builder = builder.Where(sq.Eq{"UserId": opts.UserIDs})
-	}
-
-	query, args, err := builder.ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "get_unexpired_sessions_tosql")
-	}
-
-	sessions := []*model.Session{}
-	if err := me.DBXFromContext(rctx.Context()).Select(&sessions, query, args...); err != nil {
-		return nil, errors.Wrap(err, "failed to find unexpired Sessions")
-	}
-	return sessions, nil
-}
-
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	now := model.GetMillis()
 
