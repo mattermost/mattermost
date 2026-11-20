@@ -682,18 +682,19 @@ describe('PostList', () => {
         describe('when older posts are added while considered to be at the bottom', () => {
             const olderPostListIds = [...baseProps.postListIds!, 'post4', 'post5'];
 
-            const addOlderPosts = (offsetFromBottom: number) => {
+            const addOlderPosts = (offsetFromBottom: number, props: Partial<ComponentProps<typeof PostList>> = {atLatestPost: true}) => {
                 const ref = React.createRef<PostList>();
                 const {rerender} = renderWithContext(
                     <PostList
                         ref={ref}
                         {...baseProps}
-                        atLatestPost={true}
+                        {...props}
                     />,
                 );
                 const instance = ref.current!;
                 const scrollTo = jest.fn();
-                instance.listRef = {current: {scrollTo}} as unknown as React.RefObject<DynamicVirtualizedList>;
+                const scrollToItem = jest.fn();
+                instance.listRef = {current: {scrollTo, scrollToItem}} as unknown as React.RefObject<DynamicVirtualizedList>;
 
                 // The older posts are rendered above the viewport in the same commit, adding 500px
                 const scrollHeight = jest.fn().mockReturnValueOnce(1000).mockReturnValue(1500);
@@ -713,22 +714,29 @@ describe('PostList', () => {
                     <PostList
                         ref={ref}
                         {...baseProps}
-                        atLatestPost={true}
+                        {...props}
                         postListIds={olderPostListIds}
                     />,
                 );
 
-                return scrollTo;
+                return {scrollTo, scrollToItem};
             };
 
             test('should keep the visible posts in place when the list is not kept at the bottom', () => {
-                const scrollTo = addOlderPosts(100);
+                const {scrollTo} = addOlderPosts(100);
 
                 expect(scrollTo).toHaveBeenCalledWith(900, 500, true);
             });
 
+            test('should not move away from the focused post when it is loaded with the older posts', () => {
+                const {scrollTo, scrollToItem} = addOlderPosts(5, {atLatestPost: false, focusedPostId: 'post5'});
+
+                expect(scrollToItem).toHaveBeenCalledWith(expect.any(Number), 'center');
+                expect(scrollTo).not.toHaveBeenCalled();
+            });
+
             test('should leave keeping the list at the bottom to the list when it is at the bottom', () => {
-                const scrollTo = addOlderPosts(5);
+                const {scrollTo} = addOlderPosts(5);
 
                 expect(scrollTo).not.toHaveBeenCalled();
             });

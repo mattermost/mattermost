@@ -239,6 +239,7 @@ export default class PostList extends React.PureComponent<Props, State> {
             this.scrollStopAction = new DelayedAction(this.handleScrollStop);
         }
 
+        let scrolledToFocusedPost = false;
         if (this.props.focusedPostId) {
             const postListIds = this.state.postListIds;
             const index = postListIds.indexOf(this.props.focusedPostId);
@@ -253,6 +254,7 @@ export default class PostList extends React.PureComponent<Props, State> {
                     // but the focused post changes, as DynamicVirtualizedList doesn't automatically handle
                     // scrolling on prop updates after the initial mount.
                     this.listRef.current?.scrollToItem(index, 'center');
+                    scrolledToFocusedPost = true;
                 }
             }
         }
@@ -265,7 +267,8 @@ export default class PostList extends React.PureComponent<Props, State> {
 
         this.newMessageLineIndex = getNewMessagesIndex(this.props.postListIds || []);
 
-        if (snapshot) {
+        // Holding the visible posts in place would move the list away from the focused post it just scrolled to
+        if (snapshot && !scrolledToFocusedPost) {
             const postlistScrollHeight = this.postListRef.current.scrollHeight;
             const postsAddedAtTop = presentPostsCount !== prevPostsCount && (this.props.postListIds || [])[0] === (prevProps.postListIds || [])[0];
             const channelHeaderAdded = this.props.atOldestPost !== prevProps.atOldestPost;
