@@ -31,6 +31,12 @@ describe('ListItem', () => {
         onUnmount: jest.fn(),
     };
 
+    let boundingClientRectSpy: jest.SpyInstance | undefined;
+
+    afterEach(() => {
+        boundingClientRectSpy?.mockRestore();
+    });
+
     test('renders the item content correctly', () => {
         render(<ListItem {...defaultProps}/>);
 
@@ -49,10 +55,7 @@ describe('ListItem', () => {
     test('calls onHeightChange on mount with initial height', () => {
         const mockOnHeightChange = jest.fn();
 
-        Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-            configurable: true,
-            value: 120,
-        });
+        boundingClientRectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({height: 120} as DOMRect);
 
         render(
             <ListItem
@@ -64,13 +67,25 @@ describe('ListItem', () => {
         expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 120, false);
     });
 
-    test('handles zero offsetHeight gracefully', () => {
+    test('rounds a fractional initial height up like the size observer does', () => {
         const mockOnHeightChange = jest.fn();
 
-        Object.defineProperty(HTMLElement.prototype, 'offsetHeight', {
-            configurable: true,
-            value: 0,
-        });
+        boundingClientRectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({height: 119.4} as DOMRect);
+
+        render(
+            <ListItem
+                {...defaultProps}
+                onHeightChange={mockOnHeightChange}
+            />,
+        );
+
+        expect(mockOnHeightChange).toHaveBeenCalledWith('test-item-1', 120, false);
+    });
+
+    test('handles zero height gracefully', () => {
+        const mockOnHeightChange = jest.fn();
+
+        boundingClientRectSpy = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({height: 0} as DOMRect);
 
         render(
             <ListItem

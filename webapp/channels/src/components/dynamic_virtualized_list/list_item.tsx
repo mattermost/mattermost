@@ -38,9 +38,10 @@ const ListItem = (props: Props) => {
         indexRef.current = props.index;
     }, [props.itemId, props.height, props.width, props.index]);
 
-    // This effect is used to measure the height of the row as soon as the component mounts
+    // This effect is used to measure the height of the row as soon as the component mounts.
+    // It has to round the same way as the size observer, otherwise the first observed size would differ by a pixel.
     useLayoutEffect(() => {
-        const newHeight = Math.ceil(rowRef?.current?.offsetHeight ?? 0);
+        const newHeight = Math.ceil(rowRef.current?.getBoundingClientRect().height ?? 0);
         props.onHeightChange(props.itemId, newHeight, false);
     }, [props.itemId]);
 
