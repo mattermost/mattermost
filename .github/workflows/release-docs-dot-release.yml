@@ -59,12 +59,15 @@ jobs:
         github.event.pull_request.head.repo.full_name == github.repository &&
         github.event.pull_request.base.ref == 'master' &&
         startsWith(github.event.pull_request.head.ref, 'release-agent/dot-release-docs/'))
-    # One run at a time, so dot releases published together land in the same PR. Runs cancelled
-    # while waiting are covered: a release event also picks up the other recent dot releases. On
-    # the job, not the workflow, so edits to other PRs (skipped above) never enter the group.
+    # One run at a time, so dot releases published together land in the same PR. queue: max keeps
+    # every waiting run: by default a newer run (such as a no-op description edit) would replace
+    # the one pending, which could be a release event. (A release event also picks up the other
+    # recent dot releases.) On the job, not the workflow, so edits to other PRs (skipped above)
+    # never enter the group.
     concurrency:
       group: release-docs-dot-release
       cancel-in-progress: false
+      queue: max
     uses: ./.github/workflows/release-docs-task.yml
     with:
       task: dot-release-docs

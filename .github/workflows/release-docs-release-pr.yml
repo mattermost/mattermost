@@ -68,11 +68,13 @@ jobs:
         startsWith(github.event.pull_request.head.ref, 'release-agent/') &&
         endsWith(github.event.pull_request.head.ref, '/release-docs')))
     # One group for the tag event, the weekday run, marker edits and manual runs, so two of them
-    # never race to open the same PR. On the job, not the workflow, so edits to other PRs (skipped
-    # above) never enter the group and cancel a run waiting in it.
+    # never race to open the same PR. queue: max keeps every waiting run, so a no-op description
+    # edit can't replace a pending tag, weekday or manual run. On the job, not the workflow, so
+    # edits to other PRs (skipped above) never enter the group.
     concurrency:
       group: release-docs-release-docs
       cancel-in-progress: false
+      queue: max
     uses: ./.github/workflows/release-docs-task.yml
     with:
       task: release-docs
