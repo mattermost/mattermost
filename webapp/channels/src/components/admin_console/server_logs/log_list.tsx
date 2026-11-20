@@ -239,6 +239,23 @@ function filterLogs(logs: LogObjectWithAdditionalInfo[], enabledLevels: Set<stri
     });
 }
 
+// Width changes a failed save left unwritten, null for a reset. Kept outside the list, as the viewer remounts it
+// on reload, and replayed over the stored widths until a save succeeds
+let pendingColumnWidths: Partial<Record<ResizableColumn, number | null>> = {};
+
+function withPendingColumnWidths(stored: ColumnWidths): ColumnWidths {
+    const next = {...stored};
+    for (const column of RESIZABLE_COLUMNS) {
+        const pending = pendingColumnWidths[column];
+        if (pending === null) {
+            delete next[column];
+        } else if (pending !== undefined) {
+            next[column] = pending;
+        }
+    }
+    return next;
+}
+
 function savePrefs(prefs: StoredPrefs): boolean {
     try {
         localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
@@ -343,38 +360,31 @@ export default function LogList({
     // Saved on the spot, as a list that's replaced (the viewer remounts it on reload) wouldn't run its save effect
     const columnWidthsRef = useLatest(columnWidths);
 
-    // Changes a failed save left unwritten, replayed on the next change so one failed write doesn't drop a width
-    const pendingWidthsRef = useRef<Partial<Record<ResizableColumn, number | null>>>({});
     const updateColumnWidths = useCallback((column: ResizableColumn, value: number | undefined) => {
-        pendingWidthsRef.current[column] = value ?? null;
+        pendingColumnWidths[column] = value ?? null;
 
         // Applied to the stored widths, as another tab may have changed its other columns since this one loaded
-        const next = {...loadPrefs().columnWidths};
-        for (const key of RESIZABLE_COLUMNS) {
-            const pending = pendingWidthsRef.current[key];
-            if (pending === null) {
-                delete next[key];
-            } else if (pending !== undefined) {
-                next[key] = pending;
-            }
-        }
+        const next = withPendingColumnWidths(loadPrefs().columnWidths);
 
         // Set now, as useLatest only catches up after render, and a key press and a release can commit in one batch
         columnWidthsRef.current = next;
         setColumnWidths(next);
         if (savePrefs({...loadPrefs(), columnWidths: next})) {
-            pendingWidthsRef.current = {};
+            pendingColumnWidths = {};
         }
     }, [columnWidthsRef]);
 
     // A replacement list (the viewer remounts it on reload) reads the prefs while rendering, before the old list's
     // handle saves a drag in progress when it unmounts. Passive unmount cleanups run before mount effects, so the
-    // saved width is there to be read here
+    // saved width, or the pending one if that save failed, is there to be read here, and a pending one is retried
     useEffect(() => {
-        const stored = loadPrefs().columnWidths;
-        if (RESIZABLE_COLUMNS.some((column) => stored[column] !== columnWidthsRef.current[column])) {
-            columnWidthsRef.current = stored;
-            setColumnWidths(stored);
+        const next = withPendingColumnWidths(loadPrefs().columnWidths);
+        if (RESIZABLE_COLUMNS.some((column) => next[column] !== columnWidthsRef.current[column])) {
+            columnWidthsRef.current = next;
+            setColumnWidths(next);
+        }
+        if (Object.keys(pendingColumnWidths).length > 0 && savePrefs({...loadPrefs(), columnWidths: next})) {
+            pendingColumnWidths = {};
         }
     }, [columnWidthsRef]);
 

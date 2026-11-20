@@ -580,15 +580,23 @@ describe('components/admin_console/server_logs/LogRow', () => {
             expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();
         });
 
-        test('should not take focus when the row copy button is pressed', () => {
+        test('should not move focus when the row copy shortcut is pressed', () => {
             renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
 
-            const rowButton = document.querySelector('.LogRow__node-copy-btn')!;
+            const shortcut = document.querySelector('.LogRow__node-copy-btn')!;
             const detailsButton = screen.getByRole('button', {name: 'Copy node name'});
 
             // fireEvent returns false when the default was prevented
-            expect(fireEvent.mouseDown(rowButton)).toBe(false);
+            expect(fireEvent.mouseDown(shortcut)).toBe(false);
             expect(fireEvent.mouseDown(detailsButton)).toBe(true);
+        });
+
+        test('should expose only the details copy button to assistive tech', () => {
+            renderLogRow({log: nodeLog, showNode: true, isExpanded: true});
+
+            const buttons = screen.getAllByRole('button', {name: 'Copy node name'});
+            expect(buttons).toHaveLength(1);
+            expect(buttons[0].closest('.LogRow__details')).not.toBeNull();
         });
 
         test('should copy the node from the details with the keyboard without toggling the row', async () => {
@@ -629,12 +637,14 @@ describe('components/admin_console/server_logs/LogRow', () => {
         test('should copy the node from the row without expanding it', async () => {
             renderLogRow({log: nodeLog, showNode: true});
 
-            const button = document.querySelector('.LogRow__node .LogRow__copy-btn') as HTMLElement;
-            expect(button).toHaveAttribute('tabindex', '-1');
-            expect(button).toHaveAttribute('aria-hidden', 'true');
+            // A non-focusable decoration hidden from assistive tech, not a control nested in the row summary
+            const shortcut = document.querySelector('.LogRow__node .LogRow__copy-btn') as HTMLElement;
+            expect(shortcut.tagName).toBe('SPAN');
+            expect(shortcut).not.toHaveAttribute('tabindex');
+            expect(shortcut).toHaveAttribute('aria-hidden', 'true');
             expect(document.querySelector('.LogRow__node-text')).toHaveAttribute('title', 'node-a');
 
-            await userEvent.click(button);
+            await userEvent.click(shortcut);
 
             expect(writeText).toHaveBeenCalledWith('node-a');
             expect(defaultProps.onToggleExpand).not.toHaveBeenCalled();

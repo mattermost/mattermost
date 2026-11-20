@@ -110,25 +110,12 @@ const KNOWN_KEYS = new Set(['timestamp', 'level', 'msg', 'caller']);
 
 type CopyButtonProps = {
     value: string;
-    className?: string;
-    tabIndex?: number;
 
     // Names what's copied where the generic label isn't enough
     label?: string;
-
-    // Keeps a duplicate of another button out of the accessibility tree
-    ariaHidden?: boolean;
-
-    // A click copies without moving focus onto the button
-    keepFocus?: boolean;
 };
 
-// A click on the row's aria-hidden copy button would otherwise move focus onto a control hidden from assistive tech
-function preventFocus(e: React.MouseEvent) {
-    e.preventDefault();
-}
-
-function CopyButton({value, className, tabIndex, label, ariaHidden, keepFocus}: CopyButtonProps) {
+function CopyButton({value, label}: CopyButtonProps) {
     const intl = useIntl();
     const [status, copy] = useClipboardCopy();
 
@@ -141,15 +128,41 @@ function CopyButton({value, className, tabIndex, label, ariaHidden, keepFocus}: 
     return (
         <button
             type='button'
-            className={`LogRow__copy-btn btn btn-icon btn-xs btn-compact${className ? ` ${className}` : ''}`}
-            tabIndex={tabIndex}
-            aria-hidden={ariaHidden || undefined}
+            className='LogRow__copy-btn btn btn-icon btn-xs btn-compact'
             onClick={handleCopy}
-            onMouseDown={keepFocus ? preventFocus : undefined}
             aria-label={label ?? intl.formatMessage({id: 'admin.logs.copyToClipboard', defaultMessage: 'Copy to clipboard'})}
         >
             <i className={status === 'copied' ? 'icon icon-check' : 'icon icon-content-copy'}/>
         </button>
+    );
+}
+
+// Keeps a press from moving focus, which would otherwise go to the row summary around the shortcut
+function preventFocus(e: React.MouseEvent) {
+    e.preventDefault();
+}
+
+// The row's copy icon for the node: a pointer shortcut for the labelled button in the details. It isn't a control,
+// as it sits inside the row summary, which is a button itself; being a span it can't take focus, and it's hidden
+// from assistive tech, which reaches the same action in the details
+function NodeCopyShortcut({value}: {value: string}) {
+    const [status, copy] = useClipboardCopy();
+
+    const handleCopy = useCallback((e: React.MouseEvent) => {
+        e.stopPropagation();
+        e.preventDefault();
+        copy(value);
+    }, [copy, value]);
+
+    return (
+        <span
+            className='LogRow__copy-btn LogRow__node-copy-btn btn btn-icon btn-xs btn-compact'
+            aria-hidden='true'
+            onMouseDown={preventFocus}
+            onClick={handleCopy}
+        >
+            <i className={status === 'copied' ? 'icon icon-check' : 'icon icon-content-copy'}/>
+        </span>
     );
 }
 
@@ -323,19 +336,7 @@ function LogRow({log, isExpanded, isFocused, isNew, onToggleExpand, onFocus, sea
                         >
                             {log[LogNodeKey]}
                         </span>
-                        {node && (
-
-                            // A pointer-only shortcut, kept out of the row summary's accessible name;
-                            // keyboard and screen reader users copy from the details panel
-                            <CopyButton
-                                value={node}
-                                className='LogRow__node-copy-btn'
-                                tabIndex={-1}
-                                ariaHidden={true}
-                                keepFocus={true}
-                                label={copyNodeLabel}
-                            />
-                        )}
+                        {node && <NodeCopyShortcut value={node}/>}
                     </span>
                 )}
                 <span className='LogRow__message'>

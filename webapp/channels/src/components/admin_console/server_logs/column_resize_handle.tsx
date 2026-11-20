@@ -60,9 +60,6 @@ type Drag = {
     startWidth: number;
     width: number;
     moved: boolean;
-
-    // The width prop turns live on the first move, so whether the column was automatic is noted at the press
-    automatic: boolean;
 };
 
 export default function ColumnResizeHandle({column, label, width, edge, onResize, onCommit, onReset, onCancel}: Props) {
@@ -113,7 +110,7 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         const current = drag.current;
         if (current?.moved) {
             const {column: col, onCommit: commit, onCancel: cancel} = latest.current;
-            if (current.automatic && current.width === current.startWidth) {
+            if (current.width === current.startWidth) {
                 cancel(col);
             } else {
                 commit(col, current.width);
@@ -137,7 +134,7 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
             return;
         }
         const startWidth = basis();
-        drag.current = {pointerId: e.pointerId, startX: e.clientX, startWidth, width: startWidth, moved: false, automatic: width === undefined};
+        drag.current = {pointerId: e.pointerId, startX: e.clientX, startWidth, width: startWidth, moved: false};
 
         // jsdom and old browsers have no pointer capture
         try {
@@ -145,7 +142,7 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
         } catch {
             // ignore
         }
-    }, [basis, width]);
+    }, [basis]);
 
     const endDrag = useCallback((e: React.PointerEvent<HTMLDivElement>) => {
         const current = drag.current;
@@ -161,9 +158,9 @@ export default function ColumnResizeHandle({column, label, width, edge, onResize
 
         // A plain click keeps the width the column has
         if (current.moved) {
-            // Dragged back to where it started, so the column keeps its automatic width instead of saving one.
-            // Nothing is written, as another tab may have saved a width for it meanwhile
-            if (current.automatic && current.width === current.startWidth) {
+            // Dragged back to where it started, so nothing changed: an automatic column stays automatic, and nothing
+            // is written over a width another tab may have saved meanwhile
+            if (current.width === current.startWidth) {
                 onCancel(column);
             } else {
                 onCommit(column, current.width);

@@ -941,6 +941,38 @@ describe('components/admin_console/server_logs/LogList', () => {
             expect(storedPrefs().columnWidths.node).toBe(150);
         });
 
+        test('should keep a width whose save failed when the list is replaced mid-drag, and save it later', () => {
+            const {rerender} = renderWithContext(
+                <StatefulLogList
+                    key='a'
+                    {...baseProps}
+                    {...twoNodeProps}
+                />,
+            );
+            pointer(handle('Node'), 'pointerDown', 100);
+            pointer(handle('Node'), 'pointerMove', 130);
+
+            // Both the unmounting handle's save and the replacement's retry fail
+            const setItem = jest.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+                throw new Error('quota');
+            });
+            rerender(
+                <StatefulLogList
+                    key='b'
+                    {...baseProps}
+                    {...twoNodeProps}
+                />,
+            );
+            setItem.mockRestore();
+
+            expect(viewer().style.getPropertyValue('--log-node-width')).toBe('150px');
+            expect(storedPrefs().columnWidths).toEqual({});
+
+            fireEvent.keyDown(handle('Caller'), {key: 'ArrowLeft'});
+
+            expect(storedPrefs().columnWidths).toEqual({node: 150, caller: 208});
+        });
+
         describe('dragging', () => {
             test('should follow the pointer and save the width on release', () => {
                 renderListWith(twoNodeProps);
@@ -1003,6 +1035,25 @@ describe('components/admin_console/server_logs/LogList', () => {
 
                 pointer(timeHandle, 'pointerDown', 100);
                 pointer(timeHandle, 'pointerMove', 130);
+
+                // Another tab saved a width meanwhile
+                localStorage.setItem(PREFS_KEY, JSON.stringify({...storedPrefs(), columnWidths: {timestamp: 180}}));
+
+                pointer(timeHandle, 'pointerMove', 100);
+                pointer(timeHandle, 'pointerUp', 100);
+
+                expect(storedPrefs().columnWidths.timestamp).toBe(180);
+                expect(viewer()).not.toHaveClass('LogViewer--resizing');
+            });
+
+            test('should not save a custom width over another tab when a drag returns to its start', () => {
+                localStorage.setItem(PREFS_KEY, JSON.stringify({columnWidths: {timestamp: 150}}));
+                renderListWith(twoNodeProps);
+                const timeHandle = handle('Time');
+
+                pointer(timeHandle, 'pointerDown', 100);
+                pointer(timeHandle, 'pointerMove', 130);
+                expect(viewer().style.getPropertyValue('--log-timestamp-width')).toBe('180px');
 
                 // Another tab saved a width meanwhile
                 localStorage.setItem(PREFS_KEY, JSON.stringify({...storedPrefs(), columnWidths: {timestamp: 180}}));
