@@ -25,42 +25,61 @@ test('should be able to scroll the RHS with page up and down', async ({pw}) => {
     // # Press the page up key with the post textbox focused
     channelsPage.sidebarRight.postCreate.input.focus();
     await page.keyboard.press('PageUp');
-    await page.waitForTimeout(200); // Wait for the browser's page up/down animation
 
     // * Verify that the post list scrolled up by a page
-    let currentScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
+    let currentScrollTop = await waitForSettledScrollTop(page, '#threadViewerScrollContainer', lastScrollTop, 'up');
     expect(currentScrollTop).toBeLessThan(lastScrollTop);
     lastScrollTop = currentScrollTop;
 
     // # Press the page up key with the post list focused
     await page.keyboard.press('PageUp');
-    await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled up another page
-    currentScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
+    currentScrollTop = await waitForSettledScrollTop(page, '#threadViewerScrollContainer', lastScrollTop, 'up');
     expect(currentScrollTop).toBeLessThan(lastScrollTop);
     lastScrollTop = currentScrollTop;
 
     // # Press the page down key with the post list focused
     await page.keyboard.press('PageDown');
-    await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled back down a page
-    currentScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
+    currentScrollTop = await waitForSettledScrollTop(page, '#threadViewerScrollContainer', lastScrollTop, 'down');
     expect(currentScrollTop).toBeGreaterThan(lastScrollTop);
     lastScrollTop = currentScrollTop;
 
     // # Press the page down key with the post textbox focused
     channelsPage.centerView.postCreate.input.focus();
     await page.keyboard.press('PageDown');
-    await page.waitForTimeout(200);
 
     // * Verify that the post list scrolled back to the bottom
-    currentScrollTop = await getScrollTop(page, '#threadViewerScrollContainer');
+    currentScrollTop = await waitForSettledScrollTop(page, '#threadViewerScrollContainer', lastScrollTop, 'down');
     expect(currentScrollTop).toBeGreaterThan(lastScrollTop);
 });
 
 async function getScrollTop(page: Page, selector: string): Promise<number> {
     const locator = await page.locator(selector);
     return locator?.evaluate((element) => element.scrollTop);
+}
+
+// Page Up/Down can animate. Poll until scrollTop has moved and two samples match.
+async function waitForSettledScrollTop(
+    page: Page,
+    selector: string,
+    previous: number,
+    direction: 'up' | 'down',
+): Promise<number> {
+    let current = previous;
+    let lastSample = Number.NaN;
+
+    await expect
+        .poll(async () => {
+            current = await getScrollTop(page, selector);
+            const moved = direction === 'up' ? current < previous : current > previous;
+            const settled = current === lastSample;
+            lastSample = current;
+            return moved && settled;
+        })
+        .toBe(true);
+
+    return current;
 }
