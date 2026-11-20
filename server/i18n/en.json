@@ -8011,7 +8011,7 @@
   },
   {
     "id": "app.data_spillage.exposure.checksum_notification",
-    "translation": "@{{.Username}} downloaded an exposure report for the quarantined message.\nFile: `{{.FileName}}`\nSHA-256: `{{.Checksum}}`\nCompare this checksum with any copy of this file shared with you to confirm it has not been modified.",
+    "translation": "@{{.Username}} downloaded an exposure report for the quarantined message.\nFile: `{{.FileName}}`\nSHA-256: `{{.Checksum}}`\nTo confirm a copy of this file has not been modified, compare this checksum with the output of `shasum -a 256 <file>` on macOS or Linux, or `Get-FileHash <file>` in Windows PowerShell (letter case does not matter).",
     "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer downloads an exposure report. Keep the Markdown backticks, line breaks and the {{.Username}}, {{.FileName}} and {{.Checksum}} placeholders unchanged."
   },
   {
@@ -8261,7 +8261,7 @@
   },
   {
     "id": "app.data_spillage.report.checksum_notification",
-    "translation": "@{{.Username}} generated a report for the quarantined message.\nFile: `{{.FileName}}`\nSHA-256: `{{.Checksum}}`\nCompare this checksum with any copy of this file shared with you to confirm it has not been modified.",
+    "translation": "@{{.Username}} generated a report for the quarantined message.\nFile: `{{.FileName}}`\nSHA-256: `{{.Checksum}}`\nTo confirm a copy of this file has not been modified, compare this checksum with the output of `shasum -a 256 <file>` on macOS or Linux, or `Get-FileHash <file>` in Windows PowerShell (letter case does not matter).",
     "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer generates a flagged post report. Keep the Markdown backticks, line breaks and the {{.Username}}, {{.FileName}} and {{.Checksum}} placeholders unchanged."
   },
   {

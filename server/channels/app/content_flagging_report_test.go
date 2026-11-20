@@ -715,7 +715,7 @@ func TestNotifyReviewersOfReportGeneration(t *testing.T) {
 	}
 
 	expectedMessage := func(headline string) string {
-		return headline + "\nFile: `" + fileName + "`\nSHA-256: `" + checksum + "`\nCompare this checksum with any copy of this file shared with you to confirm it has not been modified."
+		return headline + "\nFile: `" + fileName + "`\nSHA-256: `" + checksum + "`\nTo confirm a copy of this file has not been modified, compare this checksum with the output of `shasum -a 256 <file>` on macOS or Linux, or `Get-FileHash <file>` in Windows PowerShell (letter case does not matter)."
 	}
 
 	t.Run("posts the flagged post report file name and checksum to reviewers", func(t *testing.T) {
