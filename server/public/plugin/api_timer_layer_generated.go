@@ -1861,6 +1861,13 @@ func (api *apiTimerLayer) EvaluateAccessControl(userID, resourceType, resourceID
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) EvaluateAccessControlBatch(userID, resourceType, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.EvaluateAccessControlBatch(userID, resourceType, action, resourceIDs)
+	api.recordTime(startTime, "EvaluateAccessControlBatch", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) SaveAccessControlPolicy(actingUserID string, policy *model.AccessControlPolicy) (*model.AccessControlPolicy, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.SaveAccessControlPolicy(actingUserID, policy)
@@ -1886,6 +1893,13 @@ func (api *apiTimerLayer) CheckAccessControlExpression(actingUserID, resourceTyp
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.CheckAccessControlExpression(actingUserID, resourceType, expression)
 	api.recordTime(startTime, "CheckAccessControlExpression", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression string) ([]model.CELExpressionError, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.CheckAccessControlExpressionForSearch(actingUserID, resourceType, expression)
+	api.recordTime(startTime, "CheckAccessControlExpressionForSearch", _returnsB == nil)
 	return _returnsA, _returnsB
 }
 
@@ -1915,4 +1929,39 @@ func (api *apiTimerLayer) CreateScopedSession(userID string, scope *model.Sessio
 	_returnsA, _returnsB := api.apiImpl.CreateScopedSession(userID, scope, expiresAt)
 	api.recordTime(startTime, "CreateScopedSession", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) RegisterEntityType(t *model.EntityType) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityType(t)
+	api.recordTime(startTime, "RegisterEntityType", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityMatcher(m)
+	api.recordTime(startTime, "RegisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) UnregisterEntityMatcher(name string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.UnregisterEntityMatcher(name)
+	api.recordTime(startTime, "UnregisterEntityMatcher", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityProvider(p)
+	api.recordTime(startTime, "RegisterEntityProvider", _returnsA == nil)
+	return _returnsA
+}
+
+func (api *apiTimerLayer) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.RegisterEntityTerms(typeName, terms)
+	api.recordTime(startTime, "RegisterEntityTerms", _returnsA == nil)
+	return _returnsA
 }

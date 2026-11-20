@@ -148,6 +148,38 @@ func (_m *API) CheckAccessControlExpression(actingUserID string, resourceType st
 	return r0, r1
 }
 
+// CheckAccessControlExpressionForSearch provides a mock function with given fields: actingUserID, resourceType, expression
+func (_m *API) CheckAccessControlExpressionForSearch(actingUserID string, resourceType string, expression string) ([]model.CELExpressionError, *model.AppError) {
+	ret := _m.Called(actingUserID, resourceType, expression)
+
+	if len(ret) == 0 {
+		panic("no return value specified for CheckAccessControlExpressionForSearch")
+	}
+
+	var r0 []model.CELExpressionError
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string) ([]model.CELExpressionError, *model.AppError)); ok {
+		return rf(actingUserID, resourceType, expression)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) []model.CELExpressionError); ok {
+		r0 = rf(actingUserID, resourceType, expression)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]model.CELExpressionError)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) *model.AppError); ok {
+		r1 = rf(actingUserID, resourceType, expression)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // CopyFileInfos provides a mock function with given fields: userID, fileIds
 func (_m *API) CopyFileInfos(userID string, fileIds []string) ([]string, *model.AppError) {
 	ret := _m.Called(userID, fileIds)
@@ -1408,6 +1440,38 @@ func (_m *API) EvaluateAccessControl(userID string, resourceType string, resourc
 
 	if rf, ok := ret.Get(1).(func(string, string, string, string) *model.AppError); ok {
 		r1 = rf(userID, resourceType, resourceID, action)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// EvaluateAccessControlBatch provides a mock function with given fields: userID, resourceType, action, resourceIDs
+func (_m *API) EvaluateAccessControlBatch(userID string, resourceType string, action string, resourceIDs []string) (map[string]*model.AccessDecision, *model.AppError) {
+	ret := _m.Called(userID, resourceType, action, resourceIDs)
+
+	if len(ret) == 0 {
+		panic("no return value specified for EvaluateAccessControlBatch")
+	}
+
+	var r0 map[string]*model.AccessDecision
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, string, string, []string) (map[string]*model.AccessDecision, *model.AppError)); ok {
+		return rf(userID, resourceType, action, resourceIDs)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string, []string) map[string]*model.AccessDecision); ok {
+		r0 = rf(userID, resourceType, action, resourceIDs)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]*model.AccessDecision)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string, []string) *model.AppError); ok {
+		r1 = rf(userID, resourceType, action, resourceIDs)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)
@@ -5297,6 +5361,86 @@ func (_m *API) RegisterCommand(command *model.Command) error {
 	return r0
 }
 
+// RegisterEntityMatcher provides a mock function with given fields: m
+func (_m *API) RegisterEntityMatcher(m *model.EntityMatcher) *model.AppError {
+	ret := _m.Called(m)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityMatcher")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityMatcher) *model.AppError); ok {
+		r0 = rf(m)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RegisterEntityProvider provides a mock function with given fields: p
+func (_m *API) RegisterEntityProvider(p *model.EntityProvider) *model.AppError {
+	ret := _m.Called(p)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityProvider")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityProvider) *model.AppError); ok {
+		r0 = rf(p)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RegisterEntityTerms provides a mock function with given fields: typeName, terms
+func (_m *API) RegisterEntityTerms(typeName string, terms []model.EntityTerm) *model.AppError {
+	ret := _m.Called(typeName, terms)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityTerms")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string, []model.EntityTerm) *model.AppError); ok {
+		r0 = rf(typeName, terms)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
+// RegisterEntityType provides a mock function with given fields: t
+func (_m *API) RegisterEntityType(t *model.EntityType) *model.AppError {
+	ret := _m.Called(t)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RegisterEntityType")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(*model.EntityType) *model.AppError); ok {
+		r0 = rf(t)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // RegisterPluginForSharedChannels provides a mock function with given fields: opts
 func (_m *API) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (string, error) {
 	ret := _m.Called(opts)
@@ -6148,6 +6292,26 @@ func (_m *API) UnregisterCommand(teamID string, trigger string) error {
 		r0 = rf(teamID, trigger)
 	} else {
 		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UnregisterEntityMatcher provides a mock function with given fields: name
+func (_m *API) UnregisterEntityMatcher(name string) *model.AppError {
+	ret := _m.Called(name)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UnregisterEntityMatcher")
+	}
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(string) *model.AppError); ok {
+		r0 = rf(name)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
 	}
 
 	return r0

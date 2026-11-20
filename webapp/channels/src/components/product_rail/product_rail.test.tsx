@@ -249,7 +249,7 @@ describe('ProductRail', () => {
             ]);
         });
 
-        test('should follow Boards with Agents and Playbooks, and pin other products to the bottom', () => {
+        test('should follow Boards with Agents and Playbooks, then list other products', () => {
             const product = (name: string, pluginId: string) => ({...TestHelper.makeProduct(name), pluginId, baseURL: `/${pluginId}`, switcherLinkURL: `/${pluginId}`});
             const state = getBoardsState(townSquare.id);
             renderAt('/team-one/channels/town-square', {
@@ -269,9 +269,8 @@ describe('ProductRail', () => {
                 'product-rail-item-boards',
                 'product-rail-item-mattermost-ai',
                 'product-rail-item-playbooks',
-                'ProductRail__bottom',
+                'product-rail-item-calls',
             ]);
-            expect(document.querySelector('.ProductRail__bottom #product-rail-item-calls')).toBeInTheDocument();
         });
 
         test('should stay in Channels on a board while Channels lists boards too, and count their mentions', () => {
