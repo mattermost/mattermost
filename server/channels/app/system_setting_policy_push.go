@@ -5,24 +5,19 @@ package app
 
 import (
 	"context"
-	"errors"
 	"maps"
 	"net/http"
 	"slices"
-	"sync"
-
-	"golang.org/x/sync/errgroup"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
 const (
-	systemSettingPolicyChangePageSize        = 1000
-	systemSettingPolicyChangeEvaluationLimit = 8
+	systemSettingPolicyChangePageSize = 1000
+	systemSettingPolicyChangeMaxUsers = 1000
 )
 
 func (a *App) systemSettingPoliciesEvaluated() bool {
@@ -94,7 +89,7 @@ func (a *App) pushClientConfigOverridesForFields(rctx request.CTX, fieldIDs []st
 	}
 
 	slices.Sort(targetRoles)
-	a.publishSystemSettingPolicyUpdate(rctx, slices.Compact(targetRoles), nil)
+	a.publishSystemSettingPolicyUpdate(rctx, slices.Compact(targetRoles), nil, nil)
 }
 
 func (a *App) goPushClientConfigOverrides(userID, sessionID string, force bool) {
@@ -184,24 +179,15 @@ func (a *App) systemSettingPolicyBeforeSave(rctx request.CTX, acs einterfaces.Ac
 }
 
 type systemSettingPolicyChange struct {
-	broadcast   bool
 	targetRoles []string
-	sessions    []*systemSettingSessionOverrides
+	expressions []string
 }
 
-type systemSettingSessionOverrides struct {
-	session   *model.Session
-	overrides map[string]string
-}
-
-// Sessions are evaluated while the previous version is still stored, since
-// the policy engine only evaluates stored policies. A change to a rule reading
-// session attributes is broadcast to the targeted roles instead, since its
-// sessions can't be narrowed by user and the save would wait on evaluating
-// every targeted session.
-func (a *App) prepareSystemSettingPolicyChange(rctx request.CTX, stored *model.AccessControlPolicy, storedKnown bool, next *model.AccessControlPolicy) *systemSettingPolicyChange {
+// A change to a rule reading session attributes is broadcast to the targeted
+// roles, since the user query can't narrow it by user.
+func newSystemSettingPolicyChange(stored *model.AccessControlPolicy, storedKnown bool, next *model.AccessControlPolicy) *systemSettingPolicyChange {
 	if !storedKnown {
-		return &systemSettingPolicyChange{broadcast: true}
+		return &systemSettingPolicyChange{}
 	}
 
 	scope := diffSystemSettingPolicies(newSystemSettingPolicyVersion(stored), newSystemSettingPolicyVersion(next))
@@ -209,184 +195,29 @@ func (a *App) prepareSystemSettingPolicyChange(rctx request.CTX, stored *model.A
 		return nil
 	}
 	if slices.ContainsFunc(scope.expressions, expressionReferencesSessionAttributes) {
-		return &systemSettingPolicyChange{broadcast: true, targetRoles: scope.roles}
+		return &systemSettingPolicyChange{targetRoles: scope.roles}
 	}
-
-	policies, err := a.Srv().Channels().systemSettingPoliciesCache.Get(rctx, a.Srv().Store().AccessControlPolicy())
-	if err != nil {
-		rctx.Logger().Warn("Failed to load system setting policies before save; the save will re-evaluate every connection", mlog.Err(err))
-		return &systemSettingPolicyChange{broadcast: true}
-	}
-
-	sessions, appErr := a.evaluateSystemSettingPolicyChangeSessions(rctx, policies, scope)
-	if appErr != nil {
-		rctx.Logger().Warn("Failed to evaluate the sessions a system setting policy change affects; the save will re-evaluate every connection", mlog.Err(appErr))
-		return &systemSettingPolicyChange{broadcast: true}
-	}
-	return &systemSettingPolicyChange{sessions: sessions}
+	return &systemSettingPolicyChange{targetRoles: scope.roles, expressions: scope.expressions}
 }
 
-// Must run after the policy cache is invalidated, so the evaluation reloads
-// the stored policies.
+// Must run after the policy cache is invalidated.
 func (a *App) publishSystemSettingPolicyChange(rctx request.CTX, change *systemSettingPolicyChange, stored systemSettingPolicyChangeRef) {
 	if change == nil {
 		return
 	}
-	if change.broadcast {
-		a.publishSystemSettingPolicyUpdate(rctx, change.targetRoles, &stored)
-		return
-	}
-	if len(change.sessions) == 0 {
+	if len(change.expressions) == 0 {
+		a.publishSystemSettingPolicyUpdate(rctx, change.targetRoles, nil, &stored)
 		return
 	}
 
 	pushCtx := rctx.WithContext(context.WithoutCancel(rctx.Context()))
 	a.Srv().Go(func() {
-		a.pushSystemSettingPolicyChange(pushCtx, change.sessions)
+		userIDs, narrowed := a.systemSettingPolicyChangeUsers(pushCtx, change.expressions)
+		if narrowed && len(userIDs) == 0 {
+			return
+		}
+		a.publishSystemSettingPolicyUpdate(pushCtx, change.targetRoles, userIDs, &stored)
 	})
-}
-
-func (a *App) pushSystemSettingPolicyChange(rctx request.CTX, sessions []*systemSettingSessionOverrides) {
-	if !a.systemSettingPoliciesEvaluated() {
-		return
-	}
-	acs := a.Srv().Channels().AccessControl
-	policies, err := a.Srv().Channels().systemSettingPoliciesCache.Get(rctx, a.Srv().Store().AccessControlPolicy())
-	if err != nil {
-		rctx.Logger().Warn("Failed to load system setting policies after a system setting policy change; skipping the push", mlog.Err(err))
-		return
-	}
-
-	var mu sync.Mutex
-	overridesByUser := map[string]map[string]map[string]string{}
-	var g errgroup.Group
-	g.SetLimit(systemSettingPolicyChangeEvaluationLimit)
-	for _, entry := range sessions {
-		g.Go(func() error {
-			overrides, _, appErr := a.evaluateClientConfigOverridesForPolicies(rctx.WithSession(entry.session), acs, policies)
-			if appErr != nil {
-				rctx.Logger().Warn("Failed to evaluate client config overrides after a system setting policy change; skipping the session",
-					mlog.String("user_id", entry.session.UserId),
-					mlog.String("session_id", entry.session.Id),
-					mlog.Err(appErr),
-				)
-				return nil
-			}
-			if maps.Equal(entry.overrides, overrides) {
-				return nil
-			}
-
-			mu.Lock()
-			defer mu.Unlock()
-			if overridesByUser[entry.session.UserId] == nil {
-				overridesByUser[entry.session.UserId] = map[string]map[string]string{}
-			}
-			overridesByUser[entry.session.UserId][entry.session.Id] = overrides
-			return nil
-		})
-	}
-	_ = g.Wait()
-
-	for userID, overridesBySession := range overridesByUser {
-		a.publishClientConfigOverrides(userID, overridesBySession)
-	}
-}
-
-func (a *App) evaluateSystemSettingPolicyChangeSessions(rctx request.CTX, policies []cachedSystemSettingPolicy, scope systemSettingPolicyScope) ([]*systemSettingSessionOverrides, *model.AppError) {
-	acs := a.Srv().Channels().AccessControl
-	g, gctx := errgroup.WithContext(rctx.Context())
-	g.SetLimit(systemSettingPolicyChangeEvaluationLimit)
-	evalCtx := rctx.WithContext(gctx)
-
-	var entries []*systemSettingSessionOverrides
-	listErr := a.forEachSystemSettingPolicyChangeSession(rctx, scope, func(session *model.Session) bool {
-		if gctx.Err() != nil {
-			return false
-		}
-		entry := &systemSettingSessionOverrides{session: session}
-		entries = append(entries, entry)
-		g.Go(func() error {
-			overrides, _, appErr := a.evaluateClientConfigOverridesForPolicies(evalCtx.WithSession(session), acs, policies)
-			if appErr != nil {
-				// The session's user no longer exists.
-				if appErr.StatusCode == http.StatusNotFound {
-					return nil
-				}
-				return appErr
-			}
-			entry.overrides = overrides
-			return nil
-		})
-		return true
-	})
-	if err := g.Wait(); err != nil {
-		if appErr, ok := errors.AsType[*model.AppError](err); ok {
-			return nil, appErr
-		}
-		return nil, model.NewAppError("prepareSystemSettingPolicyChange", "app.access_control.evaluate_system_settings.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-	}
-	if listErr != nil {
-		return nil, listErr
-	}
-
-	return slices.DeleteFunc(entries, func(entry *systemSettingSessionOverrides) bool {
-		return entry.overrides == nil
-	}), nil
-}
-
-func (a *App) forEachSystemSettingPolicyChangeSession(rctx request.CTX, scope systemSettingPolicyScope, visit func(*model.Session) bool) *model.AppError {
-	var botIDs map[string]struct{}
-	if slices.Contains(scope.roles, model.AccessControlPolicyRoleSystemBot) {
-		var appErr *model.AppError
-		if botIDs, appErr = a.systemSettingBotIDs(); appErr != nil {
-			return appErr
-		}
-	}
-
-	userIDs, narrowed := a.systemSettingPolicyChangeUsers(rctx, scope.expressions)
-	if !narrowed && len(scope.roles) == 1 && scope.roles[0] == model.AccessControlPolicyRoleSystemBot {
-		userIDs, narrowed = slices.Sorted(maps.Keys(botIDs)), true
-	}
-
-	targeted := func(session *model.Session) bool {
-		_, isBot := botIDs[session.UserId]
-		chain := systemSettingRoleChain(ResolveSystemRole(session.Roles), isBot)
-		return slices.ContainsFunc(scope.roles, func(role string) bool {
-			return slices.Contains(chain, role)
-		})
-	}
-
-	masterCtx := RequestContextWithMaster(rctx)
-	forEachPage := func(opts store.UnexpiredSessionsOpts) (bool, *model.AppError) {
-		opts.Limit = systemSettingPolicyChangePageSize
-		for {
-			sessions, err := a.Srv().Store().Session().GetUnexpiredSessions(masterCtx, opts)
-			if err != nil {
-				return false, model.NewAppError("prepareSystemSettingPolicyChange", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-			}
-			for _, session := range sessions {
-				if targeted(session) && !visit(session) {
-					return false, nil
-				}
-			}
-			if len(sessions) < opts.Limit {
-				return true, nil
-			}
-			opts.AfterID = sessions[len(sessions)-1].Id
-		}
-	}
-
-	if !narrowed {
-		_, appErr := forEachPage(store.UnexpiredSessionsOpts{})
-		return appErr
-	}
-	for chunk := range slices.Chunk(userIDs, systemSettingPolicyChangePageSize) {
-		more, appErr := forEachPage(store.UnexpiredSessionsOpts{UserIDs: chunk})
-		if appErr != nil || !more {
-			return appErr
-		}
-	}
-	return nil
 }
 
 // The expressions must not read session attributes, which the user query
@@ -399,11 +230,14 @@ func (a *App) systemSettingPolicyChangeUsers(rctx request.CTX, expressions []str
 		for {
 			page, _, appErr := acs.QueryUsersForExpression(rctx, expression, opts)
 			if appErr != nil {
-				rctx.Logger().Info("Failed to query the users a system setting policy change affects; evaluating every targeted session", mlog.Err(appErr))
+				rctx.Logger().Info("Failed to query the users a system setting policy change affects; broadcasting to the targeted roles", mlog.Err(appErr))
 				return nil, false
 			}
 			for _, user := range page {
 				users[user.Id] = struct{}{}
+			}
+			if len(users) > systemSettingPolicyChangeMaxUsers {
+				return nil, false
 			}
 			if len(page) < systemSettingPolicyChangePageSize {
 				break
@@ -412,25 +246,6 @@ func (a *App) systemSettingPolicyChangeUsers(rctx request.CTX, expressions []str
 		}
 	}
 	return slices.Sorted(maps.Keys(users)), true
-}
-
-// Sessions don't record whether their user is a bot.
-func (a *App) systemSettingBotIDs() (map[string]struct{}, *model.AppError) {
-	botIDs := map[string]struct{}{}
-	afterID := ""
-	for {
-		bots, err := a.Srv().Store().Bot().GetAllAfter(systemSettingPolicyChangePageSize, afterID)
-		if err != nil {
-			return nil, model.NewAppError("prepareSystemSettingPolicyChange", "app.bot.getbots.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		for _, bot := range bots {
-			botIDs[bot.UserId] = struct{}{}
-		}
-		if len(bots) < systemSettingPolicyChangePageSize {
-			return botIDs, nil
-		}
-		afterID = bots[len(bots)-1].UserId
-	}
 }
 
 type systemSettingRuleVersion struct {

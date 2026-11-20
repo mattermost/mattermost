@@ -183,7 +183,7 @@ func (a *App) CreateOrUpdateAccessControlPolicy(rctx request.CTX, policy *model.
 	var systemSettingChange *systemSettingPolicyChange
 	if policy.Type == model.AccessControlPolicyTypeSystemSetting && a.systemSettingPoliciesEvaluated() {
 		stored, storedKnown := a.systemSettingPolicyBeforeSave(rctx, acs, policy.ID)
-		systemSettingChange = a.prepareSystemSettingPolicyChange(rctx, stored, storedKnown, policy)
+		systemSettingChange = newSystemSettingPolicyChange(stored, storedKnown, policy)
 	}
 
 	policy, appErr = acs.SavePolicy(rctx, policy)
@@ -739,7 +739,7 @@ func (a *App) DeleteAccessControlPolicy(rctx request.CTX, id string) *model.AppE
 
 	var systemSettingChange *systemSettingPolicyChange
 	if policy != nil && policy.Type == model.AccessControlPolicyTypeSystemSetting && a.systemSettingPoliciesEvaluated() {
-		systemSettingChange = a.prepareSystemSettingPolicyChange(rctx, policy, true, nil)
+		systemSettingChange = newSystemSettingPolicyChange(policy, true, nil)
 	}
 
 	if appErr := acs.DeletePolicy(rctx, id); appErr != nil {

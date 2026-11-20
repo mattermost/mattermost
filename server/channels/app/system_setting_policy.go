@@ -420,9 +420,9 @@ func (a *App) validateSystemSettingPolicyOnSave(rctx request.CTX, policy *model.
 	return nil
 }
 
-func (a *App) publishSystemSettingPolicyUpdate(_ request.CTX, targetRoles []string, change *systemSettingPolicyChangeRef) {
+func (a *App) publishSystemSettingPolicyUpdate(_ request.CTX, targetRoles, userIDs []string, change *systemSettingPolicyChangeRef) {
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventSystemSettingPolicyUpdated, "", "", "", nil, "")
-	useSystemSettingPolicyHook(messageWs, targetRoles, change)
+	useSystemSettingPolicyHook(messageWs, targetRoles, userIDs, change)
 	a.Publish(messageWs)
 }
 

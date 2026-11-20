@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"slices"
+	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -743,10 +744,14 @@ type systemSettingPolicyBroadcastHook struct {
 
 // A non-nil change has each node evaluate against policies that include it,
 // since the event can reach a node before the cluster invalidation for it.
-func useSystemSettingPolicyHook(message *model.WebSocketEvent, targetRoles []string, change *systemSettingPolicyChangeRef) {
+// userIDs must be sorted.
+func useSystemSettingPolicyHook(message *model.WebSocketEvent, targetRoles, userIDs []string, change *systemSettingPolicyChangeRef) {
 	args := map[string]any{}
 	if targetRoles != nil {
 		args["target_roles"] = model.StringArray(targetRoles)
+	}
+	if userIDs != nil {
+		args["user_ids"] = model.StringArray(userIDs)
 	}
 	if change != nil {
 		args["policy_change"] = *change
@@ -769,6 +774,18 @@ func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocket
 		}
 		candidateRoles := systemSettingRoleChain(ResolveSystemRole(session.Roles), true)
 		if !slices.ContainsFunc(candidateRoles, func(role string) bool { return slices.Contains(targetRoles, role) }) {
+			msg.Reject()
+			return nil
+		}
+	}
+
+	if userIDs, ok := args["user_ids"]; ok {
+		found, err := sortedUserIDsContain(userIDs, session.UserId)
+		if err != nil {
+			msg.Reject()
+			return errors.Wrap(err, "Invalid user_ids value passed to systemSettingPolicyBroadcastHook")
+		}
+		if !found {
 			msg.Reject()
 			return nil
 		}
@@ -806,6 +823,33 @@ func (h *systemSettingPolicyBroadcastHook) Process(msg *platform.HookedWebSocket
 
 	msg.Add("overrides", overrides)
 	return nil
+}
+
+// The hook runs once per connection, so the IDs are searched in place rather
+// than converted, including the []any a cluster peer decodes them as.
+func sortedUserIDsContain(userIDs any, userID string) (bool, error) {
+	switch ids := userIDs.(type) {
+	case model.StringArray:
+		_, found := slices.BinarySearch(ids, userID)
+		return found, nil
+	case []string:
+		_, found := slices.BinarySearch(ids, userID)
+		return found, nil
+	case []any:
+		valid := true
+		_, found := slices.BinarySearchFunc(ids, userID, func(id any, target string) int {
+			s, ok := id.(string)
+			if !ok {
+				valid = false
+			}
+			return strings.Compare(s, target)
+		})
+		if !valid {
+			return false, errors.New("user_ids contains a non-string value")
+		}
+		return found, nil
+	}
+	return false, fmt.Errorf("unexpected user_ids type %T", userIDs)
 }
 
 // systemSettingOverridesBySessionBroadcastHook delivers overrides already
