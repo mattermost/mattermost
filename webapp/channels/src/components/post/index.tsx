@@ -37,6 +37,7 @@ import {getIsGlobalThreadsView} from 'selectors/lhs';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
+import {getBoardChannelIds} from 'selectors/views/product_rail';
 
 import {isArchivedChannel} from 'utils/channel_utils';
 import {Locations, Preferences, RHSStates} from 'utils/constants';
@@ -241,6 +242,7 @@ function makeMapStateToProps() {
             isPostAcknowledgementsEnabled: isPostAcknowledgementsEnabled(state),
             isPostPriorityEnabled: isPostPriorityEnabled(state),
             isPostAttributesEnabled: isPostAttributesEnabled(state),
+            isBoardCard: !post.root_id && getBoardChannelIds(state).has(post.channel_id),
             isCardOpen: selectedCard && selectedCard.id === post.id,
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
             canDelete: canDeletePost(state, post, channel),

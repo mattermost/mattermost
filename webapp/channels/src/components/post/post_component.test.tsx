@@ -220,6 +220,21 @@ describe('PostComponent', () => {
             expect(screen.getByText('SECRET')).toBeInTheDocument();
         });
 
+        // A board's card shows its attributes inside the plugin's own preview.
+        test('should not show chips on a board card', () => {
+            renderWithContext(
+                <PostComponent
+                    {...props}
+                    isBoardCard={true}
+                    shouldDisplayBurnOnReadConcealed={false}
+                />,
+                state,
+            );
+
+            expect(screen.queryByTestId('post-attributes-chips')).not.toBeInTheDocument();
+            expect(screen.queryByText('SECRET')).not.toBeInTheDocument();
+        });
+
         test('should not show chips on a concealed burn-on-read post', () => {
             renderWithContext(
                 <PostComponent
