@@ -37,6 +37,7 @@ describe('Reducers.RHS', () => {
         pendingChannelAttributeEdit: null,
         shouldFocusRHS: false,
         searchTeam: null,
+        selectedEntity: null,
         mentionFilters: defaultMentionFilters,
     };
 
@@ -738,6 +739,7 @@ describe('Reducers.RHS', () => {
             pendingChannelAttributeEdit: null,
             shouldFocusRHS: false,
             searchTeam: null,
+            selectedEntity: null,
             mentionFilters: defaultMentionFilters,
         };
 
