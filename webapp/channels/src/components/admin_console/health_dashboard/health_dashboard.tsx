@@ -345,7 +345,7 @@ const HealthDashboard = ({findings, mutedFindings, lastEvaluatedAt, canManage, j
                 {exportFailed && (
                     <AlertBanner
                         mode='danger'
-                        className='HealthDashboard__runError'
+                        className='HealthDashboard__exportError'
                         onDismiss={() => setExportFailed(false)}
                         message={<FormattedMessage {...exportErrorMessage}/>}
                     />

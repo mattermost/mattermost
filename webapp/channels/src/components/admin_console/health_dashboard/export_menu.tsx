@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {forwardRef, useCallback, useState} from 'react';
+import React, {forwardRef, useState} from 'react';
 import {defineMessages, FormattedMessage, useIntl} from 'react-intl';
 
 import {ChevronDownIcon, DownloadOutlineIcon, FilePdfOutlineIcon} from '@mattermost/compass-icons/components';
@@ -13,7 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 import * as Menu from 'components/menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 
-type Format = 'html' | 'md';
+type Format = Parameters<typeof Client4.exportHealthFindings>[0];
 
 const msg = defineMessages({
     button: {id: 'admin.health_dashboard.export.button', defaultMessage: 'Export'},
@@ -43,8 +43,8 @@ ExportMenuTrigger.displayName = 'ExportMenuTrigger';
 // Revoking the object URL synchronously after click() can cancel the download in some browsers.
 const REVOKE_OBJECT_URL_DELAY_MS = 40 * 1000;
 
-function download(content: string, filename: string, type: string) {
-    const href = URL.createObjectURL(new Blob([content], {type}));
+function download(content: string, filename: string) {
+    const href = URL.createObjectURL(new Blob([content]));
     const link = document.createElement('a');
     link.href = href;
     link.download = filename;
@@ -82,20 +82,17 @@ const ExportMenu = ({onError}: Props) => {
     const {formatMessage} = useIntl();
     const [exporting, setExporting] = useState(false);
 
-    const exportFindings = useCallback(async (format: Format, save: (content: string, filename: string) => void) => {
+    const exportFindings = async (format: Format, save: (content: string, filename: string) => void) => {
         setExporting(true);
         onError(false);
-        let result;
-        try {
-            result = await Client4.exportHealthFindings(format);
-        } catch {
-            onError(true);
-        }
+        const result = await Client4.exportHealthFindings(format).catch(() => undefined);
         setExporting(false);
         if (result) {
             save(result.content, result.filename);
+        } else {
+            onError(true);
         }
-    }, [onError]);
+    };
 
     return (
         <Menu.Container
@@ -120,13 +117,13 @@ const ExportMenu = ({onError}: Props) => {
                 id={`${menuId}-html`}
                 leadingElement={<DownloadOutlineIcon size={18}/>}
                 labels={<FormattedMessage {...msg.html}/>}
-                onClick={() => exportFindings('html', (content, filename) => download(content, filename, 'text/html'))}
+                onClick={() => exportFindings('html', download)}
             />
             <Menu.Item
                 id={`${menuId}-markdown`}
                 leadingElement={<DownloadOutlineIcon size={18}/>}
                 labels={<FormattedMessage {...msg.markdown}/>}
-                onClick={() => exportFindings('md', (content, filename) => download(content, filename, 'text/markdown'))}
+                onClick={() => exportFindings('md', download)}
             />
             <Menu.Item
                 id={`${menuId}-print`}

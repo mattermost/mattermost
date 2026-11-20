@@ -81,16 +81,14 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
         ['Download Markdown', 'md', 'site-health-site-2026-11-19.md'],
     ])('%s downloads the export under the server file name', async (item, format, filename) => {
         const exportHealthFindings = jest.spyOn(Client4, 'exportHealthFindings').mockResolvedValue({content: 'report', filename});
-        const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(function(this: HTMLAnchorElement) {
-            expect(this.download).toBe(filename);
-            expect(this.href).toBe('blob:export');
-        });
+        const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
 
         await renderDashboard(systemAdmin);
         await openMenu();
         await userEvent.click(screen.getByRole('menuitem', {name: item}));
 
         await waitFor(() => expect(click).toHaveBeenCalledTimes(1));
+        expect(click.mock.contexts[0]).toMatchObject({download: filename, href: 'blob:export'});
         expect(exportHealthFindings).toHaveBeenCalledWith(format);
         expect(document.querySelector('iframe')).toBeNull();
     });
