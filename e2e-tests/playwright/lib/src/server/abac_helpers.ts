@@ -107,7 +107,8 @@ export async function disableABAC(page: Page): Promise<void> {
  */
 export async function navigateToABACPage(page: Page): Promise<void> {
     await page.goto('/admin_console/system_attributes/membership_policies');
-    await expect(page.getByRole('button', {name: 'Add policy'})).toBeVisible();
+    // Add policy exists only after ABAC is enabled. Callers navigate here first, then enable it.
+    await expect(page.getByRole('button', {name: 'System Console Menu'})).toBeVisible();
 }
 
 /**
@@ -186,7 +187,7 @@ export async function createBasicPolicy(
 
     // Save policy
     const saved = page.waitForResponse(
-        (resp) => resp.url().includes('/api/v4/access_control_policies') && resp.request().method() === 'POST',
+        (resp) => resp.url().includes('/api/v4/access_control_policies') && resp.request().method() === 'PUT',
     );
     const saveButton = page.getByRole('button', {name: 'Save'}).last();
     await saveButton.click();
@@ -253,7 +254,7 @@ export async function createAdvancedPolicy(
 
     // Save policy
     const saved = page.waitForResponse(
-        (resp) => resp.url().includes('/api/v4/access_control_policies') && resp.request().method() === 'POST',
+        (resp) => resp.url().includes('/api/v4/access_control_policies') && resp.request().method() === 'PUT',
     );
     const saveButton = page.getByRole('button', {name: 'Save'}).last();
     await saveButton.click();

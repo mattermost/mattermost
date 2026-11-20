@@ -128,8 +128,9 @@ test.describe('ABAC Policies - Channel Integration', () => {
         // Save, and wait until the channel update is stored before leaving the page.
         const saved = systemConsolePage.page.waitForResponse(
             (resp) =>
-                /\/api\/v4\/channels\/[a-z0-9]+/.test(resp.url()) &&
-                ['PUT', 'POST', 'PATCH'].includes(resp.request().method()),
+                resp.url().includes(`/api/v4/channels/${channel.id}`) &&
+                !resp.url().includes('/search') &&
+                resp.request().method() !== 'GET',
         );
         await systemConsolePage.page.getByRole('button', {name: 'Save'}).click();
         await saved;

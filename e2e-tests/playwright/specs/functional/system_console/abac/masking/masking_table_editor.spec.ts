@@ -153,7 +153,15 @@ test.describe('Attribute-Value Masking - Table Editor', {tag: ['@abac', '@abac_m
             const nameInput = page.locator('#admin\\.access_control\\.policy\\.edit_policy\\.policyName');
             await nameInput.fill(policyName + ' (edited)');
 
+            const saved = page.waitForResponse(
+                (resp) =>
+                    resp.url().includes('/api/v4/access_control_policies') &&
+                    resp.request().method() === 'PUT' &&
+                    resp.ok(),
+            );
             await saveBtn.click();
+            const savedPolicy = await (await saved).json();
+            expect(savedPolicy.name).toBe(policyName + ' (edited)');
 
             // Verify via DB: Bravo + Charlie preserved by merge-on-save
             const rawExpression = (await getStoredPolicyRuleExpressions(storedPolicyId))[0] ?? '';
