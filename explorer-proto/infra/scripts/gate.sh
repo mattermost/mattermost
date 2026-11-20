@@ -14,7 +14,7 @@ GATE_LOG="$RUN_DIR/gate-output.txt"
 FAILURES=0
 
 canary_down() {
-    docker rm -f "$CANARY" >/dev/null 2>&1 || true
+    docker rm -f -v "$CANARY" >/dev/null 2>&1 || true
     docker network rm "$CANARY_NET" >/dev/null 2>&1 || true
 }
 
