@@ -5,7 +5,6 @@ import {
     autoUpdate,
     flip,
     FloatingPortal,
-    offset,
     shift,
     useFloating,
 } from '@floating-ui/react';
@@ -14,10 +13,15 @@ import React, {useLayoutEffect, useState} from 'react';
 import {TourPoint} from '@mattermost/compass-ui/components/tour-point';
 import type {TourPointPointerPosition} from '@mattermost/compass-ui/components/tour-point';
 
-// The card floats over the channel. Every part of it ignores the pointer except
-// its buttons, so a post, the emoji picker, or the composer under the card
-// still receives the click.
+// The card floats over the channel. Clicks pass through it except its buttons,
+// including the closed pulsing-dot control. The wrapper is a 0×0 box so its
+// origin is the TourPoint tip.
 const passThroughStyles = `
+.anchored-tour-point {
+    width: 0;
+    height: 0;
+    line-height: 0;
+}
 .anchored-tour-point,
 .anchored-tour-point * {
     pointer-events: none;
@@ -26,17 +30,8 @@ const passThroughStyles = `
 .anchored-tour-point button * {
     pointer-events: auto;
 }
-
-/* .app__body h2 sets Metropolis and beats the title class. */
-.app__body .anchored-tour-point h2 {
-    font-family: var(--font-family-body);
-}
 `;
 
-// The pointer hangs 9px past the card. Its tip is --spacing-xl (20px) in from
-// the card edge the pointer sits on. The pulse is centered on that tip.
-const POINTER_OUTSET = 9;
-const POINTER_INSET = 20;
 const TOUR_Z_INDEX = 1300;
 
 type Aim = 'corner' | 'center';
@@ -82,21 +77,16 @@ const AnchoredTourPoint = ({
         setAnchor(document.getElementById(anchorId));
     }, [anchorId]);
 
-    const placement = aim === 'corner' ? 'top-start' : 'top';
+    // The TourPoint root is a 0×0 box whose origin is the pointer tip. Place
+    // that origin on the control: the top-end corner of the +, or the top
+    // center of the burn-on-read button. The card is laid out from the tip.
+    const placement = aim === 'corner' ? 'top-end' : 'top';
     const {refs, floatingStyles, placement: resolved} = useFloating({
         elements: {reference: anchor},
         open: Boolean(anchor),
         whileElementsMounted: autoUpdate,
         placement,
         middleware: [
-            offset(({rects, placement: current}) => ({
-                mainAxis: POINTER_OUTSET,
-
-                // A corner tip is inset from the card's start edge. Shift the
-                // card so that tip lands on the anchor's end edge, and the
-                // card opens across the composer instead of off the left side.
-                crossAxis: aim === 'corner' && current.includes('start') ? rects.reference.width - POINTER_INSET : 0,
-            })),
             flip({crossAxis: false, padding: 8}),
             shift({padding: 8}),
         ],
@@ -122,6 +112,7 @@ const AnchoredTourPoint = ({
                 <style>{passThroughStyles}</style>
                 <TourPoint
                     className={className}
+                    defaultOpen={false}
                     title={title}
                     pointerPosition={position}
                     media={media}

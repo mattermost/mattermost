@@ -7,7 +7,7 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 
 import {BURN_ON_READ_TOUR_TIP_PREFERENCE} from 'selectors/burn_on_read';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, userEvent, waitFor, within} from 'tests/react_testing_utils';
 
 import BurnOnReadTourTip from './burn_on_read_tour_tip';
 
@@ -18,7 +18,7 @@ jest.mock('mattermost-redux/actions/preferences', () => ({
 describe('BurnOnReadTourTip', () => {
     const onTryItOut = jest.fn();
 
-    it('points the tour card at the burn-on-read control', () => {
+    it('points the tour card at the burn-on-read control', async () => {
         renderWithContext(
             <>
                 <button id='burnOnReadButton'>{'Burn-on-read'}</button>
@@ -30,41 +30,19 @@ describe('BurnOnReadTourTip', () => {
         expect(tour).toHaveAttribute('data-anchor-id', 'burnOnReadButton');
         expect(tour).toHaveAttribute('data-pointer-position', 'bottom-center');
         expect(tour).toHaveStyle({pointerEvents: 'none'});
-        expect(screen.getByRole('button', {name: 'Try it out'})).toHaveStyle({pointerEvents: 'auto'});
+        expect(screen.queryByText('Burn-on-read messages')).not.toBeInTheDocument();
+
+        await userEvent.click(within(tour).getByRole('button', {name: 'Open tip'}));
+
         expect(screen.getByText('Burn-on-read messages')).toBeInTheDocument();
-    });
-
-    it('keeps the Compass title font under the host heading rule', () => {
-        document.body.classList.add('app__body');
-        const hostHeadings = document.createElement('style');
-        hostHeadings.textContent = '.app__body h1, .app__body h2, .app__body h3 { font-family: Metropolis, sans-serif; }';
-        document.head.appendChild(hostHeadings);
-
-        try {
-            renderWithContext(
-                <>
-                    <button id='burnOnReadButton'>{'Burn-on-read'}</button>
-                    <BurnOnReadTourTip onTryItOut={onTryItOut}/>
-                </>,
-            );
-
-            expect(screen.getByRole('heading', {name: /Burn-on-read messages/})).toHaveStyle({
-                fontFamily: 'var(--font-family-body)',
-            });
-        } finally {
-            hostHeadings.remove();
-            document.body.classList.remove('app__body');
-        }
+        expect(screen.getByRole('button', {name: 'Try it out'})).toHaveStyle({pointerEvents: 'auto'});
     });
 
     it('enables burn-on-read from Try it out', async () => {
         renderWithContext(
             <>
-                <button id='agentComposerMenuButton'>{'Message options'}</button>
-                <BurnOnReadTourTip
-                    anchorId='agentComposerMenuButton'
-                    onTryItOut={onTryItOut}
-                />
+                <button id='burnOnReadButton'>{'Burn-on-read'}</button>
+                <BurnOnReadTourTip onTryItOut={onTryItOut}/>
             </>,
             {
                 entities: {
@@ -75,9 +53,12 @@ describe('BurnOnReadTourTip', () => {
             },
         );
 
+        await userEvent.click(screen.getByRole('button', {name: 'Open tip'}));
         await userEvent.click(screen.getByRole('button', {name: 'Try it out'}));
 
-        expect(onTryItOut).toHaveBeenCalled();
+        await waitFor(() => {
+            expect(onTryItOut).toHaveBeenCalled();
+        });
         expect(savePreferences).toHaveBeenCalledWith('user-id', [{
             user_id: 'user-id',
             category: BURN_ON_READ_TOUR_TIP_PREFERENCE,

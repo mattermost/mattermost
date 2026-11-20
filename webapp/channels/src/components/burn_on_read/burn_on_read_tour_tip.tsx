@@ -21,7 +21,7 @@ type Props = {
     // Enables burn-on-read for the draft.
     onTryItOut: () => void;
 
-    // The control this card points at. The formatting-bar button, or the + while that bar is hidden.
+    // The formatting-bar burn-on-read button. The tip is not mounted while that bar is hidden.
     anchorId?: string;
 };
 

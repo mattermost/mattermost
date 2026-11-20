@@ -40,6 +40,9 @@ type Props = {
         onToggle: () => void;
     } | null;
     aiActions?: Omit<React.ComponentProps<typeof AIActionsMenu>, 'embedded' | 'parentOpen'> | null;
+
+    // Fires when the menu opens. The plus tour uses this to mark itself seen.
+    onOpen?: () => void;
 };
 
 const attachLabel = (
@@ -205,6 +208,7 @@ const AgentComposerMenuContents = ({
     priorityItem,
     burnOnRead,
     aiActions,
+    onOpen,
 }: Props) => {
     const {formatMessage} = useIntl();
     const {claimRow} = useComposerSubmenuHover();
@@ -219,10 +223,12 @@ const AgentComposerMenuContents = ({
     }, [claimRow]);
     const handleToggle = useCallback((open: boolean) => {
         setMenuOpen(open);
-        if (!open) {
+        if (open) {
+            onOpen?.();
+        } else {
             claimRow(null);
         }
-    }, [claimRow]);
+    }, [claimRow, onOpen]);
 
     return (
         <Menu.Container

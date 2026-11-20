@@ -31,7 +31,6 @@ import PostBoxIndicator from 'components/advanced_text_editor/post_box_indicator
 import {applyWysiwygFormatting} from 'components/advanced_text_editor/wysiwyg_editor/apply_wysiwyg_formatting';
 import WysiwygEditor from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
 import type {WysiwygEditorHandle} from 'components/advanced_text_editor/wysiwyg_editor/wysiwyg_editor';
-import BurnOnReadTourTip from 'components/burn_on_read/burn_on_read_tour_tip';
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import useGetAgentsBridgeEnabled from 'components/common/hooks/useGetAgentsBridgeEnabled';
@@ -72,7 +71,7 @@ import type {PostDraft} from 'types/store/draft';
 import {isPostDraftEmpty} from 'types/store/draft';
 
 import AgentComposerMenu from './agent_composer_menu';
-import ComposerPlusTourTip, {hasSeenComposerPlusTourTip} from './composer_plus_tour_tip';
+import ComposerPlusTourTip, {COMPOSER_PLUS_TOUR_TIP_PREFERENCE, hasSeenComposerPlusTourTip} from './composer_plus_tour_tip';
 import DoNotDisturbWarning from './do_not_disturb_warning';
 import EditPostFooter from './edit_post_footer';
 import Footer from './footer';
@@ -299,6 +298,14 @@ const AdvancedTextEditor = ({
         return enableTutorial && (tutorialStep === tourStep);
     });
     const hasSeenComposerPlusTour = useSelector(hasSeenComposerPlusTourTip);
+    const dismissComposerPlusTour = useCallback(() => {
+        dispatch(savePreferences(currentUserId, [{
+            user_id: currentUserId,
+            category: COMPOSER_PLUS_TOUR_TIP_PREFERENCE,
+            name: currentUserId,
+            value: '1',
+        }]));
+    }, [currentUserId, dispatch]);
 
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
@@ -1038,12 +1045,6 @@ const AdvancedTextEditor = ({
             {showComposerPlusTour && (
                 <ComposerPlusTourTip formattingBarOpen={showFormattingBar}/>
             )}
-            {!hideBurnOnRead && !isInEditMode && canSetBurnOnRead && !showFormattingBar && !showComposerPlusTour && (
-                <BurnOnReadTourTip
-                    anchorId='agentComposerMenuButton'
-                    onTryItOut={() => handleBurnOnReadApply(true)}
-                />
-            )}
             <AgentComposerMenu
                 canAttach={canUploadFiles}
                 attachDisabled={uploadDisabledByPolicy}
@@ -1070,6 +1071,7 @@ const AdvancedTextEditor = ({
                     rewriteMenuProps,
                     aiRewriteEnabled,
                 } : null}
+                onOpen={showComposerPlusTour ? dismissComposerPlusTour : undefined}
             />
             {priorityMenuPopover}
             {rewritePopover}

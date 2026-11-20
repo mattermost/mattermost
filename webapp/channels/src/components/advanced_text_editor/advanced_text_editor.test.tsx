@@ -6,7 +6,9 @@ import React from 'react';
 
 import type {PostType} from '@mattermost/types/posts';
 import {PostPriority} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
+import {PreferenceTypes} from 'mattermost-redux/action_types';
 import * as PreferenceActions from 'mattermost-redux/actions/preferences';
 import Permissions from 'mattermost-redux/constants/permissions';
 
@@ -17,7 +19,7 @@ import type {FileUpload} from 'components/file_upload/file_upload';
 import type Textbox from 'components/textbox/textbox';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-import {renderWithContext, userEvent, screen, act, createEvent, fireEvent, waitFor} from 'tests/react_testing_utils';
+import {renderWithContext, userEvent, screen, act, createEvent, fireEvent, waitFor, within} from 'tests/react_testing_utils';
 import Constants, {Locations, PostTypes, Preferences, StoragePrefixes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -1347,6 +1349,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             const tourPoint = screen.getByTestId('composer-plus-tour');
             expect(tourPoint).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
             expect(tourPoint).toHaveAttribute('data-pointer-position', 'bottom-left');
+            expect(screen.queryByText('Message options moved here')).not.toBeInTheDocument();
+
+            await userEvent.click(within(tourPoint).getByRole('button', {name: 'Open tip'}));
 
             expect(screen.getByText('Message options moved here')).toBeInTheDocument();
             expect(screen.getByText('Attach files from this button. Emoji and message priority are in the formatting bar. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
@@ -1372,6 +1377,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                     },
                 }),
             );
+
+            const tourPoint = screen.getByTestId('composer-plus-tour');
+            await userEvent.click(within(tourPoint).getByRole('button', {name: 'Open tip'}));
 
             expect(screen.getByText('Attach files, add an emoji, set a priority, and open formatting from this button. Skills and AI rewrite show up here when they are available.')).toBeInTheDocument();
         });
@@ -1411,6 +1419,38 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
 
             expect(screen.queryByTestId('composer-plus-tour')).not.toBeInTheDocument();
+        });
+
+        it('removes the plus tour when the plus menu opens', async () => {
+            const savePreferences = jest.spyOn(PreferenceActions, 'savePreferences').mockImplementation(((_userId: string, preferences: PreferenceType[]) => (dispatch: (action: {type: string; data: PreferenceType[]}) => void) => {
+                dispatch({
+                    type: PreferenceTypes.RECEIVED_PREFERENCES,
+                    data: preferences,
+                });
+                return {data: true};
+            }) as unknown as typeof PreferenceActions.savePreferences);
+
+            renderWithContext(
+                <AdvancedTextEditor
+                    {...baseProps}
+                />,
+                initialState,
+            );
+
+            expect(screen.getByTestId('composer-plus-tour')).toBeInTheDocument();
+            await userEvent.click(screen.getByRole('button', {name: 'Message options'}));
+
+            await waitFor(() => {
+                expect(screen.queryByTestId('composer-plus-tour')).not.toBeInTheDocument();
+            });
+            expect(savePreferences).toHaveBeenCalledWith(currentUserId, [{
+                user_id: currentUserId,
+                category: COMPOSER_PLUS_TOUR_TIP_PREFERENCE,
+                name: currentUserId,
+                value: '1',
+            }]);
+
+            savePreferences.mockRestore();
         });
     });
 
@@ -1798,7 +1838,9 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             expect(bar).toContainElement(screen.getByRole('button', {name: /burn-on-read/i}));
             expectBurnBesidePriority();
             expect(screen.queryByRole('button', {name: 'AI Actions'})).not.toBeInTheDocument();
-            expect(savePreferences).not.toHaveBeenCalled();
+            expect(savePreferences).not.toHaveBeenCalledWith(currentUserId, expect.arrayContaining([
+                expect.objectContaining({category: Preferences.ADVANCED_TEXT_EDITOR}),
+            ]));
 
             savePreferences.mockRestore();
         });
@@ -1996,7 +2038,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
 
             expect(screen.getByTestId('post-priority-label')).toBeInTheDocument();
             expect(screen.getByTestId('burn-on-read-label')).toBeInTheDocument();
-            expect(screen.getByTestId('burn-on-read-tour')).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
+            expect(screen.queryByTestId('burn-on-read-tour')).not.toBeInTheDocument();
             await openMenu();
             expect(screen.getByRole('menuitem', {name: 'Message priority'})).toBeInTheDocument();
             expect(screen.getByRole('menuitem', {name: 'Burn-on-read'})).toBeInTheDocument();
@@ -2070,7 +2112,7 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
             );
             expect(screen.queryByTestId('formattingBarContainer')).not.toBeInTheDocument();
             expect(screen.queryByRole('button', {name: /burn-on-read/i})).not.toBeInTheDocument();
-            expect(screen.getByTestId('burn-on-read-tour')).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
+            expect(screen.queryByTestId('burn-on-read-tour')).not.toBeInTheDocument();
         });
 
         it('keeps the composer plus tour on the center plus while burn-on-read is in the bar', async () => {
@@ -2079,8 +2121,10 @@ describe('components/avanced_text_editor/advanced_text_editor', () => {
                 chromeState,
             );
 
-            expect(screen.getByTestId('composer-plus-tour')).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
+            const plusTour = screen.getByTestId('composer-plus-tour');
+            expect(plusTour).toHaveAttribute('data-anchor-id', 'agentComposerMenuButton');
             expect(screen.getByTestId('burn-on-read-tour')).toHaveAttribute('data-anchor-id', 'burnOnReadButton');
+            await userEvent.click(within(plusTour).getByRole('button', {name: 'Open tip'}));
             expect(screen.getByText('Message options moved here')).toBeInTheDocument();
         });
 
