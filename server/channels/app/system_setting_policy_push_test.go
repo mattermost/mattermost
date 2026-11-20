@@ -686,12 +686,9 @@ func publishedSystemSettingPolicyArgs(cluster *testlib.FakeClusterInterface) []m
 }
 
 func TestSystemSettingPolicyChangePush(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	th.ConfigStore.SetReadOnlyFF(false)
-
 	cluster := &testlib.FakeClusterInterface{}
-	th.Server.Platform().SetCluster(cluster)
-	t.Cleanup(func() { th.Server.Platform().SetCluster(nil) })
+	th := Setup(t, SetCluster(cluster)).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
 
 	userA := th.BasicUser
 	userB := th.BasicUser2
@@ -1339,12 +1336,9 @@ func (s *countingPolicyLoadsStore) AccessControlPolicy() store.AccessControlPoli
 }
 
 func TestSystemSettingPolicyBroadcastReloadsStaleCache(t *testing.T) {
-	th := Setup(t).InitBasic(t)
-	th.ConfigStore.SetReadOnlyFF(false)
-
 	cluster := &testlib.FakeClusterInterface{}
-	th.Server.Platform().SetCluster(cluster)
-	t.Cleanup(func() { th.Server.Platform().SetCluster(nil) })
+	th := Setup(t, SetCluster(cluster)).InitBasic(t)
+	th.ConfigStore.SetReadOnlyFF(false)
 
 	originalStore := th.App.Srv().Store()
 	policyStore := &countingPolicyLoadStore{AccessControlPolicyStore: originalStore.AccessControlPolicy()}

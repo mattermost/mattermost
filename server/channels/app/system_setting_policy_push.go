@@ -210,9 +210,10 @@ func (a *App) publishSystemSettingPolicyChange(rctx request.CTX, change *systemS
 		return
 	}
 
+	acs := a.Srv().Channels().AccessControl
 	pushCtx := rctx.WithContext(context.WithoutCancel(rctx.Context()))
 	a.Srv().Go(func() {
-		userIDs, narrowed := a.systemSettingPolicyChangeUsers(pushCtx, change.expressions)
+		userIDs, narrowed := systemSettingPolicyChangeUsers(pushCtx, acs, change.expressions)
 		if narrowed && len(userIDs) == 0 {
 			return
 		}
@@ -222,8 +223,7 @@ func (a *App) publishSystemSettingPolicyChange(rctx request.CTX, change *systemS
 
 // The expressions must not read session attributes, which the user query
 // can't evaluate.
-func (a *App) systemSettingPolicyChangeUsers(rctx request.CTX, expressions []string) ([]string, bool) {
-	acs := a.Srv().Channels().AccessControl
+func systemSettingPolicyChangeUsers(rctx request.CTX, acs einterfaces.AccessControlServiceInterface, expressions []string) ([]string, bool) {
 	users := map[string]struct{}{}
 	for _, expression := range expressions {
 		opts := model.SubjectSearchOptions{Limit: systemSettingPolicyChangePageSize, IgnoreCount: true}
