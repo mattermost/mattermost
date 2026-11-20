@@ -7683,6 +7683,34 @@
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
   },
+  "admin.health_dashboard.export.button": {
+    "defaultMessage": "Export",
+    "description": "Secondary menu button in the summary header of the System Console Site health page, next to Re-run checks, that opens the menu of ways to export the health findings."
+  },
+  "admin.health_dashboard.export.error": {
+    "defaultMessage": "The health findings could not be exported. Try again.",
+    "description": "Error banner on the System Console Site health page shown when downloading or printing the health findings export fails."
+  },
+  "admin.health_dashboard.export.exporting": {
+    "defaultMessage": "Exporting…",
+    "description": "Label of the Export menu button on the System Console Site health page while the export is being fetched from the server."
+  },
+  "admin.health_dashboard.export.html": {
+    "defaultMessage": "Download HTML",
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a self-contained HTML report file."
+  },
+  "admin.health_dashboard.export.markdown": {
+    "defaultMessage": "Download Markdown",
+    "description": "Export menu item on the System Console Site health page that downloads the health findings as a Markdown file."
+  },
+  "admin.health_dashboard.export.menu_label": {
+    "defaultMessage": "Export health findings",
+    "description": "Accessible label of the Export menu on the System Console Site health page."
+  },
+  "admin.health_dashboard.export.print": {
+    "defaultMessage": "Print / Save as PDF",
+    "description": "Export menu item on the System Console Site health page that opens the browser print dialog for the health findings report, from which it can be saved as a PDF."
+  },
   "admin.health_dashboard.finding.resolved": {
     "defaultMessage": "Resolved",
     "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
