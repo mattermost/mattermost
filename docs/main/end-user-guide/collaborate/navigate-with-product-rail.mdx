@@ -1,0 +1,79 @@
+---
+title: "Navigate with the product rail"
+---
+
+From Mattermost [NOT PRESENT — REQUIRES HUMAN JUDGMENT], the product rail is a vertical strip on the left side of the screen that gives you quick access to Channels, Boards, Playbooks, Agents, and other products your team has installed. It replaces the team sidebar by default and keeps the products you use most a single click away.
+
+<Note>
+
+The product rail requires the `ProductRail` feature flag to be enabled by a system admin. If you do not see the rail, contact your administrator.
+
+</Note>
+
+<Important>
+
+The product rail is available on desktop only; it is hidden on mobile.
+
+</Important>
+
+## Open a product
+
+Select any item in the rail to open that product. The sidebar updates to show that product's navigation — for example, selecting Boards shows the Boards sidebar, and selecting Channels shows the channel list.
+
+<Note>
+
+Boards also requires the `IntegratedBoards` feature flag. If you select Boards and see "No boards in this team yet," either your team has no boards or the Boards plugin is still loading its data.
+
+</Note>
+
+**Ctrl+click** or **Cmd+click** a rail item to open it in a new browser tab without changing what is shown in the current tab.
+
+## Access Threads
+
+Threads is not a separate rail item. Open Threads from the Threads link in the channel sidebar or the Boards sidebar (the navigation panel that appears when Boards is open). Whichever product's sidebar you opened Threads from stays active while you read threads, and returns you there when you navigate away.
+
+## Pin and unpin items
+
+You can remove products you rarely use from the rail to keep it tidy. Channels is always pinned and cannot be removed.
+
+**To unpin an item:**
+
+1. Right-click the product's icon in the rail.
+2. Select **Unpin**.
+
+The item moves into a **More** entry that appears at the bottom of the rail. A dot or mention count on **More** means one of your unpinned products has activity.
+
+**To use an unpinned item:**
+
+1. Select **More** to open the menu.
+2. Select the product's row to open it. While that product is open, its icon appears in the rail. When you switch to another product, it returns to **More**.
+3. To pin the item back to the rail without opening it, select the pin button on the right side of its row in the **More** menu (or press **Right Arrow** to reach it with the keyboard).
+
+When an item is open from **More**, right-clicking its rail icon shows a **Pin** option to keep it on the rail permanently.
+
+## Reorder items
+
+Drag any rail item up or down to change its position. The order is saved and restored when you reload.
+
+**To reorder with the keyboard:**
+
+1. Focus the item you want to move.
+2. Press **Space** to pick it up.
+3. Press the **Up Arrow** or **Down Arrow** to move it.
+4. Press **Space** to drop it.
+
+Newly installed products appear after your saved order in their default position. Unpinned items keep their place in the **More** menu regardless of reordering.
+
+## Show or hide the team sidebar
+
+When you belong to more than one team (a group of channels and members in Mattermost), a **Show team sidebar** button appears at the bottom of the rail. Select it to bring the team sidebar back alongside the rail. If you are a member of only one team, this button does not appear.
+
+To collapse the team sidebar again, select the hide button at the bottom of the team sidebar.
+
+Hovering over the team icon at the top of the rail opens the team menu so you can switch teams without moving focus away from what you are doing — useful when you are composing a message. Clicking the team icon or using the keyboard opens the menu in the usual way.
+
+<Note>
+
+Your pinned items, their order, and whether the team sidebar is shown are saved to your account and apply across all your devices.
+
+</Note>
