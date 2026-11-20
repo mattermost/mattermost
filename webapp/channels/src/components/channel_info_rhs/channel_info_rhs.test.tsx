@@ -92,6 +92,53 @@ describe('channel_info_rhs', () => {
         });
     });
 
+    // Unarchiving is authorised on manage_team, so the management decision has to be
+    // asked for directly; an archived channel mounts no composer to prefetch it.
+    describe('unarchive', () => {
+        const archivedChannel = {id: 'channel_id', name: 'archived-channel', team_id: 'team_id', display_name: 'Archived', type: 'O', delete_at: 1} as Channel;
+
+        const stateWithManagementDecision = (allowed: boolean) => ({
+            entities: {
+                general: {config: {FeatureFlagPermissionPolicies: 'true'}},
+                users: {currentUserId: 'user_id', profiles: {user_id: {id: 'user_id', roles: 'system_user system_admin'}}},
+                roles: {roles: {system_admin: {permissions: ['manage_team']}}},
+                renderPermissions: {
+                    byResource: {
+                        channel: {
+                            [archivedChannel.id]: {channel_management_access: {allowed, evaluated: true, generation: 1}},
+                        },
+                    },
+                },
+            },
+        });
+
+        test('offers Unarchive when channel_management_access allows', () => {
+            renderWithContext(
+                <ChannelInfoRHS
+                    {...props}
+                    channel={archivedChannel}
+                    isArchived={true}
+                />,
+                stateWithManagementDecision(true),
+            );
+
+            expect(screen.getByText('Unarchive')).toBeInTheDocument();
+        });
+
+        test('hides Unarchive when channel_management_access denies', () => {
+            renderWithContext(
+                <ChannelInfoRHS
+                    {...props}
+                    channel={archivedChannel}
+                    isArchived={true}
+                />,
+                stateWithManagementDecision(false),
+            );
+
+            expect(screen.queryByText('Unarchive')).not.toBeInTheDocument();
+        });
+    });
+
     test('editChannelName opens Rename Channel modal', () => {
         props.currentTeam = {name: 'team-1'} as Team;
         renderWithContext(

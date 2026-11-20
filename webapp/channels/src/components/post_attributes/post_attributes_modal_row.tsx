@@ -5,6 +5,9 @@ import React, {useCallback} from 'react';
 import {useIntl} from 'react-intl';
 
 import {LockOutlineIcon, TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 import type {PropertyField, PropertyValue} from '@mattermost/types/properties';
 
 import {getPropertyFieldLabel, isPropertyValueSet} from 'mattermost-redux/utils/property_utils';
@@ -46,6 +49,15 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
 
     // Clearing writes an empty value rather than deleting the row.
     const handleClear = useCallback(() => onChange(field.id, ''), [field.id, onChange]);
+
+    const clearLabel = formatMessage(
+        {
+            id: 'post_attributes.modal.clear',
+            defaultMessage: 'Clear {attribute}',
+            description: 'Tooltip and accessible label of the trash button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute.',
+        },
+        {attribute: label},
+    );
 
     const lockedTitle = formatMessage({
         id: 'post_attributes.modal.locked',
@@ -94,26 +106,21 @@ export default function PostAttributesModalRow({field, value, canEdit, writing, 
 
             <div className='PostAttributesModalRow__trailing'>
                 {showClear && (
-                    <button
-                        type='button'
-                        className='PostAttributesModalRow__clear'
-                        data-testid={`post-attribute-clear-${field.name}`}
-                        disabled={writing}
+                    <WithTooltip title={clearLabel}>
+                        <IconButton
+                            size='x-small'
+                            destructive={true}
+                            className='PostAttributesModalRow__clear'
+                            data-testid={`post-attribute-clear-${field.name}`}
+                            disabled={writing}
+                            icon={<Icon glyph={<TrashCanOutlineIcon/>}/>}
 
-                        // Named after the attribute, so a modal with five rows does
-                        // not hand a screen reader five buttons called "Clear".
-                        aria-label={formatMessage(
-                            {
-                                id: 'post_attributes.modal.clear',
-                                defaultMessage: 'Clear {attribute}',
-                                description: 'Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute.',
-                            },
-                            {attribute: label},
-                        )}
-                        onClick={handleClear}
-                    >
-                        <TrashCanOutlineIcon size={14}/>
-                    </button>
+                            // Named after the attribute, so a modal with five rows does
+                            // not hand a screen reader five buttons called "Clear".
+                            aria-label={clearLabel}
+                            onClick={handleClear}
+                        />
+                    </WithTooltip>
                 )}
             </div>
         </div>

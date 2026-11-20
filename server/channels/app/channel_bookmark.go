@@ -66,8 +66,8 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 		}
 
 		if isAnotherFile {
-			if appErr := a.deleteReplacedBookmarkFile(rctx, updateBookmark.FileInfo.Id, updateBookmark.FileId); appErr != nil {
-				return nil, appErr
+			if err := a.deleteReplacedBookmarkFile(rctx, updateBookmark.FileInfo.Id, updateBookmark.FileId); err != nil {
+				return nil, model.AsAppError(err)
 			}
 
 			fileInfo, fileErr := a.Srv().Store().FileInfo().Get(updateBookmark.FileId)
@@ -95,8 +95,8 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		if appErr := a.deleteReplacedBookmarkFile(rctx, existingBookmark.FileId, bookmark.FileId); appErr != nil {
-			return nil, appErr
+		if err := a.deleteReplacedBookmarkFile(rctx, existingBookmark.FileId, bookmark.FileId); err != nil {
+			return nil, model.AsAppError(err)
 		}
 		response.Updated = bookmark
 		response.Deleted = existingBookmark.ToBookmarkWithFileInfo(nil)
@@ -115,7 +115,7 @@ func (a *App) UpdateChannelBookmark(rctx request.CTX, updateBookmark *model.Chan
 }
 
 // Bookmark files are never attached to a post, so an empty PostId scopes the delete to them.
-func (a *App) deleteReplacedBookmarkFile(rctx request.CTX, previousFileId, currentFileId string) *model.AppError {
+func (a *App) deleteReplacedBookmarkFile(rctx request.CTX, previousFileId, currentFileId string) error {
 	if previousFileId == "" || previousFileId == currentFileId {
 		return nil
 	}
