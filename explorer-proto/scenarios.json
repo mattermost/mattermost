@@ -1,0 +1,255 @@
+{
+  "pinned_commit": "f88f88cff6bc984076c605806621e8f5ff3717bc",
+  "feature_area": "Channel Info panel (Info RHS) - opened via channel header button 'View Info' or channel menu item 'View Info'",
+  "target_release": {
+    "image": "mattermost/mattermost-team-edition:12.1.0",
+    "digest": "sha256:35927b9c535a9eb74f0e45385d3fe5d8308b16e0464031f157a834da8af3ee73",
+    "git_tag": "v12.1.0",
+    "git_tag_commit": "243e3d0135203ab9166fe8f2873b07f697b06fd4",
+    "note": "Pinned checkout is master (version 12.2.0, unreleased). Both selected scenarios were re-checked against v12.1.0 source; see coverage.md 'Release pin'."
+  },
+  "scenarios": [
+    {
+      "id": "PILOT-01",
+      "matrix_ref": "MX-05",
+      "title": "Open Info panel follows the newly selected channel after a sidebar channel switch",
+      "techniques": ["state-transition testing", "equivalence partitioning (seeded distinct value classes per channel)"],
+      "risk_behavior_under_test": "Stale-panel regression. The Info RHS keeps rhsState=CHANNEL_INFO and a selectedChannelId captured when it was opened (actions/views/rhs.ts:524-530, reducers/views/rhs.ts:107), but renders getCurrentChannel (channel_info_rhs/index.ts:39). switchToChannel re-targets the Pinned and Files RHS views to the new channel (actions/global_actions.tsx:88, :92) but does nothing for Info, and SidebarRight does not close the RHS on a same-team channel change (sidebar_right.tsx:240-253). The panel content following the new channel therefore depends on an implicit coupling that no e2e test pins down. A regression would show channel A's purpose/header/handle while the user is in channel B.",
+      "closest_cypress": [
+        {"id": "CY-32", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_members_rhs_spec.ts:98", "asserts": "From the Members sub-view, switching to a DM leaves the RHS title 'Info' visible (:111). Asserts only the static title text."},
+        {"id": "CY-01", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_info_rhs_spec.ts:82", "asserts": "Open via #channel-info-btn; helper :536-541 checks 'Info' and the subtitle contains the display name, for a single channel, no transition."},
+        {"id": "CY-08", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_info_rhs_spec.ts:202", "asserts": "Purpose patched via API while the panel is open appears in the RHS (single channel, live update)."},
+        {"id": "CY-09", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_info_rhs_spec.ts:215", "asserts": "Header patched via API appears in the RHS (single channel)."}
+      ],
+      "closest_playwright": [
+        {"id": "PW-01", "ref": "e2e-tests/playwright/specs/functional/channels/channel_settings/channel_headers.spec.ts:59", "asserts": "MM-T880: header saved via intro modal is visible in the Info RHS opened from channel menu 'View Info' (:89-94). Single channel."},
+        {"id": "PS-01 (open PR, not main)", "ref": "PR #40212 e2e-tests/playwright/specs/functional/channels/channel_info_rhs/channel_info_rhs.spec.ts:10-48", "asserts": "Name, purpose, handle, ID for one channel; mute; settings modal. No channel switch."}
+      ],
+      "remaining_gap": "No test opens Info on channel A, switches in-app to channel B, and asserts that the panel now shows B's display name/purpose/header/handle AND no longer shows A's values. CY-32 starts from a different RHS state (Members), lands on a DM (different about-area component, about_area_dm.tsx), and checks only the constant title 'Info', which would pass even if the content were stale.",
+      "fixture_setup": {
+        "server": "Fresh mattermost/mattermost-team-edition:12.1.0 + postgres:15, default config, no license, no feature flags.",
+        "team": {"name": "qa-team", "display_name": "QA Team", "type": "O"},
+        "users": [
+          {"username": "qa-admin", "roles": "system_admin system_user", "purpose": "seeding only; never signed in by the explorer"},
+          {"username": "qa-user", "roles": "system_user", "team_roles": "team_user", "onboarding_preferences": "save the four preferences from e2e-tests/playwright/lib/src/server/user.ts:71-78 (tutorial_step=999, crt_thread_pane_step=999, onboarding_task_list_show=false, onboarding_task_list_open=false)"}
+        ],
+        "channels": [
+          {"name": "qa-sandbox", "display_name": "QA Sandbox", "type": "O", "purpose": "Sandbox purpose alpha-7f3c", "header": "Sandbox header alpha-7f3c", "members": ["qa-admin", "qa-user"]},
+          {"name": "release-planning", "display_name": "Release Planning", "type": "O", "purpose": "Release purpose bravo-91d2", "header": "Release header bravo-91d2", "members": ["qa-admin", "qa-user"]}
+        ],
+        "ordering_requirements": [
+          "Create channels as qa-admin (POST /api/v4/channels), add qa-user (POST /api/v4/channels/{channel_id}/members), set purpose/header (PUT /api/v4/channels/{channel_id}/patch).",
+          "LAST, as qa-user: POST /api/v4/channels/members/me/view with {channel_id} for release-planning and then qa-sandbox, so neither sidebar link carries the ' unread' suffix (sidebar_channel_link.tsx:153).",
+          "Create no posts in release-planning after that view call."
+        ],
+        "permissions": "Defaults (channel_user role, role.go:965).",
+        "config_feature_flags": "None.",
+        "signed_in_context": "storageState for qa-user."
+      },
+      "allowed_controls": [
+        {"role": "button", "name": "View Info", "exact": true, "why": "Channel header Info toggle; aria-label = tooltip 'View Info' when closed (channel_info_button.tsx:50, header_icon_wrapper.tsx:65,93). Unique on page: the channel-menu item with the same text only exists while the menu is open and has role menuitem."},
+        {"role": "link", "name": "release planning public channel", "exact": true, "why": "LHS sidebar channel link; aria-label = lowercased '<display_name> public channel' (sidebar_channel_link.tsx:133-156, :317-320; sidebar_base_channel.tsx:56-61,77-80). Clicking it performs the in-app switch; a page.goto would reload and drop RHS state (only state.storage is persisted, reducers/storage.ts:154-161)."}
+      ],
+      "fixed_inputs": [],
+      "assertion_locators": [
+        {"role": "region", "name": "Info", "exact": true, "why": "RHS container: role=region, aria-labelledby='rhsPanelTitle' (resizable_sidebar/resizable_rhs/index.tsx:96-99); #rhsPanelTitle contains only 'Info' (channel_info_rhs/header.tsx:45-52). Assertion scope only, never clicked."},
+        {"role": "button", "name": "Close Info", "exact": true, "why": "Same header toggle while the Info RHS is open (channel_info_button.tsx:46-48). Assertion only."}
+      ],
+      "reachable_path": [
+        "navigate /qa-team/channels/qa-sandbox (signed in as qa-user)",
+        "click button 'View Info'",
+        "CHECKPOINT pre-switch assertions",
+        "click link 'release planning public channel'",
+        "CHECKPOINT post-switch assertions"
+      ],
+      "expected_outcome": {
+        "pre_switch": [
+          "getByRole('region', {name: 'Info', exact: true}) is visible",
+          "that region toContainText 'Sandbox purpose alpha-7f3c' and 'Sandbox header alpha-7f3c'"
+        ],
+        "post_switch": [
+          "page URL pathname is /qa-team/channels/release-planning",
+          "getByRole('region', {name: 'Info', exact: true}) is still visible (RHS not closed on same-team channel change: sidebar_right.tsx:240-253 closes only on team/product change)",
+          "getByRole('button', {name: 'Close Info', exact: true}) is visible (rhsState is still CHANNEL_INFO: channel_info_button.tsx:31-36,46-48)",
+          "region toContainText 'Release Planning' (subtitle header.tsx:53-59 and about name about_area_channel.tsx:133-141)",
+          "region toContainText 'Release purpose bravo-91d2' (about_area_channel.tsx:145-167, rendered because channel.purpose is truthy)",
+          "region toContainText 'Release header bravo-91d2' (about_area_channel.tsx:169-191)",
+          "region toContainText 'release-planning' (handle line about_area_channel.tsx:193-199)",
+          "region not.toContainText 'Sandbox purpose alpha-7f3c' and not.toContainText 'Sandbox header alpha-7f3c'"
+        ],
+        "independent_sources": [
+          "Seed values above (the strings are only knowable from the fixture).",
+          "channel_info_rhs/index.ts:39 (panel props come from getCurrentChannel), sidebar_right.tsx:322-324 (Info content rendered while isChannelInfo), sidebar_right.tsx:240-253 (no close on channel change).",
+          "Existing product contract precedent: CY-32 expects the Info RHS to remain after a channel switch (channel_members_rhs_spec.ts:110-111).",
+          "Same behavior verified in v12.1.0 source: index.ts getCurrentChannel at :40; sidebar_right.tsx diff v12.1.0..HEAD adds only entity view and attribute-field loading."
+        ]
+      },
+      "negative_control": {
+        "change": "Swap the seeded purpose and header strings between qa-sandbox and release-planning (names, display names, URLs, membership and view-state unchanged).",
+        "expected_effect": "Navigation and both clicks still succeed; post-switch toContainText 'Release purpose bravo-91d2' fails and not.toContainText 'Sandbox purpose alpha-7f3c' fails. Pre-switch also fails, proving the pre-switch checkpoint is seed-bound."
+      },
+      "dedupe_key": "channel-info-rhs|state-transition|open-info>sidebar-switch-O-to-O|content-follows-current-channel",
+      "risks_of_flakiness": [
+        "Sidebar link name gains ' unread' if release-planning has unseen posts; mitigated by the final view call and no later posts. Engine must not fall back to a regex.",
+        "Center channel header also renders 'Release header bravo-91d2'; every text assertion must be scoped to region 'Info'.",
+        "The about area and subtitle render from Redux immediately, but use auto-waiting expect (default 5s+) rather than snapshot timing.",
+        "Onboarding tours can cover the sidebar for a new user; mitigated by the four seeded preferences.",
+        "If a future build closes the RHS on channel switch, the test fails on 'region Info visible'; that is a product change to be triaged, not flake."
+      ]
+    },
+    {
+      "id": "PILOT-02",
+      "matrix_ref": "MX-21",
+      "title": "Archived public channel: Info panel shows the archived notice and is read-only for a regular member",
+      "techniques": ["decision table (channel type x archived x role/permission x content present)", "equivalence partitioning (archived vs active public channel)"],
+      "risk_behavior_under_test": "Authorization/UX gating driven by real server state. After a channel is archived (delete_at != 0 from the server), the panel must show 'This channel is archived.', must hide Add People, every Edit affordance (rename, purpose, header), Notification Preferences and Channel Settings, must NOT offer 'Unarchive' to a user without manage_team, and must still show the seeded purpose/header read-only. Currently only Jest unit tests with mocked props cover this (channel_info_rhs.test.tsx:74, menu.test.tsx:98, :291); no e2e test opens Info on an archived channel.",
+      "closest_cypress": [
+        {"id": "CY-33", "ref": "e2e-tests/cypress/tests/integration/channels/archived_channel/archive_channel_header_spec.ts:38", "asserts": "MM-T1717: after archiving, the channel header DROPDOWN hides Archive, Channel Settings and Notification Preferences and keeps Members. Does not open the Info RHS."},
+        {"id": "CY-06", "ref": "e2e-tests/cypress/tests/integration/channels/channel/channel_info_rhs_spec.ts:158", "asserts": "Add People absent in the Info RHS for a user whose channel_user role lost manage_*_members (permission cause, active channel). Does not check Edit, notice or menu items."},
+        {"id": "CY-35", "ref": "e2e-tests/cypress/tests/integration/channels/channel/leave_and_archive_channel_destructive_spec.ts:32", "asserts": "Channel menu lists 'View Info' (and others) for an active channel."}
+      ],
+      "closest_playwright": [
+        {"id": "PW-attr-edit-lock", "ref": "e2e-tests/playwright/specs/functional/channels/channel_attributes/channel_attribute_editing.spec.ts:293", "asserts": "Archives (:316) then unarchives (:326) a channel as setup only; Info is opened on the ACTIVE channel to check attribute locking."}
+      ],
+      "remaining_gap": "No test (main or open PR) opens the Info RHS on an archived channel. The archived-notice text, the absence of Add People/Edit/Notification Preferences/Channel Settings in the panel, the absence of Unarchive for a non-team-admin, and the preservation of read-only purpose/header are unproven end-to-end. CY-33 proves the analogous gating only for the header dropdown, a different component (channel_header_menu).",
+      "fixture_setup": {
+        "server": "Same server and users as PILOT-01.",
+        "team": {"name": "qa-team"},
+        "channels": [
+          {"name": "legacy-roadmap", "display_name": "Legacy Roadmap", "type": "O", "purpose": "Legacy purpose charlie-4e8a", "header": "Legacy header charlie-4e8a", "members": ["qa-admin", "qa-user"], "archived": true}
+        ],
+        "ordering_requirements": [
+          "As qa-admin: create channel, add qa-user, patch purpose/header, THEN archive with DELETE /api/v4/channels/{channel_id}.",
+          "Verify GET /api/v4/channels/{channel_id} returns delete_at > 0 before writing storageState."
+        ],
+        "permissions": "Defaults. qa-user is team_user (no manage_team: only team_admin has it, role.go:1080-1086) and channel_user (has manage_public_channel_members/properties, role.go:974,979, so only the archived state can explain their absence).",
+        "config_feature_flags": "None. Viewing archived channels is always allowed since MM-63240 (commit c8d6630141, ancestor of v12.1.0).",
+        "signed_in_context": "storageState for qa-user."
+      },
+      "allowed_controls": [
+        {"role": "button", "name": "View Info", "exact": true, "why": "Header Info toggle, rendered unconditionally for archived channels (channel_header.tsx:448)."}
+      ],
+      "fixed_inputs": [],
+      "assertion_locators": [
+        {"role": "region", "name": "Info", "exact": true, "why": "RHS scope (resizable_rhs/index.tsx:96-99)."},
+        {"role": "button", "name": "Add People", "exact": true, "why": "top_buttons.tsx:157-160; counted, never clicked."},
+        {"role": "button", "name": "Edit", "exact": true, "why": "All EditableArea affordances share aria-label 'Edit' (editable_area.tsx:69, :81); counted, never clicked."},
+        {"role": "button", "name": "Notification Preferences", "exact": true, "why": "menu.tsx:204-214 (aria-label = text, :96)."},
+        {"role": "button", "name": "Channel Settings", "exact": true, "why": "menu.tsx:196-203; channel_kind_messages.ts:34."},
+        {"role": "button", "name": "Unarchive", "exact": true, "why": "channel_info_rhs.tsx:231-239."},
+        {"role": "button", "name": "Members", "exact": true, "why": "menu.tsx:215-226; positive control. NOT unique page-wide (channel header button is also 'Members', channel_header.tsx:49,327-337), so must be scoped to region 'Info'."},
+        {"role": "button", "name": "Copy Link", "exact": true, "why": "top_buttons.tsx:101,172-183; positive control."}
+      ],
+      "reachable_path": [
+        "navigate /qa-team/channels/legacy-roadmap (signed in as qa-user)",
+        "click button 'View Info'",
+        "CHECKPOINT assertions"
+      ],
+      "expected_outcome": {
+        "assertions": [
+          "region 'Info' is visible",
+          "region getByText('This channel is archived.', {exact: true}) is visible (channel_info_rhs.tsx:99-103,217-224; en.json key channel_info_rhs.archived.title = 'This channel is archived.')",
+          "region getByRole('button', {name: 'Unarchive', exact: true}) has count 0 (gated by ChannelPermissionGate MANAGE_TEAM, channel_info_rhs.tsx:225-240; team_user lacks manage_team, role.go:1080-1086)",
+          "region getByRole('button', {name: 'Add People', exact: true}) has count 0 (canAddPeople={!isArchived && canManageMembers}, channel_info_rhs.tsx:255; top_buttons.tsx:99)",
+          "region getByRole('button', {name: 'Edit', exact: true}) has count 0 (canEditChannelProperties = !isArchived && canManageProperties, channel_info_rhs.tsx:196; editable_area.tsx:60,66)",
+          "region getByRole('button', {name: 'Notification Preferences', exact: true}) has count 0 (menu.tsx:159)",
+          "region getByRole('button', {name: 'Channel Settings', exact: true}) has count 0 (menu.tsx:161)",
+          "region toContainText 'Legacy purpose charlie-4e8a' and 'Legacy header charlie-4e8a' (sections render when content is truthy, about_area_channel.tsx:145,169)",
+          "region getByRole('button', {name: 'Members', exact: true}) is visible (menu.tsx:160) and getByRole('button', {name: 'Copy Link', exact: true}) is visible (top_buttons.tsx:101)"
+        ],
+        "independent_sources": [
+          "Seed values (archived=true, purpose/header strings).",
+          "Source citations per assertion above; i18n en.json keys channel_info_rhs.archived.title, channel_info_rhs.top_buttons.add_people, channel_info_rhs.edit_link, channel_info_rhs.menu.notification_preferences, channel_info_rhs.archived.unarchive.",
+          "server/public/model/role.go:965-983 (channel_user perms), :1080-1086 (manage_team only in team_admin).",
+          "Same gating in v12.1.0: channel_info_rhs.tsx:194 (canEditChannelProperties), :218 (notice text), :253 (canAddPeople); menu.tsx:140,142."
+        ]
+      },
+      "negative_control": {
+        "change": "Seed legacy-roadmap identically but skip the DELETE (archive) step.",
+        "expected_effect": "Same URL and the 'View Info' click still work; the notice assertion fails, and Add People/Edit/Notification Preferences counts become >= 1 because qa-user holds the default channel_user permissions (role.go:974,979), so the count-0 assertions fail."
+      },
+      "dedupe_key": "channel-info-rhs|decision|type=O,archived=true,role=team_user+channel_user,manage_team=false,content=present|archived-notice+read-only",
+      "risks_of_flakiness": [
+        "A count-0 assertion passes vacuously if the panel has not rendered; always assert the region and the notice text are visible BEFORE any count-0 check.",
+        "Menu items render after mount; Files shows a spinner badge while stats load (menu.tsx:245) but is not asserted.",
+        "At HEAD (not v12.1.0) the Unarchive link also depends on useChannelManagementAccess (channel_info_rhs.tsx:201,225); irrelevant for a non-team-admin, whose expected result is absent in both versions.",
+        "If the server redirects away from an archived channel (it should not since MM-63240), URL/region assertions fail loudly rather than flaking."
+      ]
+    }
+  ],
+  "matrix": [
+    {"id": "MX-01", "description": "Open Info via channel header button 'View Info' (public, admin): RHS shows title 'Info' and subtitle display name", "technique": "state-transition (closed->open)", "status": "COVERED", "evidence": ["CY-01 channel_info_rhs_spec.ts:82 (helper :536-541)"]},
+    {"id": "MX-02", "description": "Open Info via channel menu item 'View Info'", "technique": "state-transition", "status": "COVERED", "evidence": ["PW-01 channel_headers.spec.ts:89-94", "CY-31 not_open_emoji_picker_spec.js:116", "toggle_info.tsx:38-51"]},
+    {"id": "MX-03", "description": "Toggle Info open/closed with Ctrl/Cmd+Alt+I", "technique": "state-transition (closed->open->closed)", "status": "COVERED", "evidence": ["CY-29 ctrl_cmd_alt_I_toggles_channel_info_rhs_spec.js:22", "sidebar_right.tsx:137-144"]},
+    {"id": "MX-04", "description": "Close Info via header toggle (name becomes 'Close Info') or RHS close button 'Close Sidebar Icon'; RHS disappears", "technique": "state-transition (open->closed)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["channel_info_button.tsx:37-48", "header.tsx:71-78", "CY-31 :129 clicks menu 'Close Info' without asserting closure; CY-12 :280-285 conditionally clicks #rhsCloseButton without asserting"]},
+    {"id": "MX-05", "description": "Info open on public channel A, in-app switch to public channel B via sidebar: panel stays open and shows B's name/purpose/header/handle, not A's", "technique": "state-transition (open->switch channel)", "status": "OPEN_WITH_EVIDENCE", "pilot": "proposed", "pilot_id": "PILOT-01", "evidence": ["index.ts:39", "sidebar_right.tsx:240-253,322-324", "global_actions.tsx:88,92 (only PIN/FILES re-targeted)", "nearest: CY-32 channel_members_rhs_spec.ts:98 (title only, from Members, to DM)"]},
+    {"id": "MX-06", "description": "From Members sub-view (opened from Info), switch to a DM: RHS returns to Info", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-32 channel_members_rhs_spec.ts:98-113", "channel_members_rhs/index.ts:151-155"]},
+    {"id": "MX-07", "description": "Full page reload with Info open: RHS is not restored (RHS view state not persisted)", "technique": "state-transition (open->reload)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["reducers/storage.ts:154-161 (only storage persisted)", "reducers/views/rhs.ts:184 (rhsState default null), :353 (isSidebarOpen default false)"], "note": "Behavior is incidental (no product contract found); rejected for pilot."},
+    {"id": "MX-08", "description": "Info remains open after a System Console round trip", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-30 open_rhs_coming_from_system_console_spec.ts:46 (title carries 'KNOWN ISSUE: MM-47226' but the test is an active it())"]},
+    {"id": "MX-09", "description": "Info menu sub-views Files / Pinned messages / Members open and Back returns to Info", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-13 :294", "CY-14 :313", "CY-15 :340 (channel_info_rhs_spec.ts)"]},
+    {"id": "MX-10", "description": "Info open, switch team: RHS closes", "technique": "state-transition", "status": "OPEN_WITH_EVIDENCE", "evidence": ["sidebar_right.tsx:247-253"], "note": "Needs a second team; pilot seed has one team."},
+    {"id": "MX-11", "description": "Public channel, non-empty purpose shown in About area", "technique": "equivalence partitioning (purpose=normal)", "status": "COVERED", "evidence": ["CY-08 channel_info_rhs_spec.ts:202 (admin)", "PS-01 PR #40212 :28 (member, open PR)", "about_area_channel.tsx:145-167"]},
+    {"id": "MX-12", "description": "Public channel, non-empty header shown in About area", "technique": "equivalence partitioning (header=normal)", "status": "COVERED", "evidence": ["CY-09 channel_info_rhs_spec.ts:215", "PW-01 channel_headers.spec.ts:94", "about_area_channel.tsx:169-191"]},
+    {"id": "MX-13", "description": "About area shows display name, 'Channel handle: <name>' and 'ID: <id>'", "technique": "equivalence partitioning", "status": "COVERED_BY_OPEN_PR", "evidence": ["PS-01 PR #40212 channel_info_rhs.spec.ts:26-30", "about_area_channel.tsx:133-141,193-206", "subtitle-only on main: CY-01 helper :539"]},
+    {"id": "MX-14", "description": "Empty purpose and header, user can edit: placeholders 'Add a channel purpose' / 'Add a channel header' (accessible name 'Edit')", "technique": "equivalence partitioning (value=empty) x decision (can edit)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["about_area_channel.tsx:145,164,169,188", "editable_area.tsx:66-74", "CY-31 :118 clicks an 'Edit' button near 'Channel Purpose' but asserts no placeholder text"]},
+    {"id": "MX-15", "description": "Empty purpose and header, user cannot edit (manage_*_properties removed): Purpose/Header sections absent", "technique": "decision table", "status": "OPEN_WITH_EVIDENCE", "evidence": ["about_area_channel.tsx:145,169", "index.ts:50"]},
+    {"id": "MX-16", "description": "Markdown and special/unicode characters in purpose/header rendered in panel", "technique": "equivalence partitioning (value=markdown/special)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["about_area_channel.tsx:159,182 (<Markdown>)", "nearest: PW channel_headers.spec.ts:11 MM-T879 checks markdown link in header POPOVER, not Info"]},
+    {"id": "MX-17", "description": "Long/multiline purpose or header (> 4 lines): truncated with 'more', expands with 'less'", "technique": "equivalence partitioning (value=long/multiline)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["linelimiter.tsx:32-45,65-72", "about_area_channel.tsx:153-158,176-181"]},
+    {"id": "MX-18", "description": "Boundary: purpose of exactly 250 runes / header of exactly 1024 runes display in panel", "technique": "boundary-value analysis (at limit)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["server/public/model/channel.go:44-45", "display path identical to MX-17"]},
+    {"id": "MX-19", "description": "Boundary: purpose 251 / header 1025 rejected", "technique": "boundary-value analysis (limit+1)", "status": "COVERED", "evidence": ["server channel.go:358-364", "UI maxLength edit_channel_purpose_modal.tsx:28,179; edit_channel_header_modal.tsx:28,173", "CY channel_settings_modal_spec.ts:273 (MM-T7), :287 (MM-T8)"], "note": "Enforced outside the Info panel; covered for the settings modal."},
+    {"id": "MX-20", "description": "Private channel Info: About area, Copy Link, Add People gated by manage_private_channel_members", "technique": "equivalence partitioning (type=private)", "status": "OPEN_WITH_EVIDENCE", "evidence": ["index.ts:48-50", "top_buttons.tsx:99,101", "no e2e opens Info on a 'P' channel (searched channel_info_rhs_spec.ts, channel_members_rhs_spec.ts, Playwright specs)"]},
+    {"id": "MX-21", "description": "Archived public channel, regular member: archived notice, no Unarchive/Add People/Edit/Notification Preferences/Channel Settings, purpose/header read-only, Members/Copy Link present", "technique": "decision table", "status": "OPEN_WITH_EVIDENCE", "pilot": "proposed", "pilot_id": "PILOT-02", "evidence": ["channel_info_rhs.tsx:196,217-246,255", "menu.tsx:159-161", "unit only: channel_info_rhs.test.tsx:74, menu.test.tsx:98,291", "nearest e2e: CY-33 archive_channel_header_spec.ts:38 (header dropdown)"]},
+    {"id": "MX-22", "description": "Archived channel, team/system admin: 'Unarchive' link in notice (not for town-square)", "technique": "decision table", "status": "OPEN_WITH_EVIDENCE", "evidence": ["channel_info_rhs.tsx:201,225-240", "role.go:1080-1086"]},
+    {"id": "MX-23", "description": "DM: other user's name and position, header; Add People absent", "technique": "equivalence partitioning (type=DM)", "status": "COVERED", "evidence": ["CY-27 :509", "CY-28 :519", "CY-25 :486 (channel_info_rhs_spec.ts)"]},
+    {"id": "MX-24", "description": "DM and GM: Copy Link absent", "technique": "equivalence partitioning", "status": "OPEN_WITH_EVIDENCE", "evidence": ["top_buttons.tsx:101", "CY-19 :403/:411 and CY-26 :497/:505 use cy.uiGetRHS().get('Copy Link'), a CSS selector that never matches, so they pass vacuously"]},
+    {"id": "MX-25", "description": "DM with a bot: bot description shown, no header editor", "technique": "equivalence partitioning", "status": "OPEN_WITH_EVIDENCE", "evidence": ["about_area_dm.tsx:107,111,116"]},
+    {"id": "MX-26", "description": "GM: participant names and header shown; Add People opens the DM/GM modal", "technique": "equivalence partitioning (type=GM)", "status": "COVERED", "evidence": ["CY-20 :415", "CY-21 :426", "CY-18 :391 (channel_info_rhs_spec.ts)"]},
+    {"id": "MX-27", "description": "DM/GM menu gating: no Channel Settings (DM, GM), no Members/Notification Preferences (DM)", "technique": "decision table", "status": "OPEN_WITH_EVIDENCE", "evidence": ["menu.tsx:159-161", "partial: CY-22 :442 GM Notification Preferences present"]},
+    {"id": "MX-28", "description": "Favorite toggle (public, GM, DM) via aria-pressed", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-03 :120", "CY-16 :365", "CY-23 :460"], "note": "In v12.1.0 the button is renamed 'Favorited' when on (top_buttons.tsx:128 at that tag); HEAD keeps 'Favorite' + aria-pressed."},
+    {"id": "MX-29", "description": "Mute toggle (public, GM, DM)", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-04 :133", "CY-17 :378", "CY-24 :473", "server-side mark_unread: PS-01 PR #40212 :33-40 (open PR)"]},
+    {"id": "MX-30", "description": "Add People visible with permission and opens invite modal (public, admin)", "technique": "decision table", "status": "COVERED", "evidence": ["CY-05 channel_info_rhs_spec.ts:146"]},
+    {"id": "MX-31", "description": "Add People absent without manage_*_members", "technique": "decision table", "status": "COVERED", "evidence": ["CY-06 channel_info_rhs_spec.ts:158"]},
+    {"id": "MX-32", "description": "Rename/purpose/header Edit controls absent without manage_*_properties (content present)", "technique": "decision table", "status": "OPEN_WITH_EVIDENCE", "evidence": ["channel_info_rhs.tsx:196", "editable_area.tsx:60,77-86", "CY-06 removes the permission (:66-76) but asserts only Add People"]},
+    {"id": "MX-33", "description": "Rename via About-area Edit; Edit purpose/header open their modals from the panel", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-10 channel_info_rhs_spec.ts:228", "CY-31 not_open_emoji_picker_spec.js:100 (:114-118)"]},
+    {"id": "MX-34", "description": "Copy Link copies channel URL and shows 'Copied'", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-07 channel_info_rhs_spec.ts:179"]},
+    {"id": "MX-35", "description": "Top-button tooltips", "technique": "equivalence partitioning", "status": "COVERED", "evidence": ["CY-02 channel_info_rhs_spec.ts:95"]},
+    {"id": "MX-36", "description": "Notification Preferences and Channel Settings open their modals from the Info menu", "technique": "state-transition", "status": "COVERED", "evidence": ["CY-11 :263", "CY-12 :276", "CY-22 :442 (GM)"]},
+    {"id": "MX-37", "description": "Members menu badge equals the channel member count", "technique": "equivalence partitioning / seed-derived value", "status": "OPEN_WITH_EVIDENCE", "evidence": ["menu.tsx:215-226 (badge=channelStats.member_count), :166-174", "member count only asserted in Members sub-view: channel_members_rhs_spec.ts:90-96"]},
+    {"id": "MX-38", "description": "Pinned messages badge equals pinned post count", "technique": "seed-derived value", "status": "OPEN_WITH_EVIDENCE", "evidence": ["menu.tsx:227-236", "CY-14 :313 pins a post but asserts sub-view content only"]},
+    {"id": "MX-39", "description": "Favorite disabled with managed-category tooltip for channels in a managed category", "technique": "decision table", "status": "UNVERIFIED", "evidence": ["top_buttons.tsx:115-124,134", "only related test is test.fixme managed_categories.spec.ts:358 (center header #toggleFavorite, knownIssue: managed category never appears)"], "note": "Requires license + ManagedChannelCategories flag; reachability not established from sources."},
+    {"id": "MX-40", "description": "Channel attributes block inside Info (flag/license dependent)", "technique": "decision table", "status": "COVERED", "evidence": ["channel_attribute_display.spec.ts, channel_attribute_editing.spec.ts, channel_attribute_display_flag_off.spec.ts, channel_attribute_lifecycle.spec.ts, channel_resource_configuration.spec.ts"]}
+  ],
+  "counts": {
+    "total_assessed": 40,
+    "covered": 20,
+    "covered_by_open_pr": 1,
+    "open_with_evidence_total": 18,
+    "newly_verified_by_pilot_proposed": 2,
+    "open_with_evidence_remaining": 16,
+    "unverified": 1,
+    "check": "20 + 1 + 18 + 1 = 40; the 2 proposed rows are included in open_with_evidence_total"
+  },
+  "next_candidates": [
+    {
+      "matrix_ref": "MX-37",
+      "title": "Members badge in the Info menu equals the seeded member count",
+      "setup": "Add two synthetic users (qa-peer-1, qa-peer-2) to qa-sandbox so it has exactly 4 members (qa-admin, qa-user, 2 peers). Negative control: add only one peer.",
+      "expected_source": "menu.tsx:223 badge={channelStats.member_count}; seed membership.",
+      "pilot_rules_fit": "Partially. Only control: button 'View Info'. Assertion must scope region 'Info' > button 'Members' (not unique page-wide: channel header 'Members', channel_header.tsx:49,327-337) and read element text, because aria-label 'Members' (menu.tsx:96) hides the badge from the accessibility name/snapshot. Feasible as a declared assertion; the explorer cannot discover the value from snapshots."
+    },
+    {
+      "matrix_ref": "MX-15 + MX-32",
+      "title": "Member without manage_public_channel_properties: no Edit affordances; empty purpose/header sections hidden",
+      "setup": "Remove manage_public_channel_properties from channel_user (PATCH /api/v4/roles/{id}/patch), restore afterwards; or a channel scheme (licensed). Channels: one with purpose/header, one with both empty.",
+      "expected_source": "channel_info_rhs.tsx:196; about_area_channel.tsx:145,169; editable_area.tsx:60,66.",
+      "pilot_rules_fit": "Yes for allowlist (button 'View Info', sidebar links) but the server-wide role mutation conflicts with a single shared deterministic seed; needs its own server or strict ordering."
+    },
+    {
+      "matrix_ref": "MX-17",
+      "title": "Long purpose truncated with 'more' and expanded with 'less'",
+      "setup": "Purpose of 6 short lines separated by newlines (<= 250 runes), header short. Fixed viewport.",
+      "expected_source": "linelimiter.tsx:32-45 (needLimiter when scrollHeight > 4*20px*1.1), :65-72 toggle text from i18n 'more'/'less'.",
+      "pilot_rules_fit": "Yes: controls 'View Info' and button 'more' (unique if only purpose is long; ToggleButton has no aria-label so name = text). Layout-dependent threshold makes it the most flake-prone of the three."
+    }
+  ]
+}
