@@ -13,6 +13,29 @@ type ChannelMatcherRegistration = {
 };
 
 /**
+ * Every registration whose matcher returns true for the channel, in registration order. A matcher that
+ * throws counts as no match, and only the first throw from each plugin is logged.
+ */
+export function findMatchingRegistrations<T extends ChannelMatcherRegistration>(
+    state: GlobalState,
+    channel: Channel,
+    registrations: readonly T[] | undefined,
+    errorLog: PluginErrorLog,
+): T[] {
+    const matching: T[] = [];
+    for (const registration of registrations ?? []) {
+        try {
+            if (registration.matcher(state, channel) === true) {
+                matching.push(registration);
+            }
+        } catch (err) {
+            errorLog.logOnce(registration.pluginId, err);
+        }
+    }
+    return matching;
+}
+
+/**
  * The first registration whose matcher returns true for the channel. A matcher that throws counts
  * as no match, and only the first throw from each plugin is logged.
  */

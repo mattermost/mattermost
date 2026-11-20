@@ -30,6 +30,7 @@ import {
 } from 'actions/websocket_actions';
 import {clearLoggedChannelIntroErrors} from 'selectors/channel_intro';
 import {clearLoggedChannelViewErrors} from 'selectors/channel_view_plugin';
+import {clearLoggedSidebarChannelChildrenErrors} from 'selectors/sidebar_channel_children';
 import store from 'stores/redux_store';
 
 import {clearComposerPlaceholderErrors} from 'components/advanced_text_editor/composer_placeholder';
@@ -85,6 +86,7 @@ import type {
     ChannelKindRegistration,
     ChannelIntroRegistration,
     ChannelViewRegistration,
+    SidebarChannelChildrenRegistration,
     ComposerPlaceholderRegistration,
     ProductSwitcherMenuItemRegistration,
 } from 'types/store/plugins';
@@ -1482,6 +1484,47 @@ export default class PluginRegistry {
      */
     registerSidebarChannelLinkLabelComponent = reArg(['component'], ({component}: DPluginComponentProp) => {
         return this.dispatchPluginComponentAction('SidebarChannelLinkLabel', component);
+    });
+
+    /**
+     * INTERNAL: Subject to change without notice.
+     * Register a component rendered inside a channel's item in the channel sidebar, right below
+     * the channel's link, for channels the matcher selects. It renders wherever the channel is
+     * listed (Favorites, custom categories, Agents, ...), since it belongs to the channel and not
+     * to the category.
+     *
+     * `matcher` receives the full GlobalState as the first argument and a Channel object as the
+     * second, so it can read plugin-owned slices (e.g. state['plugins-<id>']). It runs on every
+     * store update for each channel in the sidebar, so it must be cheap or memoized by the plugin.
+     * Matcher throws are caught and treated as no-match. Unlike registerChannelViewComponent,
+     * every registration whose matcher returns exactly `true` renders, in registration order.
+     *
+     * `component` receives {channel, currentTeamName, isCurrentChannel}. A component that throws
+     * is hidden, and only the first error per plugin is logged. The item is also the drag handle
+     * for moving the channel between categories, and drags that start on interactive elements
+     * such as buttons and inputs don't move it. A drag that starts on a link, or on other text,
+     * does, so keep links to clicks. Children of a channel in a collapsed category are
+     * hidden with it unless the channel is the current or an unread channel.
+     *
+     * Registrations are cleaned up automatically when the plugin is removed.
+     *
+     * @returns Auto-generated unique id for this registration, usable with `unregisterComponent`.
+     */
+    registerSidebarChannelChildrenComponent = reArg(['matcher', 'component'], ({matcher, component}: {
+        matcher: SidebarChannelChildrenRegistration['matcher'];
+        component: SidebarChannelChildrenRegistration['component'];
+    }) => {
+        if (this.isActive()) {
+            clearLoggedSidebarChannelChildrenErrors(this.id);
+        }
+        const id = generateId();
+        this.dispatchPluginComponentWithData('SidebarChannelChildren', {
+            id,
+            pluginId: this.id,
+            matcher,
+            component,
+        });
+        return id;
     });
 
     /**

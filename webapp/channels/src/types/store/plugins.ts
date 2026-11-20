@@ -81,6 +81,7 @@ export type PluginsState = {
         EntityCardPart: EntityCardPartComponent[];
         ChannelIntro: ChannelIntroRegistration[];
         ChannelView: ChannelViewRegistration[];
+        SidebarChannelChildren: SidebarChannelChildrenRegistration[];
         PostHeader: PostHeaderComponent[];
         ComposerPlaceholder: ComposerPlaceholderRegistration[];
         ProductSwitcherMenuItem: ProductSwitcherMenuItemRegistration[];
@@ -543,6 +544,19 @@ export type ChannelViewPluginComponentProps = {
 export type ChannelViewRegistration = PluginComponent & {
     matcher: (state: GlobalState, channel: Channel) => boolean;
     component: React.ComponentType<ChannelViewPluginComponentProps>;
+};
+
+export type SidebarChannelChildrenComponentProps = {
+    channel: Channel;
+
+    /** The name of the current team, as used in the team's URL. */
+    currentTeamName: string;
+    isCurrentChannel: boolean;
+};
+
+export type SidebarChannelChildrenRegistration = PluginComponent & {
+    matcher: (state: GlobalState, channel: Channel) => boolean;
+    component: React.ComponentType<SidebarChannelChildrenComponentProps>;
 };
 
 export type PostHeaderComponent = PluginComponent & {

@@ -6,10 +6,16 @@ import classNames from 'classnames';
 import React, {useState} from 'react';
 import type {AnimationEvent, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
+import {shallowEqual, useSelector} from 'react-redux';
+
+import {getSidebarChannelChildrenRegistrations} from 'selectors/sidebar_channel_children';
 
 import Constants from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
 import SidebarBaseChannel from './sidebar_base_channel';
+import SidebarChannelChildren from './sidebar_channel_children';
 import SidebarDirectChannel from './sidebar_direct_channel';
 import SidebarGroupChannel from './sidebar_group_channel';
 
@@ -33,6 +39,7 @@ function SidebarChannel({
     autoSortedCategoryIds,
 }: Props) {
     const [show, setShow] = useState(true);
+    const childrenRegistrations = useSelector((state: GlobalState) => getSidebarChannelChildrenRegistrations(state, channel), shallowEqual);
     if (!channel) {
         return null;
     }
@@ -68,6 +75,16 @@ function SidebarChannel({
             setShow(false);
         }
     }
+
+    const hasChildren = show && childrenRegistrations.length > 0;
+    const children = hasChildren ? (
+        <SidebarChannelChildren
+            registrations={childrenRegistrations}
+            channel={channel}
+            currentTeamName={currentTeamName}
+            isCurrentChannel={isCurrentChannel}
+        />
+    ) : null;
 
     let component: ReactNode;
     if (!show) {
@@ -124,6 +141,7 @@ function SidebarChannel({
                                 expanded: !isCollapsed(),
                                 unread: isUnread,
                                 active: isCurrentChannel,
+                                hasChildren,
                                 dragging: snapshot.isDragging,
                                 selectedDragging: isChannelSelected && draggingState.state && draggingState.id !== channel.id,
                                 fadeOnDrop: snapshot.isDropAnimating && snapshot.draggingOver && autoSortedCategoryIds.has(snapshot.draggingOver),
@@ -137,6 +155,7 @@ function SidebarChannel({
                             tabIndex={-1}
                         >
                             {component}
+                            {children}
                             {selectedCount}
                         </li>
                     );
@@ -153,12 +172,14 @@ function SidebarChannel({
                 expanded: !isCollapsed(),
                 unread: isUnread,
                 active: isCurrentChannel,
+                hasChildren,
             })}
             onAnimationStart={handleAnimationStart}
             onAnimationEnd={handleAnimationEnd}
             role='listitem'
         >
             {component}
+            {children}
         </li>
     );
 }

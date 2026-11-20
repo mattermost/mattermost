@@ -923,6 +923,24 @@ $sidebarOpacityAnimationDuration: 0.15s;
             transition: all cubic-bezier(0.2, 1, 0.1, 1) 0.33s;
         }
 
+        &.hasChildren {
+            height: auto;
+            flex-direction: column;
+            align-items: stretch;
+
+            /* Lets browsers that support it animate to and from the automatic height when collapsing */
+            interpolate-size: allow-keywords;
+        }
+
+        .SidebarChannel__children {
+            width: 100%;
+
+            /* @hello-pangea/dnd only treats HTML elements as interactive, so an icon inside a button must not be the target of a drag */
+            button svg {
+                pointer-events: none;
+            }
+        }
+
         &.noFloat {
             transform: none !important;
         }

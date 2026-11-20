@@ -232,6 +232,7 @@ const initialComponents: PluginsState['components'] = {
     EntityCardPart: [],
     ChannelIntro: [],
     ChannelView: [],
+    SidebarChannelChildren: [],
     PostHeader: [],
     ComposerPlaceholder: [],
     ProductSwitcherMenuItem: [],
