@@ -36,6 +36,7 @@ func setupBurnOnReadABAC(t *testing.T, borAllowed bool) *TestHelper {
 	})
 
 	mockACS := &mocks.AccessControlServiceInterface{}
+	stubReadAccessNotGoverned(mockACS)
 	original := th.App.Srv().Channels().AccessControl
 	th.App.Srv().Channels().AccessControl = mockACS
 	t.Cleanup(func() { th.App.Srv().Channels().AccessControl = original })
@@ -47,6 +48,8 @@ func setupBurnOnReadABAC(t *testing.T, borAllowed bool) *TestHelper {
 	// Anything else the request evaluates must not be what fails the test.
 	mockACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+	// Posting passes the channel-access gates, which ask whether a policy governs them.
+	ungovernedChannelAccess(mockACS)
 
 	return th
 }
@@ -55,12 +58,14 @@ func setupBurnOnReadABAC(t *testing.T, borAllowed bool) *TestHelper {
 // everything else, for the cases where a policy tightens after a post was scheduled.
 func denyBurnOnReadPolicy(th *TestHelper) {
 	denyACS := &mocks.AccessControlServiceInterface{}
+	stubReadAccessNotGoverned(denyACS)
 	th.App.Srv().Channels().AccessControl = denyACS
 	denyACS.On("AccessEvaluation", mock.Anything, mock.MatchedBy(func(req model.AccessRequest) bool {
 		return req.Action == model.AccessControlPolicyActionCreateBurnOnReadPost
 	})).Return(model.AccessDecision{Decision: false}, (*model.AppError)(nil))
 	denyACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 		Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+	ungovernedChannelAccess(denyACS)
 }
 
 func burnOnReadScheduledPost(th *TestHelper) *model.ScheduledPost {
@@ -148,8 +153,10 @@ func TestBurnOnReadABACEnforcementDenies(t *testing.T) {
 	// everything except this one action — so this asserts zero evaluations instead.
 	t.Run("ordinary post never consults the PDP", func(t *testing.T) {
 		countingACS := &mocks.AccessControlServiceInterface{}
+		stubReadAccessNotGoverned(countingACS)
 		countingACS.On("AccessEvaluation", mock.Anything, mock.Anything).
 			Return(model.AccessDecision{Decision: true}, (*model.AppError)(nil))
+		ungovernedChannelAccess(countingACS)
 		previous := th.App.Srv().Channels().AccessControl
 		th.App.Srv().Channels().AccessControl = countingACS
 		defer func() { th.App.Srv().Channels().AccessControl = previous }()

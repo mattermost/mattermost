@@ -63,6 +63,13 @@ type FeatureFlags struct {
 	// PermissionPolicies dependency is enforced at every call site.
 	PolicySimulation bool
 
+	// FEATURE_FLAG_REMOVAL: ChannelPermissionActions - Remove this when the feature is GA.
+	// Gates the channel permission actions (channel_read_access,
+	// channel_write_access, channel_management_access) on permission
+	// and channel policies. When off, saving a policy that uses one is rejected,
+	// the webapp doesn't offer them, and rules already stored aren't enforced.
+	ChannelPermissionActions bool
+
 	ContentFlagging bool
 
 	EnableMattermostEntry bool
@@ -195,7 +202,7 @@ type FeatureFlags struct {
 	EnforceLogPathRoot bool
 
 	// HealthDashboard replaces the Workspace Optimization dashboard with the rules-driven
-	// Health Dashboard. Off by default.
+	// Health Dashboard.
 	HealthDashboard bool
 
 	// EnableBrotliCompression negotiates Brotli compression for API responses with
@@ -229,6 +236,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.ResourceAttributesInPolicies = true
 	f.ChannelPermissionPolicies = true
 	f.PolicySimulation = true
+	f.ChannelPermissionActions = false
 	f.ContentFlagging = true
 	f.EnableMattermostEntry = true
 
@@ -287,7 +295,7 @@ func (f *FeatureFlags) SetDefaults() {
 
 	f.EnforceLogPathRoot = false
 
-	f.HealthDashboard = false
+	f.HealthDashboard = true
 
 	f.EnableBrotliCompression = false
 

@@ -23,6 +23,7 @@ import (
 
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 const defaultEditor = "vi"
@@ -395,8 +396,14 @@ func configGetCmdF(c client.Client, _ *cobra.Command, args []string) error {
 		return errors.New("invalid key")
 	}
 
-	if cloudRestricted(config, path) && reflect.ValueOf(val).IsNil() {
-		return fmt.Errorf("accessing this config path: %s is restricted in a cloud environment", args[0])
+	if cloudRestricted(config, path) {
+		hidden, err := hiddenOnCloud(c, val)
+		if err != nil {
+			return err
+		}
+		if hidden {
+			return fmt.Errorf("accessing this config path: %s is restricted in a cloud environment", args[0])
+		}
 	}
 
 	printer.Print(val)
@@ -635,6 +642,30 @@ func cloudRestrictedR(t reflect.Type, path []string) bool {
 	}
 
 	return false
+}
+
+// hiddenOnCloud reports whether val, the value of a cloud-restricted setting, was left out of the
+// configuration by a Cloud server. A left-out value is nil, unless it can't be nil, such as a string,
+// when it is the zero value. An empty string may also be the setting's real value, so for one of those
+// it asks the server whether it is a Cloud server. Local mode leaves nothing out.
+func hiddenOnCloud(c client.Client, val any) (bool, error) {
+	rv := reflect.ValueOf(val)
+	switch rv.Kind() {
+	case reflect.Invalid:
+		return true, nil
+	case reflect.Chan, reflect.Func, reflect.Interface, reflect.Map, reflect.Pointer, reflect.Slice:
+		return rv.IsNil(), nil
+	}
+
+	if !rv.IsZero() || viper.GetBool("local") {
+		return false, nil
+	}
+
+	license, _, err := c.GetOldClientLicense(context.TODO(), "")
+	if err != nil {
+		return false, fmt.Errorf("failed to check whether the server is a Cloud server: %w", err)
+	}
+	return license["Cloud"] == "true", nil
 }
 
 func configExportCmdF(c client.Client, cmd *cobra.Command, _ []string) error {

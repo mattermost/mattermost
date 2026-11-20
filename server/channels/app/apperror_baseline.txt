@@ -66,7 +66,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckPasswordAndA
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckPluginAccessControlExpression
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckRolesExist
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckUserAllAuthenticationCriteria
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).CheckUserMfa
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CleanUpAfterPostDeletion
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).CleanupReportChunks
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).ClearChannelManagedCategory
@@ -596,7 +595,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).InviteNewUsersToT
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsBotExemptFromDMRestrictions
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsDeactivatedUserEmail
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsDiscoverableJoinAllowed
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsPasswordValid
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsPhase2MigrationCompleted
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsUserSignUpAllowed
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).IsUserTeamContentReviewer
@@ -948,14 +946,10 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).attachChannelScop
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).attachFilesToPost
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).authenticateUser
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildContentReviewYAML
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildFavoritedByList
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildFileDownloadSubject
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildPostAttachments
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildPostPriorities
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildPostReplies
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildShownByList
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildThreadContextForRewrite
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildThreadFollowers
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildUserChannelMemberships
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).buildUserTeamAndChannelMemberships
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).bulkImport
@@ -994,7 +988,6 @@ github.com/mattermost/mattermost/server/v8/channels/app.(*App).evaluateChannelMe
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).evaluateTeamMembership
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllBots
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllChannels
-github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllDirectChannels
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllDirectPosts
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllPosts
 github.com/mattermost/mattermost/server/v8/channels/app.(*App).exportAllTeams

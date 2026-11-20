@@ -139,6 +139,10 @@ type WebConn struct {
 	// active indicates whether there is an open websocket connection attached
 	// to this webConn or not.
 	Active atomic.Bool
+
+	sendClosed           atomic.Bool
+	authChallengeHandled atomic.Bool
+
 	// reuseCount indicates how many times this connection has been reused.
 	// This is used to differentiate between a fresh connection and
 	// a reused connection.
