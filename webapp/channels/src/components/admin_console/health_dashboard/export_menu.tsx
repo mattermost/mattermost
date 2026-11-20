@@ -100,8 +100,22 @@ const ExportMenu = ({onError}: Props) => {
                 dataTestId: 'healthDashboardExportButton',
                 as: ExportMenuTrigger,
                 disabled: exporting,
-                children: <FormattedMessage {...(exporting ? msg.exporting : msg.button)}/>,
+
+                // Both labels share one grid cell, so the button keeps the width of the
+                // longer one and doesn't push Re-run checks aside while exporting.
+                children: (
+                    <span className='HealthDashboard__exportLabel'>
+                        <span aria-hidden={exporting}>
+                            <FormattedMessage {...msg.button}/>
+                        </span>
+                        <span aria-hidden={!exporting}>
+                            <FormattedMessage {...msg.exporting}/>
+                        </span>
+                    </span>
+                ),
             }}
+            anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
+            transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menu={{
                 id: menuId,
                 'aria-label': formatMessage(msg.menuLabel),

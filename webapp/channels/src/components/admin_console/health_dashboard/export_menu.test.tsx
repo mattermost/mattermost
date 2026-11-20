@@ -121,12 +121,12 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
 
         const button = screen.getByTestId('healthDashboardExportButton');
         await waitFor(() => expect(button).toBeDisabled());
-        expect(button).toHaveTextContent('Exporting…');
+        expect(button).toHaveAccessibleName('Exporting…');
 
         resolve({content: 'report', filename: 'site-health.html'});
 
         await waitFor(() => expect(button).toBeEnabled());
-        expect(button).toHaveTextContent('Export');
+        expect(button).toHaveAccessibleName('Export');
     });
 
     test('shows an error when the export fails, and clears it on the next attempt', async () => {

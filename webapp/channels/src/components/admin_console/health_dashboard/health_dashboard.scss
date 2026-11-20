@@ -48,6 +48,18 @@
         gap: 8px;
     }
 
+    &__exportLabel {
+        display: inline-grid;
+
+        > span {
+            grid-area: 1 / 1;
+        }
+
+        > [aria-hidden='true'] {
+            visibility: hidden;
+        }
+    }
+
     &__toolbar {
         display: flex;
         flex-wrap: wrap;
