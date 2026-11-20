@@ -3,7 +3,7 @@
 
 import type {Page} from '@playwright/test';
 
-import {expect, test} from '@mattermost/playwright-lib';
+import {expectLoginHeading, App, expect, test} from '@mattermost/playwright-lib';
 
 // Helper function to intercept API request and modify the response
 async function interceptConfigWithLandingPage(page: Page, enabled: boolean) {
@@ -20,7 +20,7 @@ async function interceptConfigWithLandingPage(page: Page, enabled: boolean) {
     });
 }
 
-test('MM-T5640_1 should not see landing page ', async ({pw, page}) => {
+test('MM-T5640_1 should not see landing page ', async ({page}) => {
     await interceptConfigWithLandingPage(page, false);
 
     // Navigate to your starting URL
@@ -32,8 +32,13 @@ test('MM-T5640_1 should not see landing page ', async ({pw, page}) => {
     // At this point, the URL should contain '/login'
     expect(page.url()).toContain('/login');
 
-    // Verify the login page is visible
-    await pw.loginPage.toBeVisible();
+    // * The login page shows, and not the landing page
+    const app = new App(page);
+    await expect(app.login.loginId.container).toBeVisible();
+
+    await expectLoginHeading(app);
+    await expect(app.login.password.container).toBeVisible();
+    await expect(app.linkingLanding.openBrowserLink).toHaveCount(0);
 });
 
 test('MM-T5640_2 should see landing page', async ({pw, page}) => {
@@ -46,6 +51,8 @@ test('MM-T5640_2 should see landing page', async ({pw, page}) => {
     // At this point, the URL should contain '/landing'
     expect(page.url()).toContain('/landing');
 
-    // Verify the landing page is visible
-    await pw.landingLoginPage.toBeVisible();
+    // * The landing page offers the desktop app and the browser
+    const {linkingLanding} = new App(page);
+    await expect(linkingLanding.openAppLink).toBeVisible();
+    await expect(linkingLanding.openBrowserLink).toBeVisible();
 });

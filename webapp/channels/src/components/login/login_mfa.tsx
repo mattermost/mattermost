@@ -55,6 +55,7 @@ const LoginMfa = ({loginId, password, title, subtitle, onSubmit}: LoginMfaProps)
                 <div className='login-mfa-form'>
                     <Input
                         name='token'
+                        testId='login_mfa.token'
                         containerClassName='login-mfa-form-input'
                         type='text'
                         inputSize={SIZE.LARGE}
@@ -66,6 +67,7 @@ const LoginMfa = ({loginId, password, title, subtitle, onSubmit}: LoginMfaProps)
                     />
                     <div className='login-mfa-form-button-container'>
                         <SaveButton
+                            testId='login_mfa.submit'
                             extraClasses='login-mfa-form-button-submit large'
                             saving={saving}
                             disabled={!token}

@@ -5,11 +5,18 @@ import React, {memo, type JSX} from 'react';
 
 type ErrorLabelProps = {
     errorText?: string | JSX.Element;
+
+    testId?: string;
 };
 
-const ErrorLabel = ({errorText}: ErrorLabelProps) => (errorText ? (
+const ErrorLabel = ({errorText, testId}: ErrorLabelProps) => (errorText ? (
     <div className='form-group has-error'>
-        <label className='control-label'>{errorText}</label>
+        <label
+            className='control-label'
+            data-testid={testId ? `${testId}--text` : undefined}
+        >
+            {errorText}
+        </label>
     </div>
 ) : null);
 

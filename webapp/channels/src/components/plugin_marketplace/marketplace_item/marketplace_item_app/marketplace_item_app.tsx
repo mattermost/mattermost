@@ -42,6 +42,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
             return (
                 <Button
                     className='app-installed'
+                    data-testid='marketplace_modal.app.installed--button'
                     emphasis='tertiary'
                     disabled={true}
                 >
@@ -81,6 +82,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
             <Button
                 onClick={this.onInstall}
                 className='app-install'
+                data-testid='marketplace_modal.app.install--button'
                 loading={this.props.installing}
             >
                 {actionLabel}
@@ -97,6 +99,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
                     versionLabel={null}
                     iconSource={this.props.iconURL}
                     {...this.props}
+                    testId='marketplace_modal.app'
                 />
             </>
         );
