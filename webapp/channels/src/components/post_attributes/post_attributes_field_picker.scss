@@ -1,0 +1,13 @@
+// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
+// A channel with many attributes scrolls the list, not the page; the search
+// box above it stays put.
+.PostAttributesFieldPicker__menu {
+    max-height: 280px;
+    overflow-y: auto;
+}
+
+.PostAttributesFieldPicker__search {
+    padding: var(--spacing-xs) var(--spacing-l) var(--spacing-xxs);
+}

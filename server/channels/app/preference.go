@@ -50,13 +50,10 @@ func (a *App) UpdatePreferences(rctx request.CTX, userID string, preferences mod
 	}
 
 	if err := a.Srv().Store().Preference().Save(preferences); err != nil {
-		var appErr *model.AppError
-		switch {
-		case errors.As(err, &appErr):
+		if appErr, ok := errors.AsType[*model.AppError](err); ok {
 			return appErr
-		default:
-			return model.NewAppError("UpdatePreferences", "app.preference.save.updating.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
+		return model.NewAppError("UpdatePreferences", "app.preference.save.updating.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	if err := a.Srv().Store().Channel().UpdateSidebarChannelsByPreferences(preferences); err != nil {

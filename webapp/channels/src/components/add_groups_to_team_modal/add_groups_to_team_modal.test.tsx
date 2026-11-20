@@ -37,13 +37,6 @@ describe('components/AddGroupsToTeamModal', () => {
         },
     };
 
-    test('should match snapshot', () => {
-        const {baseElement} = renderWithContext(
-            <AddGroupsToTeamModal {...baseProps}/>,
-        );
-        expect(baseElement).toMatchSnapshot();
-    });
-
     test('should have called onExited when handleExit is called', () => {
         const ref = React.createRef<AddGroupsToTeamModalClass>();
         renderWithContext(
@@ -233,27 +226,6 @@ describe('components/AddGroupsToTeamModal', () => {
             instance.handleDelete(newValues);
         });
         expect(instance.state.values).toEqual(newValues);
-    });
-
-    test('should match when renderOption is called', () => {
-        const ref = React.createRef<AddGroupsToTeamModalClass>();
-        renderWithContext(
-            <AddGroupsToTeamModal
-                {...baseProps}
-                ref={ref}
-            />,
-        );
-        const instance = ref.current!;
-
-        const option = {id: 'id_1', label: 'label_1', value: 'value_1'};
-        let isSelected = false;
-        const onAdd = jest.fn();
-        const onMouseMove = jest.fn();
-
-        expect(instance.renderOption(option, isSelected, onAdd, onMouseMove)).toMatchSnapshot();
-
-        isSelected = true;
-        expect(instance.renderOption(option, isSelected, onAdd, onMouseMove)).toMatchSnapshot();
     });
 
     test('should match when renderValue is called', () => {

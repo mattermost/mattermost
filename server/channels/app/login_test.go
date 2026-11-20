@@ -4,9 +4,11 @@
 package app
 
 import (
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -14,6 +16,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/hashers"
+	"github.com/mattermost/mattermost/server/v8/channels/app/password/phcparser"
 )
 
 func TestCWSLogin(t *testing.T) {
@@ -642,6 +646,176 @@ func TestDoLogin_RespectsUserDeleteAt(t *testing.T) {
 			sessionsAfter, getErr := th.App.GetSessions(th.Context, user.Id)
 			require.Nil(t, getErr)
 			assert.Equal(t, len(sessionsBefore), len(sessionsAfter))
+		})
+	}
+}
+
+// countingCompareHasher counts CompareHashAndPassword calls for one password
+// that actually ran the inner hasher's key derivation, so that parallel tests
+// sharing the global test hasher do not affect the count.
+type countingCompareHasher struct {
+	inner    hashers.PasswordHasher
+	password string
+	compares atomic.Int64
+}
+
+func (h *countingCompareHasher) Hash(password string) (string, error) {
+	return h.inner.Hash(password)
+}
+
+func (h *countingCompareHasher) IsPHCValid(phc phcparser.PHC) bool {
+	return h.inner.IsPHCValid(phc)
+}
+
+func (h *countingCompareHasher) CompareHashAndPassword(phc phcparser.PHC, password string) error {
+	err := h.inner.CompareHashAndPassword(phc, password)
+	if password == h.password && (err == nil || errors.Is(err, hashers.ErrMismatchedHashAndPassword)) {
+		h.compares.Add(1)
+	}
+	return err
+}
+
+func installCountingCompareHasher(t *testing.T, password string) *countingCompareHasher {
+	t.Helper()
+	previous := hashers.GetLatestHasher()
+	h := &countingCompareHasher{inner: hashers.FastTestHasher(), password: password}
+	hashers.SetTestHasher(h)
+	t.Cleanup(func() { hashers.SetTestHasher(previous) })
+	return h
+}
+
+func TestAuthenticateUserForLoginUnknownAccountHashes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		*cfg.EmailSettings.EnableSignInWithUsername = true
+		*cfg.ServiceSettings.MaximumLoginAttempts = 10
+	})
+
+	wrongPassword := "wrong-password-" + model.NewId()
+	counter := installCountingCompareHasher(t, wrongPassword)
+
+	user := th.CreateUser(t)
+
+	testCases := []struct {
+		name           string
+		id             string
+		loginID        string
+		wantErrID      string
+		wantStatusCode int
+		wantCompare    bool
+	}{
+		{
+			name:           "unknown username",
+			loginID:        "unknown" + model.NewUsername(),
+			wantErrID:      "store.sql_user.get_for_login.app_error",
+			wantStatusCode: http.StatusBadRequest,
+			wantCompare:    true,
+		},
+		{
+			name:           "unknown email",
+			loginID:        "unknown-" + model.NewId() + "@example.com",
+			wantErrID:      "store.sql_user.get_for_login.app_error",
+			wantStatusCode: http.StatusBadRequest,
+			wantCompare:    true,
+		},
+		{
+			name:           "unknown user id",
+			id:             model.NewId(),
+			wantErrID:      MissingAccountError,
+			wantStatusCode: http.StatusBadRequest,
+			wantCompare:    true,
+		},
+		{
+			// checkUserPassword resolves the hasher from the stored PHC string and never
+			// returns the installed test hasher, so the counter cannot observe this path.
+			name:           "existing user with wrong password",
+			loginID:        user.Username,
+			wantErrID:      "api.user.check_user_password.invalid.app_error",
+			wantStatusCode: http.StatusUnauthorized,
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			before := counter.compares.Load()
+
+			authUser, appErr := th.App.AuthenticateUserForLogin(th.Context, tc.id, tc.loginID, wrongPassword, "", "", false)
+			require.NotNil(t, appErr)
+			require.Nil(t, authUser)
+			assert.Equal(t, tc.wantErrID, appErr.Id)
+			assert.Equal(t, tc.wantStatusCode, appErr.StatusCode)
+
+			if tc.wantCompare {
+				assert.GreaterOrEqual(t, counter.compares.Load()-before, int64(1), "expected a password hash comparison for an unknown account")
+			}
+		})
+	}
+}
+
+func TestAuthenticateUserForLoginNonPasswordAccountHashes(t *testing.T) {
+	th := Setup(t).InitBasic(t)
+
+	th.UpdateConfig(t, func(cfg *model.Config) {
+		*cfg.EmailSettings.EnableSignInWithEmail = true
+		*cfg.EmailSettings.EnableSignInWithUsername = true
+		*cfg.ServiceSettings.MaximumLoginAttempts = 10
+		*cfg.LdapSettings.Enable = false
+	})
+
+	wrongPassword := "wrong-password-" + model.NewId()
+	counter := installCountingCompareHasher(t, wrongPassword)
+
+	testCases := []struct {
+		name        string
+		authService string
+		wantErrID   string
+	}{
+		{
+			name:        "gitlab account",
+			authService: model.UserAuthServiceGitlab,
+			wantErrID:   "api.user.login.use_auth_service.app_error",
+		},
+		{
+			name:        "saml account",
+			authService: model.UserAuthServiceSaml,
+			wantErrID:   "api.user.login.use_auth_service.app_error",
+		},
+		{
+			name:        "openid account",
+			authService: model.ServiceOpenid,
+			wantErrID:   "api.user.login.use_auth_service.app_error",
+		},
+		{
+			name:        "ldap account with ldap unavailable",
+			authService: model.UserAuthServiceLdap,
+			wantErrID:   "api.user.login_ldap.not_available.app_error",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			authData := model.NewId()
+			user, appErr := th.App.CreateUser(th.Context, &model.User{
+				Email:         "success+" + model.NewId() + "@simulator.amazonses.com",
+				Username:      "un_" + model.NewId(),
+				EmailVerified: true,
+				AuthService:   tc.authService,
+				AuthData:      &authData,
+			})
+			require.Nil(t, appErr)
+
+			for _, login := range []struct{ id, loginID string }{{loginID: user.Username}, {loginID: user.Email}, {id: user.Id}} {
+				before := counter.compares.Load()
+
+				authUser, appErr := th.App.AuthenticateUserForLogin(th.Context, login.id, login.loginID, wrongPassword, "", "", false)
+				require.NotNil(t, appErr)
+				require.Nil(t, authUser)
+				assert.Equal(t, tc.wantErrID, appErr.Id)
+
+				assert.GreaterOrEqual(t, counter.compares.Load()-before, int64(1), "expected a password hash comparison for an account that cannot sign in with a password")
+			}
 		})
 	}
 }

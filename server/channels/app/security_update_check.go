@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"runtime"
 	"strconv"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -30,9 +31,15 @@ const (
 	PropSecurityTeamCount       = "tc"
 	PropSecurityActiveUserCount = "auc"
 	PropSecurityUnitTests       = "ut"
+
+	securityUpdateCheckTimeout = 10 * time.Second
 )
 
 func (s *Server) DoSecurityUpdateCheck() {
+	s.doSecurityUpdateCheck(PropSecurityURL, &http.Client{Timeout: securityUpdateCheckTimeout})
+}
+
+func (s *Server) doSecurityUpdateCheck(securityURL string, client *http.Client) {
 	if !*s.platform.Config().ServiceSettings.EnableSecurityFixAlert {
 		return
 	}
@@ -87,7 +94,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 			v.Set(PropSecurityTeamCount, strconv.FormatInt(teamCount, 10))
 		}
 
-		res, err := http.Get(PropSecurityURL + "/security?" + v.Encode())
+		res, err := client.Get(securityURL + "/security?" + v.Encode())
 		if err != nil {
 			mlog.Error("Failed to get security update information from Mattermost.")
 			return
@@ -110,7 +117,7 @@ func (s *Server) DoSecurityUpdateCheck() {
 						return
 					}
 
-					resBody, err := http.Get(PropSecurityURL + "/bulletins/" + bulletin.Id)
+					resBody, err := client.Get(securityURL + "/bulletins/" + bulletin.Id)
 					if err != nil {
 						mlog.Error("Failed to get security bulletin details")
 						return

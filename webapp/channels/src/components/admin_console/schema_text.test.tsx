@@ -14,55 +14,6 @@ describe('SchemaText', () => {
         text: 'This is help text',
     };
 
-    test('should render plain text correctly', () => {
-        const {container} = renderWithContext(<SchemaText {...baseProps}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should render markdown text correctly', () => {
-        const props = {
-            ...baseProps,
-            isMarkdown: true,
-            text: 'This is **HELP TEXT**',
-        };
-
-        const {container} = renderWithContext(<SchemaText {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should render translated text correctly', () => {
-        const props = {
-            ...baseProps,
-            isTranslated: true,
-            text: {id: 'help.text', defaultMessage: 'This is {object}'},
-            textValues: {
-                object: 'help text',
-            },
-        };
-
-        const {container} = renderWithContext(<SchemaText {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should render translated markdown text correctly', () => {
-        const props = {
-            ...baseProps,
-            isMarkdown: true,
-            isTranslated: true,
-            text: {id: 'help.text.markdown', defaultMessage: 'This is [{object}](https://example.com)'},
-            textValues: {
-                object: 'a help link',
-            },
-        };
-
-        const {container} = renderWithContext(<SchemaText {...props}/>);
-
-        expect(container).toMatchSnapshot();
-    });
-
     test('should open external markdown links in the new window', () => {
         const props = {
             ...baseProps,

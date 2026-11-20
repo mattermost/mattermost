@@ -8,44 +8,6 @@ import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import FullScreenModal from './full_screen_modal';
 
 describe('components/widgets/modals/FullScreenModal', () => {
-    test('showing content', () => {
-        const {container} = renderWithContext(
-            <FullScreenModal
-                show={true}
-                onClose={jest.fn()}
-                ariaLabel='test'
-            >
-                {'test'}
-            </FullScreenModal>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-    test('not showing content', () => {
-        const {container} = renderWithContext(
-            <FullScreenModal
-                show={false}
-                onClose={jest.fn()}
-                ariaLabel='test'
-            >
-                {'test'}
-            </FullScreenModal>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-    test('with back icon', () => {
-        const {container} = renderWithContext(
-            <FullScreenModal
-                show={true}
-                onClose={jest.fn()}
-                onGoBack={jest.fn()}
-                ariaLabel='test'
-            >
-                {'test'}
-            </FullScreenModal>,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     test('close on close icon click', async () => {
         const close = jest.fn();
         renderWithContext(

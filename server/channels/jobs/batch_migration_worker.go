@@ -97,9 +97,9 @@ func (worker *BatchMigrationWorker) checkIsClusterInSync(rctx request.CTX) bool 
 			rctx.Logger().Warn(
 				"Worker: cluster not in sync",
 				mlog.String("schema_version_a", clusterStatus[0].SchemaVersion),
-				mlog.String("schema_version_b", clusterStatus[1].SchemaVersion),
+				mlog.String("schema_version_b", clusterStatus[i].SchemaVersion),
 				mlog.String("server_ip_a", clusterStatus[0].IPAddress),
-				mlog.String("server_ip_b", clusterStatus[1].IPAddress),
+				mlog.String("server_ip_b", clusterStatus[i].IPAddress),
 			)
 			return false
 		}

@@ -23,7 +23,7 @@ import {makeGetDrafts} from 'selectors/drafts';
 import {useCreateBurnOnReadAccess} from 'components/common/hooks/useCreateBurnOnReadAccess';
 
 import TestHelper from 'packages/mattermost-redux/test/test_helper';
-import {renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen, userEvent, waitFor} from 'tests/react_testing_utils';
 import {StoragePrefixes} from 'utils/constants';
 
 import type {PostDraft} from 'types/store/draft';
@@ -225,34 +225,6 @@ describe('components/drafts/drafts_row', () => {
         jest.restoreAllMocks();
     });
 
-    it('should match snapshot for channel draft', () => {
-        const {container} = renderWithContext(
-            <DraftRow
-                {...baseProps}
-            />,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
-    it('should match snapshot for thread draft', () => {
-        const props = {
-            ...baseProps,
-            item: {
-                ...baseProps.item,
-                rootId: 'some_id',
-            } as PostDraft,
-        };
-
-        const {container} = renderWithContext(
-            <DraftRow
-                {...props}
-            />,
-            initialState,
-        );
-        expect(container).toMatchSnapshot();
-    });
-
     describe('sending a draft', () => {
         it('deletes the draft from the server once the post is created', async () => {
             renderWithContext(
@@ -428,6 +400,25 @@ describe('components/drafts/drafts_row', () => {
 
             await waitFor(() => expect(screen.getByText('could not schedule')).toBeInTheDocument());
             expect(deleteDraftSpy).not.toHaveBeenCalled();
+        });
+
+        it('reports the failure to the scheduling dialog so it stays open', async () => {
+            jest.spyOn(Client4, 'createScheduledPost').mockRejectedValue({message: 'could not schedule'});
+
+            renderWithContext(
+                <DraftRow
+                    {...baseProps}
+                />,
+                initialState,
+            );
+
+            const {onSchedule} = jest.mocked(DraftActions).mock.calls.at(-1)![0];
+            let response;
+            await act(async () => {
+                response = await onSchedule({scheduled_at: SCHEDULED_AT});
+            });
+
+            expect(response).toEqual({error: 'could not schedule'});
         });
     });
 

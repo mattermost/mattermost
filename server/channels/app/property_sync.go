@@ -231,8 +231,7 @@ func (s *PropertySyncer) SyncUser(rctx request.CTX, userID string, attrs map[str
 			outcome.Reason = err.Error()
 			// Unlinked since this syncer loaded it: the field is the admin's
 			// again, so its value is left alone and it is not synced again.
-			var appErr *model.AppError
-			if errors.As(err, &appErr) && appErr.Id == propertyFieldSyncSourceUnlinkedErrorID {
+			if appErr, ok := errors.AsType[*model.AppError](err); ok && appErr.Id == propertyFieldSyncSourceUnlinkedErrorID {
 				s.forget(rctx, sf, "it is no longer synced from this source")
 				result.Fields = append(result.Fields, outcome)
 				continue
