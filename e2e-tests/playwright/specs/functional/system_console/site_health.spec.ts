@@ -688,7 +688,7 @@ test('downloads the Site health findings as HTML', {tag: '@system_console'}, asy
     ]);
 
     // * Verify the file name and that the report contains the finding
-    expect(download.suggestedFilename()).toMatch(/^site-health-.+-\d{4}-\d{2}-\d{2}\.html$/);
+    expect(download.suggestedFilename()).toMatch(/^mm_site_health_.+_\d{4}-\d{2}-\d{2}T\d{2}-\d{2}\.html$/);
     const html = await readFile(await download.path(), 'utf8');
     expect(html).toContain(LOG_WEBHOOK_PAYLOADS.title);
 });

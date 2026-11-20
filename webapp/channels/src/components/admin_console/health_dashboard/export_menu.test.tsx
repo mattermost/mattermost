@@ -76,8 +76,8 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
     });
 
     test.each([
-        ['Download HTML', 'html', 'site-health-site-2026-11-19.html'],
-        ['Download Markdown', 'md', 'site-health-site-2026-11-19.md'],
+        ['Download HTML', 'html', 'mm_site_health_site_2026-11-19T09-16.html'],
+        ['Download Markdown', 'md', 'mm_site_health_site_2026-11-19T09-16.md'],
     ])('%s downloads the export under the server file name', async (item, format, filename) => {
         const exportHealthFindings = jest.spyOn(Client4, 'exportHealthFindings').mockResolvedValue({content: 'report', filename});
         const click = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
@@ -93,7 +93,7 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
     });
 
     test('Print / Save as PDF prints the HTML export from a sandboxed hidden iframe, titled after the export file', async () => {
-        const exportHealthFindings = jest.spyOn(Client4, 'exportHealthFindings').mockResolvedValue({content: '<h1>Report</h1>', filename: 'site-health-Mattermost-2026-11-20.html'});
+        const exportHealthFindings = jest.spyOn(Client4, 'exportHealthFindings').mockResolvedValue({content: '<h1>Report</h1>', filename: 'mm_site_health_Mattermost_2026-11-20T09-16.html'});
         const click = jest.spyOn(HTMLAnchorElement.prototype, 'click');
         document.title = 'System Console - Mattermost';
 
@@ -115,7 +115,7 @@ describe('components/admin_console/health_dashboard/export_menu', () => {
         });
         await userEvent.click(screen.getByRole('menuitem', {name: 'Print / Save as PDF'}));
 
-        await waitFor(() => expect(titleWhilePrinting).toBe('site-health-Mattermost-2026-11-20'));
+        await waitFor(() => expect(titleWhilePrinting).toBe('mm_site_health_Mattermost_2026-11-20T09-16'));
         const frame = document.querySelector('iframe')!;
         expect(exportHealthFindings).toHaveBeenCalledWith('html');
         expect(frame.getAttribute('sandbox')).toBe('allow-modals allow-same-origin');
