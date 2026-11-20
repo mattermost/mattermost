@@ -3755,7 +3755,7 @@ func getChannelMembersForUser(c *Context, w http.ResponseWriter, r *http.Request
 		// dropped" from "end of the list", so one denial would truncate everything after
 		// it. The NDJSON branch below keeps its raw pages for the same reason.
 		page := c.Params.Page
-		members, truncated, err := putils.FetchUntil(page, c.Params.PerPage,
+		members, _, truncated, err := putils.FetchUntil(page, c.Params.PerPage,
 			func(from int) ([]model.ChannelMemberWithTeamData, error) {
 				cursor := &model.ChannelMemberCursor{
 					Page:    from,

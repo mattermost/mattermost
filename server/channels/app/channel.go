@@ -2548,7 +2548,7 @@ func (a *App) fillChannelPage(rctx request.CTX, userID string, offset, limit int
 		return fetch(offset, limit)
 	}
 
-	kept, truncated, err := putils.FetchUntil(offset, limit,
+	kept, _, truncated, err := putils.FetchUntil(offset, limit,
 		func(from int) ([]*model.Channel, error) {
 			page, err := fetch(from, limit)
 			if err == nil {
