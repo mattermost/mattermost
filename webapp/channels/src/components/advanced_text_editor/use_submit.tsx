@@ -72,6 +72,7 @@ const useSubmit = (
     skipCommands?: boolean,
     isInEditMode?: boolean,
     postId?: string,
+    propertyValues?: Array<{field_id: string; value: unknown}>,
 ) => {
     const getGroupMentions = useGroups(channelId, draft.message);
 
@@ -194,6 +195,7 @@ const useSubmit = (
             afterSubmit,
             afterOptimisticSubmit,
             keepDraft: createPostOptions?.keepDraft,
+            propertyValues,
         };
 
         try {
@@ -269,6 +271,7 @@ const useSubmit = (
         isInEditMode,
         handleFileChange,
         editingPostRefocusId,
+        propertyValues,
     ]);
 
     const setUpdatedFileIds = useCallback((draft: PostDraft) => {

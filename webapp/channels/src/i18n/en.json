@@ -28455,6 +28455,14 @@
     "defaultMessage": "Attributes",
     "description": "Heading of the hover card that appears over the attribute chips of a post, above the list of attribute names and values. Plural noun."
   },
+  "post_attributes.chip.post": {
+    "defaultMessage": "Message",
+    "description": "Text of an attribute chip under a post whose value is a link to another message, when that message is not loaded. Noun."
+  },
+  "post_attributes.chip.post_in_channel": {
+    "defaultMessage": "Message in ~{channel}",
+    "description": "Text of an attribute chip under a post whose value is a link to another message. {channel} is the name of the channel that message is in."
+  },
   "post_attributes.chips.overflow": {
     "defaultMessage": "+{count, number}",
     "description": "Visible text of the overflow badge after the attribute chips under a post, for chips that do not fit. {count} is the number of hidden attributes."
@@ -28465,7 +28473,39 @@
   },
   "post_attributes.composer.add": {
     "defaultMessage": "Add attributes",
-    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens the modal for adding attributes to the message being written. Plural noun after a verb."
+    "description": "Tooltip and accessible label of the button in the message composer formatting bar that opens a menu of attributes to add to the message being written. Plural noun after a verb."
+  },
+  "post_attributes.composer.cannot_add_burn_on_read": {
+    "defaultMessage": "Burn-on-read messages can’t have attributes",
+    "description": "Tooltip on the disabled button for adding attributes in the message composer while the message being written is set to burn-on-read."
+  },
+  "post_attributes.composer.cannot_burn_on_read": {
+    "defaultMessage": "Messages with attributes can’t be burn-on-read",
+    "description": "Tooltip on the disabled burn-on-read button in the message composer while attributes are attached to the message being written."
+  },
+  "post_attributes.composer.cannot_schedule": {
+    "defaultMessage": "Messages with attributes can’t be scheduled",
+    "description": "Tooltip on the disabled schedule button in the message composer while attributes are attached to the message being written."
+  },
+  "post_attributes.composer.chip": {
+    "defaultMessage": "{field}: {value}",
+    "description": "Accessible name of an attribute chip in the message composer, read by screen readers. {field} is the attribute's name; {value} is the selected option or options."
+  },
+  "post_attributes.composer.chip.field": {
+    "defaultMessage": "{field}:",
+    "description": "Read by screen readers only, before the value of a text or user attribute chip in the message composer. {field} is the attribute's name."
+  },
+  "post_attributes.composer.chip.pending": {
+    "defaultMessage": "Select value for {field}",
+    "description": "Accessible name of an attribute chip in the message composer that has no value yet; activating it opens the list of values. {field} is the attribute's name."
+  },
+  "post_attributes.composer.group": {
+    "defaultMessage": "Attached post attributes",
+    "description": "Accessible label of the row of attribute chips above the message box in the composer."
+  },
+  "post_attributes.composer.remove": {
+    "defaultMessage": "Remove {attribute}",
+    "description": "Accessible label of the × button on an attribute chip in the message composer; {attribute} is the attribute's name. Verb."
   },
   "post_attributes.dot_menu.attributes": {
     "defaultMessage": "Attributes",
@@ -28473,11 +28513,11 @@
   },
   "post_attributes.modal.add": {
     "defaultMessage": "Add attribute",
-    "description": "Button text (after a + icon) at the bottom of the post attributes modal. It opens a menu listing the attributes that can be added to the post. Verb."
+    "description": "Button text (after a + icon), at the bottom of the post attributes modal and after the attribute chips in the message composer. It opens a menu listing the attributes that can be added to the post. Verb."
   },
   "post_attributes.modal.clear": {
     "defaultMessage": "Clear {attribute}",
-    "description": "Accessible label (screen readers only) of the button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
+    "description": "Tooltip and accessible label of the trash button that clears the value of one attribute in the post attributes modal. {attribute} is the display name of that attribute."
   },
   "post_attributes.modal.empty": {
     "defaultMessage": "There are no attributes on this post that you can view or add.",
@@ -28497,7 +28537,7 @@
   },
   "post_attributes.modal.picker.label": {
     "defaultMessage": "Add an attribute",
-    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute button in the post attributes modal, that lists attributes which can be added to the post."
+    "description": "Accessible label (screen readers only) of the menu, opened by the add attribute buttons in the post attributes modal and in the message composer, that lists attributes which can be added to the post."
   },
   "post_attributes.modal.subtitle": {
     "defaultMessage": "{author} · {channel}",
@@ -28506,6 +28546,14 @@
   "post_attributes.modal.title": {
     "defaultMessage": "Post attributes",
     "description": "Title of the modal where users view and edit the attributes (structured metadata fields) attached to a post."
+  },
+  "post_attributes.picker.no_results": {
+    "defaultMessage": "No matching attributes",
+    "description": "Shown in the add attribute menu, under its search box, when the search text matches no attribute."
+  },
+  "post_attributes.picker.search": {
+    "defaultMessage": "Search attributes",
+    "description": "Placeholder and accessible name of the search box at the top of the menu that lists the attributes that can be added to a post. Filters the list as the user types."
   },
   "post_body.check_for_out_of_channel_groups_mentions.message": {
     "defaultMessage": "did not get notified by this mention because they are not in the channel. They cannot be added to the channel because they are not a member of the linked groups. To add them to this channel, they must be added to the linked groups.",

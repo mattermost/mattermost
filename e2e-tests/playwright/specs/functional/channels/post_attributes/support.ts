@@ -1,9 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page, Request} from '@playwright/test';
+import type {Locator, Page, Request} from '@playwright/test';
 import type {Client4} from '@mattermost/client';
+import type {Post} from '@mattermost/types/posts';
 import type {FieldType, PropertyField, PropertyPermissionLevel} from '@mattermost/types/properties';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ChannelsPage, ChannelsPost, PlaywrightExtended} from '@mattermost/playwright-lib';
 
 export const GROUP = 'post_attributes';
 export const OBJECT_TYPE = 'post';
@@ -31,11 +36,17 @@ type CreateOptions = {
     options?: Array<string | {name: string; color: string}>;
 
     // Omitted means system-scoped, which applies to every channel. A channel id
-    // scopes the field to that channel only.
+    // scopes the field to that channel only, and a team id to that team's channels
+    // (and so never to a direct or group message).
     channelId?: string;
+    teamId?: string;
 
     visibility?: 'always' | 'when_set' | 'hidden';
     sortOrder?: number;
+
+    // A text field's subtype: `channel`, `team`, `timestamp` or `post` store an id or an
+    // epoch the chip resolves, and any other string is shown as plain text.
+    subType?: string;
 
     // Who may write a value. Omitted means the server's default, which for a
     // post-object field is `member` — so a field created without this is already
@@ -55,7 +66,7 @@ type CreateOptions = {
 export async function createField(
     adminClient: Client4,
     name: string,
-    {type, options = [], channelId, visibility, sortOrder, permissionValues}: CreateOptions = {},
+    {type, options = [], channelId, teamId, visibility, sortOrder, subType, permissionValues}: CreateOptions = {},
 ): Promise<PropertyField> {
     const attrs: Record<string, unknown> = {};
 
@@ -75,12 +86,15 @@ export async function createField(
     if (sortOrder !== undefined) {
         attrs.sort_order = sortOrder;
     }
+    if (subType) {
+        attrs.subType = subType;
+    }
 
     const field: Record<string, unknown> = {
         name,
         type: type ?? (options.length ? 'select' : 'text'),
-        target_type: channelId ? 'channel' : 'system',
-        target_id: channelId ?? '',
+        target_type: (channelId && 'channel') || (teamId && 'team') || 'system',
+        target_id: channelId ?? teamId ?? '',
         attrs,
     };
 
@@ -112,6 +126,146 @@ export async function setPostValues(
     items: Array<{field_id: string; value: unknown}>,
 ): Promise<void> {
     await client.patchPropertyValues(GROUP, OBJECT_TYPE, postId, items as Array<{field_id: string; value: unknown}>);
+}
+
+/**
+ * Changes some of a field's attrs, keeping the rest. A patch replaces `attrs` as a whole,
+ * so the field's current ones are sent back with the change applied.
+ */
+export async function patchFieldAttrs(
+    adminClient: Client4,
+    field: PropertyField,
+    attrs: Record<string, unknown>,
+): Promise<PropertyField> {
+    return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {attrs: {...field.attrs, ...attrs}});
+}
+
+// The most options one request to the options endpoint may carry.
+const OPTIONS_PER_REQUEST = 200;
+
+/**
+ * Adds options to a field through its options endpoint, as many requests as the count
+ * takes. The client has no method for that endpoint, so it is called directly.
+ */
+export async function addFieldOptions(adminClient: Client4, field: PropertyField, names: string[]): Promise<void> {
+    const route = adminClient.getPropertyFieldOptionsRoute(GROUP, OBJECT_TYPE, field.id);
+
+    for (let start = 0; start < names.length; start += OPTIONS_PER_REQUEST) {
+        const batch = names.slice(start, start + OPTIONS_PER_REQUEST).map((name) => ({name}));
+        const res = await fetch(route, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', Authorization: `Bearer ${adminClient.getToken()}`},
+            body: JSON.stringify(batch),
+        });
+
+        if (!res.ok) {
+            throw new Error(`adding options to ${field.name} failed: ${res.status} ${await res.text()}`);
+        }
+    }
+}
+
+/**
+ * Counts full page loads after the point it is called, so "without a reload" is asserted
+ * rather than assumed: a value or field that changes in place leaves the count at zero.
+ */
+export function countLoads(page: Page): () => number {
+    let loads = 0;
+
+    page.on('load', () => {
+        loads++;
+    });
+
+    return () => loads;
+}
+
+/**
+ * Creates a post the way the composer does: the values ride on the create request as
+ * `metadata.property_values`, so the server writes them as the post is made and announces
+ * them over the websocket, rather than a second request setting them afterwards.
+ */
+export async function createPostWithValues(
+    client: Client4,
+    channelId: string,
+    message: string,
+    items: SentValue[],
+    {rootId, type}: {rootId?: string; type?: string} = {},
+): Promise<Post> {
+    return client.createPost({
+        channel_id: channelId,
+        message,
+        root_id: rootId,
+        type,
+        metadata: {property_values: items},
+    } as unknown as Parameters<Client4['createPost']>[0]);
+}
+
+export type MemberOptions = {
+    // A guest account. The server refuses to make one while guest accounts are off.
+    guest?: boolean;
+
+    // Roles to hold on top of a plain account's.
+    systemAdmin?: boolean;
+    teamAdmin?: boolean;
+    channelAdmin?: boolean;
+};
+
+/**
+ * Creates another user, puts them on the team and in the given channels, and logs a
+ * client in as them, for a case that needs a second person acting on the same posts.
+ *
+ * `channelAdmin` applies to every channel given. `initSetup` already makes the first
+ * user and team; this is the second one, and the third.
+ */
+export async function addMember(
+    pw: PlaywrightExtended,
+    adminClient: Client4,
+    team: Team,
+    channelIds: string[],
+    {guest, systemAdmin, teamAdmin, channelAdmin}: MemberOptions = {},
+): Promise<{user: UserProfile & {password: string}; client: Client4}> {
+    const user = await pw.createNewUserProfile(adminClient, {prefix: guest ? 'guest' : 'member'});
+
+    if (guest) {
+        await adminClient.demoteUserToGuest(user.id);
+    }
+    if (systemAdmin) {
+        await adminClient.updateUserRoles(user.id, 'system_user system_admin');
+    }
+
+    await adminClient.addToTeam(team.id, user.id);
+
+    if (teamAdmin) {
+        await adminClient.updateTeamMemberSchemeRoles(team.id, user.id, true, true);
+    }
+
+    for (const channelId of channelIds) {
+        await adminClient.addToChannel(user.id, channelId);
+        if (channelAdmin) {
+            await adminClient.updateChannelMemberRoles(channelId, user.id, 'channel_user channel_admin');
+        }
+    }
+
+    const {client} = await pw.makeClient(user);
+
+    return {user, client};
+}
+
+/**
+ * Turns guest accounts on and gives back what undoes it, or undefined when the licence
+ * has no guest accounts at all, which is the case's cue to skip.
+ */
+export async function enableGuestAccounts(adminClient: Client4): Promise<(() => Promise<void>) | undefined> {
+    const license = await adminClient.getClientLicenseOld();
+    if (license.GuestAccounts !== 'true') {
+        return undefined;
+    }
+
+    const before = (await adminClient.getConfig()).GuestAccountsSettings.Enable;
+    await adminClient.patchConfig({GuestAccountsSettings: {Enable: true}});
+
+    return async () => {
+        await adminClient.patchConfig({GuestAccountsSettings: {Enable: before}});
+    };
 }
 
 export async function deleteFields(adminClient: Client4, fields: PropertyField[]): Promise<void> {
@@ -159,4 +313,129 @@ export function recordRequests(page: Page, fragment: string): string[] {
     });
 
     return urls;
+}
+
+/**
+ * Resolves with the request the composer sends to create a post. Arm it before the
+ * click that sends, or the request is missed.
+ *
+ * Matches the path exactly, so the per-post values and reaction calls that share the
+ * `/posts` prefix are not mistaken for it.
+ */
+export function waitForCreatePost(page: Page): Promise<Request> {
+    return page.waitForRequest((request) => {
+        return request.method() === 'POST' && new URL(request.url()).pathname.endsWith('/api/v4/posts');
+    });
+}
+
+export type SentValue = {field_id: string; value: unknown};
+
+/**
+ * What a create-post request carried as `metadata.property_values`, or undefined when
+ * the body has none.
+ */
+export function sentValues(request: Request): SentValue[] | undefined {
+    return request.postDataJSON()?.metadata?.property_values;
+}
+
+/**
+ * The composer-side locators for one field, scoped to one composer (centre or thread
+ * sidebar): both can be on screen at once and carry the same test ids.
+ */
+export function composerChips(scope: Locator) {
+    return scope.getByTestId('post-attributes-composer');
+}
+
+export function composerChip(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-chip-${field.name}`);
+}
+
+export function composerRest(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-rest-${field.name}`);
+}
+
+export function composerTrigger(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-trigger-${field.name}`);
+}
+
+export function composerInput(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-input-${field.name}`);
+}
+
+export function composerRemove(scope: Locator, field: PropertyField) {
+    return scope.getByTestId(`post-attribute-remove-${field.name}`);
+}
+
+// The `+` in the action row, and the `Add attribute` control that follows the chips.
+export function composerPlus(scope: Locator) {
+    return scope.getByTestId('post-attributes-composer-add');
+}
+
+export function composerInlineAdd(scope: Locator) {
+    return scope.getByTestId('post-attributes-add');
+}
+
+// The picker menu is portalled out of the composer, so it is found from the page.
+export function pickerItem(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-add-${field.name}`);
+}
+
+/**
+ * Stages a field by opening the `+` in the action row and choosing it from the
+ * picker. A select field's value menu opens by itself afterwards, and a text or user
+ * field's control takes focus.
+ */
+export async function stageField(page: Page, scope: Locator, field: PropertyField) {
+    await composerPlus(scope).click();
+    await pickerItem(page, field).click();
+}
+
+/**
+ * Picks an option in the value menu a select, rank or multiselect chip has open. The
+ * role differs by type: a multiselect's items are checkboxes and the others radios.
+ */
+export async function chooseOption(page: Page, name: string, {multi = false}: {multi?: boolean} = {}) {
+    await page.getByRole(multi ? 'menuitemcheckbox' : 'menuitemradio', {name, exact: true}).click();
+}
+
+/**
+ * The active system-scoped fields on the server, for a case that needs "no other field"
+ * to decide whether it can run. Call it after `purgeFields` and before the case creates
+ * its own: anything left then is either not the suite's to touch, or one of the suite's
+ * that the purge failed to delete, and either one would be offered alongside the case's.
+ */
+export async function activeSystemFields(adminClient: Client4): Promise<PropertyField[]> {
+    const fields = await adminClient.getPropertyFields(GROUP, OBJECT_TYPE, {targetType: 'system'});
+    return (fields ?? []).filter((field) => field.delete_at === 0);
+}
+
+// The edit modal's locators for one field. The modal is a dialog on the page, so they are
+// found from the page rather than from a post.
+export function modalRow(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-row-${field.name}`);
+}
+
+export function modalTrigger(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-trigger-${field.name}`);
+}
+
+export function modalClear(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-clear-${field.name}`);
+}
+
+export function modalInput(page: Page, field: PropertyField) {
+    return page.getByTestId(`post-attribute-input-${field.name}`);
+}
+
+/**
+ * Opens the post's `…` menu with the pointer and picks `Attributes`. The message text is
+ * hovered rather than the post, so the pointer never rests on the chip row and the hover
+ * card is not what opened the modal.
+ */
+export async function openModalFromPostMenu(channelsPage: ChannelsPage, post: ChannelsPost) {
+    await post.messageText.hover();
+    await post.postMenu.toBeVisible();
+    await post.postMenu.dotMenuButton.click();
+    await channelsPage.postDotMenu.toBeVisible();
+    await channelsPage.postDotMenu.container.getByRole('menuitem', {name: 'Attributes'}).click();
 }
