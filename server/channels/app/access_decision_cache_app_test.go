@@ -180,7 +180,10 @@ func TestAccessDecisionCacheInvalidationSources(t *testing.T) {
 			h.th.App.invalidateAccessDecisionsForSession(h.session.Id)
 		}},
 		{"session attributes are invalidated by platform", func(t *testing.T, h *accessDecisionCacheHarness) {
-			h.th.App.Srv().Channels().InvalidateAccessDecisionsForSession(h.session.Id)
+			h.th.App.Srv().Channels().InvalidateAccessDecisionsForSession(h.session.Id, true)
+		}},
+		{"a peer's changed session attributes arrive", func(t *testing.T, h *accessDecisionCacheHarness) {
+			clusterUpdateSessionAttributes(t, h, true)
 		}},
 		{"a session attribute field changes", func(t *testing.T, h *accessDecisionCacheHarness) {
 			group, err := h.th.App.Srv().propertyService.Group(model.SessionAttributesPropertyGroupName)
@@ -477,6 +480,60 @@ func TestAccessDecisionCacheSessionAttributeChange(t *testing.T) {
 	t.Run("a decision that doesn't say what it read is evaluated again", func(t *testing.T) {
 		evaluations := run(t, model.AccessDecision{Decision: true})
 		require.Equal(t, 2, evaluations)
+	})
+}
+
+// clusterUpdateSessionAttributes delivers a peer's session attribute refresh for h's session.
+func clusterUpdateSessionAttributes(t *testing.T, h *accessDecisionCacheHarness, visiblyChanged bool) {
+	t.Helper()
+	data, err := json.Marshal(model.SessionAttributesClusterPayload{
+		SessionID:      h.session.Id,
+		Attrs:          map[string]any{model.SessionAttributesPropertyFieldIPAddress: "192.0.2.30"},
+		Timestamp:      model.GetMillis(),
+		VisiblyChanged: visiblyChanged,
+	})
+	require.NoError(t, err)
+	h.th.App.Srv().Platform().ClusterUpdateSessionAttributesHandler(&model.ClusterMessage{
+		Event: model.ClusterEventUpdateSessionAttributes,
+		Data:  data,
+	})
+}
+
+// TestAccessDecisionCachePeerSessionAttributeRefresh covers the receiving side of a session
+// attribute change. The sender's invalidation is a separate message that can arrive first, so a
+// decision cached in between from the old values must still be dropped once the new ones land.
+func TestAccessDecisionCachePeerSessionAttributeRefresh(t *testing.T) {
+	t.Run("a visible change arriving after the invalidation drops the re-cached decision", func(t *testing.T) {
+		h := setupAccessDecisionCacheTest(t)
+		decides(h.acs, true)
+		cluster := &testlib.FakeClusterInterface{}
+		h.th.Server.Platform().SetCluster(cluster)
+
+		// The sender's invalidation arrives first, and a check re-caches from the old values.
+		h.th.App.Srv().Channels().clusterInvalidateAccessDecisionsHandler(&model.ClusterMessage{
+			Data: []byte(`{"s":["` + h.session.Id + `"]}`),
+		})
+		require.True(t, h.check(t))
+		require.Equal(t, 1, h.evaluations())
+
+		clusterUpdateSessionAttributes(t, h, true)
+		require.True(t, h.check(t))
+		require.Equal(t, 2, h.evaluations(), "the decision built from the old values was dropped")
+
+		h.th.App.Srv().Channels().accessDecisionBroadcaster.flush()
+		assert.Empty(t, cluster.SelectMessages(func(msg *model.ClusterMessage) bool {
+			return msg.Event == model.ClusterEventInvalidateAccessDecisions
+		}), "every node gets the attributes, so the receiver doesn't re-broadcast")
+	})
+
+	t.Run("a refresh that changes nothing visible keeps the decision", func(t *testing.T) {
+		h := setupAccessDecisionCacheTest(t)
+		decides(h.acs, true)
+
+		require.True(t, h.check(t))
+		clusterUpdateSessionAttributes(t, h, false)
+		require.True(t, h.check(t))
+		require.Equal(t, 1, h.evaluations())
 	})
 }
 

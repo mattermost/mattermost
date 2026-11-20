@@ -320,11 +320,17 @@ type accessDecisionCache struct {
 	ops *accessOpTable
 }
 
+func newAccessDecisionClock() func() int64 {
+	start := time.Now()
+	base := start.UnixNano()
+	return func() int64 { return base + int64(time.Since(start)) }
+}
+
 func newAccessDecisionCache(size int, maxAge time.Duration) *accessDecisionCache {
 	perShard := max(size/accessDecisionLRUShards, 1)
 
 	c := &accessDecisionCache{
-		now:           func() int64 { return time.Now().UnixNano() },
+		now:           newAccessDecisionClock(),
 		users:         newAccessVersionTable[accessID](),
 		sessions:      newAccessVersionTable[accessID](),
 		resources:     newAccessVersionTable[accessID](),

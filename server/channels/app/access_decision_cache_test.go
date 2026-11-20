@@ -28,6 +28,27 @@ func newTestAccessDecisionCache(t *testing.T, size int, maxAge time.Duration) (*
 	return c, clock
 }
 
+func TestAccessDecisionClock(t *testing.T) {
+	before := time.Now().UnixNano()
+	now := newAccessDecisionClock()
+	first := now()
+	after := time.Now().UnixNano()
+
+	// Epoch time, so session attribute deadlines compare against it. The wall clock can be
+	// coarser than the monotonic one, hence the slack.
+	slack := int64(time.Millisecond)
+	require.GreaterOrEqual(t, first, before-slack)
+	require.LessOrEqual(t, first, after+slack)
+
+	// Elapsed time comes from the monotonic reading, so it never goes backwards.
+	prev := first
+	for range 1000 {
+		next := now()
+		require.GreaterOrEqual(t, next, prev)
+		prev = next
+	}
+}
+
 func readLookup(t *testing.T, c *accessDecisionCache, kind accessSubjectKind, subjectID, userID, resourceID string) accessDecisionLookup {
 	t.Helper()
 	l, ok := c.prepare(kind, subjectID, userID, model.AccessControlPolicyTypeChannel, resourceID, model.AccessControlPolicyActionChannelReadAccess)

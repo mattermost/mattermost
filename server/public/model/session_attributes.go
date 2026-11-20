@@ -131,9 +131,10 @@ var SessionAttributesDeviceIDFieldNames = map[string]struct{}{
 }
 
 type SessionAttributesClusterPayload struct {
-	SessionID string         `json:"session_id"`
-	Attrs     map[string]any `json:"attrs"`
-	Timestamp int64          `json:"timestamp"`
+	SessionID      string         `json:"session_id"`
+	Attrs          map[string]any `json:"attrs"`
+	Timestamp      int64          `json:"timestamp"`
+	VisiblyChanged bool           `json:"visibly_changed,omitempty"`
 }
 
 type SAField struct {

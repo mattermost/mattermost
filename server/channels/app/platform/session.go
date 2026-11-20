@@ -141,7 +141,7 @@ func (ps *PlatformService) invalidateSessionAttributes(sessionID string) {
 	if err := ps.Store.SessionAttribute().Invalidate(sessionID); err != nil {
 		ps.logger.Warn("Failed to invalidate session attributes", mlog.String("session_id", sessionID), mlog.Err(err))
 	}
-	ps.invalidateAccessDecisionsForSession(sessionID)
+	ps.invalidateAccessDecisionsForSession(sessionID, true)
 }
 
 func (ps *PlatformService) GetSession(rctx request.CTX, token string) (*model.Session, error) {

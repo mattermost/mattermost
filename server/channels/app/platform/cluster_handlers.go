@@ -61,6 +61,10 @@ func (ps *PlatformService) ClusterUpdateSessionAttributesHandler(msg *model.Clus
 	if err := ps.Store.SessionAttribute().Refresh(payload.SessionID, payload.Attrs, payload.Timestamp); err != nil {
 		ps.logger.Warn("Failed to merge session attributes from cluster", mlog.String("session_id", payload.SessionID), mlog.Err(err))
 	}
+
+	if payload.VisiblyChanged {
+		ps.invalidateAccessDecisionsForSession(payload.SessionID, false)
+	}
 }
 
 func (ps *PlatformService) ClusterInvalidateAllCachesHandler(msg *model.ClusterMessage) {

@@ -16,7 +16,10 @@ import (
 )
 
 const (
-	// A batch is sent after the delay, or as soon as it holds maxIDs IDs.
+	// A batch is sent after the delay, or as soon as it holds maxIDs IDs. The originating node
+	// invalidates at once; until a batch arrives, other nodes keep serving the decisions it
+	// invalidates. That window is the delay plus cluster transport, and is expected: no design
+	// spanning nodes makes a change visible everywhere at the same instant.
 	accessDecisionBroadcastDelay  = 50 * time.Millisecond
 	accessDecisionBroadcastMaxIDs = 1000
 
@@ -109,8 +112,8 @@ func (ch *Channels) InvalidateAccessDecisionsForUser(userID string) {
 }
 
 // InvalidateAccessDecisionsForSession implements platform.AccessDecisionInvalidator.
-func (ch *Channels) InvalidateAccessDecisionsForSession(sessionID string) {
-	ch.invalidateAccessDecisions(accessDecisionInvalidation{Sessions: []string{sessionID}}, true)
+func (ch *Channels) InvalidateAccessDecisionsForSession(sessionID string, broadcast bool) {
+	ch.invalidateAccessDecisions(accessDecisionInvalidation{Sessions: []string{sessionID}}, broadcast)
 }
 
 // InvalidateAllAccessDecisions implements platform.AccessDecisionInvalidator.

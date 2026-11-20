@@ -4337,7 +4337,7 @@ func (s *AccessControlSettings) isValid() *AppError {
 const (
 	AccessControlDecisionCacheMaxAgeSecondsDefault = 60
 	AccessControlDecisionCacheMaxAgeSecondsMin     = 1
-	AccessControlDecisionCacheMaxAgeSecondsMax     = 3600
+	AccessControlDecisionCacheMaxAgeSecondsMax     = 300
 
 	AccessControlDecisionCacheSizeDefault = 1_000_000
 	AccessControlDecisionCacheSizeMin     = 1_000

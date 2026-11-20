@@ -7,8 +7,9 @@ package platform
 // node where a change happened; the app layer broadcasts it.
 type AccessDecisionInvalidator interface {
 	InvalidateAccessDecisionsForUser(userID string)
-	InvalidateAccessDecisionsForSession(sessionID string)
-	// InvalidateAllAccessDecisions with broadcast false is for callers that run on every node.
+	// InvalidateAccessDecisionsForSession and InvalidateAllAccessDecisions with broadcast false
+	// are for callers that run on every node.
+	InvalidateAccessDecisionsForSession(sessionID string, broadcast bool)
 	InvalidateAllAccessDecisions(broadcast bool)
 }
 
@@ -23,9 +24,9 @@ func (ps *PlatformService) invalidateAccessDecisionsForUser(userID string) {
 	}
 }
 
-func (ps *PlatformService) invalidateAccessDecisionsForSession(sessionID string) {
+func (ps *PlatformService) invalidateAccessDecisionsForSession(sessionID string, broadcast bool) {
 	if ps.accessDecisionInvalidator != nil {
-		ps.accessDecisionInvalidator.InvalidateAccessDecisionsForSession(sessionID)
+		ps.accessDecisionInvalidator.InvalidateAccessDecisionsForSession(sessionID, broadcast)
 	}
 }
 

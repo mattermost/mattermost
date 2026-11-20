@@ -237,8 +237,9 @@ func (a *App) ProcessSessionAttributesRequest(rctx request.CTX, r *http.Request)
 		if err := a.Srv().Store().SessionAttribute().Refresh(rctx.Session().Id, attrsToMerge, refreshAt); err != nil {
 			rctx.Logger().Warn("Failed to refresh session attributes", mlog.Err(err))
 		} else {
-			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt)
-			if sessionAttributesVisiblyChanged(attrsToMerge, cached, timestamps, fieldsByName, now) {
+			visiblyChanged := sessionAttributesVisiblyChanged(attrsToMerge, cached, timestamps, fieldsByName, now)
+			a.broadcastSessionAttributes(rctx, rctx.Session().Id, attrsToMerge, refreshAt, visiblyChanged)
+			if visiblyChanged {
 				a.invalidateAccessDecisionsForSession(rctx.Session().Id)
 			}
 		}
@@ -263,16 +264,17 @@ func sessionAttributesVisiblyChanged(attrs, cached map[string]any, timestamps ma
 	return false
 }
 
-func (a *App) broadcastSessionAttributes(rctx request.CTX, sessionID string, attrs map[string]any, refreshAt int64) {
+func (a *App) broadcastSessionAttributes(rctx request.CTX, sessionID string, attrs map[string]any, refreshAt int64, visiblyChanged bool) {
 	cluster := a.Cluster()
 	if cluster == nil {
 		return
 	}
 
 	data, err := json.Marshal(model.SessionAttributesClusterPayload{
-		SessionID: sessionID,
-		Attrs:     attrs,
-		Timestamp: refreshAt,
+		SessionID:      sessionID,
+		Attrs:          attrs,
+		Timestamp:      refreshAt,
+		VisiblyChanged: visiblyChanged,
 	})
 	if err != nil {
 		rctx.Logger().Warn("Failed to encode session attributes for cluster broadcast", mlog.Err(err))
