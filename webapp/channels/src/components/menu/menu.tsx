@@ -272,7 +272,9 @@ export function Menu(props: Props) {
             setHoverOpened(false);
             if (takenOverByClick.current) {
                 takenOverByClick.current = false;
-                menuButton?.focus();
+                if (!props.menu.disableRestoreFocus) {
+                    menuButton?.focus();
+                }
             }
         }
     }, [isMenuOpen]);

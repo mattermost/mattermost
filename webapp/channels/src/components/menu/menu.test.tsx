@@ -648,4 +648,26 @@ describe('Menu with openOnHover', () => {
         await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
         expect(teamsButton()).toHaveFocus();
     });
+
+    test('should leave focus alone after a click took over, when the menu opts out of restoring it', async () => {
+        renderWithContext(
+            <Menu
+                menuButton={{id: 'hover-menu-button', children: 'Teams'}}
+                menu={{id: 'hover-menu', 'aria-label': 'Teams menu', openOnHover: true, disableRestoreFocus: true}}
+            >
+                <MenuItem
+                    id='hover-menu-item'
+                    labels={<span>{'Alpha'}</span>}
+                />
+            </Menu>,
+        );
+
+        await userEvent.hover(teamsButton());
+        expect(await screen.findByRole('menuitem', {name: 'Alpha'})).toBeInTheDocument();
+        await userEvent.click(teamsButton());
+        await userEvent.keyboard('{Escape}');
+
+        await waitFor(() => expect(screen.queryByRole('menuitem', {name: 'Alpha'})).not.toBeInTheDocument());
+        expect(teamsButton()).not.toHaveFocus();
+    });
 });

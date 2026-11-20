@@ -62,12 +62,16 @@ export function setBoardsShownInChannels(shown: boolean): ActionFuncAsync {
 }
 
 // Unpins a rail item into the rail's More menu, or pins it back on the rail. Aliases are other
-// names the preference may hold for the item, which go along with it.
-export function setProductRailItemHidden(itemId: string, hidden: boolean, aliases: string[] = []): ActionFuncAsync {
+// names the preference may hold for the item: a product's bare plugin id, which earlier builds
+// saved and which also names the plugin's other products (aliasPeers). An alias is replaced by
+// those peers' own ids, so they keep their state.
+export function setProductRailItemHidden(itemId: string, hidden: boolean, aliases: string[] = [], aliasPeers: string[] = []): ActionFuncAsync {
     return (dispatch, getState) => {
         const state = getState();
         const userId = getCurrentUserId(state);
-        const others = getProductRailHiddenItems(state).filter((id) => id !== itemId && !aliases.includes(id));
+        const current = getProductRailHiddenItems(state);
+        const peersHiddenByAlias = aliases.some((alias) => current.includes(alias)) ? aliasPeers.filter((id) => !current.includes(id)) : [];
+        const others = [...current, ...peersHiddenByAlias].filter((id) => id !== itemId && !aliases.includes(id));
         return dispatch(savePreferences(userId, [{
             category: Preferences.CATEGORY_SIDEBAR_SETTINGS,
             name: Preferences.PRODUCT_RAIL_HIDDEN_ITEMS,

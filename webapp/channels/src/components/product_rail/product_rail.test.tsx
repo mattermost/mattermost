@@ -624,6 +624,47 @@ describe('ProductRail', () => {
             expect(historyPush).not.toHaveBeenCalled();
         });
 
+        test('should move focus to the item on the rail when pinning the last one in More by keyboard', async () => {
+            const {store} = renderAt('/team-one/channels/town-square', getHiddenState(['boards']));
+
+            screen.getByRole('button', {name: 'More products'}).focus();
+            await userEvent.keyboard('{Enter}');
+            await waitFor(() => expect(screen.getByRole('menuitem', {name: /Boards/})).toHaveFocus());
+            await userEvent.keyboard('{ArrowRight}{Enter}');
+
+            // The save is mocked, so the preference arrives as the server would echo it.
+            act(() => {
+                store.dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [{category: 'sidebar_settings', name: 'product_rail_hidden_items', user_id: user.id, value: '[]'}]});
+            });
+
+            expect(screen.queryByRole('button', {name: 'More products'})).not.toBeInTheDocument();
+            await waitFor(() => expect(screen.getByRole('link', {name: /Boards/})).toHaveFocus());
+        });
+
+        test('should keep a plugin\'s other products unpinned when pinning one unpinned by its bare plugin id', async () => {
+            const state = getHiddenState(['mattermost-ai']);
+            renderAt('/team-one/channels/town-square', {
+                ...state,
+                plugins: {
+                    components: {
+                        ...state.plugins!.components,
+                        Product: [
+                            {...railProduct('Agents One', 'mattermost-ai'), baseURL: '/agents-one', switcherLinkURL: '/agents-one'},
+                            {...railProduct('Agents Two', 'mattermost-ai'), baseURL: '/agents-two', switcherLinkURL: '/agents-two'},
+                        ],
+                    },
+                },
+            });
+
+            await userEvent.click(screen.getByRole('button', {name: 'More products'}));
+            await userEvent.click(screen.getByRole('button', {name: 'Pin Agents One', hidden: true}));
+
+            expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
+                name: 'product_rail_hidden_items',
+                value: JSON.stringify(['mattermost-ai:/agents-two']),
+            })]);
+        });
+
         test('should offer no right-click menu on Threads or Channels', () => {
             renderAt('/team-one/channels/town-square', getHiddenState([]));
 

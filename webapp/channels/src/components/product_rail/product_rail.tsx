@@ -260,6 +260,16 @@ export default function ProductRail() {
     // The team's boards may not be known yet on landing there (they load with the channels, and a
     // product page loaded directly doesn't have them). Once they are, open the first one instead.
     const awaitingBoardAt = useRef<string | null>(null);
+
+    // A rail item to focus once it's back on the rail, after it was pinned from the last row of More.
+    const focusAfterPin = useRef<string | null>(null);
+    useEffect(() => {
+        const element = focusAfterPin.current ? document.getElementById(focusAfterPin.current) : null;
+        if (element) {
+            focusAfterPin.current = null;
+            element.focus();
+        }
+    });
     useEffect(() => {
         const boardsShownChanged = lastBoardsShownInChannels.current !== boardsShownInChannels;
         lastBoardsShownInChannels.current = boardsShownInChannels;
@@ -443,6 +453,13 @@ export default function ProductRail() {
         }
     }
 
+    // A bare plugin id names all of the plugin's products, so changing one's pinned state needs the others'.
+    for (const entry of entries) {
+        if (entry.aliases?.length) {
+            entry.aliasPeers = entries.filter((other) => other !== entry && other.aliases?.some((alias) => entry.aliases!.includes(alias))).map((other) => other.itemId);
+        }
+    }
+
     // The user's order goes first; items it doesn't name yet (a newly installed product, say)
     // follow in their default order.
     const orderIndex = new Map(itemOrder.map((itemId, index) => [itemId, index]));
@@ -558,12 +575,18 @@ export default function ProductRail() {
                                             // Pins without opening the product, and leaves the menu open.
                                             event.stopPropagation();
 
-                                            // The row goes once pinned, so keyboard focus moves to a neighbour.
+                                            // The row goes once pinned, so keyboard focus moves to a neighbour, or,
+                                            // pinning the last one (when More goes too), to the item on the rail.
                                             const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
                                             if (row?.contains(document.activeElement)) {
-                                                ((row.nextElementSibling ?? row.previousElementSibling) as HTMLElement | null)?.focus();
+                                                const neighbour = (row.nextElementSibling ?? row.previousElementSibling) as HTMLElement | null;
+                                                if (neighbour) {
+                                                    neighbour.focus();
+                                                } else {
+                                                    focusAfterPin.current = entry.elementId;
+                                                }
                                             }
-                                            dispatch(setProductRailItemHidden(entry.itemId, false, entry.aliases));
+                                            dispatch(setProductRailItemHidden(entry.itemId, false, entry.aliases, entry.aliasPeers));
                                         }}
                                         onKeyDown={(event) => {
                                             const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
@@ -605,8 +628,10 @@ type RailEntry = {
     // 'boards', or a product's plugin id and base URL.
     itemId: string;
 
-    // Other names the preferences may use for it: a product's bare plugin id, from earlier builds.
+    // Other names the preferences may use for it: a product's bare plugin id, from earlier builds,
+    // which also names the plugin's other products (aliasPeers).
     aliases?: string[];
+    aliasPeers?: string[];
     elementId: string;
     to: string;
     onClick?: () => void;
@@ -700,7 +725,7 @@ function RailItemContainer({entry, index, hidden}: RailItemContainerProps) {
                                 id={`productRailItemMenu-${itemId}-${hidden ? 'pin' : 'unpin'}`}
                                 leadingElement={<PinOutlineIcon size={18}/>}
                                 labels={<span>{formatMessage(hidden ? messages.pin : messages.unpin)}</span>}
-                                onClick={() => dispatch(setProductRailItemHidden(itemId, !hidden, entry.aliases))}
+                                onClick={() => dispatch(setProductRailItemHidden(itemId, !hidden, entry.aliases, entry.aliasPeers))}
                             />
                         </Menu.Container>
                     )}
