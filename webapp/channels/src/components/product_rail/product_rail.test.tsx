@@ -256,6 +256,45 @@ describe('ProductRail', () => {
         });
     });
 
+    describe('direct and group messages', () => {
+        // A direct message with 2 unread mentions, from Threads.
+        function withDirectMessage(state: DeepPartial<GlobalState>): DeepPartial<GlobalState> {
+            const dm = TestHelper.getChannelMock({id: 'dm', name: 'user1__user2', type: 'D', team_id: ''});
+            const channels = state.entities!.channels!;
+            return {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    channels: {
+                        ...channels,
+                        channels: {...channels.channels, [dm.id]: dm},
+                        myMembers: {...channels.myMembers, [dm.id]: TestHelper.getChannelMembershipMock({channel_id: dm.id, user_id: user.id, mention_count: 2, mention_count_root: 2, msg_count: 0, msg_count_root: 0}, {})},
+                        messageCounts: {...channels.messageCounts, [dm.id]: {total: 2, root: 2}},
+                    },
+                },
+            };
+        }
+
+        test('should count their mentions on Channels, with boards split off', () => {
+            renderAt('/team-one/threads', withDirectMessage(getBoardsState(townSquare.id)));
+
+            // Town square's 1 and the direct message's 2; the boards' stay on Boards.
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('3');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveTextContent('4');
+        });
+
+        test('should count their mentions on Channels, without boards', () => {
+            const state = getBoardsState(townSquare.id);
+            renderAt('/team-one/threads', withDirectMessage({
+                ...state,
+                plugins: {components: {Product: [], ChannelKind: []} as unknown as GlobalState['plugins']['components']},
+            }));
+
+            // Town square's 1, the boards' (now plain channels) 4 and the direct message's 2.
+            expect(screen.getByRole('link', {name: /Channels/})).toHaveTextContent('7');
+        });
+    });
+
     describe('order and boards in Channels', () => {
         test('should list Threads, Channels and Boards with no dividers', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));

@@ -280,7 +280,9 @@ export const getProductRailSectionUnreads: (state: GlobalState) => Record<Produc
         };
 
         for (const channel of Object.values(channels)) {
-            if (channel.team_id !== currentTeamId || channel.delete_at > 0) {
+            // Direct and group messages belong to no team, and show in Channels in every team.
+            const isDirect = channel.type === 'D' || channel.type === 'G';
+            if ((!isDirect && channel.team_id !== currentTeamId) || channel.delete_at > 0) {
                 continue;
             }
 

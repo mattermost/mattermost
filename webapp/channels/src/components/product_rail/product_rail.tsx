@@ -17,7 +17,7 @@ import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
-import {getCurrentChannel, getRedirectChannelNameForTeam, getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentChannel, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {isProductRailEnabled} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
@@ -181,7 +181,6 @@ export default function ProductRail() {
     const currentProduct = useCurrentProduct();
     const threadsEnabled = useSelector(isCollapsedThreadsEnabled);
     const threadCounts = useSelector(getThreadCountsInCurrentTeam);
-    const [unreadTeamsSet, mentionsInTeamMap, teamHasUrgentMap] = useSelector(getTeamsUnreadStatuses);
 
     // Set while a plugin registers boards, which splits Channels from Boards.
     const section = useSelector(getProductRailSection);
@@ -450,9 +449,9 @@ export default function ProductRail() {
             icon: <ProductChannelsIcon size={20}/>,
             label: formatMessage(messages.channels),
             active: inChannelsProduct,
-            mentions: mentionsInTeamMap.get(currentTeam.id) ?? 0,
-            hasUrgent: teamHasUrgentMap.get(currentTeam.id) ?? false,
-            unread: unreadTeamsSet.has(currentTeam.id),
+
+            // With no boards split off, the channels section counts everything, direct and group messages included.
+            ...sectionUnreads.channels,
         });
     }
 
