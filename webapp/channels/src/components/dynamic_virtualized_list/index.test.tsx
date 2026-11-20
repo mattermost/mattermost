@@ -264,6 +264,55 @@ describe('DynamicVirtualizedList', () => {
         expect(scroller.scrollTop).toBe(670);
     });
 
+    test('stays at the bottom when a row grows in the same update that changes the items', () => {
+        const {scroller, setItemData} = renderList();
+        expect(scroller.scrollTop).toBe(740);
+
+        rowHeights['item-5'] = 250;
+        setItemData([...currentItemData, 'item-10']);
+
+        expect(scroller.scrollTop).toBe(totalHeight() - LIST_HEIGHT);
+    });
+
+    test('does not move to the bottom when a row grows in the same update that changes the items while scrolled up', () => {
+        const {scroller, setItemData} = renderList();
+        userScrollTo(scroller, 440);
+
+        rowHeights['item-1'] = 250;
+        setItemData([...currentItemData, 'item-10']);
+
+        expect(scroller.scrollTop).toBe(440);
+    });
+
+    describe('when a row above the viewport shrinks while scrolled to the bottom', () => {
+        const shrinkWithClampedScroll = (scroller: HTMLElement) => {
+            expect(scroller.scrollTop).toBe(740);
+
+            // The browser clamps scrollTop to the new maximum before the resize is observed
+            rowHeights['item-8'] = 20;
+            scroller.scrollTop = totalHeight() - LIST_HEIGHT;
+            expect(scroller.scrollTop).toBe(660);
+
+            resizeRow('item-8', 20);
+        };
+
+        test('stays at the bottom', () => {
+            const {scroller} = renderList();
+
+            shrinkWithClampedScroll(scroller);
+
+            expect(scroller.scrollTop).toBe(totalHeight() - LIST_HEIGHT);
+        });
+
+        test('does not compensate a second time when not correcting the scroll to the bottom', () => {
+            const {scroller} = renderList({correctScrollToBottom: false});
+
+            shrinkWithClampedScroll(scroller);
+
+            expect(scroller.scrollTop).toBe(660);
+        });
+    });
+
     test('compensates for a row that changed height before an update to the items is rendered', () => {
         const {scroller, setItemData} = renderList();
         userScrollTo(scroller, 440);

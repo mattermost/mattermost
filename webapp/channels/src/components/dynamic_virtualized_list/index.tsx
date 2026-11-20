@@ -81,6 +81,7 @@ interface DynamicVirtualizedListSnapshot {
     previousScrollTop: number;
     previousScrollHeight: number;
     renderedItemSizes?: Map<string, number>;
+    wasAtBottom: boolean;
 }
 
 export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedListProps, State> {
@@ -223,6 +224,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             previousScrollTop: element.scrollTop,
             previousScrollHeight: element.scrollHeight,
             renderedItemSizes: itemDataChanged ? this._getRenderedItemSizes(prevProps.itemData) : undefined,
+            wasAtBottom: this.props.height + element.scrollTop >= this._listMetaData.totalMeasuredSize - atBottomMargin,
         };
     }
 
@@ -263,7 +265,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         this._commitHook();
         if (prevProps.itemData !== this.props.itemData) {
             if (snapshot?.renderedItemSizes) {
-                this._applyResizesFromDataChange(snapshot.renderedItemSizes);
+                this._applyResizesFromDataChange(snapshot.renderedItemSizes, snapshot.wasAtBottom);
             }
             this._dataChange();
         }
@@ -441,19 +443,25 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
     // Rows can resize in the same commit that changes the data (e.g. a post losing its header when older posts are
     // prepended). That resize is already included in the scroll position compensation done for the data change, so it
     // is recorded here to keep _handleNewMeasurements from compensating for it a second time.
-    _applyResizesFromDataChange = (sizesBeforeChange: Map<string, number>) => {
+    _applyResizesFromDataChange = (sizesBeforeChange: Map<string, number>, wasAtBottom: boolean) => {
         const {itemSizeMap} = this._listMetaData;
         const sizesAfterChange = this._getRenderedItemSizes(this.props.itemData);
+        let resized = false;
 
         for (const [key, sizeAfterChange] of sizesAfterChange) {
             const sizeBeforeChange = sizesBeforeChange.get(key);
             const measuredSize = itemSizeMap[key];
-            if (sizeBeforeChange !== undefined && measuredSize) {
+            if (sizeBeforeChange !== undefined && measuredSize && sizeAfterChange !== sizeBeforeChange) {
                 itemSizeMap[key] = measuredSize + (sizeAfterChange - sizeBeforeChange);
+                resized = true;
             }
         }
 
         this._generateOffsetMeasurements();
+
+        if (resized && wasAtBottom && this.props.correctScrollToBottom) {
+            this.scrollToItem(0, 'end');
+        }
     };
 
     _heightChange = (prevHeight: number, prevOffset: number) => {
@@ -609,9 +617,11 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
             return;
         }
 
+        // When a row shrinks while scrolled to the bottom, the browser has already clamped scrollTop to the new maximum
+        const shrink = Math.max(0, oldSize - newSize);
         const wasAtBottom =
             this.props.height + element.scrollTop >=
-            this._listMetaData.totalMeasuredSize - atBottomMargin;
+            this._listMetaData.totalMeasuredSize - shrink - atBottomMargin;
 
         if (
             (wasAtBottom || this._keepScrollToBottom) &&
@@ -666,7 +676,7 @@ export class DynamicVirtualizedList extends PureComponent<DynamicVirtualizedList
         // Rows are in normal flow and overflow-anchor is disabled, so when an already measured row above
         // the viewport resizes (e.g. an image finishes loading), the visible rows have to be held in place.
         // Rows measured for the first time are skipped since prepended rows are compensated for separately.
-        if (oldSize && index > visibleStartIndex) {
+        if (oldSize && index > visibleStartIndex && !(shrink && wasAtBottom)) {
             element.scrollTop += newSize - oldSize;
         }
     };
