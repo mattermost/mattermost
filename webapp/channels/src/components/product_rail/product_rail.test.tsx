@@ -412,13 +412,15 @@ describe('ProductRail', () => {
         });
 
         test('should open the channel Channels would from another product, keeping the Boards sidebar', async () => {
-            const {store} = renderAt('/mattermost-ai', getNoBoardsState());
+            const history = createMemoryHistory({initialEntries: ['/mattermost-ai']});
+            const {store} = renderWithContext(<ProductRail/>, getNoBoardsState(), {history});
 
             const boardsLink = screen.getByRole('link', {name: /Boards/});
             expect(boardsLink).toHaveAttribute('href', '/team-one/channels/town-square');
 
             await userEvent.click(boardsLink);
 
+            expect(history.location.pathname).toBe('/team-one/channels/town-square');
             expect(store.getState().views.productRail.section).toBe('boards');
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
         });
@@ -550,7 +552,10 @@ describe('ProductRail', () => {
             });
         });
 
-        test('should hide nothing when the preference is not a list', () => {
+        test.each([
+            ['malformed', '{"boards": true'],
+            ['not a list', '{"boards": true}'],
+        ])('should hide nothing when the preference is %s', (_case, value) => {
             const state = getHiddenState([]);
             renderAt('/team-one/channels/town-square', {
                 ...state,
@@ -558,7 +563,7 @@ describe('ProductRail', () => {
                     ...state.entities,
                     preferences: {
                         myPreferences: {
-                            'sidebar_settings--product_rail_hidden_items': {category: 'sidebar_settings', name: 'product_rail_hidden_items', user_id: user.id, value: '{"boards": true'},
+                            'sidebar_settings--product_rail_hidden_items': {category: 'sidebar_settings', name: 'product_rail_hidden_items', user_id: user.id, value},
                         },
                     },
                 },
