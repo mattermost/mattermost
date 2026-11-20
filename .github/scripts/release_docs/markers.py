@@ -16,14 +16,24 @@ def _pattern(name: str) -> re.Pattern:
     return re.compile(r"<!--\s*" + re.escape(name) + r"\s*:(.*?)-->", re.DOTALL)
 
 
+def _mentions(name: str) -> re.Pattern:
+    """Every occurrence of the marker's name opening an HTML comment, well-formed or not."""
+    return re.compile(r"<!--\s*" + re.escape(name) + r"(?![\w-])")
+
+
 def parse(body: str | None, name: str) -> tuple[list[str] | None, str | None]:
     """(the PRs the ``name`` marker lists, as ``mattermost/mattermost#N``, a problem) from a PR description.
 
     No marker: ``(None, None)``. An empty list or ``none``: ``([], None)``. Entries are PR
     numbers (``39012``, ``#39012`` or ``mattermost/mattermost#39012``), separated by commas or
-    spaces. Anything else, or two markers that disagree, is a problem and lists nothing; the
-    entries themselves are never repeated, since they may not be public."""
+    spaces. Anything else, a malformed marker (``<!-- NAME 1,2 -->``, no colon or no ``-->``) or
+    two markers that disagree, is a problem and lists nothing; the entries themselves are never
+    repeated, since they may not be public."""
     found = [" ".join(m.split()) for m in _pattern(name).findall(body or "")]
+    malformed = len(_mentions(name).findall(body or "")) - len(found)
+    if malformed > 0:
+        return None, (f"the description has {malformed} malformed `{name}` marker{'s' if malformed > 1 else ''} "
+                      f"(written `<!-- {name}: 1, 2 -->`)")
     if not found:
         return None, None
     if len(set(found)) > 1:
@@ -42,5 +52,6 @@ def parse(body: str | None, name: str) -> tuple[list[str] | None, str | None]:
 
 def changed(old_body: str | None, new_body: str | None, name: str) -> bool:
     """Whether an edit changed what the ``name`` marker says (its parsed value, so spacing alone
-    is no change). A task's own rewrite keeps the marker (publish.kept_markers), so it is none."""
+    is no change; a malformed marker becoming valid, or the reverse, is one). A task's own
+    rewrite keeps the marker (publish.kept_markers), so it is none."""
     return parse(old_body, name) != parse(new_body, name)

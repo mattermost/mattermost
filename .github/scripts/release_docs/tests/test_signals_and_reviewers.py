@@ -74,6 +74,20 @@ class ReviewersTest(unittest.TestCase):
         self.assertEqual(len(gh.pulls[SERVER]), 1)
         self.assertIn("Review not requested from alice: GitHub answered 422.", outcome)
 
+    def test_a_transport_error_is_a_note_and_a_timeout_says_the_outcome_is_unknown(self):
+        import urllib.error
+
+        for error, expected in ((TimeoutError("read timed out"), "Review request to alice: outcome unknown, GitHub did "
+                                                                  "not answer in time."),
+                                (urllib.error.URLError("no route"), "Review not requested from alice: GitHub could not "
+                                                                    "be reached (URLError).")):
+            failing = FakeGitHub()
+            failing.request_reviewers = lambda *args, error=error: (_ for _ in ()).throw(error)
+            gh, outcome = self.open_pr("alice", failing)
+            self.assertEqual(len(gh.pulls[SERVER]), 1)
+            self.assertEqual(gh.pulls[SERVER][0]["labels"], ["release-agent"])  # labels still added after it
+            self.assertTrue(outcome.endswith(expected), outcome)
+
 
 if __name__ == "__main__":
     unittest.main()

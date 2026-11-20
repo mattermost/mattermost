@@ -15,7 +15,7 @@ for name, value in {"GITHUB_TOKEN": "test", "REPOS": "mattermost/mattermost", "M
     os.environ.setdefault(name, value)  # generate_changelog, whose release-note parser drafting uses, reads them
 
 from release_docs import __main__ as cli  # noqa: E402
-from release_docs import changelog_run, publish, release_docs_pr, upgrade_docs  # noqa: E402
+from release_docs import changelog_run, markers, publish, release_docs_pr, upgrade_docs  # noqa: E402
 from release_docs.result import TODO_MARKER, Result  # noqa: E402
 from release_docs.versions import Version  # noqa: E402
 
@@ -57,6 +57,17 @@ class MarkerTest(unittest.TestCase):
         two = ("<!-- release-automation:confirmed-breaking: 1 -->\n<!-- release-automation:confirmed-breaking: 2 -->")
         self.assertEqual(upgrade_docs.parse_marker(two)[0], None)
         self.assertIn("2 `release-automation:confirmed-breaking` markers that disagree", upgrade_docs.parse_marker(two)[1])
+
+    def test_a_malformed_marker_is_a_problem_not_absent_and_fixing_it_is_a_change(self):
+        malformed = "<!-- release-automation:confirmed-breaking 39012,39088 -->"
+        self.assertEqual(upgrade_docs.parse_marker(malformed), (None, "the description has 1 malformed "
+                         "`release-automation:confirmed-breaking` marker (written "
+                         "`<!-- release-automation:confirmed-breaking: 1, 2 -->`)"))
+        self.assertNotIn("39012", upgrade_docs.parse_marker(malformed)[1])
+        valid = "<!-- release-automation:confirmed-breaking: 39012,39088 -->"
+        self.assertTrue(markers.changed(malformed, valid, upgrade_docs.MARKER_NAME))
+        self.assertTrue(markers.changed(valid, malformed, upgrade_docs.MARKER_NAME))
+        self.assertFalse(markers.changed("No marker.", None, upgrade_docs.MARKER_NAME))
 
     def test_rewriting_the_pr_body_keeps_the_marker(self):
         marker = "<!-- release-automation:confirmed-breaking: 39012 -->"

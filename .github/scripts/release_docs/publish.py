@@ -28,6 +28,7 @@ class Target:
     pr: dict | None = None
     blocked: str = ""  # why nothing may be written
     done: bool = False  # the PR was merged
+    ahead: int = 0  # commits on the task branch that the base doesn't have (all the workflow's when not blocked)
 
 
 def locate(gh, repo: str, version: str, task: str) -> Target:
@@ -44,7 +45,9 @@ def locate(gh, repo: str, version: str, task: str) -> Target:
     elif pulls and not open_prs:
         target.blocked = f"PR #{pulls[0]['number']} was closed without merging; not reopening or opening another"
     elif branch_sha:
-        people = [c for c in gh.commits_ahead(repo, base, branch) if f"{TRAILER}:" not in c["commit"]["message"]]
+        ahead = gh.commits_ahead(repo, base, branch)
+        target.ahead = len(ahead)
+        people = [c for c in ahead if f"{TRAILER}:" not in c["commit"]["message"]]
         if people:
             names = sorted({c["commit"]["author"]["name"] for c in people})
             target.blocked = (f"{branch} has {len(people)} commit(s) from {', '.join(names)}; "
@@ -100,6 +103,11 @@ def request_reviewers(gh, repo: str, number: int, raw: str) -> str:
         gh.request_reviewers(repo, number, users, teams)
     except GitHubError as err:
         return f"{note} Review not requested from {', '.join(asked)}: GitHub answered {err.status}."
+    except TimeoutError:
+        # The request was sent but no answer came: GitHub may or may not have asked them.
+        return f"{note} Review request to {', '.join(asked)}: outcome unknown, GitHub did not answer in time."
+    except OSError as err:  # URLError and other transport errors: the request never reached GitHub
+        return f"{note} Review not requested from {', '.join(asked)}: GitHub could not be reached ({type(err).__name__})."
     return f"{note} Review requested from {', '.join(asked)}."
 
 
@@ -118,7 +126,15 @@ def apply(gh, result: Result, target: Target, live: bool, reviewers: str = "") -
     if not result.files:
         if pr:
             return f"PR #{pr['number']} is already up to date."
-        return "Nothing to change."
+        if target.ref != target.branch or not target.ahead:
+            return "Nothing to change."
+        # The branch has only this workflow's commits and no PR (an earlier run stopped between the
+        # commit and the PR): open the PR for what is already there, with no new commit.
+        if not live:
+            return f"{prefix}opened a draft PR from `{target.branch}` in {target.repo}, with the commits already on it."
+        action, number, skipped, review = write(gh, target, {}, "", result.title, pr_body(result), [], reviewers=reviewers)
+        return (f"{action} PR {target.repo}#{number} for the commits already on `{target.branch}`."
+                f"{skipped_label_note(skipped, target.repo)}{review}")
     if any(TODO_MARKER in text for text in result.files.values()) and not result.todos:
         raise AssertionError("files carry a TODO marker that the result does not list")
     paths = ", ".join(f"`{p}`" for p in result.files)
@@ -135,19 +151,31 @@ def skipped_label_note(skipped: list[str], repo: str) -> str:
             "(the workflow never creates it).") if skipped else ""
 
 
+def current_body(gh, target: Target) -> str | None:
+    """The open PR's description as it is now, not as ``locate`` read it: release-automation may
+    have changed a marker since."""
+    fresh = next((p for p in gh.pulls_for_branch(target.repo, target.branch) if p["number"] == target.pr["number"]), None)
+    return (fresh or target.pr).get("body")
+
+
 def write(gh, target: Target, files: dict, message: str, title: str, body: str, labels: list[str],
           optional_labels: tuple[str, ...] = (OPTIONAL_LABEL,), reviewers: str = "") -> tuple[str, int, list[str], str]:
-    """Commit ``files`` on top of ``target.sha`` (creating the branch if needed), then open or
-    update the draft PR and add ``labels``, plus each of ``optional_labels`` that already exists in
-    the repo (never created; the ones skipped are returned). The ref only ever moves forward.
-    A PR this opens asks ``reviewers`` (RELEASE_DOCS_REVIEWERS) for review; the last value
-    returned says how that went. An updated PR keeps the hidden markers in its body."""
-    if target.ref != target.branch:
-        gh.create_branch(target.repo, target.branch, target.sha)
-    gh.commit_files(target.repo, target.branch, target.sha, files, message)
+    """Commit ``files`` on top of ``target.sha`` (creating the branch if needed; no commit when
+    there are none), then open or update the draft PR and add ``labels``, plus each of
+    ``optional_labels`` that already exists in the repo (never created; the ones skipped are
+    returned). The ref only ever moves forward. A PR this opens asks ``reviewers``
+    (RELEASE_DOCS_REVIEWERS) for review; the last value returned says how that went. An updated
+    PR keeps the hidden markers its body has just before the update."""
+    if files:
+        if target.ref != target.branch:
+            gh.create_branch(target.repo, target.branch, target.sha)
+        gh.commit_files(target.repo, target.branch, target.sha, files, message)
     review = ""
     if target.pr:
-        gh.update_pr(target.repo, target.pr["number"], title, kept_markers(target.pr.get("body"), body))
+        # Re-read just before the PATCH, so a marker written since locate() is kept. A change in the
+        # moment between this read and the PATCH could still be lost, but release-automation
+        # rewrites a missing or changed marker every hour, so that race heals itself.
+        gh.update_pr(target.repo, target.pr["number"], title, kept_markers(current_body(gh, target), body))
         number, action = target.pr["number"], "Updated"
     else:
         number, action = gh.create_pr(target.repo, target.branch, target.base, title, body)["number"], "Opened draft"

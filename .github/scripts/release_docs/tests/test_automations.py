@@ -10,7 +10,7 @@ from unittest import mock
 
 from release_docs import __main__ as cli
 from release_docs import docker_env, notice, publish, release_docs_pr, upgrade_docs, version_archive
-from release_docs.result import LABEL, TODO_MARKER
+from release_docs.result import LABEL, TODO_MARKER, Result
 
 from .fakes import FakeClaude, FakeGitHub, fixture, release_server
 from .test_replay import published_fetch
@@ -132,6 +132,36 @@ class AutomationTest(unittest.TestCase):
                 self.assertEqual(gh.writes, [])
                 self.assertEqual(run.result.files, {})
                 self.assertEqual(len(gh.pulls[s.repo]), 1)
+
+    def test_a_branch_with_only_the_workflows_commits_and_no_pr_gets_its_pr_without_a_new_commit(self):
+        s = SCENARIOS[0]
+        gh = s.github()
+        s.run(gh, live=True)
+        gh.pulls[s.repo].clear()  # the earlier run stopped between its commit and the PR
+        commits = len(gh.repos[s.repo]["branches"][s.branch])
+        gh.writes.clear()
+        run = s.run(gh, live=True)
+        self.assertEqual(run.result.files, {})
+        self.assertEqual([w[0] for w in gh.writes], ["create_pr", "add_labels"])
+        self.assertEqual(len(gh.repos[s.repo]["branches"][s.branch]), commits)
+        [pr] = gh.pulls[s.repo]
+        self.assertEqual((pr["head"], pr["draft"]), (s.branch, True))
+        self.assertTrue(run.outcome.startswith(f"Opened draft PR {s.repo}#{pr['number']} for the commits already on"))
+
+    def test_an_update_keeps_the_marker_the_pr_has_now_not_the_one_locate_read(self):
+        gh = FakeGitHub()
+        gh.add_repo(SERVER, {"a.md": "old"})
+        first = Result("version-archive", "v12.2.0", title="Title", body="Body", files={"a.md": "new"})
+        publish.apply(gh, first, publish.locate(gh, SERVER, "v12.2.0", "version-archive"), True)
+        [pr] = gh.pulls[SERVER]
+        pr["body"] += "\n<!-- release-automation:confirmed-breaking: 1 -->\n"
+        target = publish.locate(gh, SERVER, "v12.2.0", "version-archive")
+        target.pr = dict(target.pr)  # locate's snapshot, as the API gives it: not the PR itself
+        pr["body"] = pr["body"].replace("confirmed-breaking: 1 ", "confirmed-breaking: 1, 2 ")  # written after locate
+        update = Result("version-archive", "v12.2.0", title="Title", body="Body", files={"a.md": "newer"})
+        publish.apply(gh, update, target, True)
+        self.assertIn("<!-- release-automation:confirmed-breaking: 1, 2 -->", pr["body"])
+        self.assertNotIn("confirmed-breaking: 1 -->", pr["body"])
 
     def test_release_agent_label_is_skipped_and_noted_when_the_repo_has_none(self):
         for s in SCENARIOS:
