@@ -1,0 +1,3499 @@
+{
+  "schema": "explorer-trace/v1",
+  "allowlist": [
+    {
+      "role": "button",
+      "name": "View Info"
+    },
+    {
+      "role": "link",
+      "name": "release planning public channel"
+    }
+  ],
+  "budget": {
+    "limits": {
+      "maxActions": 12,
+      "maxDepth": 3,
+      "maxStates": 10
+    },
+    "used": {
+      "actions": 9,
+      "states": 6,
+      "deepest": 2,
+      "budgetSkips": 0
+    }
+  },
+  "roots": [
+    {
+      "path": "/qa-team/channels/legacy-roadmap",
+      "state": "s6c6bce31"
+    },
+    {
+      "path": "/qa-team/channels/qa-sandbox",
+      "state": "s82fd117b"
+    }
+  ],
+  "states": [
+    {
+      "id": "s6c6bce31",
+      "depth": 0,
+      "root": "/qa-team/channels/legacy-roadmap",
+      "pathname": "/qa-team/channels/legacy-roadmap",
+      "via": [],
+      "candidates": [
+        {
+          "role": "button",
+          "name": "View Info"
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel"
+        }
+      ],
+      "skipped": [
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "reason": "not allowlisted; ambiguous: 3 matches"
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Close Channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "legacy roadmap channel menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "reason": "not allowlisted"
+        }
+      ],
+      "allowlistedAbsent": [],
+      "roleNames": [
+        {
+          "role": "application",
+          "name": "channel navigator region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "channel sidebar region",
+          "count": 1
+        },
+        {
+          "role": "banner",
+          "name": "channel header region",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "count": 3
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Close Channel",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "View Info",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "legacy roadmap channel menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Channels",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Legacy Roadmap",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Mattermost Logo",
+          "count": 2
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "count": 2
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "scrollable content",
+          "count": 1
+        }
+      ],
+      "snapshot": "- text: 󰋽\n- paragraph: \"Preview Mode: Email notifications have not been configured.\"\n- link \"×\":\n  - /url: \"#\"\n- banner:\n  - heading \"Channels\" [level=1]\n  - button \"Open product menu\":\n    - text: \n    - img\n    - text: Channels\n  - button \"󰍉 Search\"\n  - button \"Help\": 󰘥\n  - button \"Recent mentions\": 󰁥\n  - button \"Saved messages\": 󰃃\n  - button \"Settings\": 󰢻\n  - button \"User's account menu\":\n    - paragraph: Status is \"Online\".\n- button \"QA Team 󰅀\"\n- button \"Browse or create channels\":\n  - img\n- application \"channel navigator region\":\n  - link \"unreads filter\":\n    - /url: \"#\"\n    - text: 󰈶\n  - button \"Find Channels\": 󰍉 Find channel\n- list:\n  - listitem:\n    - link \"Threads\":\n      - /url: /qa-team/threads\n      - img\n      - text: Threads\n- application \"channel sidebar region\":\n  - region \"scrollable content\":\n    - button \"CHANNELS\" [expanded]: 󰅀 CHANNELS\n    - list:\n      - listitem:\n        - link \"off-topic public channel\":\n          - /url: /qa-team/channels/off-topic\n          - text:  Off-Topic\n      - listitem:\n        - link \"qa sandbox public channel\":\n          - /url: /qa-team/channels/qa-sandbox\n          - text:  QA Sandbox\n      - listitem:\n        - link \"release planning public channel\":\n          - /url: /qa-team/channels/release-planning\n          - text:  Release Planning\n      - listitem:\n        - link \"town square public channel\":\n          - /url: /qa-team/channels/town-square\n          - text:  Town Square\n    - button \"Add Channels\"\n    - button \"DIRECT MESSAGES\" [expanded]\n    - button \"Write a direct message\": 󰐕\n    - list\n    - button \"Invite Members\"\n- banner \"channel header region\":\n  - button \"legacy roadmap channel menu\":\n    - img\n    - strong: Legacy Roadmap\n    - img\n  - button \"Members\": \"2\"\n  - button \"Channel files\": 󰧮\n  - paragraph: Legacy header charlie-4e8a\n  - button \"Open in new window\"\n  - button \"View Info\": 󰋽\n- main:\n  - text: At <time> <weekday>, <date>, sysadmin wrote, sysadmin archived the channel.\n  - list:\n    - listitem:\n      - img\n      - heading \"Legacy Roadmap\" [level=2]\n      - img\n      - text: Public channel created by sysadmin on <date>.\n      - paragraph: \"This channel's purpose is: Legacy purpose charlie-4e8a\"\n      - button \"Invite others to the workspace\"\n    - listitem:\n      - separator\n      - text: <day>\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/user-activity-qzc315mwg3nwmj8z39u7oy3foh_apyufth56irrdk9ojnq4o6qxzw\n        - time: <time>\n      - paragraph:\n        - button \"@sysadmin\"\n        - strong: joined the channel\n        - text: .\n      - paragraph:\n        - text: You were\n        - strong: added to the channel\n        - text: by\n        - button \"@sysadmin\"\n        - text: .\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/<id>\n        - time: <time>\n      - button \"@sysadmin\"\n      - text: archived the channel.\n- text: You are viewing an archived channel. New messages cannot be posted.\n- button \"Close Channel\"\n- status"
+    },
+    {
+      "id": "s82fd117b",
+      "depth": 0,
+      "root": "/qa-team/channels/qa-sandbox",
+      "pathname": "/qa-team/channels/qa-sandbox",
+      "via": [],
+      "candidates": [
+        {
+          "role": "button",
+          "name": "View Info"
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel"
+        }
+      ],
+      "skipped": [
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Message priority",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Messaging help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Schedule message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Send Now",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Upload files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "add to favorites",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "attachment",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "bold",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "bulleted list",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "code",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "formatting",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "heading",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "italic",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "link",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "numbered list",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "qa sandbox channel menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "quote",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "select an emoji",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "strike through",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "textbox",
+          "name": "Write to QA Sandbox",
+          "reason": "not allowlisted"
+        }
+      ],
+      "allowlistedAbsent": [],
+      "roleNames": [
+        {
+          "role": "application",
+          "name": "channel navigator region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "channel sidebar region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "message input complementary region",
+          "count": 1
+        },
+        {
+          "role": "banner",
+          "name": "channel header region",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Message priority",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Messaging help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Schedule message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Send Now",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Upload files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "View Info",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "add to favorites",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "attachment",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "bold",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "bulleted list",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "code",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "formatting",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "heading",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "italic",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "link",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "numbered list",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "qa sandbox channel menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "quote",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "select an emoji",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "strike through",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Channels",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "QA Sandbox",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Attachment Icon",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Format letter Case Icon",
+          "count": 2
+        },
+        {
+          "role": "img",
+          "name": "Mattermost Logo",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "scrollable content",
+          "count": 1
+        },
+        {
+          "role": "textbox",
+          "name": "Write to QA Sandbox",
+          "count": 1
+        }
+      ],
+      "snapshot": "- text: 󰋽\n- paragraph: \"Preview Mode: Email notifications have not been configured.\"\n- link \"×\":\n  - /url: \"#\"\n- banner:\n  - heading \"Channels\" [level=1]\n  - button \"Open product menu\":\n    - text: \n    - img\n    - text: Channels\n  - button \"󰍉 Search\"\n  - button \"Help\": 󰘥\n  - button \"Recent mentions\": 󰁥\n  - button \"Saved messages\": 󰃃\n  - button \"Settings\": 󰢻\n  - button \"User's account menu\":\n    - paragraph: Status is \"Online\".\n- button \"QA Team 󰅀\"\n- button \"Browse or create channels\":\n  - img\n- application \"channel navigator region\":\n  - link \"unreads filter\":\n    - /url: \"#\"\n    - text: 󰈶\n  - button \"Find Channels\": 󰍉 Find channel\n- list:\n  - listitem:\n    - link \"Threads\":\n      - /url: /qa-team/threads\n      - img\n      - text: Threads\n- application \"channel sidebar region\":\n  - region \"scrollable content\":\n    - button \"CHANNELS\" [expanded]: 󰅀 CHANNELS\n    - list:\n      - listitem:\n        - link \"off-topic public channel\":\n          - /url: /qa-team/channels/off-topic\n          - text:  Off-Topic\n      - listitem:\n        - link \"qa sandbox public channel\":\n          - /url: /qa-team/channels/qa-sandbox\n          - text:  QA Sandbox\n      - listitem:\n        - link \"release planning public channel\":\n          - /url: /qa-team/channels/release-planning\n          - text:  Release Planning\n      - listitem:\n        - link \"town square public channel\":\n          - /url: /qa-team/channels/town-square\n          - text:  Town Square\n    - button \"Add Channels\"\n    - button \"DIRECT MESSAGES\" [expanded]\n    - button \"Write a direct message\": 󰐕\n    - list\n    - button \"Invite Members\"\n- banner \"channel header region\":\n  - button \"add to favorites\": 󰓒\n  - button \"qa sandbox channel menu\":\n    - strong: QA Sandbox\n    - img\n  - button \"Members\": \"2\"\n  - button \"Channel files\": 󰧮\n  - paragraph: Sandbox header alpha-7f3c\n  - button \"Open in new window\"\n  - button \"View Info\": 󰋽\n- main:\n  - text: At <time> <weekday>, <date>, sysadmin wrote, qa-user added to the channel by sysadmin.\n  - list:\n    - listitem:\n      - img\n      - heading \"QA Sandbox\" [level=2]\n      - img\n      - text: Public channel created by sysadmin on <date>.\n      - paragraph: \"This is the start of QA Sandbox. Any team member can join and read this channel. This channel's purpose is: Sandbox purpose alpha-7f3c\"\n      - button \"Invite others to the workspace\"\n    - listitem:\n      - separator\n      - text: <day>\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/user-activity-dag1qmckmtd4tbuhgjq4iwbs8c_538r7rodnpfgfj5ghq7czozkeo\n        - time: <time>\n      - paragraph:\n        - button \"@sysadmin\"\n        - strong: joined the channel\n        - text: .\n      - paragraph:\n        - text: You were\n        - strong: added to the channel\n        - text: by\n        - button \"@sysadmin\"\n        - text: .\n- application \"message input complementary region\":\n  - textbox \"Write to QA Sandbox\"\n  - button \"bold\":\n    - img\n  - button \"italic\":\n    - img\n  - button \"strike through\":\n    - img\n  - button \"heading\":\n    - img\n  - button \"link\":\n    - img\n  - button \"code\":\n    - img\n  - button \"quote\":\n    - img\n  - button \"bulleted list\":\n    - img\n  - button \"numbered list\":\n    - img\n  - button \"Message priority\":\n    - button \"Message priority\":\n      - img\n  - 'button \"Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it\"':\n    - img\n  - button \"formatting\":\n    - img \"Format letter Case Icon\"\n    - img \"Format letter Case Icon\"\n  - button \"attachment\":\n    - img \"Attachment Icon\"\n  - button \"Upload files\"\n  - button \"select an emoji\":\n    - img\n  - button \"Send Now\" [disabled]:\n    - img\n  - button \"Schedule message\" [disabled]:\n    - img\n- form:\n  - button \"Messaging help\": Help\n- status"
+    },
+    {
+      "id": "s54e976c8",
+      "depth": 1,
+      "root": "/qa-team/channels/legacy-roadmap",
+      "pathname": "/qa-team/channels/legacy-roadmap",
+      "via": [
+        {
+          "role": "button",
+          "name": "View Info"
+        }
+      ],
+      "candidates": [
+        {
+          "role": "link",
+          "name": "release planning public channel"
+        }
+      ],
+      "skipped": [
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "reason": "not allowlisted; ambiguous: 3 matches"
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Close Channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Close Info",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Close Sidebar Icon",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Copy Link",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Copy text",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Favorite",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Mute",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Pinned messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "legacy roadmap channel menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "reason": "not allowlisted"
+        }
+      ],
+      "allowlistedAbsent": [
+        {
+          "role": "button",
+          "name": "View Info"
+        }
+      ],
+      "roleNames": [
+        {
+          "role": "application",
+          "name": "channel navigator region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "channel sidebar region",
+          "count": 1
+        },
+        {
+          "role": "banner",
+          "name": "channel header region",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "count": 3
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Close Channel",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Close Info",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Close Sidebar Icon",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Copy Link",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Copy text",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Favorite",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Mute",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Pinned messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "legacy roadmap channel menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Channels",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "InfoLegacy Roadmap",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Legacy Roadmap",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "This channel is archived.",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Mattermost Logo",
+          "count": 2
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "count": 2
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "count": 1
+        },
+        {
+          "role": "navigation",
+          "name": "Channel Info Actions",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "Info",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "scrollable content",
+          "count": 2
+        }
+      ],
+      "snapshot": "- text: 󰋽\n- paragraph: \"Preview Mode: Email notifications have not been configured.\"\n- link \"×\":\n  - /url: \"#\"\n- banner:\n  - heading \"Channels\" [level=1]\n  - button \"Open product menu\":\n    - text: \n    - img\n    - text: Channels\n  - button \"󰍉 Search\"\n  - button \"Help\": 󰘥\n  - button \"Recent mentions\": 󰁥\n  - button \"Saved messages\": 󰃃\n  - button \"Settings\": 󰢻\n  - button \"User's account menu\":\n    - paragraph: Status is \"Online\".\n- button \"QA Team 󰅀\"\n- button \"Browse or create channels\":\n  - img\n- application \"channel navigator region\":\n  - link \"unreads filter\":\n    - /url: \"#\"\n    - text: 󰈶\n  - button \"Find Channels\": 󰍉 Find channel\n- list:\n  - listitem:\n    - link \"Threads\":\n      - /url: /qa-team/threads\n      - img\n      - text: Threads\n- application \"channel sidebar region\":\n  - region \"scrollable content\":\n    - button \"CHANNELS\" [expanded]: 󰅀 CHANNELS\n    - list:\n      - listitem:\n        - link \"off-topic public channel\":\n          - /url: /qa-team/channels/off-topic\n          - text:  Off-Topic\n      - listitem:\n        - link \"qa sandbox public channel\":\n          - /url: /qa-team/channels/qa-sandbox\n          - text:  QA Sandbox\n      - listitem:\n        - link \"release planning public channel\":\n          - /url: /qa-team/channels/release-planning\n          - text:  Release Planning\n      - listitem:\n        - link \"town square public channel\":\n          - /url: /qa-team/channels/town-square\n          - text:  Town Square\n    - button \"Add Channels\"\n    - button \"DIRECT MESSAGES\" [expanded]\n    - button \"Write a direct message\": 󰐕\n    - list\n    - button \"Invite Members\"\n- banner \"channel header region\":\n  - button \"legacy roadmap channel menu\":\n    - img\n    - strong: Legacy Roadmap\n    - img\n  - button \"Members\": \"2\"\n  - button \"Channel files\": 󰧮\n  - paragraph: Legacy header charlie-4e8a\n  - button \"Open in new window\"\n  - button \"Close Info\": 󰋽\n- main:\n  - text: At <time> <weekday>, <date>, sysadmin wrote, sysadmin archived the channel.\n  - list:\n    - listitem:\n      - img\n      - heading \"Legacy Roadmap\" [level=2]\n      - img\n      - text: Public channel created by sysadmin on <date>.\n      - paragraph: \"This channel's purpose is: Legacy purpose charlie-4e8a\"\n      - button \"Invite others to the workspace\"\n    - listitem:\n      - separator\n      - text: <day>\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/user-activity-qzc315mwg3nwmj8z39u7oy3foh_apyufth56irrdk9ojnq4o6qxzw\n        - time: <time>\n      - paragraph:\n        - button \"@sysadmin\"\n        - strong: joined the channel\n        - text: .\n      - paragraph:\n        - text: You were\n        - strong: added to the channel\n        - text: by\n        - button \"@sysadmin\"\n        - text: .\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/<id>\n        - time: <time>\n      - button \"@sysadmin\"\n      - text: archived the channel.\n- text: You are viewing an archived channel. New messages cannot be posted.\n- button \"Close Channel\"\n- region \"Info\":\n  - heading \"InfoLegacy Roadmap\" [level=2]\n  - button \"Close Sidebar Icon\": 󰅖\n  - region \"scrollable content\":\n    - text: 󱈎\n    - heading \"This channel is archived.\" [level=4]\n    - button \"Favorite\": 󰓒 Favorite\n    - button \"Mute\": 󰂜 Mute\n    - button \"Copy Link\": 󰌹 Copy Link\n    - text: Legacy Roadmap Channel Purpose\n    - paragraph: Legacy purpose charlie-4e8a\n    - text: Channel Header\n    - paragraph: Legacy header charlie-4e8a\n    - text: \"Channel handle: legacy-roadmap\"\n    - button \"Copy text\": 󰆏\n    - text: \"ID: <id>\"\n    - button \"Copy text\": 󰆏\n    - navigation \"Channel Info Actions\":\n      - button \"Members\": 󰀓 Members 2 󰅂\n      - button \"Pinned messages\": 󰤱 Pinned messages 0 󰅂\n      - button \"Files\": 󰧮 Files 0 󰅂\n- status"
+    },
+    {
+      "id": "sf31b541a",
+      "depth": 1,
+      "root": "/qa-team/channels/legacy-roadmap",
+      "pathname": "/qa-team/channels/release-planning",
+      "via": [
+        {
+          "role": "link",
+          "name": "release planning public channel"
+        }
+      ],
+      "candidates": [
+        {
+          "role": "button",
+          "name": "View Info"
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel"
+        }
+      ],
+      "skipped": [
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Message priority",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Messaging help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Schedule message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Send Now",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Upload files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "add to favorites",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "attachment",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "bold",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "bulleted list",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "code",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "formatting",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "heading",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "italic",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "link",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "numbered list",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "quote",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "release planning channel menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "select an emoji",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "strike through",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "textbox",
+          "name": "Write to Release Planning",
+          "reason": "not allowlisted"
+        }
+      ],
+      "allowlistedAbsent": [],
+      "roleNames": [
+        {
+          "role": "application",
+          "name": "channel navigator region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "channel sidebar region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "message input complementary region",
+          "count": 1
+        },
+        {
+          "role": "banner",
+          "name": "channel header region",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Message priority",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Messaging help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Schedule message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Send Now",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Upload files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "View Info",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "add to favorites",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "attachment",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "bold",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "bulleted list",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "code",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "formatting",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "heading",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "italic",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "link",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "numbered list",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "quote",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "release planning channel menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "select an emoji",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "strike through",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Channels",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Release Planning",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Attachment Icon",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Format letter Case Icon",
+          "count": 2
+        },
+        {
+          "role": "img",
+          "name": "Mattermost Logo",
+          "count": 2
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "count": 2
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "scrollable content",
+          "count": 1
+        },
+        {
+          "role": "textbox",
+          "name": "Write to Release Planning",
+          "count": 1
+        }
+      ],
+      "snapshot": "- text: 󰋽\n- paragraph: \"Preview Mode: Email notifications have not been configured.\"\n- link \"×\":\n  - /url: \"#\"\n- banner:\n  - heading \"Channels\" [level=1]\n  - button \"Open product menu\":\n    - text: \n    - img\n    - text: Channels\n  - button \"󰍉 Search\"\n  - button \"Help\": 󰘥\n  - button \"Recent mentions\": 󰁥\n  - button \"Saved messages\": 󰃃\n  - button \"Settings\": 󰢻\n  - button \"User's account menu\":\n    - paragraph: Status is \"Online\".\n- button \"QA Team 󰅀\"\n- button \"Browse or create channels\":\n  - img\n- application \"channel navigator region\":\n  - link \"unreads filter\":\n    - /url: \"#\"\n    - text: 󰈶\n  - button \"Find Channels\": 󰍉 Find channel\n- list:\n  - listitem:\n    - link \"Threads\":\n      - /url: /qa-team/threads\n      - img\n      - text: Threads\n- application \"channel sidebar region\":\n  - region \"scrollable content\":\n    - button \"CHANNELS\" [expanded]: 󰅀 CHANNELS\n    - list:\n      - listitem:\n        - link \"off-topic public channel\":\n          - /url: /qa-team/channels/off-topic\n          - text:  Off-Topic\n      - listitem:\n        - link \"qa sandbox public channel\":\n          - /url: /qa-team/channels/qa-sandbox\n          - text:  QA Sandbox\n      - listitem:\n        - link \"release planning public channel\":\n          - /url: /qa-team/channels/release-planning\n          - text:  Release Planning\n      - listitem:\n        - link \"town square public channel\":\n          - /url: /qa-team/channels/town-square\n          - text:  Town Square\n    - button \"Add Channels\"\n    - button \"DIRECT MESSAGES\" [expanded]\n    - button \"Write a direct message\": 󰐕\n    - list\n    - button \"Invite Members\"\n- banner \"channel header region\":\n  - button \"add to favorites\": 󰓒\n  - button \"release planning channel menu\":\n    - strong: Release Planning\n    - img\n  - button \"Members\": \"2\"\n  - button \"Channel files\": 󰧮\n  - paragraph: Release header bravo-91d2\n  - button \"Open in new window\"\n  - button \"View Info\": 󰋽\n- main:\n  - text: At <time> <weekday>, <date>, sysadmin wrote, qa-user added to the channel by sysadmin.\n  - list:\n    - listitem:\n      - img\n      - heading \"Release Planning\" [level=2]\n      - img\n      - text: Public channel created by sysadmin on <date>.\n      - paragraph: \"This is the start of Release Planning. Any team member can join and read this channel. This channel's purpose is: Release purpose bravo-91d2\"\n      - button \"Invite others to the workspace\"\n    - listitem:\n      - separator\n      - text: <day>\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/user-activity-<id>\n        - time: <time>\n      - paragraph:\n        - button \"@sysadmin\"\n        - strong: joined the channel\n        - text: .\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/user-activity-<id>\n        - time: <time>\n      - paragraph:\n        - text: You were\n        - strong: added to the channel\n        - text: by\n        - button \"@sysadmin\"\n        - text: .\n- application \"message input complementary region\":\n  - textbox \"Write to Release Planning\"\n  - button \"bold\":\n    - img\n  - button \"italic\":\n    - img\n  - button \"strike through\":\n    - img\n  - button \"heading\":\n    - img\n  - button \"link\":\n    - img\n  - button \"code\":\n    - img\n  - button \"quote\":\n    - img\n  - button \"bulleted list\":\n    - img\n  - button \"numbered list\":\n    - img\n  - button \"Message priority\":\n    - button \"Message priority\":\n      - img\n  - 'button \"Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it\"':\n    - img\n  - button \"formatting\":\n    - img \"Format letter Case Icon\"\n    - img \"Format letter Case Icon\"\n  - button \"attachment\":\n    - img \"Attachment Icon\"\n  - button \"Upload files\"\n  - button \"select an emoji\":\n    - img\n  - button \"Send Now\" [disabled]:\n    - img\n  - button \"Schedule message\" [disabled]:\n    - img\n- form:\n  - button \"Messaging help\": Help\n- status"
+    },
+    {
+      "id": "s25eee1d5",
+      "depth": 1,
+      "root": "/qa-team/channels/qa-sandbox",
+      "pathname": "/qa-team/channels/qa-sandbox",
+      "via": [
+        {
+          "role": "button",
+          "name": "View Info"
+        }
+      ],
+      "candidates": [
+        {
+          "role": "link",
+          "name": "release planning public channel"
+        }
+      ],
+      "skipped": [
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Channel Settings",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Close Info",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Close Sidebar Icon",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Copy Link",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Copy text",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Edit",
+          "reason": "not allowlisted; ambiguous: 3 matches"
+        },
+        {
+          "role": "button",
+          "name": "Favorite",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Message priority",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Messaging help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Mute",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Notification Preferences",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Pinned messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Schedule message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Send Now",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Upload files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "add to favorites",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "attachment",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "bold",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "formatting",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "heading",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "italic",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "qa sandbox channel menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "select an emoji",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "show hidden formatting options",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "strike through",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "󰠁 Add People",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "textbox",
+          "name": "Write to QA Sandbox",
+          "reason": "not allowlisted"
+        }
+      ],
+      "allowlistedAbsent": [
+        {
+          "role": "button",
+          "name": "View Info"
+        }
+      ],
+      "roleNames": [
+        {
+          "role": "application",
+          "name": "channel navigator region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "channel sidebar region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "message input complementary region",
+          "count": 1
+        },
+        {
+          "role": "banner",
+          "name": "channel header region",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Channel Settings",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Close Info",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Close Sidebar Icon",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Copy Link",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Copy text",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Edit",
+          "count": 3
+        },
+        {
+          "role": "button",
+          "name": "Favorite",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Message priority",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Messaging help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Mute",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Notification Preferences",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Pinned messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Schedule message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Send Now",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Upload files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "add to favorites",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "attachment",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "bold",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "formatting",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "heading",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "italic",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "qa sandbox channel menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "select an emoji",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "show hidden formatting options",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "strike through",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "󰠁 Add People",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Channels",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "InfoQA Sandbox",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "QA Sandbox",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Attachment Icon",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Format letter Case Icon",
+          "count": 2
+        },
+        {
+          "role": "img",
+          "name": "Mattermost Logo",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "count": 1
+        },
+        {
+          "role": "navigation",
+          "name": "Channel Info Actions",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "Info",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "scrollable content",
+          "count": 2
+        },
+        {
+          "role": "textbox",
+          "name": "Write to QA Sandbox",
+          "count": 1
+        }
+      ],
+      "snapshot": "- text: 󰋽\n- paragraph: \"Preview Mode: Email notifications have not been configured.\"\n- link \"×\":\n  - /url: \"#\"\n- banner:\n  - heading \"Channels\" [level=1]\n  - button \"Open product menu\":\n    - text: \n    - img\n    - text: Channels\n  - button \"󰍉 Search\"\n  - button \"Help\": 󰘥\n  - button \"Recent mentions\": 󰁥\n  - button \"Saved messages\": 󰃃\n  - button \"Settings\": 󰢻\n  - button \"User's account menu\":\n    - paragraph: Status is \"Online\".\n- button \"QA Team 󰅀\"\n- button \"Browse or create channels\":\n  - img\n- application \"channel navigator region\":\n  - link \"unreads filter\":\n    - /url: \"#\"\n    - text: 󰈶\n  - button \"Find Channels\": 󰍉 Find channel\n- list:\n  - listitem:\n    - link \"Threads\":\n      - /url: /qa-team/threads\n      - img\n      - text: Threads\n- application \"channel sidebar region\":\n  - region \"scrollable content\":\n    - button \"CHANNELS\" [expanded]: 󰅀 CHANNELS\n    - list:\n      - listitem:\n        - link \"off-topic public channel\":\n          - /url: /qa-team/channels/off-topic\n          - text:  Off-Topic\n      - listitem:\n        - link \"qa sandbox public channel\":\n          - /url: /qa-team/channels/qa-sandbox\n          - text:  QA Sandbox\n      - listitem:\n        - link \"release planning public channel\":\n          - /url: /qa-team/channels/release-planning\n          - text:  Release Planning\n      - listitem:\n        - link \"town square public channel\":\n          - /url: /qa-team/channels/town-square\n          - text:  Town Square\n    - button \"Add Channels\"\n    - button \"DIRECT MESSAGES\" [expanded]\n    - button \"Write a direct message\": 󰐕\n    - list\n    - button \"Invite Members\"\n- banner \"channel header region\":\n  - button \"add to favorites\": 󰓒\n  - button \"qa sandbox channel menu\":\n    - strong: QA Sandbox\n    - img\n  - button \"Members\": \"2\"\n  - button \"Channel files\": 󰧮\n  - paragraph: Sandbox header alpha-7f3c\n  - button \"Open in new window\"\n  - button \"Close Info\": 󰋽\n- main:\n  - text: At <time> <weekday>, <date>, sysadmin wrote, qa-user added to the channel by sysadmin.\n  - list:\n    - listitem:\n      - img\n      - heading \"QA Sandbox\" [level=2]\n      - img\n      - text: Public channel created by sysadmin on <date>.\n      - paragraph: \"This is the start of QA Sandbox. Any team member can join and read this channel. This channel's purpose is: Sandbox purpose alpha-7f3c\"\n      - button \"Invite others to the workspace\"\n    - listitem:\n      - separator\n      - text: <day>\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/user-activity-dag1qmckmtd4tbuhgjq4iwbs8c_538r7rodnpfgfj5ghq7czozkeo\n        - time: <time>\n      - paragraph:\n        - button \"@sysadmin\"\n        - strong: joined the channel\n        - text: .\n      - paragraph:\n        - text: You were\n        - strong: added to the channel\n        - text: by\n        - button \"@sysadmin\"\n        - text: .\n- application \"message input complementary region\":\n  - textbox \"Write to QA Sandbox\"\n  - button \"bold\":\n    - img\n  - button \"italic\":\n    - img\n  - button \"strike through\":\n    - img\n  - button \"heading\":\n    - img\n  - button \"Message priority\":\n    - button \"Message priority\":\n      - img\n  - 'button \"Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it\"':\n    - img\n  - button \"show hidden formatting options\":\n    - img\n  - button \"formatting\":\n    - img \"Format letter Case Icon\"\n    - img \"Format letter Case Icon\"\n  - button \"attachment\":\n    - img \"Attachment Icon\"\n  - button \"Upload files\"\n  - button \"select an emoji\":\n    - img\n  - button \"Send Now\" [disabled]:\n    - img\n  - button \"Schedule message\" [disabled]:\n    - img\n- form:\n  - button \"Messaging help\": Help\n- region \"Info\":\n  - heading \"InfoQA Sandbox\" [level=2]\n  - button \"Close Sidebar Icon\": 󰅖\n  - region \"scrollable content\":\n    - button \"Favorite\": 󰓒 Favorite\n    - button \"Mute\": 󰂜 Mute\n    - button \"󰠁 Add People\"\n    - button \"Copy Link\": 󰌹 Copy Link\n    - text: QA Sandbox\n    - button \"Edit\": 󰲶\n    - text: Channel Purpose\n    - paragraph: Sandbox purpose alpha-7f3c\n    - button \"Edit\": 󰲶\n    - text: Channel Header\n    - paragraph: Sandbox header alpha-7f3c\n    - button \"Edit\": 󰲶\n    - text: \"Channel handle: qa-sandbox\"\n    - button \"Copy text\": 󰆏\n    - text: \"ID: <id>\"\n    - button \"Copy text\": 󰆏\n    - navigation \"Channel Info Actions\":\n      - button \"Channel Settings\": 󰅽 Channel Settings\n      - button \"Notification Preferences\": 󰂜 Notification Preferences\n      - button \"Members\": 󰀓 Members 2 󰅂\n      - button \"Pinned messages\": 󰤱 Pinned messages 0 󰅂\n      - button \"Files\": 󰧮 Files 0 󰅂\n- status"
+    },
+    {
+      "id": "sf6102036",
+      "depth": 2,
+      "root": "/qa-team/channels/legacy-roadmap",
+      "pathname": "/qa-team/channels/release-planning",
+      "via": [
+        {
+          "role": "button",
+          "name": "View Info"
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel"
+        }
+      ],
+      "candidates": [
+        {
+          "role": "link",
+          "name": "release planning public channel"
+        }
+      ],
+      "skipped": [
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Channel Settings",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Close Info",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Close Sidebar Icon",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Copy Link",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Copy text",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Edit",
+          "reason": "not allowlisted; ambiguous: 3 matches"
+        },
+        {
+          "role": "button",
+          "name": "Favorite",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Message priority",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "button",
+          "name": "Messaging help",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Mute",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Notification Preferences",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Pinned messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Schedule message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Send Now",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Upload files",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "add to favorites",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "attachment",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "bold",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "formatting",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "heading",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "italic",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "release planning channel menu",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "select an emoji",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "show hidden formatting options",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "strike through",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "button",
+          "name": "󰠁 Add People",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "reason": "not allowlisted; ambiguous: 2 matches"
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "reason": "not allowlisted"
+        },
+        {
+          "role": "textbox",
+          "name": "Write to Release Planning",
+          "reason": "not allowlisted"
+        }
+      ],
+      "allowlistedAbsent": [
+        {
+          "role": "button",
+          "name": "View Info"
+        }
+      ],
+      "roleNames": [
+        {
+          "role": "application",
+          "name": "channel navigator region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "channel sidebar region",
+          "count": 1
+        },
+        {
+          "role": "application",
+          "name": "message input complementary region",
+          "count": 1
+        },
+        {
+          "role": "banner",
+          "name": "channel header region",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "@sysadmin",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Add Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Browse or create channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "CHANNELS",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Channel Settings",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Channel files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Close Info",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Close Sidebar Icon",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Copy Link",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Copy text",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "DIRECT MESSAGES",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Edit",
+          "count": 3
+        },
+        {
+          "role": "button",
+          "name": "Favorite",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Find Channels",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite Members",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Invite others to the workspace",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Members",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Message priority",
+          "count": 2
+        },
+        {
+          "role": "button",
+          "name": "Messaging help",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Mute",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Notification Preferences",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open in new window",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Open product menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Pinned messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "QA Team 󰅀",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Recent mentions",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Saved messages",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Schedule message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Send Now",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Settings",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Upload files",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "User's account menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "Write a direct message",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "add to favorites",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "attachment",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "bold",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "formatting",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "heading",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "italic",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "release planning channel menu",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "select an emoji",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "show hidden formatting options",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "strike through",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "󰍉 Search",
+          "count": 1
+        },
+        {
+          "role": "button",
+          "name": "󰠁 Add People",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Channels",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "InfoRelease Planning",
+          "count": 1
+        },
+        {
+          "role": "heading",
+          "name": "Release Planning",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Attachment Icon",
+          "count": 1
+        },
+        {
+          "role": "img",
+          "name": "Format letter Case Icon",
+          "count": 2
+        },
+        {
+          "role": "img",
+          "name": "Mattermost Logo",
+          "count": 2
+        },
+        {
+          "role": "link",
+          "name": "<time>",
+          "count": 2
+        },
+        {
+          "role": "link",
+          "name": "Threads",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "off-topic public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "qa sandbox public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "release planning public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "town square public channel",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "unreads filter",
+          "count": 1
+        },
+        {
+          "role": "link",
+          "name": "×",
+          "count": 1
+        },
+        {
+          "role": "navigation",
+          "name": "Channel Info Actions",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "Info",
+          "count": 1
+        },
+        {
+          "role": "region",
+          "name": "scrollable content",
+          "count": 2
+        },
+        {
+          "role": "textbox",
+          "name": "Write to Release Planning",
+          "count": 1
+        }
+      ],
+      "snapshot": "- text: 󰋽\n- paragraph: \"Preview Mode: Email notifications have not been configured.\"\n- link \"×\":\n  - /url: \"#\"\n- banner:\n  - heading \"Channels\" [level=1]\n  - button \"Open product menu\":\n    - text: \n    - img\n    - text: Channels\n  - button \"󰍉 Search\"\n  - button \"Help\": 󰘥\n  - button \"Recent mentions\": 󰁥\n  - button \"Saved messages\": 󰃃\n  - button \"Settings\": 󰢻\n  - button \"User's account menu\":\n    - paragraph: Status is \"Online\".\n- button \"QA Team 󰅀\"\n- button \"Browse or create channels\":\n  - img\n- application \"channel navigator region\":\n  - link \"unreads filter\":\n    - /url: \"#\"\n    - text: 󰈶\n  - button \"Find Channels\": 󰍉 Find channel\n- list:\n  - listitem:\n    - link \"Threads\":\n      - /url: /qa-team/threads\n      - img\n      - text: Threads\n- application \"channel sidebar region\":\n  - region \"scrollable content\":\n    - button \"CHANNELS\" [expanded]: 󰅀 CHANNELS\n    - list:\n      - listitem:\n        - link \"off-topic public channel\":\n          - /url: /qa-team/channels/off-topic\n          - text:  Off-Topic\n      - listitem:\n        - link \"qa sandbox public channel\":\n          - /url: /qa-team/channels/qa-sandbox\n          - text:  QA Sandbox\n      - listitem:\n        - link \"release planning public channel\":\n          - /url: /qa-team/channels/release-planning\n          - text:  Release Planning\n      - listitem:\n        - link \"town square public channel\":\n          - /url: /qa-team/channels/town-square\n          - text:  Town Square\n    - button \"Add Channels\"\n    - button \"DIRECT MESSAGES\" [expanded]\n    - button \"Write a direct message\": 󰐕\n    - list\n    - button \"Invite Members\"\n- banner \"channel header region\":\n  - button \"add to favorites\": 󰓒\n  - button \"release planning channel menu\":\n    - strong: Release Planning\n    - img\n  - button \"Members\": \"2\"\n  - button \"Channel files\": 󰧮\n  - paragraph: Release header bravo-91d2\n  - button \"Open in new window\"\n  - button \"Close Info\": 󰋽\n- main:\n  - text: At <time> <weekday>, <date>, sysadmin wrote, qa-user added to the channel by sysadmin.\n  - list:\n    - listitem:\n      - img\n      - heading \"Release Planning\" [level=2]\n      - img\n      - text: Public channel created by sysadmin on <date>.\n      - paragraph: \"This is the start of Release Planning. Any team member can join and read this channel. This channel's purpose is: Release purpose bravo-91d2\"\n      - button \"Invite others to the workspace\"\n    - listitem:\n      - separator\n      - text: <day>\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/user-activity-<id>\n        - time: <time>\n      - paragraph:\n        - button \"@sysadmin\"\n        - strong: joined the channel\n        - text: .\n    - listitem:\n      - img \"Mattermost Logo\"\n      - text: System\n      - link \"<time>\":\n        - /url: /qa-team/pl/user-activity-<id>\n        - time: <time>\n      - paragraph:\n        - text: You were\n        - strong: added to the channel\n        - text: by\n        - button \"@sysadmin\"\n        - text: .\n- application \"message input complementary region\":\n  - textbox \"Write to Release Planning\"\n  - button \"bold\":\n    - img\n  - button \"italic\":\n    - img\n  - button \"strike through\":\n    - img\n  - button \"heading\":\n    - img\n  - button \"Message priority\":\n    - button \"Message priority\":\n      - img\n  - 'button \"Burn-on-read: Message will be deleted for a recipient 10 minutes after they open it\"':\n    - img\n  - button \"show hidden formatting options\":\n    - img\n  - button \"formatting\":\n    - img \"Format letter Case Icon\"\n    - img \"Format letter Case Icon\"\n  - button \"attachment\":\n    - img \"Attachment Icon\"\n  - button \"Upload files\"\n  - button \"select an emoji\":\n    - img\n  - button \"Send Now\" [disabled]:\n    - img\n  - button \"Schedule message\" [disabled]:\n    - img\n- form:\n  - button \"Messaging help\": Help\n- region \"Info\":\n  - heading \"InfoRelease Planning\" [level=2]\n  - button \"Close Sidebar Icon\": 󰅖\n  - region \"scrollable content\":\n    - button \"Favorite\": 󰓒 Favorite\n    - button \"Mute\": 󰂜 Mute\n    - button \"󰠁 Add People\"\n    - button \"Copy Link\": 󰌹 Copy Link\n    - text: Release Planning\n    - button \"Edit\": 󰲶\n    - text: Channel Purpose\n    - paragraph: Release purpose bravo-91d2\n    - button \"Edit\": 󰲶\n    - text: Channel Header\n    - paragraph: Release header bravo-91d2\n    - button \"Edit\": 󰲶\n    - text: \"Channel handle: release-planning\"\n    - button \"Copy text\": 󰆏\n    - text: \"ID: <id>\"\n    - button \"Copy text\": 󰆏\n    - navigation \"Channel Info Actions\":\n      - button \"Channel Settings\": 󰅽 Channel Settings\n      - button \"Notification Preferences\": 󰂜 Notification Preferences\n      - button \"Members\": 󰀓 Members 2 󰅂\n      - button \"Pinned messages\": 󰤱 Pinned messages 0 󰅂\n      - button \"Files\": 󰧮 Files 0 󰅂\n- status"
+    }
+  ],
+  "transitions": [
+    {
+      "n": 1,
+      "from": "s6c6bce31",
+      "action": {
+        "role": "button",
+        "name": "View Info"
+      },
+      "to": "s54e976c8",
+      "changes": [
+        "region \"Info\" appeared",
+        "banner \"channel header region\" content changed"
+      ]
+    },
+    {
+      "n": 2,
+      "from": "s6c6bce31",
+      "action": {
+        "role": "link",
+        "name": "release planning public channel"
+      },
+      "to": "sf31b541a",
+      "changes": [
+        "application \"message input complementary region\" appeared",
+        "URL path changed to /qa-team/channels/release-planning",
+        "banner \"channel header region\" content changed"
+      ]
+    },
+    {
+      "n": 3,
+      "from": "s82fd117b",
+      "action": {
+        "role": "button",
+        "name": "View Info"
+      },
+      "to": "s25eee1d5",
+      "changes": [
+        "region \"Info\" appeared",
+        "banner \"channel header region\" content changed",
+        "application \"message input complementary region\" content changed"
+      ]
+    },
+    {
+      "n": 4,
+      "from": "s82fd117b",
+      "action": {
+        "role": "link",
+        "name": "release planning public channel"
+      },
+      "to": "sf31b541a",
+      "changes": [
+        "URL path changed to /qa-team/channels/release-planning",
+        "banner \"channel header region\" content changed",
+        "application \"message input complementary region\" content changed"
+      ],
+      "note": "deduped: state sf31b541a already reached from /qa-team/channels/legacy-roadmap via click link \"release planning public channel\""
+    },
+    {
+      "n": 5,
+      "from": "s54e976c8",
+      "action": {
+        "role": "link",
+        "name": "release planning public channel"
+      },
+      "to": "sf6102036",
+      "changes": [
+        "application \"message input complementary region\" appeared",
+        "URL path changed to /qa-team/channels/release-planning",
+        "banner \"channel header region\" content changed",
+        "region \"Info\" content changed"
+      ]
+    },
+    {
+      "n": 6,
+      "from": "sf31b541a",
+      "action": {
+        "role": "button",
+        "name": "View Info"
+      },
+      "to": "sf6102036",
+      "changes": [
+        "region \"Info\" appeared",
+        "banner \"channel header region\" content changed",
+        "application \"message input complementary region\" content changed"
+      ],
+      "note": "deduped: state sf6102036 already reached from /qa-team/channels/legacy-roadmap via click button \"View Info\" > click link \"release planning public channel\""
+    },
+    {
+      "n": 7,
+      "from": "sf31b541a",
+      "action": {
+        "role": "link",
+        "name": "release planning public channel"
+      },
+      "to": "sf31b541a",
+      "changes": [
+        "no-op"
+      ]
+    },
+    {
+      "n": 8,
+      "from": "s25eee1d5",
+      "action": {
+        "role": "link",
+        "name": "release planning public channel"
+      },
+      "to": "sf6102036",
+      "changes": [
+        "URL path changed to /qa-team/channels/release-planning",
+        "banner \"channel header region\" content changed",
+        "application \"message input complementary region\" content changed",
+        "region \"Info\" content changed"
+      ],
+      "note": "deduped: state sf6102036 already reached from /qa-team/channels/legacy-roadmap via click button \"View Info\" > click link \"release planning public channel\""
+    },
+    {
+      "n": 9,
+      "from": "sf6102036",
+      "action": {
+        "role": "link",
+        "name": "release planning public channel"
+      },
+      "to": "sf6102036",
+      "changes": [
+        "no-op"
+      ]
+    }
+  ],
+  "budgetSkips": [],
+  "guard": {
+    "blockedTotal": 0,
+    "blocked": {},
+    "violations": []
+  },
+  "emission": [
+    {
+      "scenario": "PILOT-01",
+      "status": "emitted",
+      "reasons": [
+        "dedupe_key channel-info-rhs|state-transition|open-info>sidebar-switch-O-to-O|content-follows-current-channel: MX-05 is OPEN_WITH_EVIDENCE → proposed (PILOT-01) in coverage.md, not covered -> emitted"
+      ],
+      "locatorChecks": [
+        "button \"View Info\" matched the allowlist exactly and was unique in state s82fd117b",
+        "region \"Info\" observed exactly 1x in state s25eee1d5",
+        "region \"Info\" contains 'Sandbox purpose alpha-7f3c' in state s25eee1d5",
+        "region \"Info\" contains 'Sandbox header alpha-7f3c' in state s25eee1d5",
+        "link \"release planning public channel\" matched the allowlist exactly and was unique in state s25eee1d5",
+        "URL /qa-team/channels/release-planning matches state sf6102036",
+        "region \"Info\" observed exactly 1x in state sf6102036",
+        "button \"Close Info\" observed exactly 1x in state sf6102036",
+        "region \"Info\" contains 'Release Planning' in state sf6102036",
+        "region \"Info\" contains 'Release purpose bravo-91d2' in state sf6102036",
+        "region \"Info\" contains 'Release header bravo-91d2' in state sf6102036",
+        "region \"Info\" contains 'release-planning' in state sf6102036",
+        "region \"Info\" lacks 'Sandbox purpose alpha-7f3c' in state sf6102036",
+        "region \"Info\" lacks 'Sandbox header alpha-7f3c' in state sf6102036"
+      ],
+      "file": "pilot_01_mx_05.spec.ts",
+      "path": [
+        "navigate /qa-team/channels/qa-sandbox",
+        "#3 click button \"View Info\"",
+        "#8 click link \"release planning public channel\""
+      ]
+    },
+    {
+      "scenario": "PILOT-02",
+      "status": "emitted",
+      "reasons": [
+        "dedupe_key channel-info-rhs|decision|type=O,archived=true,role=team_user+channel_user,manage_team=false,content=present|archived-notice+read-only: MX-21 is OPEN_WITH_EVIDENCE → proposed (PILOT-02) in coverage.md, not covered -> emitted"
+      ],
+      "locatorChecks": [
+        "button \"View Info\" matched the allowlist exactly and was unique in state s6c6bce31",
+        "region \"Info\" observed exactly 1x in state s54e976c8",
+        "text 'This channel is archived.' observed in region \"Info\" in state s54e976c8",
+        "button \"Unarchive\" absent in state s54e976c8; never observed in any explored state, name not confirmed live",
+        "WARNING button \"Add People\" never observed exactly in any explored state; live accessible name is \"\\u{f0801} Add People\" (icon glyph in the name, s25eee1d5); this count-0 assertion may pass vacuously",
+        "button \"Edit\" absent in state s54e976c8; name confirmed live in s25eee1d5, sf6102036",
+        "button \"Notification Preferences\" absent in state s54e976c8; name confirmed live in s25eee1d5, sf6102036",
+        "button \"Channel Settings\" absent in state s54e976c8; name confirmed live in s25eee1d5, sf6102036",
+        "region \"Info\" contains 'Legacy purpose charlie-4e8a' in state s54e976c8",
+        "region \"Info\" contains 'Legacy header charlie-4e8a' in state s54e976c8",
+        "button \"Members\" observed exactly 1x in region \"Info\" in state s54e976c8; 2 page-wide, so the region scope is required",
+        "button \"Copy Link\" observed exactly 1x in region \"Info\" in state s54e976c8"
+      ],
+      "file": "pilot_02_mx_21.spec.ts",
+      "path": [
+        "navigate /qa-team/channels/legacy-roadmap",
+        "#1 click button \"View Info\""
+      ]
+    }
+  ]
+}
