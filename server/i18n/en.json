@@ -6930,6 +6930,11 @@
     "description": "API error when the caller lacks permission to manage an attribute-based access control policy; admin-facing."
   },
   {
+    "id": "app.access_control.plugin.batch_too_large.app_error",
+    "translation": "Too many resources in one access control evaluation; the limit is {{.Max}}.",
+    "description": "API error (400) returned to a plugin when a batch access control evaluation asks for decisions on more distinct resource IDs than the server allows in one call. {{.Max}} is the maximum number of resource IDs."
+  },
+  {
     "id": "app.access_control.plugin.evaluation_unavailable.app_error",
     "translation": "Access control could not be evaluated for this resource.",
     "description": "API error (503) returned to a plugin when the Access Control / Policy Enforcement Point is not available to decide whether the requested resource may be accessed. The underlying reason is carried in the untranslated error detail."
@@ -8011,7 +8016,7 @@
   },
   {
     "id": "app.data_spillage.exposure.checksum_notification",
-    "translation": "@{{.Username}} downloaded an exposure report for the quarantined message.\nFile: `{{.FileName}}`\nSHA-256: `{{.Checksum}}`\nTo confirm a copy of this file has not been modified, compare this checksum with the output of `shasum -a 256 <file>` on macOS or Linux, or `Get-FileHash <file>` in Windows PowerShell (letter case does not matter).",
+    "translation": "@{{.Username}} downloaded an exposure report for the quarantined message.\n\nFile: `{{.FileName}}`\n\nSHA-256: `{{.Checksum}}`",
     "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer downloads an exposure report. Keep the Markdown backticks, line breaks and the {{.Username}}, {{.FileName}} and {{.Checksum}} placeholders unchanged."
   },
   {
@@ -8261,7 +8266,7 @@
   },
   {
     "id": "app.data_spillage.report.checksum_notification",
-    "translation": "@{{.Username}} generated a report for the quarantined message.\nFile: `{{.FileName}}`\nSHA-256: `{{.Checksum}}`\nTo confirm a copy of this file has not been modified, compare this checksum with the output of `shasum -a 256 <file>` on macOS or Linux, or `Get-FileHash <file>` in Windows PowerShell (letter case does not matter).",
+    "translation": "@{{.Username}} generated a report for the quarantined message.\n\nFile: `{{.FileName}}`\n\nSHA-256: `{{.Checksum}}`",
     "description": "Message posted by the content review bot in each reviewer's review thread when a reviewer generates a flagged post report. Keep the Markdown backticks, line breaks and the {{.Username}}, {{.FileName}} and {{.Checksum}} placeholders unchanged."
   },
   {

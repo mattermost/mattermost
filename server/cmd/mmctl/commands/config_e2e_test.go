@@ -12,6 +12,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
@@ -110,6 +111,45 @@ func (s *MmctlE2ETestSuite) TestConfigGetCmdF() {
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(driver, *(printer.GetLines()[0].(*string)))
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.RunForSystemAdminAndLocal("Get a cloud restricted value that isn't a pointer", func(c client.Client) {
+		s.th.App.UpdateConfig(func(cfg *model.Config) { cfg.RateLimitSettings.VaryByHeader = "X-Forwarded-For" })
+
+		args := []string{"RateLimitSettings.VaryByHeader"}
+		err := configGetCmdF(c, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("X-Forwarded-For", printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get cloud restricted error for a value that isn't a pointer on a Cloud server", func() {
+		s.th.App.UpdateConfig(func(cfg *model.Config) { cfg.RateLimitSettings.VaryByHeader = "X-Forwarded-For" })
+		s.th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer func() { s.Require().Nil(s.th.App.Srv().RemoveLicense()) }()
+
+		args := []string{"RateLimitSettings.VaryByHeader"}
+		err := configGetCmdF(s.th.SystemAdminClient, &cobra.Command{}, args)
+		s.Require().EqualError(err, "accessing this config path: RateLimitSettings.VaryByHeader is restricted in a cloud environment")
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("Get a cloud restricted value that isn't a pointer on a Cloud server in local mode", func() {
+		s.th.App.UpdateConfig(func(cfg *model.Config) { cfg.RateLimitSettings.VaryByHeader = "X-Forwarded-For" })
+		s.th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
+		defer func() { s.Require().Nil(s.th.App.Srv().RemoveLicense()) }()
+		prevLocal := viper.GetBool("local")
+		viper.Set("local", true)
+		defer viper.Set("local", prevLocal)
+
+		args := []string{"RateLimitSettings.VaryByHeader"}
+		err := configGetCmdF(s.th.LocalClient, &cobra.Command{}, args)
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal("X-Forwarded-For", printer.GetLines()[0])
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 

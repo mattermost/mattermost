@@ -24,7 +24,7 @@ import './style.scss';
 type Props = {
     channelId: string;
     disabled?: boolean;
-    onSelect: (schedulingInfo: SchedulingInfo) => void;
+    onSelect: (schedulingInfo: SchedulingInfo) => Promise<{error?: string}>;
     repeatDisabledReason?: RepeatDisabledReason;
 };
 
@@ -44,22 +44,17 @@ export function SendPostOptions({disabled, onSelect, channelId, repeatDisabledRe
         onSelect(schedulingInfo);
     }, [onSelect]);
 
-    const handleSelectCustomTime = useCallback((schedulingInfo: SchedulingInfo) => {
-        onSelect(schedulingInfo);
-        return Promise.resolve({});
-    }, [onSelect]);
-
     const handleChooseCustomTime = useCallback(() => {
         dispatch(openModal({
             modalId: ModalIdentifiers.SCHEDULED_POST_CUSTOM_TIME_MODAL,
             dialogType: ScheduledPostCustomTimeModal,
             dialogProps: {
                 channelId,
-                onConfirm: handleSelectCustomTime,
+                onConfirm: onSelect,
                 repeatDisabledReason,
             },
         }));
-    }, [repeatDisabledReason, channelId, dispatch, handleSelectCustomTime]);
+    }, [repeatDisabledReason, channelId, dispatch, onSelect]);
 
     return (
         <Menu.Container
