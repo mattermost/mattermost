@@ -29591,6 +29591,10 @@
     "defaultMessage": "Pin {name}",
     "description": "Accessible name of the pin button at the end of a row in the More menu of the product navigation rail. {name} is the product, such as Playbooks. It pins the product back on the rail."
   },
+  "product_rail.showTeamSidebar": {
+    "defaultMessage": "Show team sidebar",
+    "description": "Tooltip and accessible name of the button at the bottom of the product navigation rail, shown while the team sidebar is hidden. It brings the team sidebar back."
+  },
   "product_rail.teamMenu.buttonLabel": {
     "defaultMessage": "Switch teams",
     "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."

@@ -399,6 +399,36 @@ describe('ProductRail', () => {
         });
     });
 
+    describe('with the team sidebar hidden', () => {
+        test('should bring the team sidebar back from the bottom of the rail', async () => {
+            renderAt('/team-one/channels/town-square', getState());
+
+            await userEvent.click(screen.getByRole('button', {name: 'Show team sidebar'}));
+
+            expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
+                name: 'hide_team_sidebar',
+                value: 'false',
+            })]);
+        });
+
+        test('should leave the team sidebar\'s button to it while it shows', () => {
+            const state = getState();
+            renderAt('/team-one/channels/town-square', {
+                ...state,
+                entities: {
+                    ...state.entities,
+                    preferences: {
+                        myPreferences: {
+                            'sidebar_settings--hide_team_sidebar': {category: 'sidebar_settings', name: 'hide_team_sidebar', user_id: user.id, value: 'false'},
+                        },
+                    },
+                },
+            });
+
+            expect(screen.queryByRole('button', {name: 'Show team sidebar'})).not.toBeInTheDocument();
+        });
+    });
+
     describe('Boards with no board to open', () => {
         // A board kind is registered, but no channel in the team is a board.
         function getNoBoardsState(): DeepPartial<GlobalState> {

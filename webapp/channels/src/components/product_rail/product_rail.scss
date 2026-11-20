@@ -219,6 +219,67 @@
         pointer-events: none;
     }
 
+    // With the team sidebar hidden, the bottom of the rail takes over the bottom of the team sidebar:
+    // its plugins' icons, above the button that brings it back.
+    &__bottom {
+        display: flex;
+        width: 100%;
+        flex: 0 0 auto;
+        flex-direction: column;
+        align-items: center;
+        margin-top: auto;
+        gap: 4px;
+    }
+
+    &__plugins {
+        width: 100%;
+        padding: 16px 0 6px;
+        text-align: center;
+
+        &:empty {
+            display: none;
+        }
+
+        .fa {
+            color: var(--sidebar-header-text-color);
+            opacity: 0.73;
+            transition: all 0.15s ease;
+
+            &:hover {
+                opacity: 1;
+            }
+        }
+    }
+
+    &__showTeamSidebar {
+        display: flex;
+        width: 32px;
+        height: 32px;
+        flex: 0 0 auto;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: none;
+        border-radius: var(--radius-m);
+        background: none;
+        color: rgba(var(--sidebar-text-rgb), 0.56);
+
+        svg {
+            fill: currentColor;
+        }
+
+        &:hover,
+        &:focus-visible {
+            background: rgba(var(--sidebar-text-rgb), 0.08);
+            color: var(--sidebar-text);
+        }
+
+        &:focus-visible {
+            box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
+            outline: none;
+        }
+    }
+
     @media screen and (max-width: 768px) {
         display: none;
     }

@@ -9,10 +9,11 @@ import {defineMessages, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 import {Link, matchPath, useHistory, useLocation} from 'react-router-dom';
 
-import glyphMap, {DotsHorizontalIcon, MessageTextOutlineIcon, PinOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
+import glyphMap, {DockLeftIcon, DotsHorizontalIcon, MessageTextOutlineIcon, PinOutlineIcon, ProductBoardsIcon, ProductChannelsIcon} from '@mattermost/compass-icons/components';
 import type {IconGlyphTypes} from '@mattermost/compass-icons/IconGlyphs';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {selectTeam} from 'mattermost-redux/actions/teams';
 import {getThreadCounts} from 'mattermost-redux/actions/threads';
@@ -23,7 +24,7 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {productRailPathsLoaded, productRailPathViewed, setProductRailItemHidden, setProductRailOrder, setProductRailSection} from 'actions/views/product_rail';
+import {productRailPathsLoaded, productRailPathViewed, setProductRailItemHidden, setProductRailOrder, setProductRailSection, setTeamSidebarHidden} from 'actions/views/product_rail';
 import {selectProducts} from 'selectors/products';
 import {
     getBoardChannelIds,
@@ -43,6 +44,7 @@ import {
 import * as Menu from 'components/menu';
 import type {MenuButtonComponentProps} from 'components/menu';
 
+import Pluggable from 'plugins/pluggable';
 import {isBackstagePath, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {getProductSwitcherLinkURL, useCurrentProduct} from 'utils/products';
 
@@ -99,6 +101,11 @@ const messages = defineMessages({
         id: 'product_rail.itemMenu.pin',
         defaultMessage: 'Pin',
         description: 'Item in the right-click menu of an unpinned product, shown in the product navigation rail only while it is open. It pins the product back on the rail, out of the More menu.',
+    },
+    showTeamSidebar: {
+        id: 'product_rail.showTeamSidebar',
+        defaultMessage: 'Show team sidebar',
+        description: 'Tooltip and accessible name of the button at the bottom of the product navigation rail, shown while the team sidebar is hidden. It brings the team sidebar back.',
     },
     pinProduct: {
         id: 'product_rail.moreMenu.pin',
@@ -619,6 +626,26 @@ export default function ProductRail() {
                         />
                     ))}
                 </Menu.Container>
+            )}
+            {teamSidebarHidden && (
+                <div className='ProductRail__bottom'>
+                    {/* With the team sidebar hidden, its plugins' icons move here, as there only in Channels. */}
+                    {!currentProduct && (
+                        <div className='ProductRail__plugins'>
+                            <Pluggable pluggableName='BottomTeamSidebar'/>
+                        </div>
+                    )}
+                    <WithTooltip title={formatMessage(messages.showTeamSidebar)}>
+                        <button
+                            type='button'
+                            className='ProductRail__showTeamSidebar'
+                            aria-label={formatMessage(messages.showTeamSidebar)}
+                            onClick={() => dispatch(setTeamSidebarHidden(false))}
+                        >
+                            <DockLeftIcon size={20}/>
+                        </button>
+                    </WithTooltip>
+                </div>
             )}
         </nav>
     );
