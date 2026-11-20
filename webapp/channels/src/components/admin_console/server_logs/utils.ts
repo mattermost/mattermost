@@ -105,8 +105,11 @@ export function logsNeedDate(logs: LogObjectWithAdditionalInfo[], timezone: stri
     });
 }
 
+const SERVER_NODE_FIELD = 'server_node';
+
 // The entries as JSON Lines, oldest first whatever order they're shown in, so the file reads like the log.
 // The node isn't a JSON key (it's a symbol), so it's written as "server_node", which leaves the entry's own "node" field alone.
+// An entry that has its own "server_node" keeps it, and the node goes under the first free key of "_server_node", "__server_node", ...
 // A failed-node entry only says a node couldn't be reached, so it isn't a log line
 export function logsToJsonLines(logs: LogObjectWithAdditionalInfo[]): string {
     return logs.
@@ -123,7 +126,14 @@ export function logsToJsonLines(logs: LogObjectWithAdditionalInfo[]): string {
         }).
         map(({log}) => {
             const node = log[LogNodeKey];
-            return JSON.stringify(node ? {...log, server_node: node} : log);
+            if (!node) {
+                return JSON.stringify(log);
+            }
+            let key = SERVER_NODE_FIELD;
+            while (Object.hasOwn(log, key)) {
+                key = '_' + key;
+            }
+            return JSON.stringify({...log, [key]: node});
         }).
         join('\n');
 }

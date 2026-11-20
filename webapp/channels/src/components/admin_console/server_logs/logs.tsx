@@ -8,6 +8,7 @@ import {useHistory} from 'react-router-dom';
 import type {
     LogFilter,
     LogServerNames,
+    LogsByNode,
 } from '@mattermost/types/admin';
 import type {PluginRedux} from '@mattermost/types/plugins';
 
@@ -120,6 +121,13 @@ function getInitialFormat(configIsPlainLogs: boolean, hasUrlFilters: boolean): b
 }
 
 const NO_SCAN_LIMITED_NODES: ScanLimitedLogNode[] = [];
+
+function hasFailedNode(data: unknown): boolean {
+    if (!data || typeof data !== 'object') {
+        return false;
+    }
+    return Object.values(data as LogsByNode).some((entries) => Array.isArray(entries) && entries.some((entry) => entry.failed_node === true));
+}
 
 export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogNodes = NO_SCAN_LIMITED_NODES, plainLogs, isPlainLogs: configIsPlainLogs, plugins, actions}: Props) {
     const history = useHistory();
@@ -291,7 +299,11 @@ export default function Logs({logs, logNodes, truncatedLogNodes, scanLimitedLogN
             };
             const result = await (silent ? actions.getNewLogs(query) : actions.getLogs(query, signal));
             if (!result?.error) {
-                lastFetchStartRef.current = startedAt;
+                // A node that couldn't be reached missed this window, so the next poll asks for it again.
+                // The entries the other nodes repeat are dropped when merged
+                if (!hasFailedNode(result?.data)) {
+                    lastFetchStartRef.current = startedAt;
+                }
             } else if (!silent && id === latestFetchRef.current && !signal?.aborted) {
                 setLoadFailed(true);
             }

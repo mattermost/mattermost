@@ -571,6 +571,34 @@ describe('components/admin_console/server_logs/Logs fetching', () => {
         expect(getLogs).toHaveBeenCalledTimes(2);
     });
 
+    test('should ask a live-tail poll again for the window a node could not answer', async () => {
+        fakeNow('2026-10-20T12:00:00Z');
+        const failed = {data: {'node-b': [{timestamp: '2026-10-20 12:01:00.000 Z', level: 'error', msg: 'unreachable', caller: '', failed_node: true}]}};
+        const getLogs = jest.fn().mockResolvedValue({});
+        const getNewLogs = jest.fn().mockResolvedValueOnce(failed).mockResolvedValue({data: {'node-b': []}});
+        renderLogs(getLogs, getNewLogs);
+        await pickMenuItem('Open menu to select a time range', 'Last hour');
+        await waitFor(() => expect(getLogs).toHaveBeenLastCalledWith(expect.objectContaining({dateFrom: '2026-10-20 11:00:00.000 +00:00'}), expect.any(AbortSignal)));
+
+        // Each interval change polls straight away
+        jest.setSystemTime(new Date('2026-10-20T12:01:00Z'));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 10 seconds');
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(1));
+        expect(getNewLogs.mock.calls[0][0].dateFrom).toBe('2026-10-20 11:59:30.000 +00:00');
+
+        // node-b missed it, so the next poll starts from the same point
+        jest.setSystemTime(new Date('2026-10-20T12:02:00Z'));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 30 seconds');
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(2));
+        expect(getNewLogs.mock.calls[1][0].dateFrom).toBe('2026-10-20 11:59:30.000 +00:00');
+
+        // Every node answered, so the one after moves on
+        jest.setSystemTime(new Date('2026-10-20T12:03:00Z'));
+        await pickMenuItem('Open menu to turn live tail on or off', 'Every 60 seconds');
+        await waitFor(() => expect(getNewLogs).toHaveBeenCalledTimes(3));
+        expect(getNewLogs.mock.calls[2][0].dateFrom).toBe('2026-10-20 12:01:30.000 +00:00');
+    });
+
     test('should not queue a live-tail poll behind a pending search', async () => {
         const search = deferred();
         const getLogs = jest.fn().mockResolvedValueOnce({}).mockReturnValueOnce(search.promise).mockResolvedValue({});

@@ -161,6 +161,16 @@ describe('components/admin_console/server_logs/utils', () => {
             expect(line.server_node).toBe('node-a');
         });
 
+        test('should keep the entry\'s own server_node field and add the node under a free key', () => {
+            const [line] = logsToJsonLines([
+                {...entry('a', '2026-03-12T10:00:01.000Z', {server_node: 'worker-7', _server_node: 'taken'}), [LogNodeKey]: 'node-a'},
+            ]).split('\n').map((l) => JSON.parse(l));
+
+            expect(line.server_node).toBe('worker-7');
+            expect(line).toHaveProperty('_server_node', 'taken');
+            expect(line).toHaveProperty('__server_node', 'node-a');
+        });
+
         test('should skip failed-node entries', () => {
             const text = logsToJsonLines([
                 entry('a', '2026-03-12T10:00:01.000Z'),

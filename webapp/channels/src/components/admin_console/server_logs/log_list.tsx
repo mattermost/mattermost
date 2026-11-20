@@ -425,7 +425,20 @@ export default function LogList({
 
     const matchCount = search ? processedLogs.length : null;
     const truncated = truncatedNodes.some((node) => !selectedNode || node === selectedNode);
-    const scanLimited = scanLimitedNodes.filter(({node}) => !selectedNode || node === selectedNode);
+
+    // A gap that ends before the time range starts can't hide a matching entry. A gap with no readable end might
+    let rangeStart: number | null = null;
+    if (customRange) {
+        rangeStart = customRange.from;
+    } else if (timeRange !== null) {
+        rangeStart = timeRangeStart;
+    }
+    const scanLimited = scanLimitedNodes.filter(({node, scannedBackTo}) => {
+        if (selectedNode && node !== selectedNode) {
+            return false;
+        }
+        return rangeStart === null || !scannedBackTo || !(parseLogTimestamp(scannedBackTo) < rangeStart);
+    });
 
     // The menu item reads this rather than props, since on mobile the menu shows a copy made when it opened.
     // Search and plugin filters were applied by the server
@@ -1176,6 +1189,7 @@ export default function LogList({
                             values={{
                                 clearLink: (
                                     <button
+                                        key='clearFilters'
                                         className='btn btn-link'
                                         onClick={() => {
                                             clearSearch();

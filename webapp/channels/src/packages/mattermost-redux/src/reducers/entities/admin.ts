@@ -25,14 +25,16 @@ import {logEntryKey, logEntryTime} from 'mattermost-redux/utils/log_utils';
 // from that millisecond, and older nodes that ignore the date filter repeat everything
 function mergeLogEntries(existing: LogObject[], allIncoming: LogObject[]): LogObject[] {
     // The entry standing in for a node that could not be reached only describes the latest response.
-    // A scan limit entry says older entries may be missing. A poll can hit a limit too, and that gap
-    // stays after the next poll, so the loaded one is kept at the end, or else the first a poll brought
+    // A scan limit entry says entries before its scanned_back_to may be missing. A poll can hit a limit
+    // too, and that gap stays after the next poll. Gaps only move forward in time, so the newest one is
+    // kept at the end: once it's older than the time range, every earlier gap is too
     const kept = existing.filter((entry) => !entry.failed_node && !entry.scan_limited);
     const loadedScanLimits = existing.filter((entry) => entry.scan_limited);
-    const scanLimits = loadedScanLimits.length > 0 ? loadedScanLimits : allIncoming.filter((entry) => entry.scan_limited).slice(0, 1);
+    const incomingScanLimits = allIncoming.filter((entry) => entry.scan_limited);
+    const scanLimits = incomingScanLimits.length > 0 ? incomingScanLimits.slice(-1) : loadedScanLimits;
     const incoming = allIncoming.filter((entry) => !entry.scan_limited);
     if (incoming.length === 0) {
-        return kept.length + loadedScanLimits.length === existing.length && scanLimits.length === loadedScanLimits.length ? existing : kept.concat(scanLimits);
+        return kept.length + loadedScanLimits.length === existing.length && scanLimits === loadedScanLimits ? existing : kept.concat(scanLimits);
     }
 
     // Only entries from the oldest incoming timestamp onwards can be repeats
@@ -55,7 +57,7 @@ function mergeLogEntries(existing: LogObject[], allIncoming: LogObject[]): LogOb
         repeats.set(key, count - 1);
         return false;
     });
-    if (added.length === 0 && kept.length + loadedScanLimits.length === existing.length && scanLimits.length === loadedScanLimits.length) {
+    if (added.length === 0 && kept.length + loadedScanLimits.length === existing.length && scanLimits === loadedScanLimits) {
         return existing;
     }
 
