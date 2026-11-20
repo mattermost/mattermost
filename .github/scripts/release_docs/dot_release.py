@@ -1019,7 +1019,12 @@ def title_for(state: dict) -> str:
 
 
 def locate(gh, base: str) -> tuple[Target | None, str]:
-    """The open dot release docs PR, if there is one, and a note about any others."""
+    """The open dot release docs PR, if there is one, and a note about any others.
+
+    Unlike publish.locate, commits from people on its branch don't block it: this one PR
+    accumulates the dot releases shipped together, so a later version is committed on top of
+    their edits (which are kept, never overwritten; the PR body says so). Every other task
+    leaves a branch with people's commits alone."""
     found = []
     for branch in gh.branches_with_prefix(REPO, BRANCH_PREFIX):
         for pr in gh.pulls_for_branch(REPO, branch):
@@ -1046,12 +1051,25 @@ def security_marked(body: str | None, result: Result) -> frozenset:
     return frozenset(int(s.rsplit("#", 1)[1]) for s in listed)
 
 
+def with_originals(gh, marked: frozenset) -> frozenset:
+    """``marked`` and, for each backport in it, the PR it was cherry-picked from: the left-out
+    records name the original (as ``gather`` does), while the marker may list either."""
+    found = set(marked)
+    for number in marked:
+        origin = _changelog_module().cherry_picked_from((gh.pull(REPO, number) or {}).get("title", ""))
+        if origin:
+            found.add(origin)
+    return frozenset(found)
+
+
 def mark_security(gh, version: Version, info: dict, marked: frozenset, claude, files: dict, current,
                   result: Result) -> None:
-    """A PR the security marker lists that ``version``'s entry left out for its opt-out label (the
-    marker came after the entry): Claude's vague bullet in the entry, as ``gather`` writes it. A PR
-    the entry already has keeps its bullet, and one the marker no longer lists keeps the bullet it
-    got; the PR lists each such bullet for a person to check or delete."""
+    """A PR the security marker lists (``marked``, originals included: with_originals) that
+    ``version``'s entry left out for its opt-out label (the marker came after the entry): Claude's
+    vague bullet in the entry, as ``gather`` writes it. A PR the entry already has keeps its
+    bullet, and one the marker no longer lists keeps the bullet it got; the PR lists each such
+    bullet for a person to check or delete. When no bullet could be written or added, the PR stays
+    left out (a TODO) and the next run tries again; nothing is added, so a retry never doubles it."""
     kept = []
     for source, title, reason in info["skipped"]:
         opt_out = OPT_OUT_REASON.match(reason)
@@ -1060,14 +1078,19 @@ def mark_security(gh, version: Version, info: dict, marked: frozenset, claude, f
             continue
         pr = gh.pull(REPO, int(source[1:])) or {"title": title}
         bullet, problem = write_bullet(claude, pr, True)
-        if problem:
-            bullet = result.todo(f"{version}: no bullet for {source} ({title}): {problem}")
         path = changelog_path(version)
-        files[path] = add_bullet(current(path) or "", version, bullet, result)
+        before = current(path) or ""
+        after = before if problem else add_bullet(before, version, bullet, result)
+        if problem or after == before:
+            if problem:
+                result.todo(f"{version}: no bullet for {source} ({title}), which the `{SECURITY_MARKER}` marker lists: "
+                            f"{problem}. It stays left out until a run can write one")
+            kept.append([source, title, reason])
+            continue
+        files[path] = after
         url = pr.get("html_url", "")
         info["security"].append([bullet, source, url])
-        if not problem:
-            info.setdefault("opted_out_security", []).append([bullet, source, url, opt_out.group(1)])
+        info.setdefault("opted_out_security", []).append([bullet, source, url, opt_out.group(1)])
         result.notes.append(f"{version}: {source} is in the `{SECURITY_MARKER}` marker, so it is no longer left out.")
     info["skipped"] = kept
 
@@ -1184,9 +1207,10 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
         releases.append(release)
         state["order"].append(v.tag)
         state["versions"][v.tag] = release_state(release)
-    if marked:
+    if marked and in_pr:
+        originals = with_originals(gh, marked)
         for tag in in_pr:
-            mark_security(gh, Version.parse(tag), state["versions"][tag], marked, claude, files, current, result)
+            mark_security(gh, Version.parse(tag), state["versions"][tag], originals, claude, files, current, result)
 
     for path in [SERVER_RELEASES, ARCHIVE, *DEPLOY_PAGES]:
         current(path)
@@ -1217,6 +1241,9 @@ def run(gh, versions: list[Version], env: dict, claude, fetch, live: bool, sleep
         action = f"updated PR #{target.pr['number']}" if target.pr else f"opened a draft PR from `{target.branch}`"
         return result, f"Dry run: would have {action} in {REPO}, changing {paths}.", base_files
     message = f"{result.title}\n\n{TRAILER}: {TASK}\n"
+    # On top of the branch head even when people have committed there (see locate): this PR gathers
+    # the dot releases shipped together. write() re-reads the description, so markers written since
+    # locate are kept.
     action, number, skipped, review = write(gh, target, result.files, message, result.title, result.body, LABELS,
                                             reviewers=env.get("REVIEWERS", ""))
     pr = target.pr or {"number": number, "labels": []}

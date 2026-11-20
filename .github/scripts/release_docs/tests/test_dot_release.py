@@ -3,6 +3,7 @@
 import os
 import unittest
 from datetime import datetime, timezone
+from unittest import mock
 
 for name, value in {"GITHUB_TOKEN": "test", "REPOS": "mattermost/mattermost", "MILESTONE": "v12.2.0", "VERSION": "v12.2.0"}.items():
     os.environ.setdefault(name, value)
@@ -852,6 +853,45 @@ class AutomationTest(unittest.TestCase):
         _, outcome, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
         self.assertEqual(gh.writes[writes:], [])
         self.assertIn("is already up to date", outcome)
+
+    def test_a_late_marker_naming_the_backports_marks_their_originals(self):
+        gh = DotGitHub(OCT19)
+        branch = "release-agent/dot-release-docs/v11.11.2"
+        self.run_day(gh, ["v11.11.2", "v11.10.3", "v11.7.13"], day=OCT19)
+        pr = gh.pulls[dr.REPO][0]
+        path = dr.changelog_path(V("v11.10.3"))
+        before = dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"]
+        pr["body"] += "\n<!-- release-automation:security: 38580, 38526 -->\n"  # cherry picks of #38479 and #38048
+        result, _, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
+        self.assertEqual(result.todos, [])
+        self.assertEqual(dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"], before + 2)
+        for source in ("#38479", "#38048"):
+            self.assertNotIn(f"v11.10.3: {source} ", left_out(pr["body"]))
+
+    def test_a_security_bullet_that_cant_be_written_stays_left_out_and_a_later_run_adds_it_once(self):
+        gh = DotGitHub(OCT19)
+        branch = "release-agent/dot-release-docs/v11.11.2"
+        self.run_day(gh, ["v11.11.2", "v11.10.3", "v11.7.13"], day=OCT19)
+        pr = gh.pulls[dr.REPO][0]
+        path = dr.changelog_path(V("v11.10.3"))
+        before = dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"]
+        pr["body"] += "\n" + SECURITY_MARKER + "\n"
+        with mock.patch.object(dr, "write_bullet", return_value=(None, "Claude could not write it: timeout")):
+            result, _, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
+        self.assertIn("v11.10.3: no bullet for #38479 (MM-70601: Bound input size in the plain-text content extractor), "
+                      "which the `release-automation:security` marker lists: Claude could not write it: timeout. It stays "
+                      "left out until a run can write one", result.todos)
+        self.assertEqual(dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"], before)
+        self.assertNotIn(TODO_MARKER, gh.head_files(dr.REPO, branch)[path])
+        self.assertIn("v11.10.3: #38479 ", left_out(pr["body"]))
+
+        result, _, _ = self.run_day(gh, ["v11.11.2"], day=OCT19)
+        self.assertEqual(result.todos, [])
+        self.assertEqual(dot_replay.entries(gh.head_files(dr.REPO, branch)[path])[1]["11.10.3"]["fixes"], before + 2)
+        self.assertNotIn("v11.10.3: #38479 ", left_out(pr["body"]))
+        writes = len(gh.writes)
+        self.run_day(gh, ["v11.11.2"], day=OCT19)
+        self.assertEqual(gh.writes[writes:], [])
 
     def test_a_malformed_security_marker_marks_nothing(self):
         result = Result(dr.TASK, "v12.1.1")
