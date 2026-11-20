@@ -13,7 +13,7 @@ from release_docs.versions import Version
 from .fakes import FakeGitHub
 from .test_tasks import real_docs as release_docs_pages
 
-ROOT = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", "..", "..", ".."))
+DOCS = os.path.join(os.path.dirname(__file__), "fixtures", "docs-pages")
 ESR = "v10.11,v11.7,v12.4"
 DESKTOP = json.dumps({"v10.11": "v5.13", "v11.7": "v6.2", "v12.4": "v6.5"})
 SERVER_RELEASES = """| **Release** | **Released on** | **Support ends** |
@@ -26,10 +26,11 @@ V10_11 = esr.Esr(Version(10, 11), date(2025, 8, 15), Version(11, 7), date(2026, 
 
 
 def real_docs():
-    """The release docs pages, and the ESR docs pages as they are in this checkout."""
+    """The release docs pages, and the ESR docs pages, from the same snapshot (fixtures/docs-pages),
+    not this checkout's docs, which change as releases are published."""
     files = release_docs_pages()
     for path in esr.DOCS_FILES:
-        with open(os.path.join(ROOT, path), encoding="utf-8") as f:
+        with open(os.path.join(DOCS, path), encoding="utf-8") as f:
             files[path] = f.read()
     return files
 
