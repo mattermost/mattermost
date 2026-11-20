@@ -11,9 +11,10 @@ import (
 // jobTypePermissions holds the permissions required to read, manage, and create jobs of a type.
 type jobTypePermissions struct {
 	read *model.Permission
-	// manage and create are nil for job types that the server runs itself. Jobs of these types
-	// can't be created through the API and their status can't be updated.
+	// manage is nil for job types whose status can't be updated through the API.
 	manage *model.Permission
+	// create is nil for job types that the server runs itself. Jobs of these types can't be
+	// created through the API.
 	create *model.Permission
 }
 
@@ -75,6 +76,13 @@ var jobPermissions = map[string]jobTypePermissions{
 	model.JobTypeCloud:          generalJobPermissions,
 	model.JobTypeExtractContent: generalJobPermissions,
 
+	// No manage permission: like cancelling, a status update could cancel a run whose worker doesn't
+	// watch for cancellation.
+	model.JobTypeHealthCheck: {
+		read:   model.PermissionManageSystem,
+		create: model.PermissionManageSystem,
+	},
+
 	model.JobTypeMobileSessionMetadata:       readableInternalJobPermissions,
 	model.JobTypePostPersistentNotifications: readableInternalJobPermissions,
 	model.JobTypeDeleteExpiredPosts:          readableInternalJobPermissions,
@@ -96,7 +104,6 @@ var jobPermissions = map[string]jobTypePermissions{
 	model.JobTypeRecap:                         internalJobPermissions,
 	model.JobTypeScheduledRecap:                internalJobPermissions,
 	model.JobTypeAutoTranslationRecovery:       internalJobPermissions,
-	model.JobTypeHealthCheck:                   internalJobPermissions,
 	model.JobTypeCleanupExpiredAccessTokens:    internalJobPermissions,
 	model.JobTypeNotifyExpiringAccessTokens:    internalJobPermissions,
 }

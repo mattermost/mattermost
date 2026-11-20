@@ -133,6 +133,7 @@ var CreatableJobTypes = [...]string{
 	JobTypeExportDelete,
 	JobTypeCloud,
 	JobTypeExtractContent,
+	JobTypeHealthCheck,
 }
 
 type Job struct {

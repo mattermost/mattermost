@@ -83,8 +83,11 @@
         - `manage_jobs` — `migrations`, `plugins`, `product_notices`, `expiry_notify`, `active_users`, `import_process`, `import_delete`, `export_process`, `export_delete`, `cloud`, `extract_content`
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` on the channel given in job `data`, or `manage_team_access_rules` on the team in job `data` (see server logic for scoped sync jobs)
         - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
+        - `manage_system` — `health_check`
 
         Other job types can't be created through the API.
+
+        Creating a `health_check` job runs the Health Dashboard check now. If a run is already pending or in progress, that run is returned instead.
       operationId: CreateJob
       requestBody:
         content:
@@ -209,7 +212,7 @@
         - `access_control_sync` — `manage_system`, or `manage_channel_access_rules` / `manage_team_access_rules` for scoped jobs as when creating
         - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
 
-        Jobs of other types are run by the server itself and can't be cancelled.
+        Jobs of other types are run by the server itself and can't be cancelled. `health_check` jobs can't be cancelled either; cancelling one returns 400.
       operationId: CancelJob
       parameters:
         - name: job_id
@@ -331,7 +334,7 @@
         - `access_control_team_sync` — `manage_system`, or `manage_team_access_rules` on the team whose ID is the job's `policy_id`
         - `manage_system` — `access_control_sync`
 
-        The status of jobs that can't be created through the API can't be updated.
+        The status of `health_check` jobs and of jobs that can't be created through the API can't be updated.
       operationId: UpdateJobStatus
       parameters:
         - name: job_id

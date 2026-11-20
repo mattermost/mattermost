@@ -951,6 +951,29 @@ func TestInternalJobTypes(t *testing.T) {
 	})
 }
 
+func TestUpdateHealthCheckJobStatus(t *testing.T) {
+	mainHelper.Parallel(t)
+	th := Setup(t)
+
+	job, err := th.App.Srv().Store().Job().Save(&model.Job{
+		Id:       model.NewId(),
+		Type:     model.JobTypeHealthCheck,
+		Status:   model.JobStatusPending,
+		CreateAt: model.GetMillis(),
+	})
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		_, err := th.App.Srv().Store().Job().Delete(job.Id)
+		require.NoError(t, err)
+	})
+
+	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+		resp, err := client.UpdateJobStatus(context.Background(), job.Id, model.JobStatusCanceled, true)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
+}
+
 func TestUpdateJobStatus(t *testing.T) {
 	mainHelper.Parallel(t)
 	th := Setup(t)
