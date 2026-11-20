@@ -58,3 +58,11 @@ Each allowlist file contains a `ContractHonored` type + `AssertPublished*Contrac
 **Removing or changing an entry**
 
 Mark it `@deprecated` in the shared type for at least two minor releases before deletion, and call it out in the PR description. Do not silently change a field's type or rename an entry — either breaks plugins pinned to an older `min_server_version`.
+
+## Lessons from master failures
+
+Sources: `e2e-tests/playwright/docs/lessons.md`. Cite the ids in your PR.
+
+- **P-001** Code that submits debounced input must not act on stale state: report the debounced update inside `flushSync` in the debounce callback. Unit-test the debounce firing and the submit with no render between them.
+- **P-002** Don't write a prop back into an uncontrolled input when the prop can lag the DOM; it drops typed characters (Korean IME). Keep it uncontrolled, or sync only on a real external change.
+- **P-003** No global element selectors in SCSS, nested ones included (e.g. `label { span { pointer-events: none } }` in `_mobile.scss`); scope styles to a component class.
