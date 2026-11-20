@@ -1,21 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Page} from '@playwright/test';
 import type {PropertyField} from '@mattermost/types/properties';
 
-import type {ChannelsPage, ChannelsPost} from '@mattermost/playwright-lib';
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {
-    VALUES_ROUTE,
+    activeSystemFields,
+    countLoads,
     createField,
     deleteFields,
     fieldName,
+    modalClear,
+    modalRow,
+    modalTrigger,
+    openModalFromPostMenu,
     optionId,
+    pickerItem,
     purgeFields,
     recordRequests,
     setPostValues,
+    VALUES_ROUTE,
 } from './support';
 
 const CHIPS = 'post-attributes-chips';
@@ -29,53 +34,6 @@ const MODAL = '#postAttributesModal';
 // from the row's other glyphs: an `<svg>` resolves to `role='img'` too, so a bare role
 // query matches the trash icon as well.
 const LOCKED_REASON = "You don't have permission to modify this attribute.";
-
-function rowOf(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-row-${field.name}`);
-}
-
-function triggerOf(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-trigger-${field.name}`);
-}
-
-function clearOf(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-clear-${field.name}`);
-}
-
-function pickerItemOf(page: Page, field: PropertyField) {
-    return page.getByTestId(`post-attribute-add-${field.name}`);
-}
-
-/**
- * Counts full page loads after the point it is called.
- *
- * The write path's whole claim is that a value changes in place, and "without a
- * reload" is otherwise asserted only by the test not writing one — which proves
- * nothing about the code reloading on its own.
- */
-function countLoads(page: Page): () => number {
-    let loads = 0;
-
-    page.on('load', () => {
-        loads++;
-    });
-
-    return () => loads;
-}
-
-/**
- * Opens the post's `…` menu with the pointer and picks `Attributes`.
- *
- * The message text is hovered rather than the post, so the pointer never rests on
- * the chip row and the hover card is not what opened the modal.
- */
-async function openModalFromPostMenu(channelsPage: ChannelsPage, post: ChannelsPost) {
-    await post.messageText.hover();
-    await post.postMenu.toBeVisible();
-    await post.postMenu.dotMenuButton.click();
-    await channelsPage.postDotMenu.toBeVisible();
-    await channelsPage.postDotMenu.container.getByRole('menuitem', {name: 'Attributes'}).click();
-}
 
 /**
  * @objective Verify the whole non-pointer route works: the post's `…` menu opens by
@@ -258,7 +216,7 @@ test('rewrites the chip behind the modal when an option is picked', {tag: '@post
         await openModalFromPostMenu(channelsPage, postOnScreen);
         await expect(page.locator(MODAL)).toBeVisible();
 
-        await triggerOf(page, classification).click();
+        await modalTrigger(page, classification).click();
 
         // # Wait on the write itself rather than on elapsed time
         const written = page.waitForResponse(
@@ -342,8 +300,32 @@ test('clears a value with the trash button, dropping chip and card row', {tag: '
 
         // * Verify the trash button is named after its own attribute, so a modal of
         // several rows does not offer several buttons called "Clear"
-        const clear = clearOf(page, classification);
+        const clear = modalClear(page, classification);
         await expect(clear).toHaveAccessibleName(`Clear ${classification.name}`);
+
+        // * Verify the button stays out of sight until the row is hovered, and the
+        // pointer resting on the row is what brings it
+        await page.mouse.move(5, 5);
+        await expect(clear).toHaveCSS('opacity', '0');
+        await modalRow(page, classification).hover();
+        await expect(clear).toHaveCSS('opacity', '1');
+
+        // * Verify hovering the button itself names it in a tooltip
+        await clear.hover();
+
+        // The modal hides everything outside it from the accessibility tree, tooltips
+        // included, so the tooltip is found by its role attribute rather than by role query.
+        await expect(page.locator('[role="tooltip"]', {hasText: `Clear ${classification.name}`})).toBeVisible();
+
+        // * Verify keyboard focus brings it too, with the pointer elsewhere
+        await page.mouse.move(5, 5);
+        await expect(clear).toHaveCSS('opacity', '0');
+        await page.keyboard.press('Tab');
+        await expect(async () => {
+            await page.keyboard.press('Tab');
+            await expect(clear).toBeFocused({timeout: 500});
+        }).toPass({timeout: 10000});
+        await expect(clear).toHaveCSS('opacity', '1');
 
         await clear.click();
         expect((await written).status()).toBe(200);
@@ -354,8 +336,8 @@ test('clears a value with the trash button, dropping chip and card row', {tag: '
 
         // * Verify the row kept its place — it is declared `always` — and lost the
         // trash button, there being nothing left to clear
-        await expect(rowOf(page, classification)).toBeVisible();
-        await expect(triggerOf(page, classification)).toHaveText('');
+        await expect(modalRow(page, classification)).toBeVisible();
+        await expect(modalTrigger(page, classification)).toHaveText('');
         await expect(clear).toHaveCount(0);
 
         // # Close the modal and hover what is left of the row
@@ -434,13 +416,13 @@ test('locks a field the user may not write, with a padlock and no way in', {tag:
 
         // * Verify the writable field offers both controls, so the absences below are
         // about permission rather than about the modal not having drawn
-        await expect(triggerOf(page, open)).toHaveText('SECRET');
-        await expect(clearOf(page, open)).toHaveCount(1);
-        await expect(rowOf(page, open).getByRole('img', {name: LOCKED_REASON})).toHaveCount(0);
+        await expect(modalTrigger(page, open)).toHaveText('SECRET');
+        await expect(modalClear(page, open)).toHaveCount(1);
+        await expect(modalRow(page, open).getByRole('img', {name: LOCKED_REASON})).toHaveCount(0);
 
         // * Verify the restricted field shows its value as text, marked with a padlock
         // that carries the reason as its accessible name
-        const restrictedRow = rowOf(page, restricted);
+        const restrictedRow = modalRow(page, restricted);
 
         await expect(restrictedRow).toContainText('NOFORN');
         await expect(restrictedRow.getByRole('img', {name: LOCKED_REASON})).toBeVisible();
@@ -448,16 +430,16 @@ test('locks a field the user may not write, with a padlock and no way in', {tag:
         // * Verify there is no way in. The trash button is *absent* rather than
         // disabled, which is the deliberate shape: a disabled control on half the rows
         // is one the user has to learn to ignore.
-        await expect(triggerOf(page, restricted)).toHaveCount(0);
-        await expect(clearOf(page, restricted)).toHaveCount(0);
+        await expect(modalTrigger(page, restricted)).toHaveCount(0);
+        await expect(modalClear(page, restricted)).toHaveCount(0);
 
         // * Verify a field nobody may write reads the same way with nothing stored
-        const sealedRow = rowOf(page, sealed);
+        const sealedRow = modalRow(page, sealed);
 
         await expect(sealedRow).toBeVisible();
         await expect(sealedRow.getByRole('img', {name: LOCKED_REASON})).toBeVisible();
-        await expect(triggerOf(page, sealed)).toHaveCount(0);
-        await expect(clearOf(page, sealed)).toHaveCount(0);
+        await expect(modalTrigger(page, sealed)).toHaveCount(0);
+        await expect(modalClear(page, sealed)).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }
@@ -500,7 +482,7 @@ test('updates an open modal when another session changes the value', {tag: '@pos
         await openModalFromPostMenu(channelsPage, postOnScreen);
         await expect(page.locator(MODAL)).toBeVisible();
 
-        const trigger = triggerOf(page, classification);
+        const trigger = modalTrigger(page, classification);
         await expect(trigger).toHaveText('SECRET');
 
         const loads = countLoads(page);
@@ -574,18 +556,18 @@ test('opens the modal on a post with no values, listing always fields', {tag: '@
 
         // * Verify the `always` field has a row waiting to be filled in, with a
         // control and nothing in it
-        await expect(rowOf(page, classification)).toBeVisible();
-        await expect(triggerOf(page, classification)).toHaveText('');
+        await expect(modalRow(page, classification)).toBeVisible();
+        await expect(modalTrigger(page, classification)).toHaveText('');
 
         // * Verify it is genuinely writable from here, rather than a label on an
         // empty row
-        await triggerOf(page, classification).click();
+        await modalTrigger(page, classification).click();
         await expect(page.getByRole('menuitemradio', {name: 'SECRET'})).toBeVisible();
         await page.keyboard.press('Escape');
 
         // * Verify the `when_set` field is not listed. An unset field with no
         // instruction to appear is one the channel has not asked the author to fill in.
-        await expect(rowOf(page, caveat)).toHaveCount(0);
+        await expect(modalRow(page, caveat)).toHaveCount(0);
 
         // # Open the field picker
         const add = page.getByTestId('post-attributes-add');
@@ -596,8 +578,8 @@ test('opens the modal on a post with no values, listing always fields', {tag: '@
         // * Verify the picker offers the field the modal is not already showing, and
         // only that one. The `always` field has a row above, so offering it would be
         // a choice that changes nothing.
-        await expect(pickerItemOf(page, caveat)).toBeVisible();
-        await expect(pickerItemOf(page, classification)).toHaveCount(0);
+        await expect(pickerItem(page, caveat)).toBeVisible();
+        await expect(pickerItem(page, classification)).toHaveCount(0);
     } finally {
         await deleteFields(adminClient, created);
     }
@@ -672,23 +654,28 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
 
         // * Verify neither unset `when_set` field has a row. There is nothing stored
         // and nothing asked for, so the modal has nothing to draw.
-        await expect(rowOf(page, classification)).toHaveCount(0);
-        await expect(rowOf(page, caveat)).toHaveCount(0);
+        await expect(modalRow(page, classification)).toHaveCount(0);
+        await expect(modalRow(page, caveat)).toHaveCount(0);
 
         // # Add the first one from the picker
         const add = page.getByTestId('post-attributes-add');
 
+        // * Verify the control is a button named `Add attribute`, drawn in Compass's grey
+        // (dim) emphasis rather than as a link or a primary button
+        await expect(add).toHaveText('Add attribute');
+        await expect(add).toHaveClass(/button--emphasis-dim/);
+
         await add.click();
-        await pickerItemOf(page, classification).click();
+        await pickerItem(page, classification).click();
 
         // * Verify the row arrived with nothing in it
-        await expect(rowOf(page, classification)).toBeVisible();
-        await expect(triggerOf(page, classification)).toHaveText('');
+        await expect(modalRow(page, classification)).toBeVisible();
+        await expect(modalTrigger(page, classification)).toHaveText('');
 
         // * Verify adding wrote nothing. The trash button appears only when there is
         // something to clear, so its absence is the row saying it holds no value — an
         // added row is a request for somewhere to type, not a value of its own.
-        await expect(clearOf(page, classification)).toHaveCount(0);
+        await expect(modalClear(page, classification)).toHaveCount(0);
 
         // * Verify that on the wire too. The row showing nothing to clear would also
         // be true of a write that stored an empty value, and an empty value is a real
@@ -698,15 +685,15 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
         // * Verify the picker stopped offering the field the moment it gained a row,
         // before any value exists to make it a row on its own
         await add.click();
-        await expect(pickerItemOf(page, classification)).toHaveCount(0);
-        await expect(pickerItemOf(page, caveat)).toBeVisible();
+        await expect(pickerItem(page, classification)).toHaveCount(0);
+        await expect(pickerItem(page, caveat)).toBeVisible();
 
         // # Add the second one too, and leave it empty. It is the control for the
         // reopen below: one added row gets a value and one does not, and only the
         // first has any reason to come back.
-        await pickerItemOf(page, caveat).click();
-        await expect(rowOf(page, caveat)).toBeVisible();
-        await expect(triggerOf(page, caveat)).toHaveText('');
+        await pickerItem(page, caveat).click();
+        await expect(modalRow(page, caveat)).toBeVisible();
+        await expect(modalTrigger(page, caveat)).toHaveText('');
 
         // # Set a value on the new row, waiting on the write itself rather than on
         // elapsed time
@@ -715,7 +702,7 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
                 response.url().includes(`${VALUES_ROUTE}${post.id}`) && response.request().method() === 'PATCH',
         );
 
-        await triggerOf(page, classification).click();
+        await modalTrigger(page, classification).click();
         await page.getByRole('menuitemradio', {name: 'SECRET'}).click();
         expect((await written).status()).toBe(200);
 
@@ -734,20 +721,20 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
         // * Verify the row that was given a value is still there, carrying it. This
         // row is store-derived: it exists because the post holds a value for the
         // field, not because somebody once pressed Add.
-        await expect(rowOf(page, classification)).toBeVisible();
-        await expect(triggerOf(page, classification)).toHaveText('SECRET');
+        await expect(modalRow(page, classification)).toBeVisible();
+        await expect(modalTrigger(page, classification)).toHaveText('SECRET');
 
         // * Verify the row that was added and left empty is gone. The added set is
         // scoped to one opening of the modal and nothing was written, so there is
         // nothing for the row to have been made of — which is also what makes the
         // assertion above about the store rather than about the set.
-        await expect(rowOf(page, caveat)).toHaveCount(0);
+        await expect(modalRow(page, caveat)).toHaveCount(0);
 
         // * Verify the picker offers the empty field again and still not the one with
         // a value
         await add.click();
-        await expect(pickerItemOf(page, caveat)).toBeVisible();
-        await expect(pickerItemOf(page, classification)).toHaveCount(0);
+        await expect(pickerItem(page, caveat)).toBeVisible();
+        await expect(pickerItem(page, classification)).toHaveCount(0);
 
         // * Verify nothing reloaded the page to get any of this
         expect(loads()).toBe(0);
@@ -762,10 +749,11 @@ test('adds an attribute from the picker and gives it a first value', {tag: '@pos
  *
  * @precondition The PostAttributes feature flag is enabled.
  *
- * @precondition No other spec is creating system-scoped post attribute fields at the
- * same time. This is the one test here asserting the *absence* of candidates, and a
- * system-scoped field applies to every channel, so another spec's field would bring
- * the picker back. CI pins `PW_WORKERS: 1`, which holds it.
+ * @precondition No system-scoped post attribute field exists that this suite didn't
+ * create, and no other spec is creating one at the same time. This test asserts the
+ * *absence* of candidates, and a system-scoped field applies to every channel, so any
+ * other field would bring the picker back. It skips when the server has one; CI pins
+ * `PW_WORKERS: 1` and starts clean.
  */
 test('omits the field picker when every field already has a row', {tag: '@post_attributes'}, async ({pw}) => {
     await pw.ensureFeatureFlag('PostAttributes', true);
@@ -779,6 +767,9 @@ test('omits the field picker when every field already has a row', {tag: '@post_a
 
     try {
         await purgeFields(adminClient);
+
+        const others = await activeSystemFields(adminClient);
+        test.skip(others.length > 0, `${others.length} other post attribute fields exist on the server`);
 
         const classification = await createField(adminClient, fieldName('classification', suffix), {
             options: ['SECRET', 'UNCLASSIFIED'],
@@ -802,12 +793,12 @@ test('omits the field picker when every field already has a row', {tag: '@post_a
         await expect(modal).toBeVisible();
 
         // * Verify the field has its row, unset and waiting
-        await expect(rowOf(page, classification)).toBeVisible();
-        await expect(triggerOf(page, classification)).toHaveText('');
+        await expect(modalRow(page, classification)).toBeVisible();
+        await expect(modalTrigger(page, classification)).toHaveText('');
 
         // * Verify the user may write it. Without this the picker's absence would have
         // a second explanation — a field nobody may fill in is not a candidate either.
-        await expect(triggerOf(page, classification)).toHaveCount(1);
+        await expect(modalTrigger(page, classification)).toHaveCount(1);
 
         // * Verify there is no picker at all. Omitted rather than disabled: a channel
         // that declares all its fields `always` would otherwise show a permanently dead

@@ -6,7 +6,8 @@ import {connect} from 'react-redux';
 import type {Post} from '@mattermost/types/posts';
 
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
-import {getHasReactions, makeGetPostAcknowledgementsWithProfiles} from 'mattermost-redux/selectors/entities/posts';
+import {getHasReactions, getPost, makeGetPostAcknowledgementsWithProfiles} from 'mattermost-redux/selectors/entities/posts';
+import {isChannelWriteDenied} from 'mattermost-redux/selectors/entities/roles';
 
 import type {GlobalState} from 'types/store';
 
@@ -23,11 +24,15 @@ function makeMapStateToProps() {
         const currentUserId = getCurrentUserId(state);
         const hasReactions = getHasReactions(state, ownProps.postId);
         const list = getPostAcknowledgementsWithProfiles(state, ownProps.postId);
+        const channelId = getPost(state, ownProps.postId)?.channel_id;
 
         return {
             currentUserId,
             hasReactions,
             list,
+
+            // Acknowledging is shown to every member, so the channel's write rules govern it.
+            isWriteDenied: Boolean(channelId) && isChannelWriteDenied(state, channelId),
         };
     };
 }

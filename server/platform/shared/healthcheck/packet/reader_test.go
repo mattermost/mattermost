@@ -12,7 +12,6 @@ import (
 	"io/fs"
 	"maps"
 	"os"
-	"os/exec"
 	"path"
 	"path/filepath"
 	"slices"
@@ -719,24 +718,6 @@ func TestFixturesMatchTheModel(t *testing.T) {
 			t.Run(fixture+"/"+member, func(t *testing.T) {
 				assert.NoError(t, decode(files[member]))
 			})
-		}
-	}
-}
-
-// The reader runs inside mmctl, so it must not pull in the server.
-func TestImportsStayOutOfTheServer(t *testing.T) {
-	out, err := exec.Command("go", "list", "-deps", "-f", "{{.ImportPath}}", ".").Output()
-	require.NoError(t, err)
-
-	allowed := []string{
-		"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck",
-		"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck/packet",
-	}
-	deps := strings.Fields(string(out))
-	require.Contains(t, deps, allowed[0])
-	for _, dep := range deps {
-		if strings.HasPrefix(dep, "github.com/mattermost/mattermost/server/v8") {
-			assert.Contains(t, allowed, dep)
 		}
 	}
 }

@@ -174,6 +174,14 @@ func TestHealthDashboardAccess(t *testing.T) {
 		resp, err = th.SystemAdminClient.UnmuteHealthFinding(context.Background(), finding.Fingerprint)
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
+
+		job, resp, err := th.SystemAdminClient.CreateJob(context.Background(), &model.Job{Type: model.JobTypeHealthCheck})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		assert.Equal(t, model.JobStatusPending, job.Status)
+		jobs := healthCheckJobs(t, th)
+		require.Len(t, jobs, 1)
+		assert.Equal(t, job.Id, jobs[0].Id)
 	})
 
 	t.Run("admin with the flag and an Enterprise license", func(t *testing.T) {

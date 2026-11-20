@@ -399,6 +399,7 @@ export const ModalIdentifiers = {
     USER_SETTINGS: 'user_settings',
     QUICK_SWITCH: 'quick_switch',
     REMOVED_FROM_CHANNEL: 'removed_from_channel',
+    CHANNEL_ACCESS_DENIED: 'channel_access_denied',
     SHOW_TRANSLATION: 'show_translation',
     DISABLE_AUTOTRANSLATION_CONFIRM: 'disable_autotranslation_confirm',
     EMAIL_INVITE: 'email_invite',
@@ -496,7 +497,8 @@ export const ModalIdentifiers = {
     GRAPH_NODE_DELETE: 'graph_node_delete',
     GRAPH_GRANT_CONFIRM: 'graph_grant_confirm',
     GLOBAL_ATTRIBUTE_REMOVE_APPLIES_TO: 'global_attribute_remove_applies_to',
-
+    GLOBAL_ATTRIBUTE_CHANNELS_WITHOUT_VALUE: 'global_attribute_channels_without_value',
+    GLOBAL_ATTRIBUTE_NOTIFY_CHANNEL_ADMINS: 'global_attribute_notify_channel_admins',
     ATTRIBUTE_MODAL_LDAP: 'attribute_modal_ldap',
     ATTRIBUTE_MODAL_SAML: 'attribute_modal_saml',
     ATTRIBUTE_MODAL_OPENID: 'attribute_modal_openid',
@@ -1018,6 +1020,7 @@ export const RHSStates = {
     CHANNEL_INFO: 'channel-info',
     CHANNEL_MEMBERS: 'channel-members',
     EDIT_HISTORY: 'edit-history',
+    ENTITY: 'entity',
 };
 
 export const UploadStatuses = {

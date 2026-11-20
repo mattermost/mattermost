@@ -230,6 +230,7 @@ const initialComponents: PluginsState['components'] = {
     ChannelKind: [],
     ProductRailChannelSection: [],
     ChannelComposerBanner: [],
+    EntityCardPart: [],
     ChannelIntro: [],
     ChannelView: [],
     ChannelSidebarSubItems: [],
