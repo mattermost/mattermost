@@ -70,6 +70,7 @@ const messages = defineMessages({
 
 const channelRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier`;
 const threadsRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/threads`;
+const boardsRoutePath = `/:team(${TEAM_NAME_PATH_PATTERN})/boards`;
 
 const productTab = (product: ProductComponent): ProductRailTab => `product:${product.id}`;
 
@@ -155,6 +156,7 @@ export default function ProductRail() {
 
     const channelMatch = matchPath<{team: string; path: string; identifier: string}>(pathname, {path: channelRoutePath});
     const inThreads = matchPath(pathname, {path: threadsRoutePath}) !== null;
+    const inBoardsEmptyState = matchPath(pathname, {path: boardsRoutePath, exact: true}) !== null;
 
     // The rail item the user is under now, and the path to return them to. A channel is recorded
     // only once the open channel matches the URL: while switching, the URL moves first, and the
@@ -175,6 +177,8 @@ export default function ProductRail() {
         }
     } else if (inThreads) {
         viewedTab = 'threads';
+    } else if (inBoardsEmptyState && section) {
+        viewedTab = 'boards';
     } else if (currentProduct) {
         viewedTab = productTab(currentProduct);
     }
@@ -287,11 +291,11 @@ export default function ProductRail() {
             unread: sectionUnreads.channels.unread || sectionUnreads.boards.unread,
         } : sectionUnreads.channels;
 
-        // Return to the last board, else open the first one. With none to open, Boards still
-        // switches the sidebar so it can say there are none.
+        // Return to the last board, else open the first one. With none to open, Boards shows what
+        // boards are and how to create one.
         let boardsPath = lastBoardPath;
-        if (!boardsPath && firstBoard) {
-            boardsPath = `/${currentTeam.name}/channels/${firstBoard.name}`;
+        if (!boardsPath) {
+            boardsPath = firstBoard ? `/${currentTeam.name}/channels/${firstBoard.name}` : `/${currentTeam.name}/boards`;
         }
 
         channelsItem = (
@@ -308,7 +312,7 @@ export default function ProductRail() {
         boardsItem = (
             <ProductRailItem
                 id='product-rail-item-boards'
-                to={boardsPath ?? pathname}
+                to={boardsPath}
                 onClick={() => dispatch(setProductRailSection('boards'))}
                 icon={<ProductBoardsIcon size={20}/>}
                 label={formatMessage(messages.boards)}

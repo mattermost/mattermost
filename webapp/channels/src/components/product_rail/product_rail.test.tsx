@@ -214,6 +214,18 @@ describe('ProductRail', () => {
             expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/channels/bugs');
         });
 
+        test('should open the boards empty state when the user is in no boards, and mark Boards active there', () => {
+            const state = getBoardsState(townSquare.id, 'boards');
+            const channels = state.entities!.channels!;
+            const noBoards = {...state, entities: {...state.entities, channels: {...channels, myMembers: {[townSquare.id]: channels.myMembers![townSquare.id]}}}};
+
+            renderAt('/team-one/boards', noBoards);
+
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('href', '/team-one/boards');
+            expect(screen.getByRole('link', {name: /Boards/})).toHaveAttribute('aria-current', 'page');
+            expect(screen.getByRole('link', {name: /Channels/})).not.toHaveAttribute('aria-current');
+        });
+
         test('should mark Channels active in a channel', () => {
             renderAt('/team-one/channels/town-square', getBoardsState(townSquare.id));
 

@@ -19235,6 +19235,18 @@
     "defaultMessage": "It looks like your most recent payment failed because the credit card on your account has expired. Please <link>update your payment information</link> to avoid any disruption.",
     "description": "Warning text on the Cloud billing/subscription admin page when the last payment failed due to an expired card; <link> wraps the clickable 'update your payment information' text."
   },
+  "boards_empty_state.create": {
+    "defaultMessage": "Create a board",
+    "description": ""
+  },
+  "boards_empty_state.description": {
+    "defaultMessage": "Boards organize work as cards that you can group, filter and assign. Each board has its own members, and every card has a thread for discussing it.",
+    "description": ""
+  },
+  "boards_empty_state.title": {
+    "defaultMessage": "Plan and track work with boards",
+    "description": ""
+  },
   "bot.add.default_token.expiry": {
     "defaultMessage": "Default token expires",
     "description": "Label for the expiry picker in the 'Default access token' section of the Add Bot Account page (Integrations > Bot Accounts). It sets when the bot's first token expires. 'Expires' is a verb."
