@@ -104,6 +104,7 @@ type Job struct {
 	Status         string    `json:"status"`
 	Progress       int64     `json:"progress"`
 	Data           StringMap `json:"data"`
+	ConcurrencyKey string    `json:"-"`
 }
 
 func (j *Job) Auditable() map[string]any {

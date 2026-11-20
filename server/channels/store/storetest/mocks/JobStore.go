@@ -15,6 +15,45 @@ type JobStore struct {
 	mock.Mock
 }
 
+// ClaimWithConcurrencyKey provides a mock function with given fields: id, concurrencyKey, staleBefore
+func (_m *JobStore) ClaimWithConcurrencyKey(id string, concurrencyKey string, staleBefore int64) (*model.Job, []*model.Job, error) {
+	ret := _m.Called(id, concurrencyKey, staleBefore)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ClaimWithConcurrencyKey")
+	}
+
+	var r0 *model.Job
+	var r1 []*model.Job
+	var r2 error
+	if rf, ok := ret.Get(0).(func(string, string, int64) (*model.Job, []*model.Job, error)); ok {
+		return rf(id, concurrencyKey, staleBefore)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, int64) *model.Job); ok {
+		r0 = rf(id, concurrencyKey, staleBefore)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Job)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, int64) []*model.Job); ok {
+		r1 = rf(id, concurrencyKey, staleBefore)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).([]*model.Job)
+		}
+	}
+
+	if rf, ok := ret.Get(2).(func(string, string, int64) error); ok {
+		r2 = rf(id, concurrencyKey, staleBefore)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // Cleanup provides a mock function with given fields: expiryTime, batchSize
 func (_m *JobStore) Cleanup(expiryTime int64, batchSize int) error {
 	ret := _m.Called(expiryTime, batchSize)
@@ -389,6 +428,66 @@ func (_m *JobStore) GetNewestJobByStatusesAndType(statuses []string, jobType str
 
 	if rf, ok := ret.Get(1).(func([]string, string) error); ok {
 		r1 = rf(statuses, jobType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetPendingByConcurrencyKey provides a mock function with given fields: concurrencyKey
+func (_m *JobStore) GetPendingByConcurrencyKey(concurrencyKey string) (*model.Job, error) {
+	ret := _m.Called(concurrencyKey)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetPendingByConcurrencyKey")
+	}
+
+	var r0 *model.Job
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.Job, error)); ok {
+		return rf(concurrencyKey)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.Job); ok {
+		r0 = rf(concurrencyKey)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.Job)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(concurrencyKey)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RefreshLastActivityAt provides a mock function with given fields: ids
+func (_m *JobStore) RefreshLastActivityAt(ids []string) ([]string, error) {
+	ret := _m.Called(ids)
+
+	if len(ret) == 0 {
+		panic("no return value specified for RefreshLastActivityAt")
+	}
+
+	var r0 []string
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]string) ([]string, error)); ok {
+		return rf(ids)
+	}
+	if rf, ok := ret.Get(0).(func([]string) []string); ok {
+		r0 = rf(ids)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]string) error); ok {
+		r1 = rf(ids)
 	} else {
 		r1 = ret.Error(1)
 	}
