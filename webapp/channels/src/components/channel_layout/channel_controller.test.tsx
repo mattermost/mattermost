@@ -108,10 +108,10 @@ describe('ChannelController with the product rail', () => {
         );
     }
 
-    it('hides the channel sidebar in Threads', () => {
+    it('keeps the channel sidebar mounted in Threads, where styles hide it, so its shortcuts still work', () => {
         renderAt('/team-one/threads', true);
 
-        expect(screen.queryByTestId('sidebar')).not.toBeInTheDocument();
+        expect(screen.getByTestId('sidebar')).toBeInTheDocument();
     });
 
     it('shows the channel sidebar in a channel', () => {

@@ -404,4 +404,10 @@
     body.app__body #root:has(.ProductRail) .GlobalThreads {
         --list: 368px;
     }
+
+    // Threads has a place of its own beside the rail, so the channel sidebar steps aside. It's hidden
+    // rather than unmounted, so its keyboard shortcuts (Ctrl/Cmd+K, Alt+Up/Down, ...) still work.
+    body.app__body #root:has(.ProductRail):has(.GlobalThreads) #SidebarContainer {
+        display: none;
+    }
 }
