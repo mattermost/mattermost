@@ -59,7 +59,7 @@ export type ChannelAttributeFieldPair = {
  * When `required` is requested, the helper follows the production rollout:
  * create optional, backfill every active local channel, then PATCH Required.
  * A caller that needs a noncompliant channel must keep that channel archived
- * during this helper and restore it afterward.
+ * during this helper and restore it with unarchiveWithoutRequiredValues.
  *
  * `displayName` is set on the template only, as an API or plugin caller may
  * leave it: the linked channel field carries none of its own.

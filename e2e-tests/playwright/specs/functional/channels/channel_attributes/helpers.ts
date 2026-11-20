@@ -197,6 +197,32 @@ export async function assignAttributeOwner(
     });
 }
 
+/**
+ * Unarchives a channel that still lacks values for the given required fields.
+ *
+ * A person's unarchive must supply every required value they can set, so each
+ * field's values are locked for the restore and unlocked afterwards. Required
+ * is already on, so the field patches don't trip the required gate.
+ */
+export async function unarchiveWithoutRequiredValues(
+    adminClient: Client4,
+    channelId: string,
+    fields: PropertyField[],
+): Promise<void> {
+    for (const field of fields) {
+        await adminClient.patchPropertyField(GROUP, field.object_type, field.id, {permission_values: 'none'});
+    }
+    try {
+        await adminClient.unarchiveChannel(channelId);
+    } finally {
+        for (const field of fields) {
+            await adminClient.patchPropertyField(GROUP, field.object_type, field.id, {
+                permission_values: field.permission_values ?? 'member',
+            });
+        }
+    }
+}
+
 export async function createChannelForAttributes(
     adminClient: Client4,
     team: Team,

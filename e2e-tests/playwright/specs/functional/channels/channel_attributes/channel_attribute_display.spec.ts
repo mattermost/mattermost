@@ -18,6 +18,7 @@ import {
     optionId,
     purgeAttributes,
     setChannelValue,
+    unarchiveWithoutRequiredValues,
 } from './helpers';
 
 test.describe('Channel attribute display and editing', {tag: ['@channel_attributes']}, () => {
@@ -307,7 +308,7 @@ test.describe('Channel attribute display and editing', {tag: ['@channel_attribut
                 required: true,
             });
             created.push(undesignated);
-            await adminClient.unarchiveChannel(channel.id);
+            await unarchiveWithoutRequiredValues(adminClient, channel.id, [undesignated]);
 
             // # Look at the incomplete channel as an ordinary member
             const asMember = await pw.testBrowser.login(user);
