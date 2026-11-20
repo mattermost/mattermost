@@ -33,6 +33,16 @@ const messages = defineMessages({
         defaultMessage: 'Switch teams',
         description: 'Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user\'s teams.',
     },
+    buttonLabelWithMentions: {
+        id: 'product_rail.teamMenu.buttonLabelWithMentions',
+        defaultMessage: 'Switch teams, {count, plural, one {# mention} other {# mentions}} in other teams',
+        description: 'Accessible name of the current team button at the top of the product navigation rail when the user\'s other teams have mentions. {count} is their total, shown in a badge on the button.',
+    },
+    buttonLabelWithUnreads: {
+        id: 'product_rail.teamMenu.buttonLabelWithUnreads',
+        defaultMessage: 'Switch teams, unread messages in other teams',
+        description: 'Accessible name of the current team button at the top of the product navigation rail when the user\'s other teams have unread messages but no mentions, shown as a dot on the button.',
+    },
     menuLabel: {
         id: 'product_rail.teamMenu.menuLabel',
         defaultMessage: 'Teams',
@@ -72,6 +82,14 @@ export default function ProductRailTeamMenu() {
     const otherTeamsUrgent = otherTeams.some((team) => teamHasUrgentMap.get(team.id));
     const otherTeamsUnread = otherTeams.some((team) => unreadTeamsSet.has(team.id));
 
+    // The badge's count, or the dot, is read out with the button's name.
+    let buttonLabel = formatMessage(messages.buttonLabel);
+    if (otherTeamsMentions > 0) {
+        buttonLabel = formatMessage(messages.buttonLabelWithMentions, {count: otherTeamsMentions});
+    } else if (otherTeamsUnread) {
+        buttonLabel = formatMessage(messages.buttonLabelWithUnreads);
+    }
+
     // As in the team sidebar: team-scoped products and Channels carry the team in the URL, while
     // global products switch the team without navigating.
     const switchTo = (team: Team) => {
@@ -84,7 +102,7 @@ export default function ProductRailTeamMenu() {
             menuButton={{
                 id: 'productRailTeamMenuButton',
                 class: 'ProductRail__teamButton',
-                'aria-label': formatMessage(messages.buttonLabel),
+                'aria-label': buttonLabel,
                 children: (
                     <span className='ProductRail__teamStack'>
                         {/* Cards peeking out below the current team hint at the others in the menu. */}

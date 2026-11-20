@@ -29595,6 +29595,14 @@
     "defaultMessage": "Switch teams",
     "description": "Accessible name of the current team button at the top of the product navigation rail, shown while the team sidebar is hidden. It opens a menu of the user's teams."
   },
+  "product_rail.teamMenu.buttonLabelWithMentions": {
+    "defaultMessage": "Switch teams, {count, plural, one {# mention} other {# mentions}} in other teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail when the user's other teams have mentions. {count} is their total, shown in a badge on the button."
+  },
+  "product_rail.teamMenu.buttonLabelWithUnreads": {
+    "defaultMessage": "Switch teams, unread messages in other teams",
+    "description": "Accessible name of the current team button at the top of the product navigation rail when the user's other teams have unread messages but no mentions, shown as a dot on the button."
+  },
   "product_rail.teamMenu.menuLabel": {
     "defaultMessage": "Teams",
     "description": "Accessible name of the menu of the user's teams opened from the top of the product navigation rail."

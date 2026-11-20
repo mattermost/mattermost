@@ -101,10 +101,11 @@ describe('ProductRailTeamMenu', () => {
             mockTeamsUnreadStatuses = [new Set(['teamA', 'teamB', 'teamC']), new Map([['teamA', 7], ['teamB', 3], ['teamC', 2]]), new Map()];
             renderWithContext(<ProductRailTeamMenu/>, getState());
 
-            // The current team's own mentions are left out.
-            expect(screen.getByRole('button', {name: 'Switch teams'})).toHaveTextContent('5');
+            // The current team's own mentions are left out, and the count is part of the button's name.
+            const button = screen.getByRole('button', {name: 'Switch teams, 5 mentions in other teams'});
+            expect(button).toHaveTextContent('5');
 
-            await userEvent.click(screen.getByRole('button', {name: 'Switch teams'}));
+            await userEvent.click(button);
 
             expect(screen.getByRole('menuitem', {name: /Bravo/})).toHaveTextContent('3');
             expect(screen.getByRole('menuitem', {name: /Charlie/})).toHaveTextContent('2');
@@ -115,6 +116,7 @@ describe('ProductRailTeamMenu', () => {
             mockTeamsUnreadStatuses = [new Set(['teamB']), new Map(), new Map()];
             const {container} = renderWithContext(<ProductRailTeamMenu/>, getState());
 
+            expect(screen.getByRole('button', {name: 'Switch teams, unread messages in other teams'})).toBeInTheDocument();
             expect(container.querySelector('.ProductRail__teamStack .ProductRail__dot')).toBeInTheDocument();
             expect(container.querySelector('.ProductRail__teamStack .ProductRail__badge')).not.toBeInTheDocument();
         });
