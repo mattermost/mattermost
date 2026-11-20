@@ -8,7 +8,7 @@ import {getThreadsForCurrentTeam} from 'mattermost-redux/actions/threads';
 
 import {openModal} from 'actions/views/modals';
 
-import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
+import {fireEvent, renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 
@@ -89,6 +89,9 @@ describe('components/threading/global_threads/thread_list', () => {
                 browser: {
                     windowSize: WindowSizes.DESKTOP_VIEW,
                 },
+            },
+            storage: {
+                storage: {},
             },
         };
 
@@ -180,5 +183,30 @@ describe('components/threading/global_threads/thread_list', () => {
 
         expect(loadMoreItems).toEqual({data: true});
         expect(getThreadsForCurrentTeam).toHaveBeenCalledWith({unread: false, before: '2'});
+    });
+
+    test('should resize the list column by dragging its resize handle', () => {
+        const getBoundingClientRect = jest.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue({width: 400} as DOMRect);
+
+        const {container} = renderWithContext(
+            <div className='GlobalThreads'>
+                <ThreadList {...props}/>
+            </div>,
+        );
+
+        const globalThreads = container.querySelector<HTMLElement>('.GlobalThreads')!;
+        const handle = container.querySelector('.ThreadList__resizeHandle')!;
+        expect(handle).toBeInTheDocument();
+
+        fireEvent.mouseDown(handle, {button: 0, clientX: 400});
+        expect(globalThreads.style.getPropertyValue('--overrideThreadsListWidth')).toBe('400px');
+
+        fireEvent.mouseMove(window, {clientX: 500});
+        expect(globalThreads.style.getPropertyValue('--overrideThreadsListWidth')).toBe('500px');
+
+        fireEvent.mouseUp(window);
+        expect(globalThreads.style.getPropertyValue('--overrideThreadsListWidth')).toBe('');
+
+        getBoundingClientRect.mockRestore();
     });
 });

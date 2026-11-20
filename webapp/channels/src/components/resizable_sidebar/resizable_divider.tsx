@@ -21,12 +21,18 @@ type Props = {
     className?: string;
     name: string;
     disabled?: boolean;
-    defaultWidth: number;
+
+    // The width the divider snaps to while dragging. A function is called when each drag starts,
+    // for a default that depends on the current layout.
+    defaultWidth: number | (() => number);
     globalCssVar: CssVarKeyForResizable;
     dir: ResizeDirection;
     containerRef: RefObject<HTMLElement | null>;
     onResizeStart?: (startWidth: number) => void;
     onResize?: (width: number, cssVarProperty: string, cssVarValue: string) => void;
+
+    // Called whenever a drag ends. finalWidth is 0 if the container was hidden at the time; the width is saved only when
+    // it is positive and the pointer changed it.
     onResizeEnd?: (finalWidth: number, cssVarProperty: string, cssVarValue: string) => void;
     onDividerDoubleClick?: (prevWidth: number, cssVarProperty: string) => void;
 };
@@ -93,6 +99,10 @@ function ResizableDivider({
     const resizeLineRef = useRef<HTMLDivElement>(null);
 
     const startWidth = useRef(0);
+    const snapWidth = useRef(0);
+
+    // Whether a pointer move during this drag changed the rendered width, as opposed to the layout changing it
+    const pointerResized = useRef(false);
     const lastWidth = useRef<number | null>(null);
 
     const previousClientX = useRef(0);
@@ -111,11 +121,20 @@ function ResizableDivider({
     };
 
     const handleOnResize = (width: number, cssVarProp: string, cssVarValue: string) => {
+        // A width limit can hold the rendered width where it was, and the layout can change it between
+        // pointer moves, so compare what rendered just before and just after this update.
+        const widthBefore = containerRef.current?.getBoundingClientRect().width;
+
         if (onResize) {
             onResize(width, cssVarProp, cssVarValue);
         }
 
         defaultOnResizeChange(width, cssVarProp, cssVarValue);
+
+        const widthAfter = containerRef.current?.getBoundingClientRect().width;
+        if (widthAfter && widthAfter !== widthBefore) {
+            pointerResized.current = true;
+        }
     };
 
     const reset = () => {
@@ -135,6 +154,8 @@ function ResizableDivider({
         }
 
         previousClientX.current = e.clientX;
+        snapWidth.current = typeof defaultWidth === 'function' ? defaultWidth() : defaultWidth;
+        pointerResized.current = false;
 
         const currentWidth = containerRef.current.getBoundingClientRect().width;
         startWidth.current = currentWidth;
@@ -201,7 +222,7 @@ function ResizableDivider({
             const newWidth = previousWidth + widthDiff;
 
             if (resizeLine.classList.contains('snapped')) {
-                const diff = newWidth - defaultWidth;
+                const diff = newWidth - snapWidth.current;
 
                 if (isSizeLessThanSnapSize(diff)) {
                     return;
@@ -217,19 +238,19 @@ function ResizableDivider({
 
             previousClientX.current = e.clientX;
 
-            const shouldSnap = shouldSnapWhenSizeGrown(newWidth, previousWidth, defaultWidth) || shouldSnapWhenSizeShrunk(newWidth, previousWidth, defaultWidth);
+            const shouldSnap = shouldSnapWhenSizeGrown(newWidth, previousWidth, snapWidth.current) || shouldSnapWhenSizeShrunk(newWidth, previousWidth, snapWidth.current);
 
             if (isSnapableSpeed(newWidth - previousWidth) && shouldSnap) {
                 switch (dir) {
                 case ResizeDirection.LEFT:
-                    previousClientX.current += defaultWidth - newWidth;
+                    previousClientX.current += snapWidth.current - newWidth;
                     break;
                 case ResizeDirection.RIGHT:
-                    previousClientX.current += newWidth - defaultWidth;
+                    previousClientX.current += newWidth - snapWidth.current;
                     break;
                 }
 
-                handleOnResize(defaultWidth, cssVarKey, `${defaultWidth}px`);
+                handleOnResize(snapWidth.current, cssVarKey, `${snapWidth.current}px`);
 
                 resizeLine.classList.add('snapped');
                 return;
@@ -239,11 +260,16 @@ function ResizableDivider({
         };
 
         const onMouseUp = () => {
-            const finalWidth = containerRef.current?.getBoundingClientRect().width;
-            if (isActive && finalWidth) {
+            const finalWidth = containerRef.current?.getBoundingClientRect().width ?? 0;
+
+            // Only save a width the pointer actually changed. Pressing the handle without dragging, dragging
+            // against a width limit, the layout changing during the drag, or a drag that ends where it started
+            // must not overwrite the saved preference with a width the layout is currently capping. Always let
+            // the parent clean up.
+            if (finalWidth && pointerResized.current && finalWidth !== startWidth.current) {
                 setWidth(finalWidth);
-                onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);
             }
+            onResizeEnd?.(finalWidth, cssVarKey, `${finalWidth}px`);
 
             containerRef.current?.style.removeProperty(cssVarKey);
             document.body.classList.remove('layout-changing');
@@ -257,6 +283,9 @@ function ResizableDivider({
         return () => {
             window.removeEventListener('mousemove', onMouseMove);
             window.removeEventListener('mouseup', onMouseUp);
+
+            // Covers a drag torn down before mouseup, such as the divider unmounting or being disabled
+            document.body.classList.remove('layout-changing');
         };
     }, [isActive, disabled]);
 

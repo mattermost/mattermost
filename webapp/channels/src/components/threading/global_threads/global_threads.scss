@@ -64,8 +64,14 @@
     }
 
     /* === Responsiveness === */
-    --list: minmax(min-content, 300px);
-    --pane: auto;
+    // The list width can be changed by dragging its resize handle, which sets --overrideThreadsListWidth.
+    // It is kept between 300px and 640px, and to at most half the view so the thread pane always has room.
+    // No min-content floor: the virtualized list sets its own pixel width from the column's width,
+    // so a min-content minimum would stop the column from ever shrinking.
+    // The resize handle reads --list-default-width to know where to snap back to.
+    --list-default-width: 350px;
+    --list: clamp(300px, var(--overrideThreadsListWidth, var(--list-default-width)), min(640px, 50%));
+    --pane: minmax(0, 1fr);
 
     display: grid;
     overflow: hidden;
@@ -78,6 +84,10 @@
     // single column
     @media screen and (max-width: 1020px) {
         grid-template-areas: 'main main';
+
+        .ThreadList__resizeHandle {
+            display: none;
+        }
 
         &:not(.thread-selected) {
             .ThreadList {
@@ -119,15 +129,11 @@
         }
     }
 
-    @media screen and (min-width: 1021px) {
-        --list: minmax(min-content, 350px);
-    }
-
     @media screen and (min-width: 1267px) {
-        --list: minmax(min-content, 400px);
+        --list-default-width: 400px;
     }
 
     @media screen and (min-width: 1680px) {
-        --list: minmax(min-content, 500px);
+        --list-default-width: 500px;
     }
 }

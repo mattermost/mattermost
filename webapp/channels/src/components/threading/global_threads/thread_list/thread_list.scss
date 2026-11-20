@@ -1,9 +1,17 @@
 .ThreadList {
+    position: relative;
     display: grid;
-    overflow: hidden;
+
+    // Not overflow: hidden, so the resize handle can sit over the edge of the thread pane
+    min-width: 0;
+    min-height: 0;
     grid-template-areas:
         'header'
         'list';
+
+    // minmax(0, 1fr) rather than the default auto column, so the list can shrink when the list is resized narrower.
+    // An auto column would never go below the width the virtualized list last set on itself.
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: 56px 1fr;
 
     .Header {
