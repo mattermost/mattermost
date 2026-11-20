@@ -82,11 +82,10 @@ test('shows a post and a reply from another user with their chips, live', {tag: 
         // * Verify the values did not ride on the `posted` event, which goes to every member
         // whatever they may read, and that they came in a `property_values_updated` event for
         // this post instead
-        const received = frames.map((frame) => JSON.parse(frame) as {event?: string});
-        const posted = frames.filter((frame, index) => received[index].event === 'posted' && frame.includes(root.id));
-        const valuesUpdated = frames.filter(
-            (frame, index) => received[index].event === 'property_values_updated' && frame.includes(root.id),
-        );
+        const framesFor = (event: string, postId: string) =>
+            frames.filter((frame) => (JSON.parse(frame) as {event?: string}).event === event && frame.includes(postId));
+        const posted = framesFor('posted', root.id);
+        const valuesUpdated = framesFor('property_values_updated', root.id);
         expect(posted).toHaveLength(1);
         expect(posted[0]).not.toContain('property_values');
         expect(valuesUpdated).toHaveLength(1);
@@ -109,6 +108,13 @@ test('shows a post and a reply from another user with their chips, live', {tag: 
 
         const replyInCenter = await channelsPage.centerView.getPostById(reply.id);
         await expect(replyInCenter.container.getByTestId(CHIPS).getByTestId(OPTION_CHIP)).toHaveText('UNCLASSIFIED');
+
+        // * Verify the reply's values came the same way as the root's. Its chip is on
+        // screen, so its frames have arrived
+        const replyPosted = framesFor('posted', reply.id);
+        expect(replyPosted).toHaveLength(1);
+        expect(replyPosted[0]).not.toContain('property_values');
+        expect(framesFor('property_values_updated', reply.id)).toHaveLength(1);
 
         // * Verify the root in the thread still has its own, and nothing reloaded
         const rootInRhs = await channelsPage.sidebarRight.getPostById(root.id);

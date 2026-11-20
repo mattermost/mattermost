@@ -486,6 +486,87 @@ test(
     },
 );
 
+test.describe('in mobile view', () => {
+    // Narrow enough for mobile view, where the picker opens as a modal rather than a
+    // popover
+    test.use({viewport: {width: 400, height: 1024}});
+
+    /**
+     * @objective Verify the picker's search works in mobile view: the box shows what is
+     * typed, the list follows it, a filtered field can be picked, and the next opening
+     * starts from an empty search.
+     *
+     * @precondition The PostAttributes feature flag is enabled.
+     */
+    test('searches the field picker in mobile view', {tag: '@post_attributes'}, async ({pw}) => {
+        await pw.ensureFeatureFlag('PostAttributes', true);
+
+        const {adminClient, user, team} = await pw.initSetup();
+        const suffix = pw.random.id();
+        const created: PropertyField[] = [];
+
+        try {
+            await purgeFields(adminClient);
+
+            // # Six settable fields, so the picker keeps its search box with one staged
+            const alpha = await createField(adminClient, fieldName('alpha', suffix), {type: 'text'});
+            const beta = await createField(adminClient, fieldName('beta', suffix), {type: 'text'});
+            const gamma = await createField(adminClient, fieldName('gamma', suffix), {type: 'text'});
+            const delta = await createField(adminClient, fieldName('delta', suffix), {type: 'text'});
+            const epsilon = await createField(adminClient, fieldName('epsilon', suffix), {type: 'text'});
+            const zeta = await createField(adminClient, fieldName('zeta', suffix), {type: 'text'});
+            created.push(alpha, beta, gamma, delta, epsilon, zeta);
+
+            const {page, channelsPage} = await pw.testBrowser.login(user);
+            await channelsPage.goto(team.name, 'town-square');
+            await channelsPage.toBeVisible();
+
+            const scope = channelsPage.centerView.postCreate.container;
+            const search = page.getByTestId('post-attributes-composer-add-search');
+
+            // # Open the picker
+            await composerPlus(scope).click();
+            await expect(search).toBeVisible();
+
+            // # Tap the search box and type one field's name, key by key as a user would: the
+            // modal's list must neither close on the tap nor take the letters
+            await search.click();
+            await search.pressSequentially(`alpha_${suffix}`);
+
+            // * Verify the box shows the search and only the matching field is left
+            await expect(search).toHaveValue(`alpha_${suffix}`);
+            await expect(pickerItem(page, alpha)).toBeVisible();
+            for (const field of [beta, gamma, delta, epsilon, zeta]) {
+                await expect(pickerItem(page, field)).toHaveCount(0);
+            }
+
+            // # Search for something no field matches
+            await search.fill(`nothing_${suffix}`);
+
+            // * Verify the list says so
+            await expect(page.getByTestId('post-attributes-composer-add-no-results')).toBeVisible();
+
+            // # Search again and pick the field the search found
+            await search.fill(`gamma_${suffix}`);
+            await pickerItem(page, gamma).click();
+
+            // * Verify the field is staged
+            await expect(composerChip(scope, gamma)).toBeVisible();
+
+            // # Open the picker again
+            await composerPlus(scope).click();
+
+            // * Verify the search starts empty, with every field not yet staged offered
+            await expect(search).toHaveValue('');
+            for (const field of [alpha, beta, delta, epsilon, zeta]) {
+                await expect(pickerItem(page, field)).toBeVisible();
+            }
+        } finally {
+            await deleteFields(adminClient, created);
+        }
+    });
+});
+
 /**
  * @objective Verify neither add control is shown once every settable field is staged.
  *
@@ -583,7 +664,8 @@ test(
             // # Stage a value in the centre, then change channel and come back
             await stageField(page, centre, note);
             await composerInput(centre, note).fill('staged');
-            await expect(composerChip(centre, note)).toBeVisible();
+            await composerInput(centre, note).press('Enter');
+            await expect(composerRest(centre, note).getByTestId(TEXT_CHIP)).toHaveText('staged');
             await channelsPage.sidebarLeft.goToItem('off-topic');
             await expect(page).toHaveURL(/off-topic/);
 
@@ -1009,7 +1091,7 @@ test('restores the message from a draft but not the staged values', {tag: '@post
         await stageField(page, scope, note);
         await composerInput(scope, note).fill('staged');
         await composerInput(scope, note).press('Enter');
-        await expect(composerChip(scope, note)).toBeVisible();
+        await expect(composerRest(scope, note).getByTestId(TEXT_CHIP)).toHaveText('staged');
 
         // # Reload
         await page.reload();
@@ -1023,6 +1105,7 @@ test('restores the message from a draft but not the staged values', {tag: '@post
         await stageField(page, scope, note);
         await composerInput(scope, note).fill('staged again');
         await composerInput(scope, note).press('Enter');
+        await expect(composerRest(scope, note).getByTestId(TEXT_CHIP)).toHaveText('staged again');
         await channelsPage.sidebarLeft.goToItem('off-topic');
         await expect(page).toHaveURL(/off-topic/);
         await channelsPage.sidebarLeft.goToItem('town-square');

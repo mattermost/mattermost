@@ -33,6 +33,10 @@ const USER_CHIP = 'user-property';
 const RED_TOKEN = 'red';
 const BLUE_TOKEN = 'blue';
 
+// What a chip that lost its background computes to. The neutral is translucent, so
+// matching `rgba(` alone would accept it.
+const TRANSPARENT = 'rgba(0, 0, 0, 0)';
+
 /**
  * @objective Verify a post's attribute chips are on screen from the channel load alone,
  * without any per-post request for its values.
@@ -588,6 +592,7 @@ test('renders one chip per entry of a multiselect', {tag: '@post_attributes'}, a
         await expect(orcon).toHaveCSS('background-color', nofornBackground);
         await expect(orcon).toHaveCSS('color', nofornColour);
         await expect(noforn).toHaveCSS('background-color', /^rgba\(/);
+        await expect(noforn).not.toHaveCSS('background-color', TRANSPARENT);
         await expect(noforn).not.toHaveAttribute('style', /./);
         await expect(orcon).not.toHaveAttribute('style', /./);
 
@@ -646,6 +651,7 @@ test('draws option chips in a neutral, whatever colour the option carries', {tag
 
         await expect(plainChip).toHaveText('PLAIN');
         await expect(plainChip).toHaveCSS('background-color', /^rgba\(/);
+        await expect(plainChip).not.toHaveCSS('background-color', TRANSPARENT);
 
         const neutralBackground = await plainChip.evaluate((el: Element) => getComputedStyle(el).backgroundColor);
         const neutralForeground = await plainChip.evaluate((el: Element) => getComputedStyle(el).color);

@@ -239,4 +239,35 @@ describe('resolveFieldOptionChips', () => {
         expect(resolveFieldOptionChips(field, 'opt-1')).toEqual([]);
         expect(resolveFieldOptionChips({...field, type: 'multiselect'} as PropertyField, ['opt-1', 'opt-2'])).toEqual([]);
     });
+
+    describe('when the server withheld the options for being too many', () => {
+        const withheld = {
+            id: 'field-1',
+            name: 'Classification',
+            type: 'select',
+            attrs: {options_omitted: true, options_count: 1500},
+        } as SelectPropertyField;
+
+        it('draws the stored entry as it is rather than hiding it', () => {
+            expect(resolveFieldOptionChips(withheld, 'opt-1')).toEqual([{key: 'opt-1', label: 'opt-1'}]);
+        });
+
+        it('caps the entries by arity', () => {
+            expect(resolveFieldOptionChips(withheld, ['opt-1', 'opt-2'])).toEqual([{key: 'opt-1', label: 'opt-1'}]);
+            expect(resolveFieldOptionChips({...withheld, type: 'multiselect'} as PropertyField, ['opt-1', 'opt-2'])).toEqual([
+                {key: 'opt-1', label: 'opt-1'},
+                {key: 'opt-2', label: 'opt-2'},
+            ]);
+        });
+
+        it('draws nothing without a stored value', () => {
+            expect(resolveFieldOptionChips(withheld, undefined)).toEqual([]);
+            expect(resolveFieldOptionChips(withheld, '')).toEqual([]);
+        });
+
+        // A list hidden from the caller arrives empty and without the marker.
+        it('still draws nothing for a list withheld from the caller', () => {
+            expect(resolveFieldOptionChips({...withheld, attrs: {options: []}} as PropertyField, 'opt-1')).toEqual([]);
+        });
+    });
 });

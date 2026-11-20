@@ -87,7 +87,13 @@ export function resolveOptionChips(field: PropertyField, value: unknown): Option
  * has.
  */
 export function resolveFieldOptionChips(field: PropertyField, value: unknown): OptionChip[] {
-    return capByArity(field, resolveEach(field, toValueList(value)));
+    const entries = toValueList(value);
+
+    if (field.attrs?.options_omitted === true) {
+        return capByArity(field, rawChips(entries));
+    }
+
+    return capByArity(field, resolveEach(field, entries));
 }
 
 // Only a `multiselect` renders more than one chip.

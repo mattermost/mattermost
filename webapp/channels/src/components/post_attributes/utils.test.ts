@@ -109,6 +109,15 @@ describe('chipCount', () => {
         expect(chipCount({...makeField(), attrs}, makeValue('opt_secret'))).toBe(0);
     });
 
+    // A field with too many options to send arrives with none and the marker
+    // set: its value is drawn as stored, so it spends its slots.
+    it('counts the stored entries of a field whose options the server withheld', () => {
+        const attrs = {options_omitted: true, options_count: 1500};
+
+        expect(chipCount({...makeField(), attrs}, makeValue('opt_secret'))).toBe(1);
+        expect(chipCount({...makeField({type: 'multiselect'}), attrs}, makeValue(['opt_a', 'opt_b']))).toBe(2);
+    });
+
     it('counts only the resolvable entries of a multiselect', () => {
         const field = makeField({type: 'multiselect'});
 

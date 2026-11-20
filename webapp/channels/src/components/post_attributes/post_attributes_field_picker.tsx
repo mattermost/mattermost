@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ChangeEvent, ComponentType, KeyboardEvent, ReactNode} from 'react';
-import React, {useCallback, useMemo, useState} from 'react';
+import type {ChangeEvent, ComponentType, KeyboardEvent, MouseEvent, ReactNode} from 'react';
+import React, {useCallback, useEffect, useState, useSyncExternalStore} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import {
     AccountMultipleOutlineIcon,
@@ -21,6 +22,8 @@ import {SearchInput} from '@mattermost/compass-ui/components/search-input';
 import type {FieldType, PropertyField} from '@mattermost/types/properties';
 
 import {getPropertyFieldLabel} from 'mattermost-redux/utils/property_utils';
+
+import {getIsMobileView} from 'selectors/views/browser';
 
 import DisabledReasonTooltip from 'components/common/disabled_reason_tooltip';
 import * as Menu from 'components/menu';
@@ -97,6 +100,218 @@ function matches(field: PropertyField, term: string): boolean {
     return getPropertyFieldLabel(field).toLowerCase().includes(term) || field.name.toLowerCase().includes(term);
 }
 
+type PickerState = {
+    fields: PropertyField[];
+    search: string;
+    onSelect: (fieldId: string) => void;
+};
+
+type PickerStore = {
+    get: () => PickerState;
+    set: (patch: Partial<PickerState>) => void;
+    subscribe: (listener: () => void) => () => void;
+};
+
+/*
+ * The picker's fields, search text and select handler, kept outside React state
+ * so the menu's contents can read them wherever they are rendered. In mobile
+ * view `Menu` opens a modal and copies the header and the items into the
+ * modal's props once, when it opens: contents built from the picker's own
+ * render would stay as they were then, so the search box could neither show
+ * what is typed nor filter the list. Contents that subscribe here re-render
+ * from the current state instead.
+ */
+function createPickerStore(initial: PickerState): PickerStore {
+    let state = initial;
+    const listeners = new Set<() => void>();
+
+    return {
+        get: () => state,
+        set: (patch) => {
+            state = {...state, ...patch};
+            listeners.forEach((listener) => listener());
+        },
+        subscribe: (listener) => {
+            listeners.add(listener);
+            return () => {
+                listeners.delete(listener);
+            };
+        },
+    };
+}
+
+function hasSearchBox(fields: PropertyField[]): boolean {
+    return fields.length >= SEARCH_THRESHOLD;
+}
+
+// The search is ignored without a search box, such as when fields drop below
+// the threshold while the menu is open: a filter the user can no longer see or
+// clear would hide fields for no visible reason.
+function searchFields(fields: PropertyField[], search: string) {
+    const searchable = hasSearchBox(fields);
+    const term = searchable ? search.trim().toLowerCase() : '';
+    const shown = term ? fields.filter((field) => matches(field, term)) : fields;
+
+    return {searchable, term, shown};
+}
+
+type ContentIds = {
+    id: string;
+    dataTestId: string;
+};
+
+type ItemsProps = ContentIds & Pick<PickerState, 'fields' | 'search' | 'onSelect'>;
+
+function renderFieldItems({fields, search, onSelect, id, dataTestId}: ItemsProps) {
+    const {searchable, term, shown} = searchFields(fields, search);
+
+    const items: ReactNode[] = shown.map((field) => (
+        <Menu.Item
+            key={field.id}
+            id={`postAttributeAdd-${field.id}`}
+            data-testid={`post-attribute-add-${field.name}`}
+            leadingElement={<FieldTypeIcon type={field.type}/>}
+            labels={<span>{getPropertyFieldLabel(field)}</span>}
+            onClick={() => onSelect(field.id)}
+        />
+    ));
+
+    if (searchable && term && shown.length === 0) {
+        items.push(
+            <Menu.Item
+                key='noResults'
+                id={`${id}NoResults`}
+                data-testid={`${dataTestId}-no-results`}
+                disabled={true}
+                labels={
+                    <FormattedMessage
+                        id='post_attributes.picker.no_results'
+                        defaultMessage='No matching attributes'
+                        description='Shown in the add attribute menu, under its search box, when the search text matches no attribute.'
+                    />
+                }
+            />,
+        );
+    }
+
+    return items;
+}
+
+// A click inside the search box is not a choice: in mobile view the modal
+// closes on any click that reaches its list, the header included.
+function keepMenuOpen(event: MouseEvent<HTMLDivElement>) {
+    event.stopPropagation();
+}
+
+// In mobile view the search box renders inside the menu list, which takes
+// typed letters as a jump to the item they start and cancels them, and moves
+// focus on the arrow, Home and End keys. Only Escape and Tab, which close or
+// leave the modal, go on to it.
+function keepKeysInSearch(event: KeyboardEvent<HTMLDivElement>) {
+    if (event.key !== 'Escape' && event.key !== 'Tab') {
+        event.stopPropagation();
+    }
+}
+
+type SearchBoxProps = ContentIds & {
+    search: string;
+    onSearch: (search: string) => void;
+
+    // Whether the box renders inside the menu list, as the mobile view's
+    // modal draws it, rather than above it.
+    inList?: boolean;
+};
+
+function PickerSearchBox({search, onSearch, id, dataTestId, inList = false}: SearchBoxProps) {
+    const {formatMessage} = useIntl();
+
+    const handleChange = useCallback((event: ChangeEvent<HTMLInputElement>) => onSearch(event.target.value), [onSearch]);
+
+    // The search box sits above the list, outside its keyboard handling, so
+    // ArrowDown moves into the list from here. Escape reaches the popover,
+    // which closes the menu.
+    const handleKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== 'ArrowDown') {
+            return;
+        }
+
+        event.preventDefault();
+        document.getElementById(`${id}Menu`)?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
+    }, [id]);
+
+    const searchLabel = formatMessage({
+        id: 'post_attributes.picker.search',
+        defaultMessage: 'Search attributes',
+        description: 'Placeholder and accessible name of the search box at the top of the menu that lists the attributes that can be added to a post. Filters the list as the user types.',
+    });
+
+    // The wrapper only stops clicks and keys from reaching the menu around
+    // it; the search box inside is the control.
+    return (
+        <div
+            role='presentation'
+            className='PostAttributesFieldPicker__search'
+            onClick={keepMenuOpen}
+            onKeyDown={inList ? keepKeysInSearch : undefined}
+        >
+            <SearchInput
+                size='small'
+
+                // The user just opened the menu to find a field, and the menu
+                // moves focus into itself anyway; with a search box, that
+                // focus belongs here.
+                // eslint-disable-next-line jsx-a11y/no-autofocus
+                autoFocus={true}
+                value={search}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                onClear={() => onSearch('')}
+                data-testid={`${dataTestId}-search`}
+                placeholder={searchLabel}
+                aria-label={searchLabel}
+            />
+        </div>
+    );
+}
+
+type LiveContentProps = ContentIds & {
+    store: PickerStore;
+};
+
+/*
+ * The search box and the list as the mobile view's modal renders them: both
+ * read the store rather than props, which the modal holds as they were when it
+ * opened.
+ */
+function LivePickerSearchBox({store, id, dataTestId}: LiveContentProps) {
+    const {fields, search} = useSyncExternalStore(store.subscribe, store.get);
+    const handleSearch = useCallback((value: string) => store.set({search: value}), [store]);
+
+    // The modal unmounts when it closes, so the next opening starts from an
+    // empty search, as the popover's does.
+    useEffect(() => () => store.set({search: ''}), [store]);
+
+    if (!hasSearchBox(fields)) {
+        return null;
+    }
+
+    return (
+        <PickerSearchBox
+            search={search}
+            onSearch={handleSearch}
+            id={id}
+            dataTestId={dataTestId}
+            inList={true}
+        />
+    );
+}
+
+function LivePickerItems({store, id, dataTestId}: LiveContentProps) {
+    const {fields, search, onSelect} = useSyncExternalStore(store.subscribe, store.get);
+
+    return <>{renderFieldItems({fields, search, onSelect, id, dataTestId})}</>;
+}
+
 /**
  * The `+ Add attribute` control and the menu behind it: the fields the channel
  * declares that this modal is not already showing.
@@ -108,48 +323,27 @@ function matches(field: PropertyField, term: string): boolean {
  */
 export default function PostAttributesFieldPicker({fields, onSelect, id = 'postAttributesAdd', dataTestId = 'post-attributes-add', trigger, compact, disabledReason}: Props) {
     const {formatMessage} = useIntl();
+    const isMobileView = useSelector(getIsMobileView);
 
-    const searchable = fields.length >= SEARCH_THRESHOLD;
-    const [search, setSearch] = useState('');
+    const [store] = useState(() => createPickerStore({fields, search: '', onSelect}));
+    useEffect(() => store.set({fields, onSelect}), [store, fields, onSelect]);
 
-    // Ignored without a search box, such as when fields drop below the threshold
-    // while the menu is open: a filter the user can no longer see or clear would
-    // hide fields for no visible reason.
-    const term = searchable ? search.trim().toLowerCase() : '';
-    const shown = useMemo(() => (term ? fields.filter((field) => matches(field, term)) : fields), [fields, term]);
+    const {search} = useSyncExternalStore(store.subscribe, store.get);
+    const setSearch = useCallback((value: string) => store.set({search: value}), [store]);
+    const searchable = hasSearchBox(fields);
 
     // A fresh search each time the menu opens.
     const handleToggle = useCallback((open: boolean) => {
         if (!open) {
             setSearch('');
         }
-    }, []);
-
-    const handleSearchChange = useCallback((event: ChangeEvent<HTMLInputElement>) => setSearch(event.target.value), []);
-
-    // The search box sits above the list, outside its keyboard handling, so
-    // ArrowDown moves into the list from here. Escape reaches the popover,
-    // which closes the menu.
-    const handleSearchKeyDown = useCallback((event: KeyboardEvent<HTMLInputElement>) => {
-        if (event.key !== 'ArrowDown') {
-            return;
-        }
-
-        event.preventDefault();
-        document.getElementById(`${id}Menu`)?.querySelector<HTMLElement>('[role="menuitem"]')?.focus();
-    }, [id]);
+    }, [setSearch]);
 
     // Inside the edit modal, the menu renders in the dialog: the modal takes
     // back any focus that leaves it, so a search box rendered in the page body
     // could never be typed into. Outside a dialog this finds nothing and the
     // menu renders in the body as usual. The same as `hierarchical_value_menu`.
     const getPopoverContainer = useCallback(() => document.getElementById(id)?.closest<HTMLElement>('[role="dialog"]') ?? null, [id]);
-
-    const searchLabel = formatMessage({
-        id: 'post_attributes.picker.search',
-        defaultMessage: 'Search attributes',
-        description: 'Placeholder and accessible name of the search box at the top of the menu that lists the attributes that can be added to a post. Filters the list as the user types.',
-    });
 
     const addLabel = (
         <FormattedMessage
@@ -186,26 +380,37 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
         };
     }
 
-    const searchBox = searchable ? (
-        <div className='PostAttributesFieldPicker__search'>
-            <SearchInput
-                size='small'
+    const ids = {id, dataTestId};
 
-                // The user just opened the menu to find a field, and the menu
-                // moves focus into itself anyway; with a search box, that
-                // focus belongs here.
-                // eslint-disable-next-line jsx-a11y/no-autofocus
-                autoFocus={true}
-                value={search}
-                onChange={handleSearchChange}
-                onKeyDown={handleSearchKeyDown}
-                onClear={() => setSearch('')}
-                data-testid={`${dataTestId}-search`}
-                placeholder={searchLabel}
-                aria-label={searchLabel}
+    // In mobile view the contents subscribe to the store, since the modal they
+    // render in never sees this component re-render. The popover does, so its
+    // items stay direct children of the menu list, which reads them to manage
+    // focus.
+    let searchBox;
+    let items;
+    if (isMobileView) {
+        searchBox = (
+            <LivePickerSearchBox
+                store={store}
+                {...ids}
             />
-        </div>
-    ) : undefined;
+        );
+        items = (
+            <LivePickerItems
+                store={store}
+                {...ids}
+            />
+        );
+    } else {
+        searchBox = searchable ? (
+            <PickerSearchBox
+                search={search}
+                onSearch={setSearch}
+                {...ids}
+            />
+        ) : undefined;
+        items = renderFieldItems({fields, search, onSelect, ...ids});
+    }
 
     const menu = (
         <Menu.Container
@@ -234,30 +439,7 @@ export default function PostAttributesFieldPicker({fields, onSelect, id = 'postA
                 }),
             }}
         >
-            {shown.map((field) => (
-                <Menu.Item
-                    key={field.id}
-                    id={`postAttributeAdd-${field.id}`}
-                    data-testid={`post-attribute-add-${field.name}`}
-                    leadingElement={<FieldTypeIcon type={field.type}/>}
-                    labels={<span>{getPropertyFieldLabel(field)}</span>}
-                    onClick={() => onSelect(field.id)}
-                />
-            ))}
-            {searchable && term && shown.length === 0 && (
-                <Menu.Item
-                    id={`${id}NoResults`}
-                    data-testid={`${dataTestId}-no-results`}
-                    disabled={true}
-                    labels={
-                        <FormattedMessage
-                            id='post_attributes.picker.no_results'
-                            defaultMessage='No matching attributes'
-                            description='Shown in the add attribute menu, under its search box, when the search text matches no attribute.'
-                        />
-                    }
-                />
-            )}
+            {items}
         </Menu.Container>
     );
 

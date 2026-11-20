@@ -9,6 +9,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {
     GROUP,
     OBJECT_TYPE,
+    addFieldOptions,
     countLoads,
     createField,
     deleteFields,
@@ -548,6 +549,52 @@ test('drops a chip and its badge count when an option is deleted', {tag: '@post_
         await expect(reloaded.container).toContainText('options go away');
         await expect(reloaded.container.getByTestId(CHIPS)).toHaveCount(0);
         await expect(reloaded.container.getByText(optionId(first, 'X1'))).toHaveCount(0);
+    } finally {
+        await deleteFields(adminClient, created);
+    }
+});
+
+/**
+ * @objective Verify a value on a field with more options than the server sends is still
+ * drawn: the field arrives without its option list, so the stored option is shown as it
+ * is rather than hidden as if it had been deleted.
+ *
+ * @precondition The PostAttributes feature flag is enabled.
+ */
+test('draws a value on a field whose options are too many to send', {tag: '@post_attributes'}, async ({pw}) => {
+    await pw.ensureFeatureFlag('PostAttributes', true);
+
+    const {adminClient, user, userClient, team} = await pw.initSetup();
+    const suffix = pw.random.id();
+    const created: PropertyField[] = [];
+
+    try {
+        await purgeFields(adminClient);
+
+        // # A select field with one option to set, then enough more that the server leaves
+        // the list out of every read: it sends at most 1000
+        const many = await createField(adminClient, fieldName('many', suffix), {options: ['Chosen']});
+        created.push(many);
+        const chosen = optionId(many, 'Chosen');
+        await addFieldOptions(
+            adminClient,
+            many,
+            Array.from({length: 1000}, (_, index) => `Option ${index}`),
+        );
+
+        const channel = await adminClient.getChannelByName(team.id, 'town-square');
+        const post = await userClient.createTestPost({channel_id: channel.id, message: `many options ${suffix}`});
+        await setPostValues(adminClient, post.id, [{field_id: many.id, value: chosen}]);
+
+        // # Open the channel, so the field is read with its options left out
+        const {channelsPage} = await pw.testBrowser.login(user);
+        await channelsPage.goto(team.name, channel.name);
+        await channelsPage.toBeVisible();
+
+        // * Verify the post draws the stored option as a chip
+        const onScreen = await channelsPage.centerView.getPostById(post.id);
+        await expect(onScreen.container.getByTestId(CHIPS)).toBeVisible();
+        await expect(onScreen.container.getByTestId(OPTION_CHIP)).toHaveText(chosen);
     } finally {
         await deleteFields(adminClient, created);
     }

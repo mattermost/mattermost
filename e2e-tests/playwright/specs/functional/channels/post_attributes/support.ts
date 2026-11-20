@@ -140,6 +140,30 @@ export async function patchFieldAttrs(
     return adminClient.patchPropertyField(GROUP, OBJECT_TYPE, field.id, {attrs: {...field.attrs, ...attrs}});
 }
 
+// The most options one request to the options endpoint may carry.
+const OPTIONS_PER_REQUEST = 200;
+
+/**
+ * Adds options to a field through its options endpoint, as many requests as the count
+ * takes. The client has no method for that endpoint, so it is called directly.
+ */
+export async function addFieldOptions(adminClient: Client4, field: PropertyField, names: string[]): Promise<void> {
+    const route = adminClient.getPropertyFieldOptionsRoute(GROUP, OBJECT_TYPE, field.id);
+
+    for (let start = 0; start < names.length; start += OPTIONS_PER_REQUEST) {
+        const batch = names.slice(start, start + OPTIONS_PER_REQUEST).map((name) => ({name}));
+        const res = await fetch(route, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json', Authorization: `Bearer ${adminClient.getToken()}`},
+            body: JSON.stringify(batch),
+        });
+
+        if (!res.ok) {
+            throw new Error(`adding options to ${field.name} failed: ${res.status} ${await res.text()}`);
+        }
+    }
+}
+
 /**
  * Counts full page loads after the point it is called, so "without a reload" is asserted
  * rather than assumed: a value or field that changes in place leaves the count at zero.

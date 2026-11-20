@@ -16,7 +16,10 @@ import {
 import type IconProps from '@mattermost/compass-icons/components/props';
 import type {FieldType, PropertyField} from '@mattermost/types/properties';
 
-import {render, renderWithContext, screen, waitFor} from 'tests/react_testing_utils';
+import ModalController from 'components/modal_controller';
+
+import {render, renderWithContext, screen, waitFor, within} from 'tests/react_testing_utils';
+import {WindowSizes} from 'utils/constants';
 
 import PostAttributesFieldPicker from './post_attributes_field_picker';
 
@@ -339,6 +342,69 @@ describe('PostAttributesFieldPicker', () => {
             await openPicker();
             expect(screen.getByRole('searchbox', {name: 'Search attributes'})).toHaveValue('');
             expect(screen.getAllByRole('menuitem')).toHaveLength(5);
+        });
+
+        // In mobile view the menu opens as a modal, which keeps the header and
+        // items it was opened with, so these check the modal follows the search.
+        describe('in mobile view', () => {
+            function renderMobilePicker(onSelect: (fieldId: string) => void = jest.fn()) {
+                return renderWithContext(
+                    <>
+                        <PostAttributesFieldPicker
+                            fields={fiveFields()}
+                            onSelect={onSelect}
+                        />
+                        <ModalController/>
+                    </>,
+                    {views: {browser: {windowSize: WindowSizes.MOBILE_VIEW}}},
+                );
+            }
+
+            function modalItems() {
+                return within(screen.getByRole('dialog')).getAllByRole('menuitem').map((item) => item.getAttribute('data-testid'));
+            }
+
+            test('the search box shows what is typed and filters the list', async () => {
+                renderMobilePicker();
+                await openPicker();
+
+                const search = within(screen.getByRole('dialog')).getByRole('searchbox', {name: 'Search attributes'});
+                await userEvent.type(search, 'ri');
+
+                expect(search).toHaveValue('ri');
+                expect(modalItems()).toEqual(['post-attribute-add-alpha', 'post-attribute-add-bravo']);
+
+                await userEvent.clear(search);
+                await userEvent.type(search, 'zzz');
+                expect(screen.getByTestId('post-attributes-add-no-results')).toBeInTheDocument();
+            });
+
+            test('a click in the search box leaves the menu open', async () => {
+                renderMobilePicker();
+                await openPicker();
+
+                await userEvent.click(within(screen.getByRole('dialog')).getByRole('searchbox', {name: 'Search attributes'}));
+
+                expect(screen.getByRole('dialog')).toBeInTheDocument();
+                expect(modalItems()).toHaveLength(5);
+            });
+
+            test('picks a field the search found, and the next opening starts from an empty search', async () => {
+                const onSelect = jest.fn();
+                renderMobilePicker(onSelect);
+                await openPicker();
+
+                await userEvent.type(within(screen.getByRole('dialog')).getByRole('searchbox', {name: 'Search attributes'}), 'echo');
+                await userEvent.click(screen.getByTestId('post-attribute-add-echo'));
+
+                expect(onSelect).toHaveBeenCalledTimes(1);
+                expect(onSelect).toHaveBeenCalledWith('f_e');
+                await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+
+                await openPicker();
+                expect(within(screen.getByRole('dialog')).getByRole('searchbox', {name: 'Search attributes'})).toHaveValue('');
+                expect(modalItems()).toHaveLength(5);
+            });
         });
     });
 
