@@ -137,8 +137,8 @@ describe('components/AdminSidebar', () => {
             renderWithContext(<AdminSidebar {...props}/>);
         };
 
-        test('shows Site health and not Workspace Optimization with the flag on and an Enterprise license', () => {
-            renderSidebar('enterprise', true);
+        test.each(['professional', 'enterprise'])('shows Site health and not Workspace Optimization with the flag on and a %s license', (sku) => {
+            renderSidebar(sku, true);
             expect(screen.getByText('Site health')).toBeInTheDocument();
             expect(screen.queryByText('Workspace Optimization')).not.toBeInTheDocument();
         });
@@ -149,8 +149,8 @@ describe('components/AdminSidebar', () => {
             expect(screen.queryByText('Site health')).not.toBeInTheDocument();
         });
 
-        test('shows Workspace Optimization and not Site health with the flag on below Enterprise', () => {
-            renderSidebar('professional', true);
+        test('shows Workspace Optimization and not Site health with the flag on below Professional', () => {
+            renderSidebar('starter', true);
             expect(screen.getByText('Workspace Optimization')).toBeInTheDocument();
             expect(screen.queryByText('Site health')).not.toBeInTheDocument();
         });

@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/healthcheck"
+	"github.com/mattermost/mattermost/server/v8/platform/shared/releases"
 )
 
 // healthCollectTimeout bounds how long a run waits for the other nodes' diagnostics. It must
@@ -22,7 +23,7 @@ const healthCollectTimeout = 3 * time.Minute
 // node's diagnostics. A failed workspace collector is recorded in Snapshot.Sections rather than
 // failing the call; the error return is for a snapshot that cannot be built at all.
 func (a *App) BuildHealthSnapshot(rctx request.CTX) (*healthcheck.Snapshot, error) {
-	return a.buildHealthSnapshotWithLatestVersionURL(rctx, LatestVersionURL)
+	return a.buildHealthSnapshotWithLatestVersionURL(rctx, releases.LatestURL)
 }
 
 func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVersionURL string) (*healthcheck.Snapshot, error) {
@@ -54,12 +55,15 @@ func (a *App) buildHealthSnapshotWithLatestVersionURL(rctx request.CTX, latestVe
 	// The Makefile stamps BuildDate with `date -u`; dev builds leave the zero time.
 	snapshot.Version.BuildDate, _ = time.Parse(time.UnixDate, model.BuildDate)
 
-	release, appErr := a.GetLatestVersion(rctx, latestVersionURL)
-	if appErr != nil {
-		sections[model.SectionVersion] = appErr
-	} else {
-		sections[model.SectionVersion] = nil
-		snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+	// With the check off, Latest stays empty and the version rules read the reason from the config.
+	sections[model.SectionVersion] = nil
+	if *a.Config().ServiceSettings.EnableSecurityFixAlert {
+		release, appErr := a.GetLatestVersion(rctx, latestVersionURL)
+		if appErr != nil {
+			sections[model.SectionVersion] = appErr
+		} else {
+			snapshot.Version.Latest = strings.TrimPrefix(release.TagName, "v")
+		}
 	}
 
 	return snapshot, nil

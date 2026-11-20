@@ -106,12 +106,26 @@ export const ACCESS_CONTROL_POLICY_VERSION_V0_4 = 'v0.4';
 export const ACCESS_CONTROL_ACTION_MEMBERSHIP = 'membership';
 export const ACCESS_CONTROL_ACTION_UPLOAD_FILE = 'upload_file_attachment';
 export const ACCESS_CONTROL_ACTION_DOWNLOAD_FILE = 'download_file_attachment';
+export const ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS = 'channel_read_access';
+export const ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS = 'channel_write_access';
+export const ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS = 'channel_management_access';
 export const ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ = 'create_burn_on_read_post';
 
 export const ACCESS_CONTROL_PERMISSION_ACTIONS: string[] = [
     ACCESS_CONTROL_ACTION_UPLOAD_FILE,
     ACCESS_CONTROL_ACTION_DOWNLOAD_FILE,
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
     ACCESS_CONTROL_ACTION_CREATE_BURN_ON_READ,
+];
+
+// Permission actions gated by the ChannelPermissionActions feature flag. They share
+// the one flag, so pickers filter them together.
+export const ACCESS_CONTROL_CHANNEL_PERMISSION_ACTIONS: string[] = [
+    ACCESS_CONTROL_ACTION_CHANNEL_READ_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_WRITE_ACCESS,
+    ACCESS_CONTROL_ACTION_CHANNEL_MANAGEMENT_ACCESS,
 ];
 
 export const ACCESS_CONTROL_CHANNEL_ROLE_GUEST = 'channel_guest';
@@ -157,9 +171,8 @@ export function combineMembershipExpressions(expressions: Array<string | undefin
 }
 
 /**
- * Returns the rules that govern non-membership actions (file upload/download
- * permission rules in v0.4). Membership rules and wildcard-action rules are
- * excluded.
+ * Returns the rules that govern non-membership (permission) actions.
+ * Membership rules and wildcard-action rules are excluded.
  */
 export function getPermissionRules(rules?: AccessControlPolicyRule[]): AccessControlPolicyRule[] {
     if (!rules) {
@@ -190,7 +203,7 @@ export function hasOverlappingPermissionRules(rules?: AccessControlPolicyRule[])
 
 /**
  * Replaces or inserts the membership rule in an existing rules array while
- * preserving all non-membership rules (e.g. file_upload, file_download).
+ * preserving all non-membership (permission) rules.
  * If expression is empty the membership rule is removed.
  *
  * Legacy v0.1/v0.2 policies stored the membership rule with a wildcard

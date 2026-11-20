@@ -243,8 +243,8 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 		return model.NewAppError("BulkImport", "app.import.validate_user_import_data.auth_data_and_service_dependency.error", nil, "", http.StatusBadRequest)
 	}
 
-	if appErr := validateAuthService(data.AuthService); appErr != nil {
-		return appErr
+	if err := validateAuthService(data.AuthService); err != nil {
+		return model.AsAppError(err)
 	}
 
 	if data.Password != nil && *data.Password == "" {
@@ -276,7 +276,7 @@ func ValidateUserImportData(data *UserImportData) *model.AppError {
 	}
 
 	if err := validateGuestRoles(*data); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if data.NotifyProps != nil {
@@ -381,7 +381,7 @@ var validAuthServices = []string{
 	model.ServiceOpenid,
 }
 
-func validateAuthService(authService *string) *model.AppError {
+func validateAuthService(authService *string) error {
 	if authService == nil {
 		return nil
 	}
@@ -815,7 +815,7 @@ func isValidEmailBatchingInterval(emailInterval string) bool {
 
 // validateGuestRoles checks if the user has guest roles consistently across system, team, and channel levels.
 // At this point, we assume that the user has a valid role scheme.
-func validateGuestRoles(data UserImportData) *model.AppError {
+func validateGuestRoles(data UserImportData) error {
 	if data.Roles == nil {
 		return nil
 	}

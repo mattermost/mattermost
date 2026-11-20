@@ -553,7 +553,7 @@ func (ch *Channels) RemovePlugin(id string) *model.AppError {
 	// Disable plugin before removal to make sure this
 	// plugin remains disabled on re-install.
 	if err := ch.disablePlugin(id); err != nil {
-		return err
+		return model.AsAppError(err)
 	}
 
 	if err := ch.removePluginLocally(id); err != nil {
@@ -616,7 +616,6 @@ func (ch *Channels) removePluginLocally(id string) *model.AppError {
 
 	pluginsEnvironment.Deactivate(id)
 	pluginsEnvironment.RemovePlugin(id)
-	ch.unregisterPluginCommands(id)
 
 	if err := os.RemoveAll(unpackedBundlePath); err != nil {
 		return model.NewAppError("removePlugin", "app.plugin.remove.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

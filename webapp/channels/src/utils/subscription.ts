@@ -24,8 +24,11 @@ export const getSkuDisplayName = (skuShortName: string, isGovSku: boolean): stri
     case LicenseSkus.Entry:
         skuName = 'Entry';
         break;
-    default:
+    case LicenseSkus.EnterpriseAdvanced:
         skuName = 'Enterprise Advanced';
+        break;
+    default:
+        skuName = skuShortName;
         break;
     }
 

@@ -240,15 +240,20 @@ export function handlePosts(state: IDMappedObjects<Post> = {}, action: MMReduxAc
         }
 
         // Mark the post as deleted
+        const deletedPost = {
+            ...state[post.id],
+            state: Posts.POST_DELETED,
+            message: '',
+            file_ids: [],
+            has_reactions: false,
+        };
+        if (deletedPost.metadata?.entities) {
+            deletedPost.metadata = {...deletedPost.metadata};
+            delete deletedPost.metadata.entities;
+        }
         const nextState = {
             ...state,
-            [post.id]: {
-                ...state[post.id],
-                state: Posts.POST_DELETED,
-                message: '',
-                file_ids: [],
-                has_reactions: false,
-            },
+            [post.id]: deletedPost,
         };
 
         for (const otherPost of Object.values(state)) {

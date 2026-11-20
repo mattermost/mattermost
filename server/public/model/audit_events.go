@@ -148,12 +148,15 @@ const (
 	AuditEventAutoSelectPushNotificationServer = "autoSelectPushNotificationServer" // automatically switch push notification server based on license entitlement
 	AuditEventConfigReload                     = "configReload"                     // reload server configuration
 	AuditEventGetConfig                        = "getConfig"                        // get current server configuration
+	AuditEventGetConfigHistory                 = "getConfigHistory"                 // list saved server configurations
+	AuditEventGetHistoricalConfig              = "getHistoricalConfig"              // get a saved server configuration
 	AuditEventLocalGetClientConfig             = "localGetClientConfig"             // get client configuration locally
 	AuditEventLocalGetConfig                   = "localGetConfig"                   // get server configuration locally
 	AuditEventLocalPatchConfig                 = "localPatchConfig"                 // update server configuration locally
 	AuditEventLocalUpdateConfig                = "localUpdateConfig"                // update server configuration locally
 	AuditEventMigrateConfig                    = "migrateConfig"                    // migrate configs with file values from one store to another
 	AuditEventPatchConfig                      = "patchConfig"                      // update server configuration
+	AuditEventRestoreHistoricalConfig          = "restoreHistoricalConfig"          // replace the server configuration with a saved one
 	AuditEventUpdateConfig                     = "updateConfig"                     // update server configuration
 )
 
@@ -192,6 +195,14 @@ const (
 const (
 	AuditEventGetPropertyValues   = "getPropertyValues"   // get property values for target
 	AuditEventPatchPropertyValues = "patchPropertyValues" // update property values for target
+)
+
+// Channel Attribute Compliance
+const (
+	AuditEventGetPropertyFieldMissingValues      = "getPropertyFieldMissingValues"      // list channels missing a value for a channel attribute
+	AuditEventGetPropertyFieldComplianceSummary  = "getPropertyFieldComplianceSummary"  // get channel attribute compliance summary
+	AuditEventGetPropertyFieldsComplianceSummary = "getPropertyFieldsComplianceSummary" // get compliance summary for a not-yet-created channel attribute
+	AuditEventNotifyPropertyFieldMissingValues   = "notifyPropertyFieldMissingValues"   // notify channel admins of a missing channel attribute value
 )
 
 // Data Retention Policies

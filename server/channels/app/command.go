@@ -697,6 +697,13 @@ func (a *App) HandleCommandResponsePost(rctx request.CTX, command *model.Command
 			err = model.NewAppError("HandleCommandResponsePost", "api.command.command_post.forbidden.app_error", nil, "", http.StatusForbidden).Wrap(err)
 			return nil, err
 		}
+		// The command was gated on write access to the channel it was typed in. A
+		// response that redirects the post elsewhere lands there under the user's name,
+		// so that channel's write policy has to allow it too.
+		if response.ChannelId != args.ChannelId && !a.EnforceChannelWriteAccessByID(rctx, args.UserId, response.ChannelId) {
+			return nil, model.NewAppError("HandleCommandResponsePost", "api.channel.channel_write_access.abac_denied.app_error", nil,
+				"userId="+args.UserId+", channelId="+response.ChannelId, http.StatusForbidden)
+		}
 		post.ChannelId = response.ChannelId
 	}
 
@@ -750,8 +757,8 @@ func (a *App) CreateCommand(cmd *model.Command) (*model.Command, *model.AppError
 func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError) {
 	cmd.Trigger = strings.ToLower(cmd.Trigger)
 
-	if appErr := a.validateCommandTriggerUniqueness(cmd.TeamId, cmd.Trigger, ""); appErr != nil {
-		return nil, appErr
+	if err := a.validateCommandTriggerUniqueness(cmd.TeamId, cmd.Trigger, ""); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	command, nErr := a.Srv().Store().Command().Save(cmd)
@@ -765,7 +772,7 @@ func (a *App) createCommand(cmd *model.Command) (*model.Command, *model.AppError
 	return command, nil
 }
 
-func (a *App) validateCommandTriggerUniqueness(teamID, trigger, excludeCommandID string) *model.AppError {
+func (a *App) validateCommandTriggerUniqueness(teamID, trigger, excludeCommandID string) error {
 	trigger = strings.ToLower(trigger)
 
 	for _, builtInProvider := range commandProviders {
@@ -819,8 +826,8 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 	updatedCmd.PluginId = oldCmd.PluginId
 	updatedCmd.TeamId = oldCmd.TeamId
 
-	if appErr := a.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); appErr != nil {
-		return nil, appErr
+	if err := a.validateCommandTriggerUniqueness(updatedCmd.TeamId, updatedCmd.Trigger, updatedCmd.Id); err != nil {
+		return nil, model.AsAppError(err)
 	}
 
 	command, err := a.Srv().Store().Command().Update(updatedCmd)
@@ -837,8 +844,8 @@ func (a *App) UpdateCommand(oldCmd, updatedCmd *model.Command) (*model.Command, 
 }
 
 func (a *App) MoveCommand(team *model.Team, command *model.Command) *model.AppError {
-	if appErr := a.validateCommandTriggerUniqueness(team.Id, command.Trigger, command.Id); appErr != nil {
-		return appErr
+	if err := a.validateCommandTriggerUniqueness(team.Id, command.Trigger, command.Id); err != nil {
+		return model.AsAppError(err)
 	}
 
 	command.TeamId = team.Id
