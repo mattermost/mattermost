@@ -8,6 +8,7 @@ import {CollapsedThreads} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {ChannelTypes, PreferenceTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
 
 import type {ChannelKindRegistration} from 'selectors/views/product_rail';
 
@@ -132,15 +133,23 @@ function getBoardsState(currentChannelId: string, section: ProductRailSection = 
     };
 }
 
+// The store of the last render, for reading back the rail's preferences as saved.
+let lastStore: ReturnType<typeof renderWithContext>['store'];
+
 function renderAt(pathname: string, state: DeepPartial<GlobalState>) {
-    return renderWithContext(<ProductRail/>, state, {history: createMemoryHistory({initialEntries: [pathname]})});
+    const result = renderWithContext(<ProductRail/>, state, {history: createMemoryHistory({initialEntries: [pathname]})});
+    lastStore = result.store;
+    return result;
 }
+
+const savedHiddenItems = () => lastStore.getState().entities.preferences.myPreferences['sidebar_settings--product_rail_hidden_items']?.value;
 
 describe('ProductRail', () => {
     // Where each item was is saved to localStorage, which would otherwise carry between tests.
     beforeEach(() => {
         localStorage.clear();
         mockSavePreferences.mockClear();
+        jest.spyOn(Client4, 'savePreferences').mockResolvedValue({status: 'OK'});
     });
 
     test('should render nothing when the feature flag is off', () => {
@@ -562,13 +571,7 @@ describe('ProductRail', () => {
             fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
             await userEvent.click(await screen.findByRole('menuitem', {name: 'Unpin'}));
 
-            await waitFor(() => {
-                expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
-                    category: 'sidebar_settings',
-                    name: 'product_rail_hidden_items',
-                    value: JSON.stringify(['boards', 'mattermost-ai:/mattermost-ai']),
-                })]);
-            });
+            await waitFor(() => expect(savedHiddenItems()).toBe(JSON.stringify(['boards', 'mattermost-ai:/mattermost-ai'])));
         });
 
         test('should pin an open unpinned item back on the rail', async () => {
@@ -577,12 +580,7 @@ describe('ProductRail', () => {
             fireEvent.contextMenu(screen.getByRole('link', {name: /Agents/}));
             await userEvent.click(await screen.findByRole('menuitem', {name: 'Pin'}));
 
-            await waitFor(() => {
-                expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
-                    name: 'product_rail_hidden_items',
-                    value: JSON.stringify(['boards']),
-                })]);
-            });
+            await waitFor(() => expect(savedHiddenItems()).toBe(JSON.stringify(['boards'])));
         });
 
         test('should pin an item from its row in the More menu without opening it', async () => {
@@ -593,10 +591,7 @@ describe('ProductRail', () => {
             await userEvent.click(screen.getByRole('button', {name: 'More products'}));
             await userEvent.click(screen.getByRole('button', {name: 'Pin Agents', hidden: true}));
 
-            expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
-                name: 'product_rail_hidden_items',
-                value: JSON.stringify(['boards']),
-            })]);
+            await waitFor(() => expect(savedHiddenItems()).toBe(JSON.stringify(['boards'])));
             expect(historyPush).not.toHaveBeenCalled();
         });
 
@@ -617,10 +612,7 @@ describe('ProductRail', () => {
 
             await userEvent.keyboard('{ArrowRight}{Enter}');
 
-            expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
-                name: 'product_rail_hidden_items',
-                value: JSON.stringify(['mattermost-ai']),
-            })]);
+            await waitFor(() => expect(savedHiddenItems()).toBe(JSON.stringify(['mattermost-ai'])));
             expect(historyPush).not.toHaveBeenCalled();
         });
 
@@ -659,10 +651,7 @@ describe('ProductRail', () => {
             await userEvent.click(screen.getByRole('button', {name: 'More products'}));
             await userEvent.click(screen.getByRole('button', {name: 'Pin Agents One', hidden: true}));
 
-            expect(mockSavePreferences).toHaveBeenCalledWith(user.id, [expect.objectContaining({
-                name: 'product_rail_hidden_items',
-                value: JSON.stringify(['mattermost-ai:/agents-two']),
-            })]);
+            await waitFor(() => expect(savedHiddenItems()).toBe(JSON.stringify(['mattermost-ai:/agents-two'])));
         });
 
         test('should offer no right-click menu on Threads or Channels', () => {
