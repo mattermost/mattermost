@@ -25,7 +25,7 @@ const channelJoinRequestPaginationMaxPerPage = 200
 // requestJoinChannelGuard validates that a user is allowed to express interest
 // in joining `channel` and returns a sanitized result for `channel`. Callers
 // are expected to look up `channel` via the store before calling this helper.
-func (a *App) requestJoinChannelGuard(rctx request.CTX, user *model.User, channel *model.Channel) *model.AppError {
+func (a *App) requestJoinChannelGuard(rctx request.CTX, user *model.User, channel *model.Channel) error {
 	if channel == nil {
 		return model.NewAppError("RequestJoinChannel", "app.channel.get.existing.app_error", nil, "", http.StatusNotFound)
 	}
@@ -76,7 +76,7 @@ func (a *App) RequestJoinChannel(rctx request.CTX, userID, channelID, message st
 	}
 
 	if guardErr := a.requestJoinChannelGuard(rctx, user, channel); guardErr != nil {
-		return false, nil, guardErr
+		return false, nil, model.AsAppError(guardErr)
 	}
 
 	_, memberErr := a.Srv().Store().Channel().GetMember(rctx, channel.Id, user.Id)

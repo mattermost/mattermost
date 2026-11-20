@@ -186,6 +186,8 @@ func generateLayer(name, templateFile string) ([]byte, error) {
 					returns = append(returns, fmt.Sprintf("*store.%s", strings.TrimPrefix(result, "*")))
 				case "[]*ChannelGuard":
 					returns = append(returns, fmt.Sprintf("[]*store.%s", strings.TrimPrefix(result, "[]*")))
+				case "map[string]ChannelMemberRoles":
+					returns = append(returns, fmt.Sprintf("map[string]store.%s", strings.TrimPrefix(result, "map[string]")))
 				default:
 					returns = append(returns, result)
 				}

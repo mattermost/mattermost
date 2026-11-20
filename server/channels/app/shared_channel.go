@@ -25,8 +25,8 @@ func isNotFoundError(err error) bool {
 	if errors.Is(err, sql.ErrNoRows) {
 		return true
 	}
-	var nfErr *store.ErrNotFound
-	return errors.As(err, &nfErr)
+	_, ok := errors.AsType[*store.ErrNotFound](err)
+	return ok
 }
 
 func (a *App) getSharedChannelsService() (SharedChannelServiceIFace, error) {

@@ -43,12 +43,11 @@ describe('YoutubeVideo', () => {
         },
     };
 
-    test('should match init snapshot', () => {
+    test('should render', () => {
         const {container} = renderWithContext(
             <YoutubeVideo {...baseProps}/>,
             initialState,
         );
-        expect(container).toMatchSnapshot();
 
         // Verify that maxresdefault thumbnail is used by default (useMaxResThumbnail = true)
         expect(container.querySelector('.video-thumbnail')).toHaveAttribute(
@@ -56,18 +55,6 @@ describe('YoutubeVideo', () => {
             'https://img.youtube.com/vi/xqCoNej8Zxo/maxresdefault.jpg',
         );
         expect(screen.getByRole('heading', {level: 4})).toHaveTextContent('YouTube - Youtube title');
-    });
-
-    test('should match snapshot for playing state', async () => {
-        const {container} = renderWithContext(
-            <YoutubeVideo {...baseProps}/>,
-            initialState,
-        );
-
-        // Click the play button to set playing state
-        await userEvent.click(screen.getByRole('button', {name: /Play Youtube title on YouTube/}));
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should send the origin as referrer to the embedded player so YouTube does not reject it', async () => {

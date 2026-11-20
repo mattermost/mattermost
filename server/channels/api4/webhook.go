@@ -50,7 +50,8 @@ func createIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+	// Channel access policies do not apply to incoming webhooks, so this is the RBAC check alone.
+	if ok, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel); !ok {
 		c.LogAudit("fail - bad channel permissions")
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
@@ -167,7 +168,7 @@ func updateIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if channel.Type != model.ChannelTypeOpen {
-		if ok, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel); !ok {
+		if ok, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel); !ok {
 			c.LogAudit("fail - bad channel permissions")
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
@@ -306,7 +307,7 @@ func getIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	isPrivate := channel.Type != model.ChannelTypeOpen
 	restrictedChannel := false
 	if isPrivate {
-		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel)
 		restrictedChannel = !hasChannelPermission
 	}
 
@@ -366,7 +367,7 @@ func deleteIncomingHook(c *Context, w http.ResponseWriter, r *http.Request) {
 	isPrivate := channel.Type != model.ChannelTypeOpen
 	restrictedChannel := false
 	if isPrivate {
-		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+		hasChannelPermission, _ := c.App.SessionHasPermissionToReadChannelRBACOnly(c.AppContext, *c.AppContext.Session(), channel)
 		restrictedChannel = !hasChannelPermission
 	}
 

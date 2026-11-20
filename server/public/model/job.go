@@ -50,6 +50,7 @@ const (
 	JobTypeAutoTranslationRecovery       = "autotranslation_recovery"
 	JobTypeCleanupExpiredAccessTokens    = "cleanup_expired_access_tokens"
 	JobTypeNotifyExpiringAccessTokens    = "notify_expiring_access_tokens"
+	JobTypeHealthCheck                   = "health_check"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -66,9 +67,11 @@ const JobTypeHostedPurchaseScreening = "hosted_purchase_screening"
 // Deprecated: the Cloud file storage limit job no longer exists.
 const JobTypeLastAccessibleFile = "last_accessible_file"
 
+// AllJobTypes contains every job type that is valid in the jobs API.
 var AllJobTypes = [...]string{
 	JobTypeDataRetention,
 	JobTypeMessageExport,
+	JobTypeCLIMessageExport,
 	JobTypeElasticsearchPostIndexing,
 	JobTypeElasticsearchPostAggregation,
 	JobTypeLdapSync,
@@ -82,14 +85,55 @@ var AllJobTypes = [...]string{
 	JobTypeExportProcess,
 	JobTypeExportDelete,
 	JobTypeCloud,
+	JobTypeResendInvitationEmail,
 	JobTypeExtractContent,
 	JobTypeLastAccessiblePost,
+	JobTypeUpgradeNotifyAdmin,
+	JobTypeTrialNotifyAdmin,
+	JobTypePostPersistentNotifications,
+	JobTypeInstallPluginNotifyAdmin,
+	JobTypeS3PathMigration,
 	JobTypeCleanupDesktopTokens,
+	JobTypeDeleteEmptyDraftsMigration,
+	JobTypeRefreshMaterializedViews,
+	JobTypeDeleteOrphanDraftsMigration,
+	JobTypeExportUsersToCSV,
+	JobTypeDeleteDmsPreferencesMigration,
+	JobTypeMobileSessionMetadata,
+	JobTypeAccessControlSync,
+	JobTypeAccessControlTeamSync,
+	JobTypePushProxyAuth,
+	JobTypeRecap,
+	JobTypeScheduledRecap,
+	JobTypeDeleteExpiredPosts,
+	JobTypeAutoTranslationRecovery,
 	JobTypeCleanupExpiredAccessTokens,
 	JobTypeNotifyExpiringAccessTokens,
-	JobTypeRefreshMaterializedViews,
-	JobTypeMobileSessionMetadata,
-	JobTypeScheduledRecap,
+	JobTypeHealthCheck,
+}
+
+// CreatableJobTypes contains the job types that can be created through the jobs API. Jobs of
+// other types are run by the server itself and aren't included when listing jobs without a type.
+var CreatableJobTypes = [...]string{
+	JobTypeDataRetention,
+	JobTypeMessageExport,
+	JobTypeElasticsearchPostIndexing,
+	JobTypeElasticsearchPostAggregation,
+	JobTypeLdapSync,
+	JobTypeAccessControlSync,
+	JobTypeAccessControlTeamSync,
+	JobTypeMigrations,
+	JobTypePlugins,
+	JobTypeProductNotices,
+	JobTypeExpiryNotify,
+	JobTypeActiveUsers,
+	JobTypeImportProcess,
+	JobTypeImportDelete,
+	JobTypeExportProcess,
+	JobTypeExportDelete,
+	JobTypeCloud,
+	JobTypeExtractContent,
+	JobTypeHealthCheck,
 }
 
 type Job struct {

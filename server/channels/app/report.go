@@ -319,13 +319,10 @@ func (a *App) GetPostsForReporting(rctx request.CTX, queryParams model.ReportPos
 
 	response, err := a.Srv().Store().Post().GetPostsForReporting(rctx, queryParams)
 	if err != nil {
-		var invErr *store.ErrInvalidInput
-		switch {
-		case errors.As(err, &invErr):
+		if _, ok := errors.AsType[*store.ErrInvalidInput](err); ok {
 			return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.invalid_input_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetPostsForReporting", "app.post.get_posts_for_reporting.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Optionally enrich posts with metadata if requested

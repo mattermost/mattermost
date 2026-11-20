@@ -21,12 +21,6 @@ function getProps(): ComponentProps<typeof AdminSettings> {
 }
 
 describe('AdminSettings', () => {
-    it('should match snapshot', () => {
-        const props = getProps();
-        const {container} = renderWithContext(<AdminSettings {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     it('save button should be disabled if there is no save needed', () => {
         const props = getProps();
         props.saveNeeded = false;

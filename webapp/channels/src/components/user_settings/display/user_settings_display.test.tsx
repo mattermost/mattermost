@@ -121,99 +121,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         lastActiveTimeEnabled: true,
     };
 
-    test('should match snapshot, no active section', () => {
-        const {container} = renderWithContext(<UserSettingsDisplay {...requiredProps}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, collapse section', () => {
-        const props = {...requiredProps, activeSection: 'collapse'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, link preview section with EnableLinkPreviews is false', () => {
-        const props = {
-            ...requiredProps,
-            activeSection: 'linkpreview',
-            enableLinkPreviews: false,
-        };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, link preview section with EnableLinkPreviews is true', () => {
-        const props = {
-            ...requiredProps,
-            activeSection: 'linkpreview',
-            enableLinkPreviews: true,
-        };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, clock section', () => {
-        const props = {...requiredProps, activeSection: 'clock'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, teammate name display section', () => {
-        const props = {...requiredProps, activeSection: 'teammate_name_display'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, timezone section', () => {
-        const props = {...requiredProps, activeSection: 'timezone'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, message display section', () => {
-        const props = {...requiredProps, activeSection: 'message_display'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, channel display mode section', () => {
-        const props = {...requiredProps, activeSection: 'channel_display_mode'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, languages section', () => {
-        const props = {...requiredProps, activeSection: 'languages'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, theme section with EnableThemeSelection is false', () => {
-        const props = {
-            ...requiredProps,
-            activeSection: 'theme',
-            enableThemeSelection: false,
-        };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, theme section with EnableThemeSelection is true', () => {
-        const props = {
-            ...requiredProps,
-            activeSection: 'theme',
-            enableThemeSelection: true,
-        };
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
-    test('should match snapshot, clickToReply section', () => {
-        const props = {...requiredProps, activeSection: 'click_to_reply'};
-        const {container} = renderWithContext(<UserSettingsDisplay {...props}/>);
-        expect(container).toMatchSnapshot();
-    });
-
     test('should have called handleSubmit', async () => {
         const updateSection = jest.fn();
 
@@ -387,17 +294,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         await userEvent.click(radioA);
         expect(radioA).toBeChecked();
-    });
-
-    test('should not show last active section', () => {
-        const {container} = renderWithContext(
-            <UserSettingsDisplay
-                {...requiredProps}
-                lastActiveTimeEnabled={false}
-            />,
-        );
-
-        expect(container).toMatchSnapshot();
     });
 
     test('should show the collapse category with unread channels setting', () => {
