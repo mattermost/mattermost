@@ -15763,6 +15763,26 @@
     "description": "Health dashboard finding title when an enabled OAuth or OpenID Connect provider connectivity probe fails."
   },
   {
+    "id": "health.rule.open_signup_unverified.message",
+    "translation": "Open server and email signup are enabled while email verification is off, so anyone who can reach this server can create an account with a made-up email address and join open teams. If open signup is intended, mute this finding.",
+    "description": "Health dashboard finding detail when anyone can create an account with an email address they don't have to verify."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.message.restricted",
+    "translation": "Open server and email signup are enabled while email verification is off. TeamSettings.RestrictCreationToDomains limits signup to some domains, but Mattermost only checks that the address ends in an allowed domain, not that the person owns it. Anyone who can reach this server can sign up under an allowed domain and appear to be a colleague. If open signup is intended, mute this finding.",
+    "description": "Health dashboard finding detail when anyone can create an account with an unverified email address and the signup domain restriction can therefore be bypassed. 'TeamSettings.RestrictCreationToDomains' is a config setting path and should not be translated."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.remediation",
+    "translation": "Set EmailSettings.RequireEmailVerification to true. Confirm that SMTP works first: existing users who never verified their email address must verify it at their next login. If you don't want open signup, set TeamSettings.EnableOpenServer to false; users can still join through team invite links, so email verification is still recommended. To limit signup to your organization, set TeamSettings.RestrictCreationToDomains together with email verification; without verification it can be bypassed.",
+    "description": "Health dashboard fix-it step when anyone can create an account with an unverified email address. 'EmailSettings.RequireEmailVerification', 'TeamSettings.EnableOpenServer', 'TeamSettings.RestrictCreationToDomains' and 'SMTP' are config or product names, and 'true' and 'false' are setting values; do not translate them."
+  },
+  {
+    "id": "health.rule.open_signup_unverified.title",
+    "translation": "Anyone can sign up with an unverified email address",
+    "description": "Health dashboard finding title when open server and email signup are enabled while email verification is off."
+  },
+  {
     "id": "health.rule.plugin_health_off.message",
     "translation": "PluginSettings.EnableHealthCheck is false, so a plugin that crashes is not restarted automatically.",
     "description": "Health dashboard finding detail when the plugin health check is turned off; 'PluginSettings.EnableHealthCheck' is a config setting path and should not be translated."
