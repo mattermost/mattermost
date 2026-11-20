@@ -141,7 +141,7 @@ export const Preferences = {
     RECOMMENDED_NEXT_STEPS: 'recommended_next_steps',
     TEAMS_ORDER: 'teams_order',
 
-    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu.
+    // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail has folded the team sidebar into its team menu (by default, it has).
     HIDE_TEAM_SIDEBAR: 'hide_team_sidebar',
 
     // In CATEGORY_SIDEBAR_SETTINGS: whether the product rail's Channels view also lists boards.

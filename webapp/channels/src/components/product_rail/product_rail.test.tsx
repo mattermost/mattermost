@@ -672,6 +672,21 @@ describe('ProductRail', () => {
             expect(moveRailItem(orderedIds, railIds as string[], from as number, to as number)).toEqual(expected);
         });
 
+        test('should keep apart two products from the same plugin', () => {
+            const state = getOrderState({hidden: ['mattermost-ai:/agents-two']});
+            renderAt('/team-one/channels/town-square', {
+                ...state,
+                plugins: {
+                    components: {
+                        ...state.plugins!.components,
+                        Product: [agents, {...railProduct('Agents Two', 'mattermost-ai'), baseURL: '/agents-two', switcherLinkURL: '/agents-two'}],
+                    },
+                },
+            });
+
+            expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai', 'more']);
+        });
+
         test('should not move an item dropped where it was', () => {
             expect(moveRailItem(['threads', 'channels'], ['threads', 'channels'], 1, 1)).toBeNull();
         });

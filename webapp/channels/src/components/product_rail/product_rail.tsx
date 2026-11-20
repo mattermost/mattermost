@@ -332,7 +332,7 @@ export default function ProductRail() {
             icon = Icon ? <Icon size={20}/> : null;
         }
 
-        const itemId = product.pluginId || product.id;
+        const itemId = productItemIds.get(product) ?? product.id;
         return {
             itemId,
             elementId: `product-rail-item-${itemId}`,
@@ -343,6 +343,15 @@ export default function ProductRail() {
             hideable: true,
         };
     };
+
+    // What the order and pinned preferences name each product by. A product's id changes with every
+    // page load, so it goes by its plugin's id; a plugin's further products add their base URL.
+    const productItemIds = new Map<ProductComponent, string>();
+    for (const product of products) {
+        const pluginId = product.pluginId || product.id;
+        const taken = [...productItemIds.values()].includes(pluginId);
+        productItemIds.set(product, taken ? `${pluginId}:${product.baseURL}` : pluginId);
+    }
 
     // A stable sort, so products with no rank keep their registration order after the ranked ones.
     const sortedProducts = [...products].sort((a, b) => defaultProductRank(a) - defaultProductRank(b));

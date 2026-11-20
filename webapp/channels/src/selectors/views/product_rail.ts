@@ -200,11 +200,14 @@ export function getProductRailTeamIdToRestore(state: GlobalState): string {
     return myTeamIds[0] ?? '';
 }
 
-/** Whether the user has hidden the team sidebar, so the product rail shows a team menu in its place. */
+/**
+ * Whether the team sidebar is collapsed into the product rail's team menu. It is by default with the
+ * rail on, until the user brings the team sidebar back.
+ */
 export function isTeamSidebarHidden(state: GlobalState): boolean {
     // On mobile the rail, and its team menu, are hidden, so the team sidebar stays to switch teams.
     return isProductRailEnabled(state) && !getIsMobileView(state) &&
-        getBool(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.HIDE_TEAM_SIDEBAR, false);
+        getBool(state, Preferences.CATEGORY_SIDEBAR_SETTINGS, Preferences.HIDE_TEAM_SIDEBAR, true);
 }
 
 export function getProductRailLastPath(state: GlobalState, tab: ProductRailTab, teamId: string): string | undefined {
