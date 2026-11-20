@@ -200,6 +200,23 @@ class UniqueCommitFilterTest(unittest.TestCase):
         self.assertIn("rename from " + path, patches[dest])
         self.assertFalse(checker.check_api(patches).has_findings())
 
+    def test_rename_that_removes_a_route_reports_the_removal(self):
+        path = "server/channels/api4/old.go"
+        dest = "server/channels/api4/new.go"
+        both = _HANDLE.replace("}\n", '\tr.Handle("/api/v4/baz", r.APIHandler(getBaz)).Methods("GET")\n}\n')
+        _write(self.tmpdir, path, both)
+        base = self._commit("base")
+        _git(self.tmpdir, "checkout", "-b", "feature")
+        _git(self.tmpdir, "mv", path, dest)
+        _write(self.tmpdir, dest, _HANDLE)
+        head = self._commit("rename and drop /baz")
+        self._point_checker(base, head, "master")
+        patches = checker.split_patch_by_file(checker.get_full_patch())
+        self.assertIn("rename from " + path, patches[dest])
+        result = checker.check_api(patches)
+        self.assertEqual(result.removals, ["`GET /api/v4/baz` (`getBaz`)"])
+        self.assertEqual(result.additions, [])
+
     def test_base_advancement_does_not_appear_as_removal(self):
         _write(self.tmpdir, "README", "root")
         self._commit("root")

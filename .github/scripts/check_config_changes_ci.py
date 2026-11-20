@@ -459,8 +459,13 @@ def check_api(patches: dict[str, str]) -> CheckResult:
         head_src = file_at(HEAD_SHA, fname)
         head_eps = _parse_endpoints(head_src, _route_prefixes(file_at(HEAD_SHA, _API_ROUTES_PATH)))
         tip_src = file_at_base_tip(fname)
-        tip_eps = None if tip_src is None else _parse_endpoints(
-            tip_src, _route_prefixes(file_at_base_tip(_API_ROUTES_PATH) or ""))
+        tip_eps = None
+        if tip_src is not None:
+            tip_prefixes = _route_prefixes(file_at_base_tip(_API_ROUTES_PATH) or "")
+            tip_eps = _parse_endpoints(tip_src, tip_prefixes)
+            # A renamed file can still exist on the tip under its old name only.
+            if source != fname:
+                tip_eps |= _parse_endpoints(file_at_base_tip(source) or "", tip_prefixes)
         added, removed = net_changes(base_eps, head_eps, tip_eps)
         added_eps   |= added
         removed_eps |= removed
