@@ -12,6 +12,7 @@ export const defaultFeatureFlags: Record<string, string> = {
     CJKSearch: 'true',
     ChannelAttributes: 'true',
     ChannelAttributesRequired: 'false',
+    ChannelPermissionActions: 'false',
     ChannelPermissionPolicies: 'true',
     ClassificationMarkings: 'true',
     ClusterGracefulDrain: 'true',

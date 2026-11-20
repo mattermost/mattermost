@@ -44,13 +44,10 @@ const (
 func (a *App) GetAudits(rctx request.CTX, userID string, limit int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store().Audit().Get(userID, 0, limit)
 	if err != nil {
-		var outErr *store.ErrOutOfBounds
-		switch {
-		case errors.As(err, &outErr):
+		if _, ok := errors.AsType[*store.ErrOutOfBounds](err); ok {
 			return nil, model.NewAppError("GetAudits", "app.audit.get.limit.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetAudits", "app.audit.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetAudits", "app.audit.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return audits, nil
 }
@@ -58,13 +55,10 @@ func (a *App) GetAudits(rctx request.CTX, userID string, limit int) (model.Audit
 func (a *App) GetAuditsPage(rctx request.CTX, userID string, page int, perPage int) (model.Audits, *model.AppError) {
 	audits, err := a.Srv().Store().Audit().Get(userID, page*perPage, perPage)
 	if err != nil {
-		var outErr *store.ErrOutOfBounds
-		switch {
-		case errors.As(err, &outErr):
+		if _, ok := errors.AsType[*store.ErrOutOfBounds](err); ok {
 			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.limit.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		default:
-			return nil, model.NewAppError("GetAuditsPage", "app.audit.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
+		return nil, model.NewAppError("GetAuditsPage", "app.audit.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return audits, nil
 }

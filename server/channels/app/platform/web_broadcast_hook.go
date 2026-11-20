@@ -57,6 +57,15 @@ func (he *HookedWebSocketEvent) Add(key string, value any) {
 	he.copy.Add(key, value)
 }
 
+// Reject drops the event for this connection only. The hub hands the same event to
+// every connection, so rejecting it in place would drop it for all of them; Reject
+// marks this connection's copy instead.
+func (he *HookedWebSocketEvent) Reject() {
+	he.copyIfNecessary()
+
+	he.copy.Reject()
+}
+
 func (he *HookedWebSocketEvent) EventType() model.WebsocketEventType {
 	if he.copy == nil {
 		return he.original.EventType()

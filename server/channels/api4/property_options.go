@@ -200,6 +200,10 @@ func createPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reque
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 	model.AddEventParameterAuditableArrayToAuditRec(auditRec, "options", options)
 
+	if !requireFieldTargetChannelManagementAccess(c, field) {
+		return
+	}
+
 	if !requireOptionsPermission(c, rctx, field, "createPropertyFieldOptions") {
 		return
 	}
@@ -235,6 +239,10 @@ func patchPropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reques
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 	model.AddEventParameterAuditableArrayToAuditRec(auditRec, "options", options)
+
+	if !requireFieldTargetChannelManagementAccess(c, field) {
+		return
+	}
 
 	if !requireOptionsPermission(c, rctx, field, "patchPropertyFieldOptions") {
 		return
@@ -280,6 +288,10 @@ func deletePropertyFieldOptions(c *Context, w http.ResponseWriter, r *http.Reque
 	defer c.LogAuditRec(auditRec)
 	model.AddEventParameterAuditableToAuditRec(auditRec, "property_field", field)
 	model.AddEventParameterToAuditRec(auditRec, "option_ids", optionIDs)
+
+	if !requireFieldTargetChannelManagementAccess(c, field) {
+		return
+	}
 
 	if !requireOptionsPermission(c, rctx, field, "deletePropertyFieldOptions") {
 		return

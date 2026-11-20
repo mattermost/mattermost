@@ -23,7 +23,7 @@ import type {RepeatDisabledReason} from 'utils/scheduled_post_repeat';
 import './send_button.scss';
 
 type SendButtonProps = {
-    handleSubmit: (schedulingInfo?: SchedulingInfo) => void;
+    handleSubmit: (schedulingInfo?: SchedulingInfo) => Promise<{error?: string}>;
     disabled: boolean;
     channelId: string;
     repeatDisabledReason?: RepeatDisabledReason;
