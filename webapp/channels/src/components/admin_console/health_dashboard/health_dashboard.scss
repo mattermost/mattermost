@@ -41,6 +41,12 @@
         margin-bottom: 16px;
     }
 
+    &__actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
     &__toolbar {
         display: flex;
         flex-wrap: wrap;
@@ -580,4 +586,14 @@
             gap: 6px;
         }
     }
+}
+
+// The export menu renders in a popover outside .HealthDashboard.
+.HealthDashboard__exportHelp {
+    max-width: 240px;
+    padding: 8px 20px 4px;
+    margin: 0;
+    color: rgba(var(--center-channel-color-rgb), 0.64);
+    font-size: 12px;
+    line-height: 16px;
 }

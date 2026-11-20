@@ -7683,6 +7683,38 @@
     "defaultMessage": "Health findings could not be loaded",
     "description": "Title shown on the System Console Site health page when the health findings request fails."
   },
+  "admin.health_dashboard.export.button": {
+    "defaultMessage": "Export",
+    "description": ""
+  },
+  "admin.health_dashboard.export.error": {
+    "defaultMessage": "The health findings could not be exported. Try again.",
+    "description": ""
+  },
+  "admin.health_dashboard.export.exporting": {
+    "defaultMessage": "Exporting…",
+    "description": ""
+  },
+  "admin.health_dashboard.export.help": {
+    "defaultMessage": "Includes all findings, including muted and resolved ones.",
+    "description": ""
+  },
+  "admin.health_dashboard.export.html": {
+    "defaultMessage": "Download HTML",
+    "description": ""
+  },
+  "admin.health_dashboard.export.markdown": {
+    "defaultMessage": "Download Markdown",
+    "description": ""
+  },
+  "admin.health_dashboard.export.menu_label": {
+    "defaultMessage": "Export health findings",
+    "description": ""
+  },
+  "admin.health_dashboard.export.print": {
+    "defaultMessage": "Print / Save as PDF",
+    "description": ""
+  },
   "admin.health_dashboard.finding.resolved": {
     "defaultMessage": "Resolved",
     "description": "Badge on a recently resolved finding row on the System Console Site health page when findings are grouped by category."
