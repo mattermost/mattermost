@@ -672,19 +672,40 @@ describe('ProductRail', () => {
             expect(moveRailItem(orderedIds, railIds as string[], from as number, to as number)).toEqual(expected);
         });
 
-        test('should keep apart two products from the same plugin', () => {
+        test.each([
+            ['in one order', false],
+            ['in the other order', true],
+        ])('should keep apart two products from the same plugin, registered %s', (_case, reversed) => {
+            const agentsOne = {...railProduct('Agents One', 'mattermost-ai'), baseURL: '/agents-one', switcherLinkURL: '/agents-one'};
+            const agentsTwo = {...railProduct('Agents Two', 'mattermost-ai'), baseURL: '/agents-two', switcherLinkURL: '/agents-two'};
             const state = getOrderState({hidden: ['mattermost-ai:/agents-two']});
             renderAt('/team-one/channels/town-square', {
                 ...state,
                 plugins: {
                     components: {
                         ...state.plugins!.components,
-                        Product: [agents, {...railProduct('Agents Two', 'mattermost-ai'), baseURL: '/agents-two', switcherLinkURL: '/agents-two'}],
+                        Product: reversed ? [agentsTwo, agentsOne] : [agentsOne, agentsTwo],
                     },
                 },
             });
 
-            expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai', 'more']);
+            expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai:/agents-one', 'more']);
+        });
+
+        test('should not let a plugin\'s remaining product take on another\'s preferences', () => {
+            // Unpinned while the plugin had two products; the other one is still pinned.
+            const state = getOrderState({hidden: ['mattermost-ai:/agents-one']});
+            renderAt('/team-one/channels/town-square', {
+                ...state,
+                plugins: {
+                    components: {
+                        ...state.plugins!.components,
+                        Product: [{...railProduct('Agents Two', 'mattermost-ai'), baseURL: '/agents-two', switcherLinkURL: '/agents-two'}],
+                    },
+                },
+            });
+
+            expect(railItemIds()).toEqual(['threads', 'channels', 'boards', 'mattermost-ai']);
         });
 
         test('should not move an item dropped where it was', () => {

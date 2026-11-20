@@ -345,12 +345,17 @@ export default function ProductRail() {
     };
 
     // What the order and pinned preferences name each product by. A product's id changes with every
-    // page load, so it goes by its plugin's id; a plugin's further products add their base URL.
+    // page load, so it goes by its plugin's id, and when a plugin has several products, each adds its
+    // base URL, whatever order they registered in.
+    const productsPerPlugin = new Map<string, number>();
+    for (const product of products) {
+        const pluginId = product.pluginId || product.id;
+        productsPerPlugin.set(pluginId, (productsPerPlugin.get(pluginId) ?? 0) + 1);
+    }
     const productItemIds = new Map<ProductComponent, string>();
     for (const product of products) {
         const pluginId = product.pluginId || product.id;
-        const taken = [...productItemIds.values()].includes(pluginId);
-        productItemIds.set(product, taken ? `${pluginId}:${product.baseURL}` : pluginId);
+        productItemIds.set(product, productsPerPlugin.get(pluginId)! > 1 ? `${pluginId}:${product.baseURL}` : pluginId);
     }
 
     // A stable sort, so products with no rank keep their registration order after the ranked ones.
