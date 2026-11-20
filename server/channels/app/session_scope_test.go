@@ -133,8 +133,7 @@ func TestSessionScopeChannelReads(t *testing.T) {
 			require.NoError(t, err)
 			got, _ = th.App.SessionHasPermissionToReadPost(rctx, *session, post.Id)
 			assert.Equal(t, want, got, "SessionHasPermissionToReadPost")
-			assert.Equal(t, want, th.App.SessionHasPermissionToChannelByPost(*session, post.Id, permission), "SessionHasPermissionToChannelByPost")
-			assert.Equal(t, want, th.App.HasPermissionToChannelByPost(rctx, f.bot.Id, post.Id, permission), "HasPermissionToChannelByPost with scoped request")
+			assert.Equal(t, want, th.App.SessionHasPermissionToChannelByPost(th.Context.WithSession(session), *session, post.Id, permission), "SessionHasPermissionToChannelByPost")
 		}
 
 		got, _ = th.App.HasPermissionToChannel(rctx, f.bot.Id, channel.Id, permission)

@@ -150,3 +150,17 @@ To run the checks now instead of waiting for the next scheduled run, use `mmctl 
 ```sh
 mmctl health run
 ```
+
+### Export a health report
+
+To share the findings as a file, export them as HTML or Markdown with `mmctl health export`:
+
+```sh
+mmctl health export html --output health-report.html
+```
+
+The report includes resolved and muted findings. Without `--output`, it goes to standard output. Use `--packet` to export a Support Packet without a server connection:
+
+```sh
+mmctl health export md --packet mm_support_packet.zip
+```

@@ -346,6 +346,10 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	loggerFields = append(loggerFields, scopedSessionLogFields(c.AppContext.Session())...)
 	c.Logger = c.App.Log().With(loggerFields...)
 	c.AppContext = c.AppContext.WithLogger(c.Logger)
+	// Nothing reads the memo while the gates are inert, so don't allocate it.
+	if c.App.ChannelAccessEnforcementActive() {
+		c.AppContext = app.WithChannelAccessMemo(c.AppContext)
+	}
 	c.App.ProcessSessionAttributesRequest(c.AppContext, r)
 
 	if c.Err == nil && c.AppContext.Session().IsScoped() && !h.AllowScopedSession {

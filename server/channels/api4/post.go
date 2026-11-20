@@ -653,6 +653,11 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	postEtag := c.App.AppendEntityEtag(c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId))
+	if !hydrating && c.HandleEtag(postEtag, "Get Post", w, r) {
+		return
+	}
+
 	post = c.App.PreparePostForClientWithEmbedsAndImages(c.AppContext, post, &model.PreparePostForClientOpts{
 		IncludePriority: true,
 		PropertyGroupID: propertyGroupID,
@@ -664,11 +669,6 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !hydrating {
-		postEtag := c.App.AppendABACEtag(c.AppContext, post.Etag(), post.ChannelId)
-		if c.HandleEtag(postEtag, "Get Post", w, r) {
-			return
-		}
-
 		w.Header().Set(model.HeaderEtagServer, postEtag)
 	}
 
@@ -794,6 +794,14 @@ func getEditHistoryForPost(c *Context, w http.ResponseWriter, r *http.Request) {
 	ok, isMember := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), originalPost.ChannelId, model.PermissionEditPost)
 	if !ok {
 		c.SetPermissionError(model.PermissionEditPost)
+		return
+	}
+
+	// Edit history is a read surface that happens to be gated on edit_post, because
+	// only the author may see it. That permission is a write, so the channel gate does
+	// not evaluate channel_read_access for it and this has to ask explicitly.
+	if !c.App.EnforceChannelReadAccessByID(c.AppContext, c.AppContext.Session().UserId, originalPost.ChannelId) {
+		c.SetPermissionError(model.PermissionReadChannel)
 		return
 	}
 
@@ -1017,7 +1025,7 @@ func getPostThread(c *Context, w http.ResponseWriter, r *http.Request) {
 	// written when the ETag is non-empty.
 	threadEtag := ""
 	if !hydrating {
-		threadEtag = c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId)
+		threadEtag = c.App.AppendEntityEtag(c.App.AppendABACEtag(c.AppContext, list.Etag(), post.ChannelId))
 		if c.HandleEtag(threadEtag, "Get Post Thread", w, r) {
 			return
 		}
@@ -1288,6 +1296,11 @@ func updatePost(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.Success()
 	auditRec.AddEventResultState(rpost)
 
+	// The updated post carries other users' reactions and files.
+	if !sessionCanReadChannel(c, rpost.ChannelId) {
+		rpost = postWithoutContent(rpost)
+	}
+
 	if err := rpost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
@@ -1343,6 +1356,12 @@ func patchPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddEventResultState(patchedPost)
+
+	// A patch that changes nothing still returns the whole post, with its reactions
+	// and files.
+	if !sessionCanReadChannel(c, patchedPost.ChannelId) {
+		patchedPost = postWithoutContent(patchedPost)
+	}
 
 	if err := patchedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -1482,6 +1501,11 @@ func saveIsPinnedPost(c *Context, w http.ResponseWriter, isPinned bool) {
 		return
 	}
 
+	// Pinning changes what every member of the channel sees, like a reaction.
+	if !requireChannelWriteAccess(c, channel) {
+		return
+	}
+
 	patch := &model.PostPatch{}
 	patch.IsPinned = new(isPinned)
 
@@ -1537,6 +1561,17 @@ func acknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	post, appErr := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// An acknowledgement is shown to every member of the channel, like a reaction.
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
+		return
+	}
+
 	acknowledgement, appErr := c.App.SaveAcknowledgementForPost(c.AppContext, c.Params.PostId, c.Params.UserId)
 	if appErr != nil {
 		c.Err = appErr
@@ -1576,9 +1611,13 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
+	post, err := c.App.GetSinglePost(c.AppContext, c.Params.PostId, false)
 	if err != nil {
 		c.Err = err
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
 
@@ -1657,6 +1696,10 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
 		}
 
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, sourcePost.ChannelId) || !requireChannelWriteAccessByID(c, moveThreadParams.ChannelId) {
 		return
 	}
 
@@ -1794,19 +1837,19 @@ func getPostInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hasPermissionToAccessChannel, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
+	hasChannelReadAccess, hasJoinedChannel := c.App.SessionHasPermissionToReadChannel(c.AppContext, *c.AppContext.Session(), channel)
 
 	// Join metadata is independent of ComplianceSettings. Compliance still blocks
 	// reading public-channel *content* for non-members (HasPermissionToReadChannel),
 	// including permalink previews. GetPostInfo returns only channel/team identifiers
 	// so the client can join, which creates the compliance trail, then load the post.
-	if !hasPermissionToAccessChannel && channel.Type == model.ChannelTypeOpen {
+	if !hasChannelReadAccess && channel.Type == model.ChannelTypeOpen {
 		canJoinOpenChannel := c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionJoinPublicChannels)
 		canJoinOpenTeam := team != nil && team.AllowOpenInvite && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionJoinPublicTeams)
-		hasPermissionToAccessChannel = canJoinOpenChannel || canJoinOpenTeam
+		hasChannelReadAccess = canJoinOpenChannel || canJoinOpenTeam
 	}
 
-	if !hasPermissionToAccessChannel {
+	if !hasChannelReadAccess || !c.App.HasChannelReadAccess(c.AppContext, c.AppContext.Session().UserId, channel) {
 		c.Err = notFoundError
 		return
 	}
@@ -1886,6 +1929,11 @@ func restorePostVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	auditRec.AddEventResultState(updatedPost)
+
+	// The restored version is content the caller may not otherwise read.
+	if !sessionCanReadChannel(c, updatedPost.ChannelId) {
+		updatedPost = postWithoutContent(updatedPost)
+	}
 
 	if err := updatedPost.EncodeJSON(w); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
@@ -2056,6 +2104,10 @@ func burnPost(c *Context, w http.ResponseWriter, r *http.Request) {
 		} else {
 			c.Err = err
 		}
+		return
+	}
+
+	if !requireChannelWriteAccessByID(c, post.ChannelId) {
 		return
 	}
 

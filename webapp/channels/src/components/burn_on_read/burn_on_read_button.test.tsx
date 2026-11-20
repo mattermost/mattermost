@@ -38,6 +38,38 @@ describe('BurnOnReadButton', () => {
         expect(button).toHaveClass('control');
     });
 
+    it('with a blocked reason, is disabled, shows the reason as its tooltip, and does not toggle', async () => {
+        const onToggle = jest.fn();
+        renderWithContext(
+            <BurnOnReadButton
+                {...defaultProps}
+                onToggle={onToggle}
+                blockedReason='Messages with attributes can’t be burn-on-read'
+            />,
+        );
+
+        const button = screen.getByRole('button');
+        expect(button).toBeDisabled();
+        expect(button).toHaveAccessibleName('Burn-on-read: Messages with attributes can’t be burn-on-read');
+
+        await userEvent.click(button);
+        expect(onToggle).not.toHaveBeenCalled();
+
+        await userEvent.hover(screen.getByTestId('burn-on-read-blocked'));
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('Messages with attributes can’t be burn-on-read');
+    });
+
+    it('without a blocked reason, has no wrapper and keeps its usual tooltip', async () => {
+        renderWithContext(
+            <BurnOnReadButton {...defaultProps}/>,
+        );
+
+        expect(screen.queryByTestId('burn-on-read-blocked')).not.toBeInTheDocument();
+
+        await userEvent.hover(screen.getByRole('button'));
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('Burn-on-read');
+    });
+
     it('should call onToggle with true when clicked while disabled', async () => {
         const onToggle = jest.fn();
         renderWithContext(

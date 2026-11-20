@@ -616,7 +616,6 @@ func (ch *Channels) removePluginLocally(id string) *model.AppError {
 
 	pluginsEnvironment.Deactivate(id)
 	pluginsEnvironment.RemovePlugin(id)
-	ch.unregisterPluginCommands(id)
 	ch.revokeScopedSessionsForPlugin(id)
 
 	if err := os.RemoveAll(unpackedBundlePath); err != nil {

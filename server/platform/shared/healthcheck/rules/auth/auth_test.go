@@ -28,6 +28,7 @@ var allRules = []healthcheck.Rule{
 	samlIDIsEmail,
 	samlIDMutable,
 	sessionExtendOff,
+	openSignupUnverified,
 	ldapProbeFailed,
 	samlProbeFailed,
 }
@@ -133,6 +134,7 @@ func TestRegistered(t *testing.T) {
 		"SAML_ID_IS_EMAIL":          healthcheck.SeverityInfo,
 		"SAML_ID_MUTABLE":           healthcheck.SeverityInfo,
 		"SESSION_EXTEND_OFF":        healthcheck.SeverityInfo,
+		"OPEN_SIGNUP_UNVERIFIED":    healthcheck.SeverityWarning,
 		"LDAP_PROBE_FAILED":         healthcheck.SeverityWarning,
 		"SAML_PROBE_FAILED":         healthcheck.SeverityWarning,
 		"OAUTH_PROBE_FAILED":        healthcheck.SeverityWarning,
@@ -170,6 +172,8 @@ func TestConfigAbsent(t *testing.T) {
 			cfg.LdapSettings = model.LdapSettings{}
 			cfg.SamlSettings = model.SamlSettings{}
 			cfg.ServiceSettings.ExtendSessionLengthWithActivity = nil
+			cfg.TeamSettings.EnableOpenServer = nil
+			cfg.EmailSettings.RequireEmailVerification = nil
 		}), wants)
 	})
 }
