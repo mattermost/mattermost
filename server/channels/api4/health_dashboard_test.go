@@ -452,17 +452,18 @@ func TestExportHealthFindings(t *testing.T) {
 		{"md", "text/markdown; charset=utf-8"},
 	} {
 		t.Run(tc.format, func(t *testing.T) {
-			before := time.Now().In(location).Format(time.DateOnly)
+			before := time.Now().In(location)
 			data, filename, resp, err := th.SystemAdminClient.ExportHealthFindings(context.Background(), tc.format)
-			after := time.Now().In(location).Format(time.DateOnly)
+			after := time.Now().In(location)
 			require.NoError(t, err)
 			CheckOKStatus(t, resp)
 
 			assert.Equal(t, tc.contentType, resp.Header.Get("Content-Type"))
+			assert.Equal(t, "nosniff", resp.Header.Get("X-Content-Type-Options"))
 			assert.Equal(t, "no-store", resp.Header.Get("Cache-Control"))
 			assert.Contains(t, []string{
-				"site-health-Acme_Corp-" + before + "." + tc.format,
-				"site-health-Acme_Corp-" + after + "." + tc.format,
+				"mm_site_health_My_awesome_Company_" + before.Format("2006-01-02T15-04") + "." + tc.format,
+				"mm_site_health_My_awesome_Company_" + after.Format("2006-01-02T15-04") + "." + tc.format,
 			}, filename)
 			assert.Equal(t, `attachment; filename="`+filename+`"`, resp.Header.Get("Content-Disposition"))
 
@@ -561,6 +562,21 @@ func TestMuteHealthFinding(t *testing.T) {
 		require.Len(t, stored, 1)
 		assert.True(t, stored[0].IsMuted())
 	})
+}
+
+func TestHealthExportFileName(t *testing.T) {
+	now := time.Date(2026, 11, 20, 14, 5, 0, 0, time.UTC)
+
+	for _, tc := range []struct {
+		company  string
+		expected string
+	}{
+		{"Acme Corp.", "mm_site_health_Acme_Corp_2026-11-20T14-05.html"},
+		{"", "mm_site_health_mattermost_2026-11-20T14-05.html"},
+		{"...", "mm_site_health_mattermost_2026-11-20T14-05.html"},
+	} {
+		assert.Equal(t, tc.expected, healthExportFileName(now, tc.company, "html"), tc.company)
+	}
 }
 
 func TestHealthDashboardAudit(t *testing.T) {

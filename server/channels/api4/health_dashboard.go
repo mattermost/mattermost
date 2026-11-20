@@ -151,8 +151,9 @@ func exportHealthFindings(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	filename := fmt.Sprintf("site-health-%s-%s.%s", utils.SanitizeFileName(*cfg.TeamSettings.SiteName), now.Format(time.DateOnly), format)
+	filename := healthExportFileName(now, company, format)
 	w.Header().Set("Content-Type", contentType)
+	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s"`, filename))
 	w.Header().Set("Cache-Control", "no-store")
 	if _, err := w.Write(buf.Bytes()); err != nil {
@@ -215,4 +216,14 @@ func unmuteHealthFinding(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	auditRec.Success()
 	ReturnStatusOK(w)
+}
+
+// healthExportFileName returns the export file name in the format
+// mm_site_health_$CUSTOMER_NAME_YYYY-MM-DDTHH-MM.$FORMAT, matching the Support Packet's naming.
+func healthExportFileName(now time.Time, company, format string) string {
+	name := utils.SanitizeFileName(company)
+	if name == "" {
+		name = "mattermost"
+	}
+	return fmt.Sprintf("mm_site_health_%s_%s.%s", name, now.Format("2006-01-02T15-04"), format)
 }

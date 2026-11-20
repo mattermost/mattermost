@@ -87,7 +87,8 @@
         "200":
           description: |
             Health findings export successful. The response is sent as a download named
-            `site-health-<site-name>-<YYYY-MM-DD>.<format>`, dated in the requesting user's timezone.
+            `mm_site_health_<company>_<YYYY-MM-DDTHH-MM>.<format>`, where `<company>` is the license's
+            customer name, and the timestamp is in the requesting user's timezone.
           headers:
             Content-Disposition:
               description: '`attachment` with the suggested filename.'
