@@ -144,7 +144,7 @@ test(
         const accessibilityScanResults = await axe
             .builder(page)
             .include('[role="dialog"]')
-            // TODO: Address scrollable-region-focusable violation in the Direct Messages dialog
+            // Known violation, not yet addressed: scrollable-region-focusable in the Direct Messages dialog
             // The multiSelectList and sr-only status elements need to be keyboard accessible
             .disableRules(['color-contrast', 'scrollable-region-focusable'])
             .analyze();

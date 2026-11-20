@@ -12,7 +12,7 @@ type Props = {
     helpText?: React.ReactNode;
     footer?: React.ReactNode;
 
-    /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`); without it the row keeps its input-id based ids. */
+    /** The row's parts render under it (`${testIdScope}.label--text`, `.help--text`); without it the row renders no test ids. */
     testIdScope?: string;
 
     /** The row's key: with it the row's own element is `<testIdScope>:<testKey>--group`. */
@@ -30,7 +30,7 @@ const Setting: React.FC<Props> = ({
     testIdScope,
     testKey,
 }: Props) => {
-    let rootTestId = inputId;
+    let rootTestId;
     if (testIdScope) {
         rootTestId = testKey ? `${testIdScope}:${testKey}--group` : `${testIdScope}--group`;
     }
@@ -43,7 +43,7 @@ const Setting: React.FC<Props> = ({
         >
             {label && (
                 <label
-                    data-testid={testIdScope ? `${testIdScope}.label--text` : inputId + 'label'}
+                    data-testid={testIdScope ? `${testIdScope}.label--text` : undefined}
                     className={'control-label ' + labelClassName}
                     htmlFor={inputId}
                 >
@@ -53,7 +53,7 @@ const Setting: React.FC<Props> = ({
             <div className={inputClassName}>
                 {children}
                 <div
-                    data-testid={testIdScope ? `${testIdScope}.help--text` : inputId + 'help-text'}
+                    data-testid={testIdScope ? `${testIdScope}.help--text` : undefined}
                     className='help-text'
                 >
                     {helpText}

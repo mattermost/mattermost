@@ -118,7 +118,7 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
         const {app} = await pw.testBrowser.login(adminUser!);
 
         await openAuthenticationPage(app, 'ldap');
-        const input = app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox;
+        const input = app.admin.customProfileAttribute(fieldId).valueTextbox;
         await expect(input).toBeVisible();
         await expect(input).toBeEnabled();
 
@@ -128,7 +128,7 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
 
         // # Reload and verify the value persisted
         await openAuthenticationPage(app, 'ldap');
-        const reloadedInput = app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox;
+        const reloadedInput = app.admin.customProfileAttribute(fieldId).valueTextbox;
         await expect(reloadedInput).toHaveValue('sAMAccountName');
     });
 
@@ -139,7 +139,7 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
         const {app} = await pw.testBrowser.login(adminUser!);
 
         await openAuthenticationPage(app, 'ldap');
-        const input = app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox;
+        const input = app.admin.customProfileAttribute(fieldId).valueTextbox;
         await expect(input).toHaveValue('oldAttr');
 
         await input.fill('newAttr');
@@ -147,7 +147,7 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
         await save(app);
 
         await openAuthenticationPage(app, 'ldap');
-        await expect(app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox).toHaveValue('newAttr');
+        await expect(app.admin.customProfileAttribute(fieldId).valueTextbox).toHaveValue('newAttr');
     });
 
     test('clears an LDAP sync value and verifies the field is empty after reload', async ({pw}) => {
@@ -157,7 +157,7 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
         const {app} = await pw.testBrowser.login(adminUser!);
 
         await openAuthenticationPage(app, 'ldap');
-        const input = app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox;
+        const input = app.admin.customProfileAttribute(fieldId).valueTextbox;
         await expect(input).toHaveValue('toBeCleared');
 
         await input.clear();
@@ -165,7 +165,7 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
         await save(app);
 
         await openAuthenticationPage(app, 'ldap');
-        await expect(app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox).toHaveValue('');
+        await expect(app.admin.customProfileAttribute(fieldId).valueTextbox).toHaveValue('');
     });
 
     test('links a linked select field without converting its type', async ({pw}) => {
@@ -179,11 +179,11 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
             const {app} = await pw.testBrowser.login(adminUser!);
 
             await openAuthenticationPage(app, 'ldap');
-            const input = app.admin.setting(`custom_profile_attribute-${linked.name}`).valueTextbox;
+            const input = app.admin.customProfileAttribute(linked.fieldId).valueTextbox;
 
             // * A select syncs as it is: the input is editable and warns of no conversion
             await expect(input).toBeEnabled();
-            await expect(app.admin.setting(`custom_profile_attribute-${linked.name}`).helpText).not.toContainText(
+            await expect(app.admin.customProfileAttribute(linked.fieldId).helpText).not.toContainText(
                 'converted to a TEXT attribute',
             );
 
@@ -194,9 +194,7 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
 
             // * The link persists and the field is still a select
             await openAuthenticationPage(app, 'ldap');
-            await expect(app.admin.setting(`custom_profile_attribute-${linked.name}`).valueTextbox).toHaveValue(
-                'departmentNumber',
-            );
+            await expect(app.admin.customProfileAttribute(linked.fieldId).valueTextbox).toHaveValue('departmentNumber');
             const field = await getUserField(adminClient, linked.fieldId);
             expect(field?.type).toBe('select');
             expect(field?.attrs?.ldap).toBe('departmentNumber');
@@ -216,15 +214,15 @@ test.describe('User attributes sync — AD/LDAP settings page', () => {
             const {app} = await pw.testBrowser.login(adminUser!);
 
             await openAuthenticationPage(app, 'ldap');
-            const input = app.admin.setting(`custom_profile_attribute-${linked.name}`).valueTextbox;
+            const input = app.admin.customProfileAttribute(linked.fieldId).valueTextbox;
             await expect(input).toBeVisible();
 
             // * Input is disabled - cannot be typed into
             await expect(input).toBeDisabled();
 
             // * Tooltip explains the field is linked to an attribute (scoped to avoid matching other linked fields on the page)
-            await expect(app.admin.setting(`custom_profile_attribute-${linked.name}`).helpText).toBeVisible();
-            await expect(app.admin.setting(`custom_profile_attribute-${linked.name}`).helpText).toContainText(
+            await expect(app.admin.customProfileAttribute(linked.fieldId).helpText).toBeVisible();
+            await expect(app.admin.customProfileAttribute(linked.fieldId).helpText).toContainText(
                 'linked to an attribute of type rank',
             );
         } finally {
@@ -259,7 +257,7 @@ test.describe('User attributes sync — SAML settings page', () => {
         const {app} = await pw.testBrowser.login(adminUser!);
 
         await openAuthenticationPage(app, 'saml');
-        const input = app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox;
+        const input = app.admin.customProfileAttribute(fieldId).valueTextbox;
         await expect(input).toBeVisible();
         await expect(input).toBeEnabled();
 
@@ -268,7 +266,7 @@ test.describe('User attributes sync — SAML settings page', () => {
         await save(app);
 
         await openAuthenticationPage(app, 'saml');
-        await expect(app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox).toHaveValue('email');
+        await expect(app.admin.customProfileAttribute(fieldId).valueTextbox).toHaveValue('email');
     });
 
     test('edits an existing SAML sync value and verifies the update persists after reload', async ({pw}) => {
@@ -278,7 +276,7 @@ test.describe('User attributes sync — SAML settings page', () => {
         const {app} = await pw.testBrowser.login(adminUser!);
 
         await openAuthenticationPage(app, 'saml');
-        const input = app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox;
+        const input = app.admin.customProfileAttribute(fieldId).valueTextbox;
         await expect(input).toHaveValue('oldSamlAttr');
 
         await input.fill('newSamlAttr');
@@ -286,9 +284,7 @@ test.describe('User attributes sync — SAML settings page', () => {
         await save(app);
 
         await openAuthenticationPage(app, 'saml');
-        await expect(app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox).toHaveValue(
-            'newSamlAttr',
-        );
+        await expect(app.admin.customProfileAttribute(fieldId).valueTextbox).toHaveValue('newSamlAttr');
     });
 
     test('clears a SAML sync value and verifies the field is empty after reload', async ({pw}) => {
@@ -298,7 +294,7 @@ test.describe('User attributes sync — SAML settings page', () => {
         const {app} = await pw.testBrowser.login(adminUser!);
 
         await openAuthenticationPage(app, 'saml');
-        const input = app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox;
+        const input = app.admin.customProfileAttribute(fieldId).valueTextbox;
         await expect(input).toHaveValue('toBeCleared');
 
         await input.clear();
@@ -306,7 +302,7 @@ test.describe('User attributes sync — SAML settings page', () => {
         await save(app);
 
         await openAuthenticationPage(app, 'saml');
-        await expect(app.admin.setting(`custom_profile_attribute-${fieldName}`).valueTextbox).toHaveValue('');
+        await expect(app.admin.customProfileAttribute(fieldId).valueTextbox).toHaveValue('');
     });
 
     test('links a linked select field without converting its type', async ({pw}) => {
@@ -320,11 +316,11 @@ test.describe('User attributes sync — SAML settings page', () => {
             const {app} = await pw.testBrowser.login(adminUser!);
 
             await openAuthenticationPage(app, 'saml');
-            const input = app.admin.setting(`custom_profile_attribute-${linked.name}`).valueTextbox;
+            const input = app.admin.customProfileAttribute(linked.fieldId).valueTextbox;
 
             // * A select syncs as it is: the input is editable and warns of no conversion
             await expect(input).toBeEnabled();
-            await expect(app.admin.setting(`custom_profile_attribute-${linked.name}`).helpText).not.toContainText(
+            await expect(app.admin.customProfileAttribute(linked.fieldId).helpText).not.toContainText(
                 'converted to a TEXT attribute',
             );
 
@@ -335,9 +331,7 @@ test.describe('User attributes sync — SAML settings page', () => {
 
             // * The link persists and the field is still a select
             await openAuthenticationPage(app, 'saml');
-            await expect(app.admin.setting(`custom_profile_attribute-${linked.name}`).valueTextbox).toHaveValue(
-                'department',
-            );
+            await expect(app.admin.customProfileAttribute(linked.fieldId).valueTextbox).toHaveValue('department');
             const field = await getUserField(adminClient, linked.fieldId);
             expect(field?.type).toBe('select');
             expect(field?.attrs?.saml).toBe('department');
@@ -357,12 +351,12 @@ test.describe('User attributes sync — SAML settings page', () => {
             const {app} = await pw.testBrowser.login(adminUser!);
 
             await openAuthenticationPage(app, 'saml');
-            const input = app.admin.setting(`custom_profile_attribute-${linked.name}`).valueTextbox;
+            const input = app.admin.customProfileAttribute(linked.fieldId).valueTextbox;
             await expect(input).toBeVisible();
 
             await expect(input).toBeDisabled();
-            await expect(app.admin.setting(`custom_profile_attribute-${linked.name}`).helpText).toBeVisible();
-            await expect(app.admin.setting(`custom_profile_attribute-${linked.name}`).helpText).toContainText(
+            await expect(app.admin.customProfileAttribute(linked.fieldId).helpText).toBeVisible();
+            await expect(app.admin.customProfileAttribute(linked.fieldId).helpText).toContainText(
                 'linked to an attribute of type rank',
             );
         } finally {

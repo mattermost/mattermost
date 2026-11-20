@@ -33,6 +33,7 @@ async function pickGif(app: App, term: string) {
     const id = giphyId(await first.getAttribute('src'));
     expect(id).toBeTruthy();
     await first.click();
+    await expect(first).not.toBeVisible();
     return id;
 }
 
@@ -63,6 +64,7 @@ test.fixme(
         // # Open emoji/gif picker from center textbox, and pick a GIF for "hello"
         const composer = app.center.postCreate;
         await composer.emojiButton.click();
+        await expect(app.emojiGifPicker.tab('gifs')).toBeVisible();
         const picked = await pickGif(app, 'hello');
 
         // # Send the selected GIF as a message
@@ -114,6 +116,7 @@ test.fixme(
 
         // # Open emoji/gif picker from the RHS textbox, and pick a GIF for "hello"
         await reply.emojiButton.click();
+        await expect(app.emojiGifPicker.tab('gifs')).toBeVisible();
         const picked = await pickGif(app, 'hello');
 
         // # Send the selected GIF as a message in the thread

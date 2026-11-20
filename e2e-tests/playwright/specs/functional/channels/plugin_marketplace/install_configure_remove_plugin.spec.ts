@@ -43,7 +43,7 @@ test(
         await expect(app.backstage.navbar.backLink).toBeVisible();
         await expect(app.admin.sidebar).toBeVisible();
         await expect(app.admin.sidebar.header.menu.container).toBeVisible();
-        // The sidebar header has no title part; retain the visible System Console title inside its generated menu button.
+        // The sidebar header has no title part, so the System Console title is read inside its generated menu button.
         await expect(app.admin.sidebar.header.menu.container.locator.getByText('System Console')).toBeVisible();
         await expect(app.admin.sidebar.filter.container).toBeVisible();
         await expect(app.admin.plugin.metadata.idButton).toBeVisible();
@@ -56,7 +56,7 @@ test(
 
         // # Navigate to Plugin Management and remove the plugin
         await page.goto(systemConsolePath('plugins/plugin_management'));
-        // The shared admin header has no title part; retain the Plugin Management page's visible title assertion.
+        // The shared admin header has no title part, so the Plugin Management page's title is read from the header.
         await expect(app.admin.header.locator.getByText('Plugin Management', {exact: true})).toBeVisible();
         const row = app.admin.plugins.plugin(key);
         await expect(row).toBeVisible();

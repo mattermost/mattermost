@@ -116,7 +116,8 @@ async function lastScheduledPost(app: App, team: Team) {
     const {scheduled} = app.drafts;
     const post = await scheduled.postList.last();
     await post.container.hover();
-    await expect(post.sendNowButton).toBeVisible();
+    // Delete is always offered, so it shows the actions are revealed (Send now may be withdrawn).
+    await expect(post.deleteButton).toBeVisible();
     return post;
 }
 

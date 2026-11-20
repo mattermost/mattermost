@@ -204,7 +204,7 @@ test('renders chips on the RHS root and on a reply', {tag: '@post_attributes'}, 
         await rootInCenter.container.hover();
         await expect(rootInCenter.menu.replyButton).toBeVisible();
         await rootInCenter.menu.replyButton.click();
-        await expect(app.rhs.thread).toBeVisible();
+        await expect(app.rhs.postCreate).toBeVisible();
 
         // * Verify the same root carries its chip in the RHS. A value set on a reply has
         // never been gated to roots server-side, so gating it here would make it

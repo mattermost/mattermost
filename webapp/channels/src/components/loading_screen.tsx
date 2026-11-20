@@ -24,7 +24,7 @@ function LoadingScreen({message, position = 'relative', style, className = '', c
 
     return (
         <div
-            data-testid={testId ?? 'loading-screen'}
+            data-testid={testId}
             className={classNames('loading-screen', className, {
                 'loading-screen--in-middle': centered,
             })}

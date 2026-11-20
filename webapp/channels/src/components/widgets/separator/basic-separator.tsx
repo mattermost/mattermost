@@ -14,7 +14,7 @@ type Props = {
 const BasicSeparator = ({children, testId}: Props) => {
     return (
         <div
-            data-testid={testId ?? 'basicSeparator'}
+            data-testid={testId}
             className='Separator BasicSeparator'
         >
             <hr className='separator__hr'/>

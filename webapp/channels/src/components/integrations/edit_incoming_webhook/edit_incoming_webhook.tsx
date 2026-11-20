@@ -133,7 +133,7 @@ export default class EditIncomingWebhook extends React.PureComponent<Props, Stat
 
     render() {
         if (!this.props.hook) {
-            return <LoadingScreen/>;
+            return <LoadingScreen testId='integrations.incoming_webhook.loading'/>;
         }
 
         return (

@@ -67,7 +67,8 @@ test('MM-T5584 views and unarchives a custom group', {tag: '@channels'}, async (
 
     // # Filter the list to archived groups and open the archived group
     await groups.filterButton.clickTo(groups.filterMenu.archivedMenuItem);
-    await groups.filterMenu.archivedMenuItem.clickTo(groups.group(group).container);
+    await groups.filterMenu.archivedMenuItem.click();
+    await expect(groups.group(group).container).toBeVisible();
     await groups.group(group).container.clickTo(app.viewUserGroupModal);
 
     // # Restore the group
@@ -109,8 +110,9 @@ test('MM-T5598 invites a custom group to a channel', {tag: '@channels'}, async (
 
     // * Verify the group's member was added to the channel. The system message and the ephemeral
     // * "already in the channel" reply for the inviter arrive in either order, so don't rely on the last post.
-    const addedPost = await addedToChannelPost(userClient, channel.id);
-    await expect(app.center.postList.post(addedPost)).toContainText(member.username);
+    // The system messages are grouped into one combined post, so the list is read for the text.
+    await addedToChannelPost(userClient, channel.id);
+    await expect(app.center.postList.container).toContainText(`${member.username} added to the channel`);
 });
 
 /**
@@ -157,9 +159,11 @@ test('MM-70052 adds every member of a custom group searched by its mention', {ta
     const addGroupMembers = addPeopleToChannelModal.users.results.group(group);
     await expect(addGroupMembers).toContainText(`Add ${members.length} people`);
 
-    // # Hover the shortcut. Its tooltip renders in a portal outside the dialog, where the open modal
+    // # Hover the "Add N people" shortcut. Its tooltip renders in a portal outside the dialog, where the open modal
     // # keeps it out of the accessibility tree, so match on its class rather than its role.
+    // The shortcut only shows once its row is hovered, and the tooltip is on the shortcut.
     await addGroupMembers.container.hover();
+    await addGroupMembers.addMembersText.hover();
 
     // * Verify the tooltip names every member of the group
     const tooltip = page.locator('.tooltipContainer').filter({hasText: members[0].username});
@@ -177,8 +181,9 @@ test('MM-70052 adds every member of a custom group searched by its mention', {ta
     await settle(addPeopleToChannelModal.users.saveButton, {wait: Api.AddChannelMember}).click();
 
     // * Verify every member of the group joined the channel
-    const addedPost = await addedToChannelPost(userClient, channel.id);
-    await expect(app.center.postList.post(addedPost)).toBeVisible();
+    // The system messages are grouped into one combined post, so the list is read for the text.
+    await addedToChannelPost(userClient, channel.id);
+    await expect(app.center.postList.container).toContainText('added to the channel');
     await expect(app.rhs.container).toContainText(`${members.length + 1} members`);
     for (const member of members) {
         await expect(app.rhs.channelMembers.member(member)).toContainText(member.username);

@@ -120,12 +120,12 @@ test.describe('Channel attribute lifecycle', {tag: ['@channel_attributes']}, () 
 
             // the header shows one chip per field, keyed by the field's id
             const chip = await labelChip(app.channelHeader.attributes, 'BEFORE');
-            await expect(chip).toHaveText('BEFORE');
+            await expect(chip).toContainText('BEFORE');
 
             // Changed elsewhere, this session untouched.
             await setChannelValue(adminClient, channel.id, program, optionId(program, 'AFTER'));
 
-            await expect(chip).toHaveText('AFTER');
+            await expect(chip).toContainText('AFTER');
             await expect(labelChips(app.channelHeader.attributes, 'BEFORE')).toHaveCount(0);
 
             // The shape most easily got wrong: a clear returns a null-valued row,

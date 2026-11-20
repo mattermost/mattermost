@@ -203,7 +203,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // The linked-policy panel and name have no generated parts; inspect them within this team form.
         const policyPanel = teamContent(app).locator('#team_access_control_with_policy');
-        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their legacy ids, classes and accessible names.
+        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their ids, classes and accessible names.
         await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({
             timeout: duration.half_min,
         });
@@ -217,7 +217,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // * The policy editor loads
         await expect(page).toHaveURL(/membership_policies\/edit_policy\//, {timeout: duration.half_min});
-        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their legacy ids, classes and accessible names.
+        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their ids, classes and accessible names.
         await expect(app.admin.header.locator.getByText('Edit Membership Policy')).toBeVisible();
 
         // # Navigate back via the editor's back arrow
@@ -262,7 +262,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
 
         // The linked-policy panel and name have no generated parts; inspect them within this team form.
         const policyPanel = teamContent(app).locator('#team_access_control_with_policy');
-        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their legacy ids, classes and accessible names.
+        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their ids, classes and accessible names.
         await expect(policyPanel.locator('.policy-name').filter({hasText: policyName})).toBeVisible({
             timeout: duration.half_min,
         });
@@ -277,7 +277,7 @@ test.describe('ABAC - Team Membership console', {tag: ['@abac', '@team_membershi
         await expect(policyPanel.locator('.team-policy-list input[type="checkbox"]')).toHaveCount(0);
 
         // * The rules section carries the renamed title
-        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their legacy ids, classes and accessible names.
+        // The membership policy panel, its table editor and the Monaco/CEL editor declare no parts: addressed by their ids, classes and accessible names.
         await expect(
             teamContent(app).locator('#team_level_access_rules').getByText('Team-specific membership rules'),
         ).toBeVisible();

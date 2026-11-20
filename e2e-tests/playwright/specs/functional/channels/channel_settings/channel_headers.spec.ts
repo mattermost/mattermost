@@ -1,7 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect, test, closeChannelSettings, openChannelSettingsInfoTab, Api, settle} from '@mattermost/playwright-lib';
+import {
+    Api,
+    closeChannelSettings,
+    createChannelFromModal,
+    expect,
+    openChannelSettingsInfoTab,
+    settle,
+    test,
+} from '@mattermost/playwright-lib';
 
 /**
  * @objective Verify a multi-line channel header is truncated in the header bar, that hovering it opens a
@@ -65,13 +73,13 @@ test('MM-T880 adds a channel header from the intro Set header link', {tag: '@cha
     // # Make sure the channel intro offers its action buttons instead of only the invite button
     await pw.ensureChannelIntroActions(adminClient);
 
-    const {app, channelsPage} = await pw.testBrowser.login(user);
+    const {app} = await pw.testBrowser.login(user);
     await app.channelsPage.goto({team, channel: 'town-square'});
     await expect(app.center.postCreate).toBeVisible();
 
     // # Create a new public channel so its intro (with the "Set header" link) is shown
     const channelName = `channel header ${pw.random.id()}`;
-    await channelsPage.newChannel(channelName, 'O');
+    await createChannelFromModal(app, channelName, 'O');
     await expect(app.channelHeader.openMenuButton).toContainText(channelName);
 
     // # Open the Edit Header modal from the intro and cancel without entering text

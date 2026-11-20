@@ -59,6 +59,7 @@ function recentMentions(app: App) {
         async selectChannel(channel: Pick<Channel, 'display_name'>) {
             const picker = popover.channelsCombobox;
             await popover.channelsCombobox.choose(new RegExp(escapeRegExp(channel.display_name)));
+            await expect(picker).toBeVisible();
             if (await picker.isExpanded()) {
                 await picker.press('Escape');
             }

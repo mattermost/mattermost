@@ -41,6 +41,7 @@ test('MM-T471 add a reaction to a message in a GM', {tag: '@messaging'}, async (
     // # Hover the post, then focus the message box again
     await item.container.hover();
     await expect(addReaction).toBeVisible();
+    await app.center.postCreate.message.container.hover();
     await app.center.postCreate.message.container.focus();
 
     // * The Add Reaction action is hidden again

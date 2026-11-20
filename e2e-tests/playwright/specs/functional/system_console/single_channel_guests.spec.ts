@@ -166,7 +166,7 @@ test.describe('Single-channel guests', () => {
 
             // * Verify the single-channel guests row is visible
             // The license card label has no generated part; check it within the declared license panel.
-            await expect(app.admin.license.locator.getByText('SINGLE-CHANNEL GUESTS:')).toBeVisible();
+            await expect(app.page.getByText('SINGLE-CHANNEL GUESTS:')).toBeVisible();
         },
     );
 
@@ -299,9 +299,7 @@ test.describe('Single-channel guests', () => {
         await app.page.waitForLoadState('networkidle');
 
         // * Verify the guest limit banner is not visible (count is within limit)
-        // AnnouncementBar's existing id is not exposed by the generated surface.
-        // The banner carries only the legacy single_channel_guest_limit_banner testid, outside the generated surface.
-        await expect(app.page.getByTestId('single_channel_guest_limit_banner')).not.toBeVisible();
+        await expect(app.announcementBars.singleChannelGuestLimit.container).not.toBeVisible();
     });
 
     /**
@@ -373,9 +371,7 @@ test.describe('Single-channel guests', () => {
             await expect(cardTitle).toHaveClass(/team_statistics--error/);
 
             // * Verify the dismissible guest limit banner is visible
-            // AnnouncementBar's existing id is not exposed by the generated surface.
-            // The banner carries only the legacy single_channel_guest_limit_banner testid, outside the generated surface.
-            await expect(app.page.getByTestId('single_channel_guest_limit_banner')).toBeVisible();
+            await expect(app.announcementBars.singleChannelGuestLimit.container).toBeVisible();
         },
     );
 

@@ -147,7 +147,7 @@ test.describe.serial('upgrade-to baseline', {tag: ['@upgrade-to']}, () => {
             });
     });
 
-    test('restrict unauthenticated webapp plugins is off after upgrade', async ({pw}) => {
+    test('restrict unauthenticated webapp plugins is off after upgrade', async ({pw, page}) => {
         const {adminClient, baseline} = await loadUpgradeToContext(pw);
         const fromValue = baseline.restrictUnauthenticatedWebappPlugins ?? null;
 
@@ -157,6 +157,6 @@ test.describe.serial('upgrade-to baseline', {tag: ['@upgrade-to']}, () => {
 
         // * Verify unauthenticated requests still list every webapp plugin an authenticated admin sees
         const authenticatedIds = (await adminClient.getWebappPlugins()).map((p) => p.id).sort();
-        expect(await readUnauthenticatedWebappPluginIds(pw.loginPage.page.request)).toEqual(authenticatedIds);
+        expect(await readUnauthenticatedWebappPluginIds(page.request)).toEqual(authenticatedIds);
     });
 });

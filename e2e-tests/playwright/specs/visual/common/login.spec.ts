@@ -21,7 +21,8 @@ test(
         await expect(app.login.password.container).toBeVisible();
 
         // # Click to other element to remove focus from email input
-        await pw.loginPage.title.click();
+        // The heading is plain text without a test id of its own.
+        await page.getByRole('heading', {name: 'Log in to your account'}).click();
         await expect(app.login.loginId.container).not.toBeFocused();
 
         // # Get license information and prepare test args
@@ -34,7 +35,8 @@ test(
 
         // # Click sign in button without entering user credential
         await app.login.card.logInButton.click();
-        await expect(app.login.loginId.validationAlert).toBeVisible();
+        // The empty-credentials error shows in the banner above the form.
+        await expect(app.login.banner.container).toBeVisible();
 
         // * Verify login page with error appears as expected
         await pw.matchSnapshot({...testInfo, title: `${testInfo.title} error ${editionSuffix}`}, testArgs);

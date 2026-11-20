@@ -111,4 +111,5 @@ async function clickDimmedArea(app: App, position: 'above' | 'below') {
         expect(y).toBeLessThan(modalBox!.y + modalBox!.height - DIALOG_MARGIN);
     }
     await app.page.mouse.click(x, y);
+    await expect(app.menuModal.items).not.toBeVisible();
 }

@@ -80,7 +80,7 @@ async function optionValues(select: {locator: Locator}) {
     return select.locator.evaluate((el: HTMLSelectElement) => [...el.options].map((o) => o.value));
 }
 
-/** Native options have no generated members; retain their label and count assertions. */
+/** Native options have no generated members, so their labels and count are read from the select. */
 async function expectOptionCount(select: {locator: Locator}, label: string | RegExp, count: number): Promise<void> {
     // The select's native options have no declared parts; counted by their option elements.
     await expect(select.locator.locator('option', {hasText: label})).toHaveCount(count);

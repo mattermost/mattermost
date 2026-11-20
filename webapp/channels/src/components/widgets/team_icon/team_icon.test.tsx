@@ -11,11 +11,14 @@ import TeamIcon from './team_icon';
 describe('components/widgets/team-icon', () => {
     test('should render basic icon with initials', () => {
         const {container} = render(withIntl(
-            <TeamIcon content='test'/>,
+            <TeamIcon
+                content='test'
+                testIdScope='fixture.team_icon'
+            />,
         ));
 
-        expect(screen.getByTestId('teamIconInitial')).toBeInTheDocument();
-        expect(screen.getByTestId('teamIconInitial')).toHaveTextContent('te');
+        expect(screen.getByTestId('fixture.team_icon.initials--img')).toBeInTheDocument();
+        expect(screen.getByTestId('fixture.team_icon.initials--img')).toHaveTextContent('te');
         expect(container.querySelector('.TeamIcon')).toBeInTheDocument();
         expect(container.querySelector('.TeamIcon__sm')).toBeInTheDocument();
     });
@@ -23,12 +26,13 @@ describe('components/widgets/team-icon', () => {
     test('should render image icon when url provided', () => {
         const {container} = render(withIntl(
             <TeamIcon
+                testIdScope='fixture.team_icon'
                 url='http://example.com/image.png'
                 content='test'
             />,
         ));
 
-        const image = screen.getByTestId('teamIconImage');
+        const image = screen.getByTestId('fixture.team_icon.icon--img');
         expect(image).toBeInTheDocument();
         expect(image).toHaveStyle({backgroundImage: "url('http://example.com/image.png')"});
         expect(container.querySelector('.withImage')).toBeInTheDocument();
@@ -37,12 +41,13 @@ describe('components/widgets/team-icon', () => {
     test('should render small icon with correct size class', () => {
         const {container} = render(withIntl(
             <TeamIcon
+                testIdScope='fixture.team_icon'
                 content='test'
                 size='sm'
             />,
         ));
 
-        expect(screen.getByTestId('teamIconInitial')).toBeInTheDocument();
+        expect(screen.getByTestId('fixture.team_icon.initials--img')).toBeInTheDocument();
         expect(container.querySelector('.TeamIcon__sm')).toBeInTheDocument();
         expect(container.querySelector('.TeamIcon__initials__sm')).toBeInTheDocument();
     });
@@ -50,12 +55,13 @@ describe('components/widgets/team-icon', () => {
     test('should render icon with hover class when withHover is true', () => {
         const {container} = render(withIntl(
             <TeamIcon
+                testIdScope='fixture.team_icon'
                 content='test'
                 withHover={true}
             />,
         ));
 
-        expect(screen.getByTestId('teamIconInitial')).toBeInTheDocument();
+        expect(screen.getByTestId('fixture.team_icon.initials--img')).toBeInTheDocument();
         expect(container.querySelector('.no-hover')).not.toBeInTheDocument();
         expect(container.querySelector('.TeamIcon')).not.toHaveClass('no-hover');
     });

@@ -115,7 +115,7 @@ const makeMenu = (testId?: string) => (props: any) => {
     return (
         <components.Menu
             {...props}
-            innerProps={{...props.innerProps, 'data-testid': testId ? `${testId}.menu` : 'dropdownMenu'}}
+            innerProps={{...props.innerProps, 'data-testid': testId ? `${testId}.menu` : undefined}}
         />
     );
 };

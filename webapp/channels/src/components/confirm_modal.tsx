@@ -202,7 +202,7 @@ const ConfirmModal = ({
         cancelButton = (
             <Button
                 type='button'
-                data-testid={testId ? `${testId}.cancel--button` : 'cancel-button'}
+                data-testid={testId ? `${testId}.cancel--button` : undefined}
                 emphasis='tertiary'
                 onClick={handleCancel}
                 id='cancelModalButton'

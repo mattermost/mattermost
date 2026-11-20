@@ -38,7 +38,7 @@ const LoadingSpinner = ({
             id='loadingSpinner'
             className={classNames('LoadingSpinner', {'with-text': Boolean(text)})}
             style={style}
-            data-testid={testId ?? 'loadingSpinner'}
+            data-testid={testId}
         >
             {legacy ? (
                 <span

@@ -9,7 +9,7 @@ import {createPost, setupContentFlagging, verifyReport} from './../support';
  * @objective Verify that when the author deletes a flagged message before review,
  * the flag status is updated to "Removed" and the report reflects the deletion.
  */
-// TODO: Fix defect https://mattermost.atlassian.net/browse/MM-66342
+// Skipped for a known defect: https://mattermost.atlassian.net/browse/MM-66342
 test.skip('should not be able to restore flagged messages when author deletes message', async ({pw}) => {
     const {adminClient, team, user: reviewerUser} = await pw.initSetup();
     // Create second user and add to team

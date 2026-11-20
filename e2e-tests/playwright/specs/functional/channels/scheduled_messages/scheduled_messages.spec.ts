@@ -608,6 +608,7 @@ test(
         // # Copy the scheduled message text to clipboard
         await scheduledPost.container.hover();
         await scheduledPost.copyTextButton.click();
+        await expect(scheduledPost.copyTextButton).toBeVisible();
 
         // # Return to the channel page
         await app.page.goBack();

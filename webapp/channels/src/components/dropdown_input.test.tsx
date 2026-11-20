@@ -29,7 +29,7 @@ describe('components/DropdownInput', () => {
         expect(screen.queryByTestId('dropdownMenu')).not.toBeInTheDocument();
     });
 
-    test('should keep the legacy menu testid without a testId', async () => {
+    test('should render the menu without a test id when no testId is given', async () => {
         renderWithContext(
             <DropdownInput
                 name='level'
@@ -40,6 +40,7 @@ describe('components/DropdownInput', () => {
 
         await userEvent.click(screen.getByRole('combobox'));
 
-        expect(screen.getByTestId('dropdownMenu')).toHaveTextContent('Second');
+        expect(screen.getByRole('listbox')).toHaveTextContent('Second');
+        expect(screen.queryByTestId('dropdownMenu')).not.toBeInTheDocument();
     });
 });

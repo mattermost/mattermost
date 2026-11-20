@@ -354,7 +354,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                     tabIndex={disabled ? -1 : 0}
                     aria-multiline='false'
                     aria-label={formatMessage({id: 'channel_banner.banner_text.label', defaultMessage: 'Banner text'})}
-                    data-testid={testId ? `${testId}--textbox` : 'bannerTextEditor'}
+                    data-testid={testId ? `${testId}--textbox` : undefined}
                     data-placeholder={formatMessage(channelKindMessages.bannerTextPlaceholder[channelKind])}
                     onInput={emit}
                     onBlur={rememberCaret}
@@ -379,7 +379,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                                 })}
                                 contentEditable={false}
                                 data-token={segment.name}
-                                data-testid={testId ? `${testId}.token:${segments.slice(0, index).filter((s) => s.type !== 'text').length}` : `bannerTextEditorChip-${segment.name}`}
+                                data-testid={testId ? `${testId}.token:${segments.slice(0, index).filter((s) => s.type !== 'text').length}` : undefined}
                             >
                                 {label}
                                 {!disabled && (
@@ -390,7 +390,7 @@ const BannerTextEditor = ({value, attributes, onChange, disabled, maxLength, has
                                             {id: 'channel_attributes.banner.remove_attribute', defaultMessage: 'Remove {label}'},
                                             {label},
                                         )}
-                                        data-testid={testId ? `${testId}.token.remove--button` : `bannerTextEditorChipRemove-${segment.name}`}
+                                        data-testid={testId ? `${testId}.token.remove--button` : undefined}
                                         onMouseDown={(event) => event.preventDefault()}
                                         onClick={handleRemoveToken}
                                     >

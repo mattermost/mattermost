@@ -252,6 +252,7 @@ test(
         await expect(removeLabelsTooltip).toHaveMessage(Msg.unified_labels.remove_all);
 
         // # Move the pointer back into the message input and put keyboard focus there
+        await input.hover();
         await input.focus();
 
         // * Verify the control is transparent again and its tooltip is gone

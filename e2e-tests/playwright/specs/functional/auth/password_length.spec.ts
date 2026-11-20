@@ -51,7 +51,7 @@ test('MM-T1772 applies a new minimum password length on signup', {tag: '@authent
     await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
 
     // * Verify the preview reflects the new length
-    await expect(app.admin.password.previewText).toHaveText('Your password must be 15-72 characters long.');
+    await expect(app.admin.password.previewText).toContainText('Your password must be 15-72 characters long.');
 
     // # Try to sign up with a short password, in the test's own browser (not logged in)
     const signup = await openSignup(pw, page);

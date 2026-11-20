@@ -333,6 +333,10 @@ test(
             teamMenu.learnAboutTeamsMenuItem,
         ];
 
+        // A key press puts the page in keyboard mode, so script focus() shows the focus ring like a Tab would.
+        await app.page.keyboard.press('Shift');
+        await expect(teamMenu).toBeVisible();
+
         for (const menuItem of menuItems) {
             // * Each menu item should contain an SVG icon with aria-hidden
             // Decorative icons have no generated member; inspect only this menu item's child.

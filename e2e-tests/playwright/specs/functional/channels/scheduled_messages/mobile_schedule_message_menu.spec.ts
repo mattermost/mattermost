@@ -113,4 +113,5 @@ async function clickAboveMobileMenu(app: App) {
     expect(dimmedAreaHeight).toBeGreaterThan(20);
 
     await app.page.mouse.click(listBox!.x + listBox!.width / 2, top + dimmedAreaHeight / 2);
+    await expect(app.menuModal.items).not.toBeVisible();
 }

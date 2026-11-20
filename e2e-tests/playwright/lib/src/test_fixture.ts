@@ -96,7 +96,7 @@ import {
     logFocusedElement,
 } from './test_action';
 import {testConfig} from './test_config';
-import {pages} from './ui/pages';
+import KeycloakLoginPage from './ui/pages/keycloak_login';
 import {matchSnapshot} from './visual';
 import {
     clearCapturedNotifications,
@@ -149,8 +149,8 @@ export const test = base.extend<ExtendedFixtures>({
         const ab = new AxeBuilderExtended();
         await use(ab);
     },
-    pw: async ({browser, page, isMobile}, use) => {
-        const pw = new PlaywrightExtended(browser, page, isMobile);
+    pw: async ({browser, page}, use) => {
+        const pw = new PlaywrightExtended(browser, page);
         await use(pw);
         await pw.testBrowser.close();
     },
@@ -304,27 +304,12 @@ export class PlaywrightExtended {
     // random
     readonly random;
 
-    // unauthenticated page
-    readonly loginPage;
+    // Keycloak's hosted login form (outside the webapp)
     readonly keycloakLoginPage;
-    readonly landingLoginPage;
-    readonly signupPage;
-    readonly selectTeamPage;
-    readonly verifyEmailPage;
-    readonly mfaSetupPage;
-    readonly resetPasswordPage;
-    readonly errorPage;
-    readonly emailToOAuthPage;
-    readonly oauthToEmailPage;
-    readonly emailToLdapPage;
-    readonly ldapToEmailPage;
-
-    // Same default page as above, post-login, for specs that authenticate it directly.
-    readonly channelsPage;
 
     readonly hasSeenLandingPage;
 
-    constructor(browser: Browser, page: Page, isMobile: boolean) {
+    constructor(browser: Browser, page: Page) {
         // ./browser_context
         this.testBrowser = new TestBrowser(browser);
 
@@ -409,23 +394,8 @@ export class PlaywrightExtended {
         this.waitUntil = waitUntil;
         this.logFocusedElement = logFocusedElement;
 
-        // unauthenticated page
-        this.loginPage = new pages.LoginPage(page);
-        this.keycloakLoginPage = new pages.KeycloakLoginPage(page);
-        this.landingLoginPage = new pages.LandingLoginPage(page, isMobile);
-        this.signupPage = new pages.SignupPage(page);
-        this.selectTeamPage = new pages.SelectTeamPage(page);
-        this.verifyEmailPage = new pages.VerifyEmailPage(page);
-        this.mfaSetupPage = new pages.MfaSetupPage(page);
-        this.resetPasswordPage = new pages.ResetPasswordPage(page);
-        this.errorPage = new pages.ErrorPage(page);
-        this.emailToOAuthPage = new pages.EmailToOAuthPage(page);
-        this.oauthToEmailPage = new pages.OAuthToEmailPage(page);
-        this.emailToLdapPage = new pages.EmailToLdapPage(page);
-        this.ldapToEmailPage = new pages.LdapToEmailPage(page);
-
-        // Same default page as above, post-login
-        this.channelsPage = new pages.ChannelsPage(page);
+        // Keycloak's hosted login form (outside the webapp)
+        this.keycloakLoginPage = new KeycloakLoginPage(page);
 
         // ./mock_browser_api
         this.stubNotification = stubNotification;

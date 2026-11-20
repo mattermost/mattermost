@@ -214,7 +214,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 disabled={saving}
                 autoFocus={true}
                 aria-label={label}
-                data-testid={testId ? `${testId}.editor--textbox` : `channelAttributeEdit-${field.name}`}
+                data-testid={testId ? `${testId}.editor--textbox` : undefined}
             />
         );
     }
@@ -227,8 +227,8 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
                 onIdsChange={handleGraphIdsChange}
                 menuId={`channelAttributeEdit-${field.name}`}
                 buttonId={`channelInfoAttributeEdit-${field.name}`}
-                buttonDataTestId={testId ? `${testId}.edit--button` : `channelInfoAttributeEdit-${field.name}`}
-                testIdScope={testId ? `${testId}.edit_menu` : undefined}
+                buttonDataTestId={testId ? `${testId}.edit--button` : undefined}
+                testIdScope={testId ? 'channel_attribute_edit_menu' : undefined}
                 placeholder={formatMessage({
                     id: 'channel_attributes.info.not_set',
                     defaultMessage: 'Not set',
@@ -243,7 +243,7 @@ const ChannelAttributeRowEditor = ({field, rawValue, displayValue, color, onSubm
     const emptyPlaceholder = (
         <span
             className='ChannelInfoAttributes__empty'
-            data-testid={testId ? `${testId}.unset--text` : `channelInfoAttributeUnset-${field.name}`}
+            data-testid={testId ? `${testId}.unset--text` : undefined}
         >
             <FormattedMessage
                 id='channel_attributes.info.not_set'

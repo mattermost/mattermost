@@ -673,7 +673,7 @@ const LDAPWizard = (props: Props) => {
                     <AdminSectionPanel
                         title={section.title}
                         description={section.subtitle || section.description}
-                        data-testid={section.key}
+                        data-testid={`admin.ldap.section:${section.key}--region`}
                     >
                         {header}
                         {settingsList}

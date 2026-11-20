@@ -104,7 +104,7 @@ test('Invite modal autocomplete is not clipped vertically', async ({pw}) => {
 
     const lastOption = await invite.users.userList.last();
     await expect(lastOption).toBeVisible();
-    // Modal content and geometry have no generated members; preserve the original clipping assertions.
+    // Modal content and geometry have no generated members, so the clipping is asserted on the elements' boxes.
     const modalContent = modal.locator.locator('.modal-content');
     const modalContentBox = await modalContent.boundingBox();
     const lastOptionBox = await lastOption.locator.boundingBox();

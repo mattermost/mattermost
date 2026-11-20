@@ -15,7 +15,7 @@ const NotificationSeparator = ({children, testId}: Props) => {
     return (
         <div
             className='Separator NotificationSeparator'
-            data-testid={testId ?? 'NotificationSeparator'}
+            data-testid={testId}
         >
             <hr className='separator__hr'/>
             {children && (

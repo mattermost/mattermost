@@ -414,7 +414,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Channels by going to the team URL
         await page.goto(`/${team.name}/channels/off-topic`);
-        await expect(app.admin.screen('PostSettings')).toBeVisible();
+        await expect(app.center.composer).toBeVisible();
 
         // * Verify BoR toggle is visible in post create area
         const borButton = app.center.postCreate.burnOnReadButton;
@@ -475,7 +475,7 @@ test.describe('System Console > Self-Deleting Messages', () => {
 
         // # Navigate to Channels by going to the team URL
         await page.goto(`/${team.name}/channels/off-topic`);
-        await expect(app.admin.screen('PostSettings')).toBeVisible();
+        await expect(app.center.composer).toBeVisible();
 
         // * Verify BoR toggle is NOT visible in post create area
         const borButton = app.center.postCreate.burnOnReadButton;

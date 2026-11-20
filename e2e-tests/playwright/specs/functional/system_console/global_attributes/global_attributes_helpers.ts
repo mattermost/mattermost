@@ -86,7 +86,8 @@ export async function openClassificationAttribute(app: App): Promise<App['admin'
  * Saves edits to classification's existing linked channel field before reading its persisted settings.
  */
 export async function saveInPlace(app: App) {
-    const {saveButton} = app.admin.classification.savePanel;
+    // The attribute page's own Save button (the classification markings page has a different save panel).
+    const {saveButton} = app.admin;
     await expect(saveButton).toBeEnabled();
     await settle(saveButton, {
         wait: Api.UpdatePropertyField,

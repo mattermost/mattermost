@@ -111,7 +111,7 @@ export function verifySavedPost(postId: string, message: string) {
     cy.clickPostDotMenu(postId, 'CENTER');
 
     // * Check that the dotmenu item is changed accordingly
-    cy.findAllByTestId('center.post_list.post.menu').eq(0).should('be.visible');
+    cy.findByTestId(`center.post_list.post:${postId}`).findByTestId('center.post_list.post.menu').should('be.visible');
     cy.findByText('Remove from Saved').scrollIntoView().should('be.visible');
     cy.get('body').type('{esc}');
 
@@ -172,7 +172,7 @@ export function verifyUnsavedPost(postId: string) {
     cy.clickPostDotMenu(postId, 'CENTER');
 
     // * Check that the dotmenu item is changed accordingly
-    cy.findAllByTestId('center.post_list.post.menu').eq(0).should('be.visible');
+    cy.findByTestId(`center.post_list.post:${postId}`).findByTestId('center.post_list.post.menu').should('be.visible');
     cy.findByText('Save Message').scrollIntoView().should('be.visible');
     cy.get('body').type('{esc}');
 

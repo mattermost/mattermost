@@ -66,7 +66,7 @@ const Audits = ({
     let content = null;
 
     if (isLoadingAudits) {
-        content = <LoadingScreen/>;
+        content = <LoadingScreen testId='admin.audits.loading'/>;
     } else {
         content = (
             <AuditTable

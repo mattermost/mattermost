@@ -90,7 +90,6 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const labels = useChannelLabels(channelId, surface);
-    const surfaceId = Array.isArray(surface) ? surface.join('-') : surface;
 
     // Expand each attribute into one ChipSpec per value (multiselect → N chips).
     const chipSpecs = useMemo((): ChipSpec[] => {
@@ -223,7 +222,7 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
         <div
             ref={containerRef}
             className='ChannelAttributeLabels'
-            data-testid={testId ?? `channelAttributeLabels-${surfaceId}`}
+            data-testid={testId}
             style={measured ? undefined : {visibility: 'hidden'}}
         >
             {visibleIds.length > 0 && (
@@ -244,7 +243,7 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
                         {id: 'generic.more_attributes', defaultMessage: '{count, plural, one {# more attribute} other {# more attributes}}', description: 'Accessible label (screen readers only) on the overflow badge that stands in for attribute chips that do not fit, shown on channel attribute labels and on post attribute chips. {count} is the number of hidden attributes.'},
                         {count: overflowIds.length},
                     )}
-                    data-testid={testId ? `${testId}.overflow--button` : `channelAttributeLabelsOverflow-${surfaceId}`}
+                    data-testid={testId ? `${testId}.overflow--button` : undefined}
                     {...getReferenceProps()}
                 >
                     <FormattedMessage
@@ -261,7 +260,7 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
                         ref={setFloating}
                         className='ChannelAttributeLabels__popover'
                         style={{...floatingStyles, ...transitionStyles}}
-                        data-testid={testId ? `${testId}.overflow_popover` : `channelAttributeLabelsPopover-${surfaceId}`}
+                        data-testid={testId ? `${testId}.overflow_popover` : undefined}
                         {...getFloatingProps()}
                     >
                         {overflowIds.map((id, index) => {
@@ -302,7 +301,7 @@ const ChannelAttributeLabels = ({channelId, surface, testId, allowEmptyVisible =
                                     type='button'
                                     className='ChannelAttributeLabels__viewAll'
                                     onClick={openChannelInfo}
-                                    data-testid={testId ? `${testId}.overflow_popover.view_all--button` : `channelAttributeLabelsViewAll-${surfaceId}`}
+                                    data-testid={testId ? `${testId}.overflow_popover.view_all--button` : undefined}
                                 >
                                     <FormattedMessage
                                         id='channel_attributes.labels.view_all'

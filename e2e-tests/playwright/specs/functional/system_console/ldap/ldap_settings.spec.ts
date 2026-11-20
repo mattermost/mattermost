@@ -52,10 +52,10 @@ test('MM-T2700 requires Username Attribute before saving AD/LDAP settings', {tag
 
     // # Clear Username Attribute and save
     await usernameAttribute.clear();
-    await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
+    await settle(app.admin.saveButton, {wait: Api.PatchConfig, status: 400}).click();
 
     // * Verify the save is refused
-    await expect(app.admin.saveError).toContainText('AD/LDAP field "Username Attribute" is required.');
+    await expect(app.admin.ldapWizard.saveError).toContainText('AD/LDAP field "Username Attribute" is required.');
 
     // # Set it again and save
     await usernameAttribute.fill('uid');
@@ -83,8 +83,8 @@ test('MM-T2701 requires Login ID Attribute before saving AD/LDAP settings', {tag
 
     // # Clear Login ID Attribute and save
     await app.admin.setting('LdapSettings.LoginIdAttribute').valueTextbox.clear();
-    await settle(app.admin.saveButton, {wait: Api.PatchConfig}).click();
+    await settle(app.admin.saveButton, {wait: Api.PatchConfig, status: 400}).click();
 
     // * Verify the save is refused
-    await expect(app.admin.saveError).toContainText('AD/LDAP field "Login ID Attribute" is required.');
+    await expect(app.admin.ldapWizard.saveError).toContainText('AD/LDAP field "Login ID Attribute" is required.');
 });

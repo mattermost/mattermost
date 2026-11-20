@@ -371,7 +371,7 @@ describe('MediaGallery', () => {
             await waitFor(() => expect(button).toBeDisabled());
             expect(button).toHaveAttribute('aria-busy', 'true');
             expect(button).toHaveTextContent('Preparing 0 of 2...');
-            expect(within(button).getByTestId('loadingSpinner')).toBeInTheDocument();
+            expect(within(button).getByTestId('center.post_list.post.attachments.download_all.loading')).toBeInTheDocument();
             expect(mockBuildFileArchive.mock.calls[0][0].map((f) => f.id)).toEqual(['a', 'b']);
 
             act(() => reportProgress(1));

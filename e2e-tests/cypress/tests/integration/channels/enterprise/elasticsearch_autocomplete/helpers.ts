@@ -223,11 +223,11 @@ export function searchAndVerifyChannel(channel: Cypress.Channel, shouldExist = t
 
     if (shouldExist) {
         // * Channel should appear in suggestions list
-        cy.get('#suggestionList').findByTestId(channel.name).should('be.visible');
+        cy.get('#suggestionList').findByTestId(`quick_switch_modal.suggestions.suggestion:${channel.id}--option`).should('be.visible');
     } else {
         // * Suggestion list and channel item should not appear
         cy.get('#suggestionList').should('not.exist');
-        cy.findByTestId(channel.name).should('not.exist');
+        cy.findByTestId(`quick_switch_modal.suggestions.suggestion:${channel.id}--option`).should('not.exist');
     }
 }
 

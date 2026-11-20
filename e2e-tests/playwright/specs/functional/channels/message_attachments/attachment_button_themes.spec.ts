@@ -63,9 +63,10 @@ test(
             await expect(app.userSettingsModal).not.toBeVisible();
 
             // * Verify every attachment button is still shown with its label
-            for (const [index, action] of actions.entries()) {
-                await expect(post.action(index)).toBeVisible();
-                await expect(post.action(index)).toHaveText(action.name);
+            for (const action of actions) {
+                // Attachment buttons render through the block renderer, keyed by their action id.
+                await expect(post.blockAction(action.id)).toBeVisible();
+                await expect(post.blockAction(action.id)).toHaveText(action.name);
             }
         }
     },

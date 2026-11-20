@@ -18,6 +18,8 @@ async function openGroup(app: App, members: Array<{id: string; username: string}
             }),
             modal.options.searchCombobox.fill(member.username),
         ]);
+        // The add button shows when the row is hovered.
+        await modal.options.user(member).container.hover();
         await modal.options.user(member).addButton.click();
         await expect(modal.options.remove(member.id)).toBeVisible();
     }

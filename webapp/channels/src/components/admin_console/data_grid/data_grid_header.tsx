@@ -39,7 +39,7 @@ const DataGridHeader = ({columns, testIdScope}: Props) => {
         <div
             className='DataGrid_header'
             role='row'
-            data-testid={testIdScope ? `${testIdScope}.header` : 'dataGrid-header'}
+            data-testid={testIdScope ? `${testIdScope}.header` : undefined}
         >
             {columns.map((col) => (
                 <HeaderElement

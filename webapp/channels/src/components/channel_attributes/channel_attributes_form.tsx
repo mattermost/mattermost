@@ -29,7 +29,7 @@ type Props = {
     onChange: (fieldId: string, value: string | string[] | undefined) => void;
     disabled?: boolean;
 
-    /** The form's scope: its rows are `<testId>.attribute:<field id>`. Without it the form keeps its legacy ids. */
+    /** The form's scope: its rows are `<testId>.attribute:<field id>`. Without it the form renders no test ids. */
     testId?: string;
 };
 
@@ -80,7 +80,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled, testId}: Pro
     return (
         <div
             className='channel-attributes-form'
-            data-testid={testId ?? 'channelAttributesForm'}
+            data-testid={testId}
         >
             <h4 className='channel-attributes-form__title'>
                 <FormattedMessage
@@ -171,7 +171,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled, testId}: Pro
                     <div
                         key={field.id}
                         className={classNames('channel-attributes-form__row', {'channel-attributes-form__row--error': showError})}
-                        data-testid={testId ? `${testId}.attribute:${field.id}` : `channelAttributeRow-${field.name}`}
+                        data-testid={testId ? `${testId}.attribute:${field.id}` : undefined}
                     >
                         {hasOptions ? (
                             <label
@@ -217,7 +217,7 @@ const ChannelAttributesForm = ({fields, values, onChange, disabled, testId}: Pro
 
 type GraphControlProps = {
 
-    // The picker's button testid, whole; without it the button keeps its legacy id.
+    // The picker's button testid, whole; without it the button renders no test id.
     buttonTestId?: string;
     testIdScope?: string;
     field: PropertyField;
@@ -244,7 +244,7 @@ const GraphAttributeControl = ({field, value, onChange, placeholder, ariaLabel, 
             onIdsChange={handleIdsChange}
             menuId={`channelAttributeMenu-${field.name}`}
             buttonId={`channelAttribute-${field.name}`}
-            buttonDataTestId={buttonTestId ?? `channelAttribute-${field.name}`}
+            buttonDataTestId={buttonTestId}
             testIdScope={testIdScope}
             placeholder={placeholder}
             ariaLabel={ariaLabel}
