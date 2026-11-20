@@ -572,12 +572,13 @@ export async function createBasicPolicy(
             .locator(`[id^="attribute-selector-menu"] li:has-text("${options.attribute}")`)
             .first();
         await expect(attributeOption).toBeVisible();
-        await attributeOption.click({force: true});
+        await attributeOption.click();
+        await expect(attributeMenu).toBeHidden();
 
         // Select operator
         const operatorButton = page.locator('[data-testid="operatorSelectorMenuButton"]').first();
         await expect(operatorButton).toBeVisible();
-        await operatorButton.click({force: true});
+        await operatorButton.click();
 
         const operatorMap: Record<string, string> = {
             '==': 'is',
@@ -742,13 +743,14 @@ export async function createMultiAttributePolicy(
         await expect(attributeMenu).toBeVisible();
         const attributeOption = attributeMenu.locator(`li:has-text("${rule.attribute}")`).first();
         await expect(attributeOption).toBeVisible();
-        await attributeOption.click({force: true});
+        await attributeOption.click();
+        await expect(attributeMenu).toBeHidden();
 
         // Select operator
         const operatorButtons = page.locator('[data-testid="operatorSelectorMenuButton"]');
         const operatorButton = operatorButtons.nth(i);
         await expect(operatorButton).toBeVisible();
-        await operatorButton.click({force: true});
+        await operatorButton.click();
 
         // Map operator to display text
         const operatorMap: Record<string, string> = {

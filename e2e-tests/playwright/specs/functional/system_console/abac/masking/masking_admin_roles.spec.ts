@@ -442,13 +442,11 @@ test.describe('Attribute-Value Masking - Admin Roles', {tag: ['@abac', '@abac_ma
                 await channelsPage.sidebarRight.toBeVisible();
 
                 try {
-                    await alertContainer.waitFor({state: 'visible', timeout: 10000});
-                    publicTagVisible = await alertContainer.getByText(/:\s*Alpha/).isVisible();
-                    if (publicTagVisible) {
-                        break;
-                    }
+                    await expect(alertContainer.getByText(/:\s*Alpha/)).toBeVisible({timeout: 10000});
+                    publicTagVisible = true;
+                    break;
                 } catch {
-                    // alert container not yet visible, retry
+                    // Enforcement cache is still cold. Reload and try again.
                 }
             }
 
