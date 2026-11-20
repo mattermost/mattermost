@@ -506,127 +506,129 @@ export default function ProductRail() {
             className='ProductRail'
             aria-label={formatMessage(messages.ariaLabel)}
         >
-            {teamSidebarHidden && <ProductRailTeamMenu/>}
-            <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId='product-rail'>
-                    {(droppableProvided) => (
-                        <div
-                            ref={droppableProvided.innerRef}
-                            className='ProductRail__items'
-                            {...droppableProvided.droppableProps}
-                        >
-                            {railItems.map((entry, index) => (
-                                <RailItemContainer
-                                    key={entry.itemId}
-                                    entry={entry}
-                                    index={index}
-                                    hidden={isUnpinned(entry)}
-                                />
-                            ))}
-                            {droppableProvided.placeholder}
-                        </div>
-                    )}
-                </Droppable>
-            </DragDropContext>
-            {moreItems.length > 0 && (
-                <Menu.Container
-                    menuButton={{
-                        id: 'product-rail-item-more',
-                        class: 'ProductRail__item',
-                        'aria-label': formatMessage(messages.moreMenuLabel),
-                        children: (
-                            <>
-                                <span className='ProductRail__icon'>
-                                    <DotsHorizontalIcon size={20}/>
-                                    {renderIndicator(
-                                        moreItems.reduce((total, entry) => total + (entry.mentions ?? 0), 0),
-                                        moreItems.some((entry) => entry.hasUrgent),
-                                        moreItems.some((entry) => entry.unread),
-                                    )}
-                                </span>
-                                <span className='ProductRail__label'>{formatMessage(messages.more)}</span>
-                            </>
-                        ),
-                    }}
-                    menu={{
-                        id: 'productRailMoreMenu',
-                        className: 'ProductRail__moreMenu',
-                        width: '248px',
-                        'aria-label': formatMessage(messages.moreMenuLabel),
-
-                        // Right Arrow on a row moves to its pin button.
-                        onKeyDown: (event) => {
-                            const row = event.target as HTMLElement;
-                            const pinButton = row.getAttribute('role') === 'menuitem' ? row.querySelector<HTMLElement>('.ProductRail__pinButton') : null;
-                            if (event.key === 'ArrowRight' && pinButton) {
-                                event.preventDefault();
-                                pinButton.focus();
-                            }
-                        },
-                    }}
-                    anchorOrigin={{vertical: 'top', horizontal: 'right'}}
-                    transformOrigin={{vertical: 'top', horizontal: 'left'}}
-                >
-                    {moreItems.map((entry) => (
-                        <Menu.Item
-                            key={entry.itemId}
-                            id={`productRailMoreMenu-${entry.itemId}`}
-                            leadingElement={<span className='ProductRail__menuIcon'>{entry.icon}</span>}
-                            labels={<span>{entry.label}</span>}
-                            trailingElements={(
-                                <>
-                                    {renderMenuIndicator(entry)}
-                                    <IconButton
-                                        size='x-small'
-                                        className='ProductRail__pinButton'
-                                        icon={<Icon glyph={<PinOutlineIcon/>}/>}
-                                        aria-label={typeof entry.label === 'string' ? formatMessage(messages.pinProduct, {name: entry.label}) : formatMessage(messages.pin)}
-                                        onClick={(event) => {
-                                            // Pins without opening the product, and leaves the menu open.
-                                            event.stopPropagation();
-
-                                            // The row goes once pinned, so keyboard focus moves to a neighbour, or,
-                                            // pinning the last one (when More goes too), to the item on the rail.
-                                            const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
-                                            if (row?.contains(document.activeElement)) {
-                                                const neighbour = (row.nextElementSibling ?? row.previousElementSibling) as HTMLElement | null;
-                                                if (neighbour) {
-                                                    neighbour.focus();
-                                                } else {
-                                                    focusAfterPin.current = entry.elementId;
-                                                }
-                                            }
-                                            dispatch(setProductRailItemHidden(entry.itemId, false, entry.aliases, entry.aliasPeers));
-                                        }}
-                                        onKeyDown={(event) => {
-                                            const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
-                                            if (event.key === 'Enter' || event.key === ' ') {
-                                                // The button's own click pins; the row mustn't open the product too.
-                                                event.stopPropagation();
-                                            } else if (event.key === 'ArrowLeft') {
-                                                event.preventDefault();
-                                                row?.focus();
-                                            } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
-                                                // Back on the row, the menu moves on from it as usual.
-                                                row?.focus();
-                                            }
-                                        }}
-                                        onKeyUp={(event) => {
-                                            if (event.key === ' ') {
-                                                event.stopPropagation();
-                                            }
-                                        }}
+            <div className='ProductRail__scroll'>
+                {teamSidebarHidden && <ProductRailTeamMenu/>}
+                <DragDropContext onDragEnd={onDragEnd}>
+                    <Droppable droppableId='product-rail'>
+                        {(droppableProvided) => (
+                            <div
+                                ref={droppableProvided.innerRef}
+                                className='ProductRail__items'
+                                {...droppableProvided.droppableProps}
+                            >
+                                {railItems.map((entry, index) => (
+                                    <RailItemContainer
+                                        key={entry.itemId}
+                                        entry={entry}
+                                        index={index}
+                                        hidden={isUnpinned(entry)}
                                     />
+                                ))}
+                                {droppableProvided.placeholder}
+                            </div>
+                        )}
+                    </Droppable>
+                </DragDropContext>
+                {moreItems.length > 0 && (
+                    <Menu.Container
+                        menuButton={{
+                            id: 'product-rail-item-more',
+                            class: 'ProductRail__item',
+                            'aria-label': formatMessage(messages.moreMenuLabel),
+                            children: (
+                                <>
+                                    <span className='ProductRail__icon'>
+                                        <DotsHorizontalIcon size={20}/>
+                                        {renderIndicator(
+                                            moreItems.reduce((total, entry) => total + (entry.mentions ?? 0), 0),
+                                            moreItems.some((entry) => entry.hasUrgent),
+                                            moreItems.some((entry) => entry.unread),
+                                        )}
+                                    </span>
+                                    <span className='ProductRail__label'>{formatMessage(messages.more)}</span>
                                 </>
-                            )}
-                            onClick={() => {
-                                entry.onClick?.();
-                                history.push(entry.to);
-                            }}
-                        />
-                    ))}
-                </Menu.Container>
-            )}
+                            ),
+                        }}
+                        menu={{
+                            id: 'productRailMoreMenu',
+                            className: 'ProductRail__moreMenu',
+                            width: '248px',
+                            'aria-label': formatMessage(messages.moreMenuLabel),
+
+                            // Right Arrow on a row moves to its pin button.
+                            onKeyDown: (event) => {
+                                const row = event.target as HTMLElement;
+                                const pinButton = row.getAttribute('role') === 'menuitem' ? row.querySelector<HTMLElement>('.ProductRail__pinButton') : null;
+                                if (event.key === 'ArrowRight' && pinButton) {
+                                    event.preventDefault();
+                                    pinButton.focus();
+                                }
+                            },
+                        }}
+                        anchorOrigin={{vertical: 'top', horizontal: 'right'}}
+                        transformOrigin={{vertical: 'top', horizontal: 'left'}}
+                    >
+                        {moreItems.map((entry) => (
+                            <Menu.Item
+                                key={entry.itemId}
+                                id={`productRailMoreMenu-${entry.itemId}`}
+                                leadingElement={<span className='ProductRail__menuIcon'>{entry.icon}</span>}
+                                labels={<span>{entry.label}</span>}
+                                trailingElements={(
+                                    <>
+                                        {renderMenuIndicator(entry)}
+                                        <IconButton
+                                            size='x-small'
+                                            className='ProductRail__pinButton'
+                                            icon={<Icon glyph={<PinOutlineIcon/>}/>}
+                                            aria-label={typeof entry.label === 'string' ? formatMessage(messages.pinProduct, {name: entry.label}) : formatMessage(messages.pin)}
+                                            onClick={(event) => {
+                                            // Pins without opening the product, and leaves the menu open.
+                                                event.stopPropagation();
+
+                                                // The row goes once pinned, so keyboard focus moves to a neighbour, or,
+                                                // pinning the last one (when More goes too), to the item on the rail.
+                                                const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
+                                                if (row?.contains(document.activeElement)) {
+                                                    const neighbour = (row.nextElementSibling ?? row.previousElementSibling) as HTMLElement | null;
+                                                    if (neighbour) {
+                                                        neighbour.focus();
+                                                    } else {
+                                                        focusAfterPin.current = entry.elementId;
+                                                    }
+                                                }
+                                                dispatch(setProductRailItemHidden(entry.itemId, false, entry.aliases, entry.aliasPeers));
+                                            }}
+                                            onKeyDown={(event) => {
+                                                const row = event.currentTarget.closest<HTMLElement>('[role="menuitem"]');
+                                                if (event.key === 'Enter' || event.key === ' ') {
+                                                // The button's own click pins; the row mustn't open the product too.
+                                                    event.stopPropagation();
+                                                } else if (event.key === 'ArrowLeft') {
+                                                    event.preventDefault();
+                                                    row?.focus();
+                                                } else if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                                                // Back on the row, the menu moves on from it as usual.
+                                                    row?.focus();
+                                                }
+                                            }}
+                                            onKeyUp={(event) => {
+                                                if (event.key === ' ') {
+                                                    event.stopPropagation();
+                                                }
+                                            }}
+                                        />
+                                    </>
+                                )}
+                                onClick={() => {
+                                    entry.onClick?.();
+                                    history.push(entry.to);
+                                }}
+                            />
+                        ))}
+                    </Menu.Container>
+                )}
+            </div>
             {teamSidebarHidden && (
                 <div className='ProductRail__bottom'>
                     {/* With the team sidebar hidden, its plugins' icons move here, as there only in Channels. */}

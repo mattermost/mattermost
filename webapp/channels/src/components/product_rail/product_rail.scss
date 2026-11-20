@@ -4,14 +4,30 @@
 
     z-index: 17;
     display: flex;
-    overflow: auto;
+    overflow: hidden;
     width: 72px;
     flex-direction: column;
     align-items: center;
-    padding: 12px 0;
+
+    // Half of the top padding sits inside the scrolling part, so the team's badge isn't clipped.
+    padding: 6px 0 12px;
     gap: 4px;
     grid-area: product-rail;
-    scrollbar-width: none;
+
+    // The team, the items and More scroll when the rail runs out of room; the bottom group (the team
+    // sidebar's plugin icons and its show button) stays in view below them.
+    &__scroll {
+        display: flex;
+        width: 100%;
+        min-height: 0;
+        flex: 1 1 auto;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 6px;
+        gap: 4px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
 
     // Scoped under .app__body to win over the theme's link colors (.app__body a and its :hover).
     .app__body &__item,
@@ -227,7 +243,6 @@
         flex: 0 0 auto;
         flex-direction: column;
         align-items: center;
-        margin-top: auto;
         gap: 4px;
     }
 
